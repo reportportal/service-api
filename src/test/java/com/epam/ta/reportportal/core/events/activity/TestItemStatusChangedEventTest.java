@@ -49,6 +49,7 @@ class TestItemStatusChangedEventTest {
     activity.setSubjectName("user");
     activity.setSubjectType(EventSubject.USER);
     activity.setProjectId(3L);
+    activity.setOrganizationId(1L);
     activity.setObjectId(2L);
     activity.setCreatedAt(Instant.now());
     activity.setObjectName("name");
@@ -77,7 +78,7 @@ class TestItemStatusChangedEventTest {
     final String afterStatus = "FAILED";
     final Activity actual =
         new TestItemStatusChangedEvent(getTestItem(beforeStatus), getTestItem(afterStatus), 1L,
-            "user"
+            "user", 1L
         ).toActivity();
     final Activity expected = getExpectedActivity();
     expected.getDetails().setHistory(getExpectedHistory(Pair.of(beforeStatus, afterStatus)));

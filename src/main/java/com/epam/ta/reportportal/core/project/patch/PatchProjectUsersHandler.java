@@ -33,10 +33,8 @@ import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -70,10 +68,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
     List<ProjectUserRole> operationValues;
     try {
-      String valueAsString = operation.getValue() instanceof String ? (String) operation.getValue()
-          : objectMapper.writeValueAsString(operation.getValue());
       operationValues = objectMapper.readValue(
-          valueAsString,
+          valueToString(operation.getValue()),
           new com.fasterxml.jackson.core.type.TypeReference<>() {
           }
       );

@@ -30,10 +30,12 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.model.project.ProjectUserRole;
 import com.epam.ta.reportportal.util.SecurityContextUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import java.util.Set;
-import lombok.SneakyThrows;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +57,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
    * @param projectUserRepository The repository for project users.
    * @param objectMapper          The object mapper for JSON conversion.
    */
+  @Autowired
   protected PatchProjectUsersHandler(ProjectService projectService, ProjectUserRepository projectUserRepository,
       OrganizationUserRepository organizationUserRepository,
       ObjectMapper objectMapper) {
@@ -64,13 +67,21 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   }
 
   @Override
-  @SneakyThrows
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
-    Set<ProjectUserRole> operationValues = objectMapper.readValue(
-        String.valueOf(operation.getValue()),
-        new com.fasterxml.jackson.core.type.TypeReference<>() {
-        }
-    );
+    List<ProjectUserRole> operationValues;
+    try {
+      String valueAsString = operation.getValue() instanceof String ? (String) operation.getValue()
+          : objectMapper.writeValueAsString(operation.getValue());
+      operationValues = objectMapper.readValue(
+          valueAsString,
+          new com.fasterxml.jackson.core.type.TypeReference<>() {
+          }
+      );
+
+    } catch (JsonProcessingException e) {
+      log.error(e.getMessage());
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
+    }
     operationValues.forEach(pur -> replaceProjectUserRole(orgId, projectId, pur));
   }
 

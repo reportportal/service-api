@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.patch;
 
 import com.epam.ta.reportportal.core.project.ProjectService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,7 +32,7 @@ public class PatchProjectNoPathHandler extends BasePatchProjectHandler {
    *
    * @param projectService service for project-related operations
    */
-  protected PatchProjectNoPathHandler(ProjectService projectService) {
-    super(projectService);
+  protected PatchProjectNoPathHandler(ProjectService projectService, ObjectMapper objectMapper) {
+    super(projectService, objectMapper);
   }
 }

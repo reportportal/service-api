@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -191,7 +192,6 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .content(jsonBody.toString()))
         .andExpect(status().is4xxClientError());
   }
-
 
 
   @Test
@@ -479,6 +479,56 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .with(token(managerToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void removeUserFromProject() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(List.of(104L)));
+
+    // Verify user exists in a project before removal
+    var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(104L, 302L);
+    assertTrue(projectUserBefore.isPresent());
+
+    mockMvc.perform(patch("/organizations/202/projects/302")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    // Verify user no longer exists in a project after removal
+    var projectUserAfter = projectUserRepository.findProjectUserByUserIdAndProjectId(104L, 302L);
+    assertTrue(projectUserAfter.isEmpty());
+  }
+
+  @Test
+  void removeUserFromProjectHimself() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(List.of(104L)));
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(managerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void removeNonExistingUserFromProject() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(List.of(999L)));
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isNotFound());
   }
 
 }

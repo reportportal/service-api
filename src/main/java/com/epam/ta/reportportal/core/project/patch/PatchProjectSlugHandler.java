@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.project.patch;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.util.SlugUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -44,10 +45,10 @@ public class PatchProjectSlugHandler extends BasePatchProjectHandler {
   /**
    * Constructs a new PatchProjectSlugHandler with the required project service.
    *
-   * @param projectService service for project-related operations, must not be null
+   * @param projectService service for project-related operations. Must not be null
    */
-  public PatchProjectSlugHandler(ProjectService projectService) {
-    super(projectService);
+  public PatchProjectSlugHandler(ProjectService projectService, ObjectMapper objectMapper) {
+    super(projectService, objectMapper);
   }
 
   /**

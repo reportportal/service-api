@@ -18,12 +18,12 @@ package com.epam.ta.reportportal.core.project.patch;
 
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 /**
- * Handler for managing project name patch operations in the Report Portal system. Extends the base
- * patch handler to provide specific implementation for modifying project names through patch
- * operations.
+ * Handler for managing project name patch operations in the Report Portal system. Extends the base patch handler to
+ * provide specific implementation for modifying project names through patch operations.
  *
  * <p>This handler processes patch operations related to project name updates,
  * ensuring proper validation and execution of the modifications.
@@ -42,8 +42,8 @@ public class PatchProjectNameHandler extends BasePatchProjectHandler {
    *
    * @param projectService service for handling project-related operations
    */
-  public PatchProjectNameHandler(ProjectService projectService) {
-    super(projectService);
+  public PatchProjectNameHandler(ProjectService projectService, ObjectMapper objectMapper) {
+    super(projectService, objectMapper);
   }
 
   /**

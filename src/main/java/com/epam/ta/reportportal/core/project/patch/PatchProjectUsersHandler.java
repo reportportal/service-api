@@ -47,8 +47,6 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   private final ProjectUserRepository projectUserRepository;
   private final OrganizationUserRepository organizationUserRepository;
-  private final ObjectMapper objectMapper;
-
 
   /**
    * Constructs a new PatchProjectUsersHandler.
@@ -61,20 +59,17 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   protected PatchProjectUsersHandler(ProjectService projectService, ProjectUserRepository projectUserRepository,
       OrganizationUserRepository organizationUserRepository,
       ObjectMapper objectMapper) {
-    super(projectService);
+    super(projectService, objectMapper);
     this.projectUserRepository = projectUserRepository;
     this.organizationUserRepository = organizationUserRepository;
-    this.objectMapper = objectMapper;
   }
 
   @Override
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
     List<ProjectUserRole> operationValues;
     try {
-      String valueAsString = operation.getValue() instanceof String ? (String) operation.getValue()
-          : objectMapper.writeValueAsString(operation.getValue());
       operationValues = objectMapper.readValue(
-          valueAsString,
+          valueToString(operation.getValue()),
           new com.fasterxml.jackson.core.type.TypeReference<>() {
           }
       );
@@ -98,6 +93,26 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
         .ifPresentOrElse(pru -> pru.setProjectRole(newRole), () -> {
           throw new ReportPortalException(ErrorType.USER_NOT_FOUND, pur.id());
         });
+  }
+
+  @Override
+  public void remove(PatchOperation operation, Long orgId, Long projectId) {
+    List<Long> ids;
+    try {
+      ids = objectMapper.readValue(
+          valueToString(operation.getValue()),
+          new com.fasterxml.jackson.core.type.TypeReference<>() {
+          });
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
+    }
+    ids.forEach(id -> {
+      projectUserRepository.findProjectUserByUserIdAndProjectId(id, projectId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, id));
+      projectUserRepository.deleteByUserIdAndProjectIds(id, List.of(projectId));
+      log.info("User with ID {} has been removed from project with ID {}", id, projectId);
+    });
   }
 
 }

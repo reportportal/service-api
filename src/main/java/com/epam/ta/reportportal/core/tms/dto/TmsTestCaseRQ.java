@@ -20,6 +20,8 @@ public class TmsTestCaseRQ {
 
   private String priority;
 
+  private String externalId;
+
   @Valid
   private TmsTestCaseTestFolderRQ testFolder;
 

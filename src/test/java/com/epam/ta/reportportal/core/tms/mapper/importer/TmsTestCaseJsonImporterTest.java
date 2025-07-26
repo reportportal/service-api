@@ -33,12 +33,13 @@ class TmsTestCaseJsonImporterTest {
   @Test
   void shouldImportTestCasesFromJson() throws Exception {
     // Given
-    var testCase1 = createTestCaseRQ("Test Case 1", "Description 1");
-    var testCase2 = createTestCaseRQ("Test Case 2", "Description 2");
+    var testCase1 = createTestCaseRQ("Test Case 1", "Description 1", "HIGH", "123");
+    var testCase2 = createTestCaseRQ("Test Case 2", "Description 2", "LOW", "321");
     var testCases = Arrays.asList(testCase1, testCase2);
 
     var jsonContent = objectMapper.writeValueAsString(testCases);
-    var file = new MockMultipartFile("file", "testcases.json", "application/json", jsonContent.getBytes());
+    var file = new MockMultipartFile("file", "testcases.json", "application/json",
+        jsonContent.getBytes());
 
     // When
     var importedTestCases = jsonImporter.importFromFile(file);
@@ -46,18 +47,23 @@ class TmsTestCaseJsonImporterTest {
     // Then
     assertThat(importedTestCases).hasSize(2);
 
-    assertThat(importedTestCases.get(0).getName()).isEqualTo("Test Case 1");
-    assertThat(importedTestCases.get(0).getDescription()).isEqualTo("Description 1");
+    assertThat(importedTestCases.getFirst().getName()).isEqualTo("Test Case 1");
+    assertThat(importedTestCases.getFirst().getDescription()).isEqualTo("Description 1");
+    assertThat(importedTestCases.getFirst().getPriority()).isEqualTo("HIGH");
+    assertThat(importedTestCases.getFirst().getExternalId()).isEqualTo("123");
 
     assertThat(importedTestCases.get(1).getName()).isEqualTo("Test Case 2");
     assertThat(importedTestCases.get(1).getDescription()).isEqualTo("Description 2");
+    assertThat(importedTestCases.get(1).getPriority()).isEqualTo("LOW");
+    assertThat(importedTestCases.get(1).getExternalId()).isEqualTo("321");
   }
 
   @Test
   void shouldImportEmptyList() throws Exception {
     // Given
     var jsonContent = "[]";
-    var file = new MockMultipartFile("file", "testcases.json", "application/json", jsonContent.getBytes());
+    var file = new MockMultipartFile("file", "testcases.json", "application/json",
+        jsonContent.getBytes());
 
     // When
     var importedTestCases = jsonImporter.importFromFile(file);
@@ -67,11 +73,13 @@ class TmsTestCaseJsonImporterTest {
   }
 
 
-  private TmsTestCaseRQ createTestCaseRQ(String name, String description) {
+  private TmsTestCaseRQ createTestCaseRQ(String name, String description, String priority,
+      String externalId) {
     var testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName(name);
     testCaseRQ.setDescription(description);
-    testCaseRQ.setPriority("HIGH");
+    testCaseRQ.setPriority(priority);
+    testCaseRQ.setExternalId(externalId);
     return testCaseRQ;
   }
 }

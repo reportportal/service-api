@@ -1,14 +1,18 @@
 package com.epam.ta.reportportal.core.tms.db.entity;
 
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -48,6 +52,10 @@ public class TmsTestPlan {
   @JoinColumn(name = "product_version_id", nullable = false)
   private TmsProductVersion productVersion;
 
+  @OneToOne
+  @JoinColumn(name = "launch_id", unique = true)
+  private Launch launch;
+
   @OneToMany(mappedBy = "testPlan")
   @ToString.Exclude
   private Set<TmsTestPlanAttribute> attributes;
@@ -56,11 +64,11 @@ public class TmsTestPlan {
   @ToString.Exclude
   private Set<TmsMilestone> milestones;
 
-//    @ManyToMany TODO add
-//    @JoinTable(
-//        name = "tms_test_plan_test_folder",
-//        joinColumns = @JoinColumn(name = "test_plan_id"),
-//        inverseJoinColumns = @JoinColumn(name = "test_folder_id"))
-//    private Set<TmsTestFolder> testFolders;
-
+  @ManyToMany
+  @JoinTable(
+      name = "tms_test_plan_test_folder",
+      joinColumns = @JoinColumn(name = "test_plan_id"),
+      inverseJoinColumns = @JoinColumn(name = "test_folder_id"))
+  @ToString.Exclude
+  private Set<TmsTestFolder> testFolders;
 }

@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.db.entity;
 
+import com.epam.ta.reportportal.entity.item.TestItem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -7,6 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -16,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -62,4 +66,12 @@ public class TmsTestCase implements Serializable {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "dataset_id")
   private TmsDataset dataset;
+
+  @ManyToMany
+  @JoinTable(
+      name = "tms_test_case_test_item",
+      joinColumns = @JoinColumn(name = "test_case_id"),
+      inverseJoinColumns = @JoinColumn(name = "test_item_id"))
+  @ToString.Exclude
+  private Set<TestItem> testItems;
 }

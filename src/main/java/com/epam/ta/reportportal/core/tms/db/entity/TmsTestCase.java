@@ -44,6 +44,9 @@ public class TmsTestCase implements Serializable {
   @Column(name = "search_vector", insertable = false, updatable = false)
   private String searchVector; //immutable, because trigger updates this field
 
+  @Column(name = "external_id")
+  private String externalId;
+
   @OneToMany(mappedBy = "testCase")
   @Fetch(FetchMode.SUBSELECT)
   private Set<TmsTestCaseAttribute> tags;

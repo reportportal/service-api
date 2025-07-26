@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
 
   private static final String[] EXPECTED_HEADERS = {"name", "description", "testFolder",
-      "priority"};
+      "priority", "externalId"};
 
   @Override
   public TmsTestCaseImportFormat getSupportedFormat() {
@@ -50,6 +50,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
         testCaseRQ.setName(csvRecord.get("name"));
         testCaseRQ.setDescription(csvRecord.get("description"));
         testCaseRQ.setPriority(csvRecord.get("priority"));
+        testCaseRQ.setExternalId(csvRecord.get("externalId"));
 
         if (StringUtils.hasText(csvRecord.get("testFolder"))) {
           TmsTestCaseTestFolderRQ testFolderRQ = new TmsTestCaseTestFolderRQ();

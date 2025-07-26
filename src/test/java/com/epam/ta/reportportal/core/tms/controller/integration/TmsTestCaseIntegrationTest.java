@@ -514,7 +514,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             "priority": 1,
             "testFolder": {
               "id": 3
-            }
+            },
+            "externalId": "123"
           },
           {
             "name": "Imported Test Case 2",
@@ -522,7 +523,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             "priority": 2,
             "testFolder": {
               "id": 4
-            }
+            },
+            "externalId": "321"
           }
         ]
         """;
@@ -556,9 +558,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void importTestCasesFromCsvIntegrationTest() throws Exception {
     // Given
     var csvContent = """
-        name,description,testFolder,priority
-        CSV Test Case 1,Description for CSV test case 1,Test Folder 3,1
-        CSV Test Case 2,Description for CSV test case 2,Test Folder 4,2
+        name,description,testFolder,priority,externalId
+        CSV Test Case 1,Description for CSV test case 1,Test Folder 3,1,123
+        CSV Test Case 2,Description for CSV test case 2,Test Folder 4,2,321
         """;
 
     MockMultipartFile file = new MockMultipartFile(

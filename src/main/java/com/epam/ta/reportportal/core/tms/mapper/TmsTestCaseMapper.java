@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -20,7 +21,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "tags", ignore = true)
   @Mapping(target = "versions", ignore = true)
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ, Long testFolderId);
-
 
   @BeanMapping(nullValuePropertyMappingStrategy =
       NullValuePropertyMappingStrategy.SET_TO_NULL,
@@ -48,5 +48,13 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     tmsTestFolder.setProject(project); //TODO refactor that
 
     return tmsTestFolder;
+  }
+
+  //TODO move to tms manual scenario mapper and refactor
+  protected TmsManualScenarioPreconditionsRS convertToTmsManualScenarioPreconditionsRS(
+      String preconditionsValue) {
+    return TmsManualScenarioPreconditionsRS.builder()
+        .value(preconditionsValue)
+        .build();
   }
 }

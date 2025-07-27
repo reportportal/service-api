@@ -20,6 +20,8 @@ public class TmsManualScenarioRS {
 
   private String linkToRequirements;
 
+  private TmsManualScenarioPreconditionsRS preconditions;
+
   private Set<TmsManualScenarioAttributeRS> attributes;
 
   private Set<TmsStepRS> steps;

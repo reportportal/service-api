@@ -25,7 +25,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   @Override
   @Transactional
-  public void createTestCaseAttributes(TmsTestCase tmsTestCase,
+  public void createTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
       @NotEmpty List<TmsTestCaseAttributeRQ> attributes) {
     var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
         attributes);
@@ -37,7 +37,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   @Override
   @Transactional
-  public void updateTestCaseAttributes(TmsTestCase tmsTestCase,
+  public void updateTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes) {
     tmsTestCaseAttributeRepository.deleteAllByTestCaseId(tmsTestCase.getId());
     if (CollectionUtils.isNotEmpty(attributes)) {
@@ -47,7 +47,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   @Override
   @Transactional
-  public void patchTestCaseAttributes(TmsTestCase tmsTestCase,
+  public void patchTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
@@ -58,6 +58,23 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
         tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
     tmsTestCase.getTags().addAll(tmsTestCaseAttributes);
     tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+  }
+
+  @Override
+  @Transactional
+  public void patchTestCaseAttributes(@NotNull @NotEmpty List<TmsTestCase> tmsTestCases,
+      List<TmsTestCaseAttributeRQ> attributes) {
+    if (isEmpty(attributes)) {
+      return;
+    }
+    var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
+        attributes);
+    tmsTestCases.forEach(tmsTestCase -> {
+      tmsTestCaseAttributes.forEach(
+          tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
+      tmsTestCase.getTags().addAll(tmsTestCaseAttributes);
+      tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+    });
   }
 
   @Override

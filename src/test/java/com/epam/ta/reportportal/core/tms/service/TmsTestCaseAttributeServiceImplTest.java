@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -39,19 +40,30 @@ class TmsTestCaseAttributeServiceImplTest {
   private TmsTestCaseAttributeServiceImpl sut;
 
   private TmsTestCase testCase;
+  private TmsTestCase testCase2;
+  private List<TmsTestCase> testCases;
   private List<TmsTestCaseAttributeRQ> attributeRQs;
   private Set<TmsTestCaseAttribute> testCaseAttributes;
   private Set<TmsTestCaseAttribute> existingAttributes;
 
   @BeforeEach
   void setUp() {
-    // Setup test case
+    // Setup test case 1
     testCase = new TmsTestCase();
     testCase.setId(1L);
-    testCase.setName("Test Case");
-    testCase.setDescription("Description");
+    testCase.setName("Test Case 1");
+    testCase.setDescription("Description 1");
 
-    // Setup existing attributes
+    // Setup test case 2
+    testCase2 = new TmsTestCase();
+    testCase2.setId(2L);
+    testCase2.setName("Test Case 2");
+    testCase2.setDescription("Description 2");
+
+    // Setup test cases list
+    testCases = Arrays.asList(testCase, testCase2);
+
+    // Setup existing attributes for testCase
     existingAttributes = new HashSet<>();
     TmsTestCaseAttribute existingAttribute = new TmsTestCaseAttribute();
     TmsTestCaseAttributeId existingAttributeId = new TmsTestCaseAttributeId(1L, 3L);
@@ -65,6 +77,7 @@ class TmsTestCaseAttributeServiceImplTest {
     existingAttributes.add(existingAttribute);
 
     testCase.setTags(new HashSet<>(existingAttributes));
+    testCase2.setTags(new HashSet<>());
 
     // Setup attribute requests
     attributeRQs = new ArrayList<>();
@@ -154,7 +167,7 @@ class TmsTestCaseAttributeServiceImplTest {
   }
 
   @Test
-  void patchTestCaseAttributes_ShouldAddNewAttributesWithoutRemovingExisting() {
+  void patchTestCaseAttributes_SingleTestCase_ShouldAddNewAttributesWithoutRemovingExisting() {
     // Given
     when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributeRQs)).thenReturn(
         testCaseAttributes);
@@ -176,7 +189,7 @@ class TmsTestCaseAttributeServiceImplTest {
   }
 
   @Test
-  void patchTestCaseAttributes_WithNullAttributes_ShouldReturnEarly() {
+  void patchTestCaseAttributes_SingleTestCase_WithNullAttributes_ShouldReturnEarly() {
     // Given
     Set<TmsTestCaseAttribute> initialAttributes = new HashSet<>(testCase.getTags());
 
@@ -192,7 +205,7 @@ class TmsTestCaseAttributeServiceImplTest {
   }
 
   @Test
-  void patchTestCaseAttributes_WithEmptyAttributes_ShouldReturnEarly() {
+  void patchTestCaseAttributes_SingleTestCase_WithEmptyAttributes_ShouldReturnEarly() {
     // Given
     Set<TmsTestCaseAttribute> initialAttributes = new HashSet<>(testCase.getTags());
 
@@ -208,6 +221,101 @@ class TmsTestCaseAttributeServiceImplTest {
   }
 
   @Test
+  void patchTestCaseAttributes_MultipleTestCases_ShouldAddAttributesToAllTestCases() {
+    // Given
+    when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributeRQs)).thenReturn(
+        testCaseAttributes);
+
+    // Store initial states
+    Set<TmsTestCaseAttribute> initialAttributesTestCase1 = new HashSet<>(testCase.getTags());
+    Set<TmsTestCaseAttribute> initialAttributesTestCase2 = new HashSet<>(testCase2.getTags());
+
+    // When
+    sut.patchTestCaseAttributes(testCases, attributeRQs);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(attributeRQs);
+    // saveAll should be called once for each test case
+    verify(tmsTestCaseAttributeRepository, times(2)).saveAll(testCaseAttributes);
+
+    // Assert that both test cases have the new attributes added
+    assertTrue(testCase.getTags().containsAll(initialAttributesTestCase1));
+    assertTrue(testCase.getTags().containsAll(testCaseAttributes));
+    assertTrue(testCase2.getTags().containsAll(initialAttributesTestCase2));
+    assertTrue(testCase2.getTags().containsAll(testCaseAttributes));
+  }
+
+  @Test
+  void patchTestCaseAttributes_MultipleTestCases_WithNullAttributes_ShouldReturnEarly() {
+    // Given
+    Set<TmsTestCaseAttribute> initialAttributesTestCase1 = new HashSet<>(testCase.getTags());
+    Set<TmsTestCaseAttribute> initialAttributesTestCase2 = new HashSet<>(testCase2.getTags());
+
+    // When
+    sut.patchTestCaseAttributes(testCases, null);
+
+    // Then
+    verifyNoInteractions(tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+
+    // Assert that both test cases' attributes are unchanged
+    assertEquals(initialAttributesTestCase1, testCase.getTags());
+    assertEquals(initialAttributesTestCase2, testCase2.getTags());
+  }
+
+  @Test
+  void patchTestCaseAttributes_MultipleTestCases_WithEmptyAttributes_ShouldReturnEarly() {
+    // Given
+    Set<TmsTestCaseAttribute> initialAttributesTestCase1 = new HashSet<>(testCase.getTags());
+    Set<TmsTestCaseAttribute> initialAttributesTestCase2 = new HashSet<>(testCase2.getTags());
+
+    // When
+    sut.patchTestCaseAttributes(testCases, Collections.emptyList());
+
+    // Then
+    verifyNoInteractions(tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+
+    // Assert that both test cases' attributes are unchanged
+    assertEquals(initialAttributesTestCase1, testCase.getTags());
+    assertEquals(initialAttributesTestCase2, testCase2.getTags());
+  }
+
+  @Test
+  void patchTestCaseAttributes_MultipleTestCases_WithSingleTestCase_ShouldWorkCorrectly() {
+    // Given
+    List<TmsTestCase> singleTestCaseList = Arrays.asList(testCase);
+    when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributeRQs)).thenReturn(
+        testCaseAttributes);
+
+    Set<TmsTestCaseAttribute> initialAttributes = new HashSet<>(testCase.getTags());
+
+    // When
+    sut.patchTestCaseAttributes(singleTestCaseList, attributeRQs);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(attributeRQs);
+    verify(tmsTestCaseAttributeRepository, times(1)).saveAll(testCaseAttributes);
+
+    // Assert the final state
+    assertTrue(testCase.getTags().containsAll(initialAttributes));
+    assertTrue(testCase.getTags().containsAll(testCaseAttributes));
+  }
+
+  @Test
+  void patchTestCaseAttributes_MultipleTestCases_WithEmptyTestCasesList_ShouldNotCallRepository() {
+    // Given
+    List<TmsTestCase> emptyTestCasesList = Collections.emptyList();
+    when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributeRQs)).thenReturn(
+        testCaseAttributes);
+
+    // When
+    sut.patchTestCaseAttributes(emptyTestCasesList, attributeRQs);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(attributeRQs);
+    verifyNoInteractions(tmsTestCaseAttributeRepository);
+  }
+
+  @Test
   void deleteAllByTestCaseId_ShouldCallRepositoryDelete() {
     // Given
     Long testCaseId = 1L;
@@ -217,6 +325,19 @@ class TmsTestCaseAttributeServiceImplTest {
 
     // Then
     verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCaseId);
+  }
+
+  @Test
+  void deleteAllByTestFolderId_ShouldCallRepositoryDelete() {
+    // Given
+    Long projectId = 1L;
+    Long testFolderId = 2L;
+
+    // When
+    sut.deleteAllByTestFolderId(projectId, testFolderId);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteTestCaseAttributesByTestFolderId(projectId, testFolderId);
   }
 
   @Test

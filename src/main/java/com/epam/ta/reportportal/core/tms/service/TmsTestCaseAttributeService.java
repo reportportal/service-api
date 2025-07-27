@@ -8,11 +8,13 @@ import java.util.List;
 
 public interface TmsTestCaseAttributeService {
 
-  void createTestCaseAttributes(TmsTestCase tmsTestCase, @NotEmpty List<TmsTestCaseAttributeRQ> attributes);
+  void createTestCaseAttributes(@NotNull TmsTestCase tmsTestCase, @NotEmpty List<TmsTestCaseAttributeRQ> attributes);
 
-  void updateTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
+  void updateTestCaseAttributes(@NotNull TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
 
-  void patchTestCaseAttributes(TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
+  void patchTestCaseAttributes(@NotNull TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes);
+
+  void patchTestCaseAttributes(@NotNull @NotEmpty List<TmsTestCase> testCaseIds, List<TmsTestCaseAttributeRQ> attributes);
 
   void deleteAllByTestCaseId(@NotNull Long testCaseId);
 

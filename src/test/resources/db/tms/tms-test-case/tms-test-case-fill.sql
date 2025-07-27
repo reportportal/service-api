@@ -75,7 +75,44 @@ values (20, 'test 2', 'Test for full-text search 2', 8, 'HIGH');
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (21, '3test', 'Test for full-text search 3', 8, 'MEDIUM');
 
+-- Additional test cases for batch patch testing
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (22, 'Batch Test Case 22', 'Test case for batch patch with priority', 4, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (23, 'Batch Test Case 23', 'Test case for batch patch with priority', 4, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (24, 'Batch Test Case 24', 'Test case for batch patch with tags only', 5, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (25, 'Batch Test Case 25', 'Test case for batch patch with tags only', 5, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (26, 'Batch Test Case 26', 'Test case for batch patch with null fields', 6, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (27, 'Batch Test Case 27', 'Test case for batch patch with null fields', 6, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (28, 'Batch Test Case 28', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (29, 'Batch Test Case 29', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (30, 'Batch Test Case 30', 'Test case for batch patch with full attributes', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (31, 'Batch Test Case 31', 'Test case for batch patch with full attributes', 3, 'MEDIUM');
+
 -- Attributes
+insert into tms_attribute (id, "key")
+values (1, 'test1');
+
+insert into tms_attribute (id, "key")
+values (2, 'test2');
+
 insert into tms_attribute (id, "key")
 values (3, 'test3');
 
@@ -118,6 +155,19 @@ values (13, 7, 'high');
 
 insert into tms_test_case_attribute (test_case_id, attribute_id, value)
 values (15, 8, 'production');
+
+-- Additional test case attributes for batch patch tests
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (22, 1, 'existing-tag-22');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (23, 2, 'existing-tag-23');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (24, 3, 'existing-tag-24');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (25, 1, 'existing-tag-25');
 
 -- Test case versions
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
@@ -167,7 +217,6 @@ values (5, 3, 'Application should start');
 
 insert into tms_step (id, manual_scenario_id, expected_result)
 values (6, 3, 'Settings page should open');
-
 
 -- Set sequences to continue from highest ID
 SELECT setval('tms_test_folder_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));

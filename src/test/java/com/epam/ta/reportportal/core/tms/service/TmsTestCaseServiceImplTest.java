@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -361,7 +363,105 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void patch_WithBatchPatchRequest_ShouldCallRepositoryPatchMethod() {
+  void patch_WithBatchPatchRequestAndTags_ShouldPatchTagsAndCallRepositoryPatch() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testFolderId = 5L;
+    var priority = "HIGH";
+    var tags = List.of(attributes.get(0));
+    var testCases = Arrays.asList(testCase);
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
+        .priority(priority)
+        .tags(tags)
+        .build();
+
+    when(tmsTestCaseRepository.findAllById(testCaseIds)).thenReturn(testCases);
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).findAllById(testCaseIds);
+    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCases, tags);
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
+  }
+
+  @Test
+  void patch_WithBatchPatchRequestWithoutTags_ShouldOnlyCallRepositoryPatch() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testFolderId = 5L;
+    var priority = "HIGH";
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
+        .priority(priority)
+        .tags(null)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository, never()).findAllById(testCaseIds);
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
+  }
+
+  @Test
+  void patch_WithBatchPatchRequestWithEmptyTags_ShouldOnlyCallRepositoryPatch() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testFolderId = 5L;
+    var priority = "HIGH";
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
+        .priority(priority)
+        .tags(Collections.emptyList())
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository, never()).findAllById(testCaseIds);
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
+  }
+
+  @Test
+  void patch_WithOnlyTags_ShouldOnlyPatchTags() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var tags = List.of(attributes.get(0));
+    var testCases = Arrays.asList(testCase);
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(null)
+        .priority(null)
+        .tags(tags)
+        .build();
+
+    when(tmsTestCaseRepository.findAllById(testCaseIds)).thenReturn(testCases);
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).findAllById(testCaseIds);
+    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCases, tags);
+    verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
+  }
+
+  @Test
+  void patch_WithOnlyTestFolderId_ShouldOnlyCallRepositoryPatch() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var testFolderId = 5L;
@@ -369,66 +469,60 @@ class TmsTestCaseServiceImplTest {
     var patchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
         .testFolderId(testFolderId)
+        .priority(null)
+        .tags(null)
         .build();
 
     // When
     sut.patch(projectId, patchRequest);
 
     // Then
-    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId);
+    verify(tmsTestCaseRepository, never()).findAllById(any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, null);
   }
 
   @Test
-  void patch_WithNullTestFolderId_ShouldCallRepositoryPatchMethodWithNullFolderId() {
+  void patch_WithOnlyPriority_ShouldOnlyCallRepositoryPatch() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var priority = "HIGH";
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(null)
+        .priority(priority)
+        .tags(null)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository, never()).findAllById(any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, null, priority);
+  }
+
+  @Test
+  void patch_WithNullValuesOnly_ShouldNotCallAnyPatchMethods() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
 
     var patchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
         .testFolderId(null)
+        .priority(null)
+        .tags(null)
         .build();
 
     // When
     sut.patch(projectId, patchRequest);
 
     // Then
-    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, null);
-  }
-
-  @Test
-  void patch_WithEmptyLocationIds_ShouldStillCallRepositoryMethod() {
-    // Given
-    var emptyTestCaseIds = Collections.<Long>emptyList();
-    var testFolderId = 5L;
-
-    var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(emptyTestCaseIds)
-        .testFolderId(testFolderId)
-        .build();
-
-    // When
-    sut.patch(projectId, patchRequest);
-
-    // Then
-    verify(tmsTestCaseRepository).patch(projectId, emptyTestCaseIds, testFolderId);
-  }
-
-  @Test
-  void patch_WithSingleTestCaseId_ShouldCallRepositoryPatchMethod() {
-    // Given
-    var singleTestCaseId = List.of(1L);
-    var testFolderId = 5L;
-
-    var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(singleTestCaseId)
-        .testFolderId(testFolderId)
-        .build();
-
-    // When
-    sut.patch(projectId, patchRequest);
-
-    // Then
-    verify(tmsTestCaseRepository).patch(projectId, singleTestCaseId, testFolderId);
+    verify(tmsTestCaseRepository, never()).findAllById(any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
   }
 
   @Test

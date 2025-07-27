@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 public interface TmsTestCaseAttributeRepository extends
     ReportPortalRepository<TmsTestCaseAttribute, TmsTestCaseAttributeId> {
 
+  List<TmsTestCaseAttribute> findAllById_TestCaseId(Long testCaseId);
+
   @Modifying
   @Query(value = "DELETE FROM TmsTestCaseAttribute tca "
       + "WHERE tca.id.testCaseId = :testCaseId")

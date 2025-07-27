@@ -158,9 +158,19 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional
   public void patch(long projectId,
       @Valid BatchPatchTestCasesRQ patchRequest) {
-    tmsTestCaseRepository.patch(projectId,
-        patchRequest.getTestCaseIds(),
-        patchRequest.getTestFolderId());
+    if (CollectionUtils.isNotEmpty(patchRequest.getTags())) {
+      tmsTestCaseAttributeService.patchTestCaseAttributes(
+          tmsTestCaseRepository.findAllById(patchRequest.getTestCaseIds()),
+          patchRequest.getTags()
+      );
+    }
+    if (Objects.nonNull(patchRequest.getTestFolderId())
+        || Objects.nonNull(patchRequest.getPriority())) {
+      tmsTestCaseRepository.patch(projectId,
+          patchRequest.getTestCaseIds(),
+          patchRequest.getTestFolderId(),
+          patchRequest.getPriority());
+    }
   }
 
   @Override

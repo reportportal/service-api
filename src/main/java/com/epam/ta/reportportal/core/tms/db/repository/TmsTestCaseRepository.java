@@ -115,19 +115,24 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * <strong>Future extensibility:</strong> Additional fields can be added by uncommenting
    * and modifying the template CASE statements in the query.
    * </p>
-   *
-   * @param projectId    the project ID for additional context/validation (currently not used in
+   *  @param projectId    the project ID for additional context/validation (currently not used in
    *                     query but may be used for future security/validation purposes)
+   *
    * @param testCaseIds  the list of test case IDs to update. Cannot be null, but can be empty. If
    *                     empty, no updates will be performed.
    * @param testFolderId the new test folder ID to assign. If null, the current test folder
    *                     assignment will remain unchanged.
+   * @param priority
    */
   @Modifying
   @Query(value = "UPDATE tms_test_case "
       + "SET test_folder_id = CASE "
       + "    WHEN :testFolderId IS NOT NULL THEN :testFolderId "
       + "    ELSE test_folder_id "
+      + "END, "
+      + "priority = CASE "
+      + "    WHEN :priority IS NOT NULL THEN :priority "
+      + "    ELSE priority "
       + "END "
       // here we can add another fields in the future:
       // + ", description = CASE "
@@ -139,5 +144,6 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   void patch(
       @Param("projectId") Long projectId,
       @Param("testCaseIds") List<Long> testCaseIds,
-      @Param("testFolderId") Long testFolderId);
+      @Param("testFolderId") Long testFolderId,
+      @Param("priority") String priority);
 }

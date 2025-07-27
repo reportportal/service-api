@@ -38,6 +38,8 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +76,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
   @Autowired
   private TmsManualScenarioAttributeRepository manualScenarioAttributeRepository;
+
+  @PersistenceContext
+  private EntityManager em;
 
   @Test
   void createTestCaseWithoutDefaultVersionIntegrationTest() throws Exception {
@@ -501,6 +506,303 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertTrue(testCase10After.isPresent());
     assertEquals(newFolderId, testCase9After.get().getTestFolder().getId());
     assertEquals(newFolderId, testCase10After.get().getTestFolder().getId());
+  }
+
+  @Test
+  void batchPatchTestCasesWithPriorityIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(13L, 14L);
+    String newPriority = "HIGH";
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .priority(newPriority)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then
+    Optional<TmsTestCase> testCase13After = testCaseRepository.findById(13L);
+    Optional<TmsTestCase> testCase14After = testCaseRepository.findById(14L);
+
+    assertTrue(testCase13After.isPresent());
+    assertTrue(testCase14After.isPresent());
+    assertEquals(newPriority, testCase13After.get().getPriority());
+    assertEquals(newPriority, testCase14After.get().getPriority());
+  }
+
+  @Test
+  void batchPatchTestCasesWithTagsIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(15L, 16L);
+    var attributeValue1 = "batch-tag-1";
+    var attributeValue2 = "batch-tag-2";
+
+    TmsTestCaseAttributeRQ attribute1 = new TmsTestCaseAttributeRQ();
+    attribute1.setValue(attributeValue1);
+    attribute1.setAttributeId(1L);
+
+    TmsTestCaseAttributeRQ attribute2 = new TmsTestCaseAttributeRQ();
+    attribute2.setValue(attributeValue2);
+    attribute2.setAttributeId(2L);
+
+    List<TmsTestCaseAttributeRQ> tags = List.of(attribute1, attribute2);
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tags(tags)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then - Check that tags are added to both test cases
+    Optional<TmsTestCase> testCase15After = testCaseRepository.findById(15L);
+    Optional<TmsTestCase> testCase16After = testCaseRepository.findById(16L);
+
+    assertTrue(testCase15After.isPresent());
+    assertTrue(testCase16After.isPresent());
+
+    // Check that the tags were added to the test cases
+    var testCase15Tags = testCaseAttributeRepository.findAllById_TestCaseId(15L);
+    var testCase16Tags = testCaseAttributeRepository.findAllById_TestCaseId(16L);
+
+    assertFalse(testCase15Tags.isEmpty());
+    assertFalse(testCase16Tags.isEmpty());
+
+    // Verify specific tag values are present
+    assertTrue(testCase15Tags.stream().anyMatch(tag -> tag.getValue().equals(attributeValue1)));
+    assertTrue(testCase15Tags.stream().anyMatch(tag -> tag.getValue().equals(attributeValue2)));
+    assertTrue(testCase16Tags.stream().anyMatch(tag -> tag.getValue().equals(attributeValue1)));
+    assertTrue(testCase16Tags.stream().anyMatch(tag -> tag.getValue().equals(attributeValue2)));
+  }
+
+  @Test
+  void batchPatchTestCasesWithAllFieldsIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(30L, 31L);
+    Long newFolderId = 5L;
+    String newPriority = "HIGH";
+    String tagValue = "comprehensive-tag";
+
+    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    attribute.setValue(tagValue);
+    attribute.setAttributeId(3L);
+
+    List<TmsTestCaseAttributeRQ> tags = List.of(attribute);
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(newFolderId)
+        .priority(newPriority)
+        .tags(tags)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    em.clear();
+
+    // Then
+    Optional<TmsTestCase> testCase30After = testCaseRepository.findById(30L);
+    Optional<TmsTestCase> testCase31After = testCaseRepository.findById(31L);
+
+    assertTrue(testCase30After.isPresent());
+    assertTrue(testCase31After.isPresent());
+
+    // Check folder update
+    assertEquals(newFolderId, testCase30After.get().getTestFolder().getId());
+    assertEquals(newFolderId, testCase31After.get().getTestFolder().getId());
+
+    // Check priority update
+    assertEquals(newPriority, testCase30After.get().getPriority());
+    assertEquals(newPriority, testCase31After.get().getPriority());
+
+    // Check tags update
+    var testCase30Tags = testCaseAttributeRepository.findAllById_TestCaseId(30L);
+    var testCase31Tags = testCaseAttributeRepository.findAllById_TestCaseId(31L);
+
+    assertFalse(testCase30Tags.isEmpty());
+    assertFalse(testCase31Tags.isEmpty());
+
+    assertTrue(testCase30Tags.stream().anyMatch(tag -> tag.getValue().equals(tagValue)));
+    assertTrue(testCase31Tags.stream().anyMatch(tag -> tag.getValue().equals(tagValue)));
+  }
+
+  @Test
+  void batchPatchTestCasesWithEmptyTagsIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(20L, 21L);
+    Long newFolderId = 4L;
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(newFolderId)
+        .tags(Collections.emptyList())
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then - Only folder should be updated, no tags should be added
+    Optional<TmsTestCase> testCase20After = testCaseRepository.findById(20L);
+    Optional<TmsTestCase> testCase21After = testCaseRepository.findById(21L);
+
+    assertTrue(testCase20After.isPresent());
+    assertTrue(testCase21After.isPresent());
+    assertEquals(newFolderId, testCase20After.get().getTestFolder().getId());
+    assertEquals(newFolderId, testCase21After.get().getTestFolder().getId());
+  }
+
+  @Test
+  void batchPatchTestCasesWithNullTagsIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(22L, 23L);
+    String newPriority = "LOW";
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .priority(newPriority)
+        .tags(null)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then - Only priority should be updated, no tags should be added
+    Optional<TmsTestCase> testCase22After = testCaseRepository.findById(22L);
+    Optional<TmsTestCase> testCase23After = testCaseRepository.findById(23L);
+
+    assertTrue(testCase22After.isPresent());
+    assertTrue(testCase23After.isPresent());
+    assertEquals(newPriority, testCase22After.get().getPriority());
+    assertEquals(newPriority, testCase23After.get().getPriority());
+  }
+
+  @Test
+  void batchPatchTestCasesWithOnlyTagsIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(24L, 25L);
+    var tagValue = "only-tags-test";
+
+    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    attribute.setValue(tagValue);
+    attribute.setAttributeId(4L);
+
+    List<TmsTestCaseAttributeRQ> tags = List.of(attribute);
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tags(tags)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then - Only tags should be added
+    var testCase24Tags = testCaseAttributeRepository.findAllById_TestCaseId(24L);
+    var testCase25Tags = testCaseAttributeRepository.findAllById_TestCaseId(25L);
+
+    assertFalse(testCase24Tags.isEmpty());
+    assertFalse(testCase25Tags.isEmpty());
+
+    assertTrue(testCase24Tags.stream().anyMatch(tag -> tag.getValue().equals(tagValue)));
+    assertTrue(testCase25Tags.stream().anyMatch(tag -> tag.getValue().equals(tagValue)));
+  }
+
+  @Test
+  void batchPatchTestCasesWithAllNullFieldsIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(26L, 27L);
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(null)
+        .priority(null)
+        .tags(null)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void batchPatchTestCasesWithInvalidTagAttributeIdIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(28L, 29L);
+
+    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    attribute.setValue("invalid-attribute-id");
+    attribute.setAttributeId(999L); // Non-existent attribute ID
+
+    List<TmsTestCaseAttributeRQ> tags = List.of(attribute);
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tags(tags)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - Should fail due to foreign key constraint
+    var exception = assertThrows(jakarta.servlet.ServletException.class,
+        () -> mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken()))));
+
+    assertThat(exception.getMessage()).contains("EntityNotFoundException", "Unable to find", "with id 999");
   }
 
   @Test

@@ -23,11 +23,5 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TmsStepsManualScenarioRQ extends TmsManualScenarioRQ {
 
-  /**
-   * Steps of the manual scenario.
-   * Must not be empty.
-   */
-  @Valid
-  @NotEmpty(message = "Steps must not be empty")
   private List<TmsManualScenarioStepRQ> steps;
 }

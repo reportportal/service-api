@@ -40,21 +40,25 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 
   private boolean isLinkedByAnalyzer;
 
+  private Long organizationId;
+
   public LinkTicketEvent() {
   }
 
   public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after,
       Long userId, String userLogin,
-      boolean isLinkedByAnalyzer) {
+      boolean isLinkedByAnalyzer, Long organizationId) {
     super(userId, userLogin, before, after);
     this.isLinkedByAnalyzer = isLinkedByAnalyzer;
+    this.organizationId = organizationId;
   }
 
   public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after,
       String userLogin,
-      boolean isLinkedByAnalyzer) {
+      boolean isLinkedByAnalyzer, Long organizationId) {
     super(null, userLogin, before, after);
     this.isLinkedByAnalyzer = isLinkedByAnalyzer;
+    this.organizationId = organizationId;
   }
 
   @Override
@@ -70,6 +74,7 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
         .addObjectName(getAfter().getName())
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(organizationId)
         .addSubjectId(isLinkedByAnalyzer ? null : getUserId())
         .addSubjectName(isLinkedByAnalyzer ? "analyzer" : getUserLogin())
         .addSubjectType(isLinkedByAnalyzer ? EventSubject.APPLICATION : EventSubject.USER);

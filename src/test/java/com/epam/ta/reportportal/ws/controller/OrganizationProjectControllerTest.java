@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -31,11 +32,15 @@ import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.ta.reportportal.core.project.ProjectService;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.model.project.ProjectUserRole;
 import com.epam.ta.reportportal.util.SlugUtils;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -60,6 +65,8 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
 
   @Autowired
   ProjectService projectService;
+  @Autowired
+  private ProjectUserRepository projectUserRepository;
 
   @Test
   void getOrganizationProjectAdmin() throws Exception {
@@ -185,7 +192,6 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
             .content(jsonBody.toString()))
         .andExpect(status().is4xxClientError());
   }
-
 
 
   @Test
@@ -432,6 +438,97 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
         .andExpect(status().isOk());
     assertEquals("default-personal", projectService.findProjectById(2L).getSlug());
 
+  }
+
+  @Test
+  void patchUserRole() throws Exception {
+    var values = List.of(
+        new ProjectUserRole(105L, ProjectRole.VIEWER)
+    );
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(values));
+
+    var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(105L, 301L).get();
+    assertEquals(ProjectRole.EDITOR, projectUserBefore.getProjectRole());
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    var projectUserAfter = projectUserRepository.findProjectUserByUserIdAndProjectId(105L, 301L).get();
+
+    assertEquals(ProjectRole.VIEWER, projectUserAfter.getProjectRole());
+  }
+
+  @Test
+  void patchUserRoleHimself() throws Exception {
+    var values = List.of(
+        new ProjectUserRole(104L, ProjectRole.EDITOR)
+    );
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(values));
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(managerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void removeUserFromProject() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(List.of(104L)));
+
+    // Verify user exists in a project before removal
+    var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(104L, 302L);
+    assertTrue(projectUserBefore.isPresent());
+
+    mockMvc.perform(patch("/organizations/202/projects/302")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    // Verify user no longer exists in a project after removal
+    var projectUserAfter = projectUserRepository.findProjectUserByUserIdAndProjectId(104L, 302L);
+    assertTrue(projectUserAfter.isEmpty());
+  }
+
+  @Test
+  void removeUserFromProjectHimself() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(List.of(104L)));
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(managerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void removeNonExistingUserFromProject() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users")
+        .value(objectMapper.writeValueAsString(List.of(999L)));
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isNotFound());
   }
 
 }

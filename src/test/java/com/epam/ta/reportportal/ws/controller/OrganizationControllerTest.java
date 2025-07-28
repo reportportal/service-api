@@ -158,6 +158,25 @@ class OrganizationControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void exportAccessDenied() throws Exception {
+    SearchCriteriaRQ rq = new SearchCriteriaRQ();
+
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteriaInner()
+        .filterKey("key")
+        .operation(FilterOperation.EQ)
+        .value("value");
+    rq.limit(1).offset(0).sort("name").order(Direction.ASC);
+    rq.addSearchCriteriaItem(searchCriteriaSearchCriteria);
+
+    mockMvc.perform(MockMvcRequestBuilders.post("/organizations/searches")
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .header(ACCEPT, "text/csv")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void getOrganizationByAdminWrongId() throws Exception {
     mockMvc.perform(get("/organizations/notnumber")
             .with(token(oAuthHelper.getSuperadminToken())))

@@ -39,7 +39,7 @@ public class UpdateSettingsRq {
       - `server.details.instance` - Provides details about the server instance.
       - `server.users.sso` - Enables Single Sign-On (SSO) only access for users.
       - `server.session.expiration` - Sets the expiration time for user sessions.
-      - `server.footer.links` - Configures links in the UI footer.
+      - `server.sidebar.links` - Configures links in the UI footer.
       - `server.features.important.enabled` - Enables or disables creation of personal organizations for new users.
       - `server.features.personal-organization.enabled` - Enables or disables personal organization features.
       - `secret.key` - Manages the secret key used for various security purposes.
@@ -60,7 +60,7 @@ public class UpdateSettingsRq {
     SERVER_DETAILS_INSTANCE("server.details.instance"),
     SERVER_USERS_SSO("server.users.sso"),
     SERVER_SESSION_EXPIRATION("server.session.expiration"),
-    SERVER_FOOTER_LINKS("server.footer.links"),
+    SERVER_SIDEBAR_LINKS("server.sidebar.links"),
     SERVER_FEATURES_PERSONAL_ORGANIZATION_ENABLED("server.features.personal-organization.enabled"),
 
     SERVER_FEATURES_IMPORTANT("server.features.important.enabled"),

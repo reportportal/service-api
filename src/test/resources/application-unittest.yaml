@@ -2,10 +2,16 @@ datastore:
   type: filesystem
   path: ${java.io.tmpdir}/reportportal/datastore
 rp:
+  jwt:
+    signing-key: 60KNvXzuqCW1yoh1TZC+/3CjWVGhfnMqmuEV0RyLW3A=
   plugins:
     rooDir: ${java.io.tmpdir}/reportportal/plugins
     default:
       load: false
+  oauth2:
+    providers:
+      internal:
+        secret-key: ${rp.jwt.signing-key}
 logging:
   file:
     name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log

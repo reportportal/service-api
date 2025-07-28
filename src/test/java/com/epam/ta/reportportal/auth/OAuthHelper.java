@@ -16,15 +16,17 @@
 
 package com.epam.ta.reportportal.auth;
 
-import static com.epam.ta.reportportal.TestConfig.TEST_SECRET;
-
 import com.epam.ta.reportportal.entity.user.UserRole;
 import io.jsonwebtoken.Jwts;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,6 +40,12 @@ public class OAuthHelper {
   private String superadminToken;
 
   private String customerToken;
+
+  @Value("${rp.oauth2.providers.internal.issuer-uri}")
+  private String issuerUri;
+
+  @Value("${rp.oauth2.providers.internal.secret-key}")
+  private String signingKey;
 
   public String getDefaultToken() {
     return defaultToken == null ?
@@ -53,25 +61,28 @@ public class OAuthHelper {
 
   public String getCustomerToken() {
     return customerToken == null ?
-        customerToken = createAccessToken("default_customer", "erebus", UserRole.USER) :
+        customerToken = createAccessToken("default@reportportal.internal", "erebus", UserRole.USER) :
         customerToken;
   }
 
-  public String createAccessToken(String username, String password,
-      UserRole... roles) {
+  public String createAccessToken(String username, String password, UserRole... roles) {
     var authorities = Arrays.stream(roles)
         .map(role -> "ROLE_" + role)
         .collect(Collectors.toList());
 
     return Jwts.builder()
         .subject(username)
+        .issuer(issuerUri)
         .claim("user_name", username)
         .claim("scope", "ui")
         .claim("authorities", authorities)
         .issuedAt(new Date())
         .expiration(new Date(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()))
-        .signWith(TEST_SECRET)
+        .signWith(getSecretKey(signingKey))
         .compact();
+  }
 
+  private SecretKey getSecretKey(String signingKey) {
+    return new SecretKeySpec(signingKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
   }
 }

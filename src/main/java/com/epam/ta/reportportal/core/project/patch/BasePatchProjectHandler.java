@@ -18,6 +18,9 @@ package com.epam.ta.reportportal.core.project.patch;
 
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.ta.reportportal.core.project.ProjectService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Abstract base class for handling patch operations on projects. Subclasses should override the adding, replace, and
@@ -25,18 +28,11 @@ import com.epam.ta.reportportal.core.project.ProjectService;
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
-public abstract class BasePatchProjectHandler {
+@RequiredArgsConstructor
+public class BasePatchProjectHandler {
 
   protected final ProjectService projectService;
-
-  /**
-   * Constructs a new BasePatchProjectHandler with the specified project service.
-   *
-   * @param projectService service for project-related operations
-   */
-  protected BasePatchProjectHandler(ProjectService projectService) {
-    this.projectService = projectService;
-  }
+  protected final ObjectMapper objectMapper;
 
   void replace(PatchOperation operation, Long orgId, Long projectId) {
     throw new UnsupportedOperationException("'Replace' operation is not supported");
@@ -48,6 +44,10 @@ public abstract class BasePatchProjectHandler {
 
   void remove(PatchOperation operation, Long orgId, Long projectId) {
     throw new UnsupportedOperationException("'Remove' operation is not supported");
+  }
+
+  String valueToString(Object value) throws JsonProcessingException {
+    return value instanceof String ? (String) value : objectMapper.writeValueAsString(value);
   }
 
 }

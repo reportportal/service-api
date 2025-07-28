@@ -26,6 +26,9 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepos
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseVersionRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ.TmsManualScenarioType;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseDefaultVersionRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
@@ -97,7 +100,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void createTestCaseWithDefaultVersionIntegrationTest() throws Exception {
+  void createTextTestCaseWithDefaultVersionIntegrationTest() throws Exception {
     // Given
     var manualScenarioRQ = new TmsTextManualScenarioRQ();
     manualScenarioRQ.setManualScenarioType(TmsManualScenarioRQ.TmsManualScenarioType.TEXT);
@@ -139,6 +142,115 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertTrue(defaultVersion.isPresent());
     assertEquals("Default Version", defaultVersion.get().getName());
     assertNotNull(defaultVersion.get().getManualScenario());
+  }
+
+  @Test
+  void createStepsTestCaseWithDefaultVersionIntegrationTest() throws Exception {
+    // Given
+    var firstStep = TmsManualScenarioStepRQ.builder()
+        .instructions("Instructions 1")
+        .expectedResult("Expected result 1")
+        .build();
+    var secondStep = TmsManualScenarioStepRQ.builder()
+        .instructions("Instructions 2")
+        .expectedResult("Expected result 2")
+        .build();
+    var manualScenarioRQ = new TmsStepsManualScenarioRQ();
+    manualScenarioRQ.setManualScenarioType(TmsManualScenarioType.STEPS);
+    manualScenarioRQ.setSteps(List.of(firstStep, secondStep));
+
+    var defaultVersionRQ = new TmsTestCaseDefaultVersionRQ();
+    defaultVersionRQ.setName("Steps test case default Version");
+    defaultVersionRQ.setManualScenario(manualScenarioRQ);
+
+    var testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Steps Test Case With Version");
+    testCaseRQ.setDescription("Description for steps test case with version");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
+    testCaseRQ.setDefaultVersion(defaultVersionRQ);
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Steps Test Case With Version"));
+
+    // Then - Verify database state
+    var createdTestCase = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Steps Test Case With Version"))
+        .findFirst();
+
+    assertTrue(createdTestCase.isPresent());
+    assertFalse(createdTestCase.get().getVersions().isEmpty());
+
+    var defaultVersion = createdTestCase.get().getVersions().stream()
+        .filter(TmsTestCaseVersion::isDefault)
+        .findFirst();
+
+    assertTrue(defaultVersion.isPresent());
+    assertEquals("Steps test case default Version", defaultVersion.get().getName());
+    assertNotNull(defaultVersion.get().getManualScenario());
+
+    var manualScenario = defaultVersion.get().getManualScenario();
+
+    assertThat(manualScenario.getSteps())
+        .isNotNull()
+        .isNotEmpty()
+        .hasSize(2);
+  }
+
+  @Test
+  void createStepsTestCaseWithDefaultVersionWithoutStepsIntegrationTest() throws Exception {
+    // Given
+    var manualScenarioRQ = new TmsStepsManualScenarioRQ();
+    manualScenarioRQ.setManualScenarioType(TmsManualScenarioType.STEPS);
+
+    var defaultVersionRQ = new TmsTestCaseDefaultVersionRQ();
+    defaultVersionRQ.setName("Steps test case default Version");
+    defaultVersionRQ.setManualScenario(manualScenarioRQ);
+
+    var testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Steps Test Case With Version without steps");
+    testCaseRQ.setDescription("Description for steps test case with version");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
+    testCaseRQ.setDefaultVersion(defaultVersionRQ);
+    testCaseRQ.setPriority("HIGH");
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Steps Test Case With Version without steps"));
+
+    // Then - Verify database state
+    var createdTestCase = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Steps Test Case With Version without steps"))
+        .findFirst();
+
+    assertTrue(createdTestCase.isPresent());
+    assertFalse(createdTestCase.get().getVersions().isEmpty());
+
+    var defaultVersion = createdTestCase.get().getVersions().stream()
+        .filter(TmsTestCaseVersion::isDefault)
+        .findFirst();
+
+    assertTrue(defaultVersion.isPresent());
+    assertEquals("Steps test case default Version", defaultVersion.get().getName());
+    assertNotNull(defaultVersion.get().getManualScenario());
+
+    var manualScenario = defaultVersion.get().getManualScenario();
+
+    assertThat(manualScenario.getSteps()).isNullOrEmpty();
   }
 
   @Test
@@ -250,7 +362,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void updateTestCaseWithDefaultVersionIntegrationTest() throws Exception {
+  void updateTextTestCaseWithDefaultVersionIntegrationTest() throws Exception {
     // Given
     var manualScenarioRQ = new TmsTextManualScenarioRQ();
     manualScenarioRQ.setManualScenarioType(TmsManualScenarioRQ.TmsManualScenarioType.TEXT);

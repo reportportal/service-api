@@ -29,12 +29,12 @@ import com.epam.reportportal.api.model.FilterOperation;
 import com.epam.reportportal.api.model.OperationType;
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.PatchOperation;
+import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.model.project.ProjectUserRole;
 import com.epam.ta.reportportal.util.SlugUtils;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -440,18 +440,26 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
 
   }
 
-  @Test
-  void patchUserRole() throws Exception {
-    var values = List.of(
-        new ProjectUserRole(105L, ProjectRole.VIEWER)
-    );
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+          "VIEWER",
+          "EDITOR",
+          "null"
+      },
+      delimiter = '|',
+      nullValues = "null"
+  )
+  void patchUserRole(ProjectRole projectRole) throws Exception {
+    var userProjRole = new UserProjectInfo(105L, projectRole);
+    var values = List.of(userProjRole);
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
         .path("users")
         .value(objectMapper.writeValueAsString(values));
 
     var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(105L, 301L).get();
-    assertEquals(ProjectRole.EDITOR, projectUserBefore.getProjectRole());
+    assertEquals(com.epam.ta.reportportal.entity.project.ProjectRole.EDITOR, projectUserBefore.getProjectRole());
 
     mockMvc.perform(patch("/organizations/201/projects/301")
             .contentType(MediaType.APPLICATION_JSON)
@@ -461,13 +469,14 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
 
     var projectUserAfter = projectUserRepository.findProjectUserByUserIdAndProjectId(105L, 301L).get();
 
-    assertEquals(ProjectRole.VIEWER, projectUserAfter.getProjectRole());
+    var expectedRole = projectRole != null ? projectRole : ProjectRole.VIEWER;
+    assertEquals(expectedRole, ProjectRole.valueOf(projectUserAfter.getProjectRole().name()));
   }
 
   @Test
   void patchUserRoleHimself() throws Exception {
     var values = List.of(
-        new ProjectUserRole(104L, ProjectRole.EDITOR)
+        new UserProjectInfo(104L, ProjectRole.EDITOR)
     );
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)

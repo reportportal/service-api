@@ -21,6 +21,7 @@ import static java.util.function.Predicate.isEqual;
 import static java.util.function.Predicate.not;
 
 import com.epam.reportportal.api.model.PatchOperation;
+import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.project.ProjectService;
@@ -28,7 +29,6 @@ import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.model.project.ProjectUserRole;
 import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,7 +66,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   @Override
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
-    List<ProjectUserRole> operationValues;
+    List<UserProjectInfo> operationValues;
     try {
       operationValues = objectMapper.readValue(
           valueToString(operation.getValue()),
@@ -78,20 +78,21 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       log.error(e.getMessage());
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
     }
-    operationValues.forEach(pur -> replaceProjectUserRole(orgId, projectId, pur));
+    operationValues.forEach(userPrjInfo -> replaceProjectUserRole(orgId, projectId, userPrjInfo));
   }
 
-  private void replaceProjectUserRole(Long orgId, Long projectId, ProjectUserRole pur) {
-    expect(pur.id(), not(isEqual(SecurityContextUtils.getPrincipal().getUserId())))
+  private void replaceProjectUserRole(Long orgId, Long projectId, UserProjectInfo userPrjInfo) {
+    expect(userPrjInfo.getId(), not(isEqual(SecurityContextUtils.getPrincipal().getUserId())))
         .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
 
-    var ou = organizationUserRepository.findByUserIdAndOrganization_Id(pur.id(), orgId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, pur.id()));
-    var newRole = ou.getOrganizationRole().equals(OrganizationRole.MANAGER) ? ProjectRole.EDITOR : pur.role();
+    var ou = organizationUserRepository.findByUserIdAndOrganization_Id(userPrjInfo.getId(), orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userPrjInfo.getId()));
+    ProjectRole newRole = ou.getOrganizationRole().equals(OrganizationRole.MANAGER) ? ProjectRole.EDITOR :
+        ProjectRole.valueOf(userPrjInfo.getProjectRole().getValue());
 
-    projectUserRepository.findProjectUserByUserIdAndProjectId(pur.id(), projectId)
+    projectUserRepository.findProjectUserByUserIdAndProjectId(userPrjInfo.getId(), projectId)
         .ifPresentOrElse(pru -> pru.setProjectRole(newRole), () -> {
-          throw new ReportPortalException(ErrorType.USER_NOT_FOUND, pur.id());
+          throw new ReportPortalException(ErrorType.USER_NOT_FOUND, userPrjInfo.getId());
         });
   }
 

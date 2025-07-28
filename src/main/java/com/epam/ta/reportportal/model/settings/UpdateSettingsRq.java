@@ -62,6 +62,8 @@ public class UpdateSettingsRq {
     SERVER_SESSION_EXPIRATION("server.session.expiration"),
     SERVER_FOOTER_LINKS("server.footer.links"),
     SERVER_FEATURES_PERSONAL_ORGANIZATION_ENABLED("server.features.personal-organization.enabled"),
+
+    SERVER_FEATURES_IMPORTANT("server.features.important.enabled"),
     SECRET_KEY("secret.key");
 
     private final String name;

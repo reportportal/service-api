@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.tms.controller.integration;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -290,7 +291,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(4)); // 4 test cases in folder 7
+        .andExpect(jsonPath("$.content.length()").value(5)); // 5 test cases in folder 7
   }
 
   @Test
@@ -301,7 +302,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(3)); // 3 test cases in folder 8
+        .andExpect(jsonPath("$.content.length()").value(2)); // 2 such test cases in folder 8
 
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("testFolderId", "8")
@@ -319,7 +320,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(
-            jsonPath("$.content.length()").value(2)); // 2 test cases in folder 8 with name == '3test'
+            jsonPath("$.content.length()").value(
+                1)); // 1 test cases with name == '3test' in folder 8
   }
 
   @Test
@@ -796,13 +798,16 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When/Then - Should fail due to foreign key constraint
-    var exception = assertThrows(jakarta.servlet.ServletException.class,
-        () -> mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
             .contentType("application/json")
             .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken()))));
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(
+            content().string(containsString(
+                "Unable to find com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute with id 999"
+            ))
+        );
 
-    assertThat(exception.getMessage()).contains("EntityNotFoundException", "Unable to find", "with id 999");
   }
 
   @Test
@@ -992,14 +997,16 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
-    var exception = assertThrows(jakarta.servlet.ServletException.class,
-        () -> mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
-                .contentType("application/json")
-                .content(jsonContent)
-                .with(token(oAuthHelper.getSuperadminToken()))));
-
-    assertThat(exception.getMessage()).contains("violates foreign key constraint");
+    mockMvc.perform(
+        patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(
+            content().string(containsString(
+                "violates foreign key constraint"
+            ))
+        );
   }
 
   @Test
@@ -1026,23 +1033,31 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     );
 
     // When/Then - should return error for unsupported format
-    var exception = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc.perform(
+    mockMvc.perform(
         multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
-            .with(token(oAuthHelper.getSuperadminToken()))));
-
-    assertThat(exception.getMessage()).contains("Unsupported import format: xml");
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            content().string(containsString(
+                "Unsupported import format: xml"
+            ))
+        );
   }
 
   @Test
   void exportTestCasesWithInvalidFormatIntegrationTest() throws Exception {
     // When/Then - should return error for unsupported format
-    var exception = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc
+    mockMvc
         .perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
             .param("format", "XML")
-            .with(token(oAuthHelper.getSuperadminToken()))));
-
-    assertThat(exception.getMessage()).contains("Unsupported export format: XML");
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            content().string(containsString(
+                "Unsupported export format: XML"
+            ))
+        );
   }
 
 

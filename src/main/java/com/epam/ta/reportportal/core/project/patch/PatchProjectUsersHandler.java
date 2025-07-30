@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.model.IdContainer;
 import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -98,7 +99,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   @Override
   public void remove(PatchOperation operation, Long orgId, Long projectId) {
-    List<Long> ids;
+    List<IdContainer> ids;
     try {
       ids = objectMapper.readValue(
           valueToString(operation.getValue()),
@@ -108,11 +109,11 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       log.error(e.getMessage());
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
     }
-    ids.forEach(id -> {
-      projectUserRepository.findProjectUserByUserIdAndProjectId(id, projectId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, id));
-      projectUserRepository.deleteByUserIdAndProjectIds(id, List.of(projectId));
-      log.info("User with ID {} has been removed from project with ID {}", id, projectId);
+    ids.forEach(idContainer -> {
+      projectUserRepository.findProjectUserByUserIdAndProjectId(idContainer.id(), projectId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer));
+      projectUserRepository.deleteByUserIdAndProjectIds(idContainer.id(), List.of(projectId));
+      log.info("User with ID {} has been removed from project with ID {}", idContainer.id(), projectId);
     });
   }
 

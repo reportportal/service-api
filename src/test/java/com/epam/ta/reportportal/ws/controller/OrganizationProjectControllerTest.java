@@ -35,6 +35,7 @@ import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.ta.reportportal.core.project.ProjectService;
 import com.epam.ta.reportportal.dao.ProjectUserRepository;
+import com.epam.ta.reportportal.model.IdContainer;
 import com.epam.ta.reportportal.util.SlugUtils;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -495,7 +496,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
         .path("users")
-        .value(objectMapper.writeValueAsString(List.of(104L)));
+        .value(objectMapper.writeValueAsString(List.of(new IdContainer(104L))));
 
     // Verify user exists in a project before removal
     var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(104L, 302L);
@@ -517,7 +518,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
         .path("users")
-        .value(objectMapper.writeValueAsString(List.of(104L)));
+        .value(objectMapper.writeValueAsString(List.of(new IdContainer(104L))));
 
     mockMvc.perform(patch("/organizations/201/projects/301")
             .contentType(MediaType.APPLICATION_JSON)
@@ -531,7 +532,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
         .path("users")
-        .value(objectMapper.writeValueAsString(List.of(999L)));
+        .value(objectMapper.writeValueAsString(List.of(new IdContainer(999L))));
 
     mockMvc.perform(patch("/organizations/201/projects/301")
             .contentType(MediaType.APPLICATION_JSON)

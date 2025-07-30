@@ -1,10 +1,12 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
+
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseVersionRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseDefaultVersionRQ;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseVersionMapper;
 import com.epam.ta.reportportal.core.tms.service.factory.TmsManualScenarioServiceFactory;
 import java.util.Collections;
@@ -18,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService {
+
+  private static final String DEFAULT_TEST_CASE_VERSION_NOT_FOUND =
+      "Default test case version for test case: %d";
 
   private final TmsTestCaseVersionMapper tmsTestCaseVersionMapper;
   private final TmsManualScenarioServiceFactory tmsManualScenarioServiceFactory;
@@ -95,7 +100,9 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
         .stream()
         .filter(TmsTestCaseVersion::isDefault)
         .findFirst()
-        .orElseThrow(() -> new NotFoundException("Default test case version not found for test case: " + tmsTestCase.getId()));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, DEFAULT_TEST_CASE_VERSION_NOT_FOUND.formatted(tmsTestCase.getId()))
+        );
 
     tmsTestCaseVersionMapper.patch(existingDefaultVersion,
         tmsTestCaseVersionMapper.createDefaultTestCaseVersion(defaultTestCaseVersionRQ));

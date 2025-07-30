@@ -70,10 +70,10 @@ insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (19, '3test', 'Test for full-text search 1', 8, 'LOW');
 
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (20, 'test 2', 'Test for full-text search 2', 8, 'HIGH');
+values (20, 'Test for full-text search 2', 'Test for full-text search 2', 8, 'MEDIUM');
 
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (21, '3test', 'Test for full-text search 3', 8, 'MEDIUM');
+values (21, '3test', 'Test for full-text search 3', 7, 'MEDIUM');
 
 -- Additional test cases for batch patch testing
 insert into tms_test_case (id, "name", description, test_folder_id, priority)

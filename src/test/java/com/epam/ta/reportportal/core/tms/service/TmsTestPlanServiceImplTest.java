@@ -8,11 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
 import java.util.Collections;
 import java.util.List;
@@ -73,11 +74,11 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(
         Optional.empty());
 
-    var exception = assertThrows(NotFoundException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         sut.getById(projectId, testPlanId)
     );
 
-    assertTrue(exception.getMessage().contains("TMS test pan cannot be found by id"));
+    assertTrue(exception.getErrorType().equals(ErrorType.NOT_FOUND));
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
   }
 
@@ -224,11 +225,11 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(
         Optional.empty());
 
-    var exception = assertThrows(NotFoundException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         sut.patch(projectId, testPlanId, testPlanRQ)
     );
 
-    assertTrue(exception.getMessage().contains("TMS test pan cannot be found by id"));
+    assertTrue(exception.getErrorType().equals(ErrorType.NOT_FOUND));
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
   }
 }

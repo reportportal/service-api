@@ -225,12 +225,10 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     assertFalse(folder.isPresent());
 
     // Act & Assert - should return 404 Not Found
-    var result = assertThrows(jakarta.servlet.ServletException.class, () -> mockMvc.perform(
+    mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
                 nonExistentFolderId, fileType)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andReturn());
-
-    assertThat(result.getMessage()).contains("Test Folder cannot be found by id");
+            .andExpect(status().isNotFound());
   }
 }

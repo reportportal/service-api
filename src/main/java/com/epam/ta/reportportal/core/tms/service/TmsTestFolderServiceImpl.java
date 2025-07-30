@@ -1,8 +1,10 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
@@ -11,7 +13,6 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestFolderExporterFactory;
 import com.epam.ta.reportportal.model.Page;
@@ -44,7 +45,7 @@ import org.springframework.util.CollectionUtils;
 public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
   public static final String TEST_FOLDER_NOT_FOUND_BY_ID =
-      "Test Folder cannot be found by id: {0}";
+      "Test Folder with id: %d";
 
   private final TmsTestFolderMapper tmsTestFolderMapper;
   private final TmsTestFolderRepository tmsTestFolderRepository;
@@ -122,7 +123,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * @param testFolderId The ID of the folder to patch
    * @param inputDto     The data transfer object containing the fields to update
    * @return A response DTO containing the patched folder's information
-   * @throws NotFoundException If the folder doesn't exist
+   * @throws com.epam.reportportal.rules.exception.ReportPortalException If the folder doesn't exist
    */
   @Override
   public TmsTestFolderRS patch(long projectId, Long testFolderId,
@@ -138,7 +139,9 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
           return tmsTestFolderMapper.convertFromTmsTestFolderToRS(
               tmsTestFolderRepository.save(existingTestFolder));
         })
-        .orElseThrow(NotFoundException.supplier(TEST_FOLDER_NOT_FOUND_BY_ID, testFolderId));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId))
+        );
   }
 
   /**
@@ -150,7 +153,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * @param projectId The ID of the project containing the folder
    * @param id        The ID of the folder to retrieve
    * @return A response DTO containing the folder's information
-   * @throws NotFoundException If the folder doesn't exist
+   * @throws ReportPortalException If the folder doesn't exist
    */
   @Override
   @Transactional(readOnly = true)
@@ -190,8 +193,9 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
               subFolderTestCaseCounts
           );
         })
-        .orElseThrow(NotFoundException
-            .supplier(TEST_FOLDER_NOT_FOUND_BY_ID, id));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(id))
+        );
   }
 
   /**
@@ -245,7 +249,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * @param folderId  The ID of the folder to export
    * @param fileType  The format to export the folder to
    * @param response  The HTTP response to write the exported data to
-   * @throws NotFoundException             If the folder doesn't exist
+   * @throws ReportPortalException         If the folder doesn't exist
    * @throws UnsupportedOperationException If the requested file type is not supported
    */
   @Override
@@ -275,13 +279,14 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * @param projectId The ID of the project containing the folder
    * @param folderId  The ID of the root folder to retrieve
    * @return The folder entity with its complete hierarchy of subfolders
-   * @throws NotFoundException If the folder doesn't exist
+   * @throws ReportPortalException If the folder doesn't exist
    */
   @Transactional(readOnly = true)
   public TmsTestFolder findFolderWithFullHierarchy(Long projectId, Long folderId) {
     var allIds = tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, folderId);
     if (allIds.isEmpty()) {
-      throw NotFoundException.supplier(TEST_FOLDER_NOT_FOUND_BY_ID, folderId).get();
+      throw new ReportPortalException(
+          NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(folderId));
     }
 
     var allFolders = tmsTestFolderRepository.findAllById(allIds);
@@ -305,7 +310,9 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
     return Optional
         .ofNullable(folderMap.get(folderId))
-        .orElseThrow(NotFoundException.supplier(TEST_FOLDER_NOT_FOUND_BY_ID, folderId));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(folderId))
+        );
   }
 
   /**

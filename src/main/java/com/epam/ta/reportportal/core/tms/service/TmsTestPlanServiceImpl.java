@@ -1,9 +1,11 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
+
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
-  private static final String TMS_TEST_PLAN_NOT_FOUND_BY_ID = "TMS test pan cannot be found by id: {0} for project: {1}";
+  private static final String TMS_TEST_PLAN_NOT_FOUND_BY_ID = "TMS Test Plan with id: %d for project: %d";
 
   private final TmsTestPlanRepository testPlanRepository;
   private final TmsTestPlanMapper tmsTestPlanMapper;
@@ -28,8 +30,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   public TmsTestPlanRS getById(long projectId, Long testPlanId) {
     return testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
         .map(tmsTestPlanMapper::convertToRS)
-        .orElseThrow(
-            NotFoundException.supplier(TMS_TEST_PLAN_NOT_FOUND_BY_ID, testPlanId, projectId));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
+        );
   }
 
   @Override
@@ -77,8 +80,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
               testPlanRQ.getMilestoneIds());
 
           return tmsTestPlanMapper.convertToRS(existingTestPlan);
-        }).orElseThrow(
-            NotFoundException.supplier(TMS_TEST_PLAN_NOT_FOUND_BY_ID, testPlanId, projectId));
+        }).orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
+        );
   }
 
   @Override

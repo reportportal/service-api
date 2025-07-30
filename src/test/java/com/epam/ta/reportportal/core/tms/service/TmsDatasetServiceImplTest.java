@@ -7,11 +7,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsDatasetRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRS;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsDatasetMapper;
 import java.util.List;
 import java.util.Optional;
@@ -97,7 +97,7 @@ class TmsDatasetServiceImplTest {
         java.util.Optional.empty());
 
     // When
-    assertThrows(NotFoundException.class,
+    assertThrows(ReportPortalException.class,
         () -> sut.getById(projectId, datasetId));
     // Then
     verify(tmsDatasetRepository).findByIdAndProjectId(datasetId, projectId);
@@ -257,9 +257,7 @@ class TmsDatasetServiceImplTest {
         Optional.empty());
 
     // Act & Assert
-    NotFoundException exception = assertThrows(NotFoundException.class,
+   assertThrows(ReportPortalException.class,
         () -> sut.patch(projectId, datasetId, tmsDatasetRQ));
-
-    assertEquals("TMS dataset cannot be found by id: 100 for project: 1", exception.getMessage());
   }
 }

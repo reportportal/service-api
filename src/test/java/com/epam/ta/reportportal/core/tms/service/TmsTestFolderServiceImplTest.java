@@ -14,6 +14,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
@@ -22,7 +23,6 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.ta.reportportal.core.tms.mapper.exporter.TmsTestFolderExporter;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestFolderExporterFactory;
@@ -354,7 +354,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Optional.empty());
 
     // Act & Assert
-    assertThrows(NotFoundException.class, () ->
+    assertThrows(ReportPortalException.class, () ->
         sut.patch(projectId, testFolderId, testFolderRQ));
 
     verify(tmsTestFolderRepository).findByIdAndProjectId(testFolderId, projectId);
@@ -440,7 +440,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Optional.empty());
 
     // Act & Assert
-    assertThrows(NotFoundException.class, () ->
+    assertThrows(ReportPortalException.class, () ->
         sut.getById(projectId, testFolderId));
 
     verify(tmsTestFolderRepository).findByIdWithCountOfTestCases(projectId, testFolderId);
@@ -648,7 +648,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Collections.emptyList());
 
     // Act & Assert
-    assertThrows(NotFoundException.class, () ->
+    assertThrows(ReportPortalException.class, () ->
         sut.findFolderWithFullHierarchy(projectId, rootFolderId));
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);
@@ -666,7 +666,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Arrays.asList(rootFolder, firstSubfolder, secondSubfolder));
 
     // Act & Assert
-    assertThrows(NotFoundException.class, () ->
+    assertThrows(ReportPortalException.class, () ->
         sut.findFolderWithFullHierarchy(projectId, nonExistentFolderId));
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, nonExistentFolderId);
@@ -715,7 +715,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Collections.emptyList());
 
     // Act & Assert
-    assertThrows(NotFoundException.class, () ->
+    assertThrows(ReportPortalException.class, () ->
         sut.exportFolderById(projectId, rootFolderId, fileType, mockResponse));
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);

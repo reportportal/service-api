@@ -1,9 +1,11 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
+
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsDatasetRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRS;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsDatasetMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class TmsDatasetServiceImpl implements TmsDatasetService {
 
-  private static final String TMS_DATASET_NOT_FOUND_BY_ID = "TMS dataset cannot be found by id: {0} for project: {1}";
-  private static final String TMS_DATASET_NOT_FOUND_BY_PROJECT_ID = "TMS datasets cannot be found for project: {0}";
+  private static final String TMS_DATASET_NOT_FOUND_BY_ID = "TMS dataset with id: %d for project: %d";
+  private static final String TMS_DATASET_NOT_FOUND_BY_PROJECT_ID = "TMS datasets for project: %d";
 
   private final TmsDatasetRepository tmsDatasetRepository;
   private final TmsDatasetMapper tmsDatasetMapper;
@@ -75,8 +77,9 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
           );
           return tmsDatasetMapper.convertToRS(existingDataset);
         })
-        .orElseThrow(
-            NotFoundException.supplier(TMS_DATASET_NOT_FOUND_BY_ID, datasetId, projectId));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_DATASET_NOT_FOUND_BY_ID.formatted(datasetId, projectId))
+        );
   }
 
   @Override
@@ -92,8 +95,9 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
   public TmsDatasetRS getById(long projectId, Long datasetId) {
     return tmsDatasetRepository.findByIdAndProjectId(datasetId, projectId)
         .map(tmsDatasetMapper::convertToRS)
-        .orElseThrow(
-            NotFoundException.supplier(TMS_DATASET_NOT_FOUND_BY_ID, datasetId, projectId));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_DATASET_NOT_FOUND_BY_ID.formatted(datasetId, projectId))
+        );
   }
 
   @Override
@@ -103,7 +107,9 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
     if (CollectionUtils.isNotEmpty(datasets)) {
       return tmsDatasetMapper.convertToRS(datasets);
     } else {
-      throw new NotFoundException(TMS_DATASET_NOT_FOUND_BY_PROJECT_ID, projectId);
+      throw new ReportPortalException(
+          NOT_FOUND, TMS_DATASET_NOT_FOUND_BY_PROJECT_ID.formatted(projectId)
+      );
     }
   }
 

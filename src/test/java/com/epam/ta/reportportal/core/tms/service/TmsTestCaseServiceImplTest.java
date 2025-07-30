@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
@@ -20,7 +21,6 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseImporterFactory;
@@ -167,7 +167,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.findById(testCaseId)).thenReturn(Optional.empty());
 
     // When/Then
-    assertThrows(NotFoundException.class,
+    assertThrows(ReportPortalException.class,
         () -> sut.getById(projectId, testCaseId));
     verify(tmsTestCaseRepository).findById(testCaseId);
   }
@@ -298,7 +298,7 @@ class TmsTestCaseServiceImplTest {
         Optional.empty());
 
     // When/Then
-    assertThrows(NotFoundException.class,
+    assertThrows(ReportPortalException.class,
         () -> sut.patch(projectId, testCaseId, testCaseRQ));
     verify(tmsTestCaseRepository).findByIdAndProjectId(testCaseId, projectId);
   }

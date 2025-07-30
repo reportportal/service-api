@@ -47,6 +47,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
  */
 @RestControllerAdvice(value = {
     "com.epam.ta.reportportal.ws.controller",
+    "com.epam.ta.reportportal.core.tms.controller",
     "com.epam.ta.reportportal.reporting.async.controller"
 })
 @Log4j2

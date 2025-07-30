@@ -1,12 +1,14 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
+
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseImporterFactory;
@@ -29,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Valid
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
-  private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case cannot be found by id: {0}. Project: {1}";
+  private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case with id: %d for projectId: %d";
 
   private final TmsTestCaseMapper tmsTestCaseMapper;
   private final TmsTestCaseRepository tmsTestCaseRepository;
@@ -60,9 +62,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional(readOnly = true)
   public TmsTestCaseRS getById(long projectId, Long testCaseId) {
     return tmsTestCaseMapper
-        .convert(tmsTestCaseRepository.findById(testCaseId)
-            .orElseThrow(
-                NotFoundException.supplier(TEST_CASE_NOT_FOUND_BY_ID, testCaseId, projectId)));
+        .convert(tmsTestCaseRepository
+            .findById(testCaseId)
+            .orElseThrow(() -> new ReportPortalException(
+                NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
+            )
+        );
   }
 
 
@@ -125,8 +130,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
           return tmsTestCaseMapper.convert(existingTestCase);
         })
-        .orElseThrow(
-            NotFoundException.supplier(TEST_CASE_NOT_FOUND_BY_ID, testCaseId, projectId));
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
+        );
   }
 
   @Override

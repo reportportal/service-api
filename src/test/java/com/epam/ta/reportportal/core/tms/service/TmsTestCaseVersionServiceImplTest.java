@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
@@ -14,7 +15,6 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseVersionReposit
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseDefaultVersionRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.exception.NotFoundException;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseVersionMapper;
 import com.epam.ta.reportportal.core.tms.service.factory.TmsManualScenarioServiceFactory;
 import java.util.Collections;
@@ -153,10 +153,10 @@ class TmsTestCaseVersionServiceImplTest {
     testCase.setVersions(new HashSet<>());
 
     // When & Then
-    var exception = assertThrows(NotFoundException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         tmsTestCaseVersionService.patchDefaultTestCaseVersion(testCase, defaultVersionRQ));
 
-    assertThat(exception.getMessage()).contains("Default test case version not found");
+    assertThat(exception.getMessage()).contains("Default test case version for test case", "not found");
     verify(tmsTestCaseVersionRepository, never()).save(any());
   }
 

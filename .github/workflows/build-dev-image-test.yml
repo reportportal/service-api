@@ -1,4 +1,4 @@
-name: Build develop Docker image
+name: Build develop Docker image Test
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
   call-docker-build:
     name: Call develop Docker build
     needs: variables-setup
-    uses: reportportal/.github/.github/workflows/build-docker-image-oidc.yaml@feature/EPMRPP-105072
+    uses: reportportal/.github/.github/workflows/build-docker-image.yaml@feature/EPMRPP-105072
     with:
       aws-region: ${{ vars.AWS_REGION }}
       image-tag: 'develop-${{ github.run_number }}'

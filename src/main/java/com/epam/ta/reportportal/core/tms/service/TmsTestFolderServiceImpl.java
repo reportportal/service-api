@@ -44,8 +44,8 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
-  public static final String TEST_FOLDER_NOT_FOUND_BY_ID =
-      "Test Folder with id: %d";
+  private static final String TEST_FOLDER_NOT_FOUND_BY_ID =
+      "Test Folder with id: %d for project: %d";
 
   private final TmsTestFolderMapper tmsTestFolderMapper;
   private final TmsTestFolderRepository tmsTestFolderRepository;
@@ -140,7 +140,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
               tmsTestFolderRepository.save(existingTestFolder));
         })
         .orElseThrow(() -> new ReportPortalException(
-            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId))
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId))
         );
   }
 
@@ -161,7 +161,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     return tmsTestFolderRepository
         .findByIdWithCountOfTestCases(projectId, id)
         .map(tmsTestFolderWithCountOfTestCases -> {
-          var folderWithSubFolders = tmsTestFolderRepository.findByIdWithSubFolders(id);
+          var folderWithSubFolders = tmsTestFolderRepository.findByIdWithSubFolders(projectId, id);
 
           Map<Long, Long> subFolderTestCaseCounts = new HashMap<>();
 
@@ -178,7 +178,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
                   .collect(Collectors.toList());
 
               var testCaseCountResults = tmsTestFolderRepository
-                  .findTestCaseCountsByFolderIds(subFolderIds);
+                  .findTestCaseCountsByFolderIds(projectId, subFolderIds);
               subFolderTestCaseCounts = testCaseCountResults
                   .stream()
                   .collect(Collectors.toMap(
@@ -194,7 +194,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
           );
         })
         .orElseThrow(() -> new ReportPortalException(
-            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(id))
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(id, projectId))
         );
   }
 
@@ -214,7 +214,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       final long projectId, Pageable pageable) {
     var page = tmsTestFolderRepository
         .findAllByProjectIdWithCountOfTestCases(projectId, pageable);
-    return getTmsTestFoldersWithSubfoldersAndTmsTestCount(page);
+    return getTmsTestFoldersWithSubfoldersAndTmsTestCount(projectId, page);
   }
 
   /**
@@ -235,7 +235,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     var page = tmsTestFolderRepository.findAllByParentTestFolderIdWithCountOfTestCases(
         projectId, folderId, pageable
     );
-    return getTmsTestFoldersWithSubfoldersAndTmsTestCount(page);
+    return getTmsTestFoldersWithSubfoldersAndTmsTestCount(projectId, page);
   }
 
   /**
@@ -271,6 +271,18 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   }
 
   /**
+   * This method determines whether a test folder with an id exists in a project.
+   *
+   * @param projectId project's id
+   * @param testFolderId test folder's id
+   * @return true if exists, false if not
+   */
+  @Override
+  public Boolean existsById(long projectId, Long testFolderId) {
+    return tmsTestFolderRepository.existsByIdAndProjectId(testFolderId, projectId);
+  }
+
+  /**
    * Retrieves a test folder with its complete hierarchy of subfolders.
    *
    * <p>This method builds a complete tree structure of the folder and all its subfolders,
@@ -286,7 +298,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     var allIds = tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, folderId);
     if (allIds.isEmpty()) {
       throw new ReportPortalException(
-          NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(folderId));
+          NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(folderId, projectId));
     }
 
     var allFolders = tmsTestFolderRepository.findAllById(allIds);
@@ -311,7 +323,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     return Optional
         .ofNullable(folderMap.get(folderId))
         .orElseThrow(() -> new ReportPortalException(
-            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(folderId))
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(folderId, projectId))
         );
   }
 
@@ -429,6 +441,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   }
 
   private Page<TmsTestFolderRS> getTmsTestFoldersWithSubfoldersAndTmsTestCount(
+      Long projectId,
       org.springframework.data.domain.Page<TmsTestFolderWithCountOfTestCases> page) {
     if (page.hasContent()) {
       var folderIds = page
@@ -457,7 +470,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       Map<Long, Long> subFolderTestCaseCounts = new HashMap<>();
       if (!allSubFolderIds.isEmpty()) {
         var testCaseCountResults = tmsTestFolderRepository
-            .findTestCaseCountsByFolderIds(allSubFolderIds);
+            .findTestCaseCountsByFolderIds(projectId, allSubFolderIds);
         subFolderTestCaseCounts = testCaseCountResults
             .stream()
             .collect(Collectors.toMap(

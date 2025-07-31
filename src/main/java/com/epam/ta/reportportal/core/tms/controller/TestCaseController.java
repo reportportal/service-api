@@ -1,10 +1,7 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
@@ -12,7 +9,6 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +45,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Test Case", description = "Test Case API collection")
 @RequiredArgsConstructor
 @Valid
-@PreAuthorize(IS_ADMIN)
 public class TestCaseController {
 
   private final TmsTestCaseService tmsTestCaseService;
@@ -76,7 +70,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId
     );
@@ -109,7 +103,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getTestCasesByCriteria(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         search,
         testFolderId,
@@ -134,7 +128,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto
     );
@@ -160,7 +154,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId,
         inputDto
@@ -188,7 +182,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testCaseId,
         inputDto
@@ -212,7 +206,7 @@ public class TestCaseController {
       @PathVariable("testCaseId") final long testCaseId,
       @AuthenticationPrincipal ReportPortalUser user) {
     tmsTestCaseService.delete(projectExtractor
-        .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
         .getProjectId(), testCaseId);
   }
 
@@ -235,7 +229,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     tmsTestCaseService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         deleteRequest
     );
@@ -260,7 +254,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     tmsTestCaseService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         patchRequest
     );
@@ -286,7 +280,7 @@ public class TestCaseController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.importFromFile(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         file);
   }
@@ -319,7 +313,7 @@ public class TestCaseController {
       HttpServletResponse response) {
     tmsTestCaseService.exportToFile(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         ids,
         format,

@@ -665,7 +665,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
                     IntegrationGroupEnum.valueOf(extensionPoint.getIntegrationGroup().name()));
               });
 
-              integrationTypeBuilder.setEnabled(true);
+              boolean enabledState = oldIntegrationType.map(IntegrationType::isEnabled).orElse(true);
+              integrationTypeBuilder.setEnabled(enabledState);
               return integrationTypeRepository.save(integrationTypeBuilder.get());
 
             })

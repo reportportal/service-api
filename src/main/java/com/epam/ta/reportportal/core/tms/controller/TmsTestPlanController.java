@@ -1,7 +1,5 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
@@ -13,7 +11,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,13 +45,12 @@ public class TmsTestPlanController {
    * @return The details of the created test plan ({@link TmsTestPlanRS}).
    */
   @PostMapping
-  @PreAuthorize(IS_ADMIN)
   public TmsTestPlanRS createTestPlan(@PathVariable String projectKey,
       @RequestBody TmsTestPlanRQ testPlan,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlan);
   }
@@ -69,7 +65,6 @@ public class TmsTestPlanController {
    * @return Paginated list of test plans matching the criteria ({@link TmsTestPlanRS}).
    */
   @GetMapping
-  @PreAuthorize(IS_ADMIN)
   public Page<TmsTestPlanRS> getTestPlansByCriteria(
       @PathVariable String projectKey,
       @RequestParam(required = false) List<Long> environmentId,
@@ -78,7 +73,7 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getByCriteria(
         projectExtractor
-            .extractProjectDetailsAdmin( EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         environmentId,
         productVersionId,
@@ -95,14 +90,13 @@ public class TmsTestPlanController {
    * @return Updated test plan details ({@link TmsTestPlanRS}).
    */
   @PutMapping("/{id}")
-  @PreAuthorize(IS_ADMIN)
   public TmsTestPlanRS updateTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @RequestBody TmsTestPlanRQ testPlan,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
         testPlan);
@@ -116,13 +110,12 @@ public class TmsTestPlanController {
    * @return The test plan details ({@link TmsTestPlanRS}).
    */
   @GetMapping("/{id}")
-  @PreAuthorize(IS_ADMIN)
   public TmsTestPlanRS getTestPlanById(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId);
   }
@@ -134,13 +127,12 @@ public class TmsTestPlanController {
    * @param testPlanId The ID of the test plan to delete.
    */
   @DeleteMapping("/{id}")
-  @PreAuthorize(IS_ADMIN)
   public void deleteTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @AuthenticationPrincipal ReportPortalUser user) {
     tmsTestPlanService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId);
   }
@@ -154,14 +146,13 @@ public class TmsTestPlanController {
    * @return The updated test plan details ({@link TmsTestPlanRS}).
    */
   @PatchMapping("/{id}")
-  @PreAuthorize(IS_ADMIN)
   public TmsTestPlanRS patchTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @RequestBody TmsTestPlanRQ updatedTestPlan,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
         updatedTestPlan);

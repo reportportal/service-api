@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - feature/EPMRPP-105072
-    paths-ignore:
-      - '.github/**'
-      - README.md
+      
   workflow_dispatch:
 
 jobs:

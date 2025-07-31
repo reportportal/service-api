@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.model.project;
-
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+package com.epam.ta.reportportal.model;
 
 /**
- * Represents a user's role within a project.
+ * A simple record representing an object with an ID.
  *
- * @param id   The unique identifier of the project user role.
- * @param role The role assigned to the user in the project.
+ * @param id the unique identifier
  */
-public record ProjectUserRole(Long id, @JsonProperty("project_role") ProjectRole role) {
+public record IdContainer(Long id) {
 
 }

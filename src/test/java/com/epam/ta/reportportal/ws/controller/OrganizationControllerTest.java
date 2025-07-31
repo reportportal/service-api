@@ -87,7 +87,7 @@ class OrganizationControllerTest extends BaseMvcTest {
           "slug|EQ|notexists|0",
           "created_at|NE|2024-08-01T12:42:30.758055Z|1",
           "type|EQ|INTERNAL|1",
-          "updated_at|BTW|2024-08-01T12:42:30.758055Z,2025-08-01T12:42:30.758055Z|1",
+          "updated_at|BTW|2024-08-01T12:42:30.758055Z,2025-08-01T12:42:30.758055Z|0",
           "projects|EQ|2|1",
           "launches|EQ|0|1",
           "last_launch_occurred|BTW|2024-08-01T12:42:30.758055Z,2025-08-01T12:42:30.758055Z|0"

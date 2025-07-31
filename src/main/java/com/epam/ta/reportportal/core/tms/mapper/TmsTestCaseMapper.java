@@ -14,7 +14,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(config = CommonMapperConfig.class)
+@Mapper(config = CommonMapperConfig.class, uses = TmsManualScenarioMapper.class)
 public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTestCaseRS> {
 
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
@@ -48,13 +48,5 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     tmsTestFolder.setProject(project); //TODO refactor that
 
     return tmsTestFolder;
-  }
-
-  //TODO move to tms manual scenario mapper and refactor
-  protected TmsManualScenarioPreconditionsRS convertToTmsManualScenarioPreconditionsRS(
-      String preconditionsValue) {
-    return TmsManualScenarioPreconditionsRS.builder()
-        .value(preconditionsValue)
-        .build();
   }
 }

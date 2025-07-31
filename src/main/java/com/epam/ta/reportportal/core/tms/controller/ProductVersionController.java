@@ -1,7 +1,5 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
@@ -10,7 +8,6 @@ import com.epam.ta.reportportal.core.tms.service.ProductVersionService;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,14 +40,13 @@ public class ProductVersionController {
    * @param productVersionId The ID of the product version to retrieve.
    * @return A data transfer object ({@link TmsProductVersionRS}) containing details of the product version.
    */
-  @PreAuthorize(IS_ADMIN)
   @GetMapping("/{productVersionId}")
   TmsProductVersionRS getById(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return productVersionService.getById(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId);
   }
@@ -63,14 +59,13 @@ public class ProductVersionController {
    *                  about the product version to create.
    * @return A data transfer object ({@link TmsProductVersionRS}) with details of the created product version.
    */
-  @PreAuthorize(IS_ADMIN)
   @PostMapping
   TmsProductVersionRS createVersion(@PathVariable("projectKey") String projectKey,
       @RequestBody final ProductVersionRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
     return productVersionService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto);
   }
@@ -84,7 +79,6 @@ public class ProductVersionController {
    *                         for the product version.
    * @return A data transfer object ({@link TmsProductVersionRS}) with updated details of the product version.
    */
-  @PreAuthorize(IS_ADMIN)
   @PutMapping("/{productVersionId}")
   TmsProductVersionRS updateVersion(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
@@ -92,7 +86,7 @@ public class ProductVersionController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return productVersionService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId,
         inputDto);
@@ -104,14 +98,13 @@ public class ProductVersionController {
    * @param projectKey        The key of the project to which the product version belongs.
    * @param productVersionId The ID of the product version to delete.
    */
-  @PreAuthorize(IS_ADMIN)
   @DeleteMapping("/{productVersionId}")
   void deleteVersion(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
       @AuthenticationPrincipal ReportPortalUser user) {
     productVersionService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         productVersionId);
   }

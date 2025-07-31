@@ -32,6 +32,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case with id: %d for projectId: %d";
+  private static final String TEST_FOLDER_NOT_FOUND_BY_ID =
+      "Test Folder with id: %d for project: %d";
 
   private final TmsTestCaseMapper tmsTestCaseMapper;
   private final TmsTestCaseRepository tmsTestCaseRepository;
@@ -164,17 +166,23 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional
   public void patch(long projectId,
       @Valid BatchPatchTestCasesRQ patchRequest) {
+    var testCaseIds = patchRequest.getTestCaseIds();
     if (CollectionUtils.isNotEmpty(patchRequest.getTags())) {
       tmsTestCaseAttributeService.patchTestCaseAttributes(
-          tmsTestCaseRepository.findAllById(patchRequest.getTestCaseIds()),
+          tmsTestCaseRepository.findAllById(testCaseIds),
           patchRequest.getTags()
       );
     }
-    if (Objects.nonNull(patchRequest.getTestFolderId())
+    var testFolderId = patchRequest.getTestFolderId();
+    if (Objects.nonNull(testFolderId) && !tmsTestFolderService.existsById(projectId, testFolderId)) {
+      throw new ReportPortalException(
+          NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
+    }
+    if (Objects.nonNull(testFolderId)
         || Objects.nonNull(patchRequest.getPriority())) {
       tmsTestCaseRepository.patch(projectId,
-          patchRequest.getTestCaseIds(),
-          patchRequest.getTestFolderId(),
+          testCaseIds,
+          testFolderId,
           patchRequest.getPriority());
     }
   }
@@ -226,8 +234,17 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       return null;
     }
     var testFolderId = testFolderRQ.getId();
-    return Objects.nonNull(testFolderId) ? testFolderId : tmsTestFolderService
-        .create(projectId, testFolderRQ.getName())
-        .getId();
+    if (Objects.nonNull(testFolderId)) {
+      if (tmsTestFolderService.existsById(projectId, testFolderId)) {
+        return testFolderId;
+      } else {
+        throw new ReportPortalException(
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
+      }
+    } else {
+      return tmsTestFolderService
+          .create(projectId, testFolderRQ.getName())
+          .getId();
+    }
   }
 }

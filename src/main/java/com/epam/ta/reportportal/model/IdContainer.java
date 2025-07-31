@@ -16,11 +16,13 @@
 
 package com.epam.ta.reportportal.model;
 
+import org.springframework.lang.NonNull;
+
 /**
  * A simple record representing an object with an ID.
  *
  * @param id the unique identifier
  */
-public record IdContainer(Long id) {
+public record IdContainer(@NonNull Long id) {
 
 }

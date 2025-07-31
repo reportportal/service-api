@@ -37,6 +37,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Handler for patch operations related to project users. Extends {@link BasePatchProjectHandler} to provide
@@ -99,6 +100,10 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   @Override
   public void remove(PatchOperation operation, Long orgId, Long projectId) {
+    if (ObjectUtils.isEmpty(operation.getValue())) {
+      projectUserRepository.deleteAllByProjectId(projectId);
+      log.info("All users have been removed from project with ID {}", projectId);
+    }
     List<IdContainer> ids;
     try {
       ids = objectMapper.readValue(

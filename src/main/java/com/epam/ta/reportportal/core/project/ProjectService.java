@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 
@@ -102,7 +103,7 @@ public class ProjectService {
    */
   public Project findByProjectIdAndOrgId(Long projectId, Long orgId) {
     return projectRepository.findByIdAndOrganizationId(projectId, orgId)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
   }
 
   /**

@@ -528,6 +528,35 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void removeAllUserFromProject() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users");
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(managerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+  }
+
+
+  @Test
+  void removeUsersInvalidValue() throws Exception {
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.REMOVE)
+        .path("users")
+        .value("[{}]");
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(managerToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+  }
+
+
+  @Test
   void removeNonExistingUserFromProject() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)

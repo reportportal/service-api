@@ -78,8 +78,6 @@ project.ext {
             (migrationsUrl + '/migrations/96_create_groups_tables.up.sql')             : 'V096__create_groups_tables.sql',
             (migrationsUrl + '/migrations/97_add_groups_uuid.up.sql')                  : 'V097__add_groups_uuid.up.sql',
             (migrationsUrl + '/migrations/98_add_plugin_type.up.sql')                  : 'V098__add_plugin_type.up.sql',
-            (migrationsUrl + '/migrations/196_update_default_user_emails.up.sql')      : 'V196__update_default_user_emails.sql',
-            (migrationsUrl + '/migrations/197_email_migration_to_login.up.sql')        : 'V197__email_migration_to_login.sql',
             (migrationsUrl + '/migrations/198_add_slugify_function.up.sql')            : 'V198__add_slugify_function.sql',
             (migrationsUrl + '/migrations/199_organization_tables.up.sql')             : 'V199__organization_tables.sql',
             (migrationsUrl + '/migrations/200_migrate_org_roles.up.sql')               : 'V200__migrate_org_roles.sql',
@@ -91,7 +89,7 @@ project.ext {
             (migrationsUrl + '/migrations/208_unique_group_slug_by_org.up.sql')        : 'V208__unique_group_slug_by_org.sql',
             (migrationsUrl + '/migrations/209_add_activity_org_id.up.sql')             : 'V209__add_activity_org_id.sql',
             (migrationsUrl + '/migrations/210_organization_settings_table.up.sql')     : 'V210__organization_settings_table.sql',
-            (migrationsUrl + '/migrations/212_add_organization_owner.up.sql')          : 'V212__add_organization_owner.sql',
+            (migrationsUrl + '/migrations/212_update_default_users.up.sql')            : 'V212__update_default_users.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

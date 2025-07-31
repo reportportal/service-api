@@ -22,16 +22,8 @@ import static com.epam.ta.reportportal.util.OffsetUtils.responseWithPageParamete
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConverter.ORG_PROFILE_TO_ORG_INFO;
 
-import com.epam.reportportal.api.model.OrgType;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
-import com.epam.reportportal.api.model.OrganizationStatsRelationships;
-import com.epam.reportportal.api.model.OrganizationStatsRelationshipsLaunches;
-import com.epam.reportportal.api.model.OrganizationStatsRelationshipsLaunchesMeta;
-import com.epam.reportportal.api.model.OrganizationStatsRelationshipsProjects;
-import com.epam.reportportal.api.model.OrganizationStatsRelationshipsProjectsMeta;
-import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsers;
-import com.epam.reportportal.api.model.OrganizationStatsRelationshipsUsersMeta;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -41,7 +33,6 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.impl.OrganizationJasperReportHandler;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
-import com.epam.ta.reportportal.dao.organization.OrganizationUserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -66,7 +57,6 @@ import org.springframework.stereotype.Service;
 public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
-  private final OrganizationUserRepository organizationUserRepository;
   private final OrganizationJasperReportHandler organizationJasperReportHandler;
 
 
@@ -74,15 +64,12 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
    * Constructs a new instance of GetOrganizationHandlerImpl.
    *
    * @param organizationRepositoryCustom    Custom repository for organization queries.
-   * @param organizationUserRepository      Repository for organization user operations.
    * @param organizationJasperReportHandler Handler for Jasper report generation.
    */
   @Autowired
   public GetOrganizationHandlerImpl(OrganizationRepositoryCustom organizationRepositoryCustom,
-      OrganizationUserRepository organizationUserRepository,
       OrganizationJasperReportHandler organizationJasperReportHandler) {
     this.organizationRepositoryCustom = organizationRepositoryCustom;
-    this.organizationUserRepository = organizationUserRepository;
     this.organizationJasperReportHandler = organizationJasperReportHandler;
   }
 
@@ -112,25 +99,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
     var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
     var items = organizationProfiles.getContent()
         .stream()
-        .map(orgProfile -> new OrganizationInfo()
-            .id(orgProfile.getId())
-            .createdAt(orgProfile.getCreatedAt())
-            .name(orgProfile.getName())
-            .updatedAt(orgProfile.getUpdatedAt())
-            .slug(orgProfile.getSlug())
-            .type(OrgType.fromValue(orgProfile.getType()))
-            .externalId(orgProfile.getExternalId())
-            .relationships(new OrganizationStatsRelationships()
-                .users(new OrganizationStatsRelationshipsUsers()
-                    .meta(new OrganizationStatsRelationshipsUsersMeta()
-                        .count(orgProfile.getUsersQuantity())))
-                .projects(new OrganizationStatsRelationshipsProjects()
-                    .meta(new OrganizationStatsRelationshipsProjectsMeta()
-                        .count(orgProfile.getProjectsQuantity())))
-                .launches(new OrganizationStatsRelationshipsLaunches()
-                    .meta(new OrganizationStatsRelationshipsLaunchesMeta()
-                        .count(orgProfile.getLaunchesQuantity())
-                        .lastOccurredAt(orgProfile.getLastRun())))))
+        .map(ORG_PROFILE_TO_ORG_INFO)
         .toList();
 
     organizationProfilesPage.items(items);

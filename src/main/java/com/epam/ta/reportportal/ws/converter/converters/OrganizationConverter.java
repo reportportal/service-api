@@ -119,6 +119,7 @@ public final class OrganizationConverter {
           .createdAt(orgProfile.getCreatedAt())
           .updatedAt(orgProfile.getUpdatedAt())
           .externalId(orgProfile.getExternalId())
+          .ownerId(orgProfile.getOwnerId())
           .relationships(new OrganizationStatsRelationships()
               .launches(new OrganizationStatsRelationshipsLaunches()
                   .meta(new OrganizationStatsRelationshipsLaunchesMeta()

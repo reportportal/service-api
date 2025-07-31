@@ -117,6 +117,7 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * test case counts without loading the full folder entities.
    * </p>
    *
+   * @param projectId project id
    * @param folderIds list of folder IDs to get counts for
    * @return list of objects containing folder IDs and their test case counts
    */
@@ -125,9 +126,10 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       + "FROM TmsTestFolder tf "
       + "LEFT JOIN tf.testCases tc "
       + "WHERE tf.id IN :folderIds "
+      + "AND tf.project.id = :projectId "
       + "GROUP BY tf.id")
   List<TmsTestFolderIdWithCountOfTestCases> findTestCaseCountsByFolderIds(
-      @Param("folderIds") List<Long> folderIds);
+      @Param("projectId") Long projectId, @Param("folderIds") List<Long> folderIds);
 
   /**
    * Finds a test folder by ID and eagerly fetches its subfolders.
@@ -136,11 +138,18 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * subfolders without triggering additional queries.
    * </p>
    *
-   * @param folderId the ID of the folder to find
+   * @param projectId project id
+   * @param folderId  the ID of the folder to find
    * @return an optional containing the folder with subfolders loaded, or empty if not found
    */
-  @Query("SELECT tf FROM TmsTestFolder tf LEFT JOIN FETCH tf.subFolders WHERE tf.id = :folderId")
-  Optional<TmsTestFolder> findByIdWithSubFolders(@Param("folderId") Long folderId);
+  @Query("SELECT tf FROM TmsTestFolder "
+      + "tf LEFT JOIN FETCH tf.subFolders "
+      + "WHERE tf.id = :folderId and tf.project.id = :projectId"
+  )
+  Optional<TmsTestFolder> findByIdWithSubFolders(
+      @Param("projectId") Long projectId,
+      @Param("folderId") Long folderId
+  );
 
   /**
    * Finds a folder by given ID and project ID.
@@ -154,44 +163,6 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * @return an optional containing the test folder, or empty if not found
    */
   Optional<TmsTestFolder> findByIdAndProjectId(long id, long projectId);
-
-  /**
-   * Counts all direct subfolders of a given test folder.
-   *
-   * <p>This method returns the count of immediate children only, not nested subfolders at
-   * deeper levels of the hierarchy.
-   * </p>
-   *
-   * @param parentFolderId the ID of the parent folder
-   * @return the count of direct subfolders
-   */
-  @Query("SELECT COUNT(tf) FROM TmsTestFolder tf WHERE tf.parentTestFolder.id = :parentFolderId")
-  Long countSubfoldersByParentId(@Param("parentFolderId") Long parentFolderId);
-
-  /**
-   * Recursively counts all subfolders (including nested subfolders) of a given test folder.
-   *
-   * <p>This method uses a Common Table Expression (CTE) which is PostgreSQL specific. It counts
-   * all subfolders at any level of nesting within the folder hierarchy.
-   * </p>
-   *
-   * <p><strong>Note:</strong> This query is PostgreSQL specific and may not work with other
-   * database systems.
-   * </p>
-   *
-   * @param rootFolderId the ID of the root folder
-   * @return the count of all nested subfolders (excluding the root folder itself)
-   */
-  @Query(value =
-      "WITH RECURSIVE folder_tree AS ("
-          + "  SELECT id, parent_id FROM tms_test_folder WHERE id = :rootFolderId "
-          + "  UNION ALL "
-          + "  SELECT f.id, f.parent_id FROM tms_test_folder f "
-          + "  JOIN folder_tree ft ON f.parent_id = ft.id "
-          + ") "
-          + "SELECT COUNT(*) - 1 FROM folder_tree", // Subtract 1 to exclude root folder
-      nativeQuery = true)
-  Integer countAllNestedSubfolders(@Param("rootFolderId") Long rootFolderId);
 
   /**
    * Recursively deletes a test folder and all its subfolders.
@@ -253,4 +224,13 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       nativeQuery = true)
   List<Long> findAllFolderIdsInHierarchy(@Param("projectId") Long projectId,
       @Param("folderId") Long folderId);
+
+  /**
+   * This method determines whether a test folder with an id exists in a project.
+   *
+   * @param projectId project's id
+   * @param id test folder's id
+   * @return true if exists, false if not
+   */
+  Boolean existsByIdAndProjectId(long id, long projectId);
 }

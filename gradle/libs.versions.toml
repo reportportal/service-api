@@ -1,7 +1,7 @@
 [versions]
 # Development versions
 commons-dev = "d3e888b"
-commons-dao-dev = "423e0cc"
+commons-dao-dev = "7467756"
 plugin-api-dev = "9bd040f"
 
 # Platform versions

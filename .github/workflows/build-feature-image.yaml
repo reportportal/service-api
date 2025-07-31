@@ -41,7 +41,7 @@ jobs:
   call-docker-build:
     name: Call feature Docker build
     needs: variables-setup
-    uses: reportportal/.github/.github/workflows/build-docker-image-oidc.yaml@feature/EPMRPP-105072
+    uses: reportportal/.github/.github/workflows/build-docker-image.yaml@main
     with:
       aws-region: ${{ vars.AWS_REGION }}
       image-tag: ${{ needs.variables-setup.outputs.tag }}

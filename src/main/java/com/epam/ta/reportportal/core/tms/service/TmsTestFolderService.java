@@ -17,4 +17,6 @@ public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTe
       HttpServletResponse response);
 
   TmsTestFolderRS create(long projectId, String testFolderName);
+
+  Boolean existsById(long projectId, Long testFolderId);
 }

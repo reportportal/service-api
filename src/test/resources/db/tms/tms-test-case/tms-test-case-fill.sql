@@ -17,6 +17,9 @@ values (7, 'Search Folder', 'Folder for search tests', 1);
 insert into tms_test_folder (id, "name", description, project_id)
 values (8, 'Search Folder', 'Folder for full-text search tests', 1);
 
+insert into tms_test_folder (id, "name", description, project_id)
+values (9, 'Test Folder 9', 'Description for test folder 9', 2);
+
 -- Test cases
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (4, 'Test Case 4', 'Description for test case 4', 4, '1');
@@ -105,6 +108,12 @@ values (30, 'Batch Test Case 30', 'Test case for batch patch with full attribute
 
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (31, 'Batch Test Case 31', 'Test case for batch patch with full attributes', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (32, 'Batch Test Case 32', 'Test case for batch patch with non existing folder 32', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (33, 'Batch Test Case 33', 'Test case for batch patch with non existing folder 33', 3, 'MEDIUM');
 
 -- Attributes
 insert into tms_attribute (id, "key")

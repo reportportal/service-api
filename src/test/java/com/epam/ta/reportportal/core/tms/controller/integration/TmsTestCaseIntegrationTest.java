@@ -59,6 +59,7 @@ import org.springframework.test.context.jdbc.Sql;
 public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
+  private static final String DEFAULT_PROJECT_KEY = "default_personal";
 
   @Autowired
   private TmsTestCaseRepository testCaseRepository;
@@ -79,7 +80,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   private TmsManualScenarioAttributeRepository manualScenarioAttributeRepository;
 
   @PersistenceContext
-  private EntityManager em;
+  private EntityManager entityManager;
 
   @Test
   void createTestCaseWithoutDefaultVersionIntegrationTest() throws Exception {
@@ -103,6 +104,54 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void createTestCaseWithNonExistentFolderIdIntegrationTest() throws Exception {
+    // Given
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Test Case with Invalid Folder");
+    testCaseRQ.setDescription("Description for test case with invalid folder");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(999L).build()); // Non-existent folder
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When/Then - should return error for non-existent folder
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Folder with id: 999")));
+  }
+
+  @Test
+  void createTestCaseWithNewFolderNameIntegrationTest() throws Exception {
+    // Given - test case with folder name instead of ID (should create new folder)
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Test Case with New Folder");
+    testCaseRQ.setDescription("Description for test case with new folder");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().name("New Test Folder").build());
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case with New Folder"));
+
+    // Then - Verify new folder was created and assigned to test case
+    var createdTestCase = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Test Case with New Folder"))
+        .findFirst();
+
+    assertTrue(createdTestCase.isPresent());
+    assertNotNull(createdTestCase.get().getTestFolder());
   }
 
   @Test
@@ -200,6 +249,72 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     assertTrue(defaultVersion.isPresent());
     assertEquals("Steps test case default Version", defaultVersion.get().getName());
+    assertNotNull(defaultVersion.get().getManualScenario());
+
+    var manualScenario = defaultVersion.get().getManualScenario();
+
+    assertThat(manualScenario.getSteps())
+        .isNotNull()
+        .isNotEmpty()
+        .hasSize(2);
+  }
+
+  @Test
+  void createStepsTestCaseWithDefaultVersionInProjectDefaultIntegrationTest() throws Exception {
+    // Given
+    var firstStep = TmsManualScenarioStepRQ.builder()
+        .instructions("Instructions 1")
+        .expectedResult("Expected result 1")
+        .build();
+    var secondStep = TmsManualScenarioStepRQ.builder()
+        .instructions("Instructions 2")
+        .expectedResult("Expected result 2")
+        .build();
+    var manualScenarioRQ = new TmsStepsManualScenarioRQ();
+    manualScenarioRQ.setManualScenarioType(TmsManualScenarioType.STEPS);
+    manualScenarioRQ.setSteps(List.of(firstStep, secondStep));
+
+    var defaultVersionRQ = new TmsTestCaseDefaultVersionRQ();
+    defaultVersionRQ.setName("Steps test case default Version for default project");
+    defaultVersionRQ.setManualScenario(manualScenarioRQ);
+
+    var testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Steps Test Case With Version for default project");
+    testCaseRQ.setDescription("Description for steps test case with version for default project");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(9L).build());
+    testCaseRQ.setDefaultVersion(defaultVersionRQ);
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(post("/v1/project/" + DEFAULT_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Steps Test Case With Version for default project"));
+
+    // Then - Verify database state
+    var createdTestCase = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Steps Test Case With Version for default project"))
+        .findFirst();
+
+    assertTrue(createdTestCase.isPresent());
+    assertNotNull(createdTestCase.get().getTestFolder());
+
+    var testFolder = createdTestCase.get().getTestFolder();
+
+    assertEquals(2, testFolder.getProject().getId());
+
+    assertFalse(createdTestCase.get().getVersions().isEmpty());
+
+    var defaultVersion = createdTestCase.get().getVersions().stream()
+        .filter(TmsTestCaseVersion::isDefault)
+        .findFirst();
+
+    assertTrue(defaultVersion.isPresent());
+    assertEquals("Steps test case default Version for default project", defaultVersion.get().getName());
     assertNotNull(defaultVersion.get().getManualScenario());
 
     var manualScenario = defaultVersion.get().getManualScenario();
@@ -369,6 +484,26 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void updateTestCaseWithNonExistentFolderIntegrationTest() throws Exception {
+    // Given
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Updated Test Case with Invalid Folder");
+    testCaseRQ.setDescription("Updated description");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(999L).build()); // Non-existent folder
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When/Then - should return error for non-existent folder
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/5")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Folder with id: 999")));
+  }
+
+  @Test
   void updateTextTestCaseWithDefaultVersionIntegrationTest() throws Exception {
     // Given
     var manualScenarioRQ = new TmsTextManualScenarioRQ();
@@ -432,6 +567,25 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertEquals(testCaseRQ.getDescription(), testCase.get().getDescription());
     assertEquals(testCaseRQ.getTestFolder().getId(),
         testCase.get().getTestFolder().getId());
+  }
+
+  @Test
+  void patchTestCaseWithNonExistentFolderIntegrationTest() throws Exception {
+    // Given
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Patched Test Case with Invalid Folder");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(999L).build()); // Non-existent folder
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When/Then - should return error for non-existent folder
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/6")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Folder with id: 999")));
   }
 
   @Test
@@ -625,7 +779,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    em.clear();
+    entityManager.clear();
 
     // Then
     Optional<TmsTestCase> testCase30After = testCaseRepository.findById(30L);
@@ -811,6 +965,29 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void batchPatchTestCasesWithNonExistentFolderIdIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(32L, 33L);
+    Long nonExistentFolderId = 999L;
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(nonExistentFolderId)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - should return error for non-existent folder
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("'Test Folder with id: 999 for project: 1' not found")));
+  }
+
+  @Test
   void importTestCasesFromJsonIntegrationTest() throws Exception {
     // Given
     var jsonContent = """
@@ -859,6 +1036,38 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .toList();
 
     assertEquals(2, importedTestCases.size());
+  }
+
+  @Test
+  void importTestCasesFromJsonWithNonExistentFolderIntegrationTest() throws Exception {
+    // Given
+    var jsonContent = """
+        [
+          {
+            "name": "Imported Test Case with Invalid Folder",
+            "description": "Description",
+            "priority": 1,
+            "testFolder": {
+              "id": 999
+            },
+            "externalId": "123"
+          }
+        ]
+        """;
+
+    MockMultipartFile file = new MockMultipartFile(
+        "file",
+        "testcases.json",
+        "application/json",
+        jsonContent.getBytes()
+    );
+
+    // When/Then - should return error for non-existent folder
+    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+            .file(file)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Folder with id: 999")));
   }
 
   @Test
@@ -998,15 +1207,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     mockMvc.perform(
-        patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(
-            content().string(containsString(
-                "violates foreign key constraint"
-            ))
-        );
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("'Test Folder with id: 999 for project: 1' not found")));
   }
 
   @Test
@@ -1034,9 +1240,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     // When/Then - should return error for unsupported format
     mockMvc.perform(
-        multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .with(token(oAuthHelper.getSuperadminToken())))
+            multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+                .file(file)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest())
         .andExpect(
             content().string(containsString(

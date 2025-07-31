@@ -1,7 +1,5 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
@@ -20,7 +18,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/project/{projectKey}/tms/folder")
 @Tag(name = "Test Folder", description = "Tms Test Folder API collection")
 @RequiredArgsConstructor
-@PreAuthorize(IS_ADMIN)
 public class TmsTestFolderController {
 
   private final TmsTestFolderService tmsTestFolderService;
@@ -78,7 +74,7 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestFolderService.create(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         inputDto);
   }
@@ -117,7 +113,7 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestFolderService.update(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         inputDto);
@@ -158,7 +154,7 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestFolderService.patch(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         inputDto);
@@ -192,9 +188,12 @@ public class TmsTestFolderController {
       @Parameter(description = "Test folder ID", required = true)
       @PathVariable("folderId") Long folderId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return tmsTestFolderService.getById(projectExtractor
-        .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
-        .getProjectId(), folderId);
+    return tmsTestFolderService.getById(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        folderId
+    );
   }
 
   /**
@@ -225,7 +224,7 @@ public class TmsTestFolderController {
       Pageable pageable) {
     return tmsTestFolderService.getFoldersByProjectID(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(), pageable);
   }
 
@@ -259,7 +258,7 @@ public class TmsTestFolderController {
       @Parameter(description = "Pagination parameters") Pageable pageable) {
     return tmsTestFolderService.getSubFolders(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(), folderId, pageable);
   }
 
@@ -288,7 +287,7 @@ public class TmsTestFolderController {
       @PathVariable("folderId") Long folderId) {
     tmsTestFolderService.delete(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(), folderId);
   }
 
@@ -324,7 +323,7 @@ public class TmsTestFolderController {
       HttpServletResponse response) {
     tmsTestFolderService.exportFolderById(
         projectExtractor
-            .extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey))
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         folderId,
         fileType,

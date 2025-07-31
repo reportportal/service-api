@@ -16,13 +16,36 @@
 
 package com.epam.ta.reportportal.model;
 
-import org.springframework.lang.NonNull;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * A simple record representing an object with an ID.
- *
- * @param id the unique identifier
+ * A simple class representing an object with an ID.
  */
-public record IdContainer(@NonNull Long id) {
+@Data
+@NoArgsConstructor
+@Valid
+public class IdContainer {
 
+  @JsonProperty(required = true)
+  @NotNull(message = "Id cannot be null")
+  private Long id;
+
+  /**
+   * Constructs an {@code IdContainer} with the specified id.
+   *
+   * @param id the unique identifier, must not be {@code null}
+   * @throws IllegalArgumentException if {@code id} is {@code null}
+   */
+  @JsonCreator
+  public IdContainer(@JsonProperty("id") Long id) {
+    if (id == null) {
+      throw new IllegalArgumentException("Id must not be null");
+    }
+    this.id = id;
+  }
 }

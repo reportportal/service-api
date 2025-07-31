@@ -103,7 +103,7 @@ public class TmsTestCaseControllerTest {
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
-    given(projectExtractor.extractProjectDetailsAdmin(anyString()))
+    given(projectExtractor.extractMembershipDetails(eq(testUser), anyString()))
         .willReturn(membershipDetails);
   }
 
@@ -120,7 +120,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).getById(projectId, testCaseId);
   }
 
@@ -143,7 +143,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
         eq(testFolderId), any(Pageable.class));
   }
@@ -163,7 +163,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
         isNull(), any(Pageable.class));
   }
@@ -186,7 +186,7 @@ public class TmsTestCaseControllerTest {
             .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).create(projectId, testCaseRequest);
   }
 
@@ -210,7 +210,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).update(projectId, testCaseId, testCaseRequest);
   }
 
@@ -234,7 +234,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).patch(projectId, testCaseId, testCaseRequest);
   }
 
@@ -249,7 +249,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).delete(projectId, testCaseId);
   }
 
@@ -270,7 +270,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isNoContent());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).delete(projectId, deleteRequest);
   }
 
@@ -291,7 +291,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isNoContent());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).delete(projectId, deleteRequest);
   }
 
@@ -313,7 +313,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).patch(projectId, patchRequest);
   }
 
@@ -335,7 +335,7 @@ public class TmsTestCaseControllerTest {
                 .content(jsonContent))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).patch(projectId, patchRequest);
   }
 
@@ -355,7 +355,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).importFromFile(projectId, file);
   }
 
@@ -375,7 +375,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).exportToFile(eq(projectId), eq(testCaseIds), eq(format),
         eq(includeAttachments), any(HttpServletResponse.class));
   }
@@ -388,7 +388,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).exportToFile(eq(projectId), isNull(), eq("JSON"),
         eq(false), any(HttpServletResponse.class));
   }
@@ -405,7 +405,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(projectExtractor).extractProjectDetailsAdmin(eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).exportToFile(eq(projectId), isNull(), eq(format),
         eq(false), any(HttpServletResponse.class));
   }

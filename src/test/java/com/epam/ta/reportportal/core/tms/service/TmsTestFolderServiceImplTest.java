@@ -1,9 +1,11 @@
 package com.epam.ta.reportportal.core.tms.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -354,8 +356,11 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Optional.empty());
 
     // Act & Assert
-    assertThrows(ReportPortalException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         sut.patch(projectId, testFolderId, testFolderRQ));
+
+    assertTrue(exception.getMessage().contains(
+        String.format("Test Folder with id: %d for project: %d", testFolderId, projectId)));
 
     verify(tmsTestFolderRepository).findByIdAndProjectId(testFolderId, projectId);
     verify(tmsTestFolderMapper, never()).patch(any(), any());
@@ -379,9 +384,9 @@ class TmsTestFolderServiceImplTest {
 
     when(tmsTestFolderRepository.findByIdWithCountOfTestCases(projectId, 3L))
         .thenReturn(Optional.of(folderWithCount));
-    when(tmsTestFolderRepository.findByIdWithSubFolders(3L))
+    when(tmsTestFolderRepository.findByIdWithSubFolders(projectId, 3L))
         .thenReturn(Optional.of(parentTestFolder));
-    when(tmsTestFolderRepository.findTestCaseCountsByFolderIds(Arrays.asList(4L, 5L)))
+    when(tmsTestFolderRepository.findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L)))
         .thenReturn(testCaseCountResults);
     when(tmsTestFolderMapper.convertFromTmsTestFolderWithCountOfTestCasesToRS(
         folderWithCount, subFolderTestCaseCounts))
@@ -395,8 +400,8 @@ class TmsTestFolderServiceImplTest {
     assertEquals(testFolderRS.getId(), result.getId());
 
     verify(tmsTestFolderRepository).findByIdWithCountOfTestCases(projectId, 3L);
-    verify(tmsTestFolderRepository).findByIdWithSubFolders(3L);
-    verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(Arrays.asList(4L, 5L));
+    verify(tmsTestFolderRepository).findByIdWithSubFolders(projectId, 3L);
+    verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L));
     verify(tmsTestFolderMapper).convertFromTmsTestFolderWithCountOfTestCasesToRS(
         folderWithCount, subFolderTestCaseCounts);
   }
@@ -413,7 +418,7 @@ class TmsTestFolderServiceImplTest {
 
     when(tmsTestFolderRepository.findByIdWithCountOfTestCases(projectId, testFolderId))
         .thenReturn(Optional.of(folderWithCount));
-    when(tmsTestFolderRepository.findByIdWithSubFolders(testFolderId))
+    when(tmsTestFolderRepository.findByIdWithSubFolders(projectId, testFolderId))
         .thenReturn(Optional.of(folderWithoutSubFolders));
     when(tmsTestFolderMapper.convertFromTmsTestFolderWithCountOfTestCasesToRS(
         folderWithCount, emptySubFolderTestCaseCounts))
@@ -427,8 +432,9 @@ class TmsTestFolderServiceImplTest {
     assertEquals(testFolderRS.getId(), result.getId());
 
     verify(tmsTestFolderRepository).findByIdWithCountOfTestCases(projectId, testFolderId);
-    verify(tmsTestFolderRepository).findByIdWithSubFolders(testFolderId);
-    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(anyList());
+    verify(tmsTestFolderRepository).findByIdWithSubFolders(projectId, testFolderId);
+    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(eq(projectId),
+        anyList());
     verify(tmsTestFolderMapper).convertFromTmsTestFolderWithCountOfTestCasesToRS(
         folderWithCount, emptySubFolderTestCaseCounts);
   }
@@ -440,8 +446,11 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Optional.empty());
 
     // Act & Assert
-    assertThrows(ReportPortalException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         sut.getById(projectId, testFolderId));
+
+    assertTrue(exception.getMessage().contains(
+        String.format("'Test Folder with id: %d for project: %d'", testFolderId, projectId)));
 
     verify(tmsTestFolderRepository).findByIdWithCountOfTestCases(projectId, testFolderId);
     verify(tmsTestFolderMapper, never()).convertFromTmsTestFolderWithCountOfTestCasesToRS(
@@ -451,8 +460,10 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testGetFoldersByProjectID() {
     // Arrange
-    TmsTestFolderWithCountOfTestCases folder1 = new TmsTestFolderWithCountOfTestCases(testFolder, 2L);
-    TmsTestFolderWithCountOfTestCases folder2 = new TmsTestFolderWithCountOfTestCases(parentTestFolder, 1L);
+    TmsTestFolderWithCountOfTestCases folder1 = new TmsTestFolderWithCountOfTestCases(testFolder,
+        2L);
+    TmsTestFolderWithCountOfTestCases folder2 = new TmsTestFolderWithCountOfTestCases(
+        parentTestFolder, 1L);
 
     org.springframework.data.domain.Page<TmsTestFolderWithCountOfTestCases> folderPage =
         new PageImpl<>(Arrays.asList(folder1, folder2), pageable, 2);
@@ -478,7 +489,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(folderPage);
     when(tmsTestFolderRepository.findByIdsWithSubFolders(folderIds))
         .thenReturn(foldersWithSubFolders);
-    when(tmsTestFolderRepository.findTestCaseCountsByFolderIds(Arrays.asList(4L, 5L)))
+    when(tmsTestFolderRepository.findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L)))
         .thenReturn(testCaseCountResults);
     when(tmsTestFolderMapper.convert(folderPage, subFolderTestCaseCounts))
         .thenReturn(folderRSPage);
@@ -492,7 +503,7 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).findAllByProjectIdWithCountOfTestCases(projectId, pageable);
     verify(tmsTestFolderRepository).findByIdsWithSubFolders(folderIds);
-    verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(Arrays.asList(4L, 5L));
+    verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L));
     verify(tmsTestFolderMapper).convert(folderPage, subFolderTestCaseCounts);
   }
 
@@ -520,7 +531,7 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).findAllByProjectIdWithCountOfTestCases(projectId, pageable);
     verify(tmsTestFolderRepository, never()).findByIdsWithSubFolders(anyList());
-    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(anyList());
+    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(eq(projectId), anyList());
     verify(tmsTestFolderMapper).convert(emptyPage);
   }
 
@@ -557,7 +568,8 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findAllByParentTestFolderIdWithCountOfTestCases(projectId,
         parentTestFolder.getId(), pageable);
     verify(tmsTestFolderRepository).findByIdsWithSubFolders(folderIds);
-    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(anyList());
+    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(eq(projectId),
+        anyList());
     verify(tmsTestFolderMapper).convert(folderPage, emptySubFolderTestCaseCounts);
   }
 
@@ -587,7 +599,8 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findAllByParentTestFolderIdWithCountOfTestCases(projectId,
         parentTestFolder.getId(), pageable);
     verify(tmsTestFolderRepository, never()).findByIdsWithSubFolders(anyList());
-    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(anyList());
+    verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(eq(projectId),
+        anyList());
     verify(tmsTestFolderMapper).convert(emptyPage);
   }
 
@@ -604,6 +617,34 @@ class TmsTestFolderServiceImplTest {
     // Assert
     verify(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
     verify(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
+  }
+
+  @Test
+  void testExistsById_WhenFolderExists() {
+    // Arrange
+    when(tmsTestFolderRepository.existsByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(true);
+
+    // Act
+    var result = sut.existsById(projectId, testFolderId);
+
+    // Assert
+    assertTrue(result);
+    verify(tmsTestFolderRepository).existsByIdAndProjectId(testFolderId, projectId);
+  }
+
+  @Test
+  void testExistsById_WhenFolderDoesNotExist() {
+    // Arrange
+    when(tmsTestFolderRepository.existsByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(false);
+
+    // Act
+    var result = sut.existsById(projectId, testFolderId);
+
+    // Assert
+    assertFalse(result);
+    verify(tmsTestFolderRepository).existsByIdAndProjectId(testFolderId, projectId);
   }
 
   @Test
@@ -648,8 +689,11 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Collections.emptyList());
 
     // Act & Assert
-    assertThrows(ReportPortalException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         sut.findFolderWithFullHierarchy(projectId, rootFolderId));
+
+    assertTrue(exception.getMessage().contains(
+        String.format("'Test Folder with id: %d for project: %d'", rootFolderId, projectId)));
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);
     verify(tmsTestFolderRepository, never()).findAllById(anyList());
@@ -666,8 +710,12 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Arrays.asList(rootFolder, firstSubfolder, secondSubfolder));
 
     // Act & Assert
-    assertThrows(ReportPortalException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         sut.findFolderWithFullHierarchy(projectId, nonExistentFolderId));
+
+    assertTrue(exception.getMessage().contains(
+        String.format("'Test Folder with id: %d for project: %d'", nonExistentFolderId,
+            projectId)));
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, nonExistentFolderId);
     verify(tmsTestFolderRepository).findAllById(folderIds);
@@ -715,8 +763,11 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(Collections.emptyList());
 
     // Act & Assert
-    assertThrows(ReportPortalException.class, () ->
+    var exception = assertThrows(ReportPortalException.class, () ->
         sut.exportFolderById(projectId, rootFolderId, fileType, mockResponse));
+
+    assertTrue(exception.getMessage().contains(
+        String.format("'Test Folder with id: %d for project: %d'", rootFolderId, projectId)));
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);
     verify(tmsTestFolderExporter, never()).export(any(), any());

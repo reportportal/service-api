@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_OWNER;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -108,19 +108,21 @@ public class UserController {
   private final GetUserHandler getUserHandler;
 
   private final GetJasperReportHandler<User> jasperReportHandler;
+  private final LinkGenerator linkGenerator;
 
   @Autowired
   public UserController(CreateUserHandler createUserMessageHandler,
       EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
       GetUserHandler getUserHandler,
       @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
-      ApiKeyHandler apiKeyHandler) {
+      ApiKeyHandler apiKeyHandler, LinkGenerator linkGenerator) {
     this.createUserMessageHandler = createUserMessageHandler;
     this.editUserMessageHandler = editUserMessageHandler;
     this.deleteUserHandler = deleteUserHandler;
     this.getUserHandler = getUserHandler;
     this.jasperReportHandler = jasperReportHandler;
     this.apiKeyHandler = apiKeyHandler;
+    this.linkGenerator = linkGenerator;
   }
 
   @PostMapping
@@ -130,7 +132,7 @@ public class UserController {
       description = "Allowable only for users with administrator role")
   public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
-    return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
+    return createUserMessageHandler.createUserByAdmin(rq, currentUser, linkGenerator.composeBaseUrl(request));
   }
 
   @Transactional
@@ -141,7 +143,7 @@ public class UserController {
   public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
       @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
     return createUserMessageHandler.createUserBid(createUserRQ, currentUser,
-        composeBaseUrl(request)
+        linkGenerator.composeBaseUrl(request)
     );
   }
 
@@ -231,7 +233,7 @@ public class UserController {
   @Operation(summary = "Create a restore password request")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
-    return createUserMessageHandler.createRestorePasswordBid(rq, composeBaseUrl(request));
+    return createUserMessageHandler.createRestorePasswordBid(rq, linkGenerator.composeBaseUrl(request));
   }
 
   @Transactional

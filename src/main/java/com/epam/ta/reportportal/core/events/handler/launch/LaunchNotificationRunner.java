@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler.launch;
 
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_AUTOMATION_BUG_TOTAL;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DEFECTS_PRODUCT_BUG_TOTAL;
@@ -82,18 +82,20 @@ public class LaunchNotificationRunner
   private final UserRepository userRepository;
 
   private final ApplicationEventPublisher eventPublisher;
+  private final LinkGenerator linkGenerator;
 
   @Autowired
   public LaunchNotificationRunner(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, GetIntegrationHandler getIntegrationHandler,
       MailServiceFactory mailServiceFactory, UserRepository userRepository,
-      ApplicationEventPublisher eventPublisher) {
+      ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.getIntegrationHandler = getIntegrationHandler;
     this.mailServiceFactory = mailServiceFactory;
     this.userRepository = userRepository;
     this.eventPublisher = eventPublisher;
+    this.linkGenerator = linkGenerator;
   }
 
   @Override
@@ -287,7 +289,7 @@ public class LaunchNotificationRunner
   private void sendNotificationEvent(LaunchFinishedEvent launchFinishedEvent) {
     final Project project = getProjectHandler.get(launchFinishedEvent.getProjectId());
 
-    String launchLink = generateLaunchLink(launchFinishedEvent.getBaseUrl(), project.getName(),
+    String launchLink = linkGenerator.generateLaunchLink(launchFinishedEvent.getBaseUrl(), project.getName(),
         String.valueOf(launchFinishedEvent.getId())
     );
 

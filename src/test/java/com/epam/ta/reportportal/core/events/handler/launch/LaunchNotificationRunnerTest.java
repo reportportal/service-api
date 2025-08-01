@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.events.handler.util.LaunchFinishedTestUtils
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
@@ -64,13 +65,14 @@ class LaunchNotificationRunnerTest {
   private EmailService emailService = mock(EmailService.class);
 
   private ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+  private final LinkGenerator linkGenerator = mock(LinkGenerator.class);
 
   private final LaunchNotificationRunner runner = new LaunchNotificationRunner(getProjectHandler,
       getLaunchHandler,
       getIntegrationHandler,
       mailServiceFactory,
       userRepository,
-      eventPublisher);
+      eventPublisher, linkGenerator);
 
   @Test
   void shouldNotSendWhenNotificationsDisabled() {

@@ -16,80 +16,57 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.net.URISyntaxException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
-import org.springframework.web.util.ForwardedHeaderUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
+ * Service for generating launch links and composing base URLs
+ * 
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Component
+@Service
 @Slf4j
-public final class LinkGenerator {
+public class LinkGenerator {
 
   private static final String UI_PREFIX = "/ui/#";
   private static final String LAUNCHES = "/launches/all/";
 
-  private static String path;
-
   @Value("${server.servlet.context-path:/api}")
-  private String pathValue;
+  private String contextPath;
 
-  private LinkGenerator() {
-    //static only
-  }
-
-  public static String generateLaunchLink(String baseUrl, String projectName, String id) {
+  /**
+   * Generates a launch link for the given parameters
+   * 
+   * @param baseUrl the base URL
+   * @param projectName the project name
+   * @param id the launch ID
+   * @return the generated launch link or null if baseUrl is empty
+   */
+  public String generateLaunchLink(String baseUrl, String projectName, String id) {
     return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
   }
 
-  public static String composeBaseUrl(HttpServletRequest request) {
+  /**
+   * Composes the base URL from the current HTTP request, handling proxy headers
+   * 
+   * @param request the HTTP request
+   * @return the composed base URL
+   */
+  public String composeBaseUrl(HttpServletRequest request) {
+    String adjustedPath = ("/".equals(contextPath) || StringUtils.isEmpty(contextPath)) ? "" : contextPath.replace("/api", "");
+    log.info("Adjusted path: {}", adjustedPath);
 
-    String processedPath = "/".equals(path) ? null : path.replace("/api", "");
-    log.info("Processed Path: " + processedPath);
-    /*
-     * Use Uri components since they are aware of x-forwarded-host headers
-     */
-
-    HttpHeaders httpHeaders = new HttpHeaders();
-    // Only include relevant forwarding headers
-    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for",
-        "forwarded"};
-    for (String headerName : forwardedHeaders) {
-      String headerValue = request.getHeader(headerName);
-      if (headerValue != null) {
-        httpHeaders.add(headerName, headerValue);
-      }
-    }
-
-    URI uri = null;
-    try {
-      uri = new URI(request.getRequestURI());
-    } catch (URISyntaxException e) {
-      log.info(e.getMessage());
-    }
-
-    log.info("Uro: " + uri);
-
-    var res = ForwardedHeaderUtils.adaptFromForwardedHeaders(uri, httpHeaders)
-        .replacePath(processedPath)
+    String baseUrl = ServletUriComponentsBuilder.fromRequestUri(request)
+        .replacePath(adjustedPath)
         .replaceQuery(null)
         .build()
-        .toUri()
-        .toASCIIString();
-    log.info("Compose base url: " + res);
-    return res;
-  }
+        .toUriString();
 
-  @PostConstruct
-  public void init() {
-    LinkGenerator.path = this.pathValue;
+    log.info("Composed base URL: {}", baseUrl);
+    return baseUrl;
   }
 }

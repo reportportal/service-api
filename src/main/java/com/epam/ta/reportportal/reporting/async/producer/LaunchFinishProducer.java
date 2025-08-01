@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.producer;
 
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
@@ -39,9 +39,11 @@ import org.springframework.stereotype.Service;
 public class LaunchFinishProducer implements FinishLaunchHandler {
 
   private final AmqpTemplate amqpTemplate;
+  private final LinkGenerator linkGenerator;
 
-  public LaunchFinishProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+  public LaunchFinishProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate, LinkGenerator linkGenerator) {
     this.amqpTemplate = amqpTemplate;
+    this.linkGenerator = linkGenerator;
   }
 
   @Override
@@ -62,7 +64,7 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);
-    response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), launchId));
+    response.setLink(linkGenerator.generateLaunchLink(baseUrl, projectDetails.getProjectName(), launchId));
     return response;
   }
 }

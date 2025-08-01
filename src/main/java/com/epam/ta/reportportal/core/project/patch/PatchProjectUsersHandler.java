@@ -35,8 +35,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Handler for patch operations related to project users. Extends {@link BasePatchProjectHandler} to provide
@@ -99,6 +101,10 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   @Override
   public void remove(PatchOperation operation, Long orgId, Long projectId) {
+    if (ObjectUtils.isEmpty(operation.getValue())) {
+      unassignAllUsersFromProject(projectId);
+      return;
+    }
     List<IdContainer> ids;
     try {
       ids = objectMapper.readValue(
@@ -109,12 +115,22 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       log.error(e.getMessage());
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
     }
+
+    if (CollectionUtils.isEmpty(ids)) {
+      unassignAllUsersFromProject(projectId);
+      return;
+    }
     ids.forEach(idContainer -> {
-      projectUserRepository.findProjectUserByUserIdAndProjectId(idContainer.id(), projectId)
+      projectUserRepository.findProjectUserByUserIdAndProjectId(idContainer.getId(), projectId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer));
-      projectUserRepository.deleteByUserIdAndProjectIds(idContainer.id(), List.of(projectId));
-      log.info("User with ID {} has been removed from project with ID {}", idContainer.id(), projectId);
+      projectUserRepository.deleteByUserIdAndProjectIds(idContainer.getId(), List.of(projectId));
+      log.info("User with ID {} has been removed from project with ID {}", idContainer.getId(), projectId);
     });
+  }
+
+  private void unassignAllUsersFromProject(Long projectId) {
+    projectUserRepository.deleteAllByProjectId(projectId);
+    log.info("All users have been removed from project with ID {}", projectId);
   }
 
 }

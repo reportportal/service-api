@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_OWNER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static com.epam.ta.reportportal.entity.jasper.ReportFormat.CSV;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -102,6 +102,7 @@ public class UserController {
   private final GetUserHandler getUserHandler;
 
   private final GetJasperReportHandler<User> jasperReportHandler;
+  private final LinkGenerator linkGenerator;
 
 
   @Autowired
@@ -109,13 +110,14 @@ public class UserController {
       EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
       GetUserHandler getUserHandler,
       @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
-      ApiKeyHandler apiKeyHandler) {
+      ApiKeyHandler apiKeyHandler, LinkGenerator linkGenerator) {
     this.createUserMessageHandler = createUserMessageHandler;
     this.editUserMessageHandler = editUserMessageHandler;
     this.deleteUserHandler = deleteUserHandler;
     this.getUserHandler = getUserHandler;
     this.jasperReportHandler = jasperReportHandler;
     this.apiKeyHandler = apiKeyHandler;
+    this.linkGenerator = linkGenerator;
   }
 
   @DeleteMapping(value = "/{id}")
@@ -187,7 +189,7 @@ public class UserController {
   @Operation(summary = "Create a restore password request")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
-    return createUserMessageHandler.createRestorePasswordBid(rq, composeBaseUrl(request));
+    return createUserMessageHandler.createRestorePasswordBid(rq, linkGenerator.composeBaseUrl(request));
   }
 
   @Transactional

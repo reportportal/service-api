@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -111,6 +111,7 @@ public class LaunchController {
   private final MergeLaunchHandler mergeLaunchesHandler;
   private final GetJasperReportHandler<Launch> getJasperHandler;
   private final LaunchConverter launchConverter;
+  private final LinkGenerator linkGenerator;
 
   @Autowired
   public LaunchController(ProjectExtractor projectExtractor, StartLaunchHandler startLaunchHandler,
@@ -118,7 +119,7 @@ public class LaunchController {
       DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
       UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler,
       @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler,
-      LaunchConverter launchConverter) {
+      LaunchConverter launchConverter, LinkGenerator linkGenerator) {
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
     this.finishLaunchHandler = finishLaunchHandler;
@@ -129,6 +130,7 @@ public class LaunchController {
     this.mergeLaunchesHandler = mergeLaunchesHandler;
     this.getJasperHandler = getJasperHandler;
     this.launchConverter = launchConverter;
+    this.linkGenerator = linkGenerator;
   }
 
   /* Report client API */
@@ -154,7 +156,7 @@ public class LaunchController {
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
     return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
-        composeBaseUrl(request)
+        linkGenerator.composeBaseUrl(request)
     );
   }
 
@@ -171,7 +173,7 @@ public class LaunchController {
       HttpServletRequest request) {
     return stopLaunchHandler.stopLaunch(launchId, finishExecutionRQ,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
-        composeBaseUrl(request));
+        linkGenerator.composeBaseUrl(request));
   }
 
   @Transactional
@@ -185,7 +187,7 @@ public class LaunchController {
       HttpServletRequest request) {
     return stopLaunchHandler.stopLaunch(rq,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
-        composeBaseUrl(request));
+        linkGenerator.composeBaseUrl(request));
   }
 
   @Transactional

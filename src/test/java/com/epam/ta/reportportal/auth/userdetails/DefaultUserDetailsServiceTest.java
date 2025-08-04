@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.auth.basic;
+package com.epam.ta.reportportal.auth.userdetails;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,17 +33,17 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
-class DatabaseUserDetailsServiceTest {
+class DefaultUserDetailsServiceTest {
 
   @Mock
   private UserRepository userRepository;
 
   @InjectMocks
-  private DatabaseUserDetailsService userDetailsService;
+  private DefaultUserDetailsService userDetailsService;
 
   @Test
   void userNotFoundTest() {
-    when(userRepository.findReportPortalUser("not_exist")).thenReturn(Optional.empty());
+    when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
     UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
         () -> userDetailsService.loadUserByUsername("not_exist")

@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -78,6 +79,9 @@ class FinishLaunchHandlerImplTest {
   @Mock
   private ApplicationEventPublisher publisher;
 
+  @Mock
+  LinkGenerator linkGenerator;
+
   @InjectMocks
   private FinishLaunchHandlerImpl handler;
 
@@ -115,6 +119,8 @@ class FinishLaunchHandlerImplTest {
 
     when(launchRepository.findByUuid("1")).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(linkGenerator.generateLaunchLink("http://example.com", "test_project", "1"))
+        .thenReturn("http://example.com/ui/#test_project/launches/all/1");
 
     final FinishLaunchRS finishLaunchRS =
         handler.finishLaunch("1", finishExecutionRQ, rpUserToMembership(rpUser),

@@ -97,7 +97,7 @@ public class MultiIdentityProviderConfig {
   @ConfigurationProperties(prefix = "rp.oauth2")
   @Data
   public static class IdentityProviderConfig {
-    private Map<String, JwtIssuerConfig> providers = new HashMap<>();
+    private Map<String, JwtIssuer> providers = new HashMap<>();
   }
 
   /**
@@ -130,7 +130,7 @@ public class MultiIdentityProviderConfig {
     return new JwtIssuerAuthenticationManagerResolver(jwtManagers::get);
   }
 
-  private AuthenticationManager createProviderAuthenticationManager(String name, JwtIssuerConfig config) {
+  private AuthenticationManager createProviderAuthenticationManager(String name, JwtIssuer config) {
     var decoder = createJwtDecoder(name, config);
     var provider = new JwtAuthenticationProvider(decoder);
     provider.setJwtAuthenticationConverter(createJwtConverter(name, config));
@@ -138,7 +138,7 @@ public class MultiIdentityProviderConfig {
     return new ProviderManager(provider);
   }
 
-  private JwtDecoder createJwtDecoder(String name, JwtIssuerConfig config) {
+  private JwtDecoder createJwtDecoder(String name, JwtIssuer config) {
     if (name.contentEquals("internal")) {
       var algorithm = config.getAlgorithm();
       var key = StringUtils.isNotEmpty(config.getSecretKey())
@@ -166,7 +166,7 @@ public class MultiIdentityProviderConfig {
     throw new IllegalArgumentException("Either jwkSetUri or signingKey must be provided");
   }
 
-  private Converter<Jwt, AbstractAuthenticationToken> createJwtConverter(String name, JwtIssuerConfig config) {
+  private Converter<Jwt, AbstractAuthenticationToken> createJwtConverter(String name, JwtIssuer config) {
     if (name.equals("rp")) {
       return new ReportPortalJwtConverter(userDetailsService);
     }

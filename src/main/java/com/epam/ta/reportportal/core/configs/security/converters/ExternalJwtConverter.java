@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs.security.converters;
 
-import com.epam.ta.reportportal.core.configs.security.JwtIssuerConfig;
+import com.epam.ta.reportportal.core.configs.security.JwtIssuer;
 import java.util.Collection;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +39,7 @@ public class ExternalJwtConverter extends AbstractJwtConverter {
    * Constructs an ExternalJwtConverter with the specified
    * UserDetailsService and JWT issuer configuration.
    */
-  public ExternalJwtConverter(UserDetailsService userDetailsService, JwtIssuerConfig config) {
+  public ExternalJwtConverter(UserDetailsService userDetailsService, JwtIssuer config) {
     super(userDetailsService, config);
   }
 

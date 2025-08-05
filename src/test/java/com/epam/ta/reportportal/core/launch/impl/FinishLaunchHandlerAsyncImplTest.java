@@ -31,6 +31,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 
 /**
  * @author Konstantin Antipin
@@ -44,6 +45,9 @@ class FinishLaunchHandlerAsyncImplTest {
 
   @InjectMocks
   LaunchFinishProducer finishLaunchHandlerAsync;
+
+  @Mock
+  LinkGenerator linkGenerator;
 
   @Test
   void finishLaunch() {

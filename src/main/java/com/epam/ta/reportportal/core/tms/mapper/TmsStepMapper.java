@@ -2,9 +2,12 @@ package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsStepRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
@@ -29,14 +32,14 @@ public interface TmsStepMapper {
         .collect(Collectors.toSet());
   }
 
-  TmsStep convertToTmsStep(TmsTextManualScenarioRQ testCaseManualScenarioRQ);
-
   TmsStep convertToTmsStep(TmsManualScenarioStepRQ tmsManualScenarioStepRQ);
 
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "manualScenario", ignore = true)
+  @Mapping(target = "stepsManualScenario", ignore = true)
   @Mapping(target = "attachments", ignore = true)
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   void patch(@MappingTarget TmsStep target, TmsStep source);
+
+  List<TmsStepRS> convert(Collection<TmsStep> steps);
 }

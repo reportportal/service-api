@@ -24,7 +24,7 @@ public class TmsTestCaseRS {
 
   private TmsTestCaseTestFolderRS testFolder;
 
-  private Set<TmsTestCaseVersionRS> versions;
+  private TmsManualScenarioRS manualScenario;
 
   private Set<TmsTestPlanAttributeRS> tags;
 }

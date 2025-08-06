@@ -1,19 +1,21 @@
 package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import java.util.List;
 
-public interface TmsManualScenarioService {
+public interface TmsManualScenarioImplService {
 
-  TmsManualScenario createTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  TmsManualScenarioType getTmsManualScenarioType();
+
+  void createTmsManualScenarioImpl(TmsManualScenario tmsManualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ);
 
-  TmsManualScenario updateTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  void updateTmsManualScenarioImpl(TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ);
 
-  TmsManualScenario patchTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  void patchTmsManualScenarioImpl(TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ);
 
   void deleteAllByTestCaseId(Long testCaseId);

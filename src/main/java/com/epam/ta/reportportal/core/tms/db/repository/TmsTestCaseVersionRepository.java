@@ -1,13 +1,39 @@
 package com.epam.ta.reportportal.core.tms.db.repository;
 
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseDefaultVersionTestCaseId;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface TmsTestCaseVersionRepository extends ReportPortalRepository<TmsTestCaseVersion, Long> {
+
+  @Query("SELECT tcv FROM TmsTestCaseVersion tcv "
+      + "JOIN FETCH tcv.manualScenario ms "
+      + "LEFT JOIN FETCH ms.textScenario ts "
+      + "LEFT JOIN FETCH ms.stepsScenario ss "
+      + "LEFT JOIN FETCH ms.attributes t "
+      + "WHERE tcv.testCase.id = :testCaseId "
+      + "AND tcv.isDefault = true"
+  )
+  Optional<TmsTestCaseVersion> findDefaultVersionByTestCaseId(@Param("testCaseId") Long testCaseId);
+
+  @Query("SELECT new com.epam.ta.reportportal.core.tms.db.entity."
+      + "TmsTestCaseDefaultVersionTestCaseId(tcv, tcv.testCase.id) "
+      + "FROM TmsTestCaseVersion tcv "
+      + "JOIN FETCH tcv.manualScenario ms "
+      + "LEFT JOIN FETCH ms.textScenario ts "
+      + "LEFT JOIN FETCH ms.stepsScenario ss "
+      + "LEFT JOIN FETCH ms.attributes t "
+      + "WHERE tcv.testCase.id IN (:testCaseIds) "
+      + "AND tcv.isDefault = true"
+  )
+  List<TmsTestCaseDefaultVersionTestCaseId> findDefaultVersionsByTestCaseIds(
+      @Param("testCaseIds") List<Long> testCaseIds
+  );
 
   @Modifying
   @Query("DELETE FROM TmsTestCaseVersion tcv WHERE tcv.testCase.id = :testCaseId")

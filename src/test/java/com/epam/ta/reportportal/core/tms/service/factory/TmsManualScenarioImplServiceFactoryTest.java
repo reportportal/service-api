@@ -3,8 +3,10 @@ package com.epam.ta.reportportal.core.tms.service.factory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ.TmsManualScenarioType;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.service.TmsManualScenarioService;
+import com.epam.ta.reportportal.core.tms.service.TmsStepsManualScenarioImplService;
+import com.epam.ta.reportportal.core.tms.service.TmsTextManualScenarioImplService;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,15 +15,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TmsManualScenarioServiceFactoryTest {
+class TmsManualScenarioImplServiceFactoryTest {
 
   @Mock
-  private TmsManualScenarioService textManualScenarioService;
+  private TmsTextManualScenarioImplService textManualScenarioService;
 
   @Mock
-  private TmsManualScenarioService stepsManualScenarioService;
+  private TmsStepsManualScenarioImplService stepsManualScenarioService;
 
-  private TmsManualScenarioServiceFactory factory;
+  private TmsManualScenarioImplServiceFactory factory;
 
   @BeforeEach
   void setUp() {
@@ -30,7 +32,7 @@ class TmsManualScenarioServiceFactoryTest {
     when(stepsManualScenarioService.getTmsManualScenarioType()).thenReturn(
         TmsManualScenarioType.STEPS);
 
-    factory = new TmsManualScenarioServiceFactory(
+    factory = new TmsManualScenarioImplServiceFactory(
         Arrays.asList(textManualScenarioService, stepsManualScenarioService));
   }
 
@@ -54,7 +56,7 @@ class TmsManualScenarioServiceFactoryTest {
 
   @Test
   void shouldReturnAllServices() {
-    var services = factory.getTmsManualScenarioServices();
+    var services = factory.getTmsManualScenarioImplServices();
 
     assertThat(services)
         .isNotNull()

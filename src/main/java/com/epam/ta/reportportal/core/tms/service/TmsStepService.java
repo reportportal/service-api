@@ -1,23 +1,15 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import java.util.List;
 
 public interface TmsStepService {
+  void createSteps(TmsStepsManualScenario tmsManualScenario, TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
 
-  void createStep(TmsManualScenario tmsManualScenario, TmsTextManualScenarioRQ testCaseManualScenarioRQ);
+  void updateSteps(TmsStepsManualScenario tmsManualScenario, TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
 
-  void createSteps(TmsManualScenario tmsManualScenario, TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
-
-  void updateStep(TmsManualScenario tmsManualScenario, TmsTextManualScenarioRQ testCaseManualScenarioRQ);
-
-  void updateSteps(TmsManualScenario tmsManualScenario, TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
-
-  void patchStep(TmsManualScenario tmsManualScenario, TmsTextManualScenarioRQ testCaseManualScenarioRQ);
-
-  void patchSteps(TmsManualScenario tmsManualScenario, TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
+  void patchSteps(TmsStepsManualScenario tmsManualScenario, TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

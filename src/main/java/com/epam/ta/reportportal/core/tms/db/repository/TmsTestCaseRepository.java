@@ -16,32 +16,36 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
 
   @Query("SELECT tc FROM TmsTestCase tc " +
       "JOIN FETCH tc.testFolder tf " +
-      "LEFT JOIN FETCH tc.dataset ds " +
       "LEFT JOIN FETCH tc.tags t " +
-      "LEFT JOIN FETCH tc.versions v " +
       "WHERE tf.project.id = :projectId"
   )
   List<TmsTestCase> findByTestFolder_ProjectId(Long projectId);
 
   @Query("SELECT tc FROM TmsTestCase tc " +
       "JOIN FETCH tc.testFolder tf " +
-      "LEFT JOIN FETCH tc.dataset ds " +
       "LEFT JOIN FETCH tc.tags t " +
-      "LEFT JOIN FETCH tc.versions v " +
       "WHERE tf.project.id = :projectId AND tc.id = :id"
   )
-  Optional<TmsTestCase> findByIdAndProjectId(Long id, Long projectId);
+  Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId, @Param("id") Long id);
+
+  @Query("SELECT tc FROM TmsTestCase tc " +
+      "JOIN FETCH tc.testFolder tf " +
+      "LEFT JOIN FETCH tc.tags t " +
+      "WHERE tf.project.id = :projectId AND tc.id IN (:ids)"
+  )
+  List<TmsTestCase> findByProjectIdAndIds(@Param("projectId") Long projectId, @Param("ids") List<Long> ids);
+
 
   /**
-   * Finds test cases by project with optional search and folder filtering, supporting pagination.
+   * Finds test case ids by project with optional search and folder filtering, supporting pagination.
    *
    * @param projectId    The project ID
    * @param search       Optional search term for full-text search in name and description
    * @param testFolderId Optional test folder ID to filter by specific folder
    * @param pageable     Pagination parameters
-   * @return Page of test cases matching the criteria
+   * @return Page of test case ids matching the criteria
    */
-  @Query(value = "SELECT tc.* FROM tms_test_case tc "
+  @Query(value = "SELECT tc.id FROM tms_test_case tc "
       + "JOIN tms_test_folder tf ON tf.id = tc.test_folder_id "
       + "WHERE tf.project_id = :projectId "
       + "AND (:testFolderId IS NULL OR tf.id = :testFolderId) "
@@ -52,7 +56,7 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
           + "AND (:testFolderId IS NULL OR tf.id = :testFolderId) "
           + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search))",
       nativeQuery = true)
-  Page<TmsTestCase> findByCriteria(@Param("projectId") Long projectId,
+  Page<Long> findIdsByCriteria(@Param("projectId") Long projectId,
       @Param("search") String search,
       @Param("testFolderId") Long testFolderId,
       Pageable pageable);

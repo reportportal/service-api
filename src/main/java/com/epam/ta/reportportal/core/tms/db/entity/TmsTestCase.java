@@ -12,6 +12,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Set;
@@ -51,12 +52,12 @@ public class TmsTestCase implements Serializable {
   @Column(name = "external_id")
   private String externalId;
 
-  @OneToMany(mappedBy = "testCase")
-  @Fetch(FetchMode.SUBSELECT)
+  @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)
+  @ToString.Exclude
   private Set<TmsTestCaseAttribute> tags;
 
-  @OneToMany(mappedBy = "testCase")
-  @Fetch(FetchMode.SUBSELECT)
+  @OneToMany(mappedBy = "testCase", fetch =  FetchType.LAZY)
+  @ToString.Exclude
   private Set<TmsTestCaseVersion> versions;
 
   @ManyToOne(fetch = FetchType.LAZY)

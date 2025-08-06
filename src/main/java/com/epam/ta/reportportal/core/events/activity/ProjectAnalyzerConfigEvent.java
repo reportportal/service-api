@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.ALL_MES
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_ANALYZER_MODE;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.LARGEST_RETRY_PRIORITY;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.MIN_SHOULD_MATCH;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.NUMBER_OF_LOG_LINES;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH;
@@ -70,7 +71,7 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
 
     Stream.of(AUTO_ANALYZER_MODE, MIN_SHOULD_MATCH, SEARCH_LOGS_MIN_SHOULD_MATCH,
             NUMBER_OF_LOG_LINES, AUTO_ANALYZER_ENABLED, AUTO_UNIQUE_ERROR_ANALYZER_ENABLED,
-            UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS, ALL_MESSAGES_SHOULD_MATCH
+            UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS, ALL_MESSAGES_SHOULD_MATCH, LARGEST_RETRY_PRIORITY
         ).map(type -> processParameter(oldConfig, newConfig, type.getAttribute()))
         .forEach(activityBuilder::addHistoryField);
 

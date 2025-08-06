@@ -6,12 +6,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsStepRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsStepMapper;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,35 +36,15 @@ class TmsStepServiceImplTest {
   @InjectMocks
   private TmsStepServiceImpl tmsStepService;
 
-  private TmsManualScenario manualScenario;
-  private TmsTextManualScenarioRQ textScenarioRQ;
+  private TmsStepsManualScenario stepsManualScenario;
   private TmsStepsManualScenarioRQ stepsScenarioRQ;
-  private TmsStep step;
   private Set<TmsStep> steps;
 
   @BeforeEach
   void setUp() {
-    manualScenario = createManualScenario();
-    textScenarioRQ = createTextScenarioRQ();
+    stepsManualScenario = createStepsManualScenario();
     stepsScenarioRQ = createStepsScenarioRQ();
-    step = createStep();
     steps = createSteps();
-  }
-
-  @Test
-  void shouldCreateStep() {
-    // Given
-    when(tmsStepMapper.convertToTmsStep(textScenarioRQ)).thenReturn(step);
-
-    // When
-    tmsStepService.createStep(manualScenario, textScenarioRQ);
-
-    // Then
-    verify(tmsStepMapper).convertToTmsStep(textScenarioRQ);
-    verify(tmsStepRepository).save(step);
-
-    assertThat(manualScenario.getSteps()).containsExactly(step);
-    assertThat(step.getManualScenario()).isEqualTo(manualScenario);
   }
 
   @Test
@@ -74,26 +53,27 @@ class TmsStepServiceImplTest {
     when(tmsStepMapper.convertToTmsSteps(stepsScenarioRQ)).thenReturn(steps);
 
     // When
-    tmsStepService.createSteps(manualScenario, stepsScenarioRQ);
+    tmsStepService.createSteps(stepsManualScenario, stepsScenarioRQ);
 
     // Then
     verify(tmsStepMapper).convertToTmsSteps(stepsScenarioRQ);
     verify(tmsStepRepository).saveAll(steps);
 
-    assertThat(manualScenario.getSteps()).isEqualTo(steps);
+    assertThat(stepsManualScenario.getSteps()).isEqualTo(steps);
     for (var step : steps) {
-      assertThat(step.getManualScenario()).isEqualTo(manualScenario);
+      assertThat(step.getStepsManualScenario()).isEqualTo(stepsManualScenario);
     }
   }
 
   @Test
   void shouldNotCreateStepsWhenListIsEmpty() {
     // Given
-    var emptyStepsRQ = new TmsStepsManualScenarioRQ();
-    emptyStepsRQ.setSteps(Collections.emptyList());
+    var emptyStepsRQ = TmsStepsManualScenarioRQ.builder()
+        .steps(Collections.emptyList())
+        .build();
 
     // When
-    tmsStepService.createSteps(manualScenario, emptyStepsRQ);
+    tmsStepService.createSteps(stepsManualScenario, emptyStepsRQ);
 
     // Then
     verify(tmsStepMapper, never()).convertToTmsSteps(any());
@@ -101,100 +81,117 @@ class TmsStepServiceImplTest {
   }
 
   @Test
-  void shouldUpdateStep() {
+  void shouldNotCreateStepsWhenListIsNull() {
     // Given
-    var existingSteps = createExistingSteps();
-    manualScenario.setSteps(existingSteps);
-
-    when(tmsStepMapper.convertToTmsStep(textScenarioRQ)).thenReturn(step);
+    var nullStepsRQ = TmsStepsManualScenarioRQ.builder()
+        .steps(null)
+        .build();
 
     // When
-    tmsStepService.updateStep(manualScenario, textScenarioRQ);
+    tmsStepService.createSteps(stepsManualScenario, nullStepsRQ);
 
     // Then
-    verify(tmsStepRepository).deleteAll(existingSteps);
-    verify(tmsStepMapper).convertToTmsStep(textScenarioRQ);
-    verify(tmsStepRepository).save(step);
+    verify(tmsStepMapper, never()).convertToTmsSteps(any());
+    verify(tmsStepRepository, never()).saveAll(any());
   }
 
   @Test
   void shouldUpdateSteps() {
     // Given
     var existingSteps = createExistingSteps();
-    manualScenario.setSteps(existingSteps);
+    stepsManualScenario.setSteps(existingSteps);
 
     when(tmsStepMapper.convertToTmsSteps(stepsScenarioRQ)).thenReturn(steps);
 
     // When
-    tmsStepService.updateSteps(manualScenario, stepsScenarioRQ);
+    tmsStepService.updateSteps(stepsManualScenario, stepsScenarioRQ);
 
     // Then
     verify(tmsStepRepository).deleteAll(existingSteps);
     verify(tmsStepMapper).convertToTmsSteps(stepsScenarioRQ);
     verify(tmsStepRepository).saveAll(steps);
 
-    assertThat(manualScenario.getSteps()).isNotEqualTo(existingSteps);
+    assertThat(stepsManualScenario.getSteps()).isNotEqualTo(existingSteps);
+    assertThat(stepsManualScenario.getSteps()).isEqualTo(steps);
   }
 
   @Test
-  void shouldPatchStepWhenExists() {
+  void shouldUpdateStepsWhenNoExistingSteps() {
     // Given
-    var existingStep = createExistingStep();
-    manualScenario.setSteps(Collections.singleton(existingStep));
+    stepsManualScenario.setSteps(new HashSet<>());
 
-    when(tmsStepMapper.convertToTmsStep(textScenarioRQ)).thenReturn(step);
-
-    // When
-    tmsStepService.patchStep(manualScenario, textScenarioRQ);
-
-    // Then
-    verify(tmsStepMapper).patch(existingStep, step);
-    verify(tmsStepRepository).save(existingStep);
-  }
-
-  @Test
-  void shouldCreateStepWhenNotExistsForPatch() {
-    // Given
-    manualScenario.setSteps(new HashSet<>());
-    when(tmsStepMapper.convertToTmsStep(textScenarioRQ)).thenReturn(step);
-
-    // When
-    tmsStepService.patchStep(manualScenario, textScenarioRQ);
-
-    // Then
-    verify(tmsStepMapper).convertToTmsStep(textScenarioRQ);
-    verify(tmsStepRepository).save(step);
-
-    assertThat(manualScenario.getSteps()).containsExactly(step);
-  }
-
-  @Test
-  void shouldNotPatchStepWhenRequestIsNull() {
-    // When
-    tmsStepService.patchStep(manualScenario, null);
-
-    // Then
-    verify(tmsStepMapper, never()).patch(any(), any());
-    verify(tmsStepRepository, never()).save(any());
-  }
-
-  @Test
-  void shouldPatchStepsUsingUpdateStrategy() {
-    // Given
     when(tmsStepMapper.convertToTmsSteps(stepsScenarioRQ)).thenReturn(steps);
 
     // When
-    tmsStepService.patchSteps(manualScenario, stepsScenarioRQ);
+    tmsStepService.updateSteps(stepsManualScenario, stepsScenarioRQ);
+
+    // Then
+    verify(tmsStepRepository, never()).deleteAll(any());
+    verify(tmsStepMapper).convertToTmsSteps(stepsScenarioRQ);
+    verify(tmsStepRepository).saveAll(steps);
+
+    assertThat(stepsManualScenario.getSteps()).isEqualTo(steps);
+  }
+
+  @Test
+  void shouldPatchSteps() {
+    // Given
+    var existingSteps = createExistingSteps();
+    stepsManualScenario.setSteps(existingSteps);
+
+    when(tmsStepMapper.convertToTmsSteps(stepsScenarioRQ)).thenReturn(steps);
+
+    // When
+    tmsStepService.patchSteps(stepsManualScenario, stepsScenarioRQ);
 
     // Then
     verify(tmsStepMapper).convertToTmsSteps(stepsScenarioRQ);
     verify(tmsStepRepository).saveAll(steps);
+
+    // Verify existing steps are still there and new ones are added
+    var allSteps = new HashSet<>(existingSteps);
+    allSteps.addAll(steps);
+    assertThat(stepsManualScenario.getSteps()).isEqualTo(allSteps);
+
+    for (var step : steps) {
+      assertThat(step.getStepsManualScenario()).isEqualTo(stepsManualScenario);
+    }
   }
 
   @Test
   void shouldNotPatchStepsWhenRequestIsNull() {
     // When
-    tmsStepService.patchSteps(manualScenario, null);
+    tmsStepService.patchSteps(stepsManualScenario, null);
+
+    // Then
+    verify(tmsStepMapper, never()).convertToTmsSteps(any());
+    verify(tmsStepRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void shouldNotPatchStepsWhenStepsListIsEmpty() {
+    // Given
+    var emptyStepsRQ = TmsStepsManualScenarioRQ.builder()
+        .steps(Collections.emptyList())
+        .build();
+
+    // When
+    tmsStepService.patchSteps(stepsManualScenario, emptyStepsRQ);
+
+    // Then
+    verify(tmsStepMapper, never()).convertToTmsSteps(any());
+    verify(tmsStepRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void shouldNotPatchStepsWhenStepsListIsNull() {
+    // Given
+    var nullStepsRQ = TmsStepsManualScenarioRQ.builder()
+        .steps(null)
+        .build();
+
+    // When
+    tmsStepService.patchSteps(stepsManualScenario, nullStepsRQ);
 
     // Then
     verify(tmsStepMapper, never()).convertToTmsSteps(any());
@@ -232,6 +229,15 @@ class TmsStepServiceImplTest {
   }
 
   @Test
+  void shouldNotDeleteWhenTestCaseIdsIsNull() {
+    // When
+    tmsStepService.deleteAllByTestCaseIds(null);
+
+    // Then
+    verify(tmsStepRepository, never()).deleteAllByTestCaseIds(any());
+  }
+
+  @Test
   void shouldDeleteAllByTestFolderId() {
     // When
     tmsStepService.deleteAllByTestFolderId(1L, 123L);
@@ -241,44 +247,41 @@ class TmsStepServiceImplTest {
   }
 
   // Helper methods
-  private TmsManualScenario createManualScenario() {
-    var scenario = new TmsManualScenario();
-    scenario.setId(1L);
+  private TmsStepsManualScenario createStepsManualScenario() {
+    var scenario = new TmsStepsManualScenario();
+    scenario.setManualScenarioId(1L);
     scenario.setSteps(new HashSet<>());
     return scenario;
   }
 
-  private TmsTextManualScenarioRQ createTextScenarioRQ() {
-    var scenarioRQ = new TmsTextManualScenarioRQ();
-    scenarioRQ.setExpectedResult("Expected result");
-    return scenarioRQ;
-  }
-
   private TmsStepsManualScenarioRQ createStepsScenarioRQ() {
-    var stepRQ1 = new TmsManualScenarioStepRQ();
-    stepRQ1.setExpectedResult("Step 1 expected result");
+    var stepRQ1 = TmsManualScenarioStepRQ.builder()
+        .instructions("Step 1 instructions")
+        .expectedResult("Step 1 expected result")
+        .attachments(Collections.emptyList())
+        .build();
 
-    var stepRQ2 = new TmsManualScenarioStepRQ();
-    stepRQ2.setExpectedResult("Step 2 expected result");
+    var stepRQ2 = TmsManualScenarioStepRQ.builder()
+        .instructions("Step 2 instructions")
+        .expectedResult("Step 2 expected result")
+        .attachments(Collections.emptyList())
+        .build();
 
-    var scenarioRQ = new TmsStepsManualScenarioRQ();
-    scenarioRQ.setSteps(Arrays.asList(stepRQ1, stepRQ2));
-    return scenarioRQ;
-  }
-
-  private TmsStep createStep() {
-    var step = new TmsStep();
-    step.setId(1L);
-    step.setExpectedResult("Expected result");
-    return step;
+    return TmsStepsManualScenarioRQ.builder()
+        .steps(Arrays.asList(stepRQ1, stepRQ2))
+        .build();
   }
 
   private Set<TmsStep> createSteps() {
     var step1 = new TmsStep();
     step1.setId(1L);
+    step1.setInstructions("Step 1 instructions");
+    step1.setExpectedResult("Step 1 expected result");
 
     var step2 = new TmsStep();
     step2.setId(2L);
+    step2.setInstructions("Step 2 instructions");
+    step2.setExpectedResult("Step 2 expected result");
 
     return new HashSet<>(Arrays.asList(step1, step2));
   }
@@ -286,12 +289,8 @@ class TmsStepServiceImplTest {
   private Set<TmsStep> createExistingSteps() {
     var step = new TmsStep();
     step.setId(99L);
+    step.setInstructions("Existing step instructions");
+    step.setExpectedResult("Existing step result");
     return new HashSet<>(Collections.singletonList(step));
-  }
-
-  private TmsStep createExistingStep() {
-    var step = new TmsStep();
-    step.setId(99L);
-    return step;
   }
 }

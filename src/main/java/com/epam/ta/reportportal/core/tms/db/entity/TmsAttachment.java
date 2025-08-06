@@ -48,4 +48,8 @@ public class TmsAttachment implements Serializable {
   @JoinColumn(name = "environment_id")
   private TmsEnvironment environment;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "text_manual_scenario_id")
+  private TmsTextManualScenario textManualScenario;
+
 }

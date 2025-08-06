@@ -28,5 +28,5 @@ public class TmsTestCaseRQ {
   private List<TmsTestCaseAttributeRQ> tags;
 
   @Valid
-  private TmsTestCaseDefaultVersionRQ defaultVersion;
+  private TmsManualScenarioRQ manualScenario;
 }

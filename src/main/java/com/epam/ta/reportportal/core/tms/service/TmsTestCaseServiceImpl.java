@@ -16,11 +16,13 @@ import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,13 +65,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public TmsTestCaseRS getById(long projectId, Long testCaseId) {
-    return tmsTestCaseMapper
-        .convert(tmsTestCaseRepository
-            .findById(testCaseId)
+    return tmsTestCaseMapper.convert(
+        tmsTestCaseRepository
+            .findByProjectIdAndId(projectId, testCaseId)
             .orElseThrow(() -> new ReportPortalException(
                 NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
-            )
-        );
+            ),
+        tmsTestCaseVersionService.getDefaultVersion(testCaseId));
   }
 
 
@@ -85,19 +87,17 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase, tmsTestCaseRQ.getTags());
     }
 
-    if (Objects.nonNull(tmsTestCaseRQ.getDefaultVersion())) {
-      tmsTestCaseVersionService.createDefaultTestCaseVersion(tmsTestCase,
-          tmsTestCaseRQ.getDefaultVersion());
-    }
+    var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(tmsTestCase,
+        tmsTestCaseRQ.getManualScenario());
 
-    return tmsTestCaseMapper.convert(tmsTestCase);
+    return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion);
   }
 
   @Override
   @Transactional
   public TmsTestCaseRS update(long projectId, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ) {
     return tmsTestCaseRepository
-        .findById(testCaseId)
+        .findByProjectIdAndId(projectId, testCaseId)
         .map((var existingTestCase) -> {
           tmsTestCaseMapper.update(existingTestCase,
               tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
@@ -106,10 +106,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           tmsTestCaseAttributeService.updateTestCaseAttributes(existingTestCase,
               tmsTestCaseRQ.getTags());
 
-          tmsTestCaseVersionService.updateDefaultTestCaseVersion(existingTestCase,
-              tmsTestCaseRQ.getDefaultVersion());
+          var defaultVersion = tmsTestCaseVersionService.updateDefaultTestCaseVersion(existingTestCase,
+              tmsTestCaseRQ.getManualScenario());
 
-          return tmsTestCaseMapper.convert(existingTestCase);
+          return tmsTestCaseMapper.convert(existingTestCase, defaultVersion);
         })
         .orElseGet(() -> create(projectId, tmsTestCaseRQ));
   }
@@ -118,7 +118,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional
   public TmsTestCaseRS patch(long projectId, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ) {
     return tmsTestCaseRepository
-        .findByIdAndProjectId(testCaseId, projectId)
+        .findByProjectIdAndId(projectId, testCaseId)
         .map((var existingTestCase) -> {
           tmsTestCaseMapper.patch(existingTestCase,
               tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
@@ -127,10 +127,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           tmsTestCaseAttributeService.patchTestCaseAttributes(existingTestCase,
               tmsTestCaseRQ.getTags());
 
-          tmsTestCaseVersionService.patchDefaultTestCaseVersion(existingTestCase,
-              tmsTestCaseRQ.getDefaultVersion());
+          var defaultVersion = tmsTestCaseVersionService.patchDefaultTestCaseVersion(existingTestCase,
+              tmsTestCaseRQ.getManualScenario());
 
-          return tmsTestCaseMapper.convert(existingTestCase);
+          return tmsTestCaseMapper.convert(existingTestCase, defaultVersion);
         })
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
@@ -220,12 +220,21 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search, Long testFolderId, Pageable pageable) {
-    var testCasePage = tmsTestCaseRepository.findByCriteria(
-        projectId, search, testFolderId, pageable
-    );
-    return PagedResourcesAssembler
-        .pageConverter(tmsTestCaseMapper::convert)
-        .apply(testCasePage);
+    var testCaseIds = tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, pageable);
+    if (testCaseIds.hasContent()) {
+      var testCaseDefaultVersions = tmsTestCaseVersionService.getDefaultVersions(testCaseIds.getContent());
+      var testCases = tmsTestCaseRepository
+          .findByProjectIdAndIds(projectId, testCaseIds.getContent());
+      var page = tmsTestCaseMapper.convert(testCases, testCaseDefaultVersions, pageable);
+
+      return PagedResourcesAssembler
+          .<TmsTestCaseRS>pageConverter()
+          .apply(page);
+    } else {
+      return PagedResourcesAssembler
+          .<TmsTestCaseRS>pageConverter()
+          .apply(new PageImpl<>(Collections.emptyList(), pageable, 0));
+    }
   }
 
 

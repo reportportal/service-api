@@ -18,14 +18,13 @@ package com.epam.ta.reportportal.core.configs.security;
 
 import com.epam.ta.reportportal.auth.ApiKeyUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.configs.security.converters.ApiKeyReportPortalUserConverter;
 import com.epam.ta.reportportal.dao.ApiKeyRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.ApiKey;
 import jakarta.xml.bind.DatatypeConverter;
 import java.time.LocalDate;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -36,19 +35,34 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+/**
+ * Authentication provider for API key authentication. It validates the API key and retrieves the associated user.
+ */
 @Component
 public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
 
-  private final Log logger = LogFactory.getLog(getClass());
   private final Converter<ReportPortalUser, ? extends AbstractAuthenticationToken> authenticationConverter = new ApiKeyReportPortalUserConverter();
 
+  private final ApiKeyRepository apiKeyRepository;
+
+  private final UserRepository userRepository;
+
+  /**
+   * Constructor for ApiKeyAuthenticationProvider.
+   */
   @Autowired
-  private ApiKeyRepository apiKeyRepository;
+  public ApiKeyAuthenticationProvider(ApiKeyRepository apiKeyRepository, UserRepository userRepository) {
+    this.apiKeyRepository = apiKeyRepository;
+    this.userRepository = userRepository;
+  }
 
-  @Autowired
-  private UserRepository userRepository;
-
-
+  /**
+   * Authenticates the provided authentication token.
+   *
+   * @param authentication The authentication token containing the API key.
+   * @return An authenticated user token if the API key is valid.
+   * @throws AuthenticationException If the API key is invalid or the user is not found.
+   */
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
     String apiToken = (String) bearer.getPrincipal();

@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.auth.basic;
+
+package com.epam.ta.reportportal.auth.userdetails;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.core.configs.security.converters.UserReportPortalUserConverter.TO_REPORT_PORTAL_USER;
 
-import com.epam.ta.reportportal.auth.util.AuthUtils;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,13 +29,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Spring's {@link UserDetailsService} implementation. Uses {@link User} entity from ReportPortal
- * database
+ * Spring's {@link UserDetailsService} default implementation.
+ * Uses {@link com.epam.ta.reportportal.entity.user.User} entity from ReportPortal database.
  *
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
+@Primary
 @Service
-public class DatabaseUserDetailsService implements UserDetailsService {
+public class DefaultUserDetailsService implements UserDetailsService {
 
   private UserRepository userRepository;
 
@@ -45,25 +46,19 @@ public class DatabaseUserDetailsService implements UserDetailsService {
     this.userRepository = userRepository;
   }
 
+  /**
+   * Loads user by username.
+   *
+   * @param username the username to search for
+   * @return UserDetails object containing user information
+   * @throws UsernameNotFoundException if the user is not found
+   */
   @Override
   @Transactional(readOnly = true)
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    ReportPortalUser user = userRepository.findReportPortalUser(normalizeId(username))
+    return userRepository.findByLogin(normalizeId(username))
+        .map(TO_REPORT_PORTAL_USER)
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-    UserDetails userDetails = User.builder()
-        .username(user.getUsername())
-        .password(user.getPassword() == null ? "" : user.getPassword())
-        .authorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
-        .build();
-
-    return ReportPortalUser.userBuilder()
-        .withUserDetails(userDetails)
-        .withUserId(user.getUserId())
-        .withUserRole(user.getUserRole())
-        .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
-        .withEmail(user.getEmail())
-        .build();
   }
 
 }

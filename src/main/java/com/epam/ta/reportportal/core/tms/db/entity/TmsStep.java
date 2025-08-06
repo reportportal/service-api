@@ -43,8 +43,8 @@ public class TmsStep implements Serializable {
   private String expectedResult;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "manual_scenario_id")
-  private TmsManualScenario manualScenario;
+  @JoinColumn(name = "steps_manual_scenario_id")
+  private TmsStepsManualScenario stepsManualScenario;
 
   @OneToMany(mappedBy = "step")
   @Fetch(FetchMode.SUBSELECT)

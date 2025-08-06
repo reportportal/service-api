@@ -61,19 +61,4 @@ public abstract class TmsManualScenarioRQ {
    */
   @Valid
   protected List<TmsManualScenarioAttributeRQ> attributes;
-
-  /**
-   * Enum representing possible types of manual scenarios.
-   */
-  public enum TmsManualScenarioType {
-    /**
-     * Step-based manual scenario.
-     */
-    STEPS,
-
-    /**
-     * Text-based manual scenario.
-     */
-    TEXT
-  }
 }

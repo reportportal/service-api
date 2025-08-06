@@ -39,6 +39,6 @@ public interface TmsManualScenarioRepository extends ReportPortalRepository<TmsM
       + "  ) "
       + ") ",
       nativeQuery = true)
-  void deleteManualScenariosByTestFolderId(@Param("projectId") Long projectId,
+  void deleteAllByTestFolderId(@Param("projectId") Long projectId,
       @Param("folderId") Long folderId);
 }

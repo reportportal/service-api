@@ -77,6 +77,7 @@ public class UserResource {
   @Data
   public static class AssignedProject {
 
+    private Long projectId;
     private String projectRole;
     private String entryType;
 

@@ -77,6 +77,7 @@ class SuggestItemServiceTest {
 
     Launch launch = new Launch();
     launch.setId(1L);
+    launch.setProjectId(1L);
 
     final LogFull logFull = new LogFull();
 
@@ -116,6 +117,7 @@ class SuggestItemServiceTest {
     testItem.setLaunchId(1L);
 
     Launch launch = new Launch();
+    launch.setProjectId(1L);
     launch.setId(1L);
 
     SuggestInfo suggestInfo = new SuggestInfo();
@@ -189,11 +191,13 @@ class SuggestItemServiceTest {
 
     final Cluster cluster = new Cluster();
     cluster.setId(1L);
+    cluster.setProjectId(1L);
     cluster.setLaunchId(1L);
 
     TestItem relevantItem = getRelevantItem();
 
     Launch launch = new Launch();
+    launch.setProjectId(1L);
     launch.setId(1L);
 
     final LogFull logFull = new LogFull();

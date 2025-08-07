@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
@@ -55,15 +55,17 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   private final LaunchRepository launchRepository;
   private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
   private final ApplicationEventPublisher eventPublisher;
+  private final LinkGenerator linkGenerator;
 
   @Autowired
   public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
       @Qualifier("finishLaunchHierarchyHandler")
       FinishHierarchyHandler<Launch> finishHierarchyHandler,
-      ApplicationEventPublisher eventPublisher) {
+      ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator) {
     this.launchRepository = launchRepository;
     this.finishHierarchyHandler = finishHierarchyHandler;
     this.eventPublisher = eventPublisher;
+    this.linkGenerator = linkGenerator;
   }
 
   @Override
@@ -99,7 +101,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         .addAttributes(finishLaunchRQ.getAttributes()).addEndTime(finishLaunchRQ.getEndTime())
         .get();
 
-    String launchLink = generateLaunchLink(baseUrl, projectDetails.getProjectName(),
+    String launchLink = linkGenerator.generateLaunchLink(baseUrl, projectDetails.getProjectName(),
         String.valueOf(launch.getId())
     );
 

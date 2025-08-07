@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
@@ -24,7 +25,6 @@ import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTE
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -39,7 +39,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.group.GroupProject;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -51,13 +51,12 @@ import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.google.common.base.Preconditions;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,7 +126,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   @Override
   public com.epam.ta.reportportal.model.Page<UserResource> getUsers(Filter filter, Pageable pageable,
-                                                                    ReportPortalUser.ProjectDetails projectDetails) {
+      ReportPortalUser.ProjectDetails projectDetails) {
     // Active users only
     filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
     filter.withCondition(new FilterCondition(Condition.EQUALS,
@@ -193,18 +192,19 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   @Override
   public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter) {
-
-    final List<User> users = userRepository.findByFilter(filter);
-
-    List<? extends Map<String, ?>> data = users.stream().map(jasperReportHandler::convertParams)
+    var users = userRepository.findByFilter(filter);
+    var data = users.stream().map(jasperReportHandler::convertParams)
         .collect(Collectors.toList());
-
-    JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
-
+    var jrDataSource = new JRBeanCollectionDataSource(data);
     //don't provide any params to not overwrite params from the Jasper template
-    JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
-
-    jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
+    var jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
+    var bytes = jasperReportHandler.exportReportBytes(reportFormat, jasperPrint);
+    try {
+      outputStream.write(bytes);
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response."
+      );
+    }
   }
 
   @Override

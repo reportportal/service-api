@@ -28,7 +28,8 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
  * Global exception handler for the application's REST controllers. Provides centralized handling of various exceptions
  * and maps them to appropriate HTTP responses.
  */
-@RestControllerAdvice(value = "com.epam.ta.reportportal.ws.controller")
+@RestControllerAdvice(value = {"com.epam.ta.reportportal.ws.controller",
+    "com.epam.ta.reportportal.reporting.async.controller"})
 @Log4j2
 public class ErrorHandlingController {
 

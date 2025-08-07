@@ -51,16 +51,15 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
-import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
-import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
-import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.launch.export.LaunchExportService;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -69,7 +68,6 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -79,20 +77,15 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import com.epam.ta.reportportal.ws.reporting.Mode;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import java.io.OutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import net.sf.jasperreports.engine.JREmptyDataSource;
-import net.sf.jasperreports.engine.JasperPrint;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -107,6 +100,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Andrei_Ramanchuk
  */
 @Service
+@RequiredArgsConstructor
 public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
   private final GetClusterHandler getClusterHandler;
@@ -116,31 +110,9 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   private final ProjectRepository projectRepository;
   private final WidgetContentRepository widgetContentRepository;
   private final UserRepository userRepository;
-  private final JasperDataProvider dataProvider;
-  private final GetJasperReportHandler<Launch> jasperReportHandler;
   private final LaunchConverter launchConverter;
   private final ApplicationEventPublisher applicationEventPublisher;
-
-  @Autowired
-  public GetLaunchHandlerImpl(GetClusterHandler getClusterHandler,
-      LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      ItemAttributeRepository itemAttributeRepository, ProjectRepository projectRepository,
-      WidgetContentRepository widgetContentRepository, UserRepository userRepository,
-      JasperDataProvider dataProvider,
-      @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler,
-      LaunchConverter launchConverter, ApplicationEventPublisher applicationEventPublisher) {
-    this.getClusterHandler = getClusterHandler;
-    this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
-    this.itemAttributeRepository = itemAttributeRepository;
-    this.projectRepository = projectRepository;
-    this.widgetContentRepository = widgetContentRepository;
-    this.userRepository = userRepository;
-    this.dataProvider = Preconditions.checkNotNull(dataProvider);
-    this.jasperReportHandler = jasperReportHandler;
-    this.launchConverter = launchConverter;
-    this.applicationEventPublisher = applicationEventPublisher;
-  }
+  private final LaunchExportService launchExportService;
 
   @Override
   public Launch get(Long id) {
@@ -337,27 +309,24 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public void exportLaunch(Long launchId, ReportFormat reportFormat, OutputStream outputStream,
-      ReportPortalUser user) {
-
-    Launch launch = launchRepository.findById(launchId)
+  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
+      ReportPortalUser user, ProjectDetails projectDetails) {
+    var launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
     expect(launch.getStatus(), not(statusIn(IN_PROGRESS))).verify(ErrorType.FORBIDDEN_OPERATION,
         Suppliers.formattedSupplier(
             "Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
     );
 
-    String userFullName = userRepository.findById(user.getUserId()).map(User::getFullName)
+    validate(launch, projectDetails);
+    var userFullName = userRepository.findById(user.getUserId()).map(User::getFullName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
 
-    Map<String, Object> params = jasperReportHandler.convertParams(launch);
-
-    fillWithAdditionalParams(params, launch, userFullName);
-
-    JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(params, new JREmptyDataSource());
-
-    jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
-
+    if (includeAttachments) {
+      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat, response);
+    } else {
+      launchExportService.exportLaunch(launch, userFullName, reportFormat, response);
+    }
   }
 
   /**
@@ -397,17 +366,6 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
         INCORRECT_FILTER_PARAMETERS,
         "Filters for 'mode' aren't applicable for project's launches."
     );
-  }
-
-  private void fillWithAdditionalParams(Map<String, Object> params, Launch launch,
-      String userFullName) {
-
-    Optional<String> owner = userRepository.findById(launch.getUserId()).map(User::getFullName);
-
-    /* Check if launch owner still in system if not - setup principal */
-    params.put(LaunchReportConstants.OWNER, owner.orElse(userFullName));
-
-    params.put(LaunchReportConstants.TEST_ITEMS, dataProvider.getTestItemsOfLaunch(launch));
   }
 
 }

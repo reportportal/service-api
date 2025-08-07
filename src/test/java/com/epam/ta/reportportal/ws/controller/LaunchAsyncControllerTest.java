@@ -20,7 +20,6 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +41,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -62,6 +60,9 @@ class LaunchAsyncControllerTest {
 
   @Mock
   MergeLaunchHandler mergeLaunchHandler;
+
+  @Mock
+  LinkGenerator linkGenerator;
 
   @InjectMocks
   LaunchAsyncController launchAsyncController;
@@ -117,8 +118,7 @@ class LaunchAsyncControllerTest {
         anyString()
     )).thenReturn(user.getProjectDetails().get("test_project"));
 
-    MockedStatic<LinkGenerator> a = mockStatic(LinkGenerator.class);
-    a.when(() -> LinkGenerator.composeBaseUrl(any()))
+    when(linkGenerator.composeBaseUrl(any()))
         .thenReturn("http://localhost:8080/api");
 
     launchAsyncController.finishLaunch("test_project", launchId, finishExecutionRQ, user,null);

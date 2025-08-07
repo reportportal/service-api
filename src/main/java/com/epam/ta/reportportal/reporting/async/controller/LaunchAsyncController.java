@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.reporting.async.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -73,18 +73,20 @@ public class LaunchAsyncController {
   private final FinishLaunchHandler finishLaunchHandler;
   private final MergeLaunchHandler mergeLaunchesHandler;
   private final LaunchConverter launchConverter;
+  private final LinkGenerator linkGenerator;
 
   @Autowired
   public LaunchAsyncController(ProjectExtractor projectExtractor,
       @Qualifier("launchStartProducer") StartLaunchHandler startLaunchHandler,
       @Qualifier("launchFinishProducer") FinishLaunchHandler finishLaunchHandler,
-      MergeLaunchHandler mergeLaunchesHandler, LaunchConverter launchConverter) {
+      MergeLaunchHandler mergeLaunchesHandler, LaunchConverter launchConverter, LinkGenerator linkGenerator) {
 
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
     this.finishLaunchHandler = finishLaunchHandler;
     this.mergeLaunchesHandler = mergeLaunchesHandler;
     this.launchConverter = launchConverter;
+    this.linkGenerator = linkGenerator;
   }
 
   @HttpLogging
@@ -114,7 +116,7 @@ public class LaunchAsyncController {
         finishLaunchRQ,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
         user,
-        composeBaseUrl(request)
+        linkGenerator.composeBaseUrl(request)
     );
   }
 

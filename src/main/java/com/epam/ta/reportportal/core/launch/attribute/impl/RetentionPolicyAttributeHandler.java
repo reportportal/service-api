@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.attribute.impl;
 
+import static com.epam.ta.reportportal.core.settings.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -23,26 +24,25 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.launch.attribute.AttributeHandler;
+import com.epam.ta.reportportal.core.settings.ServerSettingsService;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.Objects;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Ivan Kustau
  */
 @Component
+@RequiredArgsConstructor
 public class RetentionPolicyAttributeHandler implements AttributeHandler {
 
   private final MessageBus messageBus;
 
-  @Autowired
-  public RetentionPolicyAttributeHandler(MessageBus messageBus) {
-    this.messageBus = messageBus;
-  }
+  private final ServerSettingsService serverSettingsService;
 
   /**
    * Handles cases when retentionPolicy attribute is passed at the start.
@@ -54,12 +54,17 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
       return;
     }
 
+    if (serverSettingsService.checkServerSettingsState(IMPORTANT_SETTINGS_KEY, Boolean.FALSE.toString())) {
+      launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
+      return;
+    }
+
     Set<ItemAttribute> attributes = launch.getAttributes();
     ItemAttribute importantAttribute = null;
     ItemAttribute regularAttribute = null;
 
     for (ItemAttribute attribute : attributes) {
-      if (attribute.isSystem() && "retentionPolicy".equals(attribute.getKey())) {
+      if (attribute.isSystem() && RETENTION_POLICY_KEY.equals(attribute.getKey())) {
         if ("important".equalsIgnoreCase(attribute.getValue())) {
           importantAttribute = attribute;
         } else if ("regular".equalsIgnoreCase(attribute.getValue())) {
@@ -88,7 +93,9 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
    */
   @Override
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
-    if (launch == null || launch.getAttributes() == null) {
+    if (launch == null || launch.getAttributes() == null || serverSettingsService.checkServerSettingsState(
+        IMPORTANT_SETTINGS_KEY,
+        Boolean.FALSE.toString())) {
       return;
     }
 
@@ -97,7 +104,8 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
     ItemAttribute retentionPolicyNewAttribute = null;
 
     for (ItemAttribute attribute : itemAttributes) {
-      if ("retentionPolicy".equalsIgnoreCase(attribute.getKey())) {
+
+      if (RETENTION_POLICY_KEY.equalsIgnoreCase(attribute.getKey())) {
         if (attribute.isSystem()) {
           retentionPolicyOldAttribute = attribute;
         } else {

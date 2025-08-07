@@ -17,13 +17,13 @@ package com.epam.ta.reportportal.core.jasper;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.epam.ta.reportportal.entity.jasper.ReportType;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;

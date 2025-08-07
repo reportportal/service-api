@@ -15,6 +15,9 @@
  */
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.enums.LogLevel.ERROR_INT;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
@@ -35,6 +38,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -95,6 +99,7 @@ public class SuggestItemService {
     validateTestItem(testItem);
 
     Launch launch = getLaunch(testItem.getLaunchId(), projectDetails, user);
+    isItemUnderProject(projectDetails, user, launch);
     Project project = getProjectHandler.get(projectDetails);
 
     SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project);
@@ -107,6 +112,14 @@ public class SuggestItemService {
         throw new ReportPortalException(BAD_REQUEST_ERROR, v.provide(testItem));
       }
     });
+  }
+
+  private void isItemUnderProject(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Launch launch) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
+          "Launch is not under the specified project."
+      );
+    }
   }
 
   @Transactional(readOnly = true)

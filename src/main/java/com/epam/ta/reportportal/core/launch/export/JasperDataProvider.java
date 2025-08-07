@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.jasper.util;
+package com.epam.ta.reportportal.core.launch.export;
 
-import com.epam.ta.reportportal.core.jasper.TestItemPojo;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,11 +34,11 @@ public class JasperDataProvider {
 
   private final TestItemRepository testItemRepository;
 
-  public List<TestItemPojo> getTestItemsOfLaunch(Launch launch) {
-    /* Get launch referred test items with SORT! */
+  public Map<Long, TestItemPojo> getTestItemsOfLaunch(Launch launch, boolean includeAttachments) {
     return testItemRepository.selectTestItemsProjection(launch.getId())
         .stream()
-        .map(TestItemPojo::new)
-        .collect(Collectors.toList());
+        .map(item -> TestItemPojo.build(item, includeAttachments))
+        .collect(Collectors.toMap(TestItemPojo::getId, it -> it, (oldValue, newValue) -> oldValue,
+            LinkedHashMap::new));
   }
 }

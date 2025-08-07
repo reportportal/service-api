@@ -42,7 +42,7 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
@@ -355,7 +355,7 @@ public class ProjectController {
 
     try (OutputStream outputStream = response.getOutputStream()) {
       getProjectHandler.exportProjects(format,
-          new CompositeFilter(Operator.AND, filter, predefinedFilter), outputStream
+          new CompositeFilter(Operator.AND, filter, predefinedFilter), response
       );
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,

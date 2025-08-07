@@ -19,17 +19,16 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.user.SearchUserResource;
 import com.epam.ta.reportportal.model.user.UserResource;
-import java.io.OutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -90,7 +89,7 @@ public interface GetProjectHandler {
    * @return Page of found user resources
    */
   Page<SearchUserResource> getUserNames(String value,
-     UserRole userRole,
+      UserRole userRole,
       ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
 
   /**
@@ -115,7 +114,7 @@ public interface GetProjectHandler {
    * @param filter       {@link Queryable}
    * @param outputStream {@link HttpServletResponse#getOutputStream()}
    */
-  void exportProjects(ReportFormat reportFormat, Queryable filter, OutputStream outputStream);
+  void exportProjects(ReportFormat reportFormat, Queryable filter, HttpServletResponse outputStream);
 
   Map<String, Boolean> getAnalyzerIndexingStatus();
 }

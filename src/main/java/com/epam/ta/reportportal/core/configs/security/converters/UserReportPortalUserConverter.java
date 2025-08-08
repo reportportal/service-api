@@ -18,13 +18,13 @@ package com.epam.ta.reportportal.core.configs.security.converters;
 
 import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserAuthProjection;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Maps;
 import java.util.function.Function;
 
 /**
- * Converts {@link User} to {@link ReportPortalUser}.<br>
- * This class is used to convert user entities to the format required by ReportPortal.
+ * Converts {@link UserAuthProjection} to {@link ReportPortalUser}.<br>
  * It ensures that all necessary fields are populated correctly.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
@@ -36,17 +36,19 @@ public final class UserReportPortalUserConverter {
   }
 
   /**
-   * Converts a {@link User} object to a {@link ReportPortalUser} object.
+   * Converts a {@link UserAuthProjection} object to a {@link ReportPortalUser} object.
    */
-  public static Function<User, ReportPortalUser> TO_REPORT_PORTAL_USER = user ->
-      ReportPortalUser.userBuilder()
-          .withUserId(user.getId())
-          .withUserName(user.getLogin())
-          .withEmail(user.getEmail())
-          .withUserRole(user.getRole())
-          .withPassword(user.getPassword() == null ? "" : user.getPassword())
-          .withAuthorities(AuthUtils.AS_AUTHORITIES.apply(user.getRole()))
-          .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
-          .withActive(user.getActive())
-          .build();
+  public static Function<UserAuthProjection, ReportPortalUser> TO_REPORT_PORTAL_USER = user -> {
+    var role = UserRole.valueOf(user.role());
+    return ReportPortalUser.userBuilder()
+        .withUserId(user.id())
+        .withUserName(user.login())
+        .withEmail(user.email())
+        .withUserRole(role)
+        .withPassword(user.password() == null ? "" : user.password())
+        .withAuthorities(AuthUtils.AS_AUTHORITIES.apply(role))
+        .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
+        .withActive(user.active())
+        .build();
+  };
 }

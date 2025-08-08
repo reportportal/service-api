@@ -43,7 +43,7 @@ class DefaultUserDetailsServiceTest {
 
   @Test
   void userNotFoundTest() {
-    when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
+    when(userRepository.findAuthDataByLogin("not_exist")).thenReturn(Optional.empty());
 
     UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
         () -> userDetailsService.loadUserByUsername("not_exist")

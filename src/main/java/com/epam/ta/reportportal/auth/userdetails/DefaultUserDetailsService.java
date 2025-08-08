@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class DefaultUserDetailsService implements UserDetailsService {
   @Override
   @Transactional(readOnly = true)
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    return userRepository.findByLogin(normalizeId(username))
+    return userRepository.findAuthDataByLogin(normalizeId(username))
         .map(TO_REPORT_PORTAL_USER)
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
   }

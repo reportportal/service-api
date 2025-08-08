@@ -1,7 +1,7 @@
 [versions]
 # Development versions
 commons-dev = "d3e888b"
-commons-dao-dev = "5d359f1"
+commons-dao-dev = "EPMRPP-106364-activity-widget-return-userId-SNAPSHOT"
 plugin-api-dev = "9bd040f"
 
 # Platform versions

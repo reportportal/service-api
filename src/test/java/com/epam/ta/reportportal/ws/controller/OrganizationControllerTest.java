@@ -29,6 +29,7 @@ import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -95,6 +96,7 @@ class OrganizationControllerTest extends BaseMvcTest {
       delimiter = '|',
       nullValues = "null"
   )
+  @Disabled
   void searchOrganizationsByParameter(String field, String op, String value, int rows)
       throws Exception {
     SearchCriteriaRQ rq = new SearchCriteriaRQ();

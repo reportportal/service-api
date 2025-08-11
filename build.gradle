@@ -201,6 +201,7 @@ drill {
     groupId = "report-portal"
     appId = "service-api"
     packagePrefixes = ["com/epam/ta/reportportal"]
+    buildVersion = System.getenv("DRILL_BUILD_VERSION")
     enableTestAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
         version = "0.23.5"
@@ -208,6 +209,10 @@ drill {
     enableAppAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
         version = "0.9.7"
+    }
+    enableTestRecommendations {
+        enabled = System.getenv("DRILL_RECOMMENDATIONS_ENABLED") == "true" ?: false
+        coveragePeriodDays = 30
     }
 }
 

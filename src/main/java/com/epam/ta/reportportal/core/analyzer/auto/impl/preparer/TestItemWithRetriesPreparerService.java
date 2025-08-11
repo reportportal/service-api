@@ -32,8 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Strategy for preparing test items with retries for analysis. This is a placeholder implementation
- * that will be extended with specific retry handling logic in the future.
+ * Strategy for preparing test items with retries for analysis. This is a placeholder implementation that will be
+ * extended with specific retry handling logic in the future.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -56,18 +56,12 @@ public class TestItemWithRetriesPreparerService implements TestItemPreparationSt
         testItemRepository.findById(retryWithMaxStepsId).ifPresent(maxStepsRetry -> {
           log.info("Found retry {} with largest amount of nested steps", maxStepsRetry.getItemId());
           IndexTestItem res = AnalyzerUtils.fromTestItem(maxStepsRetry);
-          if (latestRetry.getItemResults().getIssue() != null) {
-            res.setIssueTypeLocator(
-                latestRetry.getItemResults().getIssue().getIssueType().getLocator());
-            res.setAutoAnalyzed(latestRetry.getItemResults().getIssue().getAutoAnalyzed());
-          }
-          res.setLogs(new HashSet<>(logRepository.findNestedLogsOfRetryItem(retryWithMaxStepsId,
-              LogLevel.ERROR.toInt())));
+          res.setLogs(new HashSet<>(logRepository.findNestedLogsWithItemPathPattern(retryWithMaxStepsId,
+              "*." + retryWithMaxStepsId + ".*", LogLevel.ERROR.toInt())));
           results.add(res);
         });
       } else {
-        results.addAll(standardTestItemPreparerService.prepare(launchId,
-            Collections.singletonList(latestRetry)));
+        results.add(AnalyzerUtils.fromTestItem(latestRetry));
       }
     });
     return results;

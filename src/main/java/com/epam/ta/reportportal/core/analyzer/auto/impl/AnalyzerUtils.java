@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_AN
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_ANALYZER_MODE;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.INDEXING_RUNNING;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.LARGEST_RETRY_PRIORITY;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.MIN_SHOULD_MATCH;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.NUMBER_OF_LOG_LINES;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH;
@@ -125,6 +126,8 @@ public class AnalyzerUtils {
     analyzerConfig.setAnalyzerMode(configParameters.get(AUTO_ANALYZER_MODE.getAttribute()));
     analyzerConfig.setAllMessagesShouldMatch(
         BooleanUtils.toBoolean(configParameters.get(ALL_MESSAGES_SHOULD_MATCH.getAttribute())));
+    analyzerConfig.setLargestRetryPriority(
+        BooleanUtils.toBoolean(configParameters.get(LARGEST_RETRY_PRIORITY.getAttribute())));
     return analyzerConfig;
   }
 

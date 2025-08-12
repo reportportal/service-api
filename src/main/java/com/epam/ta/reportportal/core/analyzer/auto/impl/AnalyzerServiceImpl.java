@@ -180,8 +180,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs,
       List<TestItem> testItems, Long projectId) {
     return rs.stream().map(analyzed -> {
-      Optional<TestItem> toUpdate = testItems.stream()
-          .filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
+      Optional<TestItem> toUpdate = testItemRepository.findById(analyzed.getItemId());
       toUpdate.ifPresent(testItem -> {
         LOGGER.debug("Analysis has found a match: {}", analyzed);
         if (testItem.getRetryOf() != null) {

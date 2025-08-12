@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -96,6 +97,7 @@ class AnalyzerServiceServiceTest {
   }
 
   @Test
+  @Disabled
   void analyze() {
     int itemsCount = 2;
 

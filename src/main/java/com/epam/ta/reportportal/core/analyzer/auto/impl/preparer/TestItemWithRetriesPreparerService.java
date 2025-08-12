@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class TestItemWithRetriesPreparerService implements TestItemPreparationSt
 
   private final TestItemRepository testItemRepository;
   private final LogRepository logRepository;
+  private final StandardTestItemPreparerService standardTestItemPreparerService;
 
   @Override
   public List<IndexTestItem> prepare(Long launchId, Collection<TestItem> testItems) {
@@ -65,7 +67,8 @@ public class TestItemWithRetriesPreparerService implements TestItemPreparationSt
           results.add(res);
         });
       } else {
-        results.add(AnalyzerUtils.fromTestItem(latestRetry));
+        results.addAll(standardTestItemPreparerService.prepare(launchId,
+            Collections.singletonList(latestRetry)));
       }
     });
     return results;

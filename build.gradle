@@ -64,14 +64,14 @@ dependencies {
     if (releaseMode) {
         println("Using release dependencies")
         implementation 'com.github.reportportal:commons:a614c1a'
-        implementation 'com.github.reportportal:commons-dao:dc64c01'
+        implementation 'com.github.reportportal:commons-dao:a385469'
         implementation('com.github.reportportal:plugin-api:8f089e4') {
             exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:a614c1a'
-        implementation 'com.github.reportportal:commons-dao:dc64c01'
+        implementation 'com.github.reportportal:commons-dao:a385469'
         implementation ('com.github.reportportal:plugin-api:8f089e4') {
             exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }

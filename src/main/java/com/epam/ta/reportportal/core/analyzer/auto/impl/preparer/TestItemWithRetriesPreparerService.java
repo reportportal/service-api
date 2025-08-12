@@ -67,7 +67,8 @@ public class TestItemWithRetriesPreparerService implements TestItemPreparationSt
           results.add(res);
         });
       } else {
-        results.add(AnalyzerUtils.fromTestItem(latestRetry));
+        results.addAll(standardTestItemPreparerService.prepare(launchId,
+            Collections.singletonList(latestRetry)));
       }
     });
     return results;

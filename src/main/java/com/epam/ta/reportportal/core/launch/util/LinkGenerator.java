@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.ForwardedHeaderUtils;
 
 /**
+ * Service for generating launch links and composing base URLs
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
@@ -66,30 +68,12 @@ public class LinkGenerator {
 
   @SneakyThrows
   public String composeBaseUrl(HttpServletRequest request) {
-
-    String processedPath = "/".equals(path) ? null : path.replace("/api", "");
-    /*
-     * Use Uri components since they are aware of x-forwarded-host headers
-     */
-
-    HttpHeaders httpHeaders = new HttpHeaders();
-    // Only include relevant forwarding headers
-    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for",
-        "forwarded"};
-    for (String headerName : forwardedHeaders) {
-      String headerValue = request.getHeader(headerName);
-      if (headerValue != null) {
-        httpHeaders.add(headerName, headerValue);
-      }
-    }
-
-    URI uri = new URI(request.getRequestURI());
-
-    return ForwardedHeaderUtils.adaptFromForwardedHeaders(uri, httpHeaders)
-        .replacePath(processedPath)
+    String adjustedPath = ("/".equals(contextPath) || StringUtils.isEmpty(contextPath)) ? ""
+        : contextPath.replace("/api", "");
+    return ServletUriComponentsBuilder.fromRequestUri(request)
+        .replacePath(adjustedPath)
         .replaceQuery(null)
         .build()
-        .toUri()
-        .toASCIIString();
+        .toUriString();
   }
 }

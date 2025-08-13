@@ -61,9 +61,8 @@ public class TestItemWithRetriesPreparerService implements TestItemPreparationSt
                 latestRetry.getItemResults().getIssue().getIssueType().getLocator());
             res.setAutoAnalyzed(latestRetry.getItemResults().getIssue().getAutoAnalyzed());
           }
-          res.setLogs(
-              new HashSet<>(logRepository.findNestedLogsWithItemPathPattern(retryWithMaxStepsId,
-                  "*." + retryWithMaxStepsId + ".*", LogLevel.ERROR.toInt())));
+          res.setLogs(new HashSet<>(logRepository.findNestedLogsOfRetryItem(retryWithMaxStepsId,
+              LogLevel.ERROR.toInt())));
           results.add(res);
         });
       } else {

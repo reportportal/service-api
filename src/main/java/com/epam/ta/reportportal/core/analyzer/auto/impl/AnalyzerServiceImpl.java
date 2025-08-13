@@ -231,6 +231,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     if (rs.getRelevantItemId() != null) {
       Optional<TestItem> relevantItemOptional = testItemRepository.findById(rs.getRelevantItemId());
       if (relevantItemOptional.isPresent()) {
+        if (relevantItemOptional.get().getRetryOf() != null) {
+          relevantItemOptional = testItemRepository.findById(
+              relevantItemOptional.get().getRetryOf());
+        }
         relevantItemInfo = updateIssueFromRelevantItem(issueEntity, relevantItemOptional.get());
       } else {
         LOGGER.error(ErrorType.TEST_ITEM_NOT_FOUND.getDescription(), rs.getRelevantItemId());

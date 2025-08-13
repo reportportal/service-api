@@ -25,7 +25,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Service for generating launch links and composing base URLs
- * 
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
@@ -40,10 +40,10 @@ public class LinkGenerator {
 
   /**
    * Generates a launch link for the given parameters
-   * 
-   * @param baseUrl the base URL
+   *
+   * @param baseUrl     the base URL
    * @param projectName the project name
-   * @param id the launch ID
+   * @param id          the launch ID
    * @return the generated launch link or null if baseUrl is empty
    */
   public String generateLaunchLink(String baseUrl, String projectName, String id) {
@@ -52,21 +52,17 @@ public class LinkGenerator {
 
   /**
    * Composes the base URL from the current HTTP request, handling proxy headers
-   * 
+   *
    * @param request the HTTP request
    * @return the composed base URL
    */
   public String composeBaseUrl(HttpServletRequest request) {
-    String adjustedPath = ("/".equals(contextPath) || StringUtils.isEmpty(contextPath)) ? "" : contextPath.replace("/api", "");
-    log.info("Adjusted path: {}", adjustedPath);
-
-    String baseUrl = ServletUriComponentsBuilder.fromRequestUri(request)
+    String adjustedPath = ("/".equals(contextPath) || StringUtils.isEmpty(contextPath)) ? ""
+        : contextPath.replace("/api", "");
+    return ServletUriComponentsBuilder.fromRequestUri(request)
         .replacePath(adjustedPath)
         .replaceQuery(null)
         .build()
         .toUriString();
-
-    log.info("Composed base URL: {}", baseUrl);
-    return baseUrl;
   }
 }

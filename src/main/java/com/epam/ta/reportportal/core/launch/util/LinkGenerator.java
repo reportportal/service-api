@@ -41,9 +41,9 @@ public class LinkGenerator {
   /**
    * Generates a launch link for the given parameters
    *
-   * @param baseUrl the base URL
+   * @param baseUrl     the base URL
    * @param projectName the project name
-   * @param id the launch ID
+   * @param id          the launch ID
    * @return the generated launch link or null if baseUrl is empty
    */
   public String generateLaunchLink(String baseUrl, String projectName, String id) {
@@ -57,16 +57,12 @@ public class LinkGenerator {
    * @return the composed base URL
    */
   public String composeBaseUrl(HttpServletRequest request) {
-    String adjustedPath = ("/".equals(contextPath) || StringUtils.isEmpty(contextPath)) ? "" : contextPath.replace("/api", "");
-    log.info("Adjusted path: {}", adjustedPath);
-
-    String baseUrl = ServletUriComponentsBuilder.fromRequestUri(request)
+    String adjustedPath = ("/".equals(contextPath) || StringUtils.isEmpty(contextPath)) ? ""
+        : contextPath.replace("/api", "");
+    return ServletUriComponentsBuilder.fromRequestUri(request)
         .replacePath(adjustedPath)
         .replaceQuery(null)
         .build()
         .toUriString();
-
-    log.info("Composed base URL: {}", baseUrl);
-    return baseUrl;
   }
 }

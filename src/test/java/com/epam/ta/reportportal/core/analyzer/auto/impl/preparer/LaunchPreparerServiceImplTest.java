@@ -35,13 +35,13 @@ class LaunchPreparerServiceImplTest {
 
   private final LaunchRepository launchRepository = mock(LaunchRepository.class);
   private final ClusterRepository clusterRepository = mock(ClusterRepository.class);
-  private final TestItemPreparerService testItemPreparerService = mock(
-      TestItemPreparerService.class);
+  private final CompositeTestItemPreparerService compositeTestItemPreparerService = mock(
+      CompositeTestItemPreparerService.class);
 
   private final LaunchPreparerServiceImpl preparerService = new LaunchPreparerServiceImpl(
       launchRepository,
       clusterRepository,
-      testItemPreparerService
+      compositeTestItemPreparerService
   );
 
   @Test
@@ -57,7 +57,7 @@ class LaunchPreparerServiceImplTest {
     when(launchRepository.findIndexLaunchByIds(List.of(launchId))).thenReturn(List.of(indexLaunch));
 
     final IndexTestItem indexTestItem = new IndexTestItem();
-    when(testItemPreparerService.prepare(indexLaunch.getLaunchId())).thenReturn(
+    when(compositeTestItemPreparerService.prepare(indexLaunch.getLaunchId())).thenReturn(
         List.of(indexTestItem));
 
     final Cluster cluster = new Cluster();

@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,23 +47,22 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
   private final LaunchRepository launchRepository;
   private final ClusterRepository clusterRepository;
 
-  private final TestItemPreparerService testItemPreparerService;
+  private final CompositeTestItemPreparerService compositeTestItemPreparerService;
 
-  @Autowired
   public LaunchPreparerServiceImpl(LaunchRepository launchRepository,
       ClusterRepository clusterRepository,
-      TestItemPreparerService testItemPreparerService) {
+      CompositeTestItemPreparerService compositeTestItemPreparerService) {
     this.launchRepository = launchRepository;
     this.clusterRepository = clusterRepository;
-    this.testItemPreparerService = testItemPreparerService;
+    this.compositeTestItemPreparerService = compositeTestItemPreparerService;
   }
 
   @Override
   public Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems,
       AnalyzerConfig analyzerConfig) {
     if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
-      final List<IndexTestItem> preparedItems = testItemPreparerService.prepare(launch.getId(),
-          testItems);
+      final List<IndexTestItem> preparedItems = compositeTestItemPreparerService.prepare(
+          launch.getId(), testItems, analyzerConfig);
       if (CollectionUtils.isNotEmpty(preparedItems)) {
         return Optional.of(createIndexLaunch(launch.getProjectId(),
             launch.getId(),
@@ -115,7 +113,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
    * @param indexLaunch - Launch to be updated
    */
   private void fill(IndexLaunch indexLaunch) {
-    final List<IndexTestItem> preparedItems = testItemPreparerService.prepare(
+    final List<IndexTestItem> preparedItems = compositeTestItemPreparerService.prepare(
         indexLaunch.getLaunchId());
     if (!preparedItems.isEmpty()) {
       indexLaunch.setTestItems(preparedItems);

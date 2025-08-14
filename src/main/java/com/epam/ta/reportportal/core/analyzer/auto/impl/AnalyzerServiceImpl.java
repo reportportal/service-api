@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import com.epam.reportportal.model.analyzer.IndexLaunch;
 import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
@@ -47,13 +48,9 @@ import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,7 +65,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ivan Sharamet
  * @author Pavel Bortnik
  */
-@Slf4j
 @Service
 @Transactional
 public class AnalyzerServiceImpl implements AnalyzerService {
@@ -144,23 +140,18 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     LOGGER.info("Start analysis of '{}' items for launch with id '{}'", testItemIds.size(),
         launch.getId());
     List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
-    Map<Long, TestItem> retryIdToOriginalMap = new HashMap<>();
-
-    updateWithLargestRetry(analyzerConfig, toAnalyze, retryIdToOriginalMap);
-
     Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze,
         analyzerConfig);
-
     rqLaunch.ifPresent(rq -> {
       int amountToAnalyze = rq.getTestItems().size();
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
       Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
 
       if (!MapUtils.isEmpty(analyzedMap)) {
-        analyzedMap.forEach((key, value) ->
-            updateTestItems(key, value, toAnalyze, launch.getProjectId(), retryIdToOriginalMap)
-        );
+        analyzedMap.forEach(
+            (key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
       }
+
       // save data for analytics
       int skipped = (int) toAnalyze.stream()
           .filter(ti -> ti.getItemResults().getStatus().equals(SKIPPED))
@@ -175,27 +166,6 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     });
   }
 
-  private void updateWithLargestRetry(AnalyzerConfig analyzerConfig, List<TestItem> toAnalyze,
-      Map<Long, TestItem> retryIdToOriginalMap) {
-    if (analyzerConfig.isLargestRetryPriority()) {
-      List<TestItem> itemsWithRetries = toAnalyze.stream()
-          .filter(TestItem::isHasRetries)
-          .collect(Collectors.toList());
-
-      itemsWithRetries.forEach(originalItem -> {
-        Long retryWithMaxStepsId = testItemRepository.findIdWithMaxStepsBeforeFailed(originalItem.getItemId());
-        if (retryWithMaxStepsId != null) {
-          testItemRepository.findById(retryWithMaxStepsId).ifPresent(maxStepsRetry -> {
-            log.info("Found retry {} with largest amount of nested steps", maxStepsRetry.getItemId());
-            retryIdToOriginalMap.put(maxStepsRetry.getItemId(), originalItem);
-            toAnalyze.remove(originalItem);
-            toAnalyze.add(maxStepsRetry);
-          });
-        }
-      });
-    }
-  }
-
 
   /**
    * Update issue types for analyzed items and posted events for updated
@@ -205,31 +175,24 @@ public class AnalyzerServiceImpl implements AnalyzerService {
    * @return List of updated items
    */
   private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs,
-      List<TestItem> testItems, Long projectId, Map<Long, TestItem> retryIdToOriginalMap) {
+      List<TestItem> testItems, Long projectId) {
     return rs.stream().map(analyzed -> {
-      Optional<TestItem> processedItemOptional = testItems.stream()
-          .filter(item -> item.getItemId().equals(analyzed.getItemId()))
-          .findAny();
-
-      Optional<TestItem> targetItemOptional = processedItemOptional.map(processedItem ->
-          retryIdToOriginalMap.getOrDefault(processedItem.getItemId(), processedItem)
-      );
-
-      targetItemOptional.ifPresent(targetItem -> {
-        if (!Objects.equals(targetItem.getItemId(), processedItemOptional.get().getItemId())) {
-          LOGGER.info("Found issue for retry {}, updating original item {}",
-              processedItemOptional.get().getItemId(),
-              targetItem.getItemId());
-        }
+      Optional<TestItem> toUpdate = testItemRepository.findById(analyzed.getItemId());
+      toUpdate.ifPresent(testItem -> {
         LOGGER.debug("Analysis has found a match: {}", analyzed);
-
-        if (!targetItem.getItemResults().getIssue().getIssueType().getLocator()
+        if (testItem.getRetryOf() != null) {
+          LOGGER.info("Analyzed item is retry {}, replacing with original {} for update",
+              testItem.getItemId(), testItem.getRetryOf());
+          testItem = testItemRepository.findById(testItem.getRetryOf())
+              .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
+        }
+        if (!testItem.getItemResults().getIssue().getIssueType().getLocator()
             .equals(analyzed.getLocator())) {
-          TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(targetItem, projectId);
-          RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, targetItem);
-          TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(targetItem, projectId);
+          TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+          RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
+          TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
-          testItemRepository.save(targetItem);
+          testItemRepository.save(testItem);
           messageBus.publishActivity(
               new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
           ofNullable(after.getTickets()).ifPresent(
@@ -240,7 +203,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
               )));
         }
       });
-      return targetItemOptional;
+      return toUpdate;
     }).filter(Optional::isPresent).map(Optional::get).collect(toList());
   }
 
@@ -268,6 +231,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     if (rs.getRelevantItemId() != null) {
       Optional<TestItem> relevantItemOptional = testItemRepository.findById(rs.getRelevantItemId());
       if (relevantItemOptional.isPresent()) {
+        if (relevantItemOptional.get().getRetryOf() != null) {
+          relevantItemOptional = testItemRepository.findById(
+              relevantItemOptional.get().getRetryOf());
+        }
         relevantItemInfo = updateIssueFromRelevantItem(issueEntity, relevantItemOptional.get());
       } else {
         LOGGER.error(ErrorType.TEST_ITEM_NOT_FOUND.getDescription(), rs.getRelevantItemId());

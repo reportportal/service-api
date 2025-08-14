@@ -20,15 +20,14 @@ import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
+import com.epam.reportportal.model.analyzer.IndexLog;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.log.LogService;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
-import com.epam.reportportal.model.analyzer.IndexLog;
-import com.epam.reportportal.model.analyzer.IndexTestItem;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -37,16 +36,18 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 /**
+ * Standard strategy for preparing test items for analysis. Uses the original logic for test item preparation.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service("legacyTestItemPreparerService")
-public class TestItemPreparerServiceImpl implements TestItemPreparerService {
+@Service("standardTestItemPreparerService")
+public class StandardTestItemPreparerService implements TestItemPreparationStrategy {
 
   private final TestItemRepository testItemRepository;
   private final LogService logService;
 
-  public TestItemPreparerServiceImpl(TestItemRepository testItemRepository, LogService logService,
-      LogRepository logRepository) {
+  public StandardTestItemPreparerService(TestItemRepository testItemRepository,
+      LogService logService) {
     this.testItemRepository = testItemRepository;
     this.logService = logService;
   }
@@ -57,20 +58,25 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
         .filter(ITEM_CAN_BE_INDEXED)
         .map(AnalyzerUtils::fromTestItem)
         .collect(toList());
-    return prepare(launchId, itemsForIndexing);
+    return prepareWithLogs(launchId, itemsForIndexing);
   }
 
-  @Override
-  public List<IndexTestItem> prepare(Long launchId) {
+  /**
+   * Prepares test items by loading from repository when no items provided.
+   *
+   * @param launchId the launch ID
+   * @return prepared list of {@link IndexTestItem} for indexing
+   */
+  public List<IndexTestItem> prepareFromRepository(Long launchId) {
     final List<IndexTestItem> indexTestItems = testItemRepository.findIndexTestItemByLaunchId(
         launchId,
         List.of(JTestItemTypeEnum.STEP, JTestItemTypeEnum.BEFORE_METHOD,
             JTestItemTypeEnum.AFTER_METHOD)
     );
-    return prepare(launchId, indexTestItems);
+    return prepareWithLogs(launchId, indexTestItems);
   }
 
-  private List<IndexTestItem> prepare(Long launchId, List<IndexTestItem> indexTestItemList) {
+  private List<IndexTestItem> prepareWithLogs(Long launchId, List<IndexTestItem> indexTestItemList) {
     final Map<Long, List<IndexLog>> logsMapping = getLogsMapping(launchId,
         indexTestItemList.stream().map(IndexTestItem::getTestItemId).collect(toList())
     );
@@ -88,5 +94,4 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
     return logService.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
         itemIds, LogLevel.ERROR.toInt());
   }
-
 }

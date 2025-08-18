@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epam.ta.reportportal.core.tms.db.entity.TmsMilestone;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,9 +42,9 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   @Test
   void createTestPlanIntegrationTest() throws Exception {
-    TmsTestPlanAttributeRQ attribute = new TmsTestPlanAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue("value3");
-    attribute.setAttributeId(3L);
+    attribute.setId(3L);
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("name3");
@@ -52,7 +52,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     tmsTestPlan.setEnvironmentId(3L);
     tmsTestPlan.setProductVersionId(3L);
     tmsTestPlan.setMilestoneIds(List.of(3L));
-    tmsTestPlan.setAttributes(List.of(attribute));
+    tmsTestPlan.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
@@ -97,9 +97,9 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   @Test
   void updateTestPlanIntegrationTest() throws Exception {
-    TmsTestPlanAttributeRQ attribute = new TmsTestPlanAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue("value5");
-    attribute.setAttributeId(5L);
+    attribute.setId(5L);
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");
@@ -107,7 +107,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     tmsTestPlan.setEnvironmentId(4L);
     tmsTestPlan.setProductVersionId(4L);
     tmsTestPlan.setMilestoneIds(List.of(4L));
-    tmsTestPlan.setAttributes(List.of(attribute));
+    tmsTestPlan.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);
@@ -158,9 +158,9 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchTestPlanTest() throws Exception {
-    TmsTestPlanAttributeRQ attributQ = new TmsTestPlanAttributeRQ();
+    var attributQ = new TmsAttributeRQ();
     attributQ.setValue("value5");
-    attributQ.setAttributeId(5L);
+    attributQ.setId(5L);
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");
@@ -168,7 +168,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     tmsTestPlan.setEnvironmentId(4L);
     tmsTestPlan.setProductVersionId(4L);
     tmsTestPlan.setMilestoneIds(List.of(4L));
-    tmsTestPlan.setAttributes(List.of(attributQ));
+    tmsTestPlan.setTags(List.of(attributQ));
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(tmsTestPlan);

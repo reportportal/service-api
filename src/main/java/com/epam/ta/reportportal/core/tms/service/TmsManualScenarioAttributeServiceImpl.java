@@ -5,12 +5,10 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioAttributeRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioAttributeMapper;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +19,17 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
 
   private final TmsManualScenarioAttributeMapper tmsManualScenarioAttributeMapper;
   private final TmsManualScenarioAttributeRepository tmsManualScenarioAttributeRepository;
+  private final TmsAttributeService tmsAttributeService;
 
   @Override
   @Transactional
   public void createAttributes(TmsManualScenario tmsManualScenario,
-      List<TmsManualScenarioAttributeRQ> attributes) {
+      List<TmsAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsManualScenarioAttributes = tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(
-        attributes);
+        tmsAttributeService.getTmsAttributes(attributes), attributes);
     tmsManualScenario.setAttributes(tmsManualScenarioAttributes);
     tmsManualScenarioAttributes.forEach(
         tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(tmsManualScenario));
@@ -40,7 +39,7 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
   @Override
   @Transactional
   public void updateAttributes(TmsManualScenario tmsManualScenario,
-      List<TmsManualScenarioAttributeRQ> attributes) {
+      List<TmsAttributeRQ> attributes) {
     if (isNotEmpty(tmsManualScenario.getAttributes())) {
       tmsManualScenarioAttributeRepository.deleteAll(tmsManualScenario.getAttributes());
       tmsManualScenario.setAttributes(new HashSet<>());
@@ -51,12 +50,12 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
   @Override
   @Transactional
   public void patchAttributes(TmsManualScenario tmsManualScenario,
-      List<TmsManualScenarioAttributeRQ> attributes) {
+      List<TmsAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsManualScenarioAttributes = tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(
-        attributes);
+        tmsAttributeService.getTmsAttributes(attributes), attributes);
     tmsManualScenario.getAttributes().addAll(tmsManualScenarioAttributes);
     tmsManualScenarioAttributes.forEach(
         tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(tmsManualScenario));

@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -45,7 +44,7 @@ public abstract class TmsManualScenarioRS {
   protected TmsManualScenarioPreconditionsRS preconditions;
 
   @Valid
-  protected Set<TmsManualScenarioAttributeRS> attributes;
+  protected Set<TmsAttributeRS> tags;
 
   /**
    * Type of manual scenario (STEPS or TEXT).

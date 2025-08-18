@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(config = CommonMapperConfig.class, uses = TmsStepMapper.class)
+@Mapper(config = CommonMapperConfig.class, uses = {TmsStepMapper.class, TmsManualScenarioAttributeMapper.class})
 public interface TmsStepsManualScenarioMapper {
 
   default TmsStepsManualScenario createTmsStepsManualScenario() {
@@ -20,7 +20,9 @@ public interface TmsStepsManualScenarioMapper {
   @Mapping(target = "linkToRequirements", source = "linkToRequirements")
   @Mapping(target = "preconditions", source = "preconditions")
   @Mapping(target = "manualScenarioType", source = "type")
-  @Mapping(target = "attributes", source = "attributes")
+  @Mapping(target = "tags", source = "attributes",
+      conditionExpression = "java(tmsManualScenario.getAttributes() != null "
+          + "&& !tmsManualScenario.getAttributes().isEmpty())")
   @Mapping(target = "steps", source = "stepsScenario.steps")
   TmsStepsManualScenarioRS convert(TmsManualScenario tmsManualScenario);
 

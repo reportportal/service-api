@@ -13,6 +13,6 @@ public class TmsTestPlanRS {
   private String description;
   private TmsTestPlanEnvironmentRS environment;
   private TmsTestPlanProductVersionRS productVersion;
-  private List<TmsTestPlanAttributeRS> attributes;
+  private List<TmsAttributeRS> tags;
   private List<TmsTestPlanMilestoneRS> milestones;
 }

@@ -169,7 +169,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     integrationService.checkConnection(updatedIntegration);
     integrationRepository.save(updatedIntegration);
 
-    publishUpdateActivity(user, beforeUpdate, updatedIntegration);
+    publishUpdateActivity(user, beforeUpdate, updatedIntegration, null);
 
     return new OperationCompletionRS(
         "Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
@@ -205,7 +205,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     integrationRepository.save(updatedIntegration);
 
-    publishUpdateActivity(user, beforeUpdate, updatedIntegration);
+    publishUpdateActivity(user, beforeUpdate, updatedIntegration, project.getOrganizationId());
 
     return new OperationCompletionRS(
         "Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
@@ -241,10 +241,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
   }
 
   private void publishUpdateActivity(ReportPortalUser user,
-      IntegrationActivityResource beforeUpdate, Integration updatedIntegration) {
+      IntegrationActivityResource beforeUpdate, Integration updatedIntegration, Long orgId) {
     eventPublisher.publishEvent(
         new IntegrationUpdatedEvent(user.getUserId(), user.getUsername(), beforeUpdate,
-            TO_ACTIVITY_RESOURCE.apply(updatedIntegration), null
+            TO_ACTIVITY_RESOURCE.apply(updatedIntegration), orgId
         ));
   }
 

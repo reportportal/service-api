@@ -35,12 +35,15 @@ import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
 public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityResource> implements
     ActivityEvent {
 
+  private Long organizationId;
+
   public TestItemStatusChangedEvent() {
   }
 
   public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after,
-      Long userId, String userLogin) {
+      Long userId, String userLogin, Long organizationId) {
     super(userId, userLogin, before, after);
+    this.organizationId = organizationId;
   }
 
   @Override
@@ -54,6 +57,7 @@ public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityReso
         .addObjectName(getAfter().getName())
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(organizationId)
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

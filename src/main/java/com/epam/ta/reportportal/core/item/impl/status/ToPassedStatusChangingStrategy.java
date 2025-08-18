@@ -86,7 +86,7 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
       });
 
       if (updateParents) {
-        changeParentsStatuses(testItem, launch, false, user);
+        changeParentsStatuses(testItem, launch, false, user, project);
       }
     }
   }

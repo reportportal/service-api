@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.handler;
 
-import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
@@ -39,11 +39,11 @@ public class TestItemStartMessageHandler implements ReportingMessageHandler {
   private final MessageRetriever retriever;
   private final StartTestItemHandler startTestItemHandler;
   private final ProjectExtractor projectExtractor;
-  private final DatabaseUserDetailsService userDetailsService;
+  private final DefaultUserDetailsService userDetailsService;
 
   public TestItemStartMessageHandler(MessageRetriever retriever,
       StartTestItemHandler startTestItemHandler, ProjectExtractor projectExtractor,
-      DatabaseUserDetailsService userDetailsService) {
+      DefaultUserDetailsService userDetailsService) {
     this.retriever = retriever;
     this.startTestItemHandler = startTestItemHandler;
     this.projectExtractor = projectExtractor;

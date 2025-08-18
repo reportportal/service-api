@@ -59,6 +59,7 @@ public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before);
     this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
+    this.orgId = orgId;
   }
 
   @Override

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.dao.UserRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -39,11 +40,11 @@ class DatabaseUserDetailsServiceTest {
   private UserRepository userRepository;
 
   @InjectMocks
-  private DatabaseUserDetailsService userDetailsService;
+  private DefaultUserDetailsService userDetailsService;
 
   @Test
   void userNotFoundTest() {
-    when(userRepository.findReportPortalUser("not_exist")).thenReturn(Optional.empty());
+    when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
     UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
         () -> userDetailsService.loadUserByUsername("not_exist")

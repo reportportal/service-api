@@ -36,10 +36,14 @@ public class ProjectDeletedEvent extends AbstractEvent implements ActivityEvent 
   private final Long projectId;
   private final String projectName;
 
-  public ProjectDeletedEvent(Long userId, String userLogin, Long projectId, String projectName) {
+  private final Long organizationId;
+
+  public ProjectDeletedEvent(Long userId, String userLogin, Long projectId, String projectName,
+      Long organizationId) {
     super(userId, userLogin);
     this.projectId = projectId;
     this.projectName = projectName;
+    this.organizationId = organizationId;
   }
 
   @Override
@@ -54,6 +58,7 @@ public class ProjectDeletedEvent extends AbstractEvent implements ActivityEvent 
         .addObjectType(EventObject.PROJECT)
         .addSubjectId(getUserId())
         .addSubjectType(Objects.isNull(getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)
+        .addOrganizationId(organizationId)
         .addSubjectName(getUserLogin())
         .get();
   }

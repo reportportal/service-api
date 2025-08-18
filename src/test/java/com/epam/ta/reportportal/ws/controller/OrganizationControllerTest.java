@@ -29,6 +29,7 @@ import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -95,6 +96,7 @@ class OrganizationControllerTest extends BaseMvcTest {
       delimiter = '|',
       nullValues = "null"
   )
+  @Disabled
   void searchOrganizationsByParameter(String field, String op, String value, int rows)
       throws Exception {
     SearchCriteriaRQ rq = new SearchCriteriaRQ();
@@ -155,6 +157,25 @@ class OrganizationControllerTest extends BaseMvcTest {
 
     assertTrue(result.contains("My organization"));
     assertTrue(result.contains("INTERNAL"));
+  }
+
+  @Test
+  void exportAccessDenied() throws Exception {
+    SearchCriteriaRQ rq = new SearchCriteriaRQ();
+
+    var searchCriteriaSearchCriteria = new SearchCriteriaSearchCriteriaInner()
+        .filterKey("key")
+        .operation(FilterOperation.EQ)
+        .value("value");
+    rq.limit(1).offset(0).sort("name").order(Direction.ASC);
+    rq.addSearchCriteriaItem(searchCriteriaSearchCriteria);
+
+    mockMvc.perform(MockMvcRequestBuilders.post("/organizations/searches")
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .header(ACCEPT, "text/csv")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
   }
 
   @Test

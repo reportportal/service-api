@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.patch;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
@@ -52,6 +53,7 @@ import org.springframework.stereotype.Service;
 public class PatchProjectHandler {
 
   private final PatchProjectNameHandler patchProjectNameHandler;
+  private final PatchProjectUsersHandler patchProjectUsersHandler;
   private final PatchProjectSlugHandler patchProjectSlugHandler;
   private final PatchProjectNoPathHandler patchProjectNoPathHandler;
   private final ProjectService projectService;
@@ -68,7 +70,7 @@ public class PatchProjectHandler {
   public void patchOrganizationProject(List<PatchOperation> patchOperations, Long orgId,
       Long projectId) {
     expect(projectService.existsByProjectIdAndOrgId(projectId, orgId), equalTo(true))
-        .verify(PROJECT_NOT_FOUND, projectId);
+        .verify(NOT_FOUND, "Project " + projectId);
 
     patchOperations.forEach(operation -> {
       log.debug("Patch operation: {}", operation);
@@ -88,6 +90,7 @@ public class PatchProjectHandler {
    */
   public void patchProject(PatchOperation operation, Long orgId, Long projectId) {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
+      case "users" -> this.patchProjectUsersHandler;
       case "name" -> this.patchProjectNameHandler;
       case "slug" -> this.patchProjectSlugHandler;
       case null -> this.patchProjectNoPathHandler;

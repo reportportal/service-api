@@ -98,7 +98,7 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).convertFromRQ(projectId, testPlanRQ);
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
-        testPlanRQ.getAttributes());
+        testPlanRQ.getTags());
     verify(tmsMilestoneService).createTestPlanMilestones(testPlan,
         testPlanRQ.getMilestoneIds());
   }
@@ -162,7 +162,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(tmsTestPlanMapper).update(existingTestPlan, updatedTestPlan);
     verify(tmsTestPlanAttributeService).updateTestPlanAttributes(existingTestPlan,
-        testPlanRQ.getAttributes());
+        testPlanRQ.getTags());
     verify(tmsMilestoneService).updateTestPlanMilestones(existingTestPlan,
         testPlanRQ.getMilestoneIds());
   }
@@ -186,7 +186,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
-        testPlanRQ.getAttributes());
+        testPlanRQ.getTags());
     verify(tmsMilestoneService).createTestPlanMilestones(testPlan,
         testPlanRQ.getMilestoneIds());
   }
@@ -211,7 +211,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(tmsTestPlanMapper).patch(existingTestPlan, patchedTestPlan);
     verify(tmsTestPlanAttributeService).patchTestPlanAttributes(existingTestPlan,
-        testPlanRQ.getAttributes());
+        testPlanRQ.getTags());
     verify(tmsMilestoneService).patchTestPlanMilestones(existingTestPlan,
         testPlanRQ.getMilestoneIds());
   }

@@ -14,7 +14,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
@@ -90,7 +90,7 @@ class TmsTestCaseServiceImplTest {
   private TmsStepsManualScenarioRQ stepsManualScenarioRQ;
   private TmsTestCaseTestFolderRQ testFolderRQ;
   private TmsTestFolderRS testFolderRS;
-  private List<TmsTestCaseAttributeRQ> attributes;
+  private List<TmsAttributeRQ> attributes;
   private long projectId;
   private Long testCaseId;
   private Long testFolderId;
@@ -102,9 +102,9 @@ class TmsTestCaseServiceImplTest {
     testFolderId = 4L;
 
     attributes = new ArrayList<>();
-    var attribute = new TmsTestCaseAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue("value");
-    attribute.setAttributeId(3L);
+    attribute.setId(3L);
     attributes.add(attribute);
 
     textManualScenarioRQ = TmsTextManualScenarioRQ.builder()

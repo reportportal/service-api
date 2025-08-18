@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -25,9 +25,9 @@ class BatchPatchTestCasesRQValidatorTest {
 
   @Test
   void shouldPassValidationWhenAllFieldsAreProvided() {
-    var tag = new TmsTestCaseAttributeRQ();
+    var tag = new TmsAttributeRQ();
     tag.setValue("tag1");
-    tag.setAttributeId(1L);
+    tag.setId(1L);
 
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
@@ -71,9 +71,9 @@ class BatchPatchTestCasesRQValidatorTest {
 
   @Test
   void shouldPassValidationWhenOnlyTagsIsProvided() {
-    var tag = new TmsTestCaseAttributeRQ();
+    var tag = new TmsAttributeRQ();
     tag.setValue("tag1");
-    tag.setAttributeId(1L);
+    tag.setId(1L);
 
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
@@ -103,9 +103,9 @@ class BatchPatchTestCasesRQValidatorTest {
 
   @Test
   void shouldPassValidationWhenTestFolderIdAndTagsAreProvided() {
-    var tag = new TmsTestCaseAttributeRQ();
+    var tag = new TmsAttributeRQ();
     tag.setValue("tag1");
-    tag.setAttributeId(1L);
+    tag.setId(1L);
 
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
@@ -121,9 +121,9 @@ class BatchPatchTestCasesRQValidatorTest {
 
   @Test
   void shouldPassValidationWhenPriorityAndTagsAreProvided() {
-    var tag = new TmsTestCaseAttributeRQ();
+    var tag = new TmsAttributeRQ();
     tag.setValue("tag1");
-    tag.setAttributeId(1L);
+    tag.setId(1L);
 
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))

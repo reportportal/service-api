@@ -27,10 +27,10 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepos
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseVersionRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTextManualScenarioRepository;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
@@ -90,9 +90,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void createTestCaseWithoutManualScenarioIntegrationTest() throws Exception {
     // Given
-    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue("value3");
-    attribute.setAttributeId(3L);
+    attribute.setId(3L);
 
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Test Case 3");
@@ -467,9 +467,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void updateTestCaseIntegrationTest() throws Exception {
     // Given
-    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue("value4");
-    attribute.setAttributeId(4L);
+    attribute.setId(4L);
 
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Updated Test Case 5");
@@ -555,9 +555,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void patchTestCaseIntegrationTest() throws Exception {
     // Given
-    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue("value6");
-    attribute.setAttributeId(6L);
+    attribute.setId(6L);
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case 6");
     testCaseRQ.setDescription("Patched description for test case 6");
@@ -724,15 +724,15 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var attributeValue1 = "batch-tag-1";
     var attributeValue2 = "batch-tag-2";
 
-    TmsTestCaseAttributeRQ attribute1 = new TmsTestCaseAttributeRQ();
+    var attribute1 = new TmsAttributeRQ();
     attribute1.setValue(attributeValue1);
-    attribute1.setAttributeId(1L);
+    attribute1.setId(1L);
 
-    TmsTestCaseAttributeRQ attribute2 = new TmsTestCaseAttributeRQ();
+    var attribute2 = new TmsAttributeRQ();
     attribute2.setValue(attributeValue2);
-    attribute2.setAttributeId(2L);
+    attribute2.setId(2L);
 
-    List<TmsTestCaseAttributeRQ> tags = List.of(attribute1, attribute2);
+    List<TmsAttributeRQ> tags = List.of(attribute1, attribute2);
 
     BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -778,11 +778,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String newPriority = "HIGH";
     String tagValue = "comprehensive-tag";
 
-    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue(tagValue);
-    attribute.setAttributeId(3L);
+    attribute.setId(3L);
 
-    List<TmsTestCaseAttributeRQ> tags = List.of(attribute);
+    List<TmsAttributeRQ> tags = List.of(attribute);
 
     BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -899,11 +899,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     List<Long> testCaseIds = List.of(24L, 25L);
     var tagValue = "only-tags-test";
 
-    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue(tagValue);
-    attribute.setAttributeId(4L);
+    attribute.setId(4L);
 
-    List<TmsTestCaseAttributeRQ> tags = List.of(attribute);
+    List<TmsAttributeRQ> tags = List.of(attribute);
 
     BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -959,11 +959,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // Given
     List<Long> testCaseIds = List.of(28L, 29L);
 
-    TmsTestCaseAttributeRQ attribute = new TmsTestCaseAttributeRQ();
+    var attribute = new TmsAttributeRQ();
     attribute.setValue("invalid-attribute-id");
-    attribute.setAttributeId(999L); // Non-existent attribute ID
+    attribute.setId(999L); // Non-existent attribute ID
 
-    List<TmsTestCaseAttributeRQ> tags = List.of(attribute);
+    List<TmsAttributeRQ> tags = List.of(attribute);
 
     BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -980,7 +980,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(
             content().string(containsString(
-                "Unable to find com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute with id 999"
+                "TMS Attributes with IDs [999]' not found"
             ))
         );
   }

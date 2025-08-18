@@ -20,7 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-@Mapper(config = CommonMapperConfig.class)
+@Mapper(config = CommonMapperConfig.class, uses = TmsTestCaseAttributeMapper.class)
 public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTestCaseRS> {
 
   @Autowired

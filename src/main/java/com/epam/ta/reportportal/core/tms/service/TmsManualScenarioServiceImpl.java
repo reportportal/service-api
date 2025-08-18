@@ -14,7 +14,6 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +35,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     );
 
     tmsManualScenarioAttributeService.createAttributes(tmsManualScenario,
-        testCaseManualScenarioRQ.getAttributes());
+        testCaseManualScenarioRQ.getTags());
 
     testCaseVersion.setManualScenario(tmsManualScenario);
     tmsManualScenario.setTestCaseVersion(testCaseVersion);
@@ -57,7 +56,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
 
       tmsManualScenarioAttributeService.updateAttributes(manualScenario,
-          testCaseManualScenarioRQ.getAttributes());
+          testCaseManualScenarioRQ.getTags());
 
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
@@ -78,7 +77,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
 
       tmsManualScenarioAttributeService.patchAttributes(existingManualScenario,
-          testCaseManualScenarioRQ.getAttributes());
+          testCaseManualScenarioRQ.getTags());
 
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())

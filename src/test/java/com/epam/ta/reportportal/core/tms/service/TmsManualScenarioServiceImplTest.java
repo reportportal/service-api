@@ -273,7 +273,7 @@ class TmsManualScenarioServiceImplTest {
         .linkToRequirements("http://requirements.com")
         .instructions("Test instructions")
         .expectedResult("Expected result")
-        .attributes(Collections.emptyList())
+        .tags(Collections.emptyList())
         .build();
   }
 
@@ -283,7 +283,7 @@ class TmsManualScenarioServiceImplTest {
         .executionEstimationTime(45)
         .linkToRequirements("http://requirements.com")
         .steps(Collections.emptyList())
-        .attributes(Collections.emptyList())
+        .tags(Collections.emptyList())
         .build();
   }
 

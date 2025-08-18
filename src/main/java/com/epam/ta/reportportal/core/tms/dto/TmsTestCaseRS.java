@@ -26,5 +26,5 @@ public class TmsTestCaseRS {
 
   private TmsManualScenarioRS manualScenario;
 
-  private Set<TmsTestPlanAttributeRS> tags;
+  private Set<TmsAttributeRS> tags;
 }

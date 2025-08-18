@@ -200,7 +200,7 @@ class TmsTextManualScenarioImplServiceTest {
         .linkToRequirements("http://requirements.com")
         .instructions("Test instructions")
         .expectedResult("Expected result")
-        .attributes(Collections.emptyList())
+        .tags(Collections.emptyList())
         .build();
   }
 

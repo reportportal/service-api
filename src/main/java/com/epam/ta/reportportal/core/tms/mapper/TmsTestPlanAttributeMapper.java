@@ -1,21 +1,45 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
+import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlanAttribute;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(config = CommonMapperConfig.class)
-public abstract class TmsTestPlanAttributeMapper {
+public abstract class  TmsTestPlanAttributeMapper {
 
-  public abstract Set<TmsTestPlanAttribute> convertToTmsTestPlanAttributes(
-      List<TmsTestPlanAttributeRQ> tmsTestPlanAttributeRQList);
+  @Autowired
+  private TmsAttributeMapper tmsAttributeMapper;
 
-  @Mapping(target = "attribute.id", source = "tmsTestPlanAttributeRQ.attributeId")
-  @Mapping(target = "id.attributeId", source = "tmsTestPlanAttributeRQ.attributeId")
+  public Set<TmsTestPlanAttribute> convertToTmsTestPlanAttributes(
+      Map<String, TmsAttribute> tmsAttributes, List<TmsAttributeRQ> attributes) {
+    if (CollectionUtils.isEmpty(attributes)) {
+      return Set.of();
+    }
+
+    return attributes.stream()
+        .map(attribute -> {
+          TmsAttribute tmsAttribute = tmsAttributeMapper.getTmsAttribute(tmsAttributes, attribute);
+          if (tmsAttribute == null) {
+            throw new IllegalStateException("TmsAttribute not found for: " + attribute);
+          }
+          return convertToTmsTestPlanAttribute(tmsAttribute, attribute.getValue());
+        })
+        .collect(Collectors.toSet());
+  }
+
+  @Mapping(target = "attribute", source = "tmsAttribute")
+  @Mapping(target = "id.attributeId", source = "tmsAttribute.id")
+  @Mapping(target = "value", source = "value")
   public abstract TmsTestPlanAttribute convertToTmsTestPlanAttribute(
-      TmsTestPlanAttributeRQ tmsTestPlanAttributeRQ);
+      TmsAttribute tmsAttribute, String value);
 }

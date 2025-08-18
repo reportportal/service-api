@@ -43,7 +43,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     testPlanRepository.save(tmsTestPlan);
 
     tmsTestPlanAttributeService.createTestPlanAttributes(tmsTestPlan,
-        testPlanRQ.getAttributes());
+        testPlanRQ.getTags());
     tmsMilestoneService.createTestPlanMilestones(tmsTestPlan, testPlanRQ.getMilestoneIds());
 
     return tmsTestPlanMapper.convertToRS(tmsTestPlan);
@@ -58,7 +58,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
           tmsTestPlanAttributeService.updateTestPlanAttributes(existingTestPlan,
-              testPlanRQ.getAttributes());
+              testPlanRQ.getTags());
           tmsMilestoneService.updateTestPlanMilestones(existingTestPlan,
               testPlanRQ.getMilestoneIds());
 
@@ -75,7 +75,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
           tmsTestPlanAttributeService.patchTestPlanAttributes(existingTestPlan,
-              testPlanRQ.getAttributes());
+              testPlanRQ.getTags());
           tmsMilestoneService.patchTestPlanMilestones(existingTestPlan,
               testPlanRQ.getMilestoneIds());
 

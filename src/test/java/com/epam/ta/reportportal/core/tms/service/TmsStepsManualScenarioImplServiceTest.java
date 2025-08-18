@@ -208,7 +208,7 @@ class TmsStepsManualScenarioImplServiceTest {
     return TmsStepsManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.STEPS)
         .executionEstimationTime(30)
-        .attributes(Collections.emptyList())
+        .tags(Collections.emptyList())
         .steps(Collections.emptyList())
         .build();
   }

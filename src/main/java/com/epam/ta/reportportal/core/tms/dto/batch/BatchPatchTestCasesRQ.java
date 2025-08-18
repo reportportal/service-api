@@ -1,8 +1,9 @@
 package com.epam.ta.reportportal.core.tms.dto.batch;
 
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.validation.ValidBatchPatchTestCasesRQ;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -31,5 +32,6 @@ public class BatchPatchTestCasesRQ {
 
   private String priority;
 
-  private List<TmsTestCaseAttributeRQ> tags;
+  @Valid
+  private List<TmsAttributeRQ> tags;
 }

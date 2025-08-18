@@ -57,8 +57,8 @@ public abstract class TmsManualScenarioRQ {
   protected TmsManualScenarioPreconditionsRQ preconditions;
 
   /**
-   * Attributes of the manual scenario.
+   * Tags of the manual scenario.
    */
   @Valid
-  protected List<TmsManualScenarioAttributeRQ> attributes;
+  protected List<TmsAttributeRQ> tags;
 }

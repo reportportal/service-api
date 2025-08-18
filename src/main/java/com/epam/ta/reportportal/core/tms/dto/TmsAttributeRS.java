@@ -10,4 +10,6 @@ public class TmsAttributeRS {
   private Long id;
 
   private String key;
+
+  private String value;
 }

@@ -12,6 +12,6 @@ public class TmsTestPlanRQ {
   private String description;
   private Long environmentId;
   private Long productVersionId;
-  private List<TmsTestPlanAttributeRQ> attributes;
+  private List<TmsAttributeRQ> tags;
   private List<Long> milestoneIds;
 }

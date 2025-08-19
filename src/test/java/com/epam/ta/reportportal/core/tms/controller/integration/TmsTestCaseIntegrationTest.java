@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepos
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseVersionRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTextManualScenarioRepository;
+import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -1173,6 +1175,318 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json;charset=UTF-8"))
         .andExpect(header().string("Content-Disposition",
             "attachment; filename=\"test_cases_export_with_attachments.json\""));
+  }
+
+  @Test
+  void deleteTagsFromTestCaseIntegrationTest() throws Exception {
+    // Given - test case 4 has attribute 4 with value 'test value 4'
+    var testCaseId = 4L;
+    var tagIdsToDelete = List.of(4L);
+
+    // Verify tag exists before deletion
+    var tagsBefore = testCaseAttributeRepository.findAllById_TestCaseId(testCaseId);
+    assertTrue(tagsBefore.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+
+    var deleteRequest = DeleteTagsRQ.builder()
+        .tagIds(tagIdsToDelete)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+
+    // Then - Verify tag is deleted
+    var tagsAfter = testCaseAttributeRepository.findAllById_TestCaseId(testCaseId);
+    assertFalse(tagsAfter.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+  }
+
+  @Test
+  void deleteTagsFromTestCaseWithMultipleTagsIntegrationTest() throws Exception {
+    // Given - test case 9 has attribute 4, let's add another attribute for this test
+    var testCaseId = 9L;
+
+    // First verify existing tag
+    var tagsBefore = testCaseAttributeRepository.findAllById_TestCaseId(testCaseId);
+    assertTrue(tagsBefore.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+
+    var tagIdsToDelete = List.of(4L); // Only delete attribute 4
+
+    var deleteRequest = DeleteTagsRQ.builder()
+        .tagIds(tagIdsToDelete)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+
+    // Then - Verify specific tag is deleted
+    var tagsAfter = testCaseAttributeRepository.findAllById_TestCaseId(testCaseId);
+    assertFalse(tagsAfter.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+  }
+
+  @Test
+  void deleteTagsFromTestCaseWithNonExistentTagsIntegrationTest() throws Exception {
+    // Given - try to delete tags that don't exist on this test case
+    var testCaseId = 4L;
+    var nonExistentTagIds = List.of(999L, 888L);
+
+    var deleteRequest = DeleteTagsRQ.builder()
+        .tagIds(nonExistentTagIds)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then - should succeed (no error for non-existent tags)
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void deleteTagsFromTestCaseWithEmptyTagListIntegrationTest() throws Exception {
+    // Given
+    var testCaseId = 5L;
+    var emptyTagIds = Collections.<Long>emptyList();
+
+    var deleteRequest = DeleteTagsRQ.builder()
+        .tagIds(emptyTagIds)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then - should return validation error
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void deleteTagsFromTestCaseWithNonExistentTestCaseIntegrationTest() throws Exception {
+    // Given
+    var nonExistentTestCaseId = 999L;
+    var tagIds = List.of(1L, 2L);
+
+    var deleteRequest = DeleteTagsRQ.builder()
+        .tagIds(tagIds)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then - should return not found
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + nonExistentTestCaseId + "/tags")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesIntegrationTest() throws Exception {
+    // Given - test cases 22 and 23 have existing tags
+    var testCaseIds = List.of(22L, 23L);
+    var tagIdsToDelete = List.of(1L, 2L);
+
+    // Verify tags exist before deletion
+    var tags22Before = testCaseAttributeRepository.findAllById_TestCaseId(22L);
+    var tags23Before = testCaseAttributeRepository.findAllById_TestCaseId(23L);
+    assertTrue(tags22Before.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertTrue(tags23Before.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+
+    var deleteRequest = BatchDeleteTagsRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tagIds(tagIdsToDelete)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+
+    // Then - Verify tags are deleted
+    var tags22After = testCaseAttributeRepository.findAllById_TestCaseId(22L);
+    var tags23After = testCaseAttributeRepository.findAllById_TestCaseId(23L);
+
+    assertFalse(tags22After.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertFalse(tags23After.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesWithSingleTestCaseIntegrationTest() throws Exception {
+    // Given
+    var testCaseIds = List.of(24L);
+    var tagIdsToDelete = List.of(3L);
+
+    var deleteRequest = BatchDeleteTagsRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tagIds(tagIdsToDelete)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+
+    // Then - Verify tag is deleted
+    var tagsAfter = testCaseAttributeRepository.findAllById_TestCaseId(24L);
+    assertFalse(tagsAfter.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesWithNonExistentTagsIntegrationTest() throws Exception {
+    // Given
+    var testCaseIds = List.of(22L, 23L);
+    var nonExistentTagIds = List.of(999L, 888L);
+
+    var deleteRequest = BatchDeleteTagsRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tagIds(nonExistentTagIds)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then - should succeed (no error for non-existent tags)
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesWithEmptyTestCaseIdsIntegrationTest() throws Exception {
+    // Given
+    var emptyTestCaseIds = Collections.<Long>emptyList();
+    var tagIds = List.of(1L, 2L);
+
+    var deleteRequest = BatchDeleteTagsRQ.builder()
+        .testCaseIds(emptyTestCaseIds)
+        .tagIds(tagIds)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then - should return validation error
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesWithEmptyTagIdsIntegrationTest() throws Exception {
+    // Given
+    var testCaseIds = List.of(22L, 23L);
+    var emptyTagIds = Collections.<Long>emptyList();
+
+    var deleteRequest = BatchDeleteTagsRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tagIds(emptyTagIds)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then - should return validation error
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesWithNullFieldsIntegrationTest() throws Exception {
+    // Given - create request with null fields
+    String jsonContent = "{\"testCaseIds\": null, \"tagIds\": null}";
+
+    // When/Then - should return validation error
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesWithMixedExistingAndNonExistentTestCasesIntegrationTest() throws Exception {
+    // Given
+    var testCaseIds = List.of(25L, 999L); // 25L exists, 999L doesn't
+    var tagIds = List.of(1L);
+
+    var deleteRequest = BatchDeleteTagsRQ.builder()
+        .testCaseIds(testCaseIds)
+        .tagIds(tagIds)
+        .build();
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then - should fail with not found exception
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("'Test Cases with ids: [999] for projectId: 1' not found")));
+  }
+
+  @Test
+  void deleteTagsFromTestCaseWithMalformedJsonIntegrationTest() throws Exception {
+    // Given
+    var testCaseId = 4L;
+    String malformedJson = "{\"tagIds\": [1, 2, 3";
+
+    // When/Then - should return bad request
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+            .contentType("application/json")
+            .content(malformedJson)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void batchDeleteTagsFromTestCasesWithMalformedJsonIntegrationTest() throws Exception {
+    // Given
+    String malformedJson = "{\"testCaseIds\": [1, 2], \"tagIds\": [1, 2";
+
+    // When/Then - should return bad request
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+            .contentType("application/json")
+            .content(malformedJson)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
   }
 
   // Error handling tests

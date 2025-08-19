@@ -4,6 +4,7 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -35,6 +36,13 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   )
   List<TmsTestCase> findByProjectIdAndIds(@Param("projectId") Long projectId, @Param("ids") List<Long> ids);
 
+  @Query("SELECT tc.id FROM TmsTestCase tc " +
+      "JOIN tc.testFolder tf " +
+      "WHERE tf.project.id = :projectId AND tc.id IN (:ids)"
+  )
+  List<Long> findExistingIdsByProjectIdAndIds(@Param("projectId") Long projectId, @Param("ids") List<Long> ids);
+
+  Boolean existsByTestFolder_Project_IdAndId(@Param("projectId") Long projectId, @Param("id") Long id);
 
   /**
    * Finds test case ids by project with optional search and folder filtering, supporting pagination.

@@ -97,4 +97,18 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   public void deleteAllByTestCaseIds(@NotNull @NotEmpty List<Long> testCaseIds) {
     tmsTestCaseAttributeRepository.deleteAllByTestCaseIds(testCaseIds);
   }
+
+  @Override
+  @Transactional
+  public void deleteByTestCaseIdAndAttributeIds(Long testCaseId,
+      List<Long> attributeIds) {
+    tmsTestCaseAttributeRepository.deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
+  }
+
+  @Override
+  @Transactional
+  public void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds,
+      List<Long> attributeIds) {
+    tmsTestCaseAttributeRepository.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
 }

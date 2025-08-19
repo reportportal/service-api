@@ -52,4 +52,24 @@ public interface TmsTestCaseAttributeRepository extends
   void deleteTestCaseAttributesByTestFolderId(@Param("projectId") Long projectId,
       @Param("folderId") Long folderId);
 
+  /**
+   * Deletes test case attributes by test case ID and attribute IDs.
+   */
+  @Modifying
+  @Query("DELETE FROM TmsTestCaseAttribute t "
+      + "WHERE t.id.testCaseId = :testCaseId "
+      + "AND t.id.attributeId IN :attributeIds")
+  void deleteByTestCaseIdAndAttributeIds(@Param("testCaseId") Long testCaseId,
+      @Param("attributeIds") List<Long> attributeIds);
+
+  /**
+   * Deletes test case attributes by test case IDs and attribute IDs.
+   */
+  @Modifying
+  @Query("DELETE FROM TmsTestCaseAttribute t "
+      + "WHERE t.id.testCaseId IN :testCaseIds "
+      + "AND t.id.attributeId IN :attributeIds")
+  void deleteByTestCaseIdsAndAttributeIds(@Param("testCaseIds") List<Long> testCaseIds,
+      @Param("attributeIds") List<Long> attributeIds);
+
 }

@@ -2,8 +2,10 @@ package com.epam.ta.reportportal.core.tms.controller;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
@@ -319,6 +321,59 @@ public class TestCaseController {
         format,
         includeAttachments,
         response
+    );
+  }
+
+  /**
+   * Deletes specific tags from a test case by attribute IDs.
+   *
+   * @param projectKey The key of the project.
+   * @param testCaseId The ID of the test case.
+   * @param deleteRequest Request containing attribute IDs to delete.
+   */
+  @DeleteMapping("/{testCaseId}/tags")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "Delete tags from a test case",
+      description = "Deletes specific tags from a test case by attribute IDs."
+  )
+  @ApiResponse(responseCode = "204", description = "Tags deleted successfully")
+  public void deleteTagsFromTestCase(@PathVariable("projectKey") String projectKey,
+      @PathVariable("testCaseId") final long testCaseId,
+      @Valid @RequestBody DeleteTagsRQ deleteRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    tmsTestCaseService.deleteTagsFromTestCase(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        testCaseId,
+        deleteRequest.getTagIds()
+    );
+  }
+
+  /**
+   * Deletes specific tags from multiple test cases.
+   *
+   * @param projectKey The key of the project.
+   * @param deleteRequest Request containing test case IDs and attribute IDs to delete.
+   */
+  @DeleteMapping("/tags/batch")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "Delete tags from multiple test cases",
+      description = "Deletes specific tags from multiple test cases by their IDs.",
+      tags = {"Batch Operations"}
+  )
+  @ApiResponse(responseCode = "204", description = "Tags deleted successfully")
+  public void deleteTagsFromTestCases(@PathVariable("projectKey") String projectKey,
+      @Valid @RequestBody BatchDeleteTagsRQ deleteRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    tmsTestCaseService.deleteTagsFromTestCases(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        deleteRequest.getTestCaseIds(),
+        deleteRequest.getTagIds()
     );
   }
 }

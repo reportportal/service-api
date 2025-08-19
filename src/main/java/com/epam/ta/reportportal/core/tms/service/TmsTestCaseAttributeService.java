@@ -21,4 +21,8 @@ public interface TmsTestCaseAttributeService {
   void deleteAllByTestFolderId(@NotNull Long projectId, @NotNull Long testFolderId);
 
   void deleteAllByTestCaseIds(@NotNull @NotEmpty List<Long> testCaseIds);
+
+  void deleteByTestCaseIdAndAttributeIds(Long testCaseId, List<Long> attributeIds);
+
+  void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds, List<Long> attributeIds);
 }

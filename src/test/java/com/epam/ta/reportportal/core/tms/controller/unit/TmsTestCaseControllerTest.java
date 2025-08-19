@@ -17,9 +17,11 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.TestCaseController;
+import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
@@ -408,5 +410,135 @@ public class TmsTestCaseControllerTest {
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).exportToFile(eq(projectId), isNull(), eq(format),
         eq(false), any(HttpServletResponse.class));
+  }
+
+  @Test
+  void deleteTagsFromTestCaseTest() throws Exception {
+    // Given
+    var testCaseId = 2L;
+    var tagIds = Arrays.asList(1L, 2L, 3L);
+    var deleteRequest = new DeleteTagsRQ();
+    deleteRequest.setTagIds(tagIds);
+
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/{projectKey}/tms/test-case/{testCaseId}/tags", projectKey, testCaseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).deleteTagsFromTestCase(projectId, testCaseId, tagIds);
+  }
+
+  @Test
+  void deleteTagsFromTestCaseWithSingleTagTest() throws Exception {
+    // Given
+    var testCaseId = 2L;
+    var tagIds = List.of(1L);
+    var deleteRequest = new DeleteTagsRQ();
+    deleteRequest.setTagIds(tagIds);
+
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/{projectKey}/tms/test-case/{testCaseId}/tags", projectKey, testCaseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).deleteTagsFromTestCase(projectId, testCaseId, tagIds);
+  }
+
+  @Test
+  void deleteTagsFromMultipleTestCasesTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var tagIds = Arrays.asList(4L, 5L, 6L);
+    var deleteRequest = new BatchDeleteTagsRQ();
+    deleteRequest.setTestCaseIds(testCaseIds);
+    deleteRequest.setTagIds(tagIds);
+
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
+  }
+
+  @Test
+  void deleteTagsFromMultipleTestCasesWithSingleIdsTest() throws Exception {
+    // Given
+    var testCaseIds = List.of(1L);
+    var tagIds = List.of(4L);
+    var deleteRequest = new BatchDeleteTagsRQ();
+    deleteRequest.setTestCaseIds(testCaseIds);
+    deleteRequest.setTagIds(tagIds);
+
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
+  }
+
+  @Test
+  void deleteMultipleTagsFromSingleTestCaseTest() throws Exception {
+    // Given
+    var testCaseIds = List.of(1L);
+    var tagIds = Arrays.asList(4L, 5L, 6L, 7L);
+    var deleteRequest = new BatchDeleteTagsRQ();
+    deleteRequest.setTestCaseIds(testCaseIds);
+    deleteRequest.setTagIds(tagIds);
+
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
+  }
+
+  @Test
+  void deleteSingleTagFromMultipleTestCasesTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L);
+    var tagIds = List.of(5L);
+    var deleteRequest = new BatchDeleteTagsRQ();
+    deleteRequest.setTestCaseIds(testCaseIds);
+    deleteRequest.setTagIds(tagIds);
+
+    var jsonContent = mapper.writeValueAsString(deleteRequest);
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
   }
 }

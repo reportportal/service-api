@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
@@ -17,8 +18,10 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case with id: %d for projectId: %d";
+  private static final String TEST_CASES_NOT_FOUND_BY_IDS = "Test Cases with ids: %s for projectId: %d";
   private static final String TEST_FOLDER_NOT_FOUND_BY_ID =
       "Test Folder with id: %d for project: %d";
 
@@ -106,7 +110,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           tmsTestCaseAttributeService.updateTestCaseAttributes(existingTestCase,
               tmsTestCaseRQ.getTags());
 
-          var defaultVersion = tmsTestCaseVersionService.updateDefaultTestCaseVersion(existingTestCase,
+          var defaultVersion = tmsTestCaseVersionService.updateDefaultTestCaseVersion(
+              existingTestCase,
               tmsTestCaseRQ.getManualScenario());
 
           return tmsTestCaseMapper.convert(existingTestCase, defaultVersion);
@@ -127,7 +132,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           tmsTestCaseAttributeService.patchTestCaseAttributes(existingTestCase,
               tmsTestCaseRQ.getTags());
 
-          var defaultVersion = tmsTestCaseVersionService.patchDefaultTestCaseVersion(existingTestCase,
+          var defaultVersion = tmsTestCaseVersionService.patchDefaultTestCaseVersion(
+              existingTestCase,
               tmsTestCaseRQ.getManualScenario());
 
           return tmsTestCaseMapper.convert(existingTestCase, defaultVersion);
@@ -174,7 +180,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       );
     }
     var testFolderId = patchRequest.getTestFolderId();
-    if (Objects.nonNull(testFolderId) && !tmsTestFolderService.existsById(projectId, testFolderId)) {
+    if (Objects.nonNull(testFolderId) && !tmsTestFolderService.existsById(projectId,
+        testFolderId)) {
       throw new ReportPortalException(
           NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
     }
@@ -219,10 +226,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search, Long testFolderId, Pageable pageable) {
-    var testCaseIds = tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, pageable);
+  public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search,
+      Long testFolderId, Pageable pageable) {
+    var testCaseIds = tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId,
+        pageable);
     if (testCaseIds.hasContent()) {
-      var testCaseDefaultVersions = tmsTestCaseVersionService.getDefaultVersions(testCaseIds.getContent());
+      var testCaseDefaultVersions = tmsTestCaseVersionService.getDefaultVersions(
+          testCaseIds.getContent());
       var testCases = tmsTestCaseRepository
           .findByProjectIdAndIds(projectId, testCaseIds.getContent());
       var page = tmsTestCaseMapper.convert(testCases, testCaseDefaultVersions, pageable);
@@ -237,6 +247,39 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     }
   }
 
+  @Override
+  @Transactional
+  public void deleteTagsFromTestCase(Long projectId, Long testCaseId, List<Long> attributeIds) {
+    if (!tmsTestCaseRepository.existsByTestFolder_Project_IdAndId(projectId, testCaseId)) {
+      throw new ReportPortalException(
+          ErrorType.NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId)
+      );
+    }
+    tmsTestCaseAttributeService.deleteByTestCaseIdAndAttributeIds(testCaseId,
+        attributeIds);
+  }
+
+  @Override
+  @Transactional
+  public void deleteTagsFromTestCases(Long projectId, List<Long> testCaseIds,
+      List<Long> attributeIds) {
+    var existingTestCaseIds = new HashSet<>(tmsTestCaseRepository
+        .findExistingIdsByProjectIdAndIds(projectId, testCaseIds)
+    );
+
+    if (existingTestCaseIds.size() != testCaseIds.size()) {
+      var missingIds = testCaseIds.stream()
+          .filter(id -> !existingTestCaseIds.contains(id))
+          .toList();
+
+      throw new ReportPortalException(
+          ErrorType.NOT_FOUND, TEST_CASES_NOT_FOUND_BY_IDS.formatted(missingIds, projectId)
+      );
+    }
+
+    tmsTestCaseAttributeService.deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
+  }
 
   private Long getTestFolderId(long projectId, TmsTestCaseTestFolderRQ testFolderRQ) {
     if (Objects.isNull(testFolderRQ)) {

@@ -17,11 +17,13 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.enums.LogLevel.ERROR_INT;
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
@@ -35,17 +37,18 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -114,7 +117,8 @@ public class SuggestItemService {
     });
   }
 
-  private void isItemUnderProject(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Launch launch) {
+  private void isItemUnderProject(ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user, Launch launch) {
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
       expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
           "Launch is not under the specified project."
@@ -183,10 +187,13 @@ public class SuggestItemService {
     if (relevantTestItem == null) {
       return null;
     }
+    var issue = getSuggestedIssue(relevantTestItem);
     SuggestedItem suggestedItem = new SuggestedItem();
     roundSuggestInfoMatchScore(suggestInfo);
     suggestedItem.setSuggestRs(suggestInfo);
     suggestedItem.setTestItemResource(TestItemConverter.TO_RESOURCE.apply(relevantTestItem));
+    issue.ifPresent(issueEntity -> suggestedItem.getTestItemResource()
+        .setIssue(IssueConverter.TO_MODEL.apply(issueEntity)));
     suggestedItem.setLogs(logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
         relevantTestItem.getLaunchId(),
         relevantTestItem.getItemId(),
@@ -194,6 +201,16 @@ public class SuggestItemService {
         SUGGESTED_ITEMS_LOGS_LIMIT
     ).stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toSet()));
     return suggestedItem;
+  }
+
+  private Optional<IssueEntity> getSuggestedIssue(TestItem relevantTestItem) {
+    if (relevantTestItem.getRetryOf() != null) {
+      Optional<TestItem> latestRetry = testItemRepository.findById(relevantTestItem.getRetryOf());
+      if (latestRetry.isPresent()) {
+        return Optional.ofNullable(latestRetry.get().getItemResults().getIssue());
+      }
+    }
+    return Optional.empty();
   }
 
   private void roundSuggestInfoMatchScore(SuggestInfo info) {

@@ -910,4 +910,154 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable);
   }
+
+  @Test
+  void deleteTagsFromTestCase_WhenTestCaseExists_ShouldDeleteTags() {
+    // Given
+    var attributeIds = Arrays.asList(1L, 2L, 3L);
+    when(tmsTestCaseRepository.existsByTestFolder_Project_IdAndId(projectId, testCaseId)).thenReturn(true);
+
+    // When
+    sut.deleteTagsFromTestCase(projectId, testCaseId, attributeIds);
+
+    // Then
+    verify(tmsTestCaseRepository).existsByTestFolder_Project_IdAndId(projectId, testCaseId);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
+  }
+
+  @Test
+  void deleteTagsFromTestCase_WhenTestCaseDoesNotExist_ShouldThrowNotFoundException() {
+    // Given
+    var attributeIds = Arrays.asList(1L, 2L, 3L);
+    when(tmsTestCaseRepository.existsByTestFolder_Project_IdAndId(projectId, testCaseId)).thenReturn(false);
+
+    // When/Then
+    assertThrows(ReportPortalException.class,
+        () -> sut.deleteTagsFromTestCase(projectId, testCaseId, attributeIds));
+
+    verify(tmsTestCaseRepository).existsByTestFolder_Project_IdAndId(projectId, testCaseId);
+    verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdAndAttributeIds(any(), any());
+  }
+
+  @Test
+  void deleteTagsFromTestCase_WithSingleAttribute_ShouldDeleteTags() {
+    // Given
+    var attributeIds = List.of(1L);
+    when(tmsTestCaseRepository.existsByTestFolder_Project_IdAndId(projectId, testCaseId)).thenReturn(true);
+
+    // When
+    sut.deleteTagsFromTestCase(projectId, testCaseId, attributeIds);
+
+    // Then
+    verify(tmsTestCaseRepository).existsByTestFolder_Project_IdAndId(projectId, testCaseId);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
+  }
+
+  @Test
+  void deleteTagsFromTestCases_WhenAllTestCasesExist_ShouldDeleteTags() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var attributeIds = Arrays.asList(4L, 5L, 6L);
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
+
+  @Test
+  void deleteTagsFromTestCases_WhenSomeTestCasesDoNotExist_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var attributeIds = Arrays.asList(4L, 5L, 6L);
+    var existingTestCaseIds = List.of(1L, 2L); // Missing ID 3L
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds));
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
+  }
+
+  @Test
+  void deleteTagsFromTestCases_WhenNoTestCasesExist_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var attributeIds = Arrays.asList(4L, 5L, 6L);
+    var existingTestCaseIds = Collections.<Long>emptyList();
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    assertThrows(ReportPortalException.class,
+        () -> sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds));
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
+  }
+
+  @Test
+  void deleteTagsFromTestCases_WithSingleTestCaseAndAttribute_ShouldDeleteTags() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var attributeIds = List.of(4L);
+    var existingTestCaseIds = List.of(1L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
+
+  @Test
+  void deleteTagsFromTestCases_WithMultipleTestCasesAndSingleAttribute_ShouldDeleteTags() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L);
+    var attributeIds = List.of(5L);
+    var existingTestCaseIds = List.of(1L, 2L, 3L, 4L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
+
+  @Test
+  void deleteTagsFromTestCases_WithSingleTestCaseAndMultipleAttributes_ShouldDeleteTags() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var attributeIds = Arrays.asList(4L, 5L, 6L, 7L);
+    var existingTestCaseIds = List.of(1L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
 }

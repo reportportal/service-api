@@ -27,4 +27,22 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
       HttpServletResponse response);
 
   Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search, Long testFolderId, Pageable pageable);
+
+  /**
+   * Deletes specific tags from a test case.
+   *
+   * @param projectId The project ID.
+   * @param testCaseId The test case ID.
+   * @param attributeIds List of attribute IDs to delete.
+   */
+  void deleteTagsFromTestCase(Long projectId, Long testCaseId, List<Long> attributeIds);
+
+  /**
+   * Deletes specific tags from multiple test cases.
+   *
+   * @param projectId The project ID.
+   * @param testCaseIds List of test case IDs.
+   * @param attributeIds List of attribute IDs to delete.
+   */
+  void deleteTagsFromTestCases(Long projectId, List<Long> testCaseIds, List<Long> attributeIds);
 }

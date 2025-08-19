@@ -123,7 +123,8 @@ class TmsTestCaseAttributeServiceImplTest {
 
     // Then
     verify(tmsAttributeService).getTmsAttributes(attributeRQs);
-    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap, attributeRQs);
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap,
+        attributeRQs);
     verify(tmsTestCaseAttributeRepository).saveAll(testCaseAttributes);
 
     // Assert the final state
@@ -143,7 +144,8 @@ class TmsTestCaseAttributeServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCase.getId());
     verify(tmsAttributeService).getTmsAttributes(attributeRQs);
-    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap, attributeRQs);
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap,
+        attributeRQs);
     verify(tmsTestCaseAttributeRepository).saveAll(testCaseAttributes);
 
     // Assert the final state
@@ -193,7 +195,8 @@ class TmsTestCaseAttributeServiceImplTest {
 
     // Then
     verify(tmsAttributeService).getTmsAttributes(attributeRQs);
-    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap, attributeRQs);
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap,
+        attributeRQs);
     verify(tmsTestCaseAttributeRepository).saveAll(testCaseAttributes);
 
     // Assert the final state - should contain both existing and new attributes
@@ -211,7 +214,8 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.patchTestCaseAttributes(testCase, null);
 
     // Then
-    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper,
+        tmsTestCaseAttributeRepository);
 
     // Assert that the existing attributes are unchanged
     assertEquals(initialAttributes, testCase.getTags());
@@ -227,7 +231,8 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.patchTestCaseAttributes(testCase, Collections.emptyList());
 
     // Then
-    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper,
+        tmsTestCaseAttributeRepository);
 
     // Assert that the existing attributes are unchanged
     assertEquals(initialAttributes, testCase.getTags());
@@ -250,7 +255,8 @@ class TmsTestCaseAttributeServiceImplTest {
 
     // Then
     verify(tmsAttributeService).getTmsAttributes(attributeRQs);
-    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap, attributeRQs);
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap,
+        attributeRQs);
     // saveAll should be called once for each test case
     verify(tmsTestCaseAttributeRepository, times(2)).saveAll(testCaseAttributes);
 
@@ -271,7 +277,8 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.patchTestCaseAttributes(testCases, null);
 
     // Then
-    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper,
+        tmsTestCaseAttributeRepository);
 
     // Assert that both test cases' attributes are unchanged
     assertEquals(initialAttributesTestCase1, testCase.getTags());
@@ -288,7 +295,8 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.patchTestCaseAttributes(testCases, Collections.emptyList());
 
     // Then
-    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper,
+        tmsTestCaseAttributeRepository);
 
     // Assert that both test cases' attributes are unchanged
     assertEquals(initialAttributesTestCase1, testCase.getTags());
@@ -298,7 +306,7 @@ class TmsTestCaseAttributeServiceImplTest {
   @Test
   void patchTestCaseAttributes_MultipleTestCases_WithSingleTestCase_ShouldWorkCorrectly() {
     // Given
-    List<TmsTestCase> singleTestCaseList = Arrays.asList(testCase);
+    List<TmsTestCase> singleTestCaseList = Collections.singletonList(testCase);
     when(tmsAttributeService.getTmsAttributes(attributeRQs)).thenReturn(tmsAttributesMap);
     when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(tmsAttributesMap, attributeRQs))
         .thenReturn(testCaseAttributes);
@@ -310,7 +318,8 @@ class TmsTestCaseAttributeServiceImplTest {
 
     // Then
     verify(tmsAttributeService).getTmsAttributes(attributeRQs);
-    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap, attributeRQs);
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap,
+        attributeRQs);
     verify(tmsTestCaseAttributeRepository, times(1)).saveAll(testCaseAttributes);
 
     // Assert the final state
@@ -331,7 +340,8 @@ class TmsTestCaseAttributeServiceImplTest {
 
     // Then
     verify(tmsAttributeService).getTmsAttributes(attributeRQs);
-    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap, attributeRQs);
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(tmsAttributesMap,
+        attributeRQs);
     verifyNoInteractions(tmsTestCaseAttributeRepository);
   }
 
@@ -357,7 +367,8 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.deleteAllByTestFolderId(projectId, testFolderId);
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteTestCaseAttributesByTestFolderId(projectId, testFolderId);
+    verify(tmsTestCaseAttributeRepository).deleteTestCaseAttributesByTestFolderId(projectId,
+        testFolderId);
   }
 
   @Test
@@ -370,5 +381,145 @@ class TmsTestCaseAttributeServiceImplTest {
 
     // Then
     verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseIds(testCaseIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdAndAttributeIds_ShouldCallRepositoryDelete() {
+    // Given
+    Long testCaseId = 2L;
+    List<Long> attributeIds = Arrays.asList(3L, 4L, 5L);
+
+    // When
+    sut.deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdAndAttributeIds(testCaseId,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdAndAttributeIds_WithSingleAttribute_ShouldCallRepositoryDelete() {
+    // Given
+    Long testCaseId = 2L;
+    List<Long> attributeIds = List.of(3L);
+
+    // When
+    sut.deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdAndAttributeIds(testCaseId,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdAndAttributeIds_WithEmptyAttributeIds_ShouldCallRepositoryDelete() {
+    // Given
+    Long testCaseId = 2L;
+    List<Long> attributeIds = Collections.emptyList();
+
+    // When
+    sut.deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdAndAttributeIds(testCaseId,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdsAndAttributeIds_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(2L, 3L, 4L);
+    List<Long> attributeIds = Arrays.asList(5L, 6L, 7L);
+
+    // When
+    sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdsAndAttributeIds_WithSingleTestCaseAndAttribute_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = List.of(2L);
+    List<Long> attributeIds = List.of(3L);
+
+    // When
+    sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdsAndAttributeIds_WithMultipleTestCasesAndSingleAttribute_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(2L, 3L, 4L, 5L);
+    List<Long> attributeIds = List.of(6L);
+
+    // When
+    sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdsAndAttributeIds_WithSingleTestCaseAndMultipleAttributes_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = List.of(2L);
+    List<Long> attributeIds = Arrays.asList(3L, 4L, 5L, 6L);
+
+    // When
+    sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdsAndAttributeIds_WithEmptyTestCaseIds_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = Collections.emptyList();
+    List<Long> attributeIds = Arrays.asList(3L, 4L);
+
+    // When
+    sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdsAndAttributeIds_WithEmptyAttributeIds_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(2L, 3L);
+    List<Long> attributeIds = Collections.emptyList();
+
+    // When
+    sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
+  }
+
+  @Test
+  void deleteByTestCaseIdsAndAttributeIds_WithBothEmptyLists_ShouldCallRepositoryDelete() {
+    // Given
+    List<Long> testCaseIds = Collections.emptyList();
+    List<Long> attributeIds = Collections.emptyList();
+
+    // When
+    sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
+        attributeIds);
   }
 }

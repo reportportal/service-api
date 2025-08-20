@@ -106,7 +106,11 @@ public class TestItemPojo {
 
     if (!CollectionUtils.isEmpty(input.getAttachments())) {
       this.attachmentPojoList = input.getAttachments().stream().filter(Objects::nonNull)
-          .map(it -> AttachmentPojo.builder().fileId(it.getFileId()).fileName(it.getFileName()).build())
+          .map(it -> AttachmentPojo.builder()
+              .fileId(it.getFileId())
+              .fileName(it.getFileName())
+              .contentType(it.getContentType())
+              .build())
           .collect(Collectors.toSet());
     }
   }

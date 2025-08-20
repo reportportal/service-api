@@ -34,4 +34,5 @@ jobs:
       version: 'develop-${{ github.run_number }}'
       date: ${{ needs.variables-setup.outputs.date }}
       runs-on: ubuntu-latest
+      drill-send-build-info: true
     secrets: inherit

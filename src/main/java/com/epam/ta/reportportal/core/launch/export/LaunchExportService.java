@@ -87,7 +87,8 @@ public class LaunchExportService {
       for (TestItemPojo item : testItems.values()) {
         String itemsPathNames = pathService.buildItemPath(testItems, item);
         for (AttachmentPojo att : item.getAttachmentPojoList()) {
-          String fullPath = pathService.buildAttachmentPath(itemsPathNames, att.getFileName());
+          String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(att.getFileName(), att.getContentType());
+          String fullPath = pathService.buildAttachmentPath(itemsPathNames, fileNameWithExtension);
           if (uniquePaths.add(fullPath)) {
             zipService.writeToZip(att.getFileId(), fullPath, zipOut);
           }
@@ -96,8 +97,12 @@ public class LaunchExportService {
 
       for (Log log : launch.getLogs()) {
         if (log.getAttachment() != null) {
-          if (uniquePaths.add(log.getAttachment().getFileName())) {
-            zipService.writeToZip(log.getAttachment().getFileId(), log.getAttachment().getFileName(), zipOut);
+          String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
+              log.getAttachment().getFileName(), 
+              log.getAttachment().getContentType()
+          );
+          if (uniquePaths.add(fileNameWithExtension)) {
+            zipService.writeToZip(log.getAttachment().getFileId(), fileNameWithExtension, zipOut);
           }
         }
       }

@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import com.epam.reportportal.model.analyzer.IndexLaunch;
 import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
@@ -176,11 +177,15 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs,
       List<TestItem> testItems, Long projectId) {
     return rs.stream().map(analyzed -> {
-      Optional<TestItem> toUpdate = testItems.stream()
-          .filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
+      Optional<TestItem> toUpdate = testItemRepository.findById(analyzed.getItemId());
       toUpdate.ifPresent(testItem -> {
         LOGGER.debug("Analysis has found a match: {}", analyzed);
-
+        if (testItem.getRetryOf() != null) {
+          LOGGER.info("Analyzed item is retry {}, replacing with original {} for update",
+              testItem.getItemId(), testItem.getRetryOf());
+          testItem = testItemRepository.findById(testItem.getRetryOf())
+              .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
+        }
         if (!testItem.getItemResults().getIssue().getIssueType().getLocator()
             .equals(analyzed.getLocator())) {
           TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
@@ -226,6 +231,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     if (rs.getRelevantItemId() != null) {
       Optional<TestItem> relevantItemOptional = testItemRepository.findById(rs.getRelevantItemId());
       if (relevantItemOptional.isPresent()) {
+        if (relevantItemOptional.get().getRetryOf() != null) {
+          relevantItemOptional = testItemRepository.findById(
+              relevantItemOptional.get().getRetryOf());
+        }
         relevantItemInfo = updateIssueFromRelevantItem(issueEntity, relevantItemOptional.get());
       } else {
         LOGGER.error(ErrorType.TEST_ITEM_NOT_FOUND.getDescription(), rs.getRelevantItemId());

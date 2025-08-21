@@ -16,17 +16,19 @@
 
 package com.epam.ta.reportportal;
 
-import com.epam.ta.reportportal.core.configs.security.JwtReportPortalUserConverter;
-import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
+import com.epam.ta.reportportal.ws.resolver.JacksonViewAwareModule;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
-import io.jsonwebtoken.Jwts.SIG;
-import javax.crypto.SecretKey;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -42,9 +44,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -55,12 +54,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.reporting.async.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.ta.reportportal.job.*"}),
-    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
-        "com.epam.ta.reportportal.core.integration.migration.*"}),
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.ta.reportportal.core.integration.migration.*"}),
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class)})
 public class TestConfig {
-
-  public final static SecretKey TEST_SECRET = SIG.HS256.key().build();
 
   @MockBean
   protected Client rabbitClient;
@@ -84,7 +80,7 @@ public class TestConfig {
   protected MessageConverter messageConverter;
 
   @Autowired
-  private DatabaseUserDetailsService userDetailsService;
+  private DefaultUserDetailsService userDetailsService;
 
   @Bean
   @Profile("unittest")
@@ -93,33 +89,17 @@ public class TestConfig {
   }
 
   @Bean
-  @Profile("unittest")
-  public JwtReportPortalUserConverter accessTokenConverter() {
-    JwtReportPortalUserConverter jwtConverter = new JwtReportPortalUserConverter(
-        userDetailsService);
-    JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
-    jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-    //jwtGrantedAuthoritiesConverter.setAuthoritiesClaimDelimiter(" ");
-
-    jwtConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-
-    return jwtConverter;
-  }
-
-  @Bean
-  @Profile("unittest")
-  JwtDecoder jwtDecoder() {
-    return NimbusJwtDecoder.withSecretKey(TEST_SECRET).build();
-  }
-
-  @Bean
   public ObjectMapper testObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper om = JsonMapper.builder()
+        .annotationIntrospector(new JacksonAnnotationIntrospector())
+        .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+        .build();
 
-    objectMapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
-    objectMapper.registerModule(new JavaTimeModule());
+    om.registerModule(new JacksonViewAwareModule(om));
+    om.registerModule(new JavaTimeModule());
 
-    return objectMapper;
+    return om;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.auth.basic;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+package com.epam.ta.reportportal.auth.userdetails;
 
-import com.epam.ta.reportportal.auth.util.AuthUtils;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import static com.epam.ta.reportportal.core.configs.security.converters.UserReportPortalUserConverter.TO_REPORT_PORTAL_USER;
+
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,13 +27,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Spring's {@link UserDetailsService} implementation. Uses {@link User} entity from ReportPortal
- * database
+ * Spring's {@link UserDetailsService} implementation for external users. Uses
+ * {@link com.epam.ta.reportportal.entity.user.User} entity from ReportPortal database.
  *
- * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
+ * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */
 @Service
-public class DatabaseUserDetailsService implements UserDetailsService {
+public class ExternalUserDetailsService implements UserDetailsService {
 
   private UserRepository userRepository;
 
@@ -45,25 +42,18 @@ public class DatabaseUserDetailsService implements UserDetailsService {
     this.userRepository = userRepository;
   }
 
+  /**
+   * Loads user by external ID.
+   *
+   * @param externalId the external ID to search for
+   * @return UserDetails object containing user information
+   * @throws UsernameNotFoundException if the user is not found
+   */
   @Override
   @Transactional(readOnly = true)
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    ReportPortalUser user = userRepository.findReportPortalUser(normalizeId(username))
+  public UserDetails loadUserByUsername(String externalId) throws UsernameNotFoundException {
+    return userRepository.findAuthDataByExternalId(externalId)
+        .map(TO_REPORT_PORTAL_USER)
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-    UserDetails userDetails = User.builder()
-        .username(user.getUsername())
-        .password(user.getPassword() == null ? "" : user.getPassword())
-        .authorities(AuthUtils.AS_AUTHORITIES.apply(user.getUserRole()))
-        .build();
-
-    return ReportPortalUser.userBuilder()
-        .withUserDetails(userDetails)
-        .withUserId(user.getUserId())
-        .withUserRole(user.getUserRole())
-        .withProjectDetails(Maps.newHashMapWithExpectedSize(1))
-        .withEmail(user.getEmail())
-        .build();
   }
-
 }

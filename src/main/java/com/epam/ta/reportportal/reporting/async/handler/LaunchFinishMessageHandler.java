@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.handler;
 
-import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
+import com.epam.ta.reportportal.auth.userdetails.DefaultUserDetailsService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
@@ -37,11 +37,11 @@ public class LaunchFinishMessageHandler implements ReportingMessageHandler {
   private final MessageRetriever retriever;
   private final FinishLaunchHandler finishLaunchHandler;
   private final ProjectExtractor projectExtractor;
-  private final DatabaseUserDetailsService userDetailsService;
+  private final DefaultUserDetailsService userDetailsService;
 
   public LaunchFinishMessageHandler(MessageRetriever retriever,
       FinishLaunchHandler finishLaunchHandler,
-      ProjectExtractor projectExtractor, DatabaseUserDetailsService userDetailsService) {
+      ProjectExtractor projectExtractor, DefaultUserDetailsService userDetailsService) {
     this.retriever = retriever;
     this.finishLaunchHandler = finishLaunchHandler;
     this.projectExtractor = projectExtractor;

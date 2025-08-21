@@ -15,7 +15,6 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -35,10 +34,6 @@ class TmsTestPlanServiceImplTest {
 
   @Mock
   private TmsTestPlanMapper tmsTestPlanMapper;
-
-
-  @Mock
-  private TmsMilestoneService tmsMilestoneService;
 
   @Mock
   private TmsTestPlanAttributeService tmsTestPlanAttributeService;
@@ -78,7 +73,7 @@ class TmsTestPlanServiceImplTest {
         sut.getById(projectId, testPlanId)
     );
 
-    assertTrue(exception.getErrorType().equals(ErrorType.NOT_FOUND));
+    assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
   }
 
@@ -99,8 +94,6 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
         testPlanRQ.getTags());
-    verify(tmsMilestoneService).createTestPlanMilestones(testPlan,
-        testPlanRQ.getMilestoneIds());
   }
 
   @Test
@@ -111,34 +104,29 @@ class TmsTestPlanServiceImplTest {
     assertDoesNotThrow(() -> sut.delete(projectId, testPlanId));
 
     verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(testPlanId);
-    verify(tmsMilestoneService).detachTestPlanFromMilestones(testPlanId);
     verify(testPlanRepository).deleteByIdAndProject_Id(testPlanId, projectId);
   }
 
   @Test
   void shouldGetByCriteria() {
     var projectId = 1L;
-    List<Long> environmentIds = Collections.singletonList(1L);
-    List<Long> productVersionIds = Collections.singletonList(1L);
     var pageable = PageRequest.of(0, 10);
 
     var testPlan = new TmsTestPlan();
     var testPlanRS = new TmsTestPlanRS();
     Page<TmsTestPlan> testPlanPage = new PageImpl<>(List.of(testPlan));
 
-    when(testPlanRepository.findByCriteria(projectId, environmentIds, productVersionIds,
-        pageable)).thenReturn(testPlanPage);
+    when(testPlanRepository.findByCriteria(projectId, pageable)).thenReturn(testPlanPage);
     when(tmsTestPlanMapper.convertToRS(testPlanPage)).thenReturn(
         new PageImpl<>(List.of(testPlanRS)));
 
     var result = assertDoesNotThrow(
-        () -> sut.getByCriteria(projectId, environmentIds, productVersionIds, pageable));
+        () -> sut.getByCriteria(projectId, pageable));
 
     assertNotNull(result);
     assertEquals(1, result.getContent().size());
-    assertEquals(testPlanRS, result.getContent().get(0));
-    verify(testPlanRepository).findByCriteria(projectId, environmentIds, productVersionIds,
-        pageable);
+    assertEquals(testPlanRS, result.getContent().getFirst());
+    verify(testPlanRepository).findByCriteria(projectId, pageable);
     verify(tmsTestPlanMapper).convertToRS(testPlanPage);
   }
 
@@ -163,8 +151,6 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).update(existingTestPlan, updatedTestPlan);
     verify(tmsTestPlanAttributeService).updateTestPlanAttributes(existingTestPlan,
         testPlanRQ.getTags());
-    verify(tmsMilestoneService).updateTestPlanMilestones(existingTestPlan,
-        testPlanRQ.getMilestoneIds());
   }
 
   @Test
@@ -187,8 +173,6 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
         testPlanRQ.getTags());
-    verify(tmsMilestoneService).createTestPlanMilestones(testPlan,
-        testPlanRQ.getMilestoneIds());
   }
 
   @Test
@@ -212,8 +196,6 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).patch(existingTestPlan, patchedTestPlan);
     verify(tmsTestPlanAttributeService).patchTestPlanAttributes(existingTestPlan,
         testPlanRQ.getTags());
-    verify(tmsMilestoneService).patchTestPlanMilestones(existingTestPlan,
-        testPlanRQ.getMilestoneIds());
   }
 
   @Test
@@ -229,7 +211,7 @@ class TmsTestPlanServiceImplTest {
         sut.patch(projectId, testPlanId, testPlanRQ)
     );
 
-    assertTrue(exception.getErrorType().equals(ErrorType.NOT_FOUND));
+    assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
   }
 }

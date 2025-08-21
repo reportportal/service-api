@@ -83,6 +83,10 @@ public class TmsTestCase implements Serializable {
   @JoinColumn(name = "dataset_id")
   private TmsDataset dataset;
 
+  @ManyToMany(mappedBy = "testCases")
+  @ToString.Exclude
+  private Set<TmsTestPlan> testPlans;
+
   @ManyToMany
   @JoinTable(
       name = "tms_test_case_test_item",

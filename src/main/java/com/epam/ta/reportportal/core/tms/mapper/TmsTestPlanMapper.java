@@ -20,18 +20,23 @@ public abstract class TmsTestPlanMapper {
   public abstract TmsTestPlanRS convertToRS(TmsTestPlan tmsTestPlan);
 
   @Mapping(target = "project.id", source = "projectId")
-  @Mapping(target = "environment", source = "testPlanRQ.environmentId")
-  @Mapping(target = "productVersion", source = "testPlanRQ.productVersionId")
-  @Mapping(target = "milestones", ignore = true)
   @Mapping(target = "attributes", ignore = true)
   public abstract TmsTestPlan convertFromRQ(Long projectId, TmsTestPlanRQ testPlanRQ);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL, nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION)
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "milestones", ignore = true)
+  @Mapping(target = "testFolders", ignore = true)
+  @Mapping(target = "testCases", ignore = true)
   public abstract void update(@MappingTarget TmsTestPlan targetTestPlan, TmsTestPlan tmsTestPlan);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "milestones", ignore = true)
+  @Mapping(target = "testFolders", ignore = true)
+  @Mapping(target = "testCases", ignore = true)
   public abstract void patch(@MappingTarget TmsTestPlan existingTestPlan,
       TmsTestPlan tmsTestPlan);
 

@@ -839,20 +839,22 @@ class TmsTestCaseServiceImplTest {
     var defaultVersions = Map.of(testCaseId, testCaseVersion);
     var convertedPage = new PageImpl<>(List.of(testCaseRS), pageable, 1);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, pageable))
+    when(tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, testPlanId,
+        pageable))
         .thenReturn(testCaseIdsPage);
     when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(defaultVersions);
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
     when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable)).thenReturn(convertedPage);
 
     // When
-    var result = sut.getTestCasesByCriteria(projectId, search, testFolderId, pageable);
+    var result = sut.getTestCasesByCriteria(projectId, search, testFolderId, testPlanId, pageable);
 
     // Then
     assertNotNull(result);
     assertNotNull(result.getContent());
     assertEquals(1, result.getContent().size());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, search, testFolderId, pageable);
+    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, search, testFolderId, testPlanId,
+        pageable);
     verify(tmsTestCaseVersionService).getDefaultVersions(testCaseIds);
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable);
@@ -866,17 +868,19 @@ class TmsTestCaseServiceImplTest {
     var pageable = PageRequest.of(0, 10);
     var emptyPage = new PageImpl<Long>(Collections.emptyList(), pageable, 0);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, pageable))
+    when(tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, testPlanId,
+        pageable))
         .thenReturn(emptyPage);
 
     // When
-    var result = sut.getTestCasesByCriteria(projectId, search, testFolderId, pageable);
+    var result = sut.getTestCasesByCriteria(projectId, search, testFolderId, testPlanId, pageable);
 
     // Then
     assertNotNull(result);
     assertNotNull(result.getContent());
     assertEquals(0, result.getContent().size());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, search, testFolderId, pageable);
+    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, search, testFolderId, testPlanId,
+        pageable);
     verify(tmsTestCaseVersionService, never()).getDefaultVersions(any());
     verify(tmsTestCaseRepository, never()).findByProjectIdAndIds(any(Long.class), any());
     verify(tmsTestCaseMapper, never()).convert(any(List.class), any(Map.class), any());
@@ -892,20 +896,20 @@ class TmsTestCaseServiceImplTest {
     var defaultVersions = Map.of(testCaseId, testCaseVersion);
     var convertedPage = new PageImpl<>(List.of(testCaseRS), pageable, 1);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, pageable))
+    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, testPlanId, pageable))
         .thenReturn(testCaseIdsPage);
     when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(defaultVersions);
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
     when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable)).thenReturn(convertedPage);
 
     // When
-    var result = sut.getTestCasesByCriteria(projectId, null, null, pageable);
+    var result = sut.getTestCasesByCriteria(projectId, null, null, testPlanId, pageable);
 
     // Then
     assertNotNull(result);
     assertNotNull(result.getContent());
     assertEquals(1, result.getContent().size());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, pageable);
+    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, testPlanId, pageable);
     verify(tmsTestCaseVersionService).getDefaultVersions(testCaseIds);
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable);

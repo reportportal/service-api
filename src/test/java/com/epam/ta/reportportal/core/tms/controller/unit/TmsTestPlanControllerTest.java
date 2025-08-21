@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.core.tms.controller.unit;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -45,18 +44,16 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class TmsTestPlanControllerTest {
 
-  @Mock
-  private TmsTestPlanService tmsTestPlanService;
-
-  @Mock
-  private ProjectExtractor projectExtractor;
-
-  @InjectMocks
-  private TmsTestPlanController testPlanController;
-
-  private MockMvc mockMvc;
   private final long projectId = 1L;
   private final String projectKey = "test_project";
+
+  @Mock
+  private TmsTestPlanService tmsTestPlanService;
+  @Mock
+  private ProjectExtractor projectExtractor;
+  @InjectMocks
+  private TmsTestPlanController testPlanController;
+  private MockMvc mockMvc;
   private ReportPortalUser testUser;
 
   @BeforeEach
@@ -84,7 +81,7 @@ public class TmsTestPlanControllerTest {
 
               @Override
               public Object resolveArgument(MethodParameter parameter,
-                                            ModelAndViewContainer mavContainer,
+                  ModelAndViewContainer mavContainer,
                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
                 return testUser;
               }
@@ -124,7 +121,7 @@ public class TmsTestPlanControllerTest {
     List<TmsTestPlanRS> content = List.of(new TmsTestPlanRS(), new TmsTestPlanRS());
     Page<TmsTestPlanRS> page = new PageImpl<>(content, pageable, content.size());
 
-    given(tmsTestPlanService.getByCriteria(projectId, List.of(1L), List.of(2L), pageable))
+    given(tmsTestPlanService.getByCriteria(projectId, pageable))
         .willReturn(page);
 
     mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
@@ -136,7 +133,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).getByCriteria(projectId, List.of(1L), List.of(2L), pageable);
+    verify(tmsTestPlanService).getByCriteria(projectId, pageable);
   }
 
   @Test
@@ -150,9 +147,10 @@ public class TmsTestPlanControllerTest {
     given(tmsTestPlanService.update(projectId, testPlanId, tmsTestPlanRequest))
         .willReturn(testPlan);
 
-    mockMvc.perform(put("/v1/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonContent))
+    mockMvc.perform(
+            put("/v1/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -165,8 +163,9 @@ public class TmsTestPlanControllerTest {
     TmsTestPlanRS testPlan = new TmsTestPlanRS();
     given(tmsTestPlanService.getById(projectId, testPlanId)).willReturn(testPlan);
 
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
-            .contentType(MediaType.APPLICATION_JSON))
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}", projectKey, testPlanId)
+                .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -178,7 +177,7 @@ public class TmsTestPlanControllerTest {
     Long testPlanId = 2L;
 
     mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}",
-                            projectKey, testPlanId)
+            projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
@@ -197,7 +196,7 @@ public class TmsTestPlanControllerTest {
     given(tmsTestPlanService.patch(projectId, testPlanId, tmsTestPlanRequest)).willReturn(testPlan);
 
     mockMvc.perform(patch("/v1/project/{projectKey}/tms/test-plan/{testPlanId}",
-                           projectKey, testPlanId)
+            projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());

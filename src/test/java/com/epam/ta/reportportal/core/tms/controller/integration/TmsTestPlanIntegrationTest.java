@@ -49,9 +49,6 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("name3");
     tmsTestPlan.setDescription("description3");
-    tmsTestPlan.setEnvironmentId(3L);
-    tmsTestPlan.setProductVersionId(3L);
-    tmsTestPlan.setMilestoneIds(List.of(3L));
     tmsTestPlan.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -68,11 +65,6 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertTrue(testPlan.isPresent());
     assertEquals(tmsTestPlan.getName(), testPlan.get().getName());
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
-    assertEquals(tmsTestPlan.getEnvironmentId(), testPlan.get().getEnvironment().getId());
-    TmsMilestone[] versionArray = testPlan.get().getMilestones()
-        .toArray(new TmsMilestone[0]);
-    assertEquals(tmsTestPlan.getMilestoneIds().get(0), versionArray[0].getId());
-    assertEquals(tmsTestPlan.getProductVersionId(), testPlan.get().getProductVersion().getId());
   }
 
   @Test
@@ -88,11 +80,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].id").value(testPlan.get().getId()))
         .andExpect(jsonPath("$.content[0].name").value(testPlan.get().getName()))
-        .andExpect(jsonPath("$.content[0].description").value(testPlan.get().getDescription()))
-        .andExpect(jsonPath("$.content[0].environment.id").value(testPlan.get()
-            .getEnvironment().getId()))
-        .andExpect(jsonPath("$.content[0].productVersion.id").value(testPlan.get()
-            .getProductVersion().getId()));
+        .andExpect(jsonPath("$.content[0].description").value(testPlan.get().getDescription()));
   }
 
   @Test
@@ -104,9 +92,6 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");
     tmsTestPlan.setDescription("updated_name5");
-    tmsTestPlan.setEnvironmentId(4L);
-    tmsTestPlan.setProductVersionId(4L);
-    tmsTestPlan.setMilestoneIds(List.of(4L));
     tmsTestPlan.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -123,11 +108,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertTrue(testPlan.isPresent());
     assertEquals(tmsTestPlan.getName(), testPlan.get().getName());
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
-    assertEquals(tmsTestPlan.getEnvironmentId(), testPlan.get().getEnvironment().getId());
     TmsMilestone[] versionArray = testPlan.get().getMilestones()
         .toArray(new TmsMilestone[0]);
-    assertEquals(tmsTestPlan.getMilestoneIds().get(0), versionArray[0].getId());
-    assertEquals(tmsTestPlan.getProductVersionId(), testPlan.get().getProductVersion().getId());
   }
 
   @Test
@@ -139,10 +121,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(testPlan.get().getId()))
         .andExpect(jsonPath("$.name").value(testPlan.get().getName()))
-        .andExpect(jsonPath("$.description").value(testPlan.get().getDescription()))
-        .andExpect(jsonPath("$.environment.id").value(testPlan.get().getEnvironment().getId()))
-        .andExpect(jsonPath("$.productVersion.id").value(testPlan.get()
-            .getProductVersion().getId()));
+        .andExpect(jsonPath("$.description").value(testPlan.get().getDescription()));
   }
 
   @Test
@@ -165,9 +144,6 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");
     tmsTestPlan.setDescription("updated_name5");
-    tmsTestPlan.setEnvironmentId(4L);
-    tmsTestPlan.setProductVersionId(4L);
-    tmsTestPlan.setMilestoneIds(List.of(4L));
     tmsTestPlan.setTags(List.of(attributQ));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -184,10 +160,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertTrue(testPlan.isPresent());
     assertEquals(tmsTestPlan.getName(), testPlan.get().getName());
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
-    assertEquals(tmsTestPlan.getEnvironmentId(), testPlan.get().getEnvironment().getId());
     TmsMilestone[] versionArray = testPlan.get().getMilestones()
         .toArray(new TmsMilestone[0]);
-    assertEquals(tmsTestPlan.getMilestoneIds().get(0), versionArray[0].getId());
-    assertEquals(tmsTestPlan.getProductVersionId(), testPlan.get().getProductVersion().getId());
   }
 }

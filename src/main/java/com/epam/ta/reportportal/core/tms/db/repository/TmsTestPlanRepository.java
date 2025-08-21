@@ -15,10 +15,6 @@ import org.springframework.stereotype.Repository;
 public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPlan, Long> {
 
   @Query("SELECT tp FROM TmsTestPlan tp " +
-      "LEFT JOIN FETCH tp.environment e " +
-      "LEFT JOIN FETCH tp.productVersion pv " +
-      "LEFT JOIN FETCH tp.milestones ms " +
-      "LEFT JOIN FETCH ms.productVersion mspv " +
       "LEFT JOIN FETCH tp.attributes atr " +
       "LEFT JOIN FETCH atr.attribute " +
       "WHERE tp.project.id = :projectId AND tp.id = :id"
@@ -29,19 +25,11 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   void deleteByIdAndProject_Id(Long id, Long projectId);
 
   @Query("SELECT tp FROM TmsTestPlan tp " +
-      "LEFT JOIN FETCH tp.environment e " +
-      "LEFT JOIN FETCH tp.productVersion pv " +
-      "LEFT JOIN FETCH tp.milestones ms " +
-      "LEFT JOIN FETCH ms.productVersion mspv " +
       "LEFT JOIN FETCH tp.attributes atr " +
       "LEFT JOIN FETCH atr.attribute " +
-      "WHERE tp.project.id = :projectId AND" +
-      "(:environmentIds IS NULL OR tp.environment.id IN :environmentIds) AND " +
-      "(:productVersionIds IS NULL OR tp.productVersion.id IN :productVersionIds)"
+      "WHERE tp.project.id = :projectId"
   )
   Page<TmsTestPlan> findByCriteria(
       @Param("projectId") Long projectId,
-      @Param("environmentIds") List<Long> environmentIds,
-      @Param("productVersionIds") List<Long> productVersionIds,
       Pageable pageable);
 }

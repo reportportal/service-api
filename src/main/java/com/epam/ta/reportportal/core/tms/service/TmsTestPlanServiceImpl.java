@@ -22,7 +22,6 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   private final TmsTestPlanRepository testPlanRepository;
   private final TmsTestPlanMapper tmsTestPlanMapper;
-  private final TmsMilestoneService tmsMilestoneService;
   private final TmsTestPlanAttributeService tmsTestPlanAttributeService;
 
   @Override
@@ -44,7 +43,6 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
     tmsTestPlanAttributeService.createTestPlanAttributes(tmsTestPlan,
         testPlanRQ.getTags());
-    tmsMilestoneService.createTestPlanMilestones(tmsTestPlan, testPlanRQ.getMilestoneIds());
 
     return tmsTestPlanMapper.convertToRS(tmsTestPlan);
   }
@@ -59,8 +57,6 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
           tmsTestPlanAttributeService.updateTestPlanAttributes(existingTestPlan,
               testPlanRQ.getTags());
-          tmsMilestoneService.updateTestPlanMilestones(existingTestPlan,
-              testPlanRQ.getMilestoneIds());
 
           return tmsTestPlanMapper.convertToRS(existingTestPlan);
         }).orElseGet(() -> create(projectId, testPlanRQ));
@@ -76,8 +72,6 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
           tmsTestPlanAttributeService.patchTestPlanAttributes(existingTestPlan,
               testPlanRQ.getTags());
-          tmsMilestoneService.patchTestPlanMilestones(existingTestPlan,
-              testPlanRQ.getMilestoneIds());
 
           return tmsTestPlanMapper.convertToRS(existingTestPlan);
         }).orElseThrow(() -> new ReportPortalException(
@@ -89,18 +83,15 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Transactional
   public void delete(long projectId, Long testPlanId) {
     tmsTestPlanAttributeService.deleteAllByTestPlanId(testPlanId);
-    tmsMilestoneService.detachTestPlanFromMilestones(testPlanId);
     testPlanRepository.deleteByIdAndProject_Id(testPlanId, projectId);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestPlanRS> getByCriteria(Long projectId, List<Long> environmentIds,
-      List<Long> productVersionIds,
+  public Page<TmsTestPlanRS> getByCriteria(Long projectId,
       Pageable pageable) {
-    return tmsTestPlanMapper.convertToRS(testPlanRepository.findByCriteria(projectId,
-        environmentIds,
-        productVersionIds,
+    return tmsTestPlanMapper.convertToRS(
+        testPlanRepository.findByCriteria(projectId,
         pageable
     ));
   }

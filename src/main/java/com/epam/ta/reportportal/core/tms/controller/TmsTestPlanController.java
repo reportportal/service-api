@@ -59,24 +59,18 @@ public class TmsTestPlanController {
    * Retrieves a list of test plans filtered by criteria.
    *
    * @param projectKey         The key of the project.
-   * @param environmentId      List of environment IDs to filter by.
-   * @param productVersionId   List of product version IDs to filter by.
    * @param pageable           Pagination details.
    * @return Paginated list of test plans matching the criteria ({@link TmsTestPlanRS}).
    */
   @GetMapping
   public Page<TmsTestPlanRS> getTestPlansByCriteria(
       @PathVariable String projectKey,
-      @RequestParam(required = false) List<Long> environmentId,
-      @RequestParam(required = false) List<Long> productVersionId,
       Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        environmentId,
-        productVersionId,
         pageable
     );
   }

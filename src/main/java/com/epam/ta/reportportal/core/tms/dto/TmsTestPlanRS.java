@@ -11,8 +11,5 @@ public class TmsTestPlanRS {
   private Long id;
   private String name;
   private String description;
-  private TmsTestPlanEnvironmentRS environment;
-  private TmsTestPlanProductVersionRS productVersion;
   private List<TmsAttributeRS> tags;
-  private List<TmsTestPlanMilestoneRS> milestones;
 }

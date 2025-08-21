@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TmsAttributeServiceImpl implements TmsAttributeService {
 
   private static final String TMS_ATTRIBUTES_WITH_IDS = "TMS Attributes with IDs %s";
-  private static final String TMS_ATTRIBUTES_WITH_KEYS = "TMS Attributes with keys %s";
 
   private final TmsAttributeRepository tmsAttributeRepository;
   private final TmsAttributeMapper tmsAttributeMapper;
@@ -58,7 +57,6 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
       existingAttributes.forEach(attr -> result.put("id:" + attr.getId(), attr));
     }
 
-    // 2. Batch поиск/создание по key
     var keysToProcess = attributes.stream()
         .filter(attr -> Objects.isNull(attr.getId()) && StringUtils.isNotBlank(attr.getKey()))
         .map(TmsAttributeRQ::getKey)
@@ -66,11 +64,9 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
         .toList();
 
     if (!keysToProcess.isEmpty()) {
-      // Сначала ищем существующие по key (если есть такой метод в репозитории)
       var existingByKey = tmsAttributeRepository.findAllByKeyIn(keysToProcess);
       existingByKey.forEach(attr -> result.put("key:" + attr.getKey(), attr));
 
-      // Определяем какие key нужно создать
       var existingKeys = existingByKey.stream()
           .map(TmsAttribute::getKey)
           .collect(Collectors.toSet());
@@ -79,7 +75,6 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
           .filter(key -> !existingKeys.contains(key))
           .toList();
 
-      // Batch создание новых атрибутов
       if (!keysToCreate.isEmpty()) {
         var newAttributes = keysToCreate.stream()
             .map(tmsAttributeMapper::createTmsAttribute)

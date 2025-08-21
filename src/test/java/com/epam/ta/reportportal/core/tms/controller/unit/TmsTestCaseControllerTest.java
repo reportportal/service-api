@@ -135,7 +135,7 @@ public class TmsTestCaseControllerTest {
     var page = new Page<>(testCases, 10, 0, 2, 1);
 
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), any(Pageable.class))).willReturn(page);
+        eq(testFolderId), testPlanId, any(Pageable.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
@@ -147,7 +147,7 @@ public class TmsTestCaseControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), any(Pageable.class));
+        eq(testFolderId), testPlanId, any(Pageable.class));
   }
 
   @Test
@@ -157,7 +157,7 @@ public class TmsTestCaseControllerTest {
     var page = new Page<>(emptyTestCases, 10, 0, 0, 0);
 
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), any(Pageable.class))).willReturn(page);
+        isNull(), testPlanId, any(Pageable.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
@@ -167,7 +167,7 @@ public class TmsTestCaseControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), any(Pageable.class));
+        isNull(), testPlanId, any(Pageable.class));
   }
 
   @Test

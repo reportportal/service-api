@@ -2,7 +2,6 @@ package com.epam.ta.reportportal.core.tms.db.repository;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +21,11 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   Optional<TmsTestPlan> findByIdAndProjectId(Long id, Long projectId);
 
   @Modifying
-  void deleteByIdAndProject_Id(Long id, Long projectId);
+  @Query(value = "DELETE FROM TmsTestPlan tp "
+      + "WHERE tp.id = :testPlanId "
+      + "AND tp.project.id = :projectId")
+  void deleteByIdAndProjectId(@Param("testPlanId") Long testPlanId,
+      @Param("projectId") Long projectId);
 
   @Query("SELECT tp FROM TmsTestPlan tp " +
       "LEFT JOIN FETCH tp.attributes atr " +

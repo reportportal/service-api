@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.tms.mapper;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlanAttribute;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import java.util.List;
 import java.util.Map;
@@ -42,4 +43,9 @@ public abstract class  TmsTestPlanAttributeMapper {
   @Mapping(target = "value", source = "value")
   public abstract TmsTestPlanAttribute convertToTmsTestPlanAttribute(
       TmsAttribute tmsAttribute, String value);
+
+  @Mapping(target = "id", source = "tmsTestPlanAttribute.id.attributeId")
+  @Mapping(target = "key", source = "tmsTestPlanAttribute.attribute.key")
+  @Mapping(target = "value", source = "tmsTestPlanAttribute.value")
+  public abstract TmsAttributeRS convertTmsAttributeRS(TmsTestPlanAttribute tmsTestPlanAttribute);
 }

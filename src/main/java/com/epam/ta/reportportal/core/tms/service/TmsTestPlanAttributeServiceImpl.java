@@ -38,7 +38,7 @@ public class TmsTestPlanAttributeServiceImpl implements TmsTestPlanAttributeServ
   @Transactional
   public void updateTestPlanAttributes(TmsTestPlan existingTestPlan,
       List<TmsAttributeRQ> attributes) {
-    tmsTestPlanAttributeRepository.deleteAllById_TestPlanId(existingTestPlan.getId());
+    tmsTestPlanAttributeRepository.deleteAllByTestPlanId(existingTestPlan.getId());
     createTestPlanAttributes(existingTestPlan, attributes);
   }
 
@@ -60,6 +60,6 @@ public class TmsTestPlanAttributeServiceImpl implements TmsTestPlanAttributeServ
   @Override
   @Transactional
   public void deleteAllByTestPlanId(Long testPlanId) {
-    tmsTestPlanAttributeRepository.deleteAllById_TestPlanId(testPlanId);
+    tmsTestPlanAttributeRepository.deleteAllByTestPlanId(testPlanId);
   }
 }

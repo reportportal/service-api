@@ -7,7 +7,6 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,7 +82,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Transactional
   public void delete(long projectId, Long testPlanId) {
     tmsTestPlanAttributeService.deleteAllByTestPlanId(testPlanId);
-    testPlanRepository.deleteByIdAndProject_Id(testPlanId, projectId);
+    testPlanRepository.deleteByIdAndProjectId(testPlanId, projectId);
   }
 
   @Override

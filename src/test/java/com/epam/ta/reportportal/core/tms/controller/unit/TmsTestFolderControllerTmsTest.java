@@ -50,12 +50,14 @@ public class TmsTestFolderControllerTmsTest {
   private final long projectId = 1L;
   private final String projectKey = "test_project";
   private final Pageable pageable = PageRequest.of(0, 10);
+
   @Mock
   private TmsTestFolderService tmsTestFolderService;
   @Mock
   private ProjectExtractor projectExtractor;
   @InjectMocks
   private TmsTestFolderController tmsTestFolderController;
+
   private MockMvc mockMvc;
   private ReportPortalUser testUser;
 
@@ -229,7 +231,7 @@ public class TmsTestFolderControllerTmsTest {
   }
 
   @Test
-  public void testGetTestFolderByProjectId() throws Exception {
+  public void testGetFoldersByCriteria_WithoutTestPlanId() throws Exception {
     TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
         .id(1L)
         .name("name1")
@@ -243,7 +245,6 @@ public class TmsTestFolderControllerTmsTest {
         .countOfTestCases(3L)
         .build();
 
-
     Page<TmsTestFolderRS> expectedResponse = new Page<>(
         Arrays.asList(folder1, folder2),
         10L, // size
@@ -251,8 +252,9 @@ public class TmsTestFolderControllerTmsTest {
         2L   // totalElements
     );
 
-    given(tmsTestFolderService.getFoldersByProjectID(projectId, pageable)).willReturn(
-        expectedResponse);
+    // Test without testPlanId parameter
+    given(tmsTestFolderService.getFoldersByCriteria(projectId, null, pageable))
+        .willReturn(expectedResponse);
 
     mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey))
         .andExpect(status().isOk())
@@ -267,7 +269,42 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.page.totalElements").value(2));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).getFoldersByProjectID(projectId, pageable);
+    verify(tmsTestFolderService).getFoldersByCriteria(projectId, null, pageable);
+  }
+
+  @Test
+  public void testGetFoldersByCriteria_WithTestPlanId() throws Exception {
+    Long testPlanId = 123L;
+    TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
+        .id(1L)
+        .name("name1")
+        .description("doc1")
+        .countOfTestCases(1L)
+        .build();
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
+        Collections.singletonList(folder1),
+        10L, // size
+        0L,  // number
+        1L   // totalElements
+    );
+
+    // Test with testPlanId parameter
+    given(tmsTestFolderService.getFoldersByCriteria(projectId, testPlanId, pageable))
+        .willReturn(expectedResponse);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey)
+            .param("testPlanId", testPlanId.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(1))
+        .andExpect(jsonPath("$.content[0].name").value("name1"))
+        .andExpect(jsonPath("$.content[0].countOfTestCases").value(1))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getFoldersByCriteria(projectId, testPlanId, pageable);
   }
 
   @Test
@@ -285,7 +322,6 @@ public class TmsTestFolderControllerTmsTest {
         .description("subfolder doc2")
         .countOfTestCases(1L)
         .build();
-
 
     Page<TmsTestFolderRS> expectedResponse = new Page<>(
         Arrays.asList(subfolder1, subfolder2),

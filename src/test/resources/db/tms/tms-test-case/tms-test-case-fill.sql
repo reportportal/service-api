@@ -20,6 +20,22 @@ values (8, 'Search Folder', 'Folder for full-text search tests', 1);
 insert into tms_test_folder (id, "name", description, project_id)
 values (9, 'Test Folder 9', 'Description for test folder 9', 2);
 
+-- Test plans
+insert into tms_test_plan (id, "name", description, project_id)
+values (1, 'Test Plan 1', 'Description for test plan 1', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (2, 'Test Plan 2', 'Description for test plan 2', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (3, 'Test Plan 3', 'Description for test plan 3', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (4, 'Integration Test Plan', 'Test plan for integration tests', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (5, 'Regression Test Plan', 'Test plan for regression tests', 1);
+
 -- Test cases
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (4, 'Test Case 4', 'Description for test case 4', 4, 'HIGH');
@@ -117,6 +133,36 @@ values (33, 'Batch Test Case 33', 'Test case for batch patch with non existing f
 
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (34, 'Test Case With Version 34', 'Test case with default version 34', 6, 'HIGH');
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (1, 4), (1, 5), (1, 6); -- Test Plan 1 contains test cases 4, 5, 6
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (2, 7), (2, 8), (2, 9); -- Test Plan 2 contains test cases 7, 8, 9
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (3, 10), (3, 11), (3, 12); -- Test Plan 3 contains test cases 10, 11, 12
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (4, 13), (4, 14), (4, 15); -- Integration Test Plan contains test cases 13, 14, 15
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (5, 16), (5, 17), (5, 18); -- Regression Test Plan contains test cases 16, 17, 18
+
+-- Some test cases in multiple test plans
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (4, 4), (4, 5); -- Test cases 4, 5 also in Integration Test Plan
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (1, 13), (2, 15); -- Cross-plan assignments for testing
+
+-- Test cases for test plan filtering in folder 7
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (1, 14), (1, 15), (1, 16); -- Additional folder 7 test cases in Test Plan 1
+
+-- Test cases for folder 8 in different test plans
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (2, 19), (3, 20); -- Folder 8 test cases in different plans
 
 -- Attributes
 insert into tms_attribute (id, "key")
@@ -548,6 +594,7 @@ values (18, 32, 'Verify final results', 'Final results should be correct');
 -- Set sequences to continue from highest ID
 SELECT setval('tms_test_folder_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));
 SELECT setval('tms_test_case_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case));
+SELECT setval('tms_test_plan_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_plan));
 SELECT setval('tms_attribute_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_attribute));
 SELECT setval('tms_test_case_version_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_version));
 SELECT setval('tms_manual_scenario_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario));

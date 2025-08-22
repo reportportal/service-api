@@ -55,6 +55,7 @@ class TmsTestFolderServiceImplTest {
 
   private final long projectId = 1L;
   private final long testFolderId = 2L;
+  private final Long testPlanId = 100L;
   private final Pageable pageable = PageRequest.of(0, 10);
   // Additional fields for hierarchy tests
   private final Long rootFolderId = 10L;
@@ -458,7 +459,7 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testGetFoldersByProjectID() {
+  void testGetFoldersByCriteriaWithNullTestPlanId() {
     // Arrange
     TmsTestFolderWithCountOfTestCases folder1 = new TmsTestFolderWithCountOfTestCases(testFolder,
         2L);
@@ -495,20 +496,76 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(folderRSPage);
 
     // Act
-    Page<TmsTestFolderRS> result = sut.getFoldersByProjectID(projectId, pageable);
+    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, null, pageable);
 
     // Assert
     assertNotNull(result);
     assertEquals(2, result.getContent().size());
 
     verify(tmsTestFolderRepository).findAllByProjectIdWithCountOfTestCases(projectId, pageable);
+    verify(tmsTestFolderRepository, never()).findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
+        eq(projectId), any(), eq(pageable));
     verify(tmsTestFolderRepository).findByIdsWithSubFolders(folderIds);
     verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L));
     verify(tmsTestFolderMapper).convert(folderPage, subFolderTestCaseCounts);
   }
 
   @Test
-  void testGetFoldersByProjectIDEmptyPage() {
+  void testGetFoldersByCriteriaWithTestPlanId() {
+    // Arrange
+    TmsTestFolderWithCountOfTestCases folder1 = new TmsTestFolderWithCountOfTestCases(testFolder,
+        2L);
+    TmsTestFolderWithCountOfTestCases folder2 = new TmsTestFolderWithCountOfTestCases(
+        parentTestFolder, 1L);
+
+    org.springframework.data.domain.Page<TmsTestFolderWithCountOfTestCases> folderPage =
+        new PageImpl<>(Arrays.asList(folder1, folder2), pageable, 2);
+
+    Page<TmsTestFolderRS> folderRSPage = new Page<>(
+        Arrays.asList(testFolderRS, testFolderRS),
+        10L, 0L, 2L
+    );
+
+    List<Long> folderIds = Arrays.asList(testFolderId, 3L);
+    List<TmsTestFolder> foldersWithSubFolders = Arrays.asList(testFolder, parentTestFolder);
+
+    Map<Long, Long> subFolderTestCaseCounts = new HashMap<>();
+    subFolderTestCaseCounts.put(4L, 2L);
+    subFolderTestCaseCounts.put(5L, 1L);
+
+    List<TmsTestFolderIdWithCountOfTestCases> testCaseCountResults = Arrays.asList(
+        new TmsTestFolderIdWithCountOfTestCases(4L, 2L),
+        new TmsTestFolderIdWithCountOfTestCases(5L, 1L)
+    );
+
+    when(tmsTestFolderRepository.findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
+        projectId, testPlanId, pageable))
+        .thenReturn(folderPage);
+    when(tmsTestFolderRepository.findByIdsWithSubFolders(folderIds))
+        .thenReturn(foldersWithSubFolders);
+    when(tmsTestFolderRepository.findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L)))
+        .thenReturn(testCaseCountResults);
+    when(tmsTestFolderMapper.convert(folderPage, subFolderTestCaseCounts))
+        .thenReturn(folderRSPage);
+
+    // Act
+    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, testPlanId, pageable);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(2, result.getContent().size());
+
+    verify(tmsTestFolderRepository).findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
+        projectId, testPlanId, pageable);
+    verify(tmsTestFolderRepository, never()).findAllByProjectIdWithCountOfTestCases(
+        eq(projectId), eq(pageable));
+    verify(tmsTestFolderRepository).findByIdsWithSubFolders(folderIds);
+    verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L));
+    verify(tmsTestFolderMapper).convert(folderPage, subFolderTestCaseCounts);
+  }
+
+  @Test
+  void testGetFoldersByCriteriaEmptyPage() {
     // Arrange
     org.springframework.data.domain.Page<TmsTestFolderWithCountOfTestCases> emptyPage =
         new PageImpl<>(Collections.emptyList(), pageable, 0);
@@ -523,7 +580,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(emptyRSPage);
 
     // Act
-    Page<TmsTestFolderRS> result = sut.getFoldersByProjectID(projectId, pageable);
+    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, null, pageable);
 
     // Assert
     assertNotNull(result);

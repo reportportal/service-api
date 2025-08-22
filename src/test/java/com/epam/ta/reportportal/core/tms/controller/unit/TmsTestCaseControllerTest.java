@@ -131,23 +131,25 @@ public class TmsTestCaseControllerTest {
     // Given
     var search = "test search";
     var testFolderId = 5L;
+    var testPlanId = 3L;
     var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
     var page = new Page<>(testCases, 10, 0, 2, 1);
 
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), testPlanId, any(Pageable.class))).willReturn(page);
+        eq(testFolderId), eq(testPlanId), any(Pageable.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("search", search)
                 .param("testFolderId", Long.toString(testFolderId))
+                .param("testPlanId", Long.toString(testPlanId))
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), testPlanId, any(Pageable.class));
+        eq(testFolderId), eq(testPlanId), any(Pageable.class));
   }
 
   @Test
@@ -157,7 +159,7 @@ public class TmsTestCaseControllerTest {
     var page = new Page<>(emptyTestCases, 10, 0, 0, 0);
 
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), testPlanId, any(Pageable.class))).willReturn(page);
+        isNull(), isNull(), any(Pageable.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
@@ -167,7 +169,123 @@ public class TmsTestCaseControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), testPlanId, any(Pageable.class));
+        isNull(), isNull(), any(Pageable.class));
+  }
+
+  @Test
+  void getTestCasesByCriteriaWithSearchOnlyTest() throws Exception {
+    // Given
+    var search = "search query";
+    var testCases = List.of(new TmsTestCaseRS());
+    var page = new Page<>(testCases, 10, 0, 1, 1);
+
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
+        isNull(), isNull(), any(Pageable.class))).willReturn(page);
+
+    // When/Then
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-case", projectKey)
+                .param("search", search)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
+        isNull(), isNull(), any(Pageable.class));
+  }
+
+  @Test
+  void getTestCasesByCriteriaWithTestFolderIdOnlyTest() throws Exception {
+    // Given
+    var testFolderId = 10L;
+    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
+    var page = new Page<>(testCases, 10, 0, 2, 1);
+
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
+        eq(testFolderId), isNull(), any(Pageable.class))).willReturn(page);
+
+    // When/Then
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-case", projectKey)
+                .param("testFolderId", Long.toString(testFolderId))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
+        eq(testFolderId), isNull(), any(Pageable.class));
+  }
+
+  @Test
+  void getTestCasesByCriteriaWithTestPlanIdOnlyTest() throws Exception {
+    // Given
+    var testPlanId = 7L;
+    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS());
+    var page = new Page<>(testCases, 10, 0, 3, 1);
+
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
+        isNull(), eq(testPlanId), any(Pageable.class))).willReturn(page);
+
+    // When/Then
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-case", projectKey)
+                .param("testPlanId", Long.toString(testPlanId))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
+        isNull(), eq(testPlanId), any(Pageable.class));
+  }
+
+  @Test
+  void getTestCasesByCriteriaWithTestFolderAndTestPlanIdsTest() throws Exception {
+    // Given
+    var testFolderId = 15L;
+    var testPlanId = 12L;
+    var testCases = List.of(new TmsTestCaseRS());
+    var page = new Page<>(testCases, 10, 0, 1, 1);
+
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
+        eq(testFolderId), eq(testPlanId), any(Pageable.class))).willReturn(page);
+
+    // When/Then
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-case", projectKey)
+                .param("testFolderId", Long.toString(testFolderId))
+                .param("testPlanId", Long.toString(testPlanId))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
+        eq(testFolderId), eq(testPlanId), any(Pageable.class));
+  }
+
+  @Test
+  void getTestCasesByCriteriaWithAllParametersTest() throws Exception {
+    // Given
+    var search = "comprehensive search";
+    var testFolderId = 20L;
+    var testPlanId = 25L;
+    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
+    var page = new Page<>(testCases, 10, 0, 2, 1);
+
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
+        eq(testFolderId), eq(testPlanId), any(Pageable.class))).willReturn(page);
+
+    // When/Then
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-case", projectKey)
+                .param("search", search)
+                .param("testFolderId", Long.toString(testFolderId))
+                .param("testPlanId", Long.toString(testPlanId))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
+        eq(testFolderId), eq(testPlanId), any(Pageable.class));
   }
 
   @Test

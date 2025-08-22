@@ -100,7 +100,7 @@ class TmsTestPlanAttributeServiceImplTest {
 
     assertDoesNotThrow(() -> sut.updateTestPlanAttributes(existingTestPlan, attributes));
 
-    verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(existingTestPlan.getId());
+    verify(tmsTestPlanAttributeRepository).deleteAllByTestPlanId(existingTestPlan.getId());
     verifyNoInteractions(tmsAttributeService, tmsTestPlanAttributeMapper);
   }
 
@@ -111,7 +111,7 @@ class TmsTestPlanAttributeServiceImplTest {
 
     assertDoesNotThrow(() -> sut.updateTestPlanAttributes(existingTestPlan, null));
 
-    verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(existingTestPlan.getId());
+    verify(tmsTestPlanAttributeRepository).deleteAllByTestPlanId(existingTestPlan.getId());
     verifyNoInteractions(tmsAttributeService, tmsTestPlanAttributeMapper);
   }
 
@@ -126,7 +126,7 @@ class TmsTestPlanAttributeServiceImplTest {
 
     assertDoesNotThrow(() -> sut.updateTestPlanAttributes(existingTestPlan, attributesRQ));
 
-    verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(existingTestPlan.getId());
+    verify(tmsTestPlanAttributeRepository).deleteAllByTestPlanId(existingTestPlan.getId());
     assertEquals(testPlanAttributes, existingTestPlan.getAttributes());
     testPlanAttributes.forEach(attribute -> assertEquals(existingTestPlan, attribute.getTestPlan()));
 
@@ -190,7 +190,7 @@ class TmsTestPlanAttributeServiceImplTest {
 
     assertDoesNotThrow(() -> sut.deleteAllByTestPlanId(testPlanId));
 
-    verify(tmsTestPlanAttributeRepository).deleteAllById_TestPlanId(testPlanId);
+    verify(tmsTestPlanAttributeRepository).deleteAllByTestPlanId(testPlanId);
   }
 
   // Helper methods

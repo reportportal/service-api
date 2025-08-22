@@ -4,7 +4,6 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -45,28 +44,35 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   Boolean existsByTestFolder_Project_IdAndId(@Param("projectId") Long projectId, @Param("id") Long id);
 
   /**
-   * Finds test case ids by project with optional search and folder filtering, supporting pagination.
+   * Finds test case ids by project with optional search and folder filtering, supporting
+   * pagination.
    *
    * @param projectId    The project ID
    * @param search       Optional search term for full-text search in name and description
    * @param testFolderId Optional test folder ID to filter by specific folder
+   * @param testPlanId   Optional test plan ID to filter by specific test plan
    * @param pageable     Pagination parameters
    * @return Page of test case ids matching the criteria
    */
   @Query(value = "SELECT tc.id FROM tms_test_case tc "
       + "JOIN tms_test_folder tf ON tf.id = tc.test_folder_id "
+      + "LEFT JOIN tms_test_plan_test_case tptc ON tptc.test_case_id = tc.id "
       + "WHERE tf.project_id = :projectId "
       + "AND (:testFolderId IS NULL OR tf.id = :testFolderId) "
-      + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search))",
+      + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search)) "
+      + "AND (:testPlanId IS NULL OR tptc.test_plan_id = :testPlanId)",
       countQuery = "SELECT COUNT(tc.id) FROM tms_test_case tc "
           + "JOIN tms_test_folder tf ON tf.id = tc.test_folder_id "
+          + "LEFT JOIN tms_test_plan_test_case tptc ON tptc.test_case_id = tc.id "
           + "WHERE tf.project_id = :projectId "
           + "AND (:testFolderId IS NULL OR tf.id = :testFolderId) "
-          + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search))",
+          + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search)) "
+          + "AND (:testPlanId IS NULL OR tptc.test_plan_id = :testPlanId)",
       nativeQuery = true)
   Page<Long> findIdsByCriteria(@Param("projectId") Long projectId,
       @Param("search") String search,
       @Param("testFolderId") Long testFolderId,
+      @Param("testPlanId") Long testPlanId,
       Pageable pageable);
 
   /**

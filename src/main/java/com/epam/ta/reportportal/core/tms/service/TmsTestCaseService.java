@@ -26,7 +26,8 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
   void exportToFile(Long projectId, List<Long> ids, String format, boolean includeAttachments,
       HttpServletResponse response);
 
-  Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search, Long testFolderId, Pageable pageable);
+  Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search, Long testFolderId,
+      Long testPlanId, Pageable pageable);
 
   /**
    * Deletes specific tags from a test case.

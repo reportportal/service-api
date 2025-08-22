@@ -100,6 +100,7 @@ public class TestCaseController {
       @PathVariable("projectKey") String projectKey,
       @RequestParam(value = "search", required = false) String search,
       @RequestParam(value = "testFolderId", required = false) Long testFolderId,
+      @RequestParam(value = "testPlanId", required = false) Long testPlanId,
       //TODO add filter, sort
 //      @SortFor(TmsTestCase.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -109,6 +110,7 @@ public class TestCaseController {
             .getProjectId(),
         search,
         testFolderId,
+        testPlanId,
         Pageable.unpaged()); //TODO fix once added filter and sort
   }
 

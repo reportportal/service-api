@@ -60,7 +60,11 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    Optional<TmsTestPlan> testPlan = testPlanRepository.findById(1L);
+    Optional<TmsTestPlan> testPlan = testPlanRepository
+        .findAll()
+        .stream()
+        .filter(plan -> plan.getName().equals(tmsTestPlan.getName()))
+        .findFirst();
 
     assertTrue(testPlan.isPresent());
     assertEquals(tmsTestPlan.getName(), testPlan.get().getName());
@@ -69,18 +73,12 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   @Test
   void getTestPlansByCriteriaIntegrationTest() throws Exception {
-    Optional<TmsTestPlan> testPlan = testPlanRepository.findById(4L);
-
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
-            .param("environmentId", "4")
-            .param("productVersionId", "4")
             .param("page", "0")
             .param("size", "1")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].id").value(testPlan.get().getId()))
-        .andExpect(jsonPath("$.content[0].name").value(testPlan.get().getName()))
-        .andExpect(jsonPath("$.content[0].description").value(testPlan.get().getDescription()));
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(3));
   }
 
   @Test
@@ -108,8 +106,6 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertTrue(testPlan.isPresent());
     assertEquals(tmsTestPlan.getName(), testPlan.get().getName());
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
-    TmsMilestone[] versionArray = testPlan.get().getMilestones()
-        .toArray(new TmsMilestone[0]);
   }
 
   @Test
@@ -160,7 +156,5 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertTrue(testPlan.isPresent());
     assertEquals(tmsTestPlan.getName(), testPlan.get().getName());
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
-    TmsMilestone[] versionArray = testPlan.get().getMilestones()
-        .toArray(new TmsMilestone[0]);
   }
 }

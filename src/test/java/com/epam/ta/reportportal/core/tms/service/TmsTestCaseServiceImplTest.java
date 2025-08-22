@@ -94,12 +94,14 @@ class TmsTestCaseServiceImplTest {
   private long projectId;
   private Long testCaseId;
   private Long testFolderId;
+  private Long testPlanId;
 
   @BeforeEach
   void setUp() {
     projectId = 1L;
     testCaseId = 2L;
     testFolderId = 4L;
+    testPlanId = 5L;
 
     attributes = new ArrayList<>();
     var attribute = new TmsAttributeRQ();
@@ -890,6 +892,35 @@ class TmsTestCaseServiceImplTest {
   void getTestCasesByCriteria_WithNullParameters_ShouldReturnPagedResults() {
     // Given
     var pageable = PageRequest.of(0, 20);
+    var testCaseIds = List.of(testCaseId);
+    var testCaseIdsPage = new PageImpl<>(testCaseIds, pageable, 1);
+    var testCases = List.of(testCase);
+    var defaultVersions = Map.of(testCaseId, testCaseVersion);
+    var convertedPage = new PageImpl<>(List.of(testCaseRS), pageable, 1);
+
+    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, null, pageable))
+        .thenReturn(testCaseIdsPage);
+    when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(defaultVersions);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
+    when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable)).thenReturn(convertedPage);
+
+    // When
+    var result = sut.getTestCasesByCriteria(projectId, null, null, null, pageable);
+
+    // Then
+    assertNotNull(result);
+    assertNotNull(result.getContent());
+    assertEquals(1, result.getContent().size());
+    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, null, pageable);
+    verify(tmsTestCaseVersionService).getDefaultVersions(testCaseIds);
+    verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable);
+  }
+
+  @Test
+  void getTestCasesByCriteria_WithTestPlanIdOnly_ShouldReturnFilteredResults() {
+    // Given
+    var pageable = PageRequest.of(0, 10);
     var testCaseIds = List.of(testCaseId);
     var testCaseIdsPage = new PageImpl<>(testCaseIds, pageable, 1);
     var testCases = List.of(testCase);

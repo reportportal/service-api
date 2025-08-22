@@ -57,3 +57,5 @@ values (6, 'value6');
 
 insert into tms_test_plan (id, "name", description, project_id, environment_id, product_version_id)
 values (6, 'name6', 'description6', 1, 6, 6);
+
+SELECT setval('tms_test_plan_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_plan));

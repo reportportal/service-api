@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,9 +226,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search,
-      Long testFolderId, Pageable pageable) {
+      Long testFolderId, Long testPlanId, Pageable pageable) {
     var testCaseIds = tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId,
-        pageable);
+        testPlanId, pageable);
     if (testCaseIds.hasContent()) {
       var testCaseDefaultVersions = tmsTestCaseVersionService.getDefaultVersions(
           testCaseIds.getContent());

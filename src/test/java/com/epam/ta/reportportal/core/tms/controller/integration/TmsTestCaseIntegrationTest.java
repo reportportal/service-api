@@ -1720,4 +1720,118 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void getTestCasesByTestPlanIdCriteriaIntegrationTest() throws Exception {
+    // When/Then - Filter by test plan
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "1")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(7)); // 7 test cases in test plan 1 (4,5,6,13,14,15,16)
+  }
+
+  @Test
+  void getTestCasesByTestPlanIdAndFolderIdCriteriaIntegrationTest() throws Exception {
+    // When/Then - Filter by test plan and folder
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "1")
+            .param("testFolderId", "7")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(4)); // 4 test cases in test plan 1 and folder 7 (13,14,15,16)
+  }
+
+  @Test
+  void getTestCasesByTestPlanIdAndSearchCriteriaIntegrationTest() throws Exception {
+    // When/Then - Filter by test plan and search
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "1")
+            .param("search", "Test Case 5")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1)); // 1 test case with "Test Case 5" in name in test plan 1
+  }
+
+  @Test
+  void getTestCasesByAllThreeCriteriaIntegrationTest() throws Exception {
+    // When/Then - Filter by test plan, folder, and search
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "1")
+            .param("testFolderId", "7")
+            .param("search", "Login")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1)); // 1 test case matching all criteria (15)
+  }
+
+  @Test
+  void getTestCasesByNonExistentTestPlanIdIntegrationTest() throws Exception {
+    // When/Then - Filter by non-existent test plan
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "999")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0)); // 0 test cases for non-existent test plan
+  }
+
+  @Test
+  void getTestCasesByTestPlanId2CriteriaIntegrationTest() throws Exception {
+    // When/Then - Filter by test plan 2
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "2")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(5)); // 5 test cases in test plan 2 (7,8,9,15,19)
+  }
+
+  @Test
+  void getTestCasesByTestPlanId3CriteriaIntegrationTest() throws Exception {
+    // When/Then - Filter by test plan 3
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "3")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(4)); // 4 test cases in test plan 3 (10,11,12,20)
+  }
+
+  @Test
+  void getTestCasesByTestPlanIdWithComplexSearchIntegrationTest() throws Exception {
+    // When/Then - Complex search with test plan filter
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "4")
+            .param("testFolderId", "7")
+            .param("search", "Test")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray());
+  }
+
+  @Test
+  void getTestCasesByDifferentTestPlanAndFolderCombinationsIntegrationTest() throws Exception {
+    // Test Plan 2 + Folder 8 should return test case 19
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "2")
+            .param("testFolderId", "8")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1)); // test case 19
+
+    // Test Plan 3 + Folder 8 should return test case 20
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("testPlanId", "3")
+            .param("testFolderId", "8")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1)); // test case 20
+  }
 }

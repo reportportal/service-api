@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -216,16 +217,17 @@ public class TmsTestFolderController {
       ),
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
-  public Page<TmsTestFolderRS> getTestFolderByProject(
+  public Page<TmsTestFolderRS> getFoldersByCriteria(
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
+      @RequestParam(name = "testPlanId", required = false) Long testPlanId,
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Pagination parameters")
       Pageable pageable) {
-    return tmsTestFolderService.getFoldersByProjectID(
+    return tmsTestFolderService.getFoldersByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(), pageable);
+            .getProjectId(), testPlanId, pageable);
   }
 
   /**

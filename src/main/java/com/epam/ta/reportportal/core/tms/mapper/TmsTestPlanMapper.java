@@ -27,7 +27,6 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "milestones", ignore = true)
-  @Mapping(target = "testFolders", ignore = true)
   @Mapping(target = "testCases", ignore = true)
   public abstract void update(@MappingTarget TmsTestPlan targetTestPlan, TmsTestPlan tmsTestPlan);
 
@@ -35,7 +34,6 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "milestones", ignore = true)
-  @Mapping(target = "testFolders", ignore = true)
   @Mapping(target = "testCases", ignore = true)
   public abstract void patch(@MappingTarget TmsTestPlan existingTestPlan,
       TmsTestPlan tmsTestPlan);

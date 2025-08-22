@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTestFolderRS, Long> {
 
-  Page<TmsTestFolderRS> getFoldersByProjectID(long projectId, Pageable pageable);
+  Page<TmsTestFolderRS> getFoldersByCriteria(long projectId, Long testPlanId, Pageable pageable);
 
   Page<TmsTestFolderRS> getSubFolders(long projectId, Long folderId, Pageable pageable);
 

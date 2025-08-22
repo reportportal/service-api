@@ -1,9 +1,7 @@
 package com.epam.ta.reportportal.core.tms.controller.integration;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,6 +16,7 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
@@ -27,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
-@Sql("/db/tms/tms-product-version/tms-test-folder-fill.sql")
+@Sql("/db/tms/tms-test-folder/tms-test-folder-fill.sql")
 @ExtendWith(MockitoExtension.class)
 class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
@@ -49,7 +48,9 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(request.getName()))
+        .andExpect(jsonPath("$.description").value(request.getDescription()));
 
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(1L);
     assertTrue(folder.isPresent());
@@ -59,10 +60,30 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void createTestFolderWithParentIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder description")
+        .name("Child folder")
+        .parentTestFolder(ParentTmsTestFolderRQ.builder().id(3L).build())
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(request.getName()))
+        .andExpect(jsonPath("$.description").value(request.getDescription()))
+        .andExpect(jsonPath("$.parentFolderId").value(3L));
+  }
+
+  @Test
   void updateTestFolderIntegrationTest() throws Exception {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
-        .description("description_create")
-        .name("name_create")
+        .description("description_updated")
+        .name("name_updated")
         .build();
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
@@ -107,6 +128,21 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void patchTestFolderNotFoundIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .name("patched_name")
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/999")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
   void getTestFolderByIdIntegrationTest() throws Exception {
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(4L);
     assertTrue(folder.isPresent());
@@ -122,7 +158,14 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void testGetTestFolderByProjectId() throws Exception {
+  void getTestFolderByIdNotFoundIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/999")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void getFoldersByCriteriaWithoutTestPlanIdIntegrationTest() throws Exception {
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(5L);
     assertTrue(folder.isPresent());
 
@@ -138,6 +181,34 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void getFoldersByCriteriaWithTestPlanIdIntegrationTest() throws Exception {
+    // Assuming test plan 4 has some test cases linked to folders
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("testPlanId", "4")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray());
+  }
+
+  @Test
+  void getFoldersByCriteriaWithNonExistentTestPlanIdIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("testPlanId", "999")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
+  void getFoldersByCriteriaWithInvalidTestPlanIdIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("testPlanId", "invalid")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void testGetSubfolders() throws Exception {
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3/sub-folder")
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -149,17 +220,33 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void getSubfoldersForNonExistentFolderIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/999/sub-folder")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
   void testDeleteTestFolder() throws Exception {
     Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(5L);
     assertTrue(folder.isPresent());
 
-    mockMvc
-        .perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/5")
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/5")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     boolean exists = tmsTestFolderRepository.existsById(5L);
     assertFalse(exists);
+  }
+
+  @Test
+  void deleteNonExistentTestFolderIntegrationTest() throws Exception {
+    mockMvc
+        .perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/999")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk()); // Delete is idempotent in this implementation
   }
 
   @Test
@@ -229,6 +316,6 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
                 nonExistentFolderId, fileType)
                 .with(token(oAuthHelper.getSuperadminToken())))
-            .andExpect(status().isNotFound());
+        .andExpect(status().isNotFound());
   }
 }

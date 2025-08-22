@@ -50,6 +50,32 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
   );
 
   /**
+   * Finds all test folders for a given project with their test case counts.
+   *
+   * <p>This method returns a paginated list of test folders along with the count of test cases
+   * contained in each folder. The count includes only direct test cases, not those in subfolders.
+   * </p>
+   *
+   * @param projectId the ID of the project to search folders in
+   * @param pageable  pagination information
+   * @return a page of test folders with their test case counts
+   */
+  @Query(
+      "SELECT new com.epam.ta.reportportal.core.tms.db.entity." +
+          "TmsTestFolderWithCountOfTestCases(tf, COUNT(DISTINCT tc.id)) " +
+          "FROM TmsTestFolder tf " +
+          "JOIN tf.testCases tc " +
+          "JOIN tc.testPlans tp " +
+          "WHERE tf.project.id = :projectId AND tp.id = :testPlanId " +
+          "GROUP BY tf.id"
+  )
+  Page<TmsTestFolderWithCountOfTestCases> findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
+      @Param("projectId") long projectId,
+      @Param("testPlanId") Long testPlanId,
+      Pageable pageable
+  );
+
+  /**
    * Finds test folders by their IDs and eagerly fetches their subfolders.
    *
    * <p>This method is useful when you need to work with folder hierarchies and want to avoid

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -204,16 +205,22 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * <p>This method returns a paginated list of folders, each with information about the number of
    * subfolders it contains.
    *
-   * @param projectId The ID of the project
-   * @param pageable  Pagination parameters
+   * @param projectId  The ID of the project
+   * @param testPlanId The ID of the test plan
+   * @param pageable   Pagination parameters
    * @return A paginated list of response DTOs containing folder information
    */
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestFolderRS> getFoldersByProjectID(
-      final long projectId, Pageable pageable) {
-    var page = tmsTestFolderRepository
-        .findAllByProjectIdWithCountOfTestCases(projectId, pageable);
+  public Page<TmsTestFolderRS> getFoldersByCriteria(
+      final long projectId,
+      Long testPlanId,
+      Pageable pageable) {
+    var page = Objects.isNull(testPlanId) ?
+        tmsTestFolderRepository
+            .findAllByProjectIdWithCountOfTestCases(projectId, pageable) :
+        tmsTestFolderRepository //TODO refactor that when proper filtering will be implemented
+            .findAllByProjectIdAndTestPlanIdWithCountOfTestCases(projectId, testPlanId, pageable);
     return getTmsTestFoldersWithSubfoldersAndTmsTestCount(projectId, page);
   }
 

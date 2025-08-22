@@ -48,3 +48,34 @@ VALUES (17, 1, 'Second level subfolder 3', 'Export Sub-Sub 3', 14);
 
 INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
 VALUES (18, 1, 'Third level subfolder', 'Export Sub-Sub-Sub', 15);
+
+INSERT INTO tms_test_folder (id, "name", description, project_id, parent_id)
+VALUES (19, 'Root Test Folder', 'Root test folder description', 1, NULL),
+       (20, 'Sub Test Folder 1', 'Sub test folder 1 description', 1, 19),
+       (21, 'Sub Test Folder 2', 'Sub test folder 2 description', 1, 19);
+
+-- Insert test attributes
+INSERT INTO tms_attribute (id, "key")
+VALUES (10, 'test_key_10'),
+       (11, 'test_key_11'),
+       (12, 'test_key_12');
+
+-- Insert test plans
+INSERT INTO tms_test_plan (id, "name", description, project_id, environment_id, product_version_id)
+VALUES (4, 'Test Plan 4', 'Test plan 4 description', 1, null, null),
+       (5, 'Test Plan 5', 'Test plan 5 description', 1, null, null),
+       (6, 'Test Plan 6', 'Test plan 6 description', 1, null, null);
+
+-- Insert test cases for folders
+INSERT INTO tms_test_case (id, "name", description,test_folder_id)
+VALUES (100, 'Test Case 100', 'Test case 100 description',  19),
+       (101, 'Test Case 101', 'Test case 101 description',  20),
+       (102, 'Test Case 102', 'Test case 102 description',  20),
+       (103, 'Test Case 103', 'Test case 103 description',  21);
+
+-- Link test cases to test plans
+INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id)
+VALUES (4, 100),
+       (4, 101),
+       (5, 102),
+       (6, 103);

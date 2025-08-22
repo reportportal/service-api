@@ -104,7 +104,7 @@ class TmsTestPlanServiceImplTest {
     assertDoesNotThrow(() -> sut.delete(projectId, testPlanId));
 
     verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(testPlanId);
-    verify(testPlanRepository).deleteByIdAndProject_Id(testPlanId, projectId);
+    verify(testPlanRepository).deleteByIdAndProjectId(testPlanId, projectId);
   }
 
   @Test

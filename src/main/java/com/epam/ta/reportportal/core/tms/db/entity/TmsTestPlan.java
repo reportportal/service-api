@@ -66,14 +66,6 @@ public class TmsTestPlan {
 
   @ManyToMany
   @JoinTable(
-      name = "tms_test_plan_test_folder",
-      joinColumns = @JoinColumn(name = "test_plan_id"),
-      inverseJoinColumns = @JoinColumn(name = "test_folder_id"))
-  @ToString.Exclude
-  private Set<TmsTestFolder> testFolders;
-
-  @ManyToMany
-  @JoinTable(
       name = "tms_test_plan_test_case",
       joinColumns = @JoinColumn(name = "test_plan_id"),
       inverseJoinColumns = @JoinColumn(name = "test_case_id"))

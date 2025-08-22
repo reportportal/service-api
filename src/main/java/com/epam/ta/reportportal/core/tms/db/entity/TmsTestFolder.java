@@ -53,10 +53,6 @@ public class TmsTestFolder implements Serializable {
   @OneToMany(mappedBy = "parentTestFolder")
   private List<TmsTestFolder> subFolders;
 
-  @ManyToMany(mappedBy = "testFolders")
-  @ToString.Exclude
-  private Set<TmsTestPlan> testPlans;
-
   @ManyToMany
   @JoinTable(
       name = "tms_test_folder_test_item",

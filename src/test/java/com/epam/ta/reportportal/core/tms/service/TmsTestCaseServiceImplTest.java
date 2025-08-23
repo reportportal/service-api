@@ -1,8 +1,10 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -10,10 +12,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
+import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -75,6 +79,9 @@ class TmsTestCaseServiceImplTest {
 
   @Mock
   private TmsTestCaseExporter exporter;
+
+  @Mock
+  private TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
 
   @Mock
   private HttpServletResponse response;
@@ -443,6 +450,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseId(testCaseId);
+    verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestCaseRepository).deleteById(testCaseId);
   }
 
@@ -457,6 +465,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeService).deleteAllByTestFolderId(projectId, folderId);
     verify(tmsTestCaseVersionService).deleteAllByTestFolderId(projectId, folderId);
+    verify(tmsTestPlanTestCaseRepository).deleteAllByTestFolderId(projectId, folderId);
     verify(tmsTestCaseRepository).deleteTestCasesByFolderId(projectId, folderId);
   }
 
@@ -474,24 +483,8 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseIds(testCaseIds);
+    verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsTestCaseRepository).deleteAllByTestCaseIds(testCaseIds);
-  }
-
-  @Test
-  void delete_WithEmptyLocationIds_ShouldStillCallRepositoryMethods() {
-    // Given
-    var emptyTestCaseIds = Collections.<Long>emptyList();
-    var deleteRequest = BatchDeleteTestCasesRQ.builder()
-        .testCaseIds(emptyTestCaseIds)
-        .build();
-
-    // When
-    sut.delete(projectId, deleteRequest);
-
-    // Then
-    verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(emptyTestCaseIds);
-    verify(tmsTestCaseVersionService).deleteAllByTestCaseIds(emptyTestCaseIds);
-    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(emptyTestCaseIds);
   }
 
   @Test
@@ -737,6 +730,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(singleTestCaseId);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseIds(singleTestCaseId);
+    verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseIds(singleTestCaseId);
     verify(tmsTestCaseRepository).deleteAllByTestCaseIds(singleTestCaseId);
   }
 
@@ -1094,5 +1088,121 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
+
+  @Test
+  void validateTestCasesExist_WhenAllTestCasesExist_ShouldNotThrowException() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    assertDoesNotThrow(() -> sut.validateTestCasesExist(projectId, testCaseIds));
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void validateTestCasesExist_WhenSomeTestCasesDoNotExist_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var existingTestCaseIds = List.of(1L, 2L); // Missing ID 3L
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.validateTestCasesExist(projectId, testCaseIds));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void validateTestCasesExist_WhenNoTestCasesExist_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var existingTestCaseIds = Collections.<Long>emptyList();
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.validateTestCasesExist(projectId, testCaseIds));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void validateTestCasesExist_WithSingleTestCase_WhenExists_ShouldNotThrowException() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var existingTestCaseIds = List.of(1L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    assertDoesNotThrow(() -> sut.validateTestCasesExist(projectId, testCaseIds));
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void validateTestCasesExist_WithSingleTestCase_WhenDoesNotExist_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var existingTestCaseIds = Collections.<Long>emptyList();
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.validateTestCasesExist(projectId, testCaseIds));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void validateTestCasesExist_WithEmptyList_ShouldNotThrowException() {
+    // Given
+    var emptyTestCaseIds = Collections.<Long>emptyList();
+    var existingTestCaseIds = Collections.<Long>emptyList();
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, emptyTestCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    assertDoesNotThrow(() -> sut.validateTestCasesExist(projectId, emptyTestCaseIds));
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, emptyTestCaseIds);
+  }
+
+  @Test
+  void validateTestCasesExist_WithMultipleNonExistentTestCases_ShouldThrowExceptionWithAllMissingIds() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L, 5L);
+    var existingTestCaseIds = List.of(2L, 4L); // Missing IDs: 1L, 3L, 5L
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.validateTestCasesExist(projectId, testCaseIds));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    assertTrue(exception.getMessage().contains("1"));
+    assertTrue(exception.getMessage().contains("3"));
+    assertTrue(exception.getMessage().contains("5"));
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
   }
 }

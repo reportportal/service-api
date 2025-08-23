@@ -11,13 +11,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsMilestone;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -35,8 +38,7 @@ import org.springframework.test.context.jdbc.Sql;
 public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
-
-
+  private final ObjectMapper objectMapper = new ObjectMapper();
   @Autowired
   private TmsTestPlanRepository testPlanRepository;
 
@@ -51,8 +53,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     tmsTestPlan.setDescription("description3");
     tmsTestPlan.setTags(List.of(attribute));
 
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(tmsTestPlan);
+    String jsonContent = objectMapper.writeValueAsString(tmsTestPlan);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
             .contentType("application/json")
@@ -92,8 +93,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     tmsTestPlan.setDescription("updated_name5");
     tmsTestPlan.setTags(List.of(attribute));
 
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(tmsTestPlan);
+    String jsonContent = objectMapper.writeValueAsString(tmsTestPlan);
 
     mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
             .contentType("application/json")
@@ -142,8 +142,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     tmsTestPlan.setDescription("updated_name5");
     tmsTestPlan.setTags(List.of(attributQ));
 
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(tmsTestPlan);
+    String jsonContent = objectMapper.writeValueAsString(tmsTestPlan);
 
     mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5")
             .contentType("application/json")
@@ -156,5 +155,150 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
     assertTrue(testPlan.isPresent());
     assertEquals(tmsTestPlan.getName(), testPlan.get().getName());
     assertEquals(tmsTestPlan.getDescription(), testPlan.get().getDescription());
+  }
+
+  @Test
+  void addTestCasesToPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(7L, 8L, 9L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc
+        .perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void addSingleTestCaseToPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(10L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void addEmptyTestCaseListToPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Collections.emptyList();
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void removeTestCasesFromPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(11L, 12L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void removeSingleTestCaseFromPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(13L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void removeEmptyTestCaseListFromPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Collections.emptyList();
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void addMultipleTestCasesToPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(14L, 15L, 16L, 17L, 18L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/6/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void removeMultipleTestCasesFromPlanIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(19L, 20L, 21L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/6/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
   }
 }

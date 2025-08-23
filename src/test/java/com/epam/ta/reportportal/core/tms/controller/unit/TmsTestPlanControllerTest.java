@@ -16,10 +16,13 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.TmsTestPlanController;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,10 +58,12 @@ public class TmsTestPlanControllerTest {
   private TmsTestPlanController testPlanController;
   private MockMvc mockMvc;
   private ReportPortalUser testUser;
+  private ObjectMapper objectMapper;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
+    objectMapper = new ObjectMapper();
 
     // Create a test user
     testUser = ReportPortalUser.userBuilder()
@@ -103,8 +108,7 @@ public class TmsTestPlanControllerTest {
     TmsTestPlanRQ tmsTestPlanRequest = new TmsTestPlanRQ();
     TmsTestPlanRS testPlan = new TmsTestPlanRS();
     given(tmsTestPlanService.create(projectId, tmsTestPlanRequest)).willReturn(testPlan);
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(tmsTestPlanRequest);
+    String jsonContent = objectMapper.writeValueAsString(tmsTestPlanRequest);
 
     mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
@@ -141,8 +145,7 @@ public class TmsTestPlanControllerTest {
     Long testPlanId = 2L;
     TmsTestPlanRQ tmsTestPlanRequest = new TmsTestPlanRQ();
     TmsTestPlanRS testPlan = new TmsTestPlanRS();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(tmsTestPlanRequest);
+    String jsonContent = objectMapper.writeValueAsString(tmsTestPlanRequest);
 
     given(tmsTestPlanService.update(projectId, testPlanId, tmsTestPlanRequest))
         .willReturn(testPlan);
@@ -190,8 +193,7 @@ public class TmsTestPlanControllerTest {
     Long testPlanId = 2L;
     TmsTestPlanRQ tmsTestPlanRequest = new TmsTestPlanRQ();
     TmsTestPlanRS testPlan = new TmsTestPlanRS();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(tmsTestPlanRequest);
+    String jsonContent = objectMapper.writeValueAsString(tmsTestPlanRequest);
 
     given(tmsTestPlanService.patch(projectId, testPlanId, tmsTestPlanRequest)).willReturn(testPlan);
 
@@ -203,5 +205,167 @@ public class TmsTestPlanControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).patch(projectId, testPlanId, tmsTestPlanRequest);
+  }
+
+  @Test
+  void addTestCasesToPlanTest() throws Exception {
+    // Given
+    Long testPlanId = 2L;
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
+  void addTestCasesToPlanWithSingleTestCaseTest() throws Exception {
+    // Given
+    Long testPlanId = 3L;
+    List<Long> testCaseIds = List.of(1L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
+  void addTestCasesToPlanWithEmptyListTest() throws Exception {
+    // Given
+    Long testPlanId = 4L;
+    List<Long> testCaseIds = Collections.emptyList();
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void removeTestCasesFromPlanTest() throws Exception {
+    // Given
+    Long testPlanId = 2L;
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
+  void removeTestCasesFromPlanWithSingleTestCaseTest() throws Exception {
+    // Given
+    Long testPlanId = 5L;
+    List<Long> testCaseIds = List.of(10L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
+  void removeTestCasesFromPlanWithEmptyListTest() throws Exception {
+    // Given
+    Long testPlanId = 6L;
+    List<Long> testCaseIds = Collections.emptyList();
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void removeTestCasesFromPlanWithMultipleTestCasesTest() throws Exception {
+    // Given
+    Long testPlanId = 7L;
+    List<Long> testCaseIds = Arrays.asList(15L, 16L, 17L, 18L, 19L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
+  void addTestCasesToPlanWithLargeListTest() throws Exception {
+    // Given
+    Long testPlanId = 8L;
+    List<Long> testCaseIds = Arrays.asList(20L, 21L, 22L, 23L, 24L, 25L, 26L, 27L, 28L, 29L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isNoContent());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
   }
 }

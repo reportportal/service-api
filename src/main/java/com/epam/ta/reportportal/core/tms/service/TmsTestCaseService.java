@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,4 +47,12 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
    * @param attributeIds List of attribute IDs to delete.
    */
   void deleteTagsFromTestCases(Long projectId, List<Long> testCaseIds, List<Long> attributeIds);
+
+  /**
+   * Verifies if test cases exist by provided ids in the project
+   *
+   * @param projectId   project id associated with a test cases
+   * @param testCaseIds target test case ids to be existed
+   */
+  void validateTestCasesExist(Long projectId, @NotEmpty List<Long> testCaseIds);
 }

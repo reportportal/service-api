@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +14,7 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
+import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
@@ -37,6 +40,12 @@ class TmsTestPlanServiceImplTest {
 
   @Mock
   private TmsTestPlanAttributeService tmsTestPlanAttributeService;
+
+  @Mock
+  private TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
+
+  @Mock
+  private TmsTestCaseService tmsTestCaseService;
 
   @InjectMocks
   private TmsTestPlanServiceImpl sut;
@@ -213,5 +222,130 @@ class TmsTestPlanServiceImplTest {
 
     assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+  }
+
+  @Test
+  void shouldAddTestCasesToPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L, 30L);
+    var newTestCaseIds = List.of(20L, 30L); // 10L уже существует
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of(10L)); // 10L уже существует
+
+    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanTestCaseRepository).batchInsertTestPlanTestCases(eq(testPlanId), eq(newTestCaseIds));
+  }
+
+  @Test
+  void shouldAddTestCasesToPlanWhenNoExistingAssociations() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of());
+
+    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanTestCaseRepository).batchInsertTestPlanTestCases(eq(testPlanId), eq(testCaseIds));
+  }
+
+  @Test
+  void shouldNotAddTestCasesWhenAllAlreadyExist() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of(10L, 20L));
+
+    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanTestCaseRepository, never()).batchInsertTestPlanTestCases(any(), any());
+  }
+
+  @Test
+  void shouldAddEmptyListOfTestCases() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.<Long>of();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of());
+
+    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanTestCaseRepository, never()).batchInsertTestPlanTestCases(any(), any());
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenAddTestCasesToNonExistentPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class, () ->
+        sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds)
+    );
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService, never()).validateTestCasesExist(any(), any());
+    verify(tmsTestPlanTestCaseRepository, never()).findTestCaseIdsByTestPlanId(any());
+    verify(tmsTestPlanTestCaseRepository, never()).batchInsertTestPlanTestCases(any(), any());
+  }
+
+  @Test
+  void shouldRemoveTestCasesFromPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+
+    assertDoesNotThrow(() -> sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds));
+
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseIds(testPlanId, testCaseIds);
+  }
+
+  @Test
+  void shouldRemoveTestCasesFromPlanEvenIfNoAssociationsExist() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+
+    assertDoesNotThrow(() -> sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds));
+
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseIds(testPlanId, testCaseIds);
+  }
+
+  @Test
+  void shouldRemoveEmptyListOfTestCasesFromPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.<Long>of();
+
+    assertDoesNotThrow(() -> sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds));
+
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseIds(testPlanId, testCaseIds);
   }
 }

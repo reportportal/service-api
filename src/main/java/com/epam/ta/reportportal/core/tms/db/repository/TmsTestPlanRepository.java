@@ -35,4 +35,6 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   Page<TmsTestPlan> findByCriteria(
       @Param("projectId") Long projectId,
       Pageable pageable);
+
+  Boolean existsByIdAndProject_Id(Long testPlanId, Long projectId);
 }

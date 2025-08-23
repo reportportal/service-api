@@ -5,6 +5,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
+import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
@@ -46,6 +47,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestCaseVersionService tmsTestCaseVersionService;
   private final TmsTestCaseImporterFactory importerFactory;
   private final TmsTestCaseExporterFactory exporterFactory;
+  private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
 
   private TmsTestFolderService tmsTestFolderService;
 
@@ -147,6 +149,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   public void delete(long projectId, Long testCaseId) {
     tmsTestCaseAttributeService.deleteAllByTestCaseId(testCaseId);
     tmsTestCaseVersionService.deleteAllByTestCaseId(testCaseId);
+    tmsTestPlanTestCaseRepository.deleteAllByTestCaseId(testCaseId);
     tmsTestCaseRepository.deleteById(testCaseId);
   }
 
@@ -155,6 +158,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   public void deleteByTestFolderId(long projectId, long folderId) {
     tmsTestCaseAttributeService.deleteAllByTestFolderId(projectId, folderId);
     tmsTestCaseVersionService.deleteAllByTestFolderId(projectId, folderId);
+    tmsTestPlanTestCaseRepository.deleteAllByTestFolderId(projectId, folderId);
     tmsTestCaseRepository.deleteTestCasesByFolderId(projectId, folderId);
   }
 
@@ -164,6 +168,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       @Valid BatchDeleteTestCasesRQ deleteRequest) {
     tmsTestCaseAttributeService.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
     tmsTestCaseVersionService.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
+    tmsTestPlanTestCaseRepository.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
     tmsTestCaseRepository.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
   }
 
@@ -278,6 +283,25 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     tmsTestCaseAttributeService.deleteByTestCaseIdsAndAttributeIds(testCaseIds,
         attributeIds);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void validateTestCasesExist(Long projectId, List<Long> testCaseIds) {
+    var existingTestCaseIds = new HashSet<>(
+        tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds)
+    );
+
+    var notFoundTestCaseIds = testCaseIds.stream()
+        .filter(id -> !existingTestCaseIds.contains(id))
+        .toList();
+
+    if (!notFoundTestCaseIds.isEmpty()) {
+      throw new ReportPortalException(
+          NOT_FOUND,
+          TEST_CASES_NOT_FOUND_BY_IDS.formatted(notFoundTestCaseIds, projectId)
+      );
+    }
   }
 
   private Long getTestFolderId(long projectId, TmsTestCaseTestFolderRQ testFolderRQ) {

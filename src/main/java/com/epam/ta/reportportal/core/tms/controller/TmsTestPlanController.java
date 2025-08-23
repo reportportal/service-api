@@ -4,13 +4,18 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -150,5 +155,59 @@ public class TmsTestPlanController {
             .getProjectId(),
         testPlanId,
         updatedTestPlan);
+  }
+
+  /**
+   * Adds multiple test cases to a test plan.
+   *
+   * @param projectKey The key of the project.
+   * @param testPlanId The ID of the test plan to add test cases to.
+   * @param addRequest Request containing test case IDs to add to the test plan.
+   */
+  @PostMapping("/{id}/test-case/batch")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "Add test cases to test plan",
+      description = "Adds multiple test cases to a test plan by their IDs.",
+      tags = {"Batch Operations"}
+  )
+  @ApiResponse(responseCode = "204", description = "Test cases added to test plan successfully")
+  public void addTestCasesToPlan(@PathVariable String projectKey,
+      @PathVariable("id") Long testPlanId,
+      @Valid @RequestBody BatchAddTestCasesToPlanRQ addRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    tmsTestPlanService.addTestCasesToPlan(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        testPlanId,
+        addRequest.getTestCaseIds());
+  }
+
+  /**
+   * Removes multiple test cases from a test plan.
+   *
+   * @param projectKey The key of the project.
+   * @param testPlanId The ID of the test plan to remove test cases from.
+   * @param removeRequest Request containing test case IDs to remove from the test plan.
+   */
+  @DeleteMapping("/{id}/test-case/batch")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "Remove test cases from test plan",
+      description = "Removes multiple test cases from a test plan by their IDs.",
+      tags = {"Batch Operations"}
+  )
+  @ApiResponse(responseCode = "204", description = "Test cases removed from test plan successfully")
+  public void removeTestCasesFromPlan(@PathVariable String projectKey,
+      @PathVariable("id") Long testPlanId,
+      @Valid @RequestBody BatchRemoveTestCasesFromPlanRQ removeRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    tmsTestPlanService.removeTestCasesFromPlan(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        testPlanId,
+        removeRequest.getTestCaseIds());
   }
 }

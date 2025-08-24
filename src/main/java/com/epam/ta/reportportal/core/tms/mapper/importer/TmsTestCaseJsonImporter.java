@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.mapper.importer;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseImportFormat;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -23,10 +24,14 @@ public class TmsTestCaseJsonImporter implements TmsTestCaseImporter {
 
   @Override
   @SneakyThrows
-  public List<TmsTestCaseRQ> importFromFile(MultipartFile file) {
+  public List<TmsTestCaseRQ> importFromFile(MultipartFile file,
+      TmsTestCaseTestFolderRQ testFolderRQ) {
     try (var inputStream = file.getInputStream()) {
-      return objectMapper.readValue(inputStream, new TypeReference<>() {
-      });
+      return objectMapper.readValue(inputStream, new TypeReference<List<TmsTestCaseRQ>>() {
+          })
+          .stream()
+          .peek(testCase -> testCase.setTestFolder(testFolderRQ))
+          .toList();
     }
   }
 }

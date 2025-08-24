@@ -85,6 +85,8 @@ dependencies {
 
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation(libs.apache.poi)
+    implementation(libs.apache.poi.ooxml)
+    implementation(libs.apache.commons.commonscsv)
     implementation(libs.openpdf)
     implementation(libs.jakarta.inject.api)
     implementation(libs.jakarta.mail)
@@ -103,6 +105,10 @@ dependencies {
     // Add lombok support
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+
+    //mapstruct
+    implementation(libs.mapstruct)
+    annotationProcessor(libs.mapstruct.processor)
 
     //  Tests
     testImplementation(libs.bundles.test.libs)

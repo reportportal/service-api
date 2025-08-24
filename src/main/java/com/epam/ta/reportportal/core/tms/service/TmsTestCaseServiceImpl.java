@@ -200,9 +200,15 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public List<TmsTestCaseRS> importFromFile(long projectId, MultipartFile file) {
+  public List<TmsTestCaseRS> importFromFile(long projectId,
+      Long testFolderId,
+      String testFolderName,
+      MultipartFile file) {
     var importer = importerFactory.getImporter(file);
-    var testCaseRequests = importer.importFromFile(file);
+    var testCaseRequests = importer.importFromFile(
+        file,
+        tmsTestFolderService.resolveTestFolderRQ(testFolderId, testFolderName)
+    );
 
     return testCaseRequests.stream()
         .map(testCaseRQ -> create(projectId, testCaseRQ))

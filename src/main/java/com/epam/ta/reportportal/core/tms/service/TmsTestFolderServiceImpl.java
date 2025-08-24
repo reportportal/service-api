@@ -9,12 +9,14 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestFolderExporterFactory;
+import com.epam.ta.reportportal.core.tms.validation.TestFolderIdentifierValidator;
 import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ValidationException;
@@ -51,6 +53,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   private final TmsTestFolderMapper tmsTestFolderMapper;
   private final TmsTestFolderRepository tmsTestFolderRepository;
   private final TmsTestFolderExporterFactory tmsTestFolderExporterFactory;
+  private final TestFolderIdentifierValidator testFolderIdentifierValidator;
 
   private TmsTestCaseService tmsTestCaseService;
 
@@ -287,6 +290,12 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   @Override
   public Boolean existsById(long projectId, Long testFolderId) {
     return tmsTestFolderRepository.existsByIdAndProjectId(testFolderId, projectId);
+  }
+
+  @Override
+  public TmsTestCaseTestFolderRQ resolveTestFolderRQ(Long testFolderId, String testFolderName) {
+    testFolderIdentifierValidator.validate(testFolderId, testFolderName);
+    return tmsTestFolderMapper.convertToRQ(testFolderId, testFolderName);
   }
 
   /**

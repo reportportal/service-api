@@ -1019,18 +1019,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             "name": "Imported Test Case 1",
             "description": "Description for imported test case 1",
             "priority": "HIGH",
-            "testFolder": {
-              "id": 3
-            },
             "externalId": "123"
           },
           {
             "name": "Imported Test Case 2",
             "description": "Description for imported test case 2",
             "priority": "MEDIUM",
-            "testFolder": {
-              "id": 4
-            },
             "externalId": "321"
           }
         ]
@@ -1046,6 +1040,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // When
     mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
+            .param("testFolderId", String.valueOf(3L))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
@@ -1059,6 +1054,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .toList();
 
     assertEquals(2, importedTestCases.size());
+    assertEquals(3L, importedTestCases.getFirst().getTestFolder().getId());
+    assertEquals(3L, importedTestCases.get(1).getTestFolder().getId());
   }
 
   @Test
@@ -1070,9 +1067,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             "name": "Imported Test Case with Invalid Folder",
             "description": "Description",
             "priority": "HIGH",
-            "testFolder": {
-              "id": 999
-            },
             "externalId": "123"
           }
         ]
@@ -1088,18 +1082,59 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // When/Then - should return error for non-existent folder
     mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
+            .param("testFolderId", String.valueOf(999L))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
         .andExpect(content().string(containsString("Test Folder with id: 999")));
   }
 
   @Test
+  void importTestCasesFromJsonWithNewFolderNameIntegrationTest() throws Exception {
+    // Given
+    var jsonContent = """
+        [
+          {
+            "name": "Imported Test Case with New Folder",
+            "description": "Description for imported test case with new folder",
+            "priority": "HIGH",
+            "externalId": "123"
+          }
+        ]
+        """;
+
+    MockMultipartFile file = new MockMultipartFile(
+        "file",
+        "testcases.json",
+        "application/json",
+        jsonContent.getBytes()
+    );
+
+    // When
+    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+            .file(file)
+            .param("testFolderName", "New Import Folder")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].name").value("Imported Test Case with New Folder"));
+
+    // Then - Verify test case is created in database with new folder
+    var importedTestCases = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Imported Test Case with New Folder"))
+        .toList();
+
+    assertEquals(1, importedTestCases.size());
+    assertNotNull(importedTestCases.getFirst().getTestFolder());
+  }
+
+  @Test
   void importTestCasesFromCsvIntegrationTest() throws Exception {
     // Given
     var csvContent = """
-        name,description,testFolder,priority,externalId
-        CSV Test Case 1,Description for CSV test case 1,Test Folder 3,HIGH,123
-        CSV Test Case 2,Description for CSV test case 2,Test Folder 4,MEDIUM,321
+        name,description,priority,externalId
+        CSV Test Case 1,Description for CSV test case 1,HIGH,123
+        CSV Test Case 2,Description for CSV test case 2,MEDIUM,321
         """;
 
     MockMultipartFile file = new MockMultipartFile(
@@ -1112,6 +1147,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // When
     mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
             .file(file)
+            .param("testFolderId", String.valueOf(4L))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
@@ -1125,6 +1161,122 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .toList();
 
     assertEquals(2, importedTestCases.size());
+    assertEquals(4L, importedTestCases.getFirst().getTestFolder().getId());
+    assertEquals(4L, importedTestCases.get(1).getTestFolder().getId());
+  }
+
+  @Test
+  void importTestCasesWithUnsupportedFormatIntegrationTest() throws Exception {
+    // Given
+    MockMultipartFile file = new MockMultipartFile(
+        "file",
+        "testcases.xml",
+        "application/xml",
+        "<testcases></testcases>".getBytes()
+    );
+
+    // When/Then - should return error for unsupported format
+    mockMvc.perform(
+            multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+                .file(file)
+                .param("testFolderId", String.valueOf(3L))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            content().string(containsString(
+                "Unsupported import format: xml"
+            ))
+        );
+  }
+
+  @Test
+  void importTestCasesWithInvalidTestFolderValidationIntegrationTest() throws Exception {
+    // Given
+    var jsonContent = """
+        [
+          {
+            "name": "Test Case",
+            "description": "Description",
+            "priority": "HIGH",
+            "externalId": "123"
+          }
+        ]
+        """;
+
+    MockMultipartFile file = new MockMultipartFile(
+        "file",
+        "testcases.json",
+        "application/json",
+        jsonContent.getBytes()
+    );
+
+    // When/Then - should return validation error
+    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+            .file(file)
+            .param("testFolderId", String.valueOf(3L))
+            .param("testFolderName", "Test Folder")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+  }
+
+  @Test
+  void importTestCasesWithMissingTestFolderValidationIntegrationTest() throws Exception {
+    // Given
+    var jsonContent = """
+        [
+          {
+            "name": "Test Case",
+            "description": "Description", 
+            "priority": "HIGH",
+            "externalId": "123"
+          }
+        ]
+        """;
+
+    MockMultipartFile file = new MockMultipartFile(
+        "file",
+        "testcases.json",
+        "application/json",
+        jsonContent.getBytes()
+    );
+
+    // When/Then - should return validation error
+    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+            .file(file)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+  }
+
+  @Test
+  void importTestCasesWithEmptyTestFolderNameValidationIntegrationTest() throws Exception {
+    // Given
+    var jsonContent = """
+        [
+          {
+            "name": "Test Case",
+            "description": "Description", 
+            "priority": "HIGH",
+            "externalId": "123"
+          }
+        ]
+        """;
+
+    MockMultipartFile file = new MockMultipartFile(
+        "file",
+        "testcases.json",
+        "application/json",
+        jsonContent.getBytes()
+    );
+
+    // When/Then - should return validation error
+    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
+            .file(file)
+            .param("testFolderId", "")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test
@@ -1175,6 +1327,21 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json;charset=UTF-8"))
         .andExpect(header().string("Content-Disposition",
             "attachment; filename=\"test_cases_export_with_attachments.json\""));
+  }
+
+  @Test
+  void exportTestCasesWithInvalidFormatIntegrationTest() throws Exception {
+    // When/Then - should return error for unsupported format
+    mockMvc
+        .perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
+            .param("format", "XML")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            content().string(containsString(
+                "Unsupported export format: XML"
+            ))
+        );
   }
 
   @Test
@@ -1561,44 +1728,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void importTestCasesWithUnsupportedFormatIntegrationTest() throws Exception {
-    // Given
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.xml",
-        "application/xml",
-        "<testcases></testcases>".getBytes()
-    );
-
-    // When/Then - should return error for unsupported format
-    mockMvc.perform(
-            multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-                .file(file)
-                .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            content().string(containsString(
-                "Unsupported import format: xml"
-            ))
-        );
-  }
-
-  @Test
-  void exportTestCasesWithInvalidFormatIntegrationTest() throws Exception {
-    // When/Then - should return error for unsupported format
-    mockMvc
-        .perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/export")
-            .param("format", "XML")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            content().string(containsString(
-                "Unsupported export format: XML"
-            ))
-        );
   }
 
   @Test

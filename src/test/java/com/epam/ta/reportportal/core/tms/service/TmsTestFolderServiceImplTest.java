@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
@@ -28,6 +30,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.ta.reportportal.core.tms.mapper.exporter.TmsTestFolderExporter;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestFolderExporterFactory;
+import com.epam.ta.reportportal.core.tms.validation.TestFolderIdentifierValidator;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
@@ -63,6 +66,7 @@ class TmsTestFolderServiceImplTest {
   private final Long secondSubFolderId = 12L;
   private final Long subSubFolderId = 13L;
   private final Map<Long, Long> emptySubFolderTestCaseCounts = Collections.emptyMap();
+  private final String testFolderName = "Test Folder Name";
 
   @Mock
   private TmsTestFolderMapper tmsTestFolderMapper;
@@ -74,6 +78,8 @@ class TmsTestFolderServiceImplTest {
   private TmsTestFolderExporterFactory tmsTestFolderExporterFactory;
   @Mock
   private TmsTestFolderExporter tmsTestFolderExporter;
+  @Mock
+  private TestFolderIdentifierValidator testFolderIdentifierValidator;
   @Mock
   private HttpServletResponse mockResponse;
   @InjectMocks
@@ -90,6 +96,7 @@ class TmsTestFolderServiceImplTest {
   private TmsTestFolder secondSubfolder;
   private TmsTestFolder subSubFolder;
   private List<TmsTestFolder> allFolders;
+  private TmsTestCaseTestFolderRQ testCaseTestFolderRQ;
 
   @BeforeEach
   void setUp() {
@@ -137,6 +144,11 @@ class TmsTestFolderServiceImplTest {
         .name("Test Folder")
         .description("Test Description")
         .countOfTestCases(0L)
+        .build();
+
+    testCaseTestFolderRQ = TmsTestCaseTestFolderRQ.builder()
+        .id(testFolderId)
+        .name(testFolderName)
         .build();
 
     // Setup for hierarchy tests
@@ -702,6 +714,77 @@ class TmsTestFolderServiceImplTest {
     // Assert
     assertFalse(result);
     verify(tmsTestFolderRepository).existsByIdAndProjectId(testFolderId, projectId);
+  }
+
+  @Test
+  void testResolveTestFolderRQ_WithValidInput() {
+    // Arrange
+    doNothing().when(testFolderIdentifierValidator).validate(testFolderId, testFolderName);
+    when(tmsTestFolderMapper.convertToRQ(testFolderId, testFolderName))
+        .thenReturn(testCaseTestFolderRQ);
+
+    // Act
+    TmsTestCaseTestFolderRQ result = sut.resolveTestFolderRQ(testFolderId, testFolderName);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(testCaseTestFolderRQ.getId(), result.getId());
+    assertEquals(testCaseTestFolderRQ.getName(), result.getName());
+
+    verify(testFolderIdentifierValidator).validate(testFolderId, testFolderName);
+    verify(tmsTestFolderMapper).convertToRQ(testFolderId, testFolderName);
+  }
+
+  @Test
+  void testResolveTestFolderRQ_WithNullId() {
+    // Arrange
+    doNothing().when(testFolderIdentifierValidator).validate(null, testFolderName);
+    when(tmsTestFolderMapper.convertToRQ(null, testFolderName))
+        .thenReturn(TmsTestCaseTestFolderRQ.builder().name(testFolderName).build());
+
+    // Act
+    var result = sut.resolveTestFolderRQ(null, testFolderName);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(testFolderName, result.getName());
+    assertNull(result.getId());
+
+    verify(testFolderIdentifierValidator).validate(null, testFolderName);
+    verify(tmsTestFolderMapper).convertToRQ(null, testFolderName);
+  }
+
+  @Test
+  void testResolveTestFolderRQ_WithNullName() {
+    // Arrange
+    doNothing().when(testFolderIdentifierValidator).validate(testFolderId, null);
+    when(tmsTestFolderMapper.convertToRQ(testFolderId, null))
+        .thenReturn(TmsTestCaseTestFolderRQ.builder().id(testFolderId).build());
+
+    // Act
+    var result = sut.resolveTestFolderRQ(testFolderId, null);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(testFolderId, result.getId());
+    assertNull(result.getName());
+
+    verify(testFolderIdentifierValidator).validate(testFolderId, null);
+    verify(tmsTestFolderMapper).convertToRQ(testFolderId, null);
+  }
+
+  @Test
+  void testResolveTestFolderRQ_ValidationFailure() {
+    // Arrange
+    doThrow(ReportPortalException.class).when(testFolderIdentifierValidator)
+        .validate(testFolderId, testFolderName);
+
+    // Act & Assert
+    assertThrows(ReportPortalException.class, () ->
+        sut.resolveTestFolderRQ(testFolderId, testFolderName));
+
+    verify(testFolderIdentifierValidator).validate(testFolderId, testFolderName);
+    verify(tmsTestFolderMapper, never()).convertToRQ(any(), any());
   }
 
   @Test

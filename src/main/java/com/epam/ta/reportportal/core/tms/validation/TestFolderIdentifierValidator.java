@@ -1,10 +1,14 @@
 package com.epam.ta.reportportal.core.tms.validation;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.ValidationException;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * Validator implementation for {@link ValidTestFolderIdentifier} annotation.
@@ -13,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
  * in the TmsTestCaseTestFolderRQ object, but not necessarily both.
  * </p>
  */
+@Component
 public class TestFolderIdentifierValidator
     implements ConstraintValidator<ValidTestFolderIdentifier, TmsTestCaseTestFolderRQ> {
 
@@ -46,5 +51,17 @@ public class TestFolderIdentifierValidator
     }
 
     return true;
+  }
+
+  public void validate(Long testFolderId, String testFolderName) {
+    var hasTestFolderId = Objects.nonNull(testFolderId);
+    var hasTestFolderName = StringUtils.isNotBlank(testFolderName);
+
+    if ((hasTestFolderId && hasTestFolderName) || (!hasTestFolderId && !hasTestFolderName)) {
+      throw new ReportPortalException(
+          ErrorType.BAD_REQUEST_ERROR,
+          "Either testFolderId or testFolderName must be provided and not empty"
+      );
+    }
   }
 }

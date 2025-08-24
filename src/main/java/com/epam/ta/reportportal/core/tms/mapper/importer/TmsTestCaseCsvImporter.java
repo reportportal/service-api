@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
 
-  private static final String[] EXPECTED_HEADERS = {"name", "description", "testFolder",
+  private static final String[] EXPECTED_HEADERS = {"name", "description",
       "priority", "externalId"};
 
   @Override
@@ -30,7 +30,8 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
 
   @Override
   @SneakyThrows
-  public List<TmsTestCaseRQ> importFromFile(MultipartFile file) {
+  public List<TmsTestCaseRQ> importFromFile(MultipartFile file,
+      TmsTestCaseTestFolderRQ testFolderRQ) {
     List<TmsTestCaseRQ> testCases = new ArrayList<>();
 
     try (BufferedReader reader = new BufferedReader(
@@ -46,17 +47,12 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
               "Invalid CSV format. Expected columns: " + String.join(", ", EXPECTED_HEADERS));
         }
 
-        TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+        var testCaseRQ = new TmsTestCaseRQ();
         testCaseRQ.setName(csvRecord.get("name"));
         testCaseRQ.setDescription(csvRecord.get("description"));
         testCaseRQ.setPriority(csvRecord.get("priority"));
         testCaseRQ.setExternalId(csvRecord.get("externalId"));
-
-        if (StringUtils.hasText(csvRecord.get("testFolder"))) {
-          TmsTestCaseTestFolderRQ testFolderRQ = new TmsTestCaseTestFolderRQ();
-          testFolderRQ.setName(csvRecord.get("testFolder"));
-          testCaseRQ.setTestFolder(testFolderRQ);
-        }
+        testCaseRQ.setTestFolder(testFolderRQ);
 
         testCases.add(testCaseRQ);
       }

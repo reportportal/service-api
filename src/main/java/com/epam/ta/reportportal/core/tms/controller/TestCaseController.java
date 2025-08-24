@@ -5,6 +5,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -281,11 +282,15 @@ public class TestCaseController {
   @ApiResponse(responseCode = "200", description = "Test cases imported successfully")
   public List<TmsTestCaseRS> importTestCases(@PathVariable("projectKey") String projectKey,
       @RequestPart("file") MultipartFile file,
+      @RequestParam(value = "testFolderId", required = false) Long testFolderId,
+      @RequestParam(value = "testFolderName", required = false) String testFolderName,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.importFromFile(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
+        testFolderId,
+        testFolderName,
         file);
   }
 

@@ -460,13 +460,60 @@ public class TmsTestCaseControllerTest {
   }
 
   @Test
-  void importTestCasesTest() throws Exception {
+  void importTestCasesWithTestFolderIdTest() throws Exception {
     // Given
     var fileContent = "test,case,data";
     var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
+    var testFolderId = 3L;
     var importedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
 
-    given(tmsTestCaseService.importFromFile(projectId, file)).willReturn(importedTestCases);
+    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), isNull(), eq(file)))
+        .willReturn(importedTestCases);
+
+    // When/Then
+    mockMvc.perform(
+            multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
+                .file(file)
+                .param("testFolderId", String.valueOf(testFolderId))
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), isNull(), eq(file));
+  }
+
+  @Test
+  void importTestCasesWithTestFolderNameTest() throws Exception {
+    // Given
+    var fileContent = "test,case,data";
+    var file = new MockMultipartFile("file", "test.json", "application/json", fileContent.getBytes());
+    var testFolderName = "Test Folder";
+    var importedTestCases = List.of(new TmsTestCaseRS());
+
+    given(tmsTestCaseService.importFromFile(eq(projectId), isNull(), eq(testFolderName), eq(file)))
+        .willReturn(importedTestCases);
+
+    // When/Then
+    mockMvc.perform(
+            multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
+                .file(file)
+                .param("testFolderName", testFolderName)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).importFromFile(eq(projectId), isNull(), eq(testFolderName), eq(file));
+  }
+
+  @Test
+  void importTestCasesWithoutFolderParametersTest() throws Exception {
+    // Given
+    var fileContent = "test,case,data";
+    var file = new MockMultipartFile("file", "test.json", "application/json", fileContent.getBytes());
+    var importedTestCases = List.of(new TmsTestCaseRS());
+
+    given(tmsTestCaseService.importFromFile(eq(projectId), isNull(), isNull(), eq(file)))
+        .willReturn(importedTestCases);
 
     // When/Then
     mockMvc.perform(
@@ -476,7 +523,32 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(projectId, file);
+    verify(tmsTestCaseService).importFromFile(eq(projectId), isNull(), isNull(), eq(file));
+  }
+
+  @Test
+  void importTestCasesWithBothFolderParametersTest() throws Exception {
+    // Given
+    var fileContent = "test,case,data";
+    var file = new MockMultipartFile("file", "test.json", "application/json", fileContent.getBytes());
+    var testFolderId = 3L;
+    var testFolderName = "Test Folder";
+    var importedTestCases = List.of(new TmsTestCaseRS());
+
+    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file)))
+        .willReturn(importedTestCases);
+
+    // When/Then
+    mockMvc.perform(
+            multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
+                .file(file)
+                .param("testFolderId", String.valueOf(testFolderId))
+                .param("testFolderName", testFolderName)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file));
   }
 
   @Test

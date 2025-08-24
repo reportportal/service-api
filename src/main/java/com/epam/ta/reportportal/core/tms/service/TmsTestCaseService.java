@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.model.Page;
@@ -22,7 +23,8 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
 
   void patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
 
-  List<TmsTestCaseRS> importFromFile(long projectId, MultipartFile file);
+  List<TmsTestCaseRS> importFromFile(long projectId, Long testFolderId, String testFolderName,
+      MultipartFile file);
 
   void exportToFile(Long projectId, List<Long> ids, String format, boolean includeAttachments,
       HttpServletResponse response);

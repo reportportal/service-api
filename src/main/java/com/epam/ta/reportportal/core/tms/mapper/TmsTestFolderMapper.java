@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -129,19 +130,6 @@ public abstract class TmsTestFolderMapper {
 
   public abstract TmsTestFolderRQ convertFromNameToRQ(String name);
 
-  private List<TmsTestFolderRS> convert(
-      List<TmsTestFolderWithCountOfTestCases> testFoldersWithCountOfTestCases,
-      Map<Long, Long> testCaseCountForSubfolders) {
-    if (CollectionUtils.isEmpty(testFoldersWithCountOfTestCases)) {
-      return null;
-    }
-    return testFoldersWithCountOfTestCases
-        .stream()
-        .map((TmsTestFolderWithCountOfTestCases t) ->
-            convertFromTmsTestFolderWithCountOfTestCasesToRS(t, testCaseCountForSubfolders))
-        .toList();
-  }
-
   public TmsTestFolderRS convertFromTmsTestFolderWithCountOfTestCasesToRS(
       TmsTestFolderWithCountOfTestCases folderWithCount,
       Map<Long, Long> subFolderTestCaseCounts) {
@@ -171,6 +159,8 @@ public abstract class TmsTestFolderMapper {
     return result;
   }
 
+  public abstract TmsTestCaseTestFolderRQ convertToRQ(Long id, String name);
+
   private TmsTestFolderRS mapSubFolderWithTestCaseCount(
       TmsTestFolder subFolder,
       Map<Long, Long> subFolderTestCaseCounts) {
@@ -185,5 +175,18 @@ public abstract class TmsTestFolderMapper {
         .parentFolderId(subFolder.getParentTestFolder() != null ?
             subFolder.getParentTestFolder().getId() : null)
         .build();
+  }
+
+  private List<TmsTestFolderRS> convert(
+      List<TmsTestFolderWithCountOfTestCases> testFoldersWithCountOfTestCases,
+      Map<Long, Long> testCaseCountForSubfolders) {
+    if (CollectionUtils.isEmpty(testFoldersWithCountOfTestCases)) {
+      return null;
+    }
+    return testFoldersWithCountOfTestCases
+        .stream()
+        .map((TmsTestFolderWithCountOfTestCases t) ->
+            convertFromTmsTestFolderWithCountOfTestCasesToRS(t, testCaseCountForSubfolders))
+        .toList();
   }
 }

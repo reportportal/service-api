@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -61,8 +62,8 @@ public class LaunchReportService {
   public byte[] generateReport(Launch launch, Collection<TestItemPojo> testItems, String username,
       ReportFormat format) {
     Map<String, Object> params = reportHandler.convertParams(launch);
-    String owner = userRepository.findById(launch.getUserId())
-        .map(User::getFullName)
+    String owner = Optional.ofNullable(launch.getUserId()).map(
+            id -> userRepository.findById(launch.getUserId()).map(User::getFullName).orElse(username))
         .orElse(username);
     params.put(LaunchReportConstants.OWNER, owner);
     params.put(LaunchReportConstants.TEST_ITEMS, testItems);

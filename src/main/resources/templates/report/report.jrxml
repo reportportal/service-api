@@ -210,42 +210,6 @@
 
 
       <staticText>
-        <!--        <reportElement x="0" y="40" width="90" height="20"
-          uuid="bf3f95f3-b14a-492b-8b8b-fd8d9ba6d088"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans" isBold="true"/>
-        </textElement>
-        <text><![CDATA[Owner:]]></text>
-      </staticText>
-      <textField isBlankWhenNull="true">
-        <reportElement x="90" y="40" width="260" height="20"
-          uuid="bafe2045-04c0-40b6-803e-03941dd6f77a"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$P{LAUNCH_OWNER}]]></textFieldExpression>
-      </textField>
-
-      <staticText>
-        <reportElement x="0" y="60" width="90" height="20"
-          uuid="813174c3-f36a-4c64-b0d3-60726c2ea891"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans" isBold="true"/>
-        </textElement>
-        <text><![CDATA[Duration:]]></text>
-      </staticText>
-      <textField isBlankWhenNull="true">
-        <reportElement x="90" y="60" width="260" height="20"
-          uuid="f4f1aa0a-7460-4ec1-9568-6c2101c918de"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$P{LAUNCH_DURATION}]]></textFieldExpression>
-      </textField>
-
-
-      <staticText>
-        <reportElement x="400" y="0" width="400" height="20"-->
         <reportElement x="400" y="0" width="400" height="20"
           uuid="fa79751f-81e6-40fb-b2aa-de1031768dc8"/>
         <box>
@@ -552,7 +516,6 @@
           <property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
           <property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
           <property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
-          <!--          <property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>-->
         </reportElement>
         <jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
           xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"

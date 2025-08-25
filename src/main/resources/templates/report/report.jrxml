@@ -210,7 +210,6 @@
 
 
       <staticText>
-        <!--        <reportElement x="480" y="0" width="320" height="20"-->
         <reportElement x="400" y="0" width="400" height="20"
           uuid="fa79751f-81e6-40fb-b2aa-de1031768dc8"/>
         <box>
@@ -517,7 +516,6 @@
           <property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
           <property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
           <property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
-          <!--          <property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>-->
         </reportElement>
         <jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
           xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd"

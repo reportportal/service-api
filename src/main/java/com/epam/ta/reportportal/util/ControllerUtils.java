@@ -69,7 +69,7 @@ public class ControllerUtils {
   public static Long safeParseLong(String value) {
     try {
       return Long.parseLong(value);
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException | NullPointerException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "The provided parameter must be a number");
     }
@@ -78,7 +78,7 @@ public class ControllerUtils {
   public static Integer safeParseInt(String value) {
     try {
       return Integer.parseInt(value);
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException | NullPointerException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "The provided parameter must be a number");
     }

@@ -22,8 +22,7 @@
   xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
   name="Blank_A4_Landscape" pageWidth="842" pageHeight="595" orientation="Landscape"
   columnWidth="802" leftMargin="20"
-  rightMargin="20" topMargin="20" bottomMargin="20"
-  uuid="438bfacd-17a2-4c73-99de-5e4210041df7">
+  rightMargin="20" topMargin="20" bottomMargin="20" uuid="438bfacd-17a2-4c73-99de-5e4210041df7">
   <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
   <style name="Table_TH" mode="Opaque" backcolor="#484866">
     <box>
@@ -138,41 +137,11 @@
     <band splitType="Stretch"/>
   </background>
   <title>
-    <band height="85" splitType="Stretch">
-      <textField isBlankWhenNull="true">
-        <reportElement x="82" y="60" width="140" height="20"
-          uuid="f4f1aa0a-7460-4ec1-9568-6c2101c918de"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$P{LAUNCH_DURATION}]]></textFieldExpression>
-      </textField>
+    <band height="90" splitType="Stretch">
+
+
       <staticText>
-        <reportElement x="0" y="40" width="82" height="20"
-          uuid="bf3f95f3-b14a-492b-8b8b-fd8d9ba6d088"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans" isBold="true"/>
-        </textElement>
-        <text><![CDATA[Owner:]]></text>
-      </staticText>
-      <staticText>
-        <reportElement x="0" y="60" width="82" height="20"
-          uuid="813174c3-f36a-4c64-b0d3-60726c2ea891"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans" isBold="true"/>
-        </textElement>
-        <text><![CDATA[Duration:]]></text>
-      </staticText>
-      <textField isBlankWhenNull="true">
-        <reportElement x="82" y="40" width="388" height="20"
-          uuid="bafe2045-04c0-40b6-803e-03941dd6f77a"/>
-        <textElement verticalAlignment="Top">
-          <font fontName="Noto Sans"/>
-        </textElement>
-        <textFieldExpression><![CDATA[$P{LAUNCH_OWNER}]]></textFieldExpression>
-      </textField>
-      <staticText>
-        <reportElement x="0" y="0" width="82" height="20"
+        <reportElement x="0" y="0" width="90" height="20"
           uuid="e15dcb90-a675-4b87-9a32-eaac213feea1"/>
         <textElement>
           <font fontName="Noto Sans" isBold="true"/>
@@ -180,15 +149,16 @@
         <text><![CDATA[Launch name:]]></text>
       </staticText>
       <textField>
-        <reportElement x="82" y="0" width="388" height="20"
+        <reportElement x="90" y="0" width="260" height="20"
           uuid="7661c90b-7b58-4292-8333-154705ff0701"/>
         <textElement>
           <font fontName="Noto Sans" isBold="true"/>
         </textElement>
         <textFieldExpression><![CDATA[$P{LAUNCH_NAME}]]></textFieldExpression>
       </textField>
+
       <staticText>
-        <reportElement x="0" y="20" width="82" height="20"
+        <reportElement x="0" y="20" width="90" height="20"
           uuid="e4b2bcf3-cc0a-4156-a4aa-cddf2a16d5c0"/>
         <textElement>
           <font fontName="Noto Sans" isBold="true"/>
@@ -196,15 +166,51 @@
         <text><![CDATA[Description:]]></text>
       </staticText>
       <textField>
-        <reportElement x="82" y="20" width="388" height="20"
+        <reportElement x="90" y="20" width="260" height="20"
           uuid="b0b0090b-1fe2-4349-afd2-5f08bfa31187"/>
         <textElement>
           <font fontName="Noto Sans"/>
         </textElement>
         <textFieldExpression><![CDATA[$P{LAUNCH_DESCRIPTION}]]></textFieldExpression>
       </textField>
+
       <staticText>
-        <reportElement x="480" y="0" width="320" height="20"
+        <reportElement x="0" y="40" width="90" height="20"
+          uuid="bf3f95f3-b14a-492b-8b8b-fd8d9ba6d088"/>
+        <textElement verticalAlignment="Top">
+          <font fontName="Noto Sans" isBold="true"/>
+        </textElement>
+        <text><![CDATA[Owner:]]></text>
+      </staticText>
+      <textField isBlankWhenNull="true">
+        <reportElement x="90" y="40" width="260" height="20"
+          uuid="bafe2045-04c0-40b6-803e-03941dd6f77a"/>
+        <textElement verticalAlignment="Top">
+          <font fontName="Noto Sans"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{LAUNCH_OWNER}]]></textFieldExpression>
+      </textField>
+
+      <staticText>
+        <reportElement x="0" y="60" width="90" height="20"
+          uuid="813174c3-f36a-4c64-b0d3-60726c2ea891"/>
+        <textElement verticalAlignment="Top">
+          <font fontName="Noto Sans" isBold="true"/>
+        </textElement>
+        <text><![CDATA[Duration:]]></text>
+      </staticText>
+      <textField isBlankWhenNull="true">
+        <reportElement x="90" y="60" width="260" height="20"
+          uuid="f4f1aa0a-7460-4ec1-9568-6c2101c918de"/>
+        <textElement verticalAlignment="Top">
+          <font fontName="Noto Sans"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{LAUNCH_DURATION}]]></textFieldExpression>
+      </textField>
+
+
+      <staticText>
+        <reportElement x="400" y="0" width="400" height="20"
           uuid="fa79751f-81e6-40fb-b2aa-de1031768dc8"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -218,7 +224,7 @@
         <text><![CDATA[Launch statistic]]></text>
       </staticText>
       <staticText>
-        <reportElement x="480" y="20" width="168" height="20"
+        <reportElement x="400" y="20" width="200" height="20"
           uuid="d018d389-4a79-4095-b4f8-fbfaef41246d"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -232,7 +238,7 @@
         <text><![CDATA[Execution statistic]]></text>
       </staticText>
       <staticText>
-        <reportElement x="648" y="20" width="152" height="20"
+        <reportElement x="600" y="20" width="200" height="20"
           uuid="7fd8af2f-840f-4b1c-927b-18168bc9422c"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -246,7 +252,7 @@
         <text><![CDATA[Issue statistic]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="480" y="40" width="30" height="20" backcolor="#489BEB"
+        <reportElement mode="Opaque" x="400" y="40" width="50" height="20" backcolor="#489BEB"
           uuid="364a016c-13cc-476e-a112-c293a2e4aa9c"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -261,7 +267,7 @@
         <text><![CDATA[Total]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="510" y="40" width="50" height="20" backcolor="#87B77B"
+        <reportElement mode="Opaque" x="450" y="40" width="50" height="20" backcolor="#87B77B"
           uuid="1cb41bf6-b644-4dae-8e8e-690d8a9295a7"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -275,7 +281,7 @@
         <text><![CDATA[Passed]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="560" y="40" width="40" height="20" backcolor="#F36C4A"
+        <reportElement mode="Opaque" x="500" y="40" width="50" height="20" backcolor="#F36C4A"
           uuid="9d8e885a-6c11-4500-a95e-b60c3eaf55c9"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -289,7 +295,7 @@
         <text><![CDATA[Failed]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="600" y="40" width="48" height="20" backcolor="#BDC7CC"
+        <reportElement mode="Opaque" x="550" y="40" width="50" height="20" backcolor="#BDC7CC"
           uuid="b85b72e9-4054-457b-bb42-b44bd3e4b858"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -303,7 +309,7 @@
         <text><![CDATA[Skipped]]></text>
       </staticText>
       <textField>
-        <reportElement x="480" y="60" width="30" height="20"
+        <reportElement x="400" y="60" width="50" height="20"
           uuid="be0a5e88-b3b2-4bb2-881d-90ff51d7caf1"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -317,7 +323,7 @@
         <textFieldExpression><![CDATA[$P{TOTAL}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="510" y="60" width="50" height="20"
+        <reportElement x="450" y="60" width="50" height="20"
           uuid="3c0d9905-b60e-4c9b-80b4-d7d6b60e174e"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -331,7 +337,7 @@
         <textFieldExpression><![CDATA[$P{PASSED}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="560" y="60" width="40" height="20"
+        <reportElement x="500" y="60" width="50" height="20"
           uuid="c6fcfe12-2e78-44dd-b271-b16b191b3fc9"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -345,7 +351,7 @@
         <textFieldExpression><![CDATA[$P{FAILED}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="600" y="60" width="48" height="20"
+        <reportElement x="550" y="60" width="50" height="20"
           uuid="4272b431-fab3-40fd-92f5-1de979e56249"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -359,7 +365,7 @@
         <textFieldExpression><![CDATA[$P{SKIPPED}]]></textFieldExpression>
       </textField>
       <staticText>
-        <reportElement mode="Opaque" x="648" y="40" width="30" height="20" backcolor="#F7D63E"
+        <reportElement mode="Opaque" x="600" y="40" width="40" height="20" backcolor="#F7D63E"
           uuid="10a4b295-cd29-4a96-8b83-2b8031a5f79e"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -373,7 +379,7 @@
         <text><![CDATA[AB]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="678" y="40" width="30" height="20" backcolor="#EC3900"
+        <reportElement mode="Opaque" x="640" y="40" width="40" height="20" backcolor="#EC3900"
           uuid="0fa281e5-f495-4c9b-8ead-0346399f7f89"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -387,7 +393,7 @@
         <text><![CDATA[PB]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="708" y="40" width="30" height="20" backcolor="#0274D1"
+        <reportElement mode="Opaque" x="680" y="40" width="40" height="20" backcolor="#0274D1"
           uuid="6aef0f86-27df-4967-9692-9b7dd7abb2fa"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -401,7 +407,7 @@
         <text><![CDATA[SI]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="738" y="40" width="30" height="20" backcolor="#BDC7CC"
+        <reportElement mode="Opaque" x="720" y="40" width="40" height="20" backcolor="#BDC7CC"
           uuid="b9208960-ff59-4de2-8059-9a607f220fbd"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -415,7 +421,7 @@
         <text><![CDATA[ND]]></text>
       </staticText>
       <staticText>
-        <reportElement mode="Opaque" x="768" y="40" width="32" height="20" backcolor="#FFB743"
+        <reportElement mode="Opaque" x="760" y="40" width="40" height="20" backcolor="#FFB743"
           uuid="c5c69ffe-8bf0-4290-bb2c-07ae27a82627"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -429,7 +435,7 @@
         <text><![CDATA[TI]]></text>
       </staticText>
       <textField>
-        <reportElement x="648" y="60" width="30" height="20"
+        <reportElement x="600" y="60" width="40" height="20"
           uuid="2011a38d-2f02-43fa-8004-a0d49df5cd99"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -443,7 +449,7 @@
         <textFieldExpression><![CDATA[$P{AB}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="678" y="60" width="30" height="20"
+        <reportElement x="640" y="60" width="40" height="20"
           uuid="80d81588-1312-4554-8aa3-72d52c50ed83"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -457,7 +463,7 @@
         <textFieldExpression><![CDATA[$P{PB}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="708" y="60" width="30" height="20"
+        <reportElement x="680" y="60" width="40" height="20"
           uuid="2c8561e8-61af-4709-861e-d89b1be0cd6b"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -471,7 +477,7 @@
         <textFieldExpression><![CDATA[$P{SI}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="738" y="60" width="30" height="20"
+        <reportElement x="720" y="60" width="40" height="20"
           uuid="e348f9a4-6e6a-4815-b20e-0ebcfe8a3f40"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -485,7 +491,7 @@
         <textFieldExpression><![CDATA[$P{ND}]]></textFieldExpression>
       </textField>
       <textField>
-        <reportElement x="768" y="60" width="32" height="20"
+        <reportElement x="760" y="60" width="40" height="20"
           uuid="7e2ef588-7105-4960-a393-44371e5652a2"/>
         <box>
           <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -501,9 +507,9 @@
     </band>
   </title>
   <detail>
-    <band height="303" splitType="Stretch">
+    <band height="383" splitType="Stretch">
       <componentElement>
-        <reportElement x="0" y="0" width="800" height="300"
+        <reportElement x="0" y="0" width="800" height="380"
           uuid="854b8278-360a-4dba-9bd1-3a77189f6478">
           <property name="com.jaspersoft.studio.layout"
             value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
@@ -524,7 +530,7 @@
             <property name="com.jaspersoft.studio.unit.height" value="pixel"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="90" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="90" height="30"
                   uuid="6ac25c5d-aa07-4c0d-a578-53d2e0f96d42"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -534,8 +540,8 @@
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
               <property name="com.jaspersoft.studio.unit.height" value="px"/>
-              <textField isStretchWithOverflow="true">
-                <reportElement x="0" y="0" width="90" height="20"
+              <textField>
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="90" height="20"
                   uuid="113268f0-68f2-4c5e-b580-ff200e7b853c"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
@@ -544,12 +550,12 @@
               </textField>
             </jr:detailCell>
           </jr:column>
-          <jr:column width="209" uuid="44a6a309-83bd-4546-b0cd-b10728e874dd">
+          <jr:column width="200" uuid="44a6a309-83bd-4546-b0cd-b10728e874dd">
             <property name="com.jaspersoft.studio.components.table.model.column.name"
               value="Column2"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="209" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="200" height="30"
                   uuid="ca534fe2-78f2-44f6-9b03-9bc32970c178"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -558,8 +564,8 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField isStretchWithOverflow="true">
-                <reportElement x="0" y="0" width="209" height="20"
+              <textField textAdjust="StretchHeight">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="200" height="20"
                   uuid="1ed705a6-1478-4fa5-82d0-f626e5aa6f7e"/>
                 <textElement verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
@@ -568,12 +574,12 @@
               </textField>
             </jr:detailCell>
           </jr:column>
-          <jr:column width="50" uuid="4c3f0fac-1fb3-467d-81a7-36b9b2d84302">
+          <jr:column width="60" uuid="4c3f0fac-1fb3-467d-81a7-36b9b2d84302">
             <property name="com.jaspersoft.studio.components.table.model.column.name"
               value="Column13"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="50" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="60" height="30"
                   uuid="3fe70789-6869-4b8d-bf21-be0fc66b623e"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -582,8 +588,8 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="50" height="20"
+              <textField pattern="#0.###">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="60" height="20"
                   uuid="ba201ea1-3041-4d50-b546-d3b9a4ce5543"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
@@ -592,12 +598,12 @@
               </textField>
             </jr:detailCell>
           </jr:column>
-          <jr:column width="70" uuid="4c3f0fac-1fb3-467d-81a7-36b9b2d84401">
+          <jr:column width="50" uuid="4c3f0fac-1fb3-467d-81a7-36b9b2d84401">
             <property name="com.jaspersoft.studio.components.table.model.column.name"
               value="Column3"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="70" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="30"
                   uuid="3fe70789-6869-4b8d-bf21-be0fc66b619e"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -607,7 +613,7 @@
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
               <textField>
-                <reportElement x="0" y="0" width="70" height="20"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="20"
                   uuid="ba201ea1-3041-4d50-b546-d3b9a4ce5433"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
@@ -616,12 +622,12 @@
               </textField>
             </jr:detailCell>
           </jr:column>
-          <jr:column width="40" uuid="299a618c-60b1-45ee-bfd3-dfee01b8a36c">
+          <jr:column width="50" uuid="299a618c-60b1-45ee-bfd3-dfee01b8a36c">
             <property name="com.jaspersoft.studio.components.table.model.column.name"
               value="Column4"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="40" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="30"
                   uuid="c4fef87b-707e-4406-8821-a3690eaf04a9"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -630,22 +636,22 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="40" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="20"
                   uuid="ba96f816-5077-44a1-b820-76375d356550"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{total}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
-          <jr:column width="51" uuid="036301ab-1dbb-4ab1-a25b-206fc3871d54">
+          <jr:column width="50" uuid="036301ab-1dbb-4ab1-a25b-206fc3871d54">
             <property name="com.jaspersoft.studio.components.table.model.column.name"
               value="Column5"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="51" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="30"
                   uuid="a5bfbd41-ceb3-4cc0-a823-dbccdc163799"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -654,22 +660,22 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="51" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="20"
                   uuid="c714fea4-aa63-4704-a36d-148cc6720185"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{passed}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{passed}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
-          <jr:column width="40" uuid="012751ee-ecd0-4259-aaaa-8bf219a2269a">
+          <jr:column width="50" uuid="012751ee-ecd0-4259-aaaa-8bf219a2269a">
             <property name="com.jaspersoft.studio.components.table.model.column.name"
               value="Column6"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="40" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="30"
                   uuid="e705346a-5e09-4d83-addd-1f514ec17b6d"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -678,13 +684,13 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="40" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="20"
                   uuid="258d73ee-ddef-4902-bbce-a424d2c4f130"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{failed}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{failed}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
@@ -693,7 +699,7 @@
               value="Column7"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="50" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="30"
                   uuid="1ae2a81b-db01-49f0-b25c-89cfc989eb41"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -702,13 +708,13 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="50" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="50" height="20"
                   uuid="508d7d97-04ff-4734-b0e9-826fdc2b30f6"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{skipped}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{skipped}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
@@ -717,7 +723,7 @@
               value="Column8"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="40" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="30"
                   uuid="ed1bfe30-4c47-4fc2-9902-7e98261b56b0"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -726,13 +732,13 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="40" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="20"
                   uuid="568bf98d-a032-4242-8ea5-c509d07952a5"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{automationBug}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{automationBug}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
@@ -741,7 +747,7 @@
               value="Column9"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="40" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="30"
                   uuid="3e6f717a-5f91-4db4-a849-4aeeac81ecb2"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -750,13 +756,13 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="40" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="20"
                   uuid="65fe9d6e-8e44-46d6-a795-3298db9b40b2"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{productBug}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{productBug}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
@@ -765,7 +771,7 @@
               value="Column10"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="40" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="30"
                   uuid="9175f909-a932-455c-8719-00c20d39fd21"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -774,13 +780,13 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="40" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="20"
                   uuid="f917ddc4-503b-4911-89ca-a8c1b63ce588"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{systemIssue}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{systemIssue}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
@@ -789,7 +795,7 @@
               value="Column11"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="40" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="30"
                   uuid="b1c0a90a-1757-45fc-95cb-370a7d20b262"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -798,13 +804,13 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="40" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="20"
                   uuid="d18e6732-4b1b-4dbe-af93-53af34f8a530"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{noDefect}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{noDefect}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
@@ -813,7 +819,7 @@
               value="Column12"/>
             <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
               <staticText>
-                <reportElement x="0" y="0" width="40" height="30"
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="30"
                   uuid="03c2d2fb-cb4a-48fc-b18d-4a6b3ba2fabc"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9" isBold="true"/>
@@ -822,13 +828,13 @@
               </staticText>
             </jr:columnHeader>
             <jr:detailCell style="Table_TD" height="20">
-              <textField>
-                <reportElement x="0" y="0" width="40" height="20"
+              <textField pattern="#,##0">
+                <reportElement stretchType="ContainerHeight" x="0" y="0" width="40" height="20"
                   uuid="798423a0-99ec-4bc6-a82a-e95235ffbdd7"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                   <font fontName="Noto Sans" size="9"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{toInvestigate}.toString()]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{toInvestigate}]]></textFieldExpression>
               </textField>
             </jr:detailCell>
           </jr:column>
@@ -837,15 +843,15 @@
     </band>
   </detail>
   <pageFooter>
-    <band height="22">
+    <band height="20">
       <textField>
-        <reportElement x="680" y="0" width="60" height="20"
+        <reportElement x="680" y="0" width="80" height="20"
           uuid="27912fc5-278f-4ede-aff7-d2bbe49124b8"/>
         <textElement textAlignment="Right"/>
         <textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
       </textField>
       <textField evaluationTime="Report">
-        <reportElement x="740" y="0" width="60" height="20"
+        <reportElement x="760" y="0" width="40" height="20"
           uuid="1f1297e2-e72a-49b7-9220-7ae53baf1c09"/>
         <textElement textAlignment="Left"/>
         <textFieldExpression><![CDATA[" of " + $V{PAGE_NUMBER}]]></textFieldExpression>

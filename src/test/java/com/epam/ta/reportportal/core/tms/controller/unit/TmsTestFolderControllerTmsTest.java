@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.TmsTestFolderController;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TmsTestFolderService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
@@ -60,10 +61,12 @@ public class TmsTestFolderControllerTmsTest {
 
   private MockMvc mockMvc;
   private ReportPortalUser testUser;
+  private ObjectMapper objectMapper;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
+    objectMapper = new ObjectMapper();
 
     // Create a test user
     testUser = ReportPortalUser.userBuilder()
@@ -129,18 +132,17 @@ public class TmsTestFolderControllerTmsTest {
   }
 
   @Test
-  public void testCreateTestFolder() throws Exception {
+  public void testCreateTestFolder_WithoutParent() throws Exception {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
-        .description("doc")
-        .name("name")
+        .description("Root folder description")
+        .name("Root Folder")
         .build();
     TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
         .id(1L)
-        .name("name")
-        .description("doc")
+        .name("Root Folder")
+        .description("Root folder description")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
 
@@ -154,19 +156,103 @@ public class TmsTestFolderControllerTmsTest {
   }
 
   @Test
-  public void testUpdateTestFolder() throws Exception {
-    long folderId = 2L;
+  public void testCreateTestFolder_WithExistingParent() throws Exception {
+    Long existingParentId = 5L;
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
-        .description("doc")
-        .name("name")
+        .description("Child folder description")
+        .name("Child Folder")
+        .parentTestFolderId(existingParentId)
         .build();
     TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
-        .id(1L)
-        .name("name")
-        .description("doc")
+        .id(2L)
+        .name("Child Folder")
+        .description("Child folder description")
+        .parentFolderId(existingParentId)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).create(projectId, request);
+  }
+
+  @Test
+  public void testCreateTestFolder_WithNewParentFolder() throws Exception {
+    ParentTmsTestFolderRQ parentFolder = ParentTmsTestFolderRQ.builder()
+        .name("New Parent Folder")
+        .build();
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder description")
+        .name("Child Folder")
+        .parentTestFolder(parentFolder)
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(3L)
+        .name("Child Folder")
+        .description("Child folder description")
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).create(projectId, request);
+  }
+
+  @Test
+  public void testCreateTestFolder_WithNewParentFolderWithGrandparent() throws Exception {
+    Long grandparentId = 10L;
+    ParentTmsTestFolderRQ parentFolder = ParentTmsTestFolderRQ.builder()
+        .name("New Parent Folder")
+        .parentTestFolderId(grandparentId)
+        .build();
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder description")
+        .name("Child Folder")
+        .parentTestFolder(parentFolder)
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(4L)
+        .name("Child Folder")
+        .description("Child folder description")
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).create(projectId, request);
+  }
+
+  @Test
+  public void testUpdateTestFolder_WithoutParent() throws Exception {
+    long folderId = 2L;
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Updated description")
+        .name("Updated Name")
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(folderId)
+        .name("Updated Name")
+        .description("Updated description")
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     given(tmsTestFolderService.update(projectId, folderId, request))
         .willReturn(expectedResponse);
@@ -181,19 +267,133 @@ public class TmsTestFolderControllerTmsTest {
   }
 
   @Test
-  public void testPatchTestFolder() throws Exception {
+  public void testUpdateTestFolder_WithExistingParent() throws Exception {
     long folderId = 2L;
+    Long existingParentId = 7L;
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
-        .description("updated doc")
-        .name("updated name")
+        .description("Updated description")
+        .name("Updated Name")
+        .parentTestFolderId(existingParentId)
         .build();
     TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
-        .id(1L)
-        .name("updated name")
-        .description("updated doc")
+        .id(folderId)
+        .name("Updated Name")
+        .description("Updated description")
+        .parentFolderId(existingParentId)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.update(projectId, folderId, request))
+        .willReturn(expectedResponse);
+
+    mockMvc.perform(put("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).update(projectId, folderId, request);
+  }
+
+  @Test
+  public void testUpdateTestFolder_WithNewParentFolder() throws Exception {
+    long folderId = 2L;
+    ParentTmsTestFolderRQ parentFolder = ParentTmsTestFolderRQ.builder()
+        .name("Updated Parent Folder")
+        .build();
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Updated description")
+        .name("Updated Name")
+        .parentTestFolder(parentFolder)
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(folderId)
+        .name("Updated Name")
+        .description("Updated description")
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.update(projectId, folderId, request))
+        .willReturn(expectedResponse);
+
+    mockMvc.perform(put("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).update(projectId, folderId, request);
+  }
+
+  @Test
+  public void testPatchTestFolder_WithExistingParent() throws Exception {
+    long folderId = 2L;
+    Long existingParentId = 8L;
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .parentTestFolderId(existingParentId)
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(folderId)
+        .name("Original Name")
+        .description("Original description")
+        .parentFolderId(existingParentId)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.patch(projectId, folderId, request))
+        .willReturn(expectedResponse);
+
+    mockMvc.perform(patch("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).patch(projectId, folderId, request);
+  }
+
+  @Test
+  public void testPatchTestFolder_WithNewParentFolder() throws Exception {
+    long folderId = 2L;
+    ParentTmsTestFolderRQ parentFolder = ParentTmsTestFolderRQ.builder()
+        .name("Patched Parent Folder")
+        .parentTestFolderId(15L)
+        .build();
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Patched description")
+        .parentTestFolder(parentFolder)
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(folderId)
+        .name("Original Name")
+        .description("Patched description")
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.patch(projectId, folderId, request))
+        .willReturn(expectedResponse);
+
+    mockMvc.perform(patch("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+            .contentType("application/json")
+            .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).patch(projectId, folderId, request);
+  }
+
+  @Test
+  public void testPatchTestFolder_OnlyName() throws Exception {
+    long folderId = 2L;
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .name("Only Name Updated")
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(folderId)
+        .name("Only Name Updated")
+        .description("Original description")
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     given(tmsTestFolderService.patch(projectId, folderId, request))
         .willReturn(expectedResponse);

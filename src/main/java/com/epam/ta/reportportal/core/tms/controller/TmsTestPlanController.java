@@ -89,6 +89,7 @@ public class TmsTestPlanController {
    * @return Updated test plan details ({@link TmsTestPlanRS}).
    */
   @PutMapping("/{id}")
+  @Deprecated
   public TmsTestPlanRS updateTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @RequestBody TmsTestPlanRQ testPlan,

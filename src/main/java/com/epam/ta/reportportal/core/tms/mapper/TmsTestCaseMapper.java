@@ -62,6 +62,8 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "testItems", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
   public abstract void update(@MappingTarget TmsTestCase targetTestCase, TmsTestCase tmsTestCase);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -72,6 +74,8 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "testItems", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
   public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
       TmsTestCase tmsTestCase);
 

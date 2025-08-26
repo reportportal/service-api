@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
@@ -17,9 +18,9 @@ public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTe
   void exportFolderById(Long projectId, Long folderId, TmsTestFolderExportFileType fileType,
       HttpServletResponse response);
 
-  TmsTestFolderRS create(long projectId, String testFolderName);
+  TmsTestFolderRS create(long projectId, TmsTestCaseTestFolderRQ testFolderRQ);
 
   Boolean existsById(long projectId, Long testFolderId);
 
-  TmsTestCaseTestFolderRQ resolveTestFolderRQ(Long testFolderId, String testFolderName);
+  void resolveTestFolderRQ(TmsTestCaseRQ testCaseRequest, Long testFolderId, String testFolderName);
 }

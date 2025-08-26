@@ -4,6 +4,7 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -128,7 +129,14 @@ public abstract class TmsTestFolderMapper {
         .apply(pageOfTestFolders);
   }
 
-  public abstract TmsTestFolderRQ convertFromNameToRQ(String name);
+  @Mapping(target = "name", source = "name")
+  @Mapping(target = "parentTestFolderId", source = "parentTestFolderId")
+  public abstract TmsTestFolderRQ convertToRQ(TmsTestCaseTestFolderRQ testFolderRQ);
+
+  @Mapping(target = "project.id", source = "projectId")
+  @Mapping(target = "name", source = "parentTestFolderRQ.name")
+  @Mapping(target = "parentTestFolder.id", source = "parentTestFolderRQ.parentTestFolderId")
+  public abstract TmsTestFolder convertToTestFolder(Long projectId, ParentTmsTestFolderRQ parentTestFolderRQ);
 
   public TmsTestFolderRS convertFromTmsTestFolderWithCountOfTestCasesToRS(
       TmsTestFolderWithCountOfTestCases folderWithCount,
@@ -159,7 +167,7 @@ public abstract class TmsTestFolderMapper {
     return result;
   }
 
-  public abstract TmsTestCaseTestFolderRQ convertToRQ(Long id, String name);
+  public abstract TmsTestCaseTestFolderRQ convertToTmsTestCaseTestFolderRQ(String name);
 
   private TmsTestFolderRS mapSubFolderWithTestCaseCount(
       TmsTestFolder subFolder,

@@ -152,6 +152,7 @@ public class TestCaseController {
       summary = "Update a test case",
       description = "Updates the details of an existing test case in a project."
   )
+  @Deprecated
   @ApiResponse(responseCode = "200", description = "Test case updated successfully")
   public TmsTestCaseRS updateTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,

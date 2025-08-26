@@ -30,8 +30,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
 
   @Override
   @SneakyThrows
-  public List<TmsTestCaseRQ> importFromFile(MultipartFile file,
-      TmsTestCaseTestFolderRQ testFolderRQ) {
+  public List<TmsTestCaseRQ> importFromFile(MultipartFile file) {
     List<TmsTestCaseRQ> testCases = new ArrayList<>();
 
     try (BufferedReader reader = new BufferedReader(
@@ -52,7 +51,6 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
         testCaseRQ.setDescription(csvRecord.get("description"));
         testCaseRQ.setPriority(csvRecord.get("priority"));
         testCaseRQ.setExternalId(csvRecord.get("externalId"));
-        testCaseRQ.setTestFolder(testFolderRQ);
 
         testCases.add(testCaseRQ);
       }

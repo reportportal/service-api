@@ -1,6 +1,9 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -84,7 +87,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional
   public TmsTestCaseRS create(long projectId, TmsTestCaseRQ tmsTestCaseRQ) {
     var tmsTestCase = tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
-        getTestFolderId(projectId, tmsTestCaseRQ.getTestFolder()));
+        getTestFolderId(
+            projectId,
+            tmsTestCaseRQ.getTestFolderId(),
+            tmsTestCaseRQ.getTestFolder()
+        )
+    );
 
     tmsTestCaseRepository.save(tmsTestCase);
 
@@ -106,7 +114,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         .map((var existingTestCase) -> {
           tmsTestCaseMapper.update(existingTestCase,
               tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
-                  getTestFolderId(projectId, tmsTestCaseRQ.getTestFolder())));
+                  getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
+                      tmsTestCaseRQ.getTestFolder())));
 
           tmsTestCaseAttributeService.updateTestCaseAttributes(existingTestCase,
               tmsTestCaseRQ.getTags());
@@ -128,7 +137,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         .map((var existingTestCase) -> {
           tmsTestCaseMapper.patch(existingTestCase,
               tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
-                  getTestFolderId(projectId, tmsTestCaseRQ.getTestFolder())));
+                  getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
+                      tmsTestCaseRQ.getTestFolder())));
 
           tmsTestCaseAttributeService.patchTestCaseAttributes(existingTestCase,
               tmsTestCaseRQ.getTags());
@@ -205,12 +215,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       String testFolderName,
       MultipartFile file) {
     var importer = importerFactory.getImporter(file);
-    var testCaseRequests = importer.importFromFile(
-        file,
-        tmsTestFolderService.resolveTestFolderRQ(testFolderId, testFolderName)
-    );
+    var testCaseRequests = importer.importFromFile(file);
 
-    return testCaseRequests.stream()
+    return testCaseRequests
+        .stream()
+        .peek(testCaseRequest -> tmsTestFolderService.resolveTestFolderRQ(
+            testCaseRequest, testFolderId, testFolderName))
         .map(testCaseRQ -> create(projectId, testCaseRQ))
         .toList();
   }
@@ -310,12 +320,14 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     }
   }
 
-  private Long getTestFolderId(long projectId, TmsTestCaseTestFolderRQ testFolderRQ) {
-    if (Objects.isNull(testFolderRQ)) {
-      return null;
-    }
-    var testFolderId = testFolderRQ.getId();
-    if (Objects.nonNull(testFolderId)) {
+  private Long getTestFolderId(long projectId, Long testFolderId,
+      TmsTestCaseTestFolderRQ testFolderRQ) {
+    if (isNull(testFolderId) && isNull(testFolderRQ) ||
+        isNull(testFolderId) && isNull(testFolderRQ.getName()) ||
+        nonNull(testFolderId) && nonNull(testFolderRQ) && nonNull(testFolderRQ.getName())) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR,
+          "Either parent folder id or parent folder name should be set");
+    } else if (Objects.nonNull(testFolderId)) {
       if (tmsTestFolderService.existsById(projectId, testFolderId)) {
         return testFolderId;
       } else {
@@ -324,7 +336,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       }
     } else {
       return tmsTestFolderService
-          .create(projectId, testFolderRQ.getName())
+          .create(projectId, testFolderRQ)
           .getId();
     }
   }

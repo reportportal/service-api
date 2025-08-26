@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -29,9 +30,9 @@ class TestFolderIdentifierValidatorTest {
   class BeanValidationTests {
 
     @Test
-    void shouldPassValidationWhenTestFolderIdIsProvided() {
-      var request = TmsTestCaseTestFolderRQ.builder()
-          .id(1L)
+    void shouldPassValidationWhenOnlyTestFolderIdIsProvided() {
+      var request = TmsTestCaseRQ.builder()
+          .testFolderId(1L)
           .build();
 
       var violations = validator.validate(request);
@@ -40,10 +41,23 @@ class TestFolderIdentifierValidatorTest {
     }
 
     @Test
-    void shouldPassValidationWhenTestFolderNameIsProvided() {
-      var request = TmsTestCaseTestFolderRQ.builder()
+    void shouldPassValidationWhenOnlyTestFolderIsProvided() {
+      var testFolder = TmsTestCaseTestFolderRQ.builder()
           .name("Test Folder")
           .build();
+
+      var request = TmsTestCaseRQ.builder()
+          .testFolder(testFolder)
+          .build();
+
+      var violations = validator.validate(request);
+
+      assertTrue(violations.isEmpty());
+    }
+
+    @Test
+    void shouldPassValidationWhenBothFieldsAreNull() {
+      var request = TmsTestCaseRQ.builder().build();
 
       var violations = validator.validate(request);
 
@@ -52,35 +66,30 @@ class TestFolderIdentifierValidatorTest {
 
     @Test
     void shouldFailValidationWhenBothFieldsAreProvided() {
-      var request = TmsTestCaseTestFolderRQ.builder()
-          .id(1L)
+      var testFolder = TmsTestCaseTestFolderRQ.builder()
           .name("Test Folder")
           .build();
 
-      var violations = validator.validate(request);
-
-      assertFalse(violations.isEmpty());
-      assertEquals(1, violations.size());
-      assertTrue(violations.iterator().next().getMessage()
-          .contains("Either testFolderId or testFolderName must be provided"));
-    }
-
-    @Test
-    void shouldFailValidationWhenBothFieldsAreNull() {
-      var request = TmsTestCaseTestFolderRQ.builder().build();
+      var request = TmsTestCaseRQ.builder()
+          .testFolderId(1L)
+          .testFolder(testFolder)
+          .build();
 
       var violations = validator.validate(request);
 
       assertFalse(violations.isEmpty());
       assertEquals(1, violations.size());
       assertTrue(violations.iterator().next().getMessage()
-          .contains("Either testFolderId or testFolderName must be provided"));
+          .contains("Either testFolderId or testFolderName must be provided and not empty"));
     }
 
     @Test
-    void shouldFailValidationWhenTestFolderNameIsEmpty() {
-      var request = TmsTestCaseTestFolderRQ.builder()
-          .name("")
+    void shouldFailValidationWhenBothFieldsAreProvidedWithEmptyTestFolder() {
+      var testFolder = TmsTestCaseTestFolderRQ.builder().build();
+
+      var request = TmsTestCaseRQ.builder()
+          .testFolderId(1L)
+          .testFolder(testFolder)
           .build();
 
       var violations = validator.validate(request);
@@ -89,14 +98,25 @@ class TestFolderIdentifierValidatorTest {
     }
 
     @Test
-    void shouldFailValidationWhenTestFolderNameIsBlank() {
-      var request = TmsTestCaseTestFolderRQ.builder()
-          .name("   ")
+    void shouldPassValidationWhenTestFolderIdIsZero() {
+      var request = TmsTestCaseRQ.builder()
+          .testFolderId(0L)
           .build();
 
       var violations = validator.validate(request);
 
-      assertFalse(violations.isEmpty());
+      assertTrue(violations.isEmpty());
+    }
+
+    @Test
+    void shouldPassValidationWhenTestFolderIdIsNegative() {
+      var request = TmsTestCaseRQ.builder()
+          .testFolderId(-1L)
+          .build();
+
+      var violations = validator.validate(request);
+
+      assertTrue(violations.isEmpty());
     }
   }
 

@@ -10,5 +10,5 @@ public interface TmsTestCaseImporter {
 
   TmsTestCaseImportFormat getSupportedFormat();
 
-  List<TmsTestCaseRQ> importFromFile(MultipartFile file, TmsTestCaseTestFolderRQ testFolderRQ);
+  List<TmsTestCaseRQ> importFromFile(MultipartFile file);
 }

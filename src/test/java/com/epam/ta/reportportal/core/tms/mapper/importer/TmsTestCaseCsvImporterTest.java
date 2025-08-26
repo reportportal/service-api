@@ -12,15 +12,10 @@ import org.springframework.mock.web.MockMultipartFile;
 class TmsTestCaseCsvImporterTest {
 
   private TmsTestCaseCsvImporter csvImporter;
-  private TmsTestCaseTestFolderRQ testFolderRQ;
 
   @BeforeEach
   void setUp() {
     csvImporter = new TmsTestCaseCsvImporter();
-    testFolderRQ = TmsTestCaseTestFolderRQ.builder()
-        .id(1L)
-        .name("Default Folder")
-        .build();
   }
 
   @Test
@@ -41,7 +36,7 @@ class TmsTestCaseCsvImporterTest {
     var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
 
     // When
-    var testCases = csvImporter.importFromFile(file, testFolderRQ);
+    var testCases = csvImporter.importFromFile(file);
 
     // Then
     assertThat(testCases).hasSize(2);
@@ -49,18 +44,12 @@ class TmsTestCaseCsvImporterTest {
     var testCase1 = testCases.getFirst();
     assertThat(testCase1.getName()).isEqualTo("Test Case 1");
     assertThat(testCase1.getDescription()).isEqualTo("Description 1");
-    assertThat(testCase1.getTestFolder()).isEqualTo(testFolderRQ);
-    assertThat(testCase1.getTestFolder().getId()).isEqualTo(1L);
-    assertThat(testCase1.getTestFolder().getName()).isEqualTo("Default Folder");
     assertThat(testCase1.getPriority()).isEqualTo("HIGH");
     assertThat(testCase1.getExternalId()).isEqualTo("123");
 
     var testCase2 = testCases.get(1);
     assertThat(testCase2.getName()).isEqualTo("Test Case 2");
     assertThat(testCase2.getDescription()).isEqualTo("Description 2");
-    assertThat(testCase2.getTestFolder()).isEqualTo(testFolderRQ);
-    assertThat(testCase2.getTestFolder().getId()).isEqualTo(1L);
-    assertThat(testCase2.getTestFolder().getName()).isEqualTo("Default Folder");
     assertThat(testCase2.getPriority()).isEqualTo("LOW");
     assertThat(testCase2.getExternalId()).isEqualTo("321");
   }
@@ -73,7 +62,7 @@ class TmsTestCaseCsvImporterTest {
     var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
 
     // When
-    var testCases = csvImporter.importFromFile(file, testFolderRQ);
+    var testCases = csvImporter.importFromFile(file);
 
     // Then
     assertThat(testCases).hasSize(1);
@@ -81,74 +70,10 @@ class TmsTestCaseCsvImporterTest {
     var testCase = testCases.getFirst();
     assertThat(testCase.getName()).isEqualTo("Test Case");
     assertThat(testCase.getDescription()).isEqualTo("Description");
-    assertThat(testCase.getTestFolder()).isEqualTo(testFolderRQ);
     assertThat(testCase.getPriority()).isEmpty();
     assertThat(testCase.getExternalId()).isEmpty();
   }
 
-  @Test
-  void shouldImportTestCasesWithTestFolderById() {
-    // Given
-    var testFolderById = TmsTestCaseTestFolderRQ.builder()
-        .id(5L)
-        .build();
-    var csvContent = "name,description,priority,externalId\n" +
-        "Test Case,Description,MEDIUM,456";
-    var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
-
-    // When
-    var testCases = csvImporter.importFromFile(file, testFolderById);
-
-    // Then
-    assertThat(testCases).hasSize(1);
-
-    var testCase = testCases.getFirst();
-    assertThat(testCase.getName()).isEqualTo("Test Case");
-    assertThat(testCase.getTestFolder()).isEqualTo(testFolderById);
-    assertThat(testCase.getTestFolder().getId()).isEqualTo(5L);
-    assertThat(testCase.getTestFolder().getName()).isNull();
-  }
-
-  @Test
-  void shouldImportTestCasesWithTestFolderByName() {
-    // Given
-    var testFolderByName = TmsTestCaseTestFolderRQ.builder()
-        .name("Integration Tests")
-        .build();
-    var csvContent = "name,description,priority,externalId\n" +
-        "Test Case,Description,LOW,789";
-    var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
-
-    // When
-    var testCases = csvImporter.importFromFile(file, testFolderByName);
-
-    // Then
-    assertThat(testCases).hasSize(1);
-
-    var testCase = testCases.getFirst();
-    assertThat(testCase.getName()).isEqualTo("Test Case");
-    assertThat(testCase.getTestFolder()).isEqualTo(testFolderByName);
-    assertThat(testCase.getTestFolder().getId()).isNull();
-    assertThat(testCase.getTestFolder().getName()).isEqualTo("Integration Tests");
-  }
-
-  @Test
-  void shouldImportTestCasesWithNullTestFolder() {
-    // Given
-    var csvContent = "name,description,priority,externalId\n" +
-        "Test Case,Description,HIGH,000";
-    var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
-
-    // When
-    var testCases = csvImporter.importFromFile(file, null);
-
-    // Then
-    assertThat(testCases).hasSize(1);
-
-    var testCase = testCases.getFirst();
-    assertThat(testCase.getName()).isEqualTo("Test Case");
-    assertThat(testCase.getTestFolder()).isNull();
-  }
 
   @Test
   void shouldThrowExceptionForInvalidCsvFormat() {
@@ -159,7 +84,7 @@ class TmsTestCaseCsvImporterTest {
 
     // When & Then
     var exception = assertThrows(IllegalArgumentException.class, () ->
-        csvImporter.importFromFile(file, testFolderRQ));
+        csvImporter.importFromFile(file));
 
     assertThat(exception.getMessage()).contains("Invalid CSV format");
     assertThat(exception.getMessage()).contains("name, description, priority, externalId");
@@ -173,7 +98,7 @@ class TmsTestCaseCsvImporterTest {
     var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
 
     // When
-    var testCases = csvImporter.importFromFile(file, testFolderRQ);
+    var testCases = csvImporter.importFromFile(file);
 
     // Then
     assertThat(testCases).hasSize(1);
@@ -181,9 +106,6 @@ class TmsTestCaseCsvImporterTest {
     var testCase = testCases.getFirst();
     assertThat(testCase.getName()).isEqualTo("Simple Test");
     assertThat(testCase.getDescription()).isEqualTo("Simple Description");
-    assertThat(testCase.getPriority()).isEqualTo("MEDIUM");
-    assertThat(testCase.getExternalId()).isEqualTo("999");
-    assertThat(testCase.getTestFolder()).isEqualTo(testFolderRQ);
   }
 
   @Test
@@ -196,14 +118,10 @@ class TmsTestCaseCsvImporterTest {
     var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
 
     // When
-    var testCases = csvImporter.importFromFile(file, testFolderRQ);
+    var testCases = csvImporter.importFromFile(file);
 
     // Then
     assertThat(testCases).hasSize(3);
-
-    // Verify all test cases have the same test folder
-    assertThat(testCases).allSatisfy(testCase ->
-        assertThat(testCase.getTestFolder()).isEqualTo(testFolderRQ));
   }
 
   @Test
@@ -213,7 +131,7 @@ class TmsTestCaseCsvImporterTest {
     var file = new MockMultipartFile("file", "testcases.csv", "text/csv", csvContent.getBytes());
 
     // When
-    var testCases = csvImporter.importFromFile(file, testFolderRQ);
+    var testCases = csvImporter.importFromFile(file);
 
     // Then
     assertThat(testCases).isEmpty();

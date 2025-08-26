@@ -1,13 +1,17 @@
 package com.epam.ta.reportportal.core.tms.controller.integration;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,6 +23,8 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +38,14 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
 
+  @PersistenceContext
+  private EntityManager entityManager;
+
   @Autowired
   private TmsTestFolderRepository tmsTestFolderRepository;
 
   @Test
-  void createTestFolderIntegrationTest() throws Exception {
+  void createRootTestFolderIntegrationTest() throws Exception {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .description("description_create")
         .name("name_create")
@@ -52,19 +61,24 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.name").value(request.getName()))
         .andExpect(jsonPath("$.description").value(request.getDescription()));
 
-    Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(1L);
-    assertTrue(folder.isPresent());
-    assertEquals(request.getName(), folder.get().getName());
-    assertEquals(request.getDescription(), folder.get().getDescription());
-    assertEquals(1L, folder.get().getProject().getId());
+    // Find the created folder (assuming it gets ID based on sequence or max+1)
+    var createdFolder = tmsTestFolderRepository.findAll().stream()
+        .filter(f -> f.getName().equals("name_create"))
+        .findFirst();
+
+    assertTrue(createdFolder.isPresent());
+    assertEquals(request.getName(), createdFolder.get().getName());
+    assertEquals(request.getDescription(), createdFolder.get().getDescription());
+    assertEquals(1L, createdFolder.get().getProject().getId());
+    assertNull(createdFolder.get().getParentTestFolder());
   }
 
   @Test
-  void createTestFolderWithParentIntegrationTest() throws Exception {
+  void createTestFolderWithExistingParentIdIntegrationTest() throws Exception {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .description("Child folder description")
         .name("Child folder")
-        .parentTestFolder(ParentTmsTestFolderRQ.builder().id(3L).build())
+        .parentTestFolderId(3L) // Use existing folder by ID
         .build();
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(request);
@@ -77,6 +91,143 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.name").value(request.getName()))
         .andExpect(jsonPath("$.description").value(request.getDescription()))
         .andExpect(jsonPath("$.parentFolderId").value(3L));
+
+    // Verify in database
+    var createdFolder = tmsTestFolderRepository.findAll().stream()
+        .filter(f -> f.getName().equals("Child folder"))
+        .findFirst();
+
+    assertTrue(createdFolder.isPresent());
+    assertNotNull(createdFolder.get().getParentTestFolder());
+    assertEquals(3L, createdFolder.get().getParentTestFolder().getId());
+  }
+
+  @Test
+  void createTestFolderWithNewRootParentFolderIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder with new parent")
+        .name("Child folder with new parent")
+        .parentTestFolder(ParentTmsTestFolderRQ.builder()
+            .name("New Root Parent Folder")
+            .build())
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(request.getName()))
+        .andExpect(jsonPath("$.description").value(request.getDescription()))
+        .andExpect(jsonPath("$.parentFolderId").exists());
+
+    entityManager.clear();
+
+    // Verify both folders are created
+    var createdChildFolder = tmsTestFolderRepository.findAll().stream()
+        .filter(f -> f.getName().equals("Child folder with new parent"))
+        .findFirst();
+
+    assertTrue(createdChildFolder.isPresent());
+    assertNotNull(createdChildFolder.get().getParentTestFolder());
+    assertEquals("New Root Parent Folder", createdChildFolder.get().getParentTestFolder().getName());
+    assertNull(createdChildFolder.get().getParentTestFolder().getParentTestFolder()); // New parent has no parent
+  }
+
+  @Test
+  void createTestFolderWithNestedNewParentFolderIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder with nested new parent")
+        .name("Child folder with nested parent")
+        .parentTestFolder(ParentTmsTestFolderRQ.builder()
+            .name("New Parent Folder with Grandparent")
+            .parentTestFolderId(3L) // New parent will have existing folder 3 as parent
+            .build())
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(request.getName()))
+        .andExpect(jsonPath("$.description").value(request.getDescription()))
+        .andExpect(jsonPath("$.parentFolderId").exists());
+
+    // Verify hierarchy is created correctly
+    var createdChildFolder = tmsTestFolderRepository.findAll().stream()
+        .filter(f -> f.getName().equals("Child folder with nested parent"))
+        .findFirst();
+
+    assertTrue(createdChildFolder.isPresent());
+    assertNotNull(createdChildFolder.get().getParentTestFolder());
+    assertEquals("New Parent Folder with Grandparent", createdChildFolder.get().getParentTestFolder().getName());
+    assertNotNull(createdChildFolder.get().getParentTestFolder().getParentTestFolder());
+    assertEquals(3L, createdChildFolder.get().getParentTestFolder().getParentTestFolder().getId());
+  }
+
+  @Test
+  void createTestFolderWithNonExistentParentIdIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder with invalid parent")
+        .name("Child folder invalid parent")
+        .parentTestFolderId(999L) // Non-existent folder ID
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Folder with id: 999")));
+  }
+
+  @Test
+  void createTestFolderWithNewParentHavingNonExistentGrandparentIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder with invalid grandparent")
+        .name("Child folder invalid grandparent")
+        .parentTestFolder(ParentTmsTestFolderRQ.builder()
+            .name("New Parent with Invalid Grandparent")
+            .parentTestFolderId(999L) // Non-existent grandparent folder ID
+            .build())
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Folder with id: 999")));
+  }
+
+  @Test
+  void createTestFolderWithBothParentOptionsValidationIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Child folder with both parent options")
+        .name("Child folder both options")
+        .parentTestFolderId(3L)
+        .parentTestFolder(ParentTmsTestFolderRQ.builder()
+            .name("New Parent Folder")
+            .build())
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Either parent folder id or parent folder name should be set")));
   }
 
   @Test
@@ -104,6 +255,62 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void updateTestFolderWithNewParentIdIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Updated description with new parent")
+        .name("Updated name with new parent")
+        .parentTestFolderId(4L)
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(request.getName()))
+        .andExpect(jsonPath("$.description").value(request.getDescription()))
+        .andExpect(jsonPath("$.parentFolderId").value(4L));
+
+    Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(3L);
+    assertTrue(folder.isPresent());
+    assertEquals(request.getName(), folder.get().getName());
+    assertEquals(request.getDescription(), folder.get().getDescription());
+    assertNotNull(folder.get().getParentTestFolder());
+    assertEquals(4L, folder.get().getParentTestFolder().getId());
+  }
+
+  @Test
+  void updateTestFolderWithNewParentFolderIntegrationTest() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Updated description with brand new parent")
+        .name("Updated name with brand new parent")
+        .parentTestFolder(ParentTmsTestFolderRQ.builder()
+            .name("Brand New Parent for Update")
+            .build())
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(request.getName()))
+        .andExpect(jsonPath("$.description").value(request.getDescription()))
+        .andExpect(jsonPath("$.parentFolderId").exists());
+
+    Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(3L);
+    assertTrue(folder.isPresent());
+    assertEquals(request.getName(), folder.get().getName());
+    assertEquals(request.getDescription(), folder.get().getDescription());
+    assertNotNull(folder.get().getParentTestFolder());
+    assertEquals("Brand New Parent for Update", folder.get().getParentTestFolder().getName());
+  }
+
+  @Test
   void patchTestFolderIntegrationTest() throws Exception {
     Optional<TmsTestFolder> originalFolder = tmsTestFolderRepository.findById(4L);
     assertTrue(originalFolder.isPresent());
@@ -125,6 +332,32 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     assertTrue(updatedFolder.isPresent());
     assertEquals("patched_name", updatedFolder.get().getName());
     assertEquals(originalFolder.get().getDescription(), updatedFolder.get().getDescription());
+  }
+
+  @Test
+  void patchTestFolderWithNewParentIdIntegrationTest() throws Exception {
+    Optional<TmsTestFolder> originalFolder = tmsTestFolderRepository.findById(4L);
+    assertTrue(originalFolder.isPresent());
+
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .parentTestFolderId(5L)
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.parentFolderId").value(5L));
+
+    Optional<TmsTestFolder> updatedFolder = tmsTestFolderRepository.findById(4L);
+    assertTrue(updatedFolder.isPresent());
+    assertEquals(originalFolder.get().getName(), updatedFolder.get().getName());
+    assertEquals(originalFolder.get().getDescription(), updatedFolder.get().getDescription());
+    assertNotNull(updatedFolder.get().getParentTestFolder());
+    assertEquals(5L, updatedFolder.get().getParentTestFolder().getId());
   }
 
   @Test

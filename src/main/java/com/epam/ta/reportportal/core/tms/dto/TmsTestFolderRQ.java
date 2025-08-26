@@ -15,6 +15,7 @@ public class TmsTestFolderRQ {
 
   private String name;
   private String description;
+  private Long parentTestFolderId;
   private ParentTmsTestFolderRQ parentTestFolder;
 
   @Data
@@ -24,7 +25,7 @@ public class TmsTestFolderRQ {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   public static class ParentTmsTestFolderRQ {
 
-    private Long id;
     private String name;
+    private Long parentTestFolderId;
   }
 }

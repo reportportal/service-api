@@ -104,6 +104,7 @@ public class TmsTestFolderController {
       @ApiResponse(responseCode = "400", description = "Invalid request body"),
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
+  @Deprecated
   public TmsTestFolderRS updateTestFolder(
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,

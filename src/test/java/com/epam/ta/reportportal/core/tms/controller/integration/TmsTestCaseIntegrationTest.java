@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,6 +27,7 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsStepsManualScenarioRep
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseVersionRepository;
+import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTextManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
@@ -66,6 +68,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   private TmsTestCaseRepository testCaseRepository;
 
   @Autowired
+  private TmsTestFolderRepository tmsTestFolderRepository;
+
+  @Autowired
   private TmsTestCaseVersionRepository testCaseVersionRepository;
 
   @Autowired
@@ -97,9 +102,68 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     attribute.setId(3L);
 
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
-    testCaseRQ.setName("Test Case 3");
-    testCaseRQ.setDescription("Description for test case 3");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build());
+    testCaseRQ.setName("Test Case Without Manual Scenario");
+    testCaseRQ.setDescription("Description for test case without manual scenario");
+    testCaseRQ.setTestFolderId(3L);
+    testCaseRQ.setTags(List.of(attribute));
+    testCaseRQ.setPriority("MEDIUM");
+    // No manualScenario specified
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case Without Manual Scenario"))
+        .andExpect(
+            jsonPath("$.description").value("Description for test case without manual scenario"))
+        .andExpect(jsonPath("$.priority").value("MEDIUM"))
+        .andExpect(jsonPath("$.manualScenario").doesNotExist()); // No manual scenario in response
+
+    // Then - Verify test case is created with default version but without manual scenario
+    var createdTestCase = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Test Case Without Manual Scenario"))
+        .findFirst();
+
+    assertTrue(createdTestCase.isPresent());
+    assertEquals(3L, createdTestCase.get().getTestFolder().getId());
+    assertEquals("MEDIUM", createdTestCase.get().getPriority());
+
+    // Verify default version is created
+    assertFalse(createdTestCase.get().getVersions().isEmpty());
+
+    var defaultVersion = createdTestCase.get().getVersions().stream()
+        .filter(TmsTestCaseVersion::isDefault)
+        .findFirst();
+
+    assertTrue(defaultVersion.isPresent());
+
+    // Verify no manual scenario is attached to the default version
+    assertNull(defaultVersion.get().getManualScenario());
+
+    // Verify test case has the correct attributes
+    var testCaseTags = testCaseAttributeRepository.findAllById_TestCaseId(
+        createdTestCase.get().getId());
+    assertFalse(testCaseTags.isEmpty());
+    assertTrue(testCaseTags.stream().anyMatch(tag ->
+        tag.getValue().equals("value3") && tag.getId().getAttributeId().equals(3L)));
+  }
+
+  @Test
+  void createTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
+    // Given
+    var attribute = new TmsAttributeRQ();
+    attribute.setValue("value3");
+    attribute.setId(3L);
+
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Test Case with Existing Folder ID");
+    testCaseRQ.setDescription("Description for test case with existing folder ID");
+    testCaseRQ.setTestFolderId(3L); // Use existing folder by ID
     testCaseRQ.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -110,7 +174,16 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case with Existing Folder ID"));
+
+    // Then - Verify test case is created with correct folder
+    var createdTestCase = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Test Case with Existing Folder ID"))
+        .findFirst();
+
+    assertTrue(createdTestCase.isPresent());
+    assertEquals(3L, createdTestCase.get().getTestFolder().getId());
   }
 
   @Test
@@ -119,7 +192,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Test Case with Invalid Folder");
     testCaseRQ.setDescription("Description for test case with invalid folder");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(999L).build()); // Non-existent folder
+    testCaseRQ.setTestFolderId(999L); // Non-existent folder ID
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
@@ -134,7 +207,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void createTestCaseWithNewFolderNameIntegrationTest() throws Exception {
+  void createTestCaseWithNewRootFolderIntegrationTest() throws Exception {
     // Given - test case with folder name instead of ID (should create new folder)
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Test Case with New Folder");
@@ -152,6 +225,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Test Case with New Folder"));
 
+    entityManager.clear();
+
     // Then - Verify new folder was created and assigned to test case
     var createdTestCase = testCaseRepository.findAll().stream()
         .filter(tc -> tc.getName().equals("Test Case with New Folder"))
@@ -159,6 +234,93 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     assertTrue(createdTestCase.isPresent());
     assertNotNull(createdTestCase.get().getTestFolder());
+
+    var testFolder = tmsTestFolderRepository.findById(createdTestCase.get().getTestFolder().getId());
+
+    assertTrue(testFolder.isPresent());
+    assertEquals("New Test Folder", testFolder.get().getName());
+  }
+
+  @Test
+  void createTestCaseWithNewNestedFolderIntegrationTest() throws Exception {
+    // Given - test case with new folder that has a parent
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Test Case with Nested Folder");
+    testCaseRQ.setDescription("Description for test case with nested folder");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder()
+        .name("New Nested Folder")
+        .parentTestFolderId(3L) // Parent folder ID
+        .build());
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case with Nested Folder"));
+
+    entityManager.clear();
+
+    // Then - Verify new nested folder was created
+    var createdTestCase = testCaseRepository.findAll().stream()
+        .filter(tc -> tc.getName().equals("Test Case with Nested Folder"))
+        .findFirst();
+
+    assertTrue(createdTestCase.isPresent());
+    assertNotNull(createdTestCase.get().getTestFolder());
+
+    var testFolder = tmsTestFolderRepository.findById(createdTestCase.get().getTestFolder().getId());
+
+    assertTrue(testFolder.isPresent());
+    assertEquals("New Nested Folder", testFolder.get().getName());
+    assertEquals(3L, testFolder.get().getParentTestFolder().getId());
+  }
+
+  @Test
+  void createTestCaseWithoutFolderValidationIntegrationTest() throws Exception {
+    // Given - test case without any folder information
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Test Case without Folder");
+    testCaseRQ.setDescription("Description for test case without folder");
+    // No testFolderId or testFolder specified
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When/Then - should return validation error
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            content().string(containsString("Either parent folder id or parent folder name should be set")));
+  }
+
+  @Test
+  void createTestCaseWithBothFolderOptionsValidationIntegrationTest() throws Exception {
+    // Given - test case with both testFolderId and testFolder (should be validation error)
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Test Case with Both Folder Options");
+    testCaseRQ.setDescription("Description for test case with both folder options");
+    testCaseRQ.setTestFolderId(3L);
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().name("New Folder").build());
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When/Then - should return validation error
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test
@@ -173,7 +335,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseRQ = TmsTestCaseRQ.builder()
         .name("Test Case With Text Scenario")
         .description("Description for test case with text scenario")
-        .testFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build())
+        .testFolderId(3L)
         .manualScenario(manualScenarioRQ)
         .build();
 
@@ -196,6 +358,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .findFirst();
 
     assertTrue(createdTestCase.isPresent());
+    assertEquals(3L, createdTestCase.get().getTestFolder().getId());
 
     if (!createdTestCase.get().getVersions().isEmpty()) {
       var defaultVersion = createdTestCase.get().getVersions().stream()
@@ -231,7 +394,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseRQ = TmsTestCaseRQ.builder()
         .name("Test Case With Steps Scenario")
         .description("Description for test case with steps scenario")
-        .testFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build())
+        .testFolderId(3L)
         .manualScenario(manualScenarioRQ)
         .build();
 
@@ -254,8 +417,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .findFirst();
 
     assertTrue(createdTestCase.isPresent());
+    assertEquals(3L, createdTestCase.get().getTestFolder().getId());
 
-    // If versions are still created automatically, check the default version
     if (!createdTestCase.get().getVersions().isEmpty()) {
       var defaultVersion = createdTestCase.get().getVersions().stream()
           .filter(TmsTestCaseVersion::isDefault)
@@ -294,7 +457,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseRQ = TmsTestCaseRQ.builder()
         .name("Test Case With Steps Scenario for default project")
         .description("Description for test case with steps scenario for default project")
-        .testFolder(TmsTestCaseTestFolderRQ.builder().id(9L).build())
+        .testFolderId(9L)
         .manualScenario(manualScenarioRQ)
         .build();
 
@@ -316,11 +479,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     assertTrue(createdTestCase.isPresent());
     assertNotNull(createdTestCase.get().getTestFolder());
+    assertEquals(9L, createdTestCase.get().getTestFolder().getId());
 
     var testFolder = createdTestCase.get().getTestFolder();
     assertEquals(2, testFolder.getProject().getId());
 
-    // If versions are still created automatically, check the default version
     if (!createdTestCase.get().getVersions().isEmpty()) {
       var defaultVersion = createdTestCase.get().getVersions().stream()
           .filter(TmsTestCaseVersion::isDefault)
@@ -350,7 +513,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseRQ = TmsTestCaseRQ.builder()
         .name("Test Case With Steps Scenario without steps")
         .description("Description for test case with steps scenario")
-        .testFolder(TmsTestCaseTestFolderRQ.builder().id(3L).build())
+        .testFolderId(3L)
         .manualScenario(manualScenarioRQ)
         .priority("HIGH")
         .build();
@@ -372,8 +535,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .findFirst();
 
     assertTrue(createdTestCase.isPresent());
+    assertEquals(3L, createdTestCase.get().getTestFolder().getId());
 
-    // If versions are still created automatically, check the default version
     if (!createdTestCase.get().getVersions().isEmpty()) {
       var defaultVersion = createdTestCase.get().getVersions().stream()
           .filter(TmsTestCaseVersion::isDefault)
@@ -467,7 +630,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void updateTestCaseIntegrationTest() throws Exception {
+  void updateTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsAttributeRQ();
     attribute.setValue("value4");
@@ -476,7 +639,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Updated Test Case 5");
     testCaseRQ.setDescription("Updated description for test case 5");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(5L).build());
+    testCaseRQ.setTestFolderId(5L); // Use existing folder ID
     testCaseRQ.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -495,8 +658,32 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertTrue(testCase.isPresent());
     assertEquals(testCaseRQ.getName(), testCase.get().getName());
     assertEquals(testCaseRQ.getDescription(), testCase.get().getDescription());
-    assertEquals(testCaseRQ.getTestFolder().getId(),
-        testCase.get().getTestFolder().getId());
+    assertEquals(testCaseRQ.getTestFolderId(), testCase.get().getTestFolder().getId());
+  }
+
+  @Test
+  void updateTestCaseWithNewFolderIntegrationTest() throws Exception {
+    // Give
+
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Updated Test Case 5 with New Folder");
+    testCaseRQ.setDescription("Updated description for test case 5 with new folder");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder()
+        .name("Updated New Folder")
+        .build()); // Create new folder
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/5")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(5L))
+        .andExpect(jsonPath("$.name").value(testCaseRQ.getName()))
+        .andExpect(jsonPath("$.description").value(testCaseRQ.getDescription()));
   }
 
   @Test
@@ -505,7 +692,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Updated Test Case with Invalid Folder");
     testCaseRQ.setDescription("Updated description");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(999L).build()); // Non-existent folder
+    testCaseRQ.setTestFolderId(999L); // Non-existent folder ID
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
@@ -533,7 +720,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseRQ = TmsTestCaseRQ.builder()
         .name("Updated Test Case 17")
         .description("Updated description for test case 17")
-        .testFolder(TmsTestCaseTestFolderRQ.builder().id(7L).build())
+        .testFolderId(7L)
         .manualScenario(manualScenarioRQ)
         .build();
 
@@ -552,10 +739,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     Optional<TmsTestCase> testCase = testCaseRepository.findById(17L);
     assertTrue(testCase.isPresent());
     assertEquals("Updated Test Case 17", testCase.get().getName());
+    assertEquals(7L, testCase.get().getTestFolder().getId());
   }
 
   @Test
-  void patchTestCaseIntegrationTest() throws Exception {
+  void patchTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsAttributeRQ();
     attribute.setValue("value6");
@@ -563,7 +751,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case 6");
     testCaseRQ.setDescription("Patched description for test case 6");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(6L).build());
+    testCaseRQ.setTestFolderId(6L);
     testCaseRQ.setTags(List.of(attribute));
 
     ObjectMapper mapper = new ObjectMapper();
@@ -582,8 +770,47 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertTrue(testCase.isPresent());
     assertEquals(testCaseRQ.getName(), testCase.get().getName());
     assertEquals(testCaseRQ.getDescription(), testCase.get().getDescription());
-    assertEquals(testCaseRQ.getTestFolder().getId(),
-        testCase.get().getTestFolder().getId());
+    assertEquals(testCaseRQ.getTestFolderId(), testCase.get().getTestFolder().getId());
+  }
+
+  @Test
+  void patchTestCaseWithNewFolderIntegrationTest() throws Exception {
+    // Given
+    var attribute = new TmsAttributeRQ();
+    attribute.setValue("value6");
+    attribute.setKey("key6");
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Patched Test Case 6 with New Folder");
+    testCaseRQ.setDescription("Patched description for test case 6 with new folder");
+    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder()
+        .name("Patched New Folder")
+        .build());
+    testCaseRQ.setTags(List.of(attribute));
+
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/6")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(6L))
+        .andExpect(jsonPath("$.name").value(testCaseRQ.getName()))
+        .andExpect(jsonPath("$.description").value(testCaseRQ.getDescription()));
+
+    entityManager.flush();
+
+    // Then
+    Optional<TmsTestCase> testCase = testCaseRepository.findById(6L);
+
+    assertTrue(testCase.isPresent());
+
+    var testFolder = tmsTestFolderRepository.findById(testCase.get().getTestFolder().getId());
+
+    assertTrue(testFolder.isPresent());
+    assertEquals("Patched New Folder", testFolder.get().getName());
   }
 
   @Test
@@ -591,7 +818,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // Given
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case with Invalid Folder");
-    testCaseRQ.setTestFolder(TmsTestCaseTestFolderRQ.builder().id(999L).build()); // Non-existent folder
+    testCaseRQ.setTestFolderId(999L); // Non-existent folder ID
 
     ObjectMapper mapper = new ObjectMapper();
     String jsonContent = mapper.writeValueAsString(testCaseRQ);
@@ -630,8 +857,10 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .filter(sms -> sms.getManualScenario().getTestCaseVersion().getTestCase().getId()
             .equals(testCaseId)).toList().isEmpty());
     assertTrue(stepRepository.findAll().stream()
-        .filter(s -> s.getStepsManualScenario().getManualScenario().getTestCaseVersion().getTestCase().getId()
-            .equals(testCaseId)).toList().isEmpty());
+        .filter(
+            s -> s.getStepsManualScenario().getManualScenario().getTestCaseVersion().getTestCase()
+                .getId()
+                .equals(testCaseId)).toList().isEmpty());
   }
 
   @Test
@@ -1007,11 +1236,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString("'Test Folder with id: 999 for project: 1' not found")));
+        .andExpect(content().string(
+            containsString("'Test Folder with id: 999 for project: 1' not found")));
   }
 
   @Test
-  void importTestCasesFromJsonIntegrationTest() throws Exception {
+  void importTestCasesToExistingFolderIntegrationTest() throws Exception {
     // Given
     var jsonContent = """
         [
@@ -1119,6 +1349,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.length()").value(1))
         .andExpect(jsonPath("$[0].name").value("Imported Test Case with New Folder"));
 
+    entityManager.clear();
+
     // Then - Verify test case is created in database with new folder
     var importedTestCases = testCaseRepository.findAll().stream()
         .filter(tc -> tc.getName().equals("Imported Test Case with New Folder"))
@@ -1126,6 +1358,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     assertEquals(1, importedTestCases.size());
     assertNotNull(importedTestCases.getFirst().getTestFolder());
+
+    var testFolder = tmsTestFolderRepository.findById(importedTestCases.getFirst().getTestFolder().getId());
+
+    assertTrue(testFolder.isPresent());
+    assertEquals("New Import Folder", testFolder.get().getName());
   }
 
   @Test
@@ -1217,7 +1454,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .param("testFolderName", "Test Folder")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+        .andExpect(content().string(containsString(
+            "Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test
@@ -1246,7 +1484,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .file(file)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+        .andExpect(content().string(containsString(
+            "Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test
@@ -1276,7 +1515,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .param("testFolderId", "")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+        .andExpect(content().string(containsString(
+            "Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test
@@ -1362,10 +1602,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNoContent());
 
     // Then - Verify tag is deleted
@@ -1392,10 +1633,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNoContent());
 
     // Then - Verify specific tag is deleted
@@ -1417,10 +1659,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then - should succeed (no error for non-existent tags)
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNoContent());
   }
 
@@ -1438,10 +1681,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then - should return validation error
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
@@ -1459,7 +1703,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(deleteRequest);
 
     // When/Then - should return not found
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + nonExistentTestCaseId + "/tags")
+    mockMvc.perform(delete(
+            "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + nonExistentTestCaseId
+                + "/tags")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -1607,7 +1853,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void batchDeleteTagsFromTestCasesWithMixedExistingAndNonExistentTestCasesIntegrationTest() throws Exception {
+  void batchDeleteTagsFromTestCasesWithMixedExistingAndNonExistentTestCasesIntegrationTest()
+      throws Exception {
     // Given
     var testCaseIds = List.of(25L, 999L); // 25L exists, 999L doesn't
     var tagIds = List.of(1L);
@@ -1626,7 +1873,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString("'Test Cases with ids: [999] for projectId: 1' not found")));
+        .andExpect(content().string(
+            containsString("'Test Cases with ids: [999] for projectId: 1' not found")));
   }
 
   @Test
@@ -1636,10 +1884,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String malformedJson = "{\"tagIds\": [1, 2, 3";
 
     // When/Then - should return bad request
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
-            .contentType("application/json")
-            .content(malformedJson)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
+                .contentType("application/json")
+                .content(malformedJson)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
@@ -1714,7 +1963,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString("'Test Folder with id: 999 for project: 1' not found")));
+        .andExpect(content().string(
+            containsString("'Test Folder with id: 999 for project: 1' not found")));
   }
 
   @Test
@@ -1858,7 +2108,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(7)); // 7 test cases in test plan 1 (4,5,6,13,14,15,16)
+        .andExpect(jsonPath("$.content.length()").value(
+            7)); // 7 test cases in test plan 1 (4,5,6,13,14,15,16)
   }
 
   @Test
@@ -1870,7 +2121,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(4)); // 4 test cases in test plan 1 and folder 7 (13,14,15,16)
+        .andExpect(jsonPath("$.content.length()").value(
+            4)); // 4 test cases in test plan 1 and folder 7 (13,14,15,16)
   }
 
   @Test
@@ -1882,7 +2134,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(1)); // 1 test case with "Test Case 5" in name in test plan 1
+        .andExpect(jsonPath("$.content.length()").value(
+            1)); // 1 test case with "Test Case 5" in name in test plan 1
   }
 
   @Test
@@ -1895,7 +2148,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(1)); // 1 test case matching all criteria (15)
+        .andExpect(
+            jsonPath("$.content.length()").value(1)); // 1 test case matching all criteria (15)
   }
 
   @Test
@@ -1906,7 +2160,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(0)); // 0 test cases for non-existent test plan
+        .andExpect(
+            jsonPath("$.content.length()").value(0)); // 0 test cases for non-existent test plan
   }
 
   @Test
@@ -1917,7 +2172,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(5)); // 5 test cases in test plan 2 (7,8,9,15,19)
+        .andExpect(
+            jsonPath("$.content.length()").value(5)); // 5 test cases in test plan 2 (7,8,9,15,19)
   }
 
   @Test
@@ -1928,7 +2184,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(4)); // 4 test cases in test plan 3 (10,11,12,20)
+        .andExpect(
+            jsonPath("$.content.length()").value(4)); // 4 test cases in test plan 3 (10,11,12,20)
   }
 
   @Test

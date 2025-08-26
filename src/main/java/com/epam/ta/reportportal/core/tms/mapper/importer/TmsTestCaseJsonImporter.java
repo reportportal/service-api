@@ -24,14 +24,10 @@ public class TmsTestCaseJsonImporter implements TmsTestCaseImporter {
 
   @Override
   @SneakyThrows
-  public List<TmsTestCaseRQ> importFromFile(MultipartFile file,
-      TmsTestCaseTestFolderRQ testFolderRQ) {
+  public List<TmsTestCaseRQ> importFromFile(MultipartFile file) {
     try (var inputStream = file.getInputStream()) {
-      return objectMapper.readValue(inputStream, new TypeReference<List<TmsTestCaseRQ>>() {
-          })
-          .stream()
-          .peek(testCase -> testCase.setTestFolder(testFolderRQ))
-          .toList();
+      return objectMapper.readValue(inputStream, new TypeReference<>() {
+      });
     }
   }
 }

@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.validation;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -14,12 +15,12 @@ import org.springframework.stereotype.Component;
  * Validator implementation for {@link ValidTestFolderIdentifier} annotation.
  * <p>
  * This validator ensures that either testFolderId or testFolderName is provided
- * in the TmsTestCaseTestFolderRQ object, but not necessarily both.
+ * in the TmsTestCaseRQ object, but not both.
  * </p>
  */
 @Component
 public class TestFolderIdentifierValidator
-    implements ConstraintValidator<ValidTestFolderIdentifier, TmsTestCaseTestFolderRQ> {
+    implements ConstraintValidator<ValidTestFolderIdentifier, TmsTestCaseRQ> {
 
   @Override
   public void initialize(ValidTestFolderIdentifier constraintAnnotation) {
@@ -34,15 +35,15 @@ public class TestFolderIdentifierValidator
    * @return true if validation passes, false otherwise
    */
   @Override
-  public boolean isValid(TmsTestCaseTestFolderRQ value, ConstraintValidatorContext context) {
+  public boolean isValid(TmsTestCaseRQ value, ConstraintValidatorContext context) {
     if (value == null) {
       return true; // Let @NotNull handle null objects if needed
     }
 
-    var hasTestFolderId = Objects.nonNull(value.getId());
-    var hasTestFolderName = StringUtils.isNotBlank(value.getName());
+    var hasTestFolderId = Objects.nonNull(value.getTestFolderId());
+    var hasTestFolderCreatedFromName = Objects.nonNull(value.getTestFolder());
 
-    if ((hasTestFolderId && hasTestFolderName) || (!hasTestFolderId && !hasTestFolderName)) {
+    if ((hasTestFolderId && hasTestFolderCreatedFromName)) {
       context.disableDefaultConstraintViolation();
       context.buildConstraintViolationWithTemplate(
               "Either testFolderId or testFolderName must be provided and not empty")

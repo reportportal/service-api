@@ -64,7 +64,7 @@ public class SettingsController {
   public OperationCompletionRS saveAnalyticsSettings(
       @RequestBody @Validated AnalyticsResource request,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return serverHandler.saveAnalyticsSettings(request);
+    return serverHandler.saveAnalyticsSettings(request, user);
   }
 
   @Transactional

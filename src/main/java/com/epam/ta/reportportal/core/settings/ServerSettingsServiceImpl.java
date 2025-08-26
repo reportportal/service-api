@@ -67,7 +67,7 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
   }
 
   @Override
-  public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource) {
+  public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource, ReportPortalUser user) {
     String analyticsType = analyticsResource.getType();
     Map<String, ServerSettings> serverAnalyticsDetails = findServerSettings().entrySet().stream()
         .filter(entry -> entry.getKey().startsWith(ANALYTICS_CONFIG_PREFIX))
@@ -80,11 +80,20 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
     ServerSettings analyticsDetails =
         ofNullable(serverAnalyticsDetails.get(formattedAnalyticsType)).orElseGet(
             ServerSettings::new);
+    ServerSettingsResource before = TO_RESOURCE.apply(analyticsDetails);
+
     analyticsDetails.setKey(formattedAnalyticsType);
     analyticsDetails.setValue(
         String.valueOf((ofNullable(analyticsResource.getEnabled()).orElse(false))));
 
     serverSettingsRepository.save(analyticsDetails);
+
+    messageBus.publishActivity(new SettingsUpdatedEvent(
+        before,
+        TO_RESOURCE.apply(analyticsDetails),
+        user.getUserId(),
+        user.getUsername()
+    ));
     return new OperationCompletionRS("Server Settings were successfully updated.");
   }
 

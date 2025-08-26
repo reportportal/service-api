@@ -50,9 +50,10 @@ public interface ServerSettingsService {
    * Update analytics settings
    *
    * @param analyticsResource {@link AnalyticsResource}
+   * @param user              User
    * @return Operation results
    */
-  OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource);
+  OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource, ReportPortalUser user);
 
   /**
    * Update server settings

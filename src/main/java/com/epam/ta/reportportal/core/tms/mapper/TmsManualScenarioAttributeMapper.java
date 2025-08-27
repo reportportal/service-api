@@ -1,7 +1,9 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttribute;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttributeId;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -49,4 +51,23 @@ public abstract class TmsManualScenarioAttributeMapper {
   @Mapping(target = "value", source = "tmsManualScenarioAttribute.value")
   public abstract TmsAttributeRS convertTmsAttributeRS(
       TmsManualScenarioAttribute tmsManualScenarioAttribute);
+
+  public TmsManualScenarioAttribute duplicateAttribute(
+      TmsManualScenarioAttribute originalAttribute,
+      TmsManualScenario newScenario) {
+
+    var duplicatedAttribute = new TmsManualScenarioAttribute();
+
+    var newAttributeId = new TmsManualScenarioAttributeId();
+    newAttributeId.setManualScenarioId(newScenario.getId());
+    newAttributeId.setAttributeId(originalAttribute.getAttribute().getId());
+
+    duplicatedAttribute.setId(newAttributeId);
+    duplicatedAttribute.setManualScenario(newScenario);
+    duplicatedAttribute.setAttribute(
+        originalAttribute.getAttribute()); // using same TmsAttribute
+    duplicatedAttribute.setValue(originalAttribute.getValue());
+
+    return duplicatedAttribute;
+  }
 }

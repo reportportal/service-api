@@ -93,4 +93,21 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
 
     return tmsTestFolder;
   }
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "searchVector", ignore = true)
+  @Mapping(target = "tags", ignore = true)
+  @Mapping(target = "dataset", ignore = true)
+  @Mapping(target = "testPlans", ignore = true)
+  @Mapping(target = "versions", ignore = true)
+  @Mapping(target = "externalId", ignore = true) //externalId is unique
+  @Mapping(target = "testItems", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "name", source = "originalTestCase.name")
+  @Mapping(target = "priority", source = "originalTestCase.priority")
+  @Mapping(target = "description", source = "originalTestCase.description")
+  @Mapping(target = "testFolder", source = "targetFolder")
+  public abstract TmsTestCase duplicateTestCase(TmsTestCase originalTestCase,
+      TmsTestFolder targetFolder);
 }

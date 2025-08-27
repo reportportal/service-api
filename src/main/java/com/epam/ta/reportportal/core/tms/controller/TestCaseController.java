@@ -5,9 +5,9 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.ta.reportportal.model.Page;
@@ -382,6 +382,32 @@ public class TestCaseController {
             .getProjectId(),
         deleteRequest.getTestCaseIds(),
         deleteRequest.getTagIds()
+    );
+  }
+
+  /**
+   * Creates duplicates of multiple test cases with all their related data.
+   *
+   * @param projectKey       The key of the project.
+   * @param duplicateRequest Request containing list of test case IDs to duplicate.
+   * @return A list of data transfer objects ({@link TmsTestCaseRS}) containing details of the
+   * duplicated test cases.
+   */
+  @PostMapping("/batch/duplicate")
+  @Operation(
+      summary = "Duplicate multiple test cases",
+      description = "Creates full copies of multiple test cases including their default versions, manual scenarios, and attachments.",
+      tags = {"Batch Operations"}
+  )
+  @ApiResponse(responseCode = "200", description = "Test cases duplicated successfully")
+  public List<TmsTestCaseRS> duplicateTestCases(@PathVariable("projectKey") String projectKey,
+      @Valid @RequestBody BatchDuplicateTestCasesRQ duplicateRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return tmsTestCaseService.duplicate(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        duplicateRequest
     );
   }
 }

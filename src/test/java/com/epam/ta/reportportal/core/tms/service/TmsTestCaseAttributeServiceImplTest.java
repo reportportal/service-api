@@ -45,10 +45,13 @@ class TmsTestCaseAttributeServiceImplTest {
 
   private TmsTestCase testCase;
   private TmsTestCase testCase2;
+  private TmsTestCase originalTestCase;
+  private TmsTestCase newTestCase;
   private List<TmsTestCase> testCases;
   private List<TmsAttributeRQ> attributeRQs;
   private Set<TmsTestCaseAttribute> testCaseAttributes;
   private Set<TmsTestCaseAttribute> existingAttributes;
+  private Set<TmsTestCaseAttribute> duplicatedAttributes;
   private Map<String, TmsAttribute> tmsAttributesMap;
 
   @BeforeEach
@@ -64,6 +67,17 @@ class TmsTestCaseAttributeServiceImplTest {
     testCase2.setId(2L);
     testCase2.setName("Test Case 2");
     testCase2.setDescription("Description 2");
+
+    // Setup original and new test cases for duplication
+    originalTestCase = new TmsTestCase();
+    originalTestCase.setId(3L);
+    originalTestCase.setName("Original Test Case");
+    originalTestCase.setDescription("Original Description");
+
+    newTestCase = new TmsTestCase();
+    newTestCase.setId(4L);
+    newTestCase.setName("New Test Case");
+    newTestCase.setDescription("New Description");
 
     // Setup test cases list
     testCases = Arrays.asList(testCase, testCase2);
@@ -83,6 +97,44 @@ class TmsTestCaseAttributeServiceImplTest {
 
     testCase.setTags(new HashSet<>(existingAttributes));
     testCase2.setTags(new HashSet<>());
+
+    // Setup original test case attributes for duplication
+    Set<TmsTestCaseAttribute> originalAttributes = new HashSet<>();
+    TmsTestCaseAttribute originalAttribute1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttributeId originalAttributeId1 = new TmsTestCaseAttributeId(3L, 5L);
+    originalAttribute1.setId(originalAttributeId1);
+    TmsAttribute originalTmsAttribute1 = new TmsAttribute();
+    originalTmsAttribute1.setId(5L);
+    originalAttribute1.setAttribute(originalTmsAttribute1);
+    originalAttribute1.setValue("original-value-1");
+    originalAttributes.add(originalAttribute1);
+
+    TmsTestCaseAttribute originalAttribute2 = new TmsTestCaseAttribute();
+    TmsTestCaseAttributeId originalAttributeId2 = new TmsTestCaseAttributeId(3L, 6L);
+    originalAttribute2.setId(originalAttributeId2);
+    TmsAttribute originalTmsAttribute2 = new TmsAttribute();
+    originalTmsAttribute2.setId(6L);
+    originalAttribute2.setAttribute(originalTmsAttribute2);
+    originalAttribute2.setValue("original-value-2");
+    originalAttributes.add(originalAttribute2);
+
+    originalTestCase.setTags(originalAttributes);
+
+    // Setup duplicated attributes
+    duplicatedAttributes = new HashSet<>();
+    TmsTestCaseAttribute duplicatedAttribute1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttributeId duplicatedAttributeId1 = new TmsTestCaseAttributeId(4L, 5L);
+    duplicatedAttribute1.setId(duplicatedAttributeId1);
+    duplicatedAttribute1.setAttribute(originalTmsAttribute1);
+    duplicatedAttribute1.setValue("original-value-1");
+    duplicatedAttributes.add(duplicatedAttribute1);
+
+    TmsTestCaseAttribute duplicatedAttribute2 = new TmsTestCaseAttribute();
+    TmsTestCaseAttributeId duplicatedAttributeId2 = new TmsTestCaseAttributeId(4L, 6L);
+    duplicatedAttribute2.setId(duplicatedAttributeId2);
+    duplicatedAttribute2.setAttribute(originalTmsAttribute2);
+    duplicatedAttribute2.setValue("original-value-2");
+    duplicatedAttributes.add(duplicatedAttribute2);
 
     // Setup attribute requests
     attributeRQs = new ArrayList<>();
@@ -521,5 +573,100 @@ class TmsTestCaseAttributeServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeRepository).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
         attributeIds);
+  }
+
+  @Test
+  void duplicateTestCaseAttributes_WithExistingAttributes_ShouldDuplicateAndSaveAttributes() {
+    // Given
+    TmsTestCaseAttribute originalAttribute1 = originalTestCase.getTags().iterator().next();
+    TmsTestCaseAttribute duplicatedAttribute1 = duplicatedAttributes.iterator().next();
+
+    when(tmsTestCaseAttributeMapper.duplicateTestCaseAttribute(originalAttribute1, newTestCase))
+        .thenReturn(duplicatedAttribute1);
+
+    // We need to set up the mapper to return different duplicated attributes for each original
+    originalTestCase.getTags().forEach(originalAttribute -> {
+      TmsTestCaseAttribute duplicatedAttribute = duplicatedAttributes.stream()
+          .filter(dup -> dup.getAttribute().getId().equals(originalAttribute.getAttribute().getId()))
+          .findFirst()
+          .orElse(null);
+      when(tmsTestCaseAttributeMapper.duplicateTestCaseAttribute(originalAttribute, newTestCase))
+          .thenReturn(duplicatedAttribute);
+    });
+
+    // When
+    sut.duplicateTestCaseAttributes(originalTestCase, newTestCase);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).saveAll(duplicatedAttributes);
+
+    // Verify that duplicateTestCaseAttribute was called for each original attribute
+    originalTestCase.getTags().forEach(originalAttribute -> {
+      verify(tmsTestCaseAttributeMapper).duplicateTestCaseAttribute(originalAttribute, newTestCase);
+    });
+  }
+
+  @Test
+  void duplicateTestCaseAttributes_WithNoAttributes_ShouldNotCallMapperOrRepository() {
+    // Given
+    TmsTestCase emptyOriginalTestCase = new TmsTestCase();
+    emptyOriginalTestCase.setId(5L);
+    emptyOriginalTestCase.setTags(null);
+
+    // When
+    sut.duplicateTestCaseAttributes(emptyOriginalTestCase, newTestCase);
+
+    // Then
+    verifyNoInteractions(tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+  }
+
+  @Test
+  void duplicateTestCaseAttributes_WithEmptyAttributes_ShouldNotCallMapperOrRepository() {
+    // Given
+    TmsTestCase emptyOriginalTestCase = new TmsTestCase();
+    emptyOriginalTestCase.setId(5L);
+    emptyOriginalTestCase.setTags(new HashSet<>());
+
+    // When
+    sut.duplicateTestCaseAttributes(emptyOriginalTestCase, newTestCase);
+
+    // Then
+    verifyNoInteractions(tmsTestCaseAttributeMapper, tmsTestCaseAttributeRepository);
+  }
+
+  @Test
+  void duplicateTestCaseAttributes_WithSingleAttribute_ShouldDuplicateCorrectly() {
+    // Given
+    TmsTestCase singleAttributeOriginalTestCase = new TmsTestCase();
+    singleAttributeOriginalTestCase.setId(6L);
+
+    TmsTestCaseAttribute singleOriginalAttribute = new TmsTestCaseAttribute();
+    TmsTestCaseAttributeId singleOriginalAttributeId = new TmsTestCaseAttributeId(6L, 7L);
+    singleOriginalAttribute.setId(singleOriginalAttributeId);
+    TmsAttribute singleTmsAttribute = new TmsAttribute();
+    singleTmsAttribute.setId(7L);
+    singleOriginalAttribute.setAttribute(singleTmsAttribute);
+    singleOriginalAttribute.setValue("single-value");
+
+    Set<TmsTestCaseAttribute> singleAttributeSet = Set.of(singleOriginalAttribute);
+    singleAttributeOriginalTestCase.setTags(singleAttributeSet);
+
+    TmsTestCaseAttribute singleDuplicatedAttribute = new TmsTestCaseAttribute();
+    TmsTestCaseAttributeId singleDuplicatedAttributeId = new TmsTestCaseAttributeId(4L, 7L);
+    singleDuplicatedAttribute.setId(singleDuplicatedAttributeId);
+    singleDuplicatedAttribute.setAttribute(singleTmsAttribute);
+    singleDuplicatedAttribute.setValue("single-value");
+
+    Set<TmsTestCaseAttribute> singleDuplicatedAttributeSet = Set.of(singleDuplicatedAttribute);
+
+    when(tmsTestCaseAttributeMapper.duplicateTestCaseAttribute(singleOriginalAttribute, newTestCase))
+        .thenReturn(singleDuplicatedAttribute);
+
+    // When
+    sut.duplicateTestCaseAttributes(singleAttributeOriginalTestCase, newTestCase);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).duplicateTestCaseAttribute(singleOriginalAttribute, newTestCase);
+    verify(tmsTestCaseAttributeRepository).saveAll(singleDuplicatedAttributeSet);
   }
 }

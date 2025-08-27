@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
@@ -99,7 +99,7 @@ class TmsTestFolderServiceImplTest {
   private TmsTestFolder secondSubfolder;
   private TmsTestFolder subSubFolder;
   private List<TmsTestFolder> allFolders;
-  private TmsTestCaseTestFolderRQ testCaseTestFolderRQ;
+  private NewTestFolderRQ newTestFolderRQ;
   private TmsTestCaseRQ testCaseRQ;
 
   @BeforeEach
@@ -176,7 +176,7 @@ class TmsTestFolderServiceImplTest {
         .countOfTestCases(0L)
         .build();
 
-    testCaseTestFolderRQ = TmsTestCaseTestFolderRQ.builder()
+    newTestFolderRQ = NewTestFolderRQ.builder()
         .name(testFolderName)
         .build();
 
@@ -898,21 +898,21 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testCreateWithTestCaseTestFolderRQ() {
+  void testCreateWithNewTestFolderRQ() {
     // Arrange
-    when(tmsTestFolderMapper.convertToRQ(testCaseTestFolderRQ)).thenReturn(testFolderRQ);
+    when(tmsTestFolderMapper.convertToRQ(newTestFolderRQ)).thenReturn(testFolderRQ);
     when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQ)).thenReturn(testFolder);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
     // Act
-    TmsTestFolderRS result = sut.create(projectId, testCaseTestFolderRQ);
+    TmsTestFolderRS result = sut.create(projectId, newTestFolderRQ);
 
     // Assert
     assertNotNull(result);
     assertEquals(testFolderRS.getId(), result.getId());
 
-    verify(tmsTestFolderMapper).convertToRQ(testCaseTestFolderRQ);
+    verify(tmsTestFolderMapper).convertToRQ(newTestFolderRQ);
     verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQ);
     verify(tmsTestFolderRepository).save(testFolder);
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
@@ -938,14 +938,14 @@ class TmsTestFolderServiceImplTest {
     // Arrange
     doNothing().when(testFolderIdentifierValidator).validate(null, testFolderName);
     when(tmsTestFolderMapper.convertToTmsTestCaseTestFolderRQ(testFolderName))
-        .thenReturn(testCaseTestFolderRQ);
+        .thenReturn(newTestFolderRQ);
 
     // Act
     sut.resolveTestFolderRQ(testCaseRQ, null, testFolderName);
 
     // Assert
     assertNull(testCaseRQ.getTestFolderId());
-    assertEquals(testCaseTestFolderRQ, testCaseRQ.getTestFolder());
+    assertEquals(newTestFolderRQ, testCaseRQ.getTestFolder());
 
     verify(testFolderIdentifierValidator).validate(null, testFolderName);
     verify(tmsTestFolderMapper).convertToTmsTestCaseTestFolderRQ(testFolderName);
@@ -1150,5 +1150,163 @@ class TmsTestFolderServiceImplTest {
     assertNotNull(resultSubFolder2.getSubFolders());
     assertEquals(1, resultSubFolder2.getSubFolders().size());
     assertEquals(14L, resultSubFolder2.getSubFolders().getFirst().getId());
+  }
+
+  @Test
+  void testResolveTargetFolderId_WithExistingFolderId() {
+    // Arrange
+    when(tmsTestFolderRepository.existsByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(true);
+
+    // Act
+    Long result = sut.resolveTargetFolderId(projectId, testFolderId, null);
+
+    // Assert
+    assertEquals(testFolderId, result);
+    verify(tmsTestFolderRepository).existsByIdAndProjectId(testFolderId, projectId);
+  }
+
+  @Test
+  void testResolveTargetFolderId_WithNonExistingFolderId() {
+    // Arrange
+    when(tmsTestFolderRepository.existsByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(false);
+
+    // Act & Assert
+    var exception = assertThrows(ReportPortalException.class, () ->
+        sut.resolveTargetFolderId(projectId, testFolderId, null));
+
+    assertTrue(exception.getMessage().contains(
+        String.format("Test Folder with id: %d for project: %d", testFolderId, projectId)));
+
+    verify(tmsTestFolderRepository).existsByIdAndProjectId(testFolderId, projectId);
+  }
+
+  @Test
+  void testResolveTargetFolderId_WithNewFolder() {
+    // Arrange
+    NewTestFolderRQ newFolderRQ = NewTestFolderRQ.builder()
+        .name("New Folder")
+        .build();
+
+    TmsTestFolder newFolder = new TmsTestFolder();
+    newFolder.setId(testFolderId);
+
+    when(tmsTestFolderMapper.convertFromName(projectId, "New Folder"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.save(newFolder))
+        .thenReturn(newFolder);
+
+    // Act
+    Long result = sut.resolveTargetFolderId(projectId, null, newFolderRQ);
+
+    // Assert
+    assertEquals(testFolderId, result);
+    verify(tmsTestFolderMapper).convertFromName(projectId, "New Folder");
+    verify(tmsTestFolderRepository).save(newFolder);
+  }
+
+  @Test
+  void testResolveTargetFolderId_WithNewFolderAndParent() {
+    // Arrange
+    Long parentFolderId = 5L;
+    NewTestFolderRQ newFolderRQ = NewTestFolderRQ.builder()
+        .name("New Folder")
+        .parentTestFolderId(parentFolderId)
+        .build();
+
+    TmsTestFolder newFolder = new TmsTestFolder();
+    newFolder.setId(testFolderId);
+
+    when(tmsTestFolderMapper.convertFromName(projectId, "New Folder"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.existsByIdAndProjectId(parentFolderId, projectId))
+        .thenReturn(true);
+    when(tmsTestFolderMapper.convertFromId(parentFolderId))
+        .thenReturn(parentTestFolder);
+    when(tmsTestFolderRepository.save(newFolder))
+        .thenReturn(newFolder);
+
+    // Act
+    Long result = sut.resolveTargetFolderId(projectId, null, newFolderRQ);
+
+    // Assert
+    assertEquals(testFolderId, result);
+    verify(tmsTestFolderMapper).convertFromName(projectId, "New Folder");
+    verify(tmsTestFolderRepository).existsByIdAndProjectId(parentFolderId, projectId);
+    verify(tmsTestFolderMapper).convertFromId(parentFolderId);
+    verify(tmsTestFolderRepository).save(newFolder);
+  }
+
+  @Test
+  void testResolveTargetFolderId_WithBothIdAndName() {
+    // Arrange
+    NewTestFolderRQ newFolderRQ = NewTestFolderRQ.builder()
+        .name("New Folder")
+        .build();
+
+    // Act & Assert
+    var exception = assertThrows(ReportPortalException.class, () ->
+        sut.resolveTargetFolderId(projectId, testFolderId, newFolderRQ));
+
+    assertTrue(exception.getMessage().contains(
+        "Either target folder id or target folder name should be set"));
+  }
+
+  @Test
+  void testResolveTargetFolderId_WithEmptyFolderName() {
+    // Arrange
+    NewTestFolderRQ newFolderRQ = NewTestFolderRQ.builder()
+        .build(); // no name set
+
+    // Act & Assert
+    var exception = assertThrows(ReportPortalException.class, () ->
+        sut.resolveTargetFolderId(projectId, null, newFolderRQ));
+
+    assertTrue(exception.getMessage().contains(
+        "Either target folder id or target folder name should be set"));
+  }
+
+  @Test
+  void testResolveTargetFolderId_WithBothNull() {
+    // Act & Assert
+    var exception = assertThrows(ReportPortalException.class, () ->
+        sut.resolveTargetFolderId(projectId, null, null));
+
+    assertTrue(exception.getMessage().contains(
+        "Either target folder id or target folder name must be provided for duplication"));
+  }
+
+  @Test
+  void testGetEntityById_Success() {
+    // Arrange
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+
+    // Act
+    TmsTestFolder result = sut.getEntityById(projectId, testFolderId);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(testFolder.getId(), result.getId());
+    assertEquals(testFolder.getName(), result.getName());
+
+    verify(tmsTestFolderRepository).findByIdAndProjectId(testFolderId, projectId);
+  }
+
+  @Test
+  void testGetEntityById_NotFound() {
+    // Arrange
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.empty());
+
+    // Act & Assert
+    var exception = assertThrows(ReportPortalException.class, () ->
+        sut.getEntityById(projectId, testFolderId));
+
+    assertTrue(exception.getMessage().contains(
+        String.format("Test Folder with id: %d for project: %d", testFolderId, projectId)));
+
+    verify(tmsTestFolderRepository).findByIdAndProjectId(testFolderId, projectId);
   }
 }

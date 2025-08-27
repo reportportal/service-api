@@ -3,7 +3,6 @@ package com.epam.ta.reportportal.core.tms.mapper;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTextManualScenario;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRS;
-import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -58,4 +57,12 @@ public interface TmsTextManualScenarioMapper {
 
   @Mapping(target = "value", source = "value")
   TmsManualScenarioPreconditionsRS convertToTmsManualScenarioPreconditionsRS(String value);
+
+  @Mapping(target = "manualScenarioId", ignore = true)
+  @Mapping(target = "attachments", ignore = true)
+  @Mapping(target = "instructions", source = "originalTextScenario.instructions")
+  @Mapping(target = "expectedResult", source = "originalTextScenario.expectedResult")
+  @Mapping(target = "manualScenario", source = "newScenario")
+  TmsTextManualScenario duplicateTextScenario(TmsManualScenario newScenario,
+      TmsTextManualScenario originalTextScenario);
 }

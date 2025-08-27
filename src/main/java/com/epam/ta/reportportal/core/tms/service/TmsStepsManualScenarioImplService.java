@@ -108,4 +108,17 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
     tmsStepService.deleteAllByTestFolderId(projectId, folderId);
     tmsStepsManualScenarioRepository.deleteAllByTestFolderId(projectId, folderId);
   }
+
+  @Override
+  @Transactional
+  public void duplicateManualScenarioImpl(TmsManualScenario newScenario, TmsManualScenario originalScenario) {
+    var originalStepsScenario = originalScenario.getStepsScenario();
+    if (Objects.nonNull(originalStepsScenario)) {
+      var duplicatedStepsScenario = tmsStepsManualScenarioMapper.createTmsStepsManualScenario(newScenario);
+      newScenario.setStepsScenario(duplicatedStepsScenario);
+      tmsStepsManualScenarioRepository.save(duplicatedStepsScenario);
+
+      tmsStepService.duplicateSteps(originalStepsScenario.getSteps(), duplicatedStepsScenario);
+    }
+  }
 }

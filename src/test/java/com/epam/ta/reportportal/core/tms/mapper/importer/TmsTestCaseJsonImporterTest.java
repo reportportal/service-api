@@ -2,9 +2,9 @@ package com.epam.ta.reportportal.core.tms.mapper.importer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseImportFormat;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,7 +16,7 @@ class TmsTestCaseJsonImporterTest {
 
   private TmsTestCaseJsonImporter jsonImporter;
   private ObjectMapper objectMapper;
-  private TmsTestCaseTestFolderRQ testFolderRQ;
+  private NewTestFolderRQ testFolderRQ;
 
   @BeforeEach
   void setUp() {

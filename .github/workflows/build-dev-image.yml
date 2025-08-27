@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - feature/upcoming
     paths-ignore:
       - '.github/**'
       - README.md

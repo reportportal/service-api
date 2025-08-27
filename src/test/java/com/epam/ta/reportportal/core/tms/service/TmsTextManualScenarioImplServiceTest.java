@@ -192,6 +192,109 @@ class TmsTextManualScenarioImplServiceTest {
     verify(tmsTextManualScenarioRepository).deleteAllByTestFolderId(1L, 123L);
   }
 
+  @Test
+  void shouldDuplicateManualScenarioImplWhenOriginalHasTextScenario() {
+    // Given
+    var originalScenario = createManualScenario();
+    var originalTextScenario = createExistingTextManualScenario();
+    originalScenario.setTextScenario(originalTextScenario);
+
+    var newScenario = createManualScenario();
+    newScenario.setId(2L);
+
+    var duplicatedTextScenario = createTextManualScenario();
+    duplicatedTextScenario.setManualScenarioId(2L);
+
+    when(tmsTextManualScenarioMapper.duplicateTextScenario(newScenario, originalTextScenario))
+        .thenReturn(duplicatedTextScenario);
+    when(tmsTextManualScenarioRepository.save(duplicatedTextScenario))
+        .thenReturn(duplicatedTextScenario);
+
+    // When
+    textManualScenarioService.duplicateManualScenarioImpl(newScenario, originalScenario);
+
+    // Then
+    verify(tmsTextManualScenarioMapper).duplicateTextScenario(newScenario, originalTextScenario);
+    verify(tmsTextManualScenarioRepository).save(duplicatedTextScenario);
+
+    assertThat(newScenario.getTextScenario()).isEqualTo(duplicatedTextScenario);
+  }
+
+  @Test
+  void shouldNotDuplicateManualScenarioImplWhenOriginalHasNoTextScenario() {
+    // Given
+    var originalScenario = createManualScenario();
+    originalScenario.setTextScenario(null);
+
+    var newScenario = createManualScenario();
+    newScenario.setId(2L);
+
+    // When
+    textManualScenarioService.duplicateManualScenarioImpl(newScenario, originalScenario);
+
+    // Then
+    verify(tmsTextManualScenarioMapper, never()).duplicateTextScenario(any(), any());
+    verify(tmsTextManualScenarioRepository, never()).save(any());
+
+    assertThat(newScenario.getTextScenario()).isNull();
+  }
+
+  @Test
+  void shouldHandleDuplicateManualScenarioImplWithNullOriginalScenario() {
+    // Given
+    var newScenario = createManualScenario();
+    newScenario.setId(2L);
+
+    // When
+    textManualScenarioService.duplicateManualScenarioImpl(newScenario, null);
+
+    // Then
+    verify(tmsTextManualScenarioMapper, never()).duplicateTextScenario(any(), any());
+    verify(tmsTextManualScenarioRepository, never()).save(any());
+
+    assertThat(newScenario.getTextScenario()).isNull();
+  }
+
+  @Test
+  void shouldDuplicateAndMaintainOriginalScenarioIntegrity() {
+    // Given
+    var originalScenario = createManualScenario();
+    var originalTextScenario = createExistingTextManualScenario();
+    originalTextScenario.setInstructions("Original instructions");
+    originalTextScenario.setExpectedResult("Original result");
+    originalScenario.setTextScenario(originalTextScenario);
+
+    var newScenario = createManualScenario();
+    newScenario.setId(2L);
+
+    var duplicatedTextScenario = createTextManualScenario();
+    duplicatedTextScenario.setManualScenarioId(2L);
+    duplicatedTextScenario.setInstructions("Duplicated instructions");
+    duplicatedTextScenario.setExpectedResult("Duplicated result");
+
+    when(tmsTextManualScenarioMapper.duplicateTextScenario(newScenario, originalTextScenario))
+        .thenReturn(duplicatedTextScenario);
+    when(tmsTextManualScenarioRepository.save(duplicatedTextScenario))
+        .thenReturn(duplicatedTextScenario);
+
+    // When
+    textManualScenarioService.duplicateManualScenarioImpl(newScenario, originalScenario);
+
+    // Then
+    verify(tmsTextManualScenarioMapper).duplicateTextScenario(newScenario, originalTextScenario);
+    verify(tmsTextManualScenarioRepository).save(duplicatedTextScenario);
+
+    // Original scenario should remain unchanged
+    assertThat(originalScenario.getTextScenario()).isEqualTo(originalTextScenario);
+    assertThat(originalTextScenario.getInstructions()).isEqualTo("Original instructions");
+    assertThat(originalTextScenario.getExpectedResult()).isEqualTo("Original result");
+
+    // New scenario should have the duplicated text scenario
+    assertThat(newScenario.getTextScenario()).isEqualTo(duplicatedTextScenario);
+    assertThat(duplicatedTextScenario.getInstructions()).isEqualTo("Duplicated instructions");
+    assertThat(duplicatedTextScenario.getExpectedResult()).isEqualTo("Duplicated result");
+  }
+
   // Helper methods
   private TmsTextManualScenarioRQ createTextScenarioRQ() {
     return TmsTextManualScenarioRQ.builder()

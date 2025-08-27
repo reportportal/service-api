@@ -1,7 +1,9 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttribute;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttributeId;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -10,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +44,28 @@ public abstract class TmsTestCaseAttributeMapper {
   @Mapping(target = "attribute", source = "tmsAttribute")
   @Mapping(target = "id.attributeId", source = "tmsAttribute.id")
   @Mapping(target = "value", source = "value")
-  public abstract TmsTestCaseAttribute convertTmsTestCaseAttribute(TmsAttribute tmsAttribute, String value);
+  public abstract TmsTestCaseAttribute convertTmsTestCaseAttribute(TmsAttribute tmsAttribute,
+      String value);
 
   @Mapping(target = "id", source = "tmsTestCaseAttribute.id.attributeId")
   @Mapping(target = "key", source = "tmsTestCaseAttribute.attribute.key")
   @Mapping(target = "value", source = "tmsTestCaseAttribute.value")
   public abstract TmsAttributeRS convertTmsAttributeRS(TmsTestCaseAttribute tmsTestCaseAttribute);
+
+  public TmsTestCaseAttribute duplicateTestCaseAttribute(TmsTestCaseAttribute originalAttribute,
+      TmsTestCase newTestCase) {
+    var duplicatedAttribute = new TmsTestCaseAttribute();
+
+    var newAttributeId = new TmsTestCaseAttributeId();
+    newAttributeId.setTestCaseId(newTestCase.getId());
+    newAttributeId.setAttributeId(originalAttribute.getAttribute().getId());
+
+    duplicatedAttribute.setId(newAttributeId);
+    duplicatedAttribute.setTestCase(newTestCase);
+    duplicatedAttribute.setAttribute(
+        originalAttribute.getAttribute()); // use same TmsAttribute
+    duplicatedAttribute.setValue(originalAttribute.getValue());
+
+    return duplicatedAttribute;
+  }
 }

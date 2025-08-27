@@ -9,10 +9,11 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
@@ -320,8 +321,26 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     }
   }
 
+  @Override
+  @Transactional
+  public List<TmsTestCaseRS> duplicate(long projectId, BatchDuplicateTestCasesRQ duplicateRequest) {
+    validateTestCasesExist(projectId, duplicateRequest.getTestCaseIds());
+
+    var targetFolderId = tmsTestFolderService.resolveTargetFolderId(
+        projectId,
+        duplicateRequest.getTestFolderId(),
+        duplicateRequest.getTestFolder()
+    );
+
+    return duplicateRequest
+        .getTestCaseIds()
+        .stream()
+        .map(testCaseId -> duplicateTestCase(projectId, testCaseId, targetFolderId))
+        .toList();
+  }
+
   private Long getTestFolderId(long projectId, Long testFolderId,
-      TmsTestCaseTestFolderRQ testFolderRQ) {
+      NewTestFolderRQ testFolderRQ) {
     if (isNull(testFolderId) && isNull(testFolderRQ) ||
         isNull(testFolderId) && isNull(testFolderRQ.getName()) ||
         nonNull(testFolderId) && nonNull(testFolderRQ) && nonNull(testFolderRQ.getName())) {
@@ -339,5 +358,31 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           .create(projectId, testFolderRQ)
           .getId();
     }
+  }
+
+  @Transactional
+  public TmsTestCaseRS duplicateTestCase(long projectId, Long testCaseId, Long targetFolderId) {
+    var originalTestCase = tmsTestCaseRepository
+        .findByProjectIdAndId(projectId, testCaseId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
+        );
+
+    var originalDefaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
+
+    var targetFolder = tmsTestFolderService.getEntityById(projectId, targetFolderId);
+
+    var duplicatedTestCase = tmsTestCaseRepository.save(
+        tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder)
+    );
+
+    var duplicatedDefaultVersion = tmsTestCaseVersionService.duplicateDefaultVersion(
+        duplicatedTestCase, originalDefaultVersion);
+
+    if (CollectionUtils.isNotEmpty(originalTestCase.getTags())) {
+      tmsTestCaseAttributeService.duplicateTestCaseAttributes(originalTestCase, duplicatedTestCase);
+    }
+
+    return tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedDefaultVersion);
   }
 }

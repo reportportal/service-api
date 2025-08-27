@@ -3,13 +3,16 @@ package com.epam.ta.reportportal.core.tms.service;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttribute;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -110,5 +113,23 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   public void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds,
       List<Long> attributeIds) {
     tmsTestCaseAttributeRepository.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
+
+  @Override
+  @Transactional
+  public void duplicateTestCaseAttributes(TmsTestCase originalTestCase, TmsTestCase newTestCase) {
+    if (CollectionUtils.isNotEmpty(originalTestCase.getTags())) {
+      var duplicatedAttributes = originalTestCase
+          .getTags()
+          .stream()
+          .map(originalAttribute -> tmsTestCaseAttributeMapper.duplicateTestCaseAttribute(
+              originalAttribute, newTestCase))
+          .collect(Collectors.toSet());
+
+      var savedAttributes = new HashSet<>(
+          tmsTestCaseAttributeRepository.saveAll(duplicatedAttributes));
+
+      newTestCase.setTags(savedAttributes);
+    }
   }
 }

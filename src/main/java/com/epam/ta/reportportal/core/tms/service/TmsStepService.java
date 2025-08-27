@@ -1,7 +1,9 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
+import java.util.Collection;
 import java.util.List;
 
 public interface TmsStepService {
@@ -16,4 +18,12 @@ public interface TmsStepService {
   void deleteAllByTestCaseIds(List<Long> testCaseIds);
 
   void deleteAllByTestFolderId(Long projectId, Long folderId);
+
+  /**
+   * Duplicates steps from original scenario to new scenario.
+   *
+   * @param originalSteps The steps from original scenario to duplicate.
+   * @param newStepsScenario The new steps scenario to attach duplicated steps to.
+   */
+  void duplicateSteps(Collection<TmsStep> originalSteps, TmsStepsManualScenario newStepsScenario);
 }

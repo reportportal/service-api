@@ -15,6 +15,12 @@ public interface TmsStepsManualScenarioMapper {
     return TmsStepsManualScenario.builder().build();
   }
 
+  default TmsStepsManualScenario createTmsStepsManualScenario(TmsManualScenario newScenario) {
+    var tmsStepsManualScenario = createTmsStepsManualScenario();
+    tmsStepsManualScenario.setManualScenario(newScenario);
+    return tmsStepsManualScenario;
+  }
+
   @Mapping(target = "id", source = "id")
   @Mapping(target = "executionEstimationTime", source = "executionEstimationTime")
   @Mapping(target = "linkToRequirements", source = "linkToRequirements")

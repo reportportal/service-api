@@ -9,7 +9,9 @@ import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioAttributeMapper;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +34,8 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
         tmsAttributeService.getTmsAttributes(attributes), attributes);
     tmsManualScenario.setAttributes(tmsManualScenarioAttributes);
     tmsManualScenarioAttributes.forEach(
-        tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(tmsManualScenario));
+        tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(
+            tmsManualScenario));
     tmsManualScenarioAttributeRepository.saveAll(tmsManualScenarioAttributes);
   }
 
@@ -58,7 +61,8 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
         tmsAttributeService.getTmsAttributes(attributes), attributes);
     tmsManualScenario.getAttributes().addAll(tmsManualScenarioAttributes);
     tmsManualScenarioAttributes.forEach(
-        tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(tmsManualScenario));
+        tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(
+            tmsManualScenario));
     tmsManualScenarioAttributeRepository.saveAll(tmsManualScenarioAttributes);
   }
 
@@ -79,6 +83,24 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
   @Override
   @Transactional
   public void deleteAllByTestFolderId(Long projectId, Long folderId) {
-    tmsManualScenarioAttributeRepository.deleteManualScenarioAttributesByTestFolderId(projectId, folderId);
+    tmsManualScenarioAttributeRepository.deleteManualScenarioAttributesByTestFolderId(projectId,
+        folderId);
+  }
+
+  @Override
+  @Transactional
+  public void duplicateAttributes(TmsManualScenario originalScenario,
+      TmsManualScenario newScenario) {
+    if (CollectionUtils.isEmpty(originalScenario.getAttributes())) {
+      return;
+    }
+
+    var duplicatedAttributes = originalScenario.getAttributes().stream()
+        .map(originalAttribute -> tmsManualScenarioAttributeMapper.duplicateAttribute(
+            originalAttribute, newScenario))
+        .collect(Collectors.toSet());
+
+    newScenario.setAttributes(duplicatedAttributes);
+    tmsManualScenarioAttributeRepository.saveAll(duplicatedAttributes);
   }
 }

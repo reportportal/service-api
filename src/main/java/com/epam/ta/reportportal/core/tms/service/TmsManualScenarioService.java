@@ -21,4 +21,14 @@ public interface TmsManualScenarioService {
   void deleteAllByTestCaseIds(List<Long> testCaseIds);
 
   void deleteAllByTestFolderId(Long projectId, Long folderId);
+
+  /**
+   * Duplicates a manual scenario for a new version.
+   *
+   * @param newVersion       The new version entity.
+   * @param originalScenario The original scenario to duplicate.
+   * @return The duplicated scenario.
+   */
+  TmsManualScenario duplicateManualScenario(TmsTestCaseVersion newVersion,
+      TmsManualScenario originalScenario);
 }

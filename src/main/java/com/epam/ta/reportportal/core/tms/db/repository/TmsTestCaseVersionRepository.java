@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 public interface TmsTestCaseVersionRepository extends ReportPortalRepository<TmsTestCaseVersion, Long> {
 
   @Query("SELECT tcv FROM TmsTestCaseVersion tcv "
-      + "JOIN FETCH tcv.manualScenario ms "
+      + "LEFT JOIN FETCH tcv.manualScenario ms "
       + "LEFT JOIN FETCH ms.textScenario ts "
       + "LEFT JOIN FETCH ms.stepsScenario ss "
       + "LEFT JOIN FETCH ms.attributes t "
@@ -24,7 +24,7 @@ public interface TmsTestCaseVersionRepository extends ReportPortalRepository<Tms
   @Query("SELECT new com.epam.ta.reportportal.core.tms.db.entity."
       + "TmsTestCaseDefaultVersionTestCaseId(tcv, tcv.testCase.id) "
       + "FROM TmsTestCaseVersion tcv "
-      + "JOIN FETCH tcv.manualScenario ms "
+      + "LEFT JOIN FETCH tcv.manualScenario ms "
       + "LEFT JOIN FETCH ms.textScenario ts "
       + "LEFT JOIN FETCH ms.stepsScenario ss "
       + "LEFT JOIN FETCH ms.attributes t "

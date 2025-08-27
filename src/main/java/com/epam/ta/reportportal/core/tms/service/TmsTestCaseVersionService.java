@@ -25,4 +25,13 @@ public interface TmsTestCaseVersionService {
   TmsTestCaseVersion getDefaultVersion(Long testCaseId);
 
   Map<Long, TmsTestCaseVersion> getDefaultVersions(List<Long> testCaseIds);
+
+  /**
+   * Duplicates a default version for a new test case.
+   *
+   * @param newTestCase The new test case entity.
+   * @param originalVersion The original version to duplicate.
+   * @return The duplicated version.
+   */
+  TmsTestCaseVersion duplicateDefaultVersion(TmsTestCase newTestCase, TmsTestCaseVersion originalVersion);
 }

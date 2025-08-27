@@ -17,4 +17,13 @@ public interface TmsManualScenarioAttributeService {
   void deleteAllByTestCaseIds(List<Long> testCaseIds);
 
   void deleteAllByTestFolderId(Long projectId, Long folderId);
+
+  /**
+   * Duplicates attributes from original scenario to new scenario.
+   * Uses existing TmsAttribute entities but creates new TmsManualScenarioAttribute associations.
+   *
+   * @param originalScenario The original scenario with attributes to duplicate.
+   * @param newScenario The new scenario to attach duplicated attributes to.
+   */
+  void duplicateAttributes(TmsManualScenario originalScenario, TmsManualScenario newScenario);
 }

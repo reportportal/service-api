@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import org.mapstruct.BeanMapping;
@@ -16,6 +17,14 @@ public interface TmsTestCaseVersionMapper {
     var testCaseVersion = new TmsTestCaseVersion();
     testCaseVersion.setDefault(true);
     return testCaseVersion;
+  }
+
+  default TmsTestCaseVersion duplicateDefaultTestCaseVersion(TmsTestCaseVersion originalVersion,
+      TmsTestCase newTestCase) {
+    var duplicatedVersion = createDefaultTestCaseVersion();
+    duplicatedVersion.setName(originalVersion.getName());
+    duplicatedVersion.setTestCase(newTestCase);
+    return duplicatedVersion;
   }
 
   @Mapping(target = "manualScenario", ignore = true)

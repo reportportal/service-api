@@ -25,4 +25,12 @@ public interface TmsTestCaseAttributeService {
   void deleteByTestCaseIdAndAttributeIds(Long testCaseId, List<Long> attributeIds);
 
   void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds, List<Long> attributeIds);
+
+  /**
+   * Duplicates test case attributes by linking existing attributes to a new test case.
+   *
+   * @param originalTestCase The original test case.
+   * @param newTestCase The new test case.
+   */
+  void duplicateTestCaseAttributes(TmsTestCase originalTestCase, TmsTestCase newTestCase);
 }

@@ -1,14 +1,14 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsStepRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsStepMapper;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -81,5 +81,21 @@ public class TmsStepServiceImpl implements TmsStepService {
   @Transactional
   public void deleteAllByTestFolderId(Long projectId, Long folderId) {
     tmsStepRepository.deleteStepsByTestFolderId(projectId, folderId);
+  }
+
+  @Override
+  @Transactional
+  public void duplicateSteps(Collection<TmsStep> originalSteps, TmsStepsManualScenario newStepsScenario) {
+    if (CollectionUtils.isEmpty(originalSteps)) {
+      return;
+    }
+
+    var duplicatedSteps = originalSteps
+        .stream()
+        .map(originalStep -> tmsStepMapper.duplicateStep(originalStep, newStepsScenario))
+        .collect(Collectors.toSet());
+
+    newStepsScenario.setSteps(duplicatedSteps);
+    tmsStepRepository.saveAll(duplicatedSteps);
   }
 }

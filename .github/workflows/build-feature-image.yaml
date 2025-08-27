@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - 'develop'
+      - feature/upcoming
   workflow_dispatch:
     inputs:
       image-tag:

@@ -27,8 +27,6 @@ import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.model.activity.OrganizationAttributesActivityResource;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -66,11 +64,6 @@ class OrganizationUpdatedEventTest {
     resource.setOrganizationId(2L);
     resource.setOrganizationName("Old Organization");
     resource.setOrganizationSlug("old-org");
-    Map<String, String> config = new HashMap<>();
-    config.put("retention_launches", "30");
-    config.put("retention_logs", "7");
-    config.put("retention_attachments", "30");
-    resource.setConfig(config);
     return resource;
   }
 
@@ -79,11 +72,6 @@ class OrganizationUpdatedEventTest {
     resource.setOrganizationId(2L);
     resource.setOrganizationName("Updated Organization");
     resource.setOrganizationSlug("updated-org");
-    Map<String, String> config = new HashMap<>();
-    config.put("retention_launches", "60");
-    config.put("retention_logs", "14");
-    config.put("retention_attachments", "90");
-    resource.setConfig(config);
     return resource;
   }
 

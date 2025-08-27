@@ -17,9 +17,6 @@
 package com.epam.ta.reportportal.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.Data;
 
 /**
@@ -39,8 +36,4 @@ public class OrganizationAttributesActivityResource {
 
   @JsonProperty(value = "organizationSlug", required = true)
   private String organizationSlug;
-
-  @JsonProperty(value = "config")
-  @JsonDeserialize(as = HashMap.class)
-  private Map<String, String> config;
 }

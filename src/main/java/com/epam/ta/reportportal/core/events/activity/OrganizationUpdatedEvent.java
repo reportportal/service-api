@@ -16,11 +16,6 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
-import static com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsEnum.RETENTION_ATTACHMENTS;
-import static com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsEnum.RETENTION_LAUNCHES;
-import static com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsEnum.RETENTION_LOGS;
-
 import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -84,21 +79,6 @@ public class OrganizationUpdatedEvent extends AroundEvent<OrganizationAttributes
         .addSubjectType(Objects.isNull(getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)
         .addHistoryField("organizationName", getBefore().getOrganizationName(), getAfter().getOrganizationName())
         .addHistoryField("organizationSlug", getBefore().getOrganizationSlug(), getAfter().getOrganizationSlug())
-        .addHistoryField(processParameter(
-            getBefore().getConfig(),
-            getAfter().getConfig(),
-            RETENTION_LAUNCHES.getName())
-        )
-        .addHistoryField(processParameter(
-            getBefore().getConfig(),
-            getAfter().getConfig(),
-            RETENTION_LOGS.getName())
-        )
-        .addHistoryField(processParameter(
-            getBefore().getConfig(),
-            getAfter().getConfig(),
-            RETENTION_ATTACHMENTS.getName())
-        )
         .get();
   }
 }

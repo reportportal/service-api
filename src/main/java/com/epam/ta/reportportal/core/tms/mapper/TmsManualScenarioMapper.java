@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -59,4 +60,16 @@ public abstract class TmsManualScenarioMapper implements DtoMapper<TmsManualScen
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   public abstract void patch(@MappingTarget TmsManualScenario target, TmsManualScenario source);
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "textScenario", ignore = true)
+  @Mapping(target = "stepsScenario", ignore = true)
+  @Mapping(target = "executionEstimationTime", source = "originalScenario.executionEstimationTime")
+  @Mapping(target = "linkToRequirements", source = "originalScenario.linkToRequirements")
+  @Mapping(target = "preconditions", source = "originalScenario.preconditions")
+  @Mapping(target = "type", source = "originalScenario.type")
+  @Mapping(target = "testCaseVersion", source = "newVersion")
+  public abstract TmsManualScenario duplicateManualScenario(TmsManualScenario originalScenario,
+      TmsTestCaseVersion newVersion);
 }

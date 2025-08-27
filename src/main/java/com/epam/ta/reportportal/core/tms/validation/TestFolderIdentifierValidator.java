@@ -2,11 +2,11 @@ package com.epam.ta.reportportal.core.tms.validation;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import jakarta.validation.ValidationException;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component;
  * Validator implementation for {@link ValidTestFolderIdentifier} annotation.
  * <p>
  * This validator ensures that either testFolderId or testFolderName is provided
- * in the TmsTestCaseRQ object, but not both.
+ * in the request object, but not both.
  * </p>
  */
 @Component
 public class TestFolderIdentifierValidator
-    implements ConstraintValidator<ValidTestFolderIdentifier, TmsTestCaseRQ> {
+    implements ConstraintValidator<ValidTestFolderIdentifier, Object> {
 
   @Override
   public void initialize(ValidTestFolderIdentifier constraintAnnotation) {
@@ -35,15 +35,28 @@ public class TestFolderIdentifierValidator
    * @return true if validation passes, false otherwise
    */
   @Override
-  public boolean isValid(TmsTestCaseRQ value, ConstraintValidatorContext context) {
+  public boolean isValid(Object value, ConstraintValidatorContext context) {
     if (value == null) {
       return true; // Let @NotNull handle null objects if needed
     }
 
-    var hasTestFolderId = Objects.nonNull(value.getTestFolderId());
-    var hasTestFolderCreatedFromName = Objects.nonNull(value.getTestFolder());
+    Long testFolderId;
+    NewTestFolderRQ newTestFolderRQ;
 
-    if ((hasTestFolderId && hasTestFolderCreatedFromName)) {
+    if (value instanceof TmsTestCaseRQ tmsTestCaseRQ) {
+      testFolderId = tmsTestCaseRQ.getTestFolderId();
+      newTestFolderRQ = tmsTestCaseRQ.getTestFolder();
+    } else if (value instanceof BatchDuplicateTestCasesRQ batchDuplicateTestCasesRQ) {
+      testFolderId = batchDuplicateTestCasesRQ.getTestFolderId();
+      newTestFolderRQ = batchDuplicateTestCasesRQ.getTestFolder();
+    } else {
+      throw new IllegalStateException("Wrong class annotated with @ValidTestFolderIdentifier: " + value.getClass().getName());
+    }
+
+    var hasTestFolderId = Objects.nonNull(testFolderId);
+    var hasTestFolderCreatedFromName = Objects.nonNull(newTestFolderRQ);
+
+    if (hasTestFolderId && hasTestFolderCreatedFromName) {
       context.disableDefaultConstraintViolation();
       context.buildConstraintViolationWithTemplate(
               "Either testFolderId or testFolderName must be provided and not empty")

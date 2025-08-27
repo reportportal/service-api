@@ -14,6 +14,7 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   private final TmsManualScenarioMapper tmsManualScenarioMapper;
 
   @Override
+  @Transactional
   public TmsManualScenario createTmsManualScenario(TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var tmsManualScenario = tmsManualScenarioMapper.createTmsManualScenario(
@@ -48,6 +50,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   }
 
   @Override
+  @Transactional
   public TmsManualScenario updateTmsManualScenario(TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var manualScenario = testCaseVersion.getManualScenario();
@@ -68,6 +71,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   }
 
   @Override
+  @Transactional
   public TmsManualScenario patchTmsManualScenario(TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var existingManualScenario = testCaseVersion.getManualScenario();
@@ -91,6 +95,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   }
 
   @Override
+  @Transactional
   public void deleteAllByTestCaseId(Long testCaseId) {
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioImplServices()
@@ -100,6 +105,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   }
 
   @Override
+  @Transactional
   public void deleteAllByTestCaseIds(List<Long> testCaseIds) {
     if (CollectionUtils.isNotEmpty(testCaseIds)) {
       tmsManualScenarioImplServiceFactory
@@ -111,11 +117,30 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   }
 
   @Override
+  @Transactional
   public void deleteAllByTestFolderId(Long projectId, Long folderId) {
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioImplServices()
         .forEach(service -> service.deleteAllByTestFolderId(projectId, folderId));
     tmsManualScenarioAttributeService.deleteAllByTestFolderId(projectId, folderId);
     tmsManualScenarioRepository.deleteAllByTestFolderId(projectId, folderId);
+  }
+
+  @Override
+  @Transactional
+  public TmsManualScenario duplicateManualScenario(TmsTestCaseVersion newVersion, TmsManualScenario originalScenario) {
+    var duplicatedScenario = tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion);
+
+    tmsManualScenarioRepository.save(duplicatedScenario);
+
+    if (CollectionUtils.isNotEmpty(originalScenario.getAttributes())) {
+      tmsManualScenarioAttributeService.duplicateAttributes(originalScenario, duplicatedScenario);
+    }
+
+    tmsManualScenarioImplServiceFactory
+        .getTmsManualScenarioService(originalScenario.getType())
+        .duplicateManualScenarioImpl(duplicatedScenario, originalScenario);
+
+    return duplicatedScenario;
   }
 }

@@ -20,6 +20,7 @@ import com.epam.reportportal.api.model.CreateOrganizationRequest;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.UpdateOrganizationRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.user.User;
 import org.jclouds.rest.ResourceNotFoundException;
 
@@ -34,9 +35,11 @@ public interface OrganizationExtensionPoint extends ReportPortalExtensionPoint {
    * Creates a new organization based on the provided request.
    *
    * @param createRequest The request containing the details of the organization to be created.
+   * @param principal     The user performing the creation operation.
+   *
    * @return @{@link OrganizationInfo} containing the details of the created organization.
    */
-  OrganizationInfo createOrganization(CreateOrganizationRequest createRequest);
+  OrganizationInfo createOrganization(CreateOrganizationRequest createRequest, ReportPortalUser principal);
 
   /**
    * Creates a personal organization for the specified user.
@@ -49,17 +52,19 @@ public interface OrganizationExtensionPoint extends ReportPortalExtensionPoint {
   /**
    * Update an existing organization.
    *
-   * @param organizationId   The ID of the organization to update.
-   * @param updateRequest The new details for the organization.
+   * @param organizationId The ID of the organization to update.
+   * @param updateRequest  The new details for the organization.
+   * @param principal      The user performing the update operation.
    */
-  void updateOrganization(Long organizationId, UpdateOrganizationRequest updateRequest);
+  void updateOrganization(Long organizationId, UpdateOrganizationRequest updateRequest, ReportPortalUser principal) throws ResourceNotFoundException;
 
 
   /**
    * Deletes an organization by ID.
    *
    * @param organizationId The ID of the organization to retrieve.
+   * @param principal      The user performing the delete operation.
    * @throws ResourceNotFoundException If the organization with the specified ID does not exist.
    */
-  void deleteOrganization(Long organizationId) throws ResourceNotFoundException;
+  void deleteOrganization(Long organizationId, ReportPortalUser principal) throws ResourceNotFoundException;
 }

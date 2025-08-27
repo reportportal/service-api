@@ -52,9 +52,6 @@ class OrganizationUpdatedEventTest {
     ActivityDetails details = new ActivityDetails();
     details.addHistoryField(new HistoryField("organizationName", "Old Organization", "Updated Organization"));
     details.addHistoryField(new HistoryField("organizationSlug", "old-org", "updated-org"));
-    details.addHistoryField(new HistoryField("retention_launches", "30", "60"));
-    details.addHistoryField(new HistoryField("retention_logs", "7", "14"));
-    details.addHistoryField(new HistoryField("retention_attachments", "30", "90"));
     activity.setDetails(details);
     return activity;
   }

@@ -2,7 +2,6 @@ package com.epam.ta.reportportal.core.tms.mapper.importer;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseImportFormat;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;

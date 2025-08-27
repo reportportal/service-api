@@ -104,4 +104,21 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
   public void deleteAllByTestFolderId(Long projectId, Long folderId) {
     tmsTextManualScenarioRepository.deleteAllByTestFolderId(projectId, folderId);
   }
+
+  @Override
+  @Transactional
+  public void duplicateManualScenarioImpl(TmsManualScenario newScenario,
+      TmsManualScenario originalScenario) {
+    if (Objects.isNull(originalScenario)) {
+      return;
+    }
+    var originalTextScenario = originalScenario.getTextScenario();
+    if (Objects.nonNull(originalTextScenario)) {
+      var duplicatedTextScenario = tmsTextManualScenarioMapper.duplicateTextScenario(newScenario,
+          originalTextScenario);
+
+      newScenario.setTextScenario(duplicatedTextScenario);
+      tmsTextManualScenarioRepository.save(duplicatedTextScenario);
+    }
+  }
 }

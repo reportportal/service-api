@@ -20,6 +20,12 @@ values (8, 'Search Folder', 'Folder for full-text search tests', 1);
 insert into tms_test_folder (id, "name", description, project_id)
 values (9, 'Test Folder 9', 'Description for test folder 9', 2);
 
+insert into tms_test_folder (id, "name", description, project_id)
+values (10, 'Test Folder 10', 'Description for test folder 10', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (11, 'Test Folder 11', 'Description for test folder 11', 2);
+
 -- Test plans
 insert into tms_test_plan (id, "name", description, project_id)
 values (1, 'Test Plan 1', 'Description for test plan 1', 1);
@@ -134,6 +140,12 @@ values (33, 'Batch Test Case 33', 'Test case for batch patch with non existing f
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (34, 'Test Case With Version 34', 'Test case with default version 34', 6, 'HIGH');
 
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (35, 'Test Case With Version 35', 'Test case with default version 35', 9, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (36, 'Test Case With Version 36', 'Test case with default version 36', 9, 'HIGH');
+
 insert into tms_test_plan_test_case (test_plan_id, test_case_id)
 values (1, 4), (1, 5), (1, 6); -- Test Plan 1 contains test cases 4, 5, 6
 
@@ -226,6 +238,9 @@ values (24, 3, 'existing-tag-24');
 
 insert into tms_test_case_attribute (test_case_id, attribute_id, value)
 values (25, 1, 'existing-tag-25');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (36, 1, 'existing-tag-36');
 
 -- Test case versions (Default version for each test case)
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
@@ -323,6 +338,12 @@ values (31, 33, 'Default Version', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
 values (32, 34, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (33, 35, 'Default Version 35', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (34, 36, 'Default Version 35', true, false);
 
 -- Manual scenarios for each version
 -- TEXT scenarios for most cases

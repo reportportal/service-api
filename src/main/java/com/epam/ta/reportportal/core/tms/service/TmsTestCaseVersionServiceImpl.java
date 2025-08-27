@@ -68,7 +68,7 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
                 existingDefaultVersion.setManualScenario(updatedManualScenario);
 
                 tmsTestCaseVersionRepository.save(existingDefaultVersion);
-              };
+              }
               return existingDefaultVersion;
             })
         .orElseGet(() -> createDefaultTestCaseVersion(tmsTestCase, tmsManualScenarioRQ));
@@ -136,5 +136,23 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
                 TmsTestCaseDefaultVersionTestCaseId::getTestCaseVersion
             )
         );
+  }
+
+  @Override
+  @Transactional
+  public TmsTestCaseVersion duplicateDefaultVersion(TmsTestCase newTestCase,
+      TmsTestCaseVersion originalVersion) {
+    var duplicatedVersion = tmsTestCaseVersionMapper.duplicateDefaultTestCaseVersion(
+        originalVersion, newTestCase);
+
+    if (Objects.nonNull(originalVersion.getManualScenario())) {
+      var duplicatedManualScenario = tmsManualScenarioService
+          .duplicateManualScenario(duplicatedVersion, originalVersion.getManualScenario());
+      duplicatedVersion.setManualScenario(duplicatedManualScenario);
+    }
+
+    newTestCase.setVersions(Collections.singleton(duplicatedVersion));
+
+    return tmsTestCaseVersionRepository.save(duplicatedVersion);
   }
 }

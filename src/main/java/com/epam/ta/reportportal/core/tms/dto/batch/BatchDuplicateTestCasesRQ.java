@@ -1,12 +1,15 @@
-package com.epam.ta.reportportal.core.tms.dto;
+package com.epam.ta.reportportal.core.tms.dto.batch;
 
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdentifier;
 import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -14,22 +17,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @Valid
 @ValidTestFolderIdentifier
-public class TmsTestCaseRQ {
+public class BatchDuplicateTestCasesRQ {
 
-  private String name;
-
-  private String description;
-
-  private String priority;
-
-  private String externalId;
+  @NotEmpty(message = "Test case IDs list cannot be empty")
+  private List<Long> testCaseIds;
 
   private Long testFolderId;
 
   private NewTestFolderRQ testFolder;
-
-  private List<TmsAttributeRQ> tags;
-
-  @Valid
-  private TmsManualScenarioRQ manualScenario;
 }

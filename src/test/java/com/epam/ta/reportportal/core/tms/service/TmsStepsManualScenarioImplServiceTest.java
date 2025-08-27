@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsStepsManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
@@ -16,6 +17,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsStepsManualScenarioMapper;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -151,6 +153,52 @@ class TmsStepsManualScenarioImplServiceTest {
   }
 
   @Test
+  void shouldDuplicateManualScenarioImplWhenOriginalStepsScenarioExists() {
+    // Given
+    var originalScenario = createOriginalManualScenario();
+    var newScenario = createNewManualScenario();
+    var originalStepsScenario = createOriginalStepsScenario();
+    var duplicatedStepsScenario = createDuplicatedStepsScenario();
+    var steps = createStepsList();
+
+    originalScenario.setStepsScenario(originalStepsScenario);
+    when(originalStepsScenario.getSteps()).thenReturn(steps);
+    when(tmsStepsManualScenarioMapper.createTmsStepsManualScenario(newScenario))
+        .thenReturn(duplicatedStepsScenario);
+    when(tmsStepsManualScenarioRepository.save(duplicatedStepsScenario))
+        .thenReturn(duplicatedStepsScenario);
+
+    // When
+    stepsManualScenarioService.duplicateManualScenarioImpl(newScenario, originalScenario);
+
+    // Then
+    verify(tmsStepsManualScenarioMapper).createTmsStepsManualScenario(newScenario);
+    verify(tmsStepsManualScenarioRepository).save(duplicatedStepsScenario);
+    verify(tmsStepService).duplicateSteps(steps, duplicatedStepsScenario);
+
+    assertThat(newScenario.getStepsScenario()).isEqualTo(duplicatedStepsScenario);
+  }
+
+  @Test
+  void shouldNotDuplicateManualScenarioImplWhenOriginalStepsScenarioIsNull() {
+    // Given
+    var originalScenario = createOriginalManualScenario();
+    var newScenario = createNewManualScenario();
+
+    originalScenario.setStepsScenario(null);
+
+    // When
+    stepsManualScenarioService.duplicateManualScenarioImpl(newScenario, originalScenario);
+
+    // Then
+    verify(tmsStepsManualScenarioMapper, never()).createTmsStepsManualScenario(any());
+    verify(tmsStepsManualScenarioRepository, never()).save(any());
+    verify(tmsStepService, never()).duplicateSteps(any(), any());
+
+    assertThat(newScenario.getStepsScenario()).isNull();
+  }
+
+  @Test
   void shouldDeleteAllByTestCaseId() {
     // When
     stepsManualScenarioService.deleteAllByTestCaseId(123L);
@@ -219,6 +267,18 @@ class TmsStepsManualScenarioImplServiceTest {
     return scenario;
   }
 
+  private TmsManualScenario createOriginalManualScenario() {
+    var scenario = new TmsManualScenario();
+    scenario.setId(2L);
+    return scenario;
+  }
+
+  private TmsManualScenario createNewManualScenario() {
+    var scenario = new TmsManualScenario();
+    scenario.setId(3L);
+    return scenario;
+  }
+
   private TmsStepsManualScenario createStepsManualScenario() {
     var stepsScenario = new TmsStepsManualScenario();
     stepsScenario.setManualScenarioId(1L);
@@ -229,5 +289,19 @@ class TmsStepsManualScenarioImplServiceTest {
     var stepsScenario = new TmsStepsManualScenario();
     stepsScenario.setManualScenarioId(99L);
     return stepsScenario;
+  }
+
+  private TmsStepsManualScenario createOriginalStepsScenario() {
+    return org.mockito.Mockito.mock(TmsStepsManualScenario.class);
+  }
+
+  private TmsStepsManualScenario createDuplicatedStepsScenario() {
+    var stepsScenario = new TmsStepsManualScenario();
+    stepsScenario.setManualScenarioId(3L);
+    return stepsScenario;
+  }
+
+  private Set<TmsStep> createStepsList() {
+    return Set.of(new TmsStep(), new TmsStep());
   }
 }

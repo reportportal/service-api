@@ -16,6 +16,7 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
@@ -23,10 +24,11 @@ import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.exporter.TmsTestCaseExporter;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -95,8 +98,9 @@ class TmsTestCaseServiceImplTest {
   private TmsTestCaseVersion testCaseVersion;
   private TmsTextManualScenarioRQ textManualScenarioRQ;
   private TmsStepsManualScenarioRQ stepsManualScenarioRQ;
-  private TmsTestCaseTestFolderRQ newTestFolderRQ;
+  private NewTestFolderRQ newTestFolderRQ;
   private TmsTestFolderRS testFolderRS;
+  private TmsTestFolder testFolder;
   private List<TmsAttributeRQ> attributes;
   private long projectId;
   private Long testCaseId;
@@ -131,11 +135,15 @@ class TmsTestCaseServiceImplTest {
         .steps(Collections.emptyList())
         .build();
 
-    newTestFolderRQ = new TmsTestCaseTestFolderRQ();
+    newTestFolderRQ = new NewTestFolderRQ();
     newTestFolderRQ.setName("Test Folder");
 
     testFolderRS = new TmsTestFolderRS();
     testFolderRS.setId(testFolderId);
+
+    testFolder = new TmsTestFolder();
+    testFolder.setId(testFolderId);
+    testFolder.setName("Test Folder");
 
     testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Test Case");
@@ -214,7 +222,7 @@ class TmsTestCaseServiceImplTest {
   @Test
   void create_WithTestFolder_ShouldCreateAndReturnTestCase() {
     // Given
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
@@ -227,7 +235,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     assertNotNull(result);
     assertEquals(testCaseRS, result);
-    verify(tmsTestFolderService).create(eq(projectId), any(TmsTestCaseTestFolderRQ.class));
+    verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseRepository).save(testCase);
     verify(tmsTestCaseAttributeService).createTestCaseAttributes(testCase, attributes);
@@ -276,7 +284,7 @@ class TmsTestCaseServiceImplTest {
     testCaseWithStepsRQ.setTags(attributes);
     testCaseWithStepsRQ.setManualScenario(stepsManualScenarioRQ);
 
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseWithStepsRQ, testFolderId)).thenReturn(
         testCase);
@@ -290,7 +298,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     assertNotNull(result);
     assertEquals(testCaseRS, result);
-    verify(tmsTestFolderService).create(eq(projectId), any(TmsTestCaseTestFolderRQ.class));
+    verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseWithStepsRQ, testFolderId);
     verify(tmsTestCaseRepository).save(testCase);
     verify(tmsTestCaseAttributeService).createTestCaseAttributes(testCase, attributes);
@@ -302,7 +310,7 @@ class TmsTestCaseServiceImplTest {
   void create_WithNewTestFolder_ShouldCreateFolderAndTestCase() {
     // Given
     var testFolderName = "New Folder";
-    var newTestFolderRQ = new TmsTestCaseTestFolderRQ();
+    var newTestFolderRQ = new NewTestFolderRQ();
     newTestFolderRQ.setName(testFolderName);
 
     var testCaseRQWithNewFolder = new TmsTestCaseRQ();
@@ -315,7 +323,7 @@ class TmsTestCaseServiceImplTest {
     var newFolderRS = new TmsTestFolderRS();
     newFolderRS.setId(newFolderId);
 
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         newFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQWithNewFolder,
         newFolderId)).thenReturn(testCase);
@@ -328,7 +336,7 @@ class TmsTestCaseServiceImplTest {
 
     // Then
     assertNotNull(result);
-    verify(tmsTestFolderService).create(eq(projectId), any(TmsTestCaseTestFolderRQ.class));
+    verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQWithNewFolder, newFolderId);
     verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
@@ -359,7 +367,7 @@ class TmsTestCaseServiceImplTest {
     testCaseRQWithoutTags.setTestFolder(newTestFolderRQ);
     testCaseRQWithoutTags.setManualScenario(textManualScenarioRQ);
 
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(
         tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQWithoutTags, testFolderId)).thenReturn(
@@ -385,7 +393,7 @@ class TmsTestCaseServiceImplTest {
     var convertedTestCase = new TmsTestCase();
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId)).thenReturn(
         Optional.of(testCase));
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(
         convertedTestCase);
@@ -400,7 +408,7 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     assertEquals(testCaseRS, result);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
-    verify(tmsTestFolderService).create(eq(projectId), any(TmsTestCaseTestFolderRQ.class));
+    verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseMapper).update(testCase, convertedTestCase);
     verify(tmsTestCaseAttributeService).updateTestCaseAttributes(testCase, attributes);
@@ -413,7 +421,7 @@ class TmsTestCaseServiceImplTest {
     // Given
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId)).thenReturn(
         Optional.empty());
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
@@ -427,7 +435,7 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     assertEquals(testCaseRS, result);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
-    verify(tmsTestFolderService).create(eq(projectId), any(TmsTestCaseTestFolderRQ.class));
+    verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseRepository).save(testCase);
     verify(tmsTestCaseAttributeService).createTestCaseAttributes(testCase, attributes);
@@ -497,7 +505,7 @@ class TmsTestCaseServiceImplTest {
     var convertedTestCase = new TmsTestCase();
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId)).thenReturn(
         Optional.of(testCase));
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(
         convertedTestCase);
@@ -512,7 +520,7 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     assertEquals(testCaseRS, result);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
-    verify(tmsTestFolderService).create(eq(projectId), any(TmsTestCaseTestFolderRQ.class));
+    verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseMapper).patch(testCase, convertedTestCase);
     verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCase, attributes);
@@ -889,7 +897,7 @@ class TmsTestCaseServiceImplTest {
     when(importerFactory.getImporter(file)).thenReturn(importer);
     when(importer.importFromFile(file)).thenReturn(importedTestCaseRQs);
 
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
@@ -920,7 +928,7 @@ class TmsTestCaseServiceImplTest {
 
     when(importerFactory.getImporter(file)).thenReturn(importer);
     when(importer.importFromFile(file)).thenReturn(importedTestCaseRQs);
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class)))
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class)))
         .thenReturn(testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
@@ -951,7 +959,7 @@ class TmsTestCaseServiceImplTest {
 
     when(importerFactory.getImporter(file)).thenReturn(importer);
     when(importer.importFromFile(file)).thenReturn(importedTestCaseRQs);
-    when(tmsTestFolderService.create(eq(projectId), any(TmsTestCaseTestFolderRQ.class))).thenReturn(
+    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
@@ -1429,5 +1437,272 @@ class TmsTestCaseServiceImplTest {
     assertTrue(exception.getMessage().contains("3"));
     assertTrue(exception.getMessage().contains("5"));
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void duplicate_WithValidTestCaseIds_ShouldDuplicateTestCases() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var targetFolderId = 10L;
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(targetFolderId)
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L);
+    var duplicatedTestCaseRS1 = new TmsTestCaseRS();
+    duplicatedTestCaseRS1.setId(11L);
+    var duplicatedTestCaseRS2 = new TmsTestCaseRS();
+    duplicatedTestCaseRS2.setId(12L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, targetFolderId, null))
+        .thenReturn(targetFolderId);
+
+    // Mock для первого тест-кейса
+    var originalTestCase1 = new TmsTestCase();
+    originalTestCase1.setId(1L);
+    originalTestCase1.setName("Test Case 1");
+    var duplicatedTestCase1 = new TmsTestCase();
+    duplicatedTestCase1.setId(11L);
+    duplicatedTestCase1.setName("Test Case 1 (Copy)");
+    var originalVersion1 = new TmsTestCaseVersion();
+    var duplicatedVersion1 = new TmsTestCaseVersion();
+
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
+        .thenReturn(Optional.of(originalTestCase1));
+    when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion1);
+    when(tmsTestFolderService.getEntityById(projectId, targetFolderId)).thenReturn(testFolder);
+    when(tmsTestCaseMapper.duplicateTestCase(originalTestCase1, testFolder))
+        .thenReturn(duplicatedTestCase1);
+    when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
+    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
+        .thenReturn(duplicatedVersion1);
+    when(tmsTestCaseMapper.convert(duplicatedTestCase1, duplicatedVersion1))
+        .thenReturn(duplicatedTestCaseRS1);
+
+    var originalTestCase2 = new TmsTestCase();
+    originalTestCase2.setId(2L);
+    originalTestCase2.setName("Test Case 2");
+    var duplicatedTestCase2 = new TmsTestCase();
+    duplicatedTestCase2.setId(12L);
+    duplicatedTestCase2.setName("Test Case 2 (Copy)");
+    var originalVersion2 = new TmsTestCaseVersion();
+    var duplicatedVersion2 = new TmsTestCaseVersion();
+
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 2L))
+        .thenReturn(Optional.of(originalTestCase2));
+    when(tmsTestCaseVersionService.getDefaultVersion(2L)).thenReturn(originalVersion2);
+    when(tmsTestCaseMapper.duplicateTestCase(originalTestCase2, testFolder))
+        .thenReturn(duplicatedTestCase2);
+    when(tmsTestCaseRepository.save(duplicatedTestCase2)).thenReturn(duplicatedTestCase2);
+    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase2, originalVersion2))
+        .thenReturn(duplicatedVersion2);
+    when(tmsTestCaseMapper.convert(duplicatedTestCase2, duplicatedVersion2))
+        .thenReturn(duplicatedTestCaseRS2);
+
+    // When
+    var result = sut.duplicate(projectId, duplicateRequest);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertEquals(duplicatedTestCaseRS1.getId(), result.get(0).getId());
+    assertEquals(duplicatedTestCaseRS2.getId(), result.get(1).getId());
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, targetFolderId, null);
+    verify(tmsTestCaseRepository).save(duplicatedTestCase1);
+    verify(tmsTestCaseRepository).save(duplicatedTestCase2);
+    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase1, originalVersion1);
+    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase2, originalVersion2);
+  }
+
+  @Test
+  void duplicate_WithTestFolder_ShouldDuplicateTestCases() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var testFolder = new NewTestFolderRQ();
+    testFolder.setName("New Target Folder");
+    var targetFolderId = 15L;
+
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(testFolder)
+        .build();
+
+    var existingTestCaseIds = List.of(1L);
+    var duplicatedTestCaseRS = new TmsTestCaseRS();
+    duplicatedTestCaseRS.setId(20L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, null, testFolder))
+        .thenReturn(targetFolderId);
+
+    var originalTestCase = new TmsTestCase();
+    originalTestCase.setId(1L);
+    originalTestCase.setName("Original Test Case");
+    var duplicatedTestCase = new TmsTestCase();
+    duplicatedTestCase.setId(20L);
+    duplicatedTestCase.setName("Original Test Case (Copy)");
+    var originalVersion = new TmsTestCaseVersion();
+    var duplicatedVersion = new TmsTestCaseVersion();
+
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
+        .thenReturn(Optional.of(originalTestCase));
+    when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
+    when(tmsTestFolderService.getEntityById(projectId, targetFolderId)).thenReturn(this.testFolder);
+    when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, this.testFolder))
+        .thenReturn(duplicatedTestCase);
+    when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
+    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
+        .thenReturn(duplicatedVersion);
+    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion))
+        .thenReturn(duplicatedTestCaseRS);
+
+    // When
+    var result = sut.duplicate(projectId, duplicateRequest);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(duplicatedTestCaseRS.getId(), result.get(0).getId());
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, null, testFolder);
+    verify(tmsTestCaseRepository).save(duplicatedTestCase);
+    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase, originalVersion);
+  }
+
+  @Test
+  void duplicate_WithEmptyTagsTaggedTestCase_ShouldDuplicateTestCaseWithWithoutEMptyTags() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var targetFolderId = 10L;
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(targetFolderId)
+        .build();
+
+    var existingTestCaseIds = List.of(1L);
+    var duplicatedTestCaseRS = new TmsTestCaseRS();
+    duplicatedTestCaseRS.setId(11L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, targetFolderId, null))
+        .thenReturn(targetFolderId);
+
+    var originalTestCase = new TmsTestCase();
+    originalTestCase.setId(1L);
+    originalTestCase.setTags(Set.of()); // Non-empty tags
+    var duplicatedTestCase = new TmsTestCase();
+    duplicatedTestCase.setId(11L);
+    var originalVersion = new TmsTestCaseVersion();
+    var duplicatedVersion = new TmsTestCaseVersion();
+
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
+        .thenReturn(Optional.of(originalTestCase));
+    when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
+    when(tmsTestFolderService.getEntityById(projectId, targetFolderId)).thenReturn(testFolder);
+    when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, testFolder))
+        .thenReturn(duplicatedTestCase);
+    when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
+    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
+        .thenReturn(duplicatedVersion);
+    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion))
+        .thenReturn(duplicatedTestCaseRS);
+
+    // When
+    var result = sut.duplicate(projectId, duplicateRequest);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(1, result.size());
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, targetFolderId, null);
+    verify(tmsTestCaseRepository).save(duplicatedTestCase);
+    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase, originalVersion);
+    verify(tmsTestCaseAttributeService, never()).duplicateTestCaseAttributes(any(), any());
+  }
+
+  @Test
+  void duplicate_WithNonExistentTestCase_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = List.of(999L);
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(10L)
+        .build();
+
+    var existingTestCaseIds = Collections.<Long>emptyList();
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When/Then
+    assertThrows(ReportPortalException.class, () -> sut.duplicate(projectId, duplicateRequest));
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
+    verify(tmsTestCaseRepository, never()).save(any());
+  }
+
+  @Test
+  void duplicate_WithMissingOriginalTestCase_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(10L)
+        .build();
+
+    var existingTestCaseIds = List.of(1L);
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, 10L, null))
+        .thenReturn(10L);
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
+        .thenReturn(Optional.empty());
+
+    // When/Then
+    assertThrows(ReportPortalException.class, () -> sut.duplicate(projectId, duplicateRequest));
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, 10L, null);
+    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 1L);
+    verify(tmsTestCaseRepository, never()).save(any());
+  }
+
+  @Test
+  void duplicate_WithEmptyTestCaseIds_ShouldReturnEmptyList() {
+    // Given
+    var emptyTestCaseIds = Collections.<Long>emptyList();
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testCaseIds(emptyTestCaseIds)
+        .testFolderId(10L)
+        .build();
+
+    var existingTestCaseIds = Collections.<Long>emptyList();
+
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, emptyTestCaseIds))
+        .thenReturn(existingTestCaseIds);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, 10L, null))
+        .thenReturn(10L);
+
+    // When
+    var result = sut.duplicate(projectId, duplicateRequest);
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, emptyTestCaseIds);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, 10L, null);
+    verify(tmsTestCaseRepository, never()).save(any());
   }
 }

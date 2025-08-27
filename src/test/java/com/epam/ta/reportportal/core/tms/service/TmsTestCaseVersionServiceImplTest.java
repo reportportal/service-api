@@ -51,6 +51,10 @@ class TmsTestCaseVersionServiceImplTest {
   private TmsStepsManualScenarioRQ stepsManualScenarioRQ;
   private TmsTestCaseVersion testCaseVersion;
   private TmsManualScenario manualScenario;
+  private TmsTestCase newTestCase;
+  private TmsTestCaseVersion originalVersion;
+  private TmsTestCaseVersion duplicatedVersion;
+  private TmsManualScenario duplicatedManualScenario;
 
   @BeforeEach
   void setUp() {
@@ -59,6 +63,10 @@ class TmsTestCaseVersionServiceImplTest {
     stepsManualScenarioRQ = createStepsManualScenarioRQ();
     testCaseVersion = createTestCaseVersion();
     manualScenario = createManualScenario();
+    newTestCase = createNewTestCase();
+    originalVersion = createOriginalVersion();
+    duplicatedVersion = createDuplicatedVersion();
+    duplicatedManualScenario = createDuplicatedManualScenario();
   }
 
   @Test
@@ -398,11 +406,69 @@ class TmsTestCaseVersionServiceImplTest {
     verify(tmsTestCaseVersionRepository).findDefaultVersionsByTestCaseIds(testCaseIds);
   }
 
+  @Test
+  void shouldDuplicateDefaultVersionWithManualScenario() {
+    // Given
+    originalVersion.setManualScenario(manualScenario);
+
+    when(tmsTestCaseVersionMapper.duplicateDefaultTestCaseVersion(originalVersion, newTestCase))
+        .thenReturn(duplicatedVersion);
+    when(tmsManualScenarioService.duplicateManualScenario(duplicatedVersion, manualScenario))
+        .thenReturn(duplicatedManualScenario);
+    when(tmsTestCaseVersionRepository.save(duplicatedVersion)).thenReturn(duplicatedVersion);
+
+    // When
+    var result = sut.duplicateDefaultVersion(newTestCase, originalVersion);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(duplicatedVersion, result);
+
+    verify(tmsTestCaseVersionMapper).duplicateDefaultTestCaseVersion(originalVersion, newTestCase);
+    verify(tmsManualScenarioService).duplicateManualScenario(duplicatedVersion, manualScenario);
+    verify(tmsTestCaseVersionRepository).save(duplicatedVersion);
+
+    assertThat(newTestCase.getVersions()).contains(duplicatedVersion);
+    assertThat(duplicatedVersion.getManualScenario()).isEqualTo(duplicatedManualScenario);
+  }
+
+  @Test
+  void shouldDuplicateDefaultVersionWithoutManualScenario() {
+    // Given
+    originalVersion.setManualScenario(null);
+
+    when(tmsTestCaseVersionMapper.duplicateDefaultTestCaseVersion(originalVersion, newTestCase))
+        .thenReturn(duplicatedVersion);
+    when(tmsTestCaseVersionRepository.save(duplicatedVersion)).thenReturn(duplicatedVersion);
+
+    // When
+    var result = sut.duplicateDefaultVersion(newTestCase, originalVersion);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(duplicatedVersion, result);
+
+    verify(tmsTestCaseVersionMapper).duplicateDefaultTestCaseVersion(originalVersion, newTestCase);
+    verify(tmsManualScenarioService, never()).duplicateManualScenario(any(), any());
+    verify(tmsTestCaseVersionRepository).save(duplicatedVersion);
+
+    assertThat(newTestCase.getVersions()).contains(duplicatedVersion);
+    assertThat(duplicatedVersion.getManualScenario()).isNull();
+  }
+
   // Helper methods
   private TmsTestCase createTestCase() {
     var testCase = new TmsTestCase();
     testCase.setId(1L);
     testCase.setName("Test Case");
+    testCase.setVersions(new HashSet<>());
+    return testCase;
+  }
+
+  private TmsTestCase createNewTestCase() {
+    var testCase = new TmsTestCase();
+    testCase.setId(2L);
+    testCase.setName("New Test Case");
     testCase.setVersions(new HashSet<>());
     return testCase;
   }
@@ -442,9 +508,31 @@ class TmsTestCaseVersionServiceImplTest {
     return version;
   }
 
+  private TmsTestCaseVersion createOriginalVersion() {
+    var version = new TmsTestCaseVersion();
+    version.setId(100L);
+    version.setName("Original Version");
+    version.setDefault(true);
+    return version;
+  }
+
+  private TmsTestCaseVersion createDuplicatedVersion() {
+    var version = new TmsTestCaseVersion();
+    version.setId(101L);
+    version.setName("Duplicated Version");
+    version.setDefault(true);
+    return version;
+  }
+
   private TmsManualScenario createManualScenario() {
     var scenario = new TmsManualScenario();
     scenario.setId(1L);
+    return scenario;
+  }
+
+  private TmsManualScenario createDuplicatedManualScenario() {
+    var scenario = new TmsManualScenario();
+    scenario.setId(2L);
     return scenario;
   }
 

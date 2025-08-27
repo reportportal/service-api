@@ -1,10 +1,11 @@
 package com.epam.ta.reportportal.core.tms.service.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
-import com.epam.ta.reportportal.core.tms.service.TmsManualScenarioService;
+import com.epam.ta.reportportal.core.tms.service.TmsManualScenarioImplService;
 import com.epam.ta.reportportal.core.tms.service.TmsStepsManualScenarioImplService;
 import com.epam.ta.reportportal.core.tms.service.TmsTextManualScenarioImplService;
 import java.util.Arrays;
@@ -55,13 +56,59 @@ class TmsManualScenarioImplServiceFactoryTest {
   }
 
   @Test
+  void shouldReturnTextManualScenarioServiceWithEntityEnum() {
+    // When
+    var service = factory.getTmsManualScenarioService(
+        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+
+    // Then
+    assertThat(service).isEqualTo(textManualScenarioService);
+  }
+
+  @Test
+  void shouldReturnStepsManualScenarioServiceWithEntityEnum() {
+    // When
+    var service = factory.getTmsManualScenarioService(
+        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+
+    // Then
+    assertThat(service).isEqualTo(stepsManualScenarioService);
+  }
+
+  @Test
   void shouldReturnAllServices() {
+    // When
     var services = factory.getTmsManualScenarioImplServices();
 
+    // Then
     assertThat(services)
         .isNotNull()
         .isNotEmpty()
         .hasSize(2)
         .contains(stepsManualScenarioService, textManualScenarioService);
+  }
+
+  @Test
+  void shouldReturnSameServiceForBothEnumTypes() {
+    // When
+    var serviceFromDto = factory.getTmsManualScenarioService(TmsManualScenarioType.TEXT);
+    var serviceFromEntity = factory.getTmsManualScenarioService(
+        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+
+    // Then
+    assertThat(serviceFromDto).isEqualTo(serviceFromEntity);
+    assertThat(serviceFromDto).isEqualTo(textManualScenarioService);
+  }
+
+  @Test
+  void shouldReturnSameStepsServiceForBothEnumTypes() {
+    // When
+    var serviceFromDto = factory.getTmsManualScenarioService(TmsManualScenarioType.STEPS);
+    var serviceFromEntity = factory.getTmsManualScenarioService(
+        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+
+    // Then
+    assertThat(serviceFromDto).isEqualTo(serviceFromEntity);
+    assertThat(serviceFromDto).isEqualTo(stepsManualScenarioService);
   }
 }

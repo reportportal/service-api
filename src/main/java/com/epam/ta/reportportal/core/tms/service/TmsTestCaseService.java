@@ -2,8 +2,8 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,4 +57,13 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
    * @param testCaseIds target test case ids to be existed
    */
   void validateTestCasesExist(Long projectId, @NotEmpty List<Long> testCaseIds);
+
+  /**
+   * Duplicates multiple test cases with all their related data.
+   *
+   * @param projectId The ID of the project.
+   * @param duplicateRequest Request containing test case IDs to duplicate.
+   * @return A list of data transfer objects containing details of the duplicated test cases.
+   */
+  List<TmsTestCaseRS> duplicate(long projectId, BatchDuplicateTestCasesRQ duplicateRequest);
 }

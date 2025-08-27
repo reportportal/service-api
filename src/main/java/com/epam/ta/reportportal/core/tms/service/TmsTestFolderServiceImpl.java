@@ -11,7 +11,7 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTes
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseTestFolderRQ;
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolderRQ;
@@ -288,7 +288,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
   @Override
   @Transactional
-  public TmsTestFolderRS create(long projectId, TmsTestCaseTestFolderRQ testFolderRQ) {
+  public TmsTestFolderRS create(long projectId, NewTestFolderRQ testFolderRQ) {
     return create(projectId, tmsTestFolderMapper.convertToRQ(testFolderRQ));
   }
 
@@ -380,6 +380,51 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   public void delete(long projectId, Long folderId) {
     tmsTestCaseService.deleteByTestFolderId(projectId, folderId);
     tmsTestFolderRepository.deleteTestFolderWithSubfoldersById(projectId, folderId);
+  }
+
+  @Override
+  public Long resolveTargetFolderId(long projectId, Long testFolderId,
+      NewTestFolderRQ testFolderRQ) {
+    if ((nonNull(testFolderId) && nonNull(testFolderRQ) && nonNull(testFolderRQ.getName()))
+        || (isNull(testFolderId) && nonNull(testFolderRQ) && isNull(testFolderRQ.getName()))) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR,
+          "Either target folder id or target folder name should be set");
+    } else if (nonNull(testFolderId)) {
+      if (!existsById(projectId, testFolderId)) {
+        throw new ReportPortalException(
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
+      }
+      return testFolderId;
+    } else if (nonNull(testFolderRQ)) {
+      var targetFolder = tmsTestFolderMapper.convertFromName(projectId, testFolderRQ.getName());
+
+      if (nonNull(testFolderRQ.getParentTestFolderId())) {
+        if (!existsById(projectId, testFolderRQ.getParentTestFolderId())) {
+          throw new ReportPortalException(
+              NOT_FOUND,
+              TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderRQ.getParentTestFolderId(), projectId)
+          );
+        }
+        targetFolder.setParentTestFolder(
+            tmsTestFolderMapper.convertFromId(testFolderRQ.getParentTestFolderId())
+        );
+      }
+
+      return tmsTestFolderRepository.save(targetFolder).getId();
+    } else {
+      throw new ReportPortalException(BAD_REQUEST_ERROR,
+          "Either target folder id or target folder name must be provided for duplication");
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestFolder getEntityById(final long projectId, Long testFolderId) {
+    return tmsTestFolderRepository
+        .findByIdAndProjectId(testFolderId, projectId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId))
+        );
   }
 
   /**

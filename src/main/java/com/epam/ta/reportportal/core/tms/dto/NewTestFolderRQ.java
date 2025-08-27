@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TmsTestCaseTestFolderRQ {
+public class NewTestFolderRQ {
 
   private String name;
 

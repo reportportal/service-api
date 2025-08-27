@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
@@ -42,4 +43,11 @@ public interface TmsStepMapper {
   void patch(@MappingTarget TmsStep target, TmsStep source);
 
   List<TmsStepRS> convert(Collection<TmsStep> steps);
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "attachments", ignore = true)
+  @Mapping(target = "instructions", source = "originalStep.instructions")
+  @Mapping(target = "expectedResult", source = "originalStep.expectedResult")
+  @Mapping(target = "stepsManualScenario", source = "newStepsScenario")
+  TmsStep duplicateStep(TmsStep originalStep, TmsStepsManualScenario newStepsScenario);
 }

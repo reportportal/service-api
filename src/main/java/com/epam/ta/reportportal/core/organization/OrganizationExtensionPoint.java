@@ -20,9 +20,9 @@ import com.epam.reportportal.api.model.CreateOrganizationRequest;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.UpdateOrganizationRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.user.User;
-import org.jclouds.rest.ResourceNotFoundException;
 
 /**
  * Extension point for organization management in ReportPortal.
@@ -55,8 +55,9 @@ public interface OrganizationExtensionPoint extends ReportPortalExtensionPoint {
    * @param organizationId The ID of the organization to update.
    * @param updateRequest  The new details for the organization.
    * @param principal      The user performing the update operation.
+   * @throws ReportPortalException If the organization with the specified ID does not exist.
    */
-  void updateOrganization(Long organizationId, UpdateOrganizationRequest updateRequest, ReportPortalUser principal) throws ResourceNotFoundException;
+  void updateOrganization(Long organizationId, UpdateOrganizationRequest updateRequest, ReportPortalUser principal) throws ReportPortalException;
 
 
   /**
@@ -64,7 +65,7 @@ public interface OrganizationExtensionPoint extends ReportPortalExtensionPoint {
    *
    * @param organizationId The ID of the organization to retrieve.
    * @param principal      The user performing the delete operation.
-   * @throws ResourceNotFoundException If the organization with the specified ID does not exist.
+   * @throws ReportPortalException If the organization with the specified ID does not exist.
    */
-  void deleteOrganization(Long organizationId, ReportPortalUser principal) throws ResourceNotFoundException;
+  void deleteOrganization(Long organizationId, ReportPortalUser principal) throws ReportPortalException;
 }

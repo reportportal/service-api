@@ -60,7 +60,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
@@ -193,9 +192,9 @@ public class OrganizationController extends BaseController implements Organizati
 
   private OrganizationExtensionPoint getOrgExtension() {
     return pluginBox.getInstance(OrganizationExtensionPoint.class)
-        .orElseThrow(() -> new ResponseStatusException(
-            HttpStatus.PAYMENT_REQUIRED,
-            "Organization management is not available. Please install the 'organization' plugin."
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.PAID_PLUGIN_REQUIRED,
+            "Organization", "Organization management is unavailable."
         ));
   }
 

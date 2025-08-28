@@ -8,6 +8,8 @@ import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Controller for handling project collection-related requests.
@@ -55,7 +56,7 @@ public class GeneratedProjectController implements ProjectsApi {
   @Transactional(readOnly = true)
   public ResponseEntity<ProjectGroupInfo> getProjectGroupById(String projectKey, Long groupId) {
     var group = getGroupExtension().getProjectGroupById(projectKey, groupId).orElseThrow(
-        () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
+        () -> new ReportPortalException(ErrorType.NOT_FOUND, groupId)
     );
     return ResponseEntity.ok(group);
   }
@@ -82,8 +83,9 @@ public class GeneratedProjectController implements ProjectsApi {
 
   private GroupExtensionPoint getGroupExtension() {
     return pluginBox.getInstance(GroupExtensionPoint.class)
-        .orElseThrow(() -> new ResponseStatusException(
-            HttpStatus.PAYMENT_REQUIRED,
-            "Group management is not available. Please install the 'group' plugin."));
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.PAID_PLUGIN_REQUIRED,
+            "Group", "Group management is not available"
+        ));
   }
 }

@@ -31,6 +31,8 @@ import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +41,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Controller for handling group-related requests.
@@ -91,7 +92,7 @@ public class GroupController implements GroupsApi {
   @Transactional(readOnly = true)
   public ResponseEntity<GroupInfo> getGroupById(Long groupId) {
     GroupInfo group = getGroupExtension().getGroupById(groupId).orElseThrow(
-        () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
+        () -> new ReportPortalException(ErrorType.NOT_FOUND, groupId)
     );
     return ResponseEntity.ok(group);
   }
@@ -132,7 +133,7 @@ public class GroupController implements GroupsApi {
   @Transactional(readOnly = true)
   public ResponseEntity<GroupUserInfo> getGroupUserById(Long groupId, Long userId) {
     var groupUserInfo = getGroupExtension().getGroupUserById(groupId, userId).orElseThrow(
-        () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
+        () -> new ReportPortalException(ErrorType.NOT_FOUND, groupId)
     );
     return ResponseEntity.ok(groupUserInfo);
   }
@@ -171,7 +172,7 @@ public class GroupController implements GroupsApi {
   @Transactional(readOnly = true)
   public ResponseEntity<GroupProjectInfo> getGroupProjectById(Long groupId, Long projectId) {
     var groupProjectInfo = getGroupExtension().getGroupProjectById(groupId, projectId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, groupId));
     return ResponseEntity.ok(groupProjectInfo);
   }
 
@@ -197,9 +198,9 @@ public class GroupController implements GroupsApi {
 
   private GroupExtensionPoint getGroupExtension() {
     return pluginBox.getInstance(GroupExtensionPoint.class)
-        .orElseThrow(() -> new ResponseStatusException(
-            HttpStatus.PAYMENT_REQUIRED,
-            "Group management is not available. Please install the 'group' plugin."
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.PAID_PLUGIN_REQUIRED,
+            "Group", "Group management is not available"
         ));
   }
 }

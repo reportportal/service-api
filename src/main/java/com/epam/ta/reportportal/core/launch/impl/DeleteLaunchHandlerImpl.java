@@ -147,30 +147,30 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
       }
     });
 
+    Map<LaunchActivityResource, Long> activityResourceMap = toDelete.entrySet().stream()
+        .collect(Collectors.toMap(entry ->
+            TO_ACTIVITY_RESOURCE.apply(entry.getKey()), Map.Entry::getValue));
+
     if (CollectionUtils.isNotEmpty(launchIds)) {
       logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
       toDelete.keySet().forEach(launchContentRemover::remove);
       logService.deleteLogMessageByLaunchList(projectDetails.getProjectId(), launchIds);
-      launchRepository.deleteAll(toDelete.keySet());
       attachmentRepository.moveForDeletionByLaunchIds(launchIds);
+      launchRepository.deleteAll(toDelete.keySet());
     }
 
-    toDelete.entrySet().forEach(entry -> {
-      LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(entry.getKey());
-      messageBus.publishActivity(
-          new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
-      eventPublisher.publishEvent(
-          new ElementsDeletedEvent(entry.getKey().getId(), entry.getKey().getProjectId(),
-              entry.getValue()
-          ));
+    activityResourceMap.forEach((key, value) -> {
+      messageBus.publishActivity(new LaunchDeletedEvent(key, user.getUserId(), user.getUsername()));
+      eventPublisher.publishEvent(new ElementsDeletedEvent(key.getId(), key.getProjectId(), value));
     });
 
     return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
-      ErrorRS errorResponse = new ErrorRS();
-      errorResponse.setErrorType(ex.getErrorType());
-      errorResponse.setMessage(ex.getMessage());
-      return errorResponse;
-    }).collect(Collectors.toList()));
+          ErrorRS errorResponse = new ErrorRS();
+          errorResponse.setErrorType(ex.getErrorType());
+          errorResponse.setMessage(ex.getMessage());
+          return errorResponse;
+        })
+        .toList());
   }
 
   /**

@@ -146,6 +146,8 @@ public class StatusCodeMapping {
 
       put(ErrorType.RETRIES_HANDLER_ERROR, HttpStatus.BAD_REQUEST);
 
+      put(ErrorType.PAYMENT_REQUIRED, HttpStatus.PAYMENT_REQUIRED);
+      put(ErrorType.PAID_PLUGIN_REQUIRED, HttpStatus.PAYMENT_REQUIRED);
     }
   };
 

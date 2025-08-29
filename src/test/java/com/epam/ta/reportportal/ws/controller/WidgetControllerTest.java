@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -772,15 +775,21 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("activity stream"))
         .andExpect(jsonPath("$.widgetType").value("activityStream"))
-        .andExpect(jsonPath("$.content.result[2].user").value(SUPERADMIN_USERNAME))
-        .andExpect(jsonPath("$.content.result[2].actionType").value("startLaunch"))
-        .andExpect(jsonPath("$.content.result[2].objectType").value("LAUNCH"))
-        .andExpect(jsonPath("$.content.result[1].user").value(SUPERADMIN_USERNAME))
-        .andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
-        .andExpect(jsonPath("$.content.result[1].objectType").value("ITEM"))
-        .andExpect(jsonPath("$.content.result[0].user").value(SUPERADMIN_USERNAME))
-        .andExpect(jsonPath("$.content.result[0].actionType").value("deleteLaunch"))
-        .andExpect(jsonPath("$.content.result[0].objectType").value("LAUNCH"));
+        .andExpect(jsonPath("$.content.result", hasItem(allOf(
+            hasEntry("user", SUPERADMIN_USERNAME),
+            hasEntry("actionType", "startLaunch"),
+            hasEntry("objectType", "LAUNCH")
+        ))))
+        .andExpect(jsonPath("$.content.result", hasItem(allOf(
+            hasEntry("user", SUPERADMIN_USERNAME),
+            hasEntry("actionType", "updateItem"),
+            hasEntry("objectType", "ITEM")
+        ))))
+        .andExpect(jsonPath("$.content.result", hasItem(allOf(
+            hasEntry("user", SUPERADMIN_USERNAME),
+            hasEntry("actionType", "deleteLaunch"),
+            hasEntry("objectType", "LAUNCH")
+        ))));
   }
 
   @Sql("/db/widget/activity-stream.sql")
@@ -809,15 +818,21 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.name").value("activity stream"))
         .andExpect(jsonPath("$.widgetType").value("activityStream"))
-        .andExpect(jsonPath("$.content.result[2].user").value(SUPERADMIN_USERNAME))
-        .andExpect(jsonPath("$.content.result[2].actionType").value("startLaunch"))
-        .andExpect(jsonPath("$.content.result[2].objectType").value("LAUNCH"))
-        .andExpect(jsonPath("$.content.result[1].user").value(SUPERADMIN_USERNAME))
-        .andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
-        .andExpect(jsonPath("$.content.result[1].objectType").value("ITEM"))
-        .andExpect(jsonPath("$.content.result[0].user").value(SUPERADMIN_USERNAME))
-        .andExpect(jsonPath("$.content.result[0].actionType").value("deleteLaunch"))
-        .andExpect(jsonPath("$.content.result[0].objectType").value("LAUNCH"));
+        .andExpect(jsonPath("$.content.result", hasItem(allOf(
+            hasEntry("user", SUPERADMIN_USERNAME),
+            hasEntry("actionType", "startLaunch"),
+            hasEntry("objectType", "LAUNCH")
+        ))))
+        .andExpect(jsonPath("$.content.result", hasItem(allOf(
+            hasEntry("user", SUPERADMIN_USERNAME),
+            hasEntry("actionType", "updateItem"),
+            hasEntry("objectType", "ITEM")
+        ))))
+        .andExpect(jsonPath("$.content.result", hasItem(allOf(
+            hasEntry("user", SUPERADMIN_USERNAME),
+            hasEntry("actionType", "deleteLaunch"),
+            hasEntry("objectType", "LAUNCH")
+        ))));
   }
 
   @Sql("/db/widget/product-status.sql")

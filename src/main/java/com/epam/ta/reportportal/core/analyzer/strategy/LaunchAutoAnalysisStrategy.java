@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
@@ -72,7 +72,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
     validateLaunch(launch, membershipDetails);
 
     Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectId()));
+        () -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
 
     AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
     analyzerConfig.setAnalyzerMode(analyzeMode.getValue());

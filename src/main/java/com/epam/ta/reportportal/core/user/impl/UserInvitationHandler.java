@@ -21,6 +21,7 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
@@ -219,7 +220,7 @@ public class UserInvitationHandler {
             Long projectId = safeParseLong(project.get("id").toString());
 
             var projectEntity = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+                .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
             expect(projectEntity.getOrganizationId(), equalTo(orgUser.getOrganization().getId()))
                 .verify(BAD_REQUEST_ERROR,
                     formattedSupplier("Project '{}' does not belong to organization {}",

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.INFO;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
@@ -24,7 +25,6 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.WARN;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -109,7 +109,8 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 
     Launch launch = testItemService.getEffectiveLaunch(testItem);
     Project project = projectRepository.findById(launch.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, launch.getProjectId()));
+        .orElseThrow(
+            () -> new ReportPortalException(NOT_FOUND, "Project " + launch.getProjectId()));
 
     updateStatus(project, launch, testItem, providedStatus, user, updateParents);
   }

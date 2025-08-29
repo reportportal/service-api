@@ -20,7 +20,7 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -186,7 +186,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
       MembershipDetails membershipDetails) {
     expect(getProjectHandler.exists(membershipDetails.getProjectId()), Predicate.isEqual(true)).verify(
-        PROJECT_NOT_FOUND, membershipDetails.getProjectId());
+        NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
     launches.forEach(

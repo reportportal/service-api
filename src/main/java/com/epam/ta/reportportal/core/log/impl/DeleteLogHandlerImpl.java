@@ -21,7 +21,7 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -93,7 +93,7 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
       ReportPortalUser user) {
     BusinessRule.expect(projectRepository.existsById(membershipDetails.getProjectId()),
             BooleanUtils::isTrue)
-        .verify(PROJECT_NOT_FOUND, membershipDetails.getProjectId());
+        .verify(NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
     Log log = validate(logId, user, membershipDetails);
     try {

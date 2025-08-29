@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
@@ -279,7 +280,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
   private Project getProjectById(Long projectId) {
     return projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
   }
 
 

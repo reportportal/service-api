@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.core.activity.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
@@ -24,7 +25,6 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.ACTIVITY_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 
 import com.epam.reportportal.model.ActivityResource;
@@ -87,7 +87,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 			Queryable predefinedFilter, Pageable pageable) {
 
 		expect(projectRepository.existsById(membershipDetails.getProjectId()), BooleanUtils::isTrue)
-				.verify(PROJECT_NOT_FOUND, membershipDetails.getProjectId());
+				.verify(NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
 		FilterCondition projectCondition = FilterCondition.builder()
 				.eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId()))
@@ -152,7 +152,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
       MembershipDetails membershipDetails, Filter filter, Pageable pageable) {
     expect(projectRepository.existsById(membershipDetails.getProjectId()),
             BooleanUtils::isTrue)
-        .verify(PROJECT_NOT_FOUND, membershipDetails.getProjectId());
+        .verify(NOT_FOUND, "Project " + membershipDetails.getProjectId());
     filter.withCondition(FilterCondition.builder()
         .eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId())).build());
     return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)

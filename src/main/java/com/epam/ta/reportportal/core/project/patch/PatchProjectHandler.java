@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.project.patch;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 import com.epam.reportportal.api.model.PatchOperation;

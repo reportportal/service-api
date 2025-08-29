@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_FILTER_PARAMETERS;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -191,9 +192,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
       Filter filter, Pageable pageable, String userName) {
     validateModeConditions(filter);
     Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            membershipDetails.getProjectId()
-        ));
+        () -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
 
     filter = addLaunchCommonCriteria(Mode.DEFAULT, filter);
     Page<Launch> launches =
@@ -242,9 +241,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
     validateModeConditions(filter);
 
     Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            membershipDetails.getProjectId()
-        ));
+        () -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
 
     filter = addLaunchCommonCriteria(Mode.DEFAULT, filter);
 

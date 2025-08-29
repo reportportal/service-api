@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
@@ -134,7 +135,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   @Override
   public Project get(Long id) {
     return projectRepository.findById(id)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, id));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + id));
   }
 
   @Override

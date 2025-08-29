@@ -21,7 +21,7 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -154,7 +154,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   public List<Issue> defineTestItemsIssues(MembershipDetails membershipDetails,
       DefineIssueRQ defineIssue, ReportPortalUser user) {
     Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectId()));
+        () -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
 
     List<String> errors = new ArrayList<>();
     List<IssueDefinition> definitions = defineIssue.getIssues();

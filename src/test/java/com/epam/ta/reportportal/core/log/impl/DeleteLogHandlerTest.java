@@ -92,7 +92,7 @@ class DeleteLogHandlerTest {
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.deleteLog(1L, extractProjectDetails(user, TEST_PROJECT_KEY), user)
     );
-    assertEquals("Project '1' not found. Did you use correct project name?",
+    assertEquals("'Project 1' not found. Did you use correct ID?",
         exception.getMessage());
   }
 

@@ -193,7 +193,7 @@ class GetLaunchHandlerImplTest {
             getDefaultFilter(), PageRequest.of(0, 10), "user"
         )
     );
-    assertEquals("Project '1' not found. Did you use correct project name?",
+    assertEquals("'Project 1' not found. Did you use correct ID?",
         exception.getMessage()
     );
   }
@@ -211,7 +211,7 @@ class GetLaunchHandlerImplTest {
             getDefaultFilter(), PageRequest.of(0, 10)
         )
     );
-    assertEquals("Project '1' not found. Did you use correct project name?",
+    assertEquals("'Project 1' not found. Did you use correct ID?",
         exception.getMessage()
     );
   }

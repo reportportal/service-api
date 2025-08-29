@@ -179,7 +179,7 @@ class UpdateTestItemHandlerImplTest {
         )
     );
 
-    assertEquals("Project '1' not found. Did you use correct project name?",
+    assertEquals("'Project 1' not found. Did you use correct ID?",
         exception.getMessage()
     );
   }

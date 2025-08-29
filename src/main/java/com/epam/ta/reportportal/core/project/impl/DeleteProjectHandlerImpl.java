@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
@@ -139,7 +140,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private Project getProjectById(Long projectId) {
     return projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
   }
 
   @Override

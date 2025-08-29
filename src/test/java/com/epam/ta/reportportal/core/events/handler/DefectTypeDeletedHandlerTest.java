@@ -83,7 +83,7 @@ class DefectTypeDeletedHandlerTest {
         assertThrows(ReportPortalException.class, () -> handler.handleDefectTypeDeleted(
             new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId, 1L)));
 
-    assertEquals("Project '2' not found. Did you use correct project name?",
+    assertEquals("'Project 2' not found. Did you use correct ID?",
         exception.getMessage()
     );
   }

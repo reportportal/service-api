@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
@@ -102,8 +103,7 @@ public class SearchLogServiceImpl implements SearchLogService {
   public Iterable<SearchLogRs> search(Long itemId, SearchLogRq request,
       MembershipDetails membershipDetails) {
     Project project = projectRepository.findById(membershipDetails.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-            membershipDetails.getProjectId()));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
 
     TestItem item = testItemRepository.findById(itemId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));

@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -102,7 +102,7 @@ class DemoDashboardsService {
   @Transactional
   public Optional<Dashboard> generate(ReportPortalUser user, Long projectId) {
     Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
 
     if (dashboardRepository.existsByNameAndOwnerAndProjectId(
         DASHBOARD_NAME, user.getUsername(), projectId)) {

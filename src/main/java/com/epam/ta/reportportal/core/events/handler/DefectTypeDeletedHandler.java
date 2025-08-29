@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
@@ -74,7 +75,7 @@ public class DefectTypeDeletedHandler {
   public void handleDefectTypeDeleted(DefectTypeDeletedEvent event) {
     Project project = projectRepository.findById(event.getProjectId())
         .orElseThrow(
-            () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, event.getProjectId()));
+            () -> new ReportPortalException(NOT_FOUND, "Project " + event.getProjectId()));
 
     if (analyzerServiceClient.hasClients()) {
       Cache<Long, Long> analyzeStatus = analyzerStatusCache.getAnalyzeStatus(AUTO_ANALYZER_KEY)

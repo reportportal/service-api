@@ -22,7 +22,6 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.ORGANIZATION_NOT_FOUND;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIGNED;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -149,7 +148,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     // validate projects
     projects.forEach(project -> {
       var projectEntity = projectRepository.findById(project.getId())
-          .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, project.getId()));
+          .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + project.getId()));
       expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
           formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId)
       );
@@ -288,7 +287,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
       Optional<ProjectUser> projectUserOptional = projectUserRepository.findProjectUserByUserIdAndProjectId(
           user.getId(), userProjectInfo.getId());
       Project project = projectRepository.findById(userProjectInfo.getId())
-          .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, user.getId()));
+          .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + user.getId()));
 
       ProjectUser projectUser = projectUserOptional.orElse(new ProjectUser());
 

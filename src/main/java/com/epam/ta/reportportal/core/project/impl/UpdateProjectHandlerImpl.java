@@ -21,6 +21,7 @@ import static com.epam.reportportal.rules.commons.validation.BusinessRule.fail;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.ROLE_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT;
@@ -515,7 +516,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   private ChangeRoleEvent getChangeRoleEvent(User updatingUser, Long projectId,
       ReportPortalUser loggedUser, String oldRole, String newRole) {
     Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
     UserActivityResource userActivityResource =
         new UserActivityResource(updatingUser.getId(), projectId, updatingUser.getLogin());
     return new ChangeRoleEvent(userActivityResource, oldRole, newRole, loggedUser.getUserId(),
@@ -623,7 +624,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       ProjectConfigurationUpdate updateConfiguration) {
 
     Project project = projectRepository.findById(before.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, before.getProjectId()));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + before.getProjectId()));
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.JOB)) {
       applicationEventPublisher.publishEvent(
           new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername(), project.getOrganizationId()));

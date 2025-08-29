@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.analytics;
 
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.core.analytics.AnalyticsObjectType.DEFECT_UPDATE_STATISTICS;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 
@@ -134,7 +134,7 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
 
   private boolean getIsAutoAnalyzerEnabled(Long projectId) {
     Project project = projectRepository.findById(projectId).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
+        () -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
     AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
     return analyzerConfig.getIsAutoAnalyzerEnabled();
   }

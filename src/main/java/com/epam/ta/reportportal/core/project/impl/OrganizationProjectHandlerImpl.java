@@ -206,7 +206,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   public void deleteProject(Long orgId, Long projectId) {
     Project project = getProjectById(projectId);
     expect(project.getOrganizationId(), equalTo(orgId))
-        .verify(PROJECT_NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
+        .verify(NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
 
     deleteProjectWithDependants(project);
 

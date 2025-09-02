@@ -33,7 +33,6 @@ import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConve
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationUserConverter.MEMBERSHIP_TO_ORG_USER_PROJECT;
 import static java.util.function.Predicate.isEqual;
 
-import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrgUserProjectPage;
 import com.epam.reportportal.api.model.OrgUserUpdateRequest;
@@ -60,7 +59,6 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.util.SlugifyUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,7 +66,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -202,18 +199,14 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   private void validatePersonalOrganization(Organization organization, User userToUnassign) {
     if (organization.getOrganizationType().equals(OrganizationType.PERSONAL)
-        && isPersonalOrganization(organization.getName(), userToUnassign.getEmail())) {
+        && isPersonalOrganization(organization, userToUnassign)) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED,
           "User %s cannot be unassigned from personal organization".formatted(userToUnassign.getId()));
     }
   }
 
-  // TODO: introduce a proper way to check if the organization is personal.
-  //  e.g. extend organization_users table with is_owner field. Waiting for requirements
-  private boolean isPersonalOrganization(String orgName, String email) {
-    var username = SlugifyUtils.slugify(StringUtils.substringBefore(email, "@"));
-    var baseOrgName = StringUtils.substringBefore(orgName, "_personal").toLowerCase();
-    return username.equals(baseOrgName);
+  private boolean isPersonalOrganization(Organization organization, User userToUnassign) {
+    return organization.getOwnerId().equals(userToUnassign.getId());
   }
 
   public void saveOrganizationUser(Organization organization, User assignedUser, String role) {

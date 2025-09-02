@@ -48,7 +48,7 @@ public class UserCreatedConsumer {
   }
 
   /**
-   * Handles the incoming Activity message for user creation.
+   * Handles external user creation events.
    *
    * @param activity The activity payload containing user information.
    */

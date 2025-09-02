@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.organization;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.OrganizationInfo;

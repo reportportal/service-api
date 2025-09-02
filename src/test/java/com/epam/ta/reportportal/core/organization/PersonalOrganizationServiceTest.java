@@ -17,10 +17,12 @@
 package com.epam.ta.reportportal.core.organization;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.User;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -38,15 +40,17 @@ public class PersonalOrganizationServiceTest {
   @Mock
   private Pf4jPluginBox pluginBox;
 
+  @Mock
+  private UserRepository userRepository;
+
   @InjectMocks
   private PersonalOrganizationService personalOrganizationService;
-
-  private final User user = new User();
 
   @Test
   public void pluginNotFound() {
     when(pluginBox.getInstance(OrganizationExtensionPoint.class)).thenReturn(Optional.empty());
-    Optional<OrganizationInfo> result = personalOrganizationService.create(user);
+    when(userRepository.findById(0L)).thenReturn(Optional.of(new User()));
+    Optional<OrganizationInfo> result = personalOrganizationService.createPersonalOrganization(0L);
 
     assertEquals(Optional.empty(), result);
   }
@@ -54,7 +58,8 @@ public class PersonalOrganizationServiceTest {
   @Test
   public void pluginThrowsException() {
     when(pluginBox.getInstance(OrganizationExtensionPoint.class)).thenThrow(new RuntimeException("Test exception"));
-    Optional<OrganizationInfo> result = personalOrganizationService.create(user);
+    when(userRepository.findById(0L)).thenReturn(Optional.of(new User()));
+    Optional<OrganizationInfo> result = personalOrganizationService.createPersonalOrganization(0L);
 
     assertEquals(Optional.empty(), result);
   }

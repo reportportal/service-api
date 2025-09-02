@@ -55,8 +55,7 @@ public class MessageBusImpl implements MessageBus {
   }
 
   private String generateKey(Activity activity) {
-    return String.format("activity.%d.%s.%s",
-        activity.getProjectId(),
+    return String.format("activity.%s.%s",
         activity.getObjectType(),
         activity.getEventName());
   }

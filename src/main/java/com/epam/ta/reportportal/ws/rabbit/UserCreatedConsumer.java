@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.core.organization.PersonalOrganizationService;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Component;
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Shekhtel Reingold</a>
  */
-@Slf4j
 @Component
 public class UserCreatedConsumer {
 
@@ -54,9 +52,9 @@ public class UserCreatedConsumer {
    */
   @RabbitListener(
       bindings = @QueueBinding(
-          value = @Queue(value = "${rp.user.created.external.queue:user.created}", durable = "true", autoDelete = "false"),
-          exchange = @Exchange(value = "${rp.activity.exchange:activity}", type = ExchangeTypes.TOPIC),
-          key = "${rp.user.created.external.routing:activity.USER.createUser.external}"
+          value = @Queue(value = "user.created", durable = "true", autoDelete = "false"),
+          exchange = @Exchange(value = "activity", type = ExchangeTypes.TOPIC),
+          key = "activity.USER.createUser.external"
       ),
       containerFactory = "rabbitListenerContainerFactory"
   )

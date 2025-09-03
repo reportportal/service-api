@@ -5,7 +5,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTagsRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -39,9 +39,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Controller for managing test cases associated with a project. All endpoints
- * are secured and require administrator privileges. Operations supported
- * include retrieval, creation, updating, and patching test cases.
+ * Controller for managing test cases associated with a project. All endpoints are secured and
+ * require administrator privileges. Operations supported include retrieval, creation, updating, and
+ * patching test cases.
  */
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms/test-case")
@@ -57,7 +57,7 @@ public class TestCaseController {
   /**
    * Retrieves a specific test case by its ID within a project.
    *
-   * @param projectKey  The key of the project to which the test case belongs.
+   * @param projectKey The key of the project to which the test case belongs.
    * @param testCaseId The ID of the test case to retrieve.
    * @return A data transfer object ({@link TmsTestCaseRS}) containing details of the test case.
    */
@@ -80,15 +80,16 @@ public class TestCaseController {
   }
 
   /**
-   * Retrieves test cases associated with a specific project by criteria.
-   * Supports filtering, sorting, full-text search and pagination.
+   * Retrieves test cases associated with a specific project by criteria. Supports filtering,
+   * sorting, full-text search and pagination.
    *
-   * @param projectKey The key of the project.
-   * @param search Optional full-text search query string for searching in test case names and descriptions
+   * @param projectKey   The key of the project.
+   * @param search       Optional full-text search query string for searching in test case names and
+   *                     descriptions
    * @param testFolderId Optional test folder ID to filter test cases by specific folder
-//   * @param pageable Pagination information including sorting parameters
-   * @param user Authenticated user
-   * @return A paginated list of data transfer objects ({@link TmsTestCaseRS}) representing test cases.
+   * @param user         Authenticated user
+   * @return A paginated list of data transfer objects ({@link TmsTestCaseRS}) representing test
+   * cases.
    */
   @GetMapping
   @Operation(
@@ -119,7 +120,8 @@ public class TestCaseController {
    * Creates a new test case within a specific project.
    *
    * @param projectKey The key of the project to which the new test case will be added.
-   * @param inputDto  A request payload ({@link TmsTestCaseRQ}) containing information about the test case to create.
+   * @param inputDto   A request payload ({@link TmsTestCaseRQ}) containing information about the
+   *                   test case to create.
    * @return A data transfer object ({@link TmsTestCaseRS}) with details of the created test case.
    */
   @PostMapping
@@ -142,9 +144,10 @@ public class TestCaseController {
   /**
    * Updates the details of an existing test case in a project.
    *
-   * @param projectKey  The key of the project to which the test case belongs.
+   * @param projectKey The key of the project to which the test case belongs.
    * @param testCaseId The ID of the test case to update.
-   * @param inputDto   A request payload ({@link TmsTestCaseRQ}) containing updated information for the test case.
+   * @param inputDto   A request payload ({@link TmsTestCaseRQ}) containing updated information for
+   *                   the test case.
    * @return A data transfer object ({@link TmsTestCaseRS}) with updated details of the test case.
    */
   @PutMapping("/{testCaseId}")
@@ -168,10 +171,10 @@ public class TestCaseController {
   }
 
   /**
-   * Applies a set of modifications to an existing test case in a project.
-   * Partial updates to the test case's fields can be handled via this endpoint.
+   * Applies a set of modifications to an existing test case in a project. Partial updates to the
+   * test case's fields can be handled via this endpoint.
    *
-   * @param projectKey  The key of the project to which the test case belongs.
+   * @param projectKey The key of the project to which the test case belongs.
    * @param testCaseId The ID of the test case to patch.
    * @param inputDto   A request payload ({@link TmsTestCaseRQ}) containing the modifications.
    * @return A data transfer object ({@link TmsTestCaseRS}) with patched details of the test case.
@@ -198,7 +201,7 @@ public class TestCaseController {
   /**
    * Deletes a specific test case by its ID within a project.
    *
-   * @param projectKey  The key of the project to which the test case belongs.
+   * @param projectKey The key of the project to which the test case belongs.
    * @param testCaseId The ID of the test case to delete.
    */
   @DeleteMapping("/{testCaseId}")
@@ -219,7 +222,7 @@ public class TestCaseController {
   /**
    * Deletes multiple test cases by their IDs within a project.
    *
-   * @param projectKey The key of the project.
+   * @param projectKey    The key of the project.
    * @param deleteRequest The object contains comma-separated list of test case IDs to delete.
    */
   @DeleteMapping("/batch")
@@ -242,11 +245,12 @@ public class TestCaseController {
   }
 
   /**
-   * Updates multiple test cases at once, particularly useful for changing test case folder for multiple test cases.
+   * Updates multiple test cases at once, particularly useful for changing test case folder for
+   * multiple test cases.
    *
-   * @param projectKey The key of the project.
-   * @param patchRequest Request body containing update information
-   *                     and comma-separated list of test case IDs to update.
+   * @param projectKey   The key of the project.
+   * @param patchRequest Request body containing update information and comma-separated list of test
+   *                     case IDs to update.
    */
   @PatchMapping("/batch")
   @Operation(
@@ -267,11 +271,10 @@ public class TestCaseController {
   }
 
   /**
-   * Imports test cases from a file into a project.
-   * Supports CSV and JSON file formats.
+   * Imports test cases from a file into a project. Supports CSV and JSON file formats.
    *
    * @param projectKey The key of the project.
-   * @param file The file containing test cases to import.
+   * @param file       The file containing test cases to import.
    * @return A list of created test cases.
    */
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -296,12 +299,12 @@ public class TestCaseController {
   }
 
   /**
-   * Exports test cases from a project to a file.
-   * Supports JSON and CSV formats.
+   * Exports test cases from a project to a file. Supports JSON and CSV formats.
    *
-   * @param projectKey The key of the project.
-   * @param ids Comma-separated list of test case IDs to export. If not provided, all test cases will be exported.
-   * @param format Format of the export file (JSON or CSV).
+   * @param projectKey         The key of the project.
+   * @param ids                Comma-separated list of test case IDs to export. If not provided, all
+   *                           test cases will be exported.
+   * @param format             Format of the export file (JSON or CSV).
    * @param includeAttachments Whether to include attachments in the export (only for JSON format).
    */
   @GetMapping("/export")
@@ -335,8 +338,8 @@ public class TestCaseController {
   /**
    * Deletes specific tags from a test case by attribute IDs.
    *
-   * @param projectKey The key of the project.
-   * @param testCaseId The ID of the test case.
+   * @param projectKey    The key of the project.
+   * @param testCaseId    The ID of the test case.
    * @param deleteRequest Request containing attribute IDs to delete.
    */
   @DeleteMapping("/{testCaseId}/tags")
@@ -350,7 +353,7 @@ public class TestCaseController {
       @PathVariable("testCaseId") final long testCaseId,
       @Valid @RequestBody DeleteTagsRQ deleteRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    tmsTestCaseService.deleteTagsFromTestCase(
+    tmsTestCaseService.deleteAttributesFromTestCase(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
@@ -360,28 +363,28 @@ public class TestCaseController {
   }
 
   /**
-   * Deletes specific tags from multiple test cases.
+   * Deletes specific attributes from multiple test cases.
    *
-   * @param projectKey The key of the project.
+   * @param projectKey    The key of the project.
    * @param deleteRequest Request containing test case IDs and attribute IDs to delete.
    */
   @DeleteMapping("/tags/batch")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Delete tags from multiple test cases",
-      description = "Deletes specific tags from multiple test cases by their IDs.",
+      description = "Deletes specific attributes from multiple test cases by their IDs.",
       tags = {"Batch Operations"}
   )
   @ApiResponse(responseCode = "204", description = "Tags deleted successfully")
-  public void deleteTagsFromTestCases(@PathVariable("projectKey") String projectKey,
-      @Valid @RequestBody BatchDeleteTagsRQ deleteRequest,
+  public void deleteAttributesFromTestCases(@PathVariable("projectKey") String projectKey,
+      @Valid @RequestBody BatchDeleteAttributesRQ deleteRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    tmsTestCaseService.deleteTagsFromTestCases(
+    tmsTestCaseService.deleteAttributesFromTestCases(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         deleteRequest.getTestCaseIds(),
-        deleteRequest.getTagIds()
+        deleteRequest.getAttributeIds()
     );
   }
 

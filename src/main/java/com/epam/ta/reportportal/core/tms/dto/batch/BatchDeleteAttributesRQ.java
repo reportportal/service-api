@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BatchDeleteTagsRQ {
+public class BatchDeleteAttributesRQ {
 
   @NotEmpty(message = "Test case IDs cannot be empty")
   private List<Long> testCaseIds;
 
-  @NotEmpty(message = "Tag IDs cannot be empty")
-  private List<Long> tagIds;
+  @NotEmpty(message = "Attribute IDs cannot be empty")
+  private List<Long> attributeIds;
 }

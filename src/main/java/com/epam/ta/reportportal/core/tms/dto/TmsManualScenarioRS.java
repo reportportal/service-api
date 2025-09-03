@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Abstract base response DTO for manual scenario operations.
- * Contains common information for all types of manual scenarios.
- * This class is extended by concrete implementations for different scenario types.
+ * Abstract base response DTO for manual scenario operations. Contains common information for all
+ * types of manual scenarios. This class is extended by concrete implementations for different
+ * scenario types.
  */
 @Data
 @SuperBuilder
@@ -44,11 +44,10 @@ public abstract class TmsManualScenarioRS {
   protected TmsManualScenarioPreconditionsRS preconditions;
 
   @Valid
-  protected Set<TmsAttributeRS> tags;
+  protected Set<TmsManualScenarioAttributeRS> attributes;
 
   /**
-   * Type of manual scenario (STEPS or TEXT).
-   * Required for proper JSON deserialization.
+   * Type of manual scenario (STEPS or TEXT). Required for proper JSON deserialization.
    */
   @NotNull(message = "Manual scenario type must be specified")
   protected TmsManualScenarioType manualScenarioType;

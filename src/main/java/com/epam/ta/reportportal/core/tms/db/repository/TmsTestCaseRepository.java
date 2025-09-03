@@ -16,32 +16,36 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
 
   @Query("SELECT tc FROM TmsTestCase tc " +
       "JOIN FETCH tc.testFolder tf " +
-      "LEFT JOIN FETCH tc.tags t " +
+      "LEFT JOIN FETCH tc.attributes t " +
       "WHERE tf.project.id = :projectId"
   )
   List<TmsTestCase> findByTestFolder_ProjectId(Long projectId);
 
   @Query("SELECT tc FROM TmsTestCase tc " +
       "JOIN FETCH tc.testFolder tf " +
-      "LEFT JOIN FETCH tc.tags t " +
+      "LEFT JOIN FETCH tc.attributes t " +
       "WHERE tf.project.id = :projectId AND tc.id = :id"
   )
-  Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId, @Param("id") Long id);
+  Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId,
+      @Param("id") Long id);
 
   @Query("SELECT tc FROM TmsTestCase tc " +
       "JOIN FETCH tc.testFolder tf " +
-      "LEFT JOIN FETCH tc.tags t " +
+      "LEFT JOIN FETCH tc.attributes t " +
       "WHERE tf.project.id = :projectId AND tc.id IN (:ids)"
   )
-  List<TmsTestCase> findByProjectIdAndIds(@Param("projectId") Long projectId, @Param("ids") List<Long> ids);
+  List<TmsTestCase> findByProjectIdAndIds(@Param("projectId") Long projectId,
+      @Param("ids") List<Long> ids);
 
   @Query("SELECT tc.id FROM TmsTestCase tc " +
       "JOIN tc.testFolder tf " +
       "WHERE tf.project.id = :projectId AND tc.id IN (:ids)"
   )
-  List<Long> findExistingIdsByProjectIdAndIds(@Param("projectId") Long projectId, @Param("ids") List<Long> ids);
+  List<Long> findExistingIdsByProjectIdAndIds(@Param("projectId") Long projectId,
+      @Param("ids") List<Long> ids);
 
-  Boolean existsByTestFolder_Project_IdAndId(@Param("projectId") Long projectId, @Param("id") Long id);
+  Boolean existsByTestFolder_Project_IdAndId(@Param("projectId") Long projectId,
+      @Param("id") Long id);
 
   /**
    * Finds test case ids by project with optional search and folder filtering, supporting

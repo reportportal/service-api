@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
@@ -44,14 +44,14 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   @Test
   void createTestPlanIntegrationTest() throws Exception {
-    var attribute = new TmsAttributeRQ();
+    TmsTestPlanAttributeRQ attribute = new TmsTestPlanAttributeRQ();
     attribute.setValue("value3");
     attribute.setId(3L);
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("name3");
     tmsTestPlan.setDescription("description3");
-    tmsTestPlan.setTags(List.of(attribute));
+    tmsTestPlan.setAttributes(List.of(attribute));
 
     String jsonContent = objectMapper.writeValueAsString(tmsTestPlan);
 
@@ -84,14 +84,14 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   @Test
   void updateTestPlanIntegrationTest() throws Exception {
-    var attribute = new TmsAttributeRQ();
+    TmsTestPlanAttributeRQ attribute = new TmsTestPlanAttributeRQ();
     attribute.setValue("value5");
     attribute.setId(5L);
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");
     tmsTestPlan.setDescription("updated_name5");
-    tmsTestPlan.setTags(List.of(attribute));
+    tmsTestPlan.setAttributes(List.of(attribute));
 
     String jsonContent = objectMapper.writeValueAsString(tmsTestPlan);
 
@@ -133,14 +133,14 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchTestPlanTest() throws Exception {
-    var attributQ = new TmsAttributeRQ();
+    TmsTestPlanAttributeRQ attributQ = new TmsTestPlanAttributeRQ();
     attributQ.setValue("value5");
     attributQ.setId(5L);
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");
     tmsTestPlan.setDescription("updated_name5");
-    tmsTestPlan.setTags(List.of(attributQ));
+    tmsTestPlan.setAttributes(List.of(attributQ));
 
     String jsonContent = objectMapper.writeValueAsString(tmsTestPlan);
 

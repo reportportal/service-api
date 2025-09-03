@@ -5,7 +5,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioAttributeRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioAttributeMapper;
 import java.util.HashSet;
 import java.util.List;
@@ -21,17 +21,16 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
 
   private final TmsManualScenarioAttributeMapper tmsManualScenarioAttributeMapper;
   private final TmsManualScenarioAttributeRepository tmsManualScenarioAttributeRepository;
-  private final TmsAttributeService tmsAttributeService;
 
   @Override
   @Transactional
   public void createAttributes(TmsManualScenario tmsManualScenario,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsManualScenarioAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsManualScenarioAttributes = tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(
-        tmsAttributeService.getTmsAttributes(attributes), attributes);
+        attributes);
     tmsManualScenario.setAttributes(tmsManualScenarioAttributes);
     tmsManualScenarioAttributes.forEach(
         tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(
@@ -42,7 +41,7 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
   @Override
   @Transactional
   public void updateAttributes(TmsManualScenario tmsManualScenario,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsManualScenarioAttributeRQ> attributes) {
     if (isNotEmpty(tmsManualScenario.getAttributes())) {
       tmsManualScenarioAttributeRepository.deleteAll(tmsManualScenario.getAttributes());
       tmsManualScenario.setAttributes(new HashSet<>());
@@ -53,12 +52,12 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
   @Override
   @Transactional
   public void patchAttributes(TmsManualScenario tmsManualScenario,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsManualScenarioAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsManualScenarioAttributes = tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(
-        tmsAttributeService.getTmsAttributes(attributes), attributes);
+        attributes);
     tmsManualScenario.getAttributes().addAll(tmsManualScenarioAttributes);
     tmsManualScenarioAttributes.forEach(
         tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(

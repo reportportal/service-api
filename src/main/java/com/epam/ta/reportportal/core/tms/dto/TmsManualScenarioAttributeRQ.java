@@ -6,12 +6,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Request DTO for manual scenario attribute operations. Contains information about an attribute of
+ * the manual scenario.
+ */
 @Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TmsAttributeRQ {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class TmsManualScenarioAttributeRQ {
 
-  private String key;
+  private Long id;
+
+  private String value;
 }

@@ -47,7 +47,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   }
 
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
-  @Mapping(target = "tags", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
@@ -58,7 +58,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   )
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "searchVector", ignore = true)
-  @Mapping(target = "tags", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "testItems", ignore = true)
@@ -70,7 +70,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "searchVector", ignore = true)
-  @Mapping(target = "tags", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "testItems", ignore = true)
@@ -96,7 +96,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "searchVector", ignore = true)
-  @Mapping(target = "tags", ignore = true)
+  @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "testPlans", ignore = true)
   @Mapping(target = "versions", ignore = true)

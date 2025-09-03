@@ -3,7 +3,6 @@ package com.epam.ta.reportportal.core.tms.service;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlanTestCase;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
@@ -49,7 +48,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     testPlanRepository.save(tmsTestPlan);
 
     tmsTestPlanAttributeService.createTestPlanAttributes(tmsTestPlan,
-        testPlanRQ.getTags());
+        testPlanRQ.getAttributes());
 
     return tmsTestPlanMapper.convertToRS(tmsTestPlan);
   }
@@ -63,7 +62,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
           tmsTestPlanAttributeService.updateTestPlanAttributes(existingTestPlan,
-              testPlanRQ.getTags());
+              testPlanRQ.getAttributes());
 
           return tmsTestPlanMapper.convertToRS(existingTestPlan);
         }).orElseGet(() -> create(projectId, testPlanRQ));
@@ -78,7 +77,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
           tmsTestPlanAttributeService.patchTestPlanAttributes(existingTestPlan,
-              testPlanRQ.getTags());
+              testPlanRQ.getAttributes());
 
           return tmsTestPlanMapper.convertToRS(existingTestPlan);
         }).orElseThrow(() -> new ReportPortalException(
@@ -99,8 +98,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       Pageable pageable) {
     return tmsTestPlanMapper.convertToRS(
         testPlanRepository.findByCriteria(projectId,
-        pageable
-    ));
+            pageable
+        ));
   }
 
   @Override

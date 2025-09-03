@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.core.tms.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.time.Instant;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,5 +30,5 @@ public class TmsTestCaseRS {
 
   private TmsManualScenarioRS manualScenario;
 
-  private Set<TmsAttributeRS> tags;
+  private Set<TmsTestCaseAttributeRS> attributes;
 }

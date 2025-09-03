@@ -19,12 +19,12 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
@@ -101,7 +101,7 @@ class TmsTestCaseServiceImplTest {
   private NewTestFolderRQ newTestFolderRQ;
   private TmsTestFolderRS testFolderRS;
   private TmsTestFolder testFolder;
-  private List<TmsAttributeRQ> attributes;
+  private List<TmsTestCaseAttributeRQ> attributes;
   private long projectId;
   private Long testCaseId;
   private Long testFolderId;
@@ -115,7 +115,7 @@ class TmsTestCaseServiceImplTest {
     testPlanId = 5L;
 
     attributes = new ArrayList<>();
-    var attribute = new TmsAttributeRQ();
+    var attribute = new TmsTestCaseAttributeRQ();
     attribute.setValue("value");
     attribute.setId(3L);
     attributes.add(attribute);
@@ -149,7 +149,7 @@ class TmsTestCaseServiceImplTest {
     testCaseRQ.setName("Test Case");
     testCaseRQ.setDescription("Description");
     testCaseRQ.setTestFolder(newTestFolderRQ);
-    testCaseRQ.setTags(attributes);
+    testCaseRQ.setAttributes(attributes);
     testCaseRQ.setManualScenario(textManualScenarioRQ);
 
     testCase = new TmsTestCase();
@@ -250,7 +250,7 @@ class TmsTestCaseServiceImplTest {
     testCaseWithFolderIdRQ.setName("Test Case");
     testCaseWithFolderIdRQ.setDescription("Description");
     testCaseWithFolderIdRQ.setTestFolderId(testFolderId);
-    testCaseWithFolderIdRQ.setTags(attributes);
+    testCaseWithFolderIdRQ.setAttributes(attributes);
     testCaseWithFolderIdRQ.setManualScenario(textManualScenarioRQ);
 
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
@@ -281,7 +281,7 @@ class TmsTestCaseServiceImplTest {
     testCaseWithStepsRQ.setName("Test Case");
     testCaseWithStepsRQ.setDescription("Description");
     testCaseWithStepsRQ.setTestFolder(newTestFolderRQ);
-    testCaseWithStepsRQ.setTags(attributes);
+    testCaseWithStepsRQ.setAttributes(attributes);
     testCaseWithStepsRQ.setManualScenario(stepsManualScenarioRQ);
 
     when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
@@ -316,7 +316,7 @@ class TmsTestCaseServiceImplTest {
     var testCaseRQWithNewFolder = new TmsTestCaseRQ();
     testCaseRQWithNewFolder.setName("Test Case");
     testCaseRQWithNewFolder.setTestFolder(newTestFolderRQ);
-    testCaseRQWithNewFolder.setTags(attributes);
+    testCaseRQWithNewFolder.setAttributes(attributes);
     testCaseRQWithNewFolder.setManualScenario(textManualScenarioRQ);
 
     var newFolderId = 10L;
@@ -450,7 +450,7 @@ class TmsTestCaseServiceImplTest {
     testCaseWithFolderIdRQ.setName("Test Case");
     testCaseWithFolderIdRQ.setDescription("Description");
     testCaseWithFolderIdRQ.setTestFolderId(testFolderId);
-    testCaseWithFolderIdRQ.setTags(attributes);
+    testCaseWithFolderIdRQ.setAttributes(attributes);
     testCaseWithFolderIdRQ.setManualScenario(textManualScenarioRQ);
 
     var convertedTestCase = new TmsTestCase();
@@ -535,7 +535,7 @@ class TmsTestCaseServiceImplTest {
     testCaseWithFolderIdRQ.setName("Test Case");
     testCaseWithFolderIdRQ.setDescription("Description");
     testCaseWithFolderIdRQ.setTestFolderId(testFolderId);
-    testCaseWithFolderIdRQ.setTags(attributes);
+    testCaseWithFolderIdRQ.setAttributes(attributes);
     testCaseWithFolderIdRQ.setManualScenario(textManualScenarioRQ);
 
     var convertedTestCase = new TmsTestCase();
@@ -660,36 +660,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void patch_WithBatchPatchRequestAndTags_ShouldPatchTagsAndCallRepositoryPatch() {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var testFolderId = 5L;
-    var priority = "HIGH";
-    var tags = List.of(attributes.get(0));
-    var testCases = Arrays.asList(testCase);
-
-    var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolderId(testFolderId)
-        .priority(priority)
-        .tags(tags)
-        .build();
-
-    when(tmsTestCaseRepository.findAllById(testCaseIds)).thenReturn(testCases);
-    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
-
-    // When
-    sut.patch(projectId, patchRequest);
-
-    // Then
-    verify(tmsTestCaseRepository).findAllById(testCaseIds);
-    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCases, tags);
-    verify(tmsTestFolderService).existsById(projectId, testFolderId);
-    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
-  }
-
-  @Test
-  void patch_WithBatchPatchRequestWithoutTags_ShouldOnlyCallRepositoryPatch() {
+  void patch_WithBatchPatchRequest_ShouldCallRepositoryPatch() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var testFolderId = 5L;
@@ -699,7 +670,6 @@ class TmsTestCaseServiceImplTest {
         .testCaseIds(testCaseIds)
         .testFolderId(testFolderId)
         .priority(priority)
-        .tags(null)
         .build();
 
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
@@ -708,62 +678,8 @@ class TmsTestCaseServiceImplTest {
     sut.patch(projectId, patchRequest);
 
     // Then
-    verify(tmsTestCaseRepository, never()).findAllById(testCaseIds);
-    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
-  }
-
-  @Test
-  void patch_WithBatchPatchRequestWithEmptyTags_ShouldOnlyCallRepositoryPatch() {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var testFolderId = 5L;
-    var priority = "HIGH";
-
-    var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolderId(testFolderId)
-        .priority(priority)
-        .tags(Collections.emptyList())
-        .build();
-
-    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
-
-    // When
-    sut.patch(projectId, patchRequest);
-
-    // Then
-    verify(tmsTestCaseRepository, never()).findAllById(testCaseIds);
-    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
-    verify(tmsTestFolderService).existsById(projectId, testFolderId);
-    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
-  }
-
-  @Test
-  void patch_WithOnlyTags_ShouldOnlyPatchTags() {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var tags = List.of(attributes.get(0));
-    var testCases = Arrays.asList(testCase);
-
-    var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolderId(null)
-        .priority(null)
-        .tags(tags)
-        .build();
-
-    when(tmsTestCaseRepository.findAllById(testCaseIds)).thenReturn(testCases);
-
-    // When
-    sut.patch(projectId, patchRequest);
-
-    // Then
-    verify(tmsTestCaseRepository).findAllById(testCaseIds);
-    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCases, tags);
-    verify(tmsTestFolderService, never()).existsById(any(Long.class), any());
-    verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
   }
 
   @Test
@@ -776,7 +692,6 @@ class TmsTestCaseServiceImplTest {
         .testCaseIds(testCaseIds)
         .testFolderId(testFolderId)
         .priority(null)
-        .tags(null)
         .build();
 
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
@@ -801,7 +716,6 @@ class TmsTestCaseServiceImplTest {
         .testCaseIds(testCaseIds)
         .testFolderId(null)
         .priority(priority)
-        .tags(null)
         .build();
 
     // When
@@ -823,7 +737,6 @@ class TmsTestCaseServiceImplTest {
         .testCaseIds(testCaseIds)
         .testFolderId(null)
         .priority(null)
-        .tags(null)
         .build();
 
     // When
@@ -847,7 +760,6 @@ class TmsTestCaseServiceImplTest {
         .testCaseIds(testCaseIds)
         .testFolderId(testFolderId)
         .priority(priority)
-        .tags(null)
         .build();
 
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(false);
@@ -862,28 +774,21 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void patch_WithTagsAndNonExistentTestFolder_ShouldThrowReportPortalException() {
+  void patch_NonExistentTestFolder_ShouldThrowReportPortalException() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var testFolderId = 999L;
-    var tags = List.of(attributes.getFirst());
-    var testCases = Collections.singletonList(testCase);
 
     var patchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
         .testFolderId(testFolderId)
-        .priority(null)
-        .tags(tags)
         .build();
 
-    when(tmsTestCaseRepository.findAllById(testCaseIds)).thenReturn(testCases);
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(false);
 
     // When/Then
     assertThrows(ReportPortalException.class, () -> sut.patch(projectId, patchRequest));
 
-    verify(tmsTestCaseRepository).findAllById(testCaseIds);
-    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCases, tags);
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
   }
@@ -910,7 +815,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     assertNotNull(result);
     assertEquals(1, result.size());
-    assertEquals(testCaseRS, result.get(0));
+    assertEquals(testCaseRS, result.getFirst());
     verify(importerFactory).getImporter(file);
     verify(importer).importFromFile(file);
     verify(tmsTestFolderService).resolveTestFolderRQ(testCaseRQ, testFolderId, null);
@@ -972,7 +877,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     assertNotNull(result);
     assertEquals(1, result.size());
-    assertEquals(testCaseRS, result.get(0));
+    assertEquals(testCaseRS, result.getFirst());
     verify(importerFactory).getImporter(file);
     verify(importer).importFromFile(file);
     verify(tmsTestFolderService).resolveTestFolderRQ(testCaseRQ, testFolderId, testFolderName);
@@ -1164,7 +1069,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCase_WhenTestCaseExists_ShouldDeleteTags() {
+  void deleteTagsFromTestCase_WhenTestCaseExists_ShouldDeleteAttributes() {
     // Given
     var attributeIds = Arrays.asList(1L, 2L, 3L);
     when(
@@ -1172,7 +1077,7 @@ class TmsTestCaseServiceImplTest {
         true);
 
     // When
-    sut.deleteTagsFromTestCase(projectId, testCaseId, attributeIds);
+    sut.deleteAttributesFromTestCase(projectId, testCaseId, attributeIds);
 
     // Then
     verify(tmsTestCaseRepository).existsByTestFolder_Project_IdAndId(projectId, testCaseId);
@@ -1180,7 +1085,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCase_WhenTestCaseDoesNotExist_ShouldThrowNotFoundException() {
+  void deleteAttributesFromTestCase_WhenTestCaseDoesNotExist_ShouldThrowNotFoundException() {
     // Given
     var attributeIds = Arrays.asList(1L, 2L, 3L);
     when(
@@ -1189,14 +1094,14 @@ class TmsTestCaseServiceImplTest {
 
     // When/Then
     assertThrows(ReportPortalException.class,
-        () -> sut.deleteTagsFromTestCase(projectId, testCaseId, attributeIds));
+        () -> sut.deleteAttributesFromTestCase(projectId, testCaseId, attributeIds));
 
     verify(tmsTestCaseRepository).existsByTestFolder_Project_IdAndId(projectId, testCaseId);
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdAndAttributeIds(any(), any());
   }
 
   @Test
-  void deleteTagsFromTestCase_WithSingleAttribute_ShouldDeleteTags() {
+  void deleteTagsFromTestCase_WithSingleAttribute_ShouldDeleteAttributes() {
     // Given
     var attributeIds = List.of(1L);
     when(
@@ -1204,7 +1109,7 @@ class TmsTestCaseServiceImplTest {
         true);
 
     // When
-    sut.deleteTagsFromTestCase(projectId, testCaseId, attributeIds);
+    sut.deleteAttributesFromTestCase(projectId, testCaseId, attributeIds);
 
     // Then
     verify(tmsTestCaseRepository).existsByTestFolder_Project_IdAndId(projectId, testCaseId);
@@ -1212,7 +1117,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCases_WhenAllTestCasesExist_ShouldDeleteTags() {
+  void deleteTagsFromTestCases_WhenAllTestCasesExist_ShouldDeleteAttributes() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var attributeIds = Arrays.asList(4L, 5L, 6L);
@@ -1222,7 +1127,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(existingTestCaseIds);
 
     // When
-    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
 
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
@@ -1231,7 +1136,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCases_WhenSomeTestCasesDoNotExist_ShouldThrowNotFoundException() {
+  void deleteAttributesFromTestCases_WhenSomeTestCasesDoNotExist_ShouldThrowNotFoundException() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var attributeIds = Arrays.asList(4L, 5L, 6L);
@@ -1242,14 +1147,14 @@ class TmsTestCaseServiceImplTest {
 
     // When/Then
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds));
+        () -> sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds));
 
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
   }
 
   @Test
-  void deleteTagsFromTestCases_WhenNoTestCasesExist_ShouldThrowNotFoundException() {
+  void deleteAttributesFromTestCases_WhenNoTestCasesExist_ShouldThrowNotFoundException() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var attributeIds = Arrays.asList(4L, 5L, 6L);
@@ -1260,14 +1165,14 @@ class TmsTestCaseServiceImplTest {
 
     // When/Then
     assertThrows(ReportPortalException.class,
-        () -> sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds));
+        () -> sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds));
 
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
   }
 
   @Test
-  void deleteTagsFromTestCases_WithSingleTestCaseAndAttribute_ShouldDeleteTags() {
+  void deleteTagsFromTestCases_WithSingleTestCaseAndAttribute_ShouldDeleteAttributes() {
     // Given
     var testCaseIds = List.of(1L);
     var attributeIds = List.of(4L);
@@ -1277,7 +1182,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(existingTestCaseIds);
 
     // When
-    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
 
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
@@ -1286,7 +1191,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCases_WithMultipleTestCasesAndSingleAttribute_ShouldDeleteTags() {
+  void deleteTagsFromTestCases_WithMultipleTestCasesAndSingleAttribute_ShouldDeleteAttributes() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L);
     var attributeIds = List.of(5L);
@@ -1296,7 +1201,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(existingTestCaseIds);
 
     // When
-    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
 
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
@@ -1305,7 +1210,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCases_WithSingleTestCaseAndMultipleAttributes_ShouldDeleteTags() {
+  void deleteTagsFromTestCases_WithSingleTestCaseAndMultipleAttributes_ShouldDeleteAttributes() {
     // Given
     var testCaseIds = List.of(1L);
     var attributeIds = Arrays.asList(4L, 5L, 6L, 7L);
@@ -1315,7 +1220,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(existingTestCaseIds);
 
     // When
-    sut.deleteTagsFromTestCases(projectId, testCaseIds, attributeIds);
+    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
 
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
@@ -1515,8 +1420,10 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, targetFolderId, null);
     verify(tmsTestCaseRepository).save(duplicatedTestCase1);
     verify(tmsTestCaseRepository).save(duplicatedTestCase2);
-    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase1, originalVersion1);
-    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase2, originalVersion2);
+    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase1,
+        originalVersion1);
+    verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase2,
+        originalVersion2);
   }
 
   @Test
@@ -1597,7 +1504,7 @@ class TmsTestCaseServiceImplTest {
 
     var originalTestCase = new TmsTestCase();
     originalTestCase.setId(1L);
-    originalTestCase.setTags(Set.of()); // Non-empty tags
+    originalTestCase.setAttributes(Set.of()); // Non-empty tags
     var duplicatedTestCase = new TmsTestCase();
     duplicatedTestCase.setId(11L);
     var originalVersion = new TmsTestCaseVersion();

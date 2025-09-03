@@ -361,7 +361,8 @@ class TmsManualScenarioServiceImplTest {
     // Given
     var newVersion = createNewTestCaseVersion();
     var originalScenario = createOriginalScenarioWithAttributes();
-    originalScenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    originalScenario.setType(
+        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
     var duplicatedScenario = createDuplicatedManualScenario();
 
     when(tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion))
@@ -389,7 +390,8 @@ class TmsManualScenarioServiceImplTest {
     // Given
     var newVersion = createNewTestCaseVersion();
     var originalScenario = createOriginalScenarioWithAttributes();
-    originalScenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+    originalScenario.setType(
+        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
     var duplicatedScenario = createDuplicatedManualScenario();
 
     when(tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion))
@@ -433,7 +435,7 @@ class TmsManualScenarioServiceImplTest {
         .linkToRequirements("http://requirements.com")
         .instructions("Test instructions")
         .expectedResult("Expected result")
-        .tags(Collections.emptyList())
+        .attributes(Collections.emptyList())
         .build();
   }
 
@@ -443,7 +445,7 @@ class TmsManualScenarioServiceImplTest {
         .executionEstimationTime(45)
         .linkToRequirements("http://requirements.com")
         .steps(Collections.emptyList())
-        .tags(Collections.emptyList())
+        .attributes(Collections.emptyList())
         .build();
   }
 

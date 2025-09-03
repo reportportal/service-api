@@ -16,7 +16,7 @@ import org.springframework.data.domain.PageImpl;
 @Mapper(config = CommonMapperConfig.class, uses = TmsTestPlanAttributeMapper.class)
 public abstract class TmsTestPlanMapper {
 
-  @Mapping(target = "tags", source = "attributes")
+  @Mapping(target = "attributes", source = "attributes")
   public abstract TmsTestPlanRS convertToRS(TmsTestPlan tmsTestPlan);
 
   @Mapping(target = "project.id", source = "projectId")

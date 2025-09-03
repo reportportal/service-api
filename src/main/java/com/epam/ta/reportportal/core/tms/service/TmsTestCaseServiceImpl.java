@@ -97,8 +97,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     tmsTestCaseRepository.save(tmsTestCase);
 
-    if (CollectionUtils.isNotEmpty(tmsTestCaseRQ.getTags())) {
-      tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase, tmsTestCaseRQ.getTags());
+    if (CollectionUtils.isNotEmpty(tmsTestCaseRQ.getAttributes())) {
+      tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase, tmsTestCaseRQ.getAttributes());
     }
 
     var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(tmsTestCase,
@@ -119,7 +119,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                       tmsTestCaseRQ.getTestFolder())));
 
           tmsTestCaseAttributeService.updateTestCaseAttributes(existingTestCase,
-              tmsTestCaseRQ.getTags());
+              tmsTestCaseRQ.getAttributes());
 
           var defaultVersion = tmsTestCaseVersionService.updateDefaultTestCaseVersion(
               existingTestCase,
@@ -142,7 +142,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                       tmsTestCaseRQ.getTestFolder())));
 
           tmsTestCaseAttributeService.patchTestCaseAttributes(existingTestCase,
-              tmsTestCaseRQ.getTags());
+              tmsTestCaseRQ.getAttributes());
 
           var defaultVersion = tmsTestCaseVersionService.patchDefaultTestCaseVersion(
               existingTestCase,
@@ -188,12 +188,6 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   public void patch(long projectId,
       @Valid BatchPatchTestCasesRQ patchRequest) {
     var testCaseIds = patchRequest.getTestCaseIds();
-    if (CollectionUtils.isNotEmpty(patchRequest.getTags())) {
-      tmsTestCaseAttributeService.patchTestCaseAttributes(
-          tmsTestCaseRepository.findAllById(testCaseIds),
-          patchRequest.getTags()
-      );
-    }
     var testFolderId = patchRequest.getTestFolderId();
     if (Objects.nonNull(testFolderId) && !tmsTestFolderService.existsById(projectId,
         testFolderId)) {
@@ -270,7 +264,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public void deleteTagsFromTestCase(Long projectId, Long testCaseId, List<Long> attributeIds) {
+  public void deleteAttributesFromTestCase(Long projectId, Long testCaseId,
+      List<Long> attributeIds) {
     if (!tmsTestCaseRepository.existsByTestFolder_Project_IdAndId(projectId, testCaseId)) {
       throw new ReportPortalException(
           ErrorType.NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId)
@@ -282,7 +277,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public void deleteTagsFromTestCases(Long projectId, List<Long> testCaseIds,
+  public void deleteAttributesFromTestCases(Long projectId, List<Long> testCaseIds,
       List<Long> attributeIds) {
     var existingTestCaseIds = new HashSet<>(tmsTestCaseRepository
         .findExistingIdsByProjectIdAndIds(projectId, testCaseIds)
@@ -379,7 +374,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var duplicatedDefaultVersion = tmsTestCaseVersionService.duplicateDefaultVersion(
         duplicatedTestCase, originalDefaultVersion);
 
-    if (CollectionUtils.isNotEmpty(originalTestCase.getTags())) {
+    if (CollectionUtils.isNotEmpty(originalTestCase.getAttributes())) {
       tmsTestCaseAttributeService.duplicateTestCaseAttributes(originalTestCase, duplicatedTestCase);
     }
 

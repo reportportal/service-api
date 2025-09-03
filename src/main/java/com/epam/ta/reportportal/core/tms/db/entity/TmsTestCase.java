@@ -69,9 +69,9 @@ public class TmsTestCase implements Serializable {
 
   @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)
   @ToString.Exclude
-  private Set<TmsTestCaseAttribute> tags;
+  private Set<TmsTestCaseAttribute> attributes;
 
-  @OneToMany(mappedBy = "testCase", fetch =  FetchType.LAZY)
+  @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)
   @ToString.Exclude
   private Set<TmsTestCaseVersion> versions;
 

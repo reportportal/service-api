@@ -9,8 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Validator implementation for {@link ValidBatchPatchTestCasesRQ} annotation.
  * <p>
- * This validator ensures that at least one field is provided
- * in the BatchPatchTestCasesRQ object, but not necessarily all.
+ * This validator ensures that at least one field is provided in the BatchPatchTestCasesRQ object,
+ * but not necessarily all.
  * </p>
  */
 public class BatchPatchTestCasesRQValidator
@@ -36,12 +36,11 @@ public class BatchPatchTestCasesRQValidator
 
     var hasTestFolderId = Objects.nonNull(value.getTestFolderId());
     var hasPriority = StringUtils.isNotBlank(value.getPriority());
-    var hasTags = Objects.nonNull(value.getTags());
 
-    if (!hasTestFolderId && !hasPriority && !hasTags) {
+    if (!hasTestFolderId && !hasPriority) {
       context.disableDefaultConstraintViolation();
       context.buildConstraintViolationWithTemplate(
-              "Either folderId or priroty or tags must be provided and not empty")
+              "Either folderId or priority must be provided and not empty")
           .addConstraintViolation();
       return false;
     }

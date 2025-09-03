@@ -87,7 +87,8 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.updateTmsManualScenarioImpl(manualScenario, textScenarioRQ);
 
     // Then
-    verify(tmsTextManualScenarioMapper).updateTmsManualScenario(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioMapper).updateTmsManualScenario(existingTextManualScenario,
+        textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
     verify(tmsTextManualScenarioMapper, never()).createTmsManualScenario(any());
   }
@@ -127,7 +128,8 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.patchTmsManualScenarioImpl(manualScenario, textScenarioRQ);
 
     // Then
-    verify(tmsTextManualScenarioMapper).patchTmsManualScenario(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioMapper).patchTmsManualScenario(existingTextManualScenario,
+        textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
   }
 
@@ -303,7 +305,7 @@ class TmsTextManualScenarioImplServiceTest {
         .linkToRequirements("http://requirements.com")
         .instructions("Test instructions")
         .expectedResult("Expected result")
-        .tags(Collections.emptyList())
+        .attributes(Collections.emptyList())
         .build();
   }
 

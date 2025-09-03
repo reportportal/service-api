@@ -1,14 +1,13 @@
 package com.epam.ta.reportportal.core.tms.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.List;
 import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class TmsTestPlanRQ {
+public class TmsTestPlanAttributeRQ {
 
-  private String name;
-  private String description;
-  private List<TmsTestPlanAttributeRQ> attributes;
+  private Long id;
+
+  private String value;
 }

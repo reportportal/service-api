@@ -102,7 +102,7 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).convertFromRQ(projectId, testPlanRQ);
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
-        testPlanRQ.getTags());
+        testPlanRQ.getAttributes());
   }
 
   @Test
@@ -159,7 +159,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(tmsTestPlanMapper).update(existingTestPlan, updatedTestPlan);
     verify(tmsTestPlanAttributeService).updateTestPlanAttributes(existingTestPlan,
-        testPlanRQ.getTags());
+        testPlanRQ.getAttributes());
   }
 
   @Test
@@ -181,7 +181,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
-        testPlanRQ.getTags());
+        testPlanRQ.getAttributes());
   }
 
   @Test
@@ -204,7 +204,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(tmsTestPlanMapper).patch(existingTestPlan, patchedTestPlan);
     verify(tmsTestPlanAttributeService).patchTestPlanAttributes(existingTestPlan,
-        testPlanRQ.getTags());
+        testPlanRQ.getAttributes());
   }
 
   @Test

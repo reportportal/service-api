@@ -3,9 +3,8 @@ package com.epam.ta.reportportal.core.tms.service;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttribute;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -25,17 +24,14 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   private final TmsTestCaseAttributeMapper tmsTestCaseAttributeMapper;
   private final TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
-  private final TmsAttributeService tmsAttributeService;
 
   @Override
   @Transactional
   public void createTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
-      @NotEmpty List<TmsAttributeRQ> attributes) {
+      @NotEmpty List<TmsTestCaseAttributeRQ> attributes) {
     var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
-        tmsAttributeService.getTmsAttributes(attributes),
-        attributes
-    );
-    tmsTestCase.setTags(tmsTestCaseAttributes);
+        attributes);
+    tmsTestCase.setAttributes(tmsTestCaseAttributes);
     tmsTestCaseAttributes.forEach(
         tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
     tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
@@ -44,7 +40,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Override
   @Transactional
   public void updateTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsTestCaseAttributeRQ> attributes) {
     tmsTestCaseAttributeRepository.deleteAllByTestCaseId(tmsTestCase.getId());
     if (CollectionUtils.isNotEmpty(attributes)) {
       createTestCaseAttributes(tmsTestCase, attributes);
@@ -54,31 +50,31 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Override
   @Transactional
   public void patchTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsTestCaseAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
-        tmsAttributeService.getTmsAttributes(attributes), attributes);
+        attributes);
     tmsTestCaseAttributes.forEach(
         tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
-    tmsTestCase.getTags().addAll(tmsTestCaseAttributes);
+    tmsTestCase.getAttributes().addAll(tmsTestCaseAttributes);
     tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
   }
 
   @Override
   @Transactional
   public void patchTestCaseAttributes(@NotNull @NotEmpty List<TmsTestCase> tmsTestCases,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsTestCaseAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
-        tmsAttributeService.getTmsAttributes(attributes), attributes);
+        attributes);
     tmsTestCases.forEach(tmsTestCase -> {
       tmsTestCaseAttributes.forEach(
           tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
-      tmsTestCase.getTags().addAll(tmsTestCaseAttributes);
+      tmsTestCase.getAttributes().addAll(tmsTestCaseAttributes);
       tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
     });
   }
@@ -118,9 +114,9 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Override
   @Transactional
   public void duplicateTestCaseAttributes(TmsTestCase originalTestCase, TmsTestCase newTestCase) {
-    if (CollectionUtils.isNotEmpty(originalTestCase.getTags())) {
+    if (CollectionUtils.isNotEmpty(originalTestCase.getAttributes())) {
       var duplicatedAttributes = originalTestCase
-          .getTags()
+          .getAttributes()
           .stream()
           .map(originalAttribute -> tmsTestCaseAttributeMapper.duplicateTestCaseAttribute(
               originalAttribute, newTestCase))
@@ -129,7 +125,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
       var savedAttributes = new HashSet<>(
           tmsTestCaseAttributeRepository.saveAll(duplicatedAttributes));
 
-      newTestCase.setTags(savedAttributes);
+      newTestCase.setAttributes(savedAttributes);
     }
   }
 }

@@ -4,7 +4,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanAttributeRepository;
-import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanAttributeMapper;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,17 +17,16 @@ public class TmsTestPlanAttributeServiceImpl implements TmsTestPlanAttributeServ
 
   private final TmsTestPlanAttributeMapper tmsTestPlanAttributeMapper;
   private final TmsTestPlanAttributeRepository tmsTestPlanAttributeRepository;
-  private final TmsAttributeService tmsAttributeService;
 
   @Override
   @Transactional
   public void createTestPlanAttributes(TmsTestPlan tmsTestPlan,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsTestPlanAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsTestPlanAttributes = tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(
-        tmsAttributeService.getTmsAttributes(attributes), attributes);
+        attributes);
     tmsTestPlan.setAttributes(tmsTestPlanAttributes);
     tmsTestPlanAttributes.forEach(
         tmsTestPlanAttribute -> tmsTestPlanAttribute.setTestPlan(tmsTestPlan));
@@ -37,7 +36,7 @@ public class TmsTestPlanAttributeServiceImpl implements TmsTestPlanAttributeServ
   @Override
   @Transactional
   public void updateTestPlanAttributes(TmsTestPlan existingTestPlan,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsTestPlanAttributeRQ> attributes) {
     tmsTestPlanAttributeRepository.deleteAllByTestPlanId(existingTestPlan.getId());
     createTestPlanAttributes(existingTestPlan, attributes);
   }
@@ -45,12 +44,12 @@ public class TmsTestPlanAttributeServiceImpl implements TmsTestPlanAttributeServ
   @Override
   @Transactional
   public void patchTestPlanAttributes(TmsTestPlan existingTestPlan,
-      List<TmsAttributeRQ> attributes) {
+      List<TmsTestPlanAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
     var tmsTestPlanAttributes = tmsTestPlanAttributeMapper.convertToTmsTestPlanAttributes(
-        tmsAttributeService.getTmsAttributes(attributes), attributes);
+        attributes);
     existingTestPlan.getAttributes().addAll(tmsTestPlanAttributes);
     tmsTestPlanAttributes.forEach(
         tmsTestPlanAttribute -> tmsTestPlanAttribute.setTestPlan(existingTestPlan));

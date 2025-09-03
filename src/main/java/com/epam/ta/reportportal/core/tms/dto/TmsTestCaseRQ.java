@@ -28,7 +28,7 @@ public class TmsTestCaseRQ {
 
   private NewTestFolderRQ testFolder;
 
-  private List<TmsAttributeRQ> tags;
+  private List<TmsTestCaseAttributeRQ> attributes;
 
   @Valid
   private TmsManualScenarioRQ manualScenario;

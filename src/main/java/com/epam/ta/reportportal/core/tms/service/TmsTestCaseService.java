@@ -33,22 +33,23 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
       Long testPlanId, Pageable pageable);
 
   /**
-   * Deletes specific tags from a test case.
+   * Deletes specific attributes from a test case.
    *
-   * @param projectId The project ID.
-   * @param testCaseId The test case ID.
+   * @param projectId    The project ID.
+   * @param testCaseId   The test case ID.
    * @param attributeIds List of attribute IDs to delete.
    */
-  void deleteTagsFromTestCase(Long projectId, Long testCaseId, List<Long> attributeIds);
+  void deleteAttributesFromTestCase(Long projectId, Long testCaseId, List<Long> attributeIds);
 
   /**
-   * Deletes specific tags from multiple test cases.
+   * Deletes specific attributes from multiple test cases.
    *
-   * @param projectId The project ID.
-   * @param testCaseIds List of test case IDs.
+   * @param projectId    The project ID.
+   * @param testCaseIds  List of test case IDs.
    * @param attributeIds List of attribute IDs to delete.
    */
-  void deleteTagsFromTestCases(Long projectId, List<Long> testCaseIds, List<Long> attributeIds);
+  void deleteAttributesFromTestCases(Long projectId, List<Long> testCaseIds,
+      List<Long> attributeIds);
 
   /**
    * Verifies if test cases exist by provided ids in the project
@@ -61,7 +62,7 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
   /**
    * Duplicates multiple test cases with all their related data.
    *
-   * @param projectId The ID of the project.
+   * @param projectId        The ID of the project.
    * @param duplicateRequest Request containing test case IDs to duplicate.
    * @return A list of data transfer objects containing details of the duplicated test cases.
    */

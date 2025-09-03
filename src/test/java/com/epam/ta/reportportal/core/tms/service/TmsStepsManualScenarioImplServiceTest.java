@@ -148,7 +148,8 @@ class TmsStepsManualScenarioImplServiceTest {
     var exception = assertThrows(ReportPortalException.class, () ->
         stepsManualScenarioService.patchTmsManualScenarioImpl(manualScenario, stepsScenarioRQ));
 
-    assertThat(exception.getMessage()).contains("Steps Manual Scenario for Manual Scenario with id");
+    assertThat(exception.getMessage()).contains(
+        "Steps Manual Scenario for Manual Scenario with id");
     verify(tmsStepsManualScenarioRepository, never()).save(any());
   }
 
@@ -256,7 +257,7 @@ class TmsStepsManualScenarioImplServiceTest {
     return TmsStepsManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.STEPS)
         .executionEstimationTime(30)
-        .tags(Collections.emptyList())
+        .attributes(Collections.emptyList())
         .steps(Collections.emptyList())
         .build();
   }

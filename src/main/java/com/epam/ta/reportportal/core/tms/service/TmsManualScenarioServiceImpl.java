@@ -37,7 +37,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     );
 
     tmsManualScenarioAttributeService.createAttributes(tmsManualScenario,
-        testCaseManualScenarioRQ.getTags());
+        testCaseManualScenarioRQ.getAttributes());
 
     testCaseVersion.setManualScenario(tmsManualScenario);
     tmsManualScenario.setTestCaseVersion(testCaseVersion);
@@ -59,14 +59,14 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
 
       tmsManualScenarioAttributeService.updateAttributes(manualScenario,
-          testCaseManualScenarioRQ.getTags());
+          testCaseManualScenarioRQ.getAttributes());
 
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
           .updateTmsManualScenarioImpl(manualScenario, testCaseManualScenarioRQ);
       return tmsManualScenarioRepository.save(manualScenario);
     } else {
-     return createTmsManualScenario(testCaseVersion, testCaseManualScenarioRQ);
+      return createTmsManualScenario(testCaseVersion, testCaseManualScenarioRQ);
     }
   }
 
@@ -81,7 +81,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
 
       tmsManualScenarioAttributeService.patchAttributes(existingManualScenario,
-          testCaseManualScenarioRQ.getTags());
+          testCaseManualScenarioRQ.getAttributes());
 
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
@@ -128,8 +128,10 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
   @Override
   @Transactional
-  public TmsManualScenario duplicateManualScenario(TmsTestCaseVersion newVersion, TmsManualScenario originalScenario) {
-    var duplicatedScenario = tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion);
+  public TmsManualScenario duplicateManualScenario(TmsTestCaseVersion newVersion,
+      TmsManualScenario originalScenario) {
+    var duplicatedScenario = tmsManualScenarioMapper.duplicateManualScenario(originalScenario,
+        newVersion);
 
     tmsManualScenarioRepository.save(duplicatedScenario);
 

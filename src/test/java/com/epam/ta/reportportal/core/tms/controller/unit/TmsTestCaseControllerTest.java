@@ -20,15 +20,16 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.TestCaseController;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttachmentRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTagsRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -310,8 +311,8 @@ public class TmsTestCaseControllerTest {
                 .id("attachment-001")
                 .build()
         ))
-        .tags(List.of(
-            TmsAttributeRQ.builder().key("scenario").value("manual").build()
+        .attributes(List.of(
+            TmsManualScenarioAttributeRQ.builder().id(1L).value("manual").build()
         ))
         .build();
 
@@ -321,9 +322,9 @@ public class TmsTestCaseControllerTest {
         .priority("HIGH")
         .externalId("EXT-001")
         .testFolderId(existingFolderId)
-        .tags(List.of(
-            TmsAttributeRQ.builder().key("severity").value("critical").build(),
-            TmsAttributeRQ.builder().key("component").value("auth").build()
+        .attributes(List.of(
+            TmsTestCaseAttributeRQ.builder().id(1L).value("critical").build(),
+            TmsTestCaseAttributeRQ.builder().id(1L).value("auth").build()
         ))
         .manualScenario(textManualScenario)
         .build();
@@ -355,8 +356,8 @@ public class TmsTestCaseControllerTest {
         .priority("MEDIUM")
         .testFolder(newTestFolder)
         .externalId("EXT-002")
-        .tags(List.of(
-            TmsAttributeRQ.builder().key("type").value("smoke").build()
+        .attributes(List.of(
+            TmsTestCaseAttributeRQ.builder().id(1L).value("smoke").build()
         ))
         .build();
 
@@ -409,9 +410,9 @@ public class TmsTestCaseControllerTest {
         .description("Description for nested test case")
         .priority("HIGH")
         .testFolder(newTestFolder)
-        .tags(List.of(
-            TmsAttributeRQ.builder().key("area").value("ui").build(),
-            TmsAttributeRQ.builder().key("browser").value("chrome").build()
+        .attributes(List.of(
+            TmsTestCaseAttributeRQ.builder().id(1L).value("ui").build(),
+            TmsTestCaseAttributeRQ.builder().id(1L).value("chrome").build()
         ))
         .manualScenario(stepsManualScenario)
         .build();
@@ -473,8 +474,8 @@ public class TmsTestCaseControllerTest {
         .description("Updated description")
         .priority("MEDIUM")
         .testFolder(newTestFolder)
-        .tags(List.of(
-            TmsAttributeRQ.builder().key("updated").value("true").build()
+        .attributes(List.of(
+            TmsTestCaseAttributeRQ.builder().id(1L).value("true").build()
         ))
         .build();
 
@@ -617,9 +618,9 @@ public class TmsTestCaseControllerTest {
     // Given
     var testCaseId = 2L;
     var testCaseRequest = TmsTestCaseRQ.builder()
-        .tags(List.of(
-            TmsAttributeRQ.builder().key("patched").value("yes").build(),
-            TmsAttributeRQ.builder().key("version").value("2.0").build()
+        .attributes(List.of(
+            TmsTestCaseAttributeRQ.builder().id(1L).value("yes").build(),
+            TmsTestCaseAttributeRQ.builder().id(1L).value("2.0").build()
         ))
         .build();
 
@@ -767,7 +768,8 @@ public class TmsTestCaseControllerTest {
   void importTestCasesWithTestFolderNameTest() throws Exception {
     // Given
     var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.json", "application/json", fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.json", "application/json",
+        fileContent.getBytes());
     var testFolderName = "Test Folder";
     var importedTestCases = List.of(new TmsTestCaseRS());
 
@@ -783,14 +785,16 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), isNull(), eq(testFolderName), eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(projectId), isNull(), eq(testFolderName),
+        eq(file));
   }
 
   @Test
   void importTestCasesWithoutFolderParametersTest() throws Exception {
     // Given
     var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.json", "application/json", fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.json", "application/json",
+        fileContent.getBytes());
     var importedTestCases = List.of(new TmsTestCaseRS());
 
     given(tmsTestCaseService.importFromFile(eq(projectId), isNull(), isNull(), eq(file)))
@@ -811,12 +815,14 @@ public class TmsTestCaseControllerTest {
   void importTestCasesWithBothFolderParametersTest() throws Exception {
     // Given
     var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.json", "application/json", fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.json", "application/json",
+        fileContent.getBytes());
     var testFolderId = 3L;
     var testFolderName = "Test Folder";
     var importedTestCases = List.of(new TmsTestCaseRS());
 
-    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file)))
+    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName),
+        eq(file)))
         .willReturn(importedTestCases);
 
     // When/Then
@@ -829,7 +835,8 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName),
+        eq(file));
   }
 
   @Test
@@ -901,7 +908,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteTagsFromTestCase(projectId, testCaseId, tagIds);
+    verify(tmsTestCaseService).deleteAttributesFromTestCase(projectId, testCaseId, tagIds);
   }
 
   @Test
@@ -922,7 +929,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteTagsFromTestCase(projectId, testCaseId, tagIds);
+    verify(tmsTestCaseService).deleteAttributesFromTestCase(projectId, testCaseId, tagIds);
   }
 
   @Test
@@ -930,9 +937,9 @@ public class TmsTestCaseControllerTest {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var tagIds = Arrays.asList(4L, 5L, 6L);
-    var deleteRequest = new BatchDeleteTagsRQ();
+    var deleteRequest = new BatchDeleteAttributesRQ();
     deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setTagIds(tagIds);
+    deleteRequest.setAttributeIds(tagIds);
 
     var jsonContent = objectMapper.writeValueAsString(deleteRequest);
 
@@ -944,7 +951,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
   }
 
   @Test
@@ -952,9 +959,9 @@ public class TmsTestCaseControllerTest {
     // Given
     var testCaseIds = List.of(1L);
     var tagIds = List.of(4L);
-    var deleteRequest = new BatchDeleteTagsRQ();
+    var deleteRequest = new BatchDeleteAttributesRQ();
     deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setTagIds(tagIds);
+    deleteRequest.setAttributeIds(tagIds);
 
     var jsonContent = objectMapper.writeValueAsString(deleteRequest);
 
@@ -966,7 +973,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
   }
 
   @Test
@@ -974,9 +981,9 @@ public class TmsTestCaseControllerTest {
     // Given
     var testCaseIds = List.of(1L);
     var tagIds = Arrays.asList(4L, 5L, 6L, 7L);
-    var deleteRequest = new BatchDeleteTagsRQ();
+    var deleteRequest = new BatchDeleteAttributesRQ();
     deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setTagIds(tagIds);
+    deleteRequest.setAttributeIds(tagIds);
 
     var jsonContent = objectMapper.writeValueAsString(deleteRequest);
 
@@ -988,7 +995,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
   }
 
   @Test
@@ -996,9 +1003,9 @@ public class TmsTestCaseControllerTest {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L);
     var tagIds = List.of(5L);
-    var deleteRequest = new BatchDeleteTagsRQ();
+    var deleteRequest = new BatchDeleteAttributesRQ();
     deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setTagIds(tagIds);
+    deleteRequest.setAttributeIds(tagIds);
 
     var jsonContent = objectMapper.writeValueAsString(deleteRequest);
 
@@ -1010,7 +1017,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteTagsFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
   }
 
   @Test
@@ -1021,10 +1028,12 @@ public class TmsTestCaseControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    var duplicatedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS());
+    var duplicatedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(),
+        new TmsTestCaseRS());
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicatedTestCases);
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
+        duplicatedTestCases);
 
     // When/Then
     mockMvc.perform(
@@ -1048,7 +1057,8 @@ public class TmsTestCaseControllerTest {
     var duplicatedTestCases = List.of(new TmsTestCaseRS());
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicatedTestCases);
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
+        duplicatedTestCases);
 
     // When/Then
     mockMvc.perform(
@@ -1075,7 +1085,8 @@ public class TmsTestCaseControllerTest {
     );
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicatedTestCases);
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
+        duplicatedTestCases);
 
     // When/Then
     mockMvc.perform(
@@ -1099,7 +1110,8 @@ public class TmsTestCaseControllerTest {
     var duplicatedTestCases = Collections.<TmsTestCaseRS>emptyList();
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicatedTestCases);
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
+        duplicatedTestCases);
 
     // When/Then
     mockMvc.perform(

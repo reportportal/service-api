@@ -48,9 +48,7 @@ public interface TmsTextManualScenarioMapper {
   @Mapping(target = "linkToRequirements", source = "linkToRequirements")
   @Mapping(target = "preconditions", source = "preconditions")
   @Mapping(target = "manualScenarioType", source = "type")
-  @Mapping(target = "tags", source = "attributes",
-      conditionExpression = "java(tmsManualScenario.getAttributes() != null && "
-          + "!tmsManualScenario.getAttributes().isEmpty())")
+  @Mapping(target = "attributes", source = "attributes")
   @Mapping(target = "instructions", source = "textScenario.instructions")
   @Mapping(target = "expectedResult", source = "textScenario.expectedResult")
   TmsTextManualScenarioRS convert(TmsManualScenario tmsManualScenario);

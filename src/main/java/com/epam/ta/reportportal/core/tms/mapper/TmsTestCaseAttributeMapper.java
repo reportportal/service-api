@@ -22,6 +22,12 @@ public interface TmsTestCaseAttributeMapper {
   TmsTestCaseAttribute convertTmsTestCaseAttribute(
       TmsTestCaseAttributeRQ tmsTestTestAttributeRQ);
 
+  @Mapping(target = "attribute.id", source = "attributeId")
+  @Mapping(target = "testCase.id", source = "testCaseId")
+  @Mapping(target = "id.attributeId", source = "attributeId")
+  @Mapping(target = "id.testCaseId", source = "testCaseId")
+  TmsTestCaseAttribute createTestCaseAttribute(Long testCaseId, Long attributeId);
+
   @Mapping(target = "id", source = "tmsTestCaseAttribute.id.attributeId")
   @Mapping(target = "key", source = "tmsTestCaseAttribute.attribute.key")
   @Mapping(target = "value", source = "tmsTestCaseAttribute.value")

@@ -4,6 +4,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,14 +43,12 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
   void deleteAttributesFromTestCase(Long projectId, Long testCaseId, List<Long> attributeIds);
 
   /**
-   * Deletes specific attributes from multiple test cases.
+   * Patch specific attributes from multiple test cases.
    *
    * @param projectId    The project ID.
-   * @param testCaseIds  List of test case IDs.
-   * @param attributeIds List of attribute IDs to delete.
+   * @param patchRequest  Patch request.
    */
-  void deleteAttributesFromTestCases(Long projectId, List<Long> testCaseIds,
-      List<Long> attributeIds);
+  void patchTestCaseAttributes(Long projectId, BatchPatchTestCaseAttributesRQ patchRequest);
 
   /**
    * Verifies if test cases exist by provided ids in the project

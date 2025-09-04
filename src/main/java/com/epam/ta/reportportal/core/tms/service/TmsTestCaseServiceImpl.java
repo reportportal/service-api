@@ -14,6 +14,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -277,24 +279,36 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public void deleteAttributesFromTestCases(Long projectId, List<Long> testCaseIds,
-      List<Long> attributeIds) {
-    var existingTestCaseIds = new HashSet<>(tmsTestCaseRepository
-        .findExistingIdsByProjectIdAndIds(projectId, testCaseIds)
-    );
+  public void patchTestCaseAttributes(Long projectId, BatchPatchTestCaseAttributesRQ patchRequest) {
+    validateTestCasesExist(projectId, patchRequest.getTestCaseIds());
 
-    if (existingTestCaseIds.size() != testCaseIds.size()) {
-      var missingIds = testCaseIds.stream()
-          .filter(id -> !existingTestCaseIds.contains(id))
-          .toList();
+    var attributesToRemove = Optional
+        .ofNullable(patchRequest.getAttributesToRemove())
+        .orElse(Collections.emptyList());
+    var attributesToAdd = Optional
+        .ofNullable(patchRequest.getAttributeIdsToAdd())
+        .orElse(Collections.emptyList());
 
-      throw new ReportPortalException(
-          ErrorType.NOT_FOUND, TEST_CASES_NOT_FOUND_BY_IDS.formatted(missingIds, projectId)
+    var attributesSetToRemove = new HashSet<>(attributesToRemove);
+    var attributesSetToAdd = new HashSet<>(attributesToAdd);
+
+    var intersection = new HashSet<>(attributesSetToRemove);
+    intersection.retainAll(attributesSetToAdd);
+
+    attributesSetToRemove.removeAll(intersection);
+    attributesSetToAdd.removeAll(intersection);
+
+    if (!attributesSetToRemove.isEmpty()) {
+      tmsTestCaseAttributeService.deleteByTestCaseIdsAndAttributeIds(
+          patchRequest.getTestCaseIds(), attributesSetToRemove
       );
     }
 
-    tmsTestCaseAttributeService.deleteByTestCaseIdsAndAttributeIds(testCaseIds,
-        attributeIds);
+    if (!attributesSetToAdd.isEmpty()) {
+      tmsTestCaseAttributeService.addAttributesToTestCases(
+          patchRequest.getTestCaseIds(), attributesSetToAdd
+      );
+    }
   }
 
   @Override

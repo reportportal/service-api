@@ -5,7 +5,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteAttributesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -363,28 +363,27 @@ public class TestCaseController {
   }
 
   /**
-   * Deletes specific attributes from multiple test cases.
+   * Patch specific attributes from multiple test cases.
    *
    * @param projectKey    The key of the project.
-   * @param deleteRequest Request containing test case IDs and attribute IDs to delete.
+   * @param patchRequest Request containing test case IDs and attribute IDs to be patched.
    */
-  @DeleteMapping("/tags/batch")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PatchMapping("/attributes/batch")
+  @ResponseStatus(HttpStatus.OK)
   @Operation(
-      summary = "Delete tags from multiple test cases",
-      description = "Deletes specific attributes from multiple test cases by their IDs.",
+      summary = "Patch attributes from multiple test cases",
+      description = "Patch specific attributes for multiple test cases by their IDs.",
       tags = {"Batch Operations"}
   )
-  @ApiResponse(responseCode = "204", description = "Tags deleted successfully")
-  public void deleteAttributesFromTestCases(@PathVariable("projectKey") String projectKey,
-      @Valid @RequestBody BatchDeleteAttributesRQ deleteRequest,
+  @ApiResponse(responseCode = "200", description = "Attributes patched successfully")
+  public void patchTestCaseAttributes(@PathVariable("projectKey") String projectKey,
+      @Valid @RequestBody BatchPatchTestCaseAttributesRQ patchRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    tmsTestCaseService.deleteAttributesFromTestCases(
+    tmsTestCaseService.patchTestCaseAttributes(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        deleteRequest.getTestCaseIds(),
-        deleteRequest.getAttributeIds()
+        patchRequest
     );
   }
 

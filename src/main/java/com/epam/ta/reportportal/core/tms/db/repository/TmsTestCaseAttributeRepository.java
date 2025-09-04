@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.tms.db.repository;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttribute;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttributeId;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -70,6 +71,5 @@ public interface TmsTestCaseAttributeRepository extends
       + "WHERE t.id.testCaseId IN :testCaseIds "
       + "AND t.id.attributeId IN :attributeIds")
   void deleteByTestCaseIdsAndAttributeIds(@Param("testCaseIds") List<Long> testCaseIds,
-      @Param("attributeIds") List<Long> attributeIds);
-
+      @Param("attributeIds") Collection<Long> attributeIds);
 }

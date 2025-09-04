@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.exporter.TmsTestCaseExporter;
@@ -1069,7 +1070,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCase_WhenTestCaseExists_ShouldDeleteAttributes() {
+  void deleteAttributesFromTestCase_WhenTestCaseExists_ShouldDeleteAttributes() {
     // Given
     var attributeIds = Arrays.asList(1L, 2L, 3L);
     when(
@@ -1101,7 +1102,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void deleteTagsFromTestCase_WithSingleAttribute_ShouldDeleteAttributes() {
+  void deleteAttributesFromTestCase_WithSingleAttribute_ShouldDeleteAttributes() {
     // Given
     var attributeIds = List.of(1L);
     when(
@@ -1116,116 +1117,192 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseAttributeService).deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
   }
 
+  // Новые тесты для метода patchTestCaseAttributes
   @Test
-  void deleteTagsFromTestCases_WhenAllTestCasesExist_ShouldDeleteAttributes() {
+  void patchTestCaseAttributes_WithBothAddAndRemove_ShouldExecuteBothOperations() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributeIds = Arrays.asList(4L, 5L, 6L);
-    var existingTestCaseIds = List.of(1L, 2L, 3L);
+    var attributesToRemove = Arrays.asList(1L, 2L);
+    var attributesToAdd = Arrays.asList(4L, 5L);
 
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(attributesToAdd)
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(existingTestCaseIds);
 
     // When
-    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
+    sut.patchTestCaseAttributes(projectId, patchRequest);
 
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
-    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
-        attributeIds);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(
+        eq(testCaseIds), eq(Set.of(1L, 2L)));
+    verify(tmsTestCaseAttributeService).addAttributesToTestCases(
+        eq(testCaseIds), eq(Set.of(4L, 5L)));
   }
 
   @Test
-  void deleteAttributesFromTestCases_WhenSomeTestCasesDoNotExist_ShouldThrowNotFoundException() {
+  void patchTestCaseAttributes_WithOnlyAdd_ShouldOnlyExecuteAddOperation() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributeIds = Arrays.asList(4L, 5L, 6L);
-    var existingTestCaseIds = List.of(1L, 2L); // Missing ID 3L
+    var attributesToAdd = Arrays.asList(4L, 5L);
+
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(null)
+        .attributeIdsToAdd(attributesToAdd)
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.patchTestCaseAttributes(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
+    verify(tmsTestCaseAttributeService).addAttributesToTestCases(
+        eq(testCaseIds), eq(Set.of(4L, 5L)));
+  }
+
+  @Test
+  void patchTestCaseAttributes_WithOnlyRemove_ShouldOnlyExecuteRemoveOperation() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var attributesToRemove = Arrays.asList(1L, 2L);
+
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(null)
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.patchTestCaseAttributes(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(
+        eq(testCaseIds), eq(Set.of(1L, 2L)));
+    verify(tmsTestCaseAttributeService, never()).addAttributesToTestCases(any(), any());
+  }
+
+  @Test
+  void patchTestCaseAttributes_WithIntersectingAttributes_ShouldExcludeIntersection() {
+    // Given - тестовый случай из требований: attributesToRemove: [1,2,3], attributesToAdd: [2,3,4]
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var attributesToRemove = Arrays.asList(1L, 2L, 3L);
+    var attributesToAdd = Arrays.asList(2L, 3L, 4L);
+
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(attributesToAdd)
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.patchTestCaseAttributes(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    // Должен удалить только атрибут 1 (исключив пересечение 2,3)
+    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(
+        eq(testCaseIds), eq(Set.of(1L)));
+    // Должен добавить только атрибут 4 (исключив пересечение 2,3)
+    verify(tmsTestCaseAttributeService).addAttributesToTestCases(
+        eq(testCaseIds), eq(Set.of(4L)));
+  }
+
+  @Test
+  void patchTestCaseAttributes_WithEmptyLists_ShouldNotExecuteAnyOperations() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(Collections.emptyList())
+        .attributeIdsToAdd(Collections.emptyList())
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(existingTestCaseIds);
+
+    // When
+    sut.patchTestCaseAttributes(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
+    verify(tmsTestCaseAttributeService, never()).addAttributesToTestCases(any(), any());
+  }
+
+  @Test
+  void patchTestCaseAttributes_WithNonExistentTestCase_ShouldThrowNotFoundException() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var attributesToAdd = Arrays.asList(4L, 5L);
+
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(null)
+        .attributeIdsToAdd(attributesToAdd)
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L); // Отсутствует ID 3L
 
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(existingTestCaseIds);
 
     // When/Then
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds));
+        () -> sut.patchTestCaseAttributes(projectId, patchRequest));
 
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
+    verify(tmsTestCaseAttributeService, never()).addAttributesToTestCases(any(), any());
   }
 
   @Test
-  void deleteAttributesFromTestCases_WhenNoTestCasesExist_ShouldThrowNotFoundException() {
-    // Given
+  void patchTestCaseAttributes_WithCompleteIntersection_ShouldNotExecuteAnyOperations() {
+    // Given - случай когда все атрибуты пересекаются
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributeIds = Arrays.asList(4L, 5L, 6L);
-    var existingTestCaseIds = Collections.<Long>emptyList();
+    var attributesToRemove = Arrays.asList(1L, 2L);
+    var attributesToAdd = Arrays.asList(1L, 2L);
 
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(attributesToAdd)
+        .build();
+
+    var existingTestCaseIds = List.of(1L, 2L, 3L);
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(existingTestCaseIds);
 
-    // When/Then
-    assertThrows(ReportPortalException.class,
-        () -> sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds));
+    // When
+    sut.patchTestCaseAttributes(projectId, patchRequest);
 
+    // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
-  }
-
-  @Test
-  void deleteTagsFromTestCases_WithSingleTestCaseAndAttribute_ShouldDeleteAttributes() {
-    // Given
-    var testCaseIds = List.of(1L);
-    var attributeIds = List.of(4L);
-    var existingTestCaseIds = List.of(1L);
-
-    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
-        .thenReturn(existingTestCaseIds);
-
-    // When
-    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
-
-    // Then
-    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
-    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
-        attributeIds);
-  }
-
-  @Test
-  void deleteTagsFromTestCases_WithMultipleTestCasesAndSingleAttribute_ShouldDeleteAttributes() {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L);
-    var attributeIds = List.of(5L);
-    var existingTestCaseIds = List.of(1L, 2L, 3L, 4L);
-
-    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
-        .thenReturn(existingTestCaseIds);
-
-    // When
-    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
-
-    // Then
-    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
-    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
-        attributeIds);
-  }
-
-  @Test
-  void deleteTagsFromTestCases_WithSingleTestCaseAndMultipleAttributes_ShouldDeleteAttributes() {
-    // Given
-    var testCaseIds = List.of(1L);
-    var attributeIds = Arrays.asList(4L, 5L, 6L, 7L);
-    var existingTestCaseIds = List.of(1L);
-
-    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
-        .thenReturn(existingTestCaseIds);
-
-    // When
-    sut.deleteAttributesFromTestCases(projectId, testCaseIds, attributeIds);
-
-    // Then
-    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
-    verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(testCaseIds,
-        attributeIds);
+    verify(tmsTestCaseAttributeService, never()).addAttributesToTestCases(any(), any());
   }
 
   @Test

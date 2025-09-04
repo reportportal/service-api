@@ -16,6 +16,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -451,7 +453,7 @@ class TmsTestCaseAttributeServiceImplTest {
   void deleteByTestCaseIdsAndAttributeIds_ShouldCallRepositoryDelete() {
     // Given
     List<Long> testCaseIds = Arrays.asList(2L, 3L, 4L);
-    List<Long> attributeIds = Arrays.asList(5L, 6L, 7L);
+    Collection<Long> attributeIds = Arrays.asList(5L, 6L, 7L);
 
     // When
     sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
@@ -465,7 +467,7 @@ class TmsTestCaseAttributeServiceImplTest {
   void deleteByTestCaseIdsAndAttributeIds_WithSingleTestCaseAndAttribute_ShouldCallRepositoryDelete() {
     // Given
     List<Long> testCaseIds = List.of(2L);
-    List<Long> attributeIds = List.of(3L);
+    Collection<Long> attributeIds = List.of(3L);
 
     // When
     sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
@@ -479,7 +481,7 @@ class TmsTestCaseAttributeServiceImplTest {
   void deleteByTestCaseIdsAndAttributeIds_WithMultipleTestCasesAndSingleAttribute_ShouldCallRepositoryDelete() {
     // Given
     List<Long> testCaseIds = Arrays.asList(2L, 3L, 4L, 5L);
-    List<Long> attributeIds = List.of(6L);
+    Collection<Long> attributeIds = List.of(6L);
 
     // When
     sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
@@ -493,7 +495,7 @@ class TmsTestCaseAttributeServiceImplTest {
   void deleteByTestCaseIdsAndAttributeIds_WithSingleTestCaseAndMultipleAttributes_ShouldCallRepositoryDelete() {
     // Given
     List<Long> testCaseIds = List.of(2L);
-    List<Long> attributeIds = Arrays.asList(3L, 4L, 5L, 6L);
+    Collection<Long> attributeIds = Arrays.asList(3L, 4L, 5L, 6L);
 
     // When
     sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
@@ -507,7 +509,7 @@ class TmsTestCaseAttributeServiceImplTest {
   void deleteByTestCaseIdsAndAttributeIds_WithEmptyTestCaseIds_ShouldCallRepositoryDelete() {
     // Given
     List<Long> testCaseIds = Collections.emptyList();
-    List<Long> attributeIds = Arrays.asList(3L, 4L);
+    Collection<Long> attributeIds = Arrays.asList(3L, 4L);
 
     // When
     sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
@@ -521,7 +523,7 @@ class TmsTestCaseAttributeServiceImplTest {
   void deleteByTestCaseIdsAndAttributeIds_WithEmptyAttributeIds_ShouldCallRepositoryDelete() {
     // Given
     List<Long> testCaseIds = Arrays.asList(2L, 3L);
-    List<Long> attributeIds = Collections.emptyList();
+    Collection<Long> attributeIds = Collections.emptyList();
 
     // When
     sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
@@ -535,7 +537,7 @@ class TmsTestCaseAttributeServiceImplTest {
   void deleteByTestCaseIdsAndAttributeIds_WithBothEmptyLists_ShouldCallRepositoryDelete() {
     // Given
     List<Long> testCaseIds = Collections.emptyList();
-    List<Long> attributeIds = Collections.emptyList();
+    Collection<Long> attributeIds = Collections.emptyList();
 
     // When
     sut.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
@@ -641,5 +643,188 @@ class TmsTestCaseAttributeServiceImplTest {
     verify(tmsTestCaseAttributeMapper).duplicateTestCaseAttribute(singleOriginalAttribute,
         newTestCase);
     verify(tmsTestCaseAttributeRepository).saveAll(singleDuplicatedAttributeSet);
+  }
+
+  // Tests for addAttributesToTestCases method
+
+  @Test
+  void addAttributesToTestCases_WithMultipleTestCasesAndAttributes_ShouldCreateAllCombinations() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(1L, 2L);
+    Collection<Long> attributeIds = Arrays.asList(10L, 20L);
+
+    TmsTestCaseAttribute attr1TestCase1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr2TestCase1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr1TestCase2 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr2TestCase2 = new TmsTestCaseAttribute();
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr2TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 10L)).thenReturn(attr1TestCase2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 20L)).thenReturn(attr2TestCase2);
+
+    // Порядок важен - соответствует flatMap логике
+    List<TmsTestCaseAttribute> expectedAttributes = Arrays.asList(
+        attr1TestCase1, attr2TestCase1, attr1TestCase2, attr2TestCase2);
+
+    // When
+    sut.addAttributesToTestCases(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 20L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(2L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(2L, 20L);
+    verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
+  }
+
+  @Test
+  void addAttributesToTestCases_WithSingleTestCaseAndMultipleAttributes_ShouldCreateAllAttributes() {
+    // Given
+    List<Long> testCaseIds = List.of(1L);
+    Collection<Long> attributeIds = Arrays.asList(10L, 20L, 30L);
+
+    TmsTestCaseAttribute attr1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr2 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr3 = new TmsTestCaseAttribute();
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 30L)).thenReturn(attr3);
+
+    List<TmsTestCaseAttribute> expectedAttributes = Arrays.asList(attr1, attr2, attr3);
+
+    // When
+    sut.addAttributesToTestCases(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 20L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 30L);
+    verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
+  }
+
+  @Test
+  void addAttributesToTestCases_WithMultipleTestCasesAndSingleAttribute_ShouldCreateAllTestCases() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+    Collection<Long> attributeIds = List.of(10L);
+
+    TmsTestCaseAttribute attr1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr2 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr3 = new TmsTestCaseAttribute();
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 10L)).thenReturn(attr2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 10L)).thenReturn(attr3);
+
+    List<TmsTestCaseAttribute> expectedAttributes = Arrays.asList(attr1, attr2, attr3);
+
+    // When
+    sut.addAttributesToTestCases(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(2L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(3L, 10L);
+    verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
+  }
+
+  @Test
+  void addAttributesToTestCases_WithSingleTestCaseAndSingleAttribute_ShouldCreateOneAttribute() {
+    // Given
+    List<Long> testCaseIds = List.of(1L);
+    Collection<Long> attributeIds = List.of(10L);
+
+    TmsTestCaseAttribute attribute = new TmsTestCaseAttribute();
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attribute);
+
+    List<TmsTestCaseAttribute> expectedAttributes = List.of(attribute);
+
+    // When
+    sut.addAttributesToTestCases(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
+    verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
+  }
+
+  @Test
+  void addAttributesToTestCases_WithSetAsAttributeIds_ShouldWorkCorrectly() {
+    // Given
+    List<Long> testCaseIds = List.of(1L);
+    Collection<Long> attributeIds = Set.of(10L, 20L); // Using Set instead of List
+
+    TmsTestCaseAttribute attr1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr2 = new TmsTestCaseAttribute();
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr2);
+
+    // When
+    sut.addAttributesToTestCases(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 20L);
+
+    // Используем ArgumentCaptor для проверки содержимого списка,
+    // так как порядок в Set может быть разным
+    ArgumentCaptor<List<TmsTestCaseAttribute>> captor = ArgumentCaptor.forClass(List.class);
+    verify(tmsTestCaseAttributeRepository).saveAll(captor.capture());
+
+    List<TmsTestCaseAttribute> actualAttributes = captor.getValue();
+    assertEquals(2, actualAttributes.size());
+    assertTrue(actualAttributes.contains(attr1));
+    assertTrue(actualAttributes.contains(attr2));
+  }
+
+  @Test
+  void addAttributesToTestCases_WithLargerDataSet_ShouldHandleCorrectOrder() {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+    Collection<Long> attributeIds = Arrays.asList(10L, 20L);
+
+    // Создаем все возможные комбинации
+    TmsTestCaseAttribute attr10TestCase1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr20TestCase1 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr10TestCase2 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr20TestCase2 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr10TestCase3 = new TmsTestCaseAttribute();
+    TmsTestCaseAttribute attr20TestCase3 = new TmsTestCaseAttribute();
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr10TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr20TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 10L)).thenReturn(attr10TestCase2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 20L)).thenReturn(attr20TestCase2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 10L)).thenReturn(attr10TestCase3);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 20L)).thenReturn(attr20TestCase3);
+
+    // Ожидаемый порядок согласно flatMap логике
+    List<TmsTestCaseAttribute> expectedAttributes = Arrays.asList(
+        attr10TestCase1, attr20TestCase1,
+        attr10TestCase2, attr20TestCase2,
+        attr10TestCase3, attr20TestCase3);
+
+    // When
+    sut.addAttributesToTestCases(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
+  }
+
+  @Test
+  void addAttributesToTestCases_WithEmptyCollections_ShouldCallSaveAllWithEmptyList() {
+    // Given
+    List<Long> testCaseIds = Collections.emptyList();
+    Collection<Long> attributeIds = Collections.emptyList();
+
+    // When
+    sut.addAttributesToTestCases(testCaseIds, attributeIds);
+
+    // Then
+    verify(tmsTestCaseAttributeRepository).saveAll(Collections.emptyList());
+    verifyNoInteractions(tmsTestCaseAttributeMapper);
   }
 }

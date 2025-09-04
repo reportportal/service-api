@@ -9,6 +9,7 @@ import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -107,7 +108,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Override
   @Transactional
   public void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds,
-      List<Long> attributeIds) {
+      Collection<Long> attributeIds) {
     tmsTestCaseAttributeRepository.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
   }
 
@@ -127,5 +128,21 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
       newTestCase.setAttributes(savedAttributes);
     }
+  }
+
+  @Override
+  @Transactional
+  public void addAttributesToTestCases(@NotNull @NotEmpty List<Long> testCaseIds,
+      @NotNull @NotEmpty Collection<Long> attributeIds) {
+    var testCaseAttributes = testCaseIds
+        .stream()
+        .flatMap(testCaseId -> attributeIds
+            .stream()
+            .map(attributeId -> tmsTestCaseAttributeMapper.createTestCaseAttribute(
+                testCaseId, attributeId)
+            ))
+        .toList();
+
+    tmsTestCaseAttributeRepository.saveAll(testCaseAttributes);
   }
 }

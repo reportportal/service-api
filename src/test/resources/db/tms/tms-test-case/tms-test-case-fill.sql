@@ -146,6 +146,9 @@ values (35, 'Test Case With Version 35', 'Test case with default version 35', 9,
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (36, 'Test Case With Version 36', 'Test case with default version 36', 9, 'HIGH');
 
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (37, 'Test Case With Version 37', 'Test case with default version 37', 10, 'HIGH');
+
 insert into tms_test_plan_test_case (test_plan_id, test_case_id)
 values (1, 4), (1, 5), (1, 6); -- Test Plan 1 contains test cases 4, 5, 6
 
@@ -241,6 +244,12 @@ values (25, 1, 'existing-tag-25');
 
 insert into tms_test_case_attribute (test_case_id, attribute_id, value)
 values (36, 1, 'existing-tag-36');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (37, 1, 'existing-tag-37-1');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (37, 2, 'existing-tag-37-2');
 
 -- Test case versions (Default version for each test case)
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
@@ -343,7 +352,10 @@ insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draf
 values (33, 35, 'Default Version 35', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (34, 36, 'Default Version 35', true, false);
+values (34, 36, 'Default Version 34', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (35, 37, 'Default Version 36', true, false);
 
 -- Manual scenarios for each version
 -- TEXT scenarios for most cases

@@ -39,7 +39,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteAttributesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -1493,100 +1493,145 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void batchDeleteTagsFromTestCasesIntegrationTest() throws Exception {
-    // Given - test cases 22 and 23 have existing tags
-    var testCaseIds = List.of(22L, 23L);
-    var tagIdsToDelete = List.of(1L, 2L);
+  void patchTestCaseAttributesAddAndRemoveIntegrationTest() throws Exception {
+    // Given - prepare test cases with initial attributes
+    var testCaseIds = List.of(4L, 5L);
+    var attributesToRemove = List.of(4L); // Remove attribute 4
+    var attributeIdsToAdd = List.of(1L, 2L); // Add attributes 1 and 2
 
-    // Verify tags exist before deletion
-    var tags22Before = testCaseAttributeRepository.findAllById_TestCaseId(22L);
-    var tags23Before = testCaseAttributeRepository.findAllById_TestCaseId(23L);
-    assertTrue(tags22Before.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
-    assertTrue(tags23Before.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    // Verify initial state - test case 4 has attribute 4
+    var tagsBeforeTestCase4 = testCaseAttributeRepository.findAllById_TestCaseId(4L);
+    assertTrue(tagsBeforeTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
 
-    var deleteRequest = BatchDeleteAttributesRQ.builder()
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributeIds(tagIdsToDelete)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(attributeIdsToAdd)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
+    String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
-    // Then - Verify tags are deleted
-    var tags22After = testCaseAttributeRepository.findAllById_TestCaseId(22L);
-    var tags23After = testCaseAttributeRepository.findAllById_TestCaseId(23L);
+    // Then - Verify attributes are added and removed correctly
+    var tagsAfterTestCase4 = testCaseAttributeRepository.findAllById_TestCaseId(4L);
+    var tagsAfterTestCase5 = testCaseAttributeRepository.findAllById_TestCaseId(5L);
 
-    assertFalse(tags22After.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
-    assertFalse(tags23After.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    // Verify attribute 4 is removed from test case 4
+    assertFalse(tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+
+    // Verify attributes 1 and 2 are added to both test cases
+    assertTrue(tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertTrue(tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    assertTrue(tagsAfterTestCase5.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertTrue(tagsAfterTestCase5.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
   }
 
   @Test
-  void batchDeleteTagsFromTestCasesWithSingleTestCaseIntegrationTest() throws Exception {
-    // Given
-    var testCaseIds = List.of(24L);
-    var tagIdsToDelete = List.of(3L);
+  void patchTestCaseAttributesOnlyAddIntegrationTest() throws Exception {
+    // Given - only add attributes, no removal
+    var testCaseIds = List.of(6L, 7L);
+    var attributeIdsToAdd = List.of(3L, 4L);
 
-    var deleteRequest = BatchDeleteAttributesRQ.builder()
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributeIds(tagIdsToDelete)
+        .attributeIdsToAdd(attributeIdsToAdd)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
+    String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
-    // Then - Verify tag is deleted
-    var tagsAfter = testCaseAttributeRepository.findAllById_TestCaseId(24L);
-    assertFalse(tagsAfter.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+    // Then - Verify attributes are added
+    var tagsAfterTestCase6 = testCaseAttributeRepository.findAllById_TestCaseId(6L);
+    var tagsAfterTestCase7 = testCaseAttributeRepository.findAllById_TestCaseId(7L);
+
+    assertTrue(tagsAfterTestCase6.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+    assertTrue(tagsAfterTestCase6.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+    assertTrue(tagsAfterTestCase7.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+    assertTrue(tagsAfterTestCase7.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
   }
 
   @Test
-  void batchDeleteTagsFromTestCasesWithNonExistentTagsIntegrationTest() throws Exception {
-    // Given
-    var testCaseIds = List.of(22L, 23L);
-    var nonExistentTagIds = List.of(999L, 888L);
+  void patchTestCaseAttributesOnlyRemoveIntegrationTest() throws Exception {
+    // Given - only remove attributes, no addition
+    var testCaseIds = List.of(9L);
+    var attributesToRemove = List.of(4L);
 
-    var deleteRequest = BatchDeleteAttributesRQ.builder()
+    // Verify initial state
+    var tagsBeforeTestCase9 = testCaseAttributeRepository.findAllById_TestCaseId(9L);
+    assertTrue(tagsBeforeTestCase9.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributeIds(nonExistentTagIds)
+        .attributesToRemove(attributesToRemove)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
+    String jsonContent = mapper.writeValueAsString(patchRequest);
 
-    // When/Then - should succeed (no error for non-existent tags)
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
+
+    // Then - Verify attribute is removed
+    var tagsAfterTestCase9 = testCaseAttributeRepository.findAllById_TestCaseId(9L);
+    assertFalse(tagsAfterTestCase9.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
   }
 
   @Test
-  void batchDeleteTagsFromTestCasesWithEmptyTestCaseIdsIntegrationTest() throws Exception {
-    // Given
-    var emptyTestCaseIds = Collections.<Long>emptyList();
-    var tagIds = List.of(1L, 2L);
+  void patchTestCaseAttributesWithOverlapIntegrationTest() throws Exception {
+    // Given - same attribute in both add and remove lists (should be ignored)
+    var testCaseIds = List.of(10L);
+    var attributesToRemove = List.of(1L, 2L);
+    var attributeIdsToAdd = List.of(1L, 3L); // 1L is in both lists
 
-    var deleteRequest = BatchDeleteAttributesRQ.builder()
-        .testCaseIds(emptyTestCaseIds)
-        .attributeIds(tagIds)
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(attributeIdsToAdd)
         .build();
 
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
+    String jsonContent = mapper.writeValueAsString(patchRequest);
 
-    // When/Then - should return validation error
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then - Verify only attribute 2 is removed and attribute 3 is added
+    // Attribute 1 should remain unchanged due to overlap
+    var tagsAfterTestCase10 = testCaseAttributeRepository.findAllById_TestCaseId(10L);
+    assertTrue(tagsAfterTestCase10.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+    assertFalse(tagsAfterTestCase10.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+  }
+
+  @Test
+  void patchTestCaseAttributesWithEmptyTestCaseIdsIntegrationTest() throws Exception {
+    // Given
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(Collections.emptyList())
+        .attributeIdsToAdd(List.of(1L))
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When/Then - should return validation error due to @NotEmpty
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
@@ -1594,92 +1639,167 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void batchDeleteTagsFromTestCasesWithEmptyTagIdsIntegrationTest() throws Exception {
+  void patchTestCaseAttributesWithNonExistentTestCasesIntegrationTest() throws Exception {
     // Given
-    var testCaseIds = List.of(22L, 23L);
-    var emptyTagIds = Collections.<Long>emptyList();
-
-    var deleteRequest = BatchDeleteAttributesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .attributeIds(emptyTagIds)
+    var nonExistentTestCaseIds = List.of(999L, 888L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(nonExistentTestCaseIds)
+        .attributeIdsToAdd(List.of(1L))
         .build();
 
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
+    String jsonContent = mapper.writeValueAsString(patchRequest);
 
-    // When/Then - should return validation error
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void batchDeleteTagsFromTestCasesWithNullFieldsIntegrationTest() throws Exception {
-    // Given - create request with null fields
-    String jsonContent = "{\"testCaseIds\": null, \"tagIds\": null}";
-
-    // When/Then - should return validation error
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void batchDeleteTagsFromTestCasesWithMixedExistingAndNonExistentTestCasesIntegrationTest()
-      throws Exception {
-    // Given
-    var testCaseIds = List.of(25L, 999L); // 25L exists, 999L doesn't
-    var tagIds = List.of(1L);
-
-    var deleteRequest = BatchDeleteAttributesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .attributeIds(tagIds)
-        .build();
-
-    String jsonContent = mapper.writeValueAsString(deleteRequest);
-
-    // When/Then - should fail with not found exception
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+    // When/Then - should return not found error
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
-        .andExpect(content().string(
-            containsString("'Test Cases with ids: [999] for projectId: 1' not found")));
+        .andExpect(content().string(containsString("Test Cases with ids: [999, 888]")));
   }
 
   @Test
-  void deleteTagsFromTestCaseWithMalformedJsonIntegrationTest() throws Exception {
+  void patchTestCaseAttributesWithMixedExistingAndNonExistentTestCasesIntegrationTest() throws Exception {
     // Given
-    var testCaseId = 4L;
-    String malformedJson = "{\"tagIds\": [1, 2, 3";
+    var mixedTestCaseIds = List.of(4L, 999L); // 4L exists, 999L doesn't
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(mixedTestCaseIds)
+        .attributeIdsToAdd(List.of(1L))
+        .build();
 
-    // When/Then - should return bad request
-    mockMvc.perform(
-            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId + "/tags")
-                .contentType("application/json")
-                .content(malformedJson)
-                .with(token(oAuthHelper.getSuperadminToken())))
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When/Then - should return not found error for non-existent test cases
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Cases with ids: [999]")));
+  }
+
+  @Test
+  void patchTestCaseAttributesWithEmptyAttributeListsIntegrationTest() throws Exception {
+    // Given - both lists are empty (should fail custom validation)
+    var testCaseIds = List.of(11L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(Collections.emptyList())
+        .attributeIdsToAdd(Collections.emptyList())
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When/Then - should fail custom validation @ValidBatchPatchTestCaseAttributesRQ
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
   @Test
-  void batchDeleteTagsFromTestCasesWithMalformedJsonIntegrationTest() throws Exception {
-    // Given
-    String malformedJson = "{\"testCaseIds\": [1, 2], \"tagIds\": [1, 2";
+  void patchTestCaseAttributesWithNullAttributeListsIntegrationTest() throws Exception {
+    // Given - both lists are null (should fail custom validation)
+    var testCaseIds = List.of(12L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(null)
+        .attributeIdsToAdd(null)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When/Then - should fail custom validation @ValidBatchPatchTestCaseAttributesRQ
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void patchTestCaseAttributesWithMalformedJsonIntegrationTest() throws Exception {
+    // Given - malformed JSON
+    String malformedJson = "{\"testCaseIds\": [4, 5], \"attributeIdsToAdd\": [1, 2";
 
     // When/Then - should return bad request
-    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/tags/batch")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
             .contentType("application/json")
             .content(malformedJson)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
-  // Error handling tests
+  @Test
+  void patchTestCaseAttributesWithNullTestCaseIdsIntegrationTest() throws Exception {
+    // Given - null test case IDs
+    String jsonContent = "{\"testCaseIds\": null, \"attributeIdsToAdd\": [1, 2]}";
+
+    // When/Then - should return validation error due to @NotEmpty
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void patchTestCaseAttributesWithValidSingleAttributeListIntegrationTest() throws Exception {
+    // Given - only one of the lists is populated (should pass custom validation)
+    var testCaseIds = List.of(13L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(null)
+        .attributeIdsToAdd(List.of(1L, 2L))
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When/Then - should succeed because at least one attribute list is not empty
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Verify attributes were added
+    var tagsAfterTestCase13 = testCaseAttributeRepository.findAllById_TestCaseId(13L);
+    assertTrue(tagsAfterTestCase13.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertTrue(tagsAfterTestCase13.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+  }
+
+  @Test
+  void patchTestCaseAttributesWithValidRemoveOnlyIntegrationTest() throws Exception {
+    // Given - only remove list is populated (should pass custom validation)
+    var testCaseIds = List.of(37L);
+
+    // Verify test case has attribute 2 before removal
+    var tagsBeforeTestCase14 = testCaseAttributeRepository.findAllById_TestCaseId(37L);
+    assertTrue(tagsBeforeTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(List.of(2L))
+        .attributeIdsToAdd(null)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When/Then - should succeed because at least one attribute list is not empty
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Verify attribute was removed
+    var tagsAfterTestCase14 = testCaseAttributeRepository.findAllById_TestCaseId(14L);
+    assertFalse(tagsAfterTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+  }
+
   @Test
   void deleteTestCasesWithEmptyLocationIdsIntegrationTest() throws Exception {
     // Given

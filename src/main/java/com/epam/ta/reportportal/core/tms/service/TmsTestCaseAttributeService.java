@@ -4,6 +4,7 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.List;
 
 public interface TmsTestCaseAttributeService {
@@ -28,7 +29,7 @@ public interface TmsTestCaseAttributeService {
 
   void deleteByTestCaseIdAndAttributeIds(Long testCaseId, List<Long> attributeIds);
 
-  void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds, List<Long> attributeIds);
+  void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds, Collection<Long> attributeIds);
 
   /**
    * Duplicates test case attributes by linking existing attributes to a new test case.
@@ -37,4 +38,7 @@ public interface TmsTestCaseAttributeService {
    * @param newTestCase      The new test case.
    */
   void duplicateTestCaseAttributes(TmsTestCase originalTestCase, TmsTestCase newTestCase);
+
+  void addAttributesToTestCases(@NotNull @NotEmpty List<Long> testCaseIds,
+      @NotNull @NotEmpty Collection<Long> attributeIds);
 }

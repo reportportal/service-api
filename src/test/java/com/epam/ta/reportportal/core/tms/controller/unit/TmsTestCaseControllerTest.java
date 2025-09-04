@@ -29,7 +29,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteAttributesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -933,91 +933,119 @@ public class TmsTestCaseControllerTest {
   }
 
   @Test
-  void deleteTagsFromMultipleTestCasesTest() throws Exception {
+  void patchTestCaseAttributesTest() throws Exception {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var tagIds = Arrays.asList(4L, 5L, 6L);
-    var deleteRequest = new BatchDeleteAttributesRQ();
-    deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setAttributeIds(tagIds);
+    var attributesToRemove = Arrays.asList(4L, 5L);
+    var attributeIdsToAdd = Arrays.asList(6L, 7L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(attributeIdsToAdd)
+        .build();
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
 
     // When/Then
     mockMvc.perform(
-            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+            patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).patchTestCaseAttributes(projectId, patchRequest);
   }
 
   @Test
-  void deleteTagsFromMultipleTestCasesWithSingleIdsTest() throws Exception {
+  void patchTestCaseAttributesWithSingleTestCaseTest() throws Exception {
     // Given
     var testCaseIds = List.of(1L);
-    var tagIds = List.of(4L);
-    var deleteRequest = new BatchDeleteAttributesRQ();
-    deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setAttributeIds(tagIds);
+    var attributesToRemove = Arrays.asList(4L, 5L, 6L);
+    var attributeIdsToAdd = Arrays.asList(7L, 8L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .attributeIdsToAdd(attributeIdsToAdd)
+        .build();
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
 
     // When/Then
     mockMvc.perform(
-            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+            patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).patchTestCaseAttributes(projectId, patchRequest);
   }
 
   @Test
-  void deleteMultipleTagsFromSingleTestCaseTest() throws Exception {
+  void patchTestCaseAttributesOnlyRemoveTest() throws Exception {
     // Given
-    var testCaseIds = List.of(1L);
-    var tagIds = Arrays.asList(4L, 5L, 6L, 7L);
-    var deleteRequest = new BatchDeleteAttributesRQ();
-    deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setAttributeIds(tagIds);
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var attributesToRemove = Arrays.asList(4L, 5L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(attributesToRemove)
+        .build();
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
 
     // When/Then
     mockMvc.perform(
-            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+            patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).patchTestCaseAttributes(projectId, patchRequest);
   }
 
   @Test
-  void deleteSingleTagFromMultipleTestCasesTest() throws Exception {
+  void patchTestCaseAttributesOnlyAddTest() throws Exception {
     // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L);
-    var tagIds = List.of(5L);
-    var deleteRequest = new BatchDeleteAttributesRQ();
-    deleteRequest.setTestCaseIds(testCaseIds);
-    deleteRequest.setAttributeIds(tagIds);
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var attributeIdsToAdd = Arrays.asList(6L, 7L, 8L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributeIdsToAdd(attributeIdsToAdd)
+        .build();
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
 
     // When/Then
     mockMvc.perform(
-            delete("/v1/project/{projectKey}/tms/test-case/tags/batch", projectKey)
+            patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).deleteAttributesFromTestCases(projectId, testCaseIds, tagIds);
+    verify(tmsTestCaseService).patchTestCaseAttributes(projectId, patchRequest);
+  }
+
+  @Test
+  void patchTestCaseAttributesWithEmptyAttributeListsTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributesToRemove(Collections.emptyList())
+        .attributeIdsToAdd(Collections.emptyList())
+        .build();
+
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
+
+    // When/Then
+    mockMvc.perform(
+            patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isBadRequest());
   }
 
   @Test

@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.dto.batch;
 
+import com.epam.ta.reportportal.core.tms.validation.ValidBatchPatchTestCaseAttributesRQ;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -11,11 +12,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BatchDeleteAttributesRQ {
+@ValidBatchPatchTestCaseAttributesRQ
+public class BatchPatchTestCaseAttributesRQ {
 
   @NotEmpty(message = "Test case IDs cannot be empty")
   private List<Long> testCaseIds;
 
-  @NotEmpty(message = "Attribute IDs cannot be empty")
-  private List<Long> attributeIds;
+  private List<Long> attributesToRemove;
+
+  private List<Long> attributeIdsToAdd;
 }

@@ -154,7 +154,7 @@ public class FlushingDataJob implements Job {
         .addPassword(passwordEncoder.encode(request.getPassword())).get();
     projectRepository.save(personalProjectService.generatePersonalProject(user));
     var savedUser = userRepository.save(user);
-    personalOrganizationService.create(savedUser);
+    personalOrganizationService.createPersonalOrganization(savedUser.getId());
     LOGGER.info("Default user has been successfully created.");
   }
 

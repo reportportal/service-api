@@ -50,7 +50,7 @@ public class MessageBusImplTest {
     lenient().when(activity.getObjectType()).thenReturn(EVENT_OBJECT);
     lenient().when(activity.getEventName()).thenReturn(EVENT_NAME);
 
-    activityKey = String.format("activity.%d.%s.%s", PROJECT_ID, EVENT_OBJECT, EVENT_NAME);
+    activityKey = String.format("activity.%s.%s", EVENT_OBJECT, EVENT_NAME);
   }
 
   @Test

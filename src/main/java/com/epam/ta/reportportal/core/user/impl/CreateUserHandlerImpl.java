@@ -85,7 +85,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
     var savedUser = saveUser(request);
 
-    personalOrganizationService.create(savedUser);
+    personalOrganizationService.createPersonalOrganization(savedUser.getId());
 
     var userCreatedEvent = new UserCreatedEvent(
         TO_ACTIVITY_RESOURCE.apply(savedUser, null),

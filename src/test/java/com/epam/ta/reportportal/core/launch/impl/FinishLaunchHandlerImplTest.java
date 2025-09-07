@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
-import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +27,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
@@ -41,7 +40,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
@@ -117,10 +115,10 @@ class FinishLaunchHandlerImplTest {
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
-    when(launchRepository.findByUuid("1")).thenReturn(
-        getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
-    when(linkGenerator.generateLaunchLink("http://example.com", "test_project", "1"))
-        .thenReturn("http://example.com/ui/#test_project/launches/all/1");
+    when(launchRepository.findByUuid("1"))
+        .thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+    when(linkGenerator.generateLaunchLink("http://example.com", "o-slug.project-name", "1"))
+        .thenReturn("http://example.com/ui/#o-slug.project-name/launches/all/1");
 
     final FinishLaunchRS finishLaunchRS =
         handler.finishLaunch("1", finishExecutionRQ, rpUserToMembership(rpUser),

@@ -30,10 +30,10 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.jasper.impl.OrganizationJasperReportHandler;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Lists;
@@ -110,7 +110,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
 
 
   @Override
-  public void exportOrganizations(Queryable filter, Pageable pageable, ReportFormat reportFormat,
+  public byte[] exportOrganizations(Queryable filter, Pageable pageable, ReportFormat reportFormat,
       OutputStream outputStream) {
     var orgs = organizationRepositoryCustom.findByFilter(filter, pageable);
 
@@ -123,7 +123,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
     //don't provide any params to not overwrite params from the Jasper template
     JasperPrint jasperPrint = organizationJasperReportHandler.getJasperPrint(null, jrDataSource);
 
-    organizationJasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
+    return organizationJasperReportHandler.exportReportBytes(reportFormat, jasperPrint);
   }
 
 }

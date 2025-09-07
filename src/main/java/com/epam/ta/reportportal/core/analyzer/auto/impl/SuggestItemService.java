@@ -104,7 +104,6 @@ public class SuggestItemService {
 
     Launch launch = getLaunch(testItem.getLaunchId(), membershipDetails, user);
     isItemUnderProject(membershipDetails, user, launch);
-    isItemUnderProject(projectDetails, user, launch);
     Project project = getProjectHandler.get(membershipDetails);
 
     SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project);

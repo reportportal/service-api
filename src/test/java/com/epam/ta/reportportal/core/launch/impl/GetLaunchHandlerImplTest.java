@@ -30,12 +30,11 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
-import com.epam.ta.reportportal.core.launch.export.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.launch.export.JasperDataProvider;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -253,7 +252,6 @@ class GetLaunchHandlerImplTest {
     ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     MembershipDetails membershipDetails = new MembershipDetails();
     membershipDetails.setProjectId(1L);
-    ProjectDetails projectDetails = ProjectDetails.builder().withProjectId(1L).build();
 
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
@@ -269,7 +267,6 @@ class GetLaunchHandlerImplTest {
     ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     MembershipDetails membershipDetails = new MembershipDetails();
     membershipDetails.setProjectId(1L);
-    ProjectDetails projectDetails = ProjectDetails.builder().withProjectId(1L).build();
 
     Launch launch = new Launch();
     launch.setProjectId(1L);

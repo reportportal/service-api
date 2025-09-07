@@ -16,16 +16,18 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URI;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.ForwardedHeaderUtils;
 
 /**
- * Service for generating launch links and composing base URLs
- *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
@@ -35,8 +37,15 @@ public class LinkGenerator {
   private static final String UI_PREFIX = "/ui/#";
   private static final String LAUNCHES = "/launches/all/";
 
+  private static String path;
+
   @Value("${server.servlet.context-path:/api}")
-  private String contextPath;
+  private String pathValue;
+
+  @PostConstruct
+  public void init() {
+    LinkGenerator.path = this.pathValue;
+  }
 
   /**
    * Generates a launch link for the given parameters
@@ -50,19 +59,37 @@ public class LinkGenerator {
     return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
   }
 
-  /**
-   * Composes the base URL from the current HTTP request, handling proxy headers
-   *
-   * @param request the HTTP request
-   * @return the composed base URL
-   */
+  public URI generateInvitationUrl(HttpServletRequest httpServletRequest, String invitationId) {
+    var baseUrl = composeBaseUrl(httpServletRequest);
+    return URI.create(baseUrl + "/ui/#registration?uuid=" + invitationId);
+  }
+
+  @SneakyThrows
   public String composeBaseUrl(HttpServletRequest request) {
-    String adjustedPath = ("/".equals(contextPath) || StringUtils.isEmpty(contextPath)) ? ""
-        : contextPath.replace("/api", "");
-    return ServletUriComponentsBuilder.fromRequestUri(request)
-        .replacePath(adjustedPath)
+
+    String processedPath = "/".equals(path) ? null : path.replace("/api", "");
+    /*
+     * Use Uri components since they are aware of x-forwarded-host headers
+     */
+
+    HttpHeaders httpHeaders = new HttpHeaders();
+    // Only include relevant forwarding headers
+    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for",
+        "forwarded"};
+    for (String headerName : forwardedHeaders) {
+      String headerValue = request.getHeader(headerName);
+      if (headerValue != null) {
+        httpHeaders.add(headerName, headerValue);
+      }
+    }
+
+    URI uri = new URI(request.getRequestURI());
+
+    return ForwardedHeaderUtils.adaptFromForwardedHeaders(uri, httpHeaders)
+        .replacePath(processedPath)
         .replaceQuery(null)
         .build()
-        .toUriString();
+        .toUri()
+        .toASCIIString();
   }
 }

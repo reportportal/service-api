@@ -30,7 +30,9 @@ public enum ReportFormat {
   XLS("xls", MediaType.MICROSOFT_EXCEL.withoutParameters().toString()),
   HTML("html", MediaType.HTML_UTF_8.withoutParameters().toString()),
   PDF("pdf", MediaType.PDF.withoutParameters().toString()),
-  CSV("csv", MediaType.CSV_UTF_8.withoutParameters().toString());
+  CSV("csv", MediaType.CSV_UTF_8.withoutParameters().toString()),
+  TEXT_CSV("text/csv", MediaType.CSV_UTF_8.withoutParameters().toString());
+
   //@formatter:on
 
   private String value;
@@ -43,6 +45,10 @@ public enum ReportFormat {
 
   public static Optional<ReportFormat> findByName(String name) {
     return Arrays.stream(values()).filter(format -> format.name().equalsIgnoreCase(name)).findAny();
+  }
+
+  public static Optional<ReportFormat> findByValue(String value) {
+    return Arrays.stream(values()).filter(format -> format.getValue().equalsIgnoreCase(value)).findAny();
   }
 
   public String getValue() {

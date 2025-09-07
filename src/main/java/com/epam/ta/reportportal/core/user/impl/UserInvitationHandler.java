@@ -23,7 +23,6 @@ import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
 import static com.epam.ta.reportportal.util.ControllerUtils.safeParseLong;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
@@ -40,6 +39,7 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.organization.OrganizationUserService;
 import com.epam.ta.reportportal.core.organization.PersonalOrganizationService;
 import com.epam.ta.reportportal.core.user.UserInvitationService;
@@ -90,6 +90,7 @@ public class UserInvitationHandler {
   private final PasswordEncoder passwordEncoder;
   private final UserInvitationService userInvitationService;
   private final PersonalOrganizationService personalOrganizationService;
+  private final LinkGenerator linkGenerator;
 
   /**
    * Constructor of UserInvitationHandlerImpl.
@@ -102,7 +103,8 @@ public class UserInvitationHandler {
       OrganizationUserService organizationUserService,
       OrganizationRepositoryCustom organizationRepositoryCustom,
       ProjectRepository projectRepository, PasswordEncoder passwordEncoder,
-      UserInvitationService userInvitationService, PersonalOrganizationService personalOrganizationService) {
+      UserInvitationService userInvitationService, PersonalOrganizationService personalOrganizationService,
+      LinkGenerator linkGenerator) {
     this.httpServletRequest = httpServletRequest;
     this.userCreationBidRepository = userCreationBidRepository;
     this.userRepository = userRepository;
@@ -115,6 +117,7 @@ public class UserInvitationHandler {
     this.passwordEncoder = passwordEncoder;
     this.userInvitationService = userInvitationService;
     this.personalOrganizationService = personalOrganizationService;
+    this.linkGenerator = linkGenerator;
   }
 
   /**
@@ -148,7 +151,7 @@ public class UserInvitationHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "User invitation id"));
 
     var invitation = InvitationConverter.TO_INVITATION.apply(bid);
-    invitation.setLink(generateInvitationUrl(httpServletRequest, bid.getUuid()));
+    invitation.setLink(linkGenerator.generateInvitationUrl(httpServletRequest, bid.getUuid()));
     return invitation;
   }
 

@@ -25,7 +25,6 @@ import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_ALREADY_ASSIGNED;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateInvitationUrl;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.BID_TYPE;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
 import static com.epam.ta.reportportal.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
@@ -41,6 +40,7 @@ import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.organization.OrganizationUserService;
 import com.epam.ta.reportportal.core.user.UserInvitationService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -88,6 +88,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final ProjectRepository projectRepository;
   private final ServerSettingsRepository settingsRepository;
+  private final LinkGenerator linkGenerator;
 
 
   public UserInvitationServiceImpl(HttpServletRequest httpServletRequest, ThreadPoolTaskExecutor emailExecutorService,
@@ -96,7 +97,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
       ApplicationEventPublisher eventPublisher, ProjectUserRepository projectUserRepository,
       OrganizationUserRepository organizationUserRepository,
       OrganizationUserService organizationUserService, OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository, ServerSettingsRepository settingsRepository) {
+      ProjectRepository projectRepository, ServerSettingsRepository settingsRepository, LinkGenerator linkGenerator,
+      LinkGenerator linkGenerator1) {
     this.httpServletRequest = httpServletRequest;
     this.emailExecutorService = emailExecutorService;
     this.emailServiceFactory = emailServiceFactory;
@@ -109,6 +111,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     this.organizationRepositoryCustom = organizationRepositoryCustom;
     this.projectRepository = projectRepository;
     this.settingsRepository = settingsRepository;
+    this.linkGenerator = linkGenerator1;
   }
 
   @Override
@@ -139,7 +142,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     invitation.setCreatedAt(storedUserBid.getLastModified());
     invitation.setExpiresAt(storedUserBid.getLastModified().plus(1, ChronoUnit.DAYS));
     invitation.setId(UUID.fromString(userBid.getUuid()));
-    invitation.setLink(generateInvitationUrl(httpServletRequest, userBid.getUuid()));
+    invitation.setLink(linkGenerator.generateInvitationUrl(httpServletRequest, userBid.getUuid()));
     invitation.setEmail(userBid.getEmail());
     invitation.setStatus(PENDING);
     invitation.setUserId(inviter.getId());

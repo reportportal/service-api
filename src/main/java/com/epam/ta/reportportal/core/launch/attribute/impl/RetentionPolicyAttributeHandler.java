@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.attribute.impl;
 
-import static com.epam.ta.reportportal.core.settings.handlers.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
+import static com.epam.ta.reportportal.core.settings.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -24,8 +24,8 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
 import com.epam.ta.reportportal.core.launch.attribute.AttributeHandler;
-import com.epam.ta.reportportal.core.settings.ServerSettingsService;
 import com.epam.ta.reportportal.core.project.ProjectService;
+import com.epam.ta.reportportal.core.settings.ServerSettingsService;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;

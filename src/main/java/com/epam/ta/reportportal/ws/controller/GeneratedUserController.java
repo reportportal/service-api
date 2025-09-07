@@ -19,8 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_OWNER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
-import static com.epam.ta.reportportal.entity.jasper.ReportFormat.CSV;
 import static com.epam.ta.reportportal.util.SecurityContextUtils.getPrincipal;
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
@@ -38,10 +36,11 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.util.DefaultUserFilter;
@@ -82,6 +81,7 @@ public class GeneratedUserController extends BaseController implements UsersApi 
   private final SearchCriteriaService searchCriteriaService;
   private final GetJasperReportHandler<User> jasperReportHandler;
   private final HttpServletResponse httpServletResponse;
+  private final LinkGenerator linkGenerator;
 
 
   @Override
@@ -114,7 +114,8 @@ public class GeneratedUserController extends BaseController implements UsersApi 
   public ResponseEntity<InstanceUser> postUsers(NewUserRequest newUserRequest) {
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(createUserHandler.createUser(newUserRequest, getPrincipal(), composeBaseUrl(httpServletRequest)));
+        .body(createUserHandler
+            .createUser(newUserRequest, getPrincipal(), linkGenerator.composeBaseUrl(httpServletRequest)));
   }
 
   @Transactional
@@ -132,7 +133,8 @@ public class GeneratedUserController extends BaseController implements UsersApi 
       ReportFormat format = jasperReportHandler.getReportFormat(accept);
       httpServletResponse.setContentType(format.getContentType());
       httpServletResponse.setHeader(CONTENT_DISPOSITION,
-          String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", CSV.name(), CSV.getValue()));
+          String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", ReportFormat.CSV.name(),
+              ReportFormat.CSV.getValue()));
 
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
         getUserHandler.exportUsers(format, outputStream, filter, pageable);

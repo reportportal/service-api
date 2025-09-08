@@ -93,11 +93,21 @@ public class CustomAuthenticationManagerResolver implements AuthenticationManage
       }
       
       try {
+        byte[] headerBytes = java.util.Base64.getUrlDecoder().decode(parts[0]);
+        String headerJson = new String(headerBytes, java.nio.charset.StandardCharsets.UTF_8);
+        
+        if (!headerJson.contains("alg") && !headerJson.contains("typ")) {
+          log.debug("Not a JWT: header doesn't contain JWT fields");
+          return false;
+        }
+        
         java.util.Base64.getUrlDecoder().decode(parts[1]);
+        java.util.Base64.getUrlDecoder().decode(parts[2]);
+        
         log.debug("Valid JWT format detected");
         return true;
       } catch (Exception e) {
-        log.debug("Not a JWT: base64 decode failed - {}", e.getMessage());
+        log.debug("Not a JWT: base64 decode or JSON validation failed - {}", e.getMessage());
         return false;
       }
     } catch (Exception e) {

@@ -28,5 +28,6 @@ public class AttachmentPojo {
 
   private String fileId;
   private String fileName;
+  private String contentType;
 
 }

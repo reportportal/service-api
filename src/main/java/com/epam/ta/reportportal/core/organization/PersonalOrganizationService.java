@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.organization;
 
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
-import com.epam.ta.reportportal.entity.user.User;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,17 +45,17 @@ public class PersonalOrganizationService {
   /**
    * Creates a personal organization for the given user.
    *
-   * @param user The user for whom the personal organization is to be created.
+   * @param userId The ID of the user for whom to create the personal organization.
    * @return An Optional containing the OrganizationInfo if creation was successful, or empty if it failed.
    */
-  public Optional<OrganizationInfo> create(User user) {
+  public Optional<OrganizationInfo> createPersonalOrganization(long userId) {
     try {
-      return getOrgExtension().map(ext -> ext.createPersonalOrganization(user));
+      return getOrgExtension().map(ext -> ext.createPersonalOrganization(userId));
     } catch (IllegalStateException e) {
       log.warn("Can't create personal organization, reason: {}", e.getMessage());
       return Optional.empty();
     } catch (Exception e) {
-      log.error("Can't create personal organization for user: {}", user.getLogin(), e);
+      log.error("Can't create personal organization for user: {}", userId, e);
       return Optional.empty();
     }
   }

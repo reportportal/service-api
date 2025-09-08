@@ -22,7 +22,6 @@ import com.epam.reportportal.api.model.UpdateOrganizationRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.user.User;
 
 /**
  * Extension point for organization management in ReportPortal.
@@ -44,10 +43,10 @@ public interface OrganizationExtensionPoint extends ReportPortalExtensionPoint {
   /**
    * Creates a personal organization for the specified user.
    *
-   * @param user The user for whom the personal organization is to be created.
+   * @param userId The ID of the user for whom to create the personal organization.
    * @return @{@link OrganizationInfo} containing the details of the created personal organization.
    */
-  OrganizationInfo createPersonalOrganization(User user);
+  OrganizationInfo createPersonalOrganization(long userId);
 
   /**
    * Update an existing organization.

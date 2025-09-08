@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ORGANIZATION_MEMBER;
-import static com.epam.ta.reportportal.entity.jasper.ReportFormat.CSV;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
@@ -38,12 +37,12 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.filter.SearchCriteriaService;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.jasper.impl.OrganizationJasperReportHandler;
 import com.epam.ta.reportportal.core.organization.GetOrganizationHandler;
 import com.epam.ta.reportportal.core.organization.OrganizationExtensionPoint;
 import com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.OrganizationFilter;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.util.SecurityContextUtils;
@@ -131,8 +130,9 @@ public class OrganizationController extends BaseController implements Organizati
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
         httpServletResponse.setContentType("text/csv");
         httpServletResponse.setHeader(CONTENT_DISPOSITION,
-            String.format("attachment; filename=\"RP_ORGANIZATIONS_%s_Report.%s\"", CSV.name(), CSV.getValue()));
-        getOrganizationHandler.exportOrganizations(filter, pageable, format, outputStream);
+            String.format("attachment; filename=\"RP_ORGANIZATIONS_%s_Report.%s\"", ReportFormat.CSV.name(),
+                ReportFormat.CSV.getValue()));
+        outputStream.write(getOrganizationHandler.exportOrganizations(filter, pageable, format, outputStream));
         return null;
       } catch (IOException e) {
         log.error(e.getMessage(), e);

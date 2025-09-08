@@ -1,16 +1,16 @@
 package com.epam.ta.reportportal.core.project.validator.attribute;
 
-import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER_ALIAS;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.commons.Predicates.isPresent;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,22 +37,24 @@ public class ProjectAttributeValidator {
         .collect(toSet());
     expect(incompatibleAttributes, Set::isEmpty).verify(BAD_REQUEST_ERROR, incompatibleAttributes);
 
-    ofNullable(newAttributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(
+    ofNullable(newAttributes.get(AUTO_ANALYZER_MODE.getAttribute())).ifPresent(
         analyzerMode -> expect(AnalyzeMode.fromString(
             analyzerMode), isPresent()).verify(BAD_REQUEST_ERROR, analyzerMode));
 
     ofNullable(newAttributes.get(
-        ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute())).ifPresent(
+        SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute())).ifPresent(
         attr -> BusinessRule.expect(
             validatePercentage(attr),
             BooleanUtils::isTrue
-        ).verify(BAD_REQUEST_ERROR, ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH));
+        ).verify(BAD_REQUEST_ERROR, SEARCH_LOGS_MIN_SHOULD_MATCH));
+
+    validateBooleanAttributes(newAttributes);
 
     final Map<ProjectAttributeEnum, Long> delays = validateDelays(newAttributes,
-        List.of(ProjectAttributeEnum.KEEP_SCREENSHOTS,
-            ProjectAttributeEnum.KEEP_LOGS,
-            ProjectAttributeEnum.KEEP_LAUNCHES,
-            ProjectAttributeEnum.INTERRUPT_JOB_TIME
+        List.of(KEEP_SCREENSHOTS,
+            KEEP_LOGS,
+            KEEP_LAUNCHES,
+            INTERRUPT_JOB_TIME
         )
     );
 
@@ -92,5 +94,33 @@ public class ProjectAttributeValidator {
     } catch (NumberFormatException exc) {
       throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
     }
+  }
+
+  private void validateBooleanAttributes(Map<String, String> attributes) {
+    List<ProjectAttributeEnum> booleanAttributes = List.of(
+        NOTIFICATIONS_ENABLED,
+        NOTIFICATIONS_EMAIL_ENABLED,
+        INDEXING_RUNNING,
+        AUTO_PATTERN_ANALYZER_ENABLED,
+        AUTO_ANALYZER_ENABLED,
+        ALL_MESSAGES_SHOULD_MATCH,
+        AUTO_UNIQUE_ERROR_ANALYZER_ENABLED,
+        UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS,
+        LARGEST_RETRY_PRIORITY
+    );
+
+    booleanAttributes.stream()
+        .filter(attr -> attributes.containsKey(attr.getAttribute()))
+        .forEach(attr -> {
+          String value = attributes.get(attr.getAttribute());
+          BusinessRule.expect(validateBoolean(value), BooleanUtils::isTrue)
+              .verify(BAD_REQUEST_ERROR,
+                  String.format("Attribute '%s' should have boolean value (true/false), but was: %s",
+                      attr.getAttribute(), value));
+        });
+  }
+
+  private boolean validateBoolean(String value) {
+    return "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value);
   }
 }

@@ -20,17 +20,19 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.util.ForwardedHeaderUtils;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Component
-public final class LinkGenerator {
+@Service
+@Slf4j
+public class LinkGenerator {
 
   private static final String UI_PREFIX = "/ui/#";
   private static final String LAUNCHES = "/launches/all/";
@@ -45,21 +47,25 @@ public final class LinkGenerator {
     LinkGenerator.path = this.pathValue;
   }
 
-  private LinkGenerator() {
-    //static only
-  }
-
-  public static String generateLaunchLink(String baseUrl, String projectName, String id) {
+  /**
+   * Generates a launch link for the given parameters
+   *
+   * @param baseUrl     the base URL
+   * @param projectName the project name
+   * @param id          the launch ID
+   * @return the generated launch link or null if baseUrl is empty
+   */
+  public String generateLaunchLink(String baseUrl, String projectName, String id) {
     return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
   }
 
-  public static URI generateInvitationUrl(HttpServletRequest httpServletRequest, String invitationId) {
+  public URI generateInvitationUrl(HttpServletRequest httpServletRequest, String invitationId) {
     var baseUrl = composeBaseUrl(httpServletRequest);
     return URI.create(baseUrl + "/ui/#registration?uuid=" + invitationId);
   }
 
   @SneakyThrows
-  public static String composeBaseUrl(HttpServletRequest request) {
+  public String composeBaseUrl(HttpServletRequest request) {
 
     String processedPath = "/".equals(path) ? null : path.replace("/api", "");
     /*
@@ -68,7 +74,8 @@ public final class LinkGenerator {
 
     HttpHeaders httpHeaders = new HttpHeaders();
     // Only include relevant forwarding headers
-    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for", "forwarded"};
+    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for",
+        "forwarded"};
     for (String headerName : forwardedHeaders) {
       String headerValue = request.getHeader(headerName);
       if (headerValue != null) {

@@ -60,6 +60,7 @@ public class EventBasedReporting {
   private final LogProducer createLogHandler;
 
   private final ProjectExtractor projectExtractor;
+  private final LinkGenerator linkGenerator;
 
   @EventListener
   public void handleStartLaunch(StartLaunchRqEvent startLaunchRqEvent) {
@@ -76,7 +77,7 @@ public class EventBasedReporting {
         finishLaunchRqEvent.getProjectName());
     finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
         finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
-        extractCurrentHttpRequest().map(LinkGenerator::composeBaseUrl).orElse(""));
+        extractCurrentHttpRequest().map(linkGenerator::composeBaseUrl).orElse(""));
   }
 
   @EventListener

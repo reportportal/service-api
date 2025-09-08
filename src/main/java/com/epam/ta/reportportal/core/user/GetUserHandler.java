@@ -21,7 +21,7 @@ import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.YesNoRS;

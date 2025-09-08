@@ -16,7 +16,7 @@
  */
 package com.epam.ta.reportportal.core.jasper;
 
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import java.io.OutputStream;
 import java.util.Map;
 import net.sf.jasperreports.engine.JRDataSource;
@@ -49,11 +49,10 @@ public interface GetJasperReportHandler<T> {
   /**
    * Convert rendered report to output stream.
    *
-   * @param format       Report format
-   * @param outputStream Stream report should be written to
-   * @param jasperPrint  Report Data
+   * @param format      Report format
+   * @param jasperPrint Report Data
    */
-  void writeReport(ReportFormat format, OutputStream outputStream, JasperPrint jasperPrint);
+  byte[] exportReportBytes(ReportFormat format, JasperPrint jasperPrint);
 
   /**
    * Convert entity parameters for {@link JasperPrint} creation

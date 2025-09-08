@@ -33,8 +33,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
-import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.launch.export.JasperDataProvider;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -42,7 +42,6 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
@@ -257,7 +256,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, ReportFormat.PDF, null, user, membershipDetails)
+        () -> handler.exportLaunch(launchId, "pdf", false, null, user, membershipDetails)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -276,7 +275,7 @@ class GetLaunchHandlerImplTest {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, ReportFormat.PDF, null, user, membershipDetails)
+        () -> handler.exportLaunch(launchId, "pdf", false, null, user, membershipDetails)
     );
     assertEquals("User '1' not found.", exception.getMessage());
   }

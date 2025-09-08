@@ -43,7 +43,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.group.GroupProject;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -55,14 +55,13 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,7 +144,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   @Override
   public com.epam.ta.reportportal.model.Page<UserResource> getUsers(Filter filter, Pageable pageable,
-                                                                    MembershipDetails membershipDetails) {
+      MembershipDetails membershipDetails) {
     // Active users only
     filter.withCondition(new FilterCondition(Condition.EQUALS, false, "false", CRITERIA_EXPIRED));
     filter.withCondition(new FilterCondition(Condition.EQUALS,
@@ -220,13 +219,16 @@ public class GetUserHandlerImpl implements GetUserHandler {
     List<? extends Map<String, ?>> data = StreamSupport.stream(users.spliterator(), false)
         .map(jasperReportHandler::convertParams)
         .collect(Collectors.toList());
-
-    JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
-
+    var jrDataSource = new JRBeanCollectionDataSource(data);
     //don't provide any params to not overwrite params from the Jasper template
-    JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
-
-    jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
+    var jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
+    var bytes = jasperReportHandler.exportReportBytes(reportFormat, jasperPrint);
+    try {
+      outputStream.write(bytes);
+    } catch (IOException e) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response."
+      );
+    }
   }
 
   @Override

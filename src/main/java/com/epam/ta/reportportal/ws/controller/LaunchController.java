@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -29,6 +28,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.model.BulkRQ;
@@ -58,7 +58,6 @@ import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
-import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -75,6 +74,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,6 +115,7 @@ public class LaunchController {
   private final MergeLaunchHandler mergeLaunchesHandler;
   private final GetJasperReportHandler<Launch> getJasperHandler;
   private final LaunchConverter launchConverter;
+  private final LinkGenerator linkGenerator;
 
   @Autowired
   public LaunchController(ProjectExtractor projectExtractor, StartLaunchHandler startLaunchHandler,
@@ -122,7 +123,7 @@ public class LaunchController {
       DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
       UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler,
       @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler,
-      LaunchConverter launchConverter) {
+      LaunchConverter launchConverter, LinkGenerator linkGenerator) {
     this.projectExtractor = projectExtractor;
     this.startLaunchHandler = startLaunchHandler;
     this.finishLaunchHandler = finishLaunchHandler;
@@ -133,6 +134,7 @@ public class LaunchController {
     this.mergeLaunchesHandler = mergeLaunchesHandler;
     this.getJasperHandler = getJasperHandler;
     this.launchConverter = launchConverter;
+    this.linkGenerator = linkGenerator;
   }
 
   /* Report client API */
@@ -158,7 +160,7 @@ public class LaunchController {
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
     return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
-        composeBaseUrl(request)
+        linkGenerator.composeBaseUrl(request)
     );
   }
 
@@ -175,7 +177,7 @@ public class LaunchController {
       HttpServletRequest request) {
     return stopLaunchHandler.stopLaunch(launchId, finishExecutionRQ,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
-        composeBaseUrl(request));
+        linkGenerator.composeBaseUrl(request));
   }
 
   @Transactional
@@ -189,7 +191,7 @@ public class LaunchController {
       HttpServletRequest request) {
     return stopLaunchHandler.stopLaunch(rq,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
-        composeBaseUrl(request));
+        linkGenerator.composeBaseUrl(request));
   }
 
   @Transactional
@@ -478,9 +480,12 @@ public class LaunchController {
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Export specified launch",
       description = "Only following formats are supported: pdf (by default), xls, html.")
-  public void getLaunchReport(@PathVariable String projectKey, @PathVariable Long launchId,
+  public void getLaunchReport(
+      @PathVariable String projectKey,
+      @PathVariable Long launchId,
       @Parameter(schema = @Schema(allowableValues = {"pdf", "xls", "html"}))
       @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
+      @RequestParam(value = "includeAttachments", required = false, defaultValue = "false") boolean includeAttachments,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
     ReportFormat format = getJasperHandler.getReportFormat(view);
@@ -493,13 +498,11 @@ public class LaunchController {
     );
 
     try (OutputStream outputStream = response.getOutputStream()) {
-      getLaunchMessageHandler.exportLaunch(launchId, format, outputStream, user,
-          projectExtractor.extractMembershipDetails(user,
-              normalizeId(projectKey)));
+      getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user,
+          projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)));
+
     } catch (IOException e) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Unable to write data to the response."
-      );
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
     }
   }
 

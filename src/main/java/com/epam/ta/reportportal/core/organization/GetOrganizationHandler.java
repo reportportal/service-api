@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.organization;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.model.organization.OrganizationResource;
 import java.io.OutputStream;
 import org.springframework.data.domain.Pageable;
@@ -55,5 +55,5 @@ public interface GetOrganizationHandler {
    * @param pageable     Pagination information for the results
    * @param outputStream OutputStream to write the exported data
    */
-  void exportOrganizations(Queryable filter, Pageable pageable, ReportFormat reportFormat, OutputStream outputStream);
+  byte[] exportOrganizations(Queryable filter, Pageable pageable, ReportFormat reportFormat, OutputStream outputStream);
 }

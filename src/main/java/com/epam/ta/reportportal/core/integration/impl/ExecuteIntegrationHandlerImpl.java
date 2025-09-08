@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -35,12 +36,14 @@ import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Map;
 import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 @Service
 @SuppressWarnings("unchecked")
 public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler {
@@ -115,20 +118,22 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
     executionParams.put(PROJECT_ID, membershipDetails.getProjectId());
 
-    return ofNullable(pluginInstance.getIntegrationCommand(command)).map(it -> {
+    var foundCommand = pluginInstance.getIntegrationCommand(command);
+    if (foundCommand != null) {
       if (isAsyncMode(executionParams)) {
-        supplyAsync(() -> it.executeCommand(integration, executionParams));
+        supplyAsync(() -> foundCommand.executeCommand(integration, executionParams));
         return new OperationCompletionRS(
             formattedSupplier("Command '{}' accepted for processing in plugin",
                 command,
                 integration.getType().getName()
             ).get());
       }
-      return it.executeCommand(integration, executionParams);
-    }).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-        formattedSupplier("Command '{}' is not found in plugin {}.", command,
-            integration.getType().getName()).get()
-    ));
+      return foundCommand.executeCommand(integration, executionParams);
+    } else {
+      throw new ReportPortalException(BAD_REQUEST_ERROR,
+          formattedSupplier("Command '{}' is not found in plugin {}.", command,
+              integration.getType().getName()).get());
+    }
   }
 
   @Async

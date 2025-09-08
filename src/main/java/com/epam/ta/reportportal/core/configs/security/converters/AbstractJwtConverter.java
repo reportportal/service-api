@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs.security.converters;
 
-import com.epam.ta.reportportal.core.configs.security.JwtIssuerConfig;
+import com.epam.ta.reportportal.core.configs.security.JwtIssuer;
 import java.util.Collection;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -38,7 +38,7 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
 
   protected final UserDetailsService userDetailsService;
 
-  protected JwtIssuerConfig config;
+  protected JwtIssuer config;
 
   protected Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter;
 
@@ -49,7 +49,7 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
    * @param userDetailsService The service to load user details.
    */
   protected AbstractJwtConverter(UserDetailsService userDetailsService) {
-    this(userDetailsService, new JwtIssuerConfig());
+    this(userDetailsService, new JwtIssuer());
   }
 
   /**
@@ -60,7 +60,7 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
    */
   protected AbstractJwtConverter(
       UserDetailsService userDetailsService,
-      JwtIssuerConfig config
+      JwtIssuer config
   ) {
     this.userDetailsService = userDetailsService;
     this.config = config;

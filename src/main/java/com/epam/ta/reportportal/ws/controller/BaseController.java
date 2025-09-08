@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.entity.jasper.ReportFormat.TEXT_CSV;
+import static com.epam.ta.reportportal.core.jasper.ReportFormat.TEXT_CSV;
 
 /**
  * This class provides basic functionalities that all controllers in the application can use.

@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service
+@Service("legacyTestItemPreparerService")
 public class TestItemPreparerServiceImpl implements TestItemPreparerService {
 
   private final TestItemRepository testItemRepository;

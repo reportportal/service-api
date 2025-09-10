@@ -34,7 +34,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenAttributesNull_ShouldDoNothing() {
+  void validateWhenAttributesNullShouldDoNothing() {
     // Given
     Map<String, String> attrs = null;
 
@@ -44,7 +44,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenAttributesEmpty_ShouldDoNothing() {
+  void validateWhenAttributesEmptyShouldDoNothing() {
     // Given
     Map<String, String> attrs = Map.of();
 
@@ -54,7 +54,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenProjectLogsExceedsOrgLimit_ShouldThrowBadRequest() {
+  void validateWhenProjectLogsExceedsOrgLimitShouldThrowBadRequest() {
     // Given
     List<OrganizationSetting> settings = settings(0, 10, 0);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
@@ -65,7 +65,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenProjectLaunchesEqualsOrgLimit_ShouldPass() {
+  void validateWhenProjectLaunchesEqualsOrgLimitShouldPass() {
     // Given
     List<OrganizationSetting> settings = settings(5, 0, 0);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
@@ -76,7 +76,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenProjectAttachmentsLessThanOrgLimit_ShouldPass() {
+  void validateWhenProjectAttachmentsLessThanOrgLimitShouldPass() {
     // Given
     List<OrganizationSetting> settings = settings(0, 0, 7);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
@@ -87,7 +87,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenOrgLogsUnlimited_ShouldPassForAnyProjectValue() {
+  void validateWhenOrgLogsUnlimitedShouldPassForAnyProjectValue() {
     // Given
     List<OrganizationSetting> settings = settings(0, 0, 0);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
@@ -98,7 +98,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenProjectLaunchesUnlimitedButOrgFinite_ShouldThrowBadRequest() {
+  void validateWhenProjectLaunchesUnlimitedButOrgFiniteShouldThrowBadRequest() {
     // Given
     List<OrganizationSetting> settings = settings(1, 0, 0);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
@@ -109,7 +109,7 @@ class OrganizationRetentionLimitValidatorTest {
   }
 
   @Test
-  void validate_WhenProjectLaunchesUnlimitedAndOrgUnlimited_ShouldPass() {
+  void validateWhenProjectLaunchesUnlimitedAndOrgUnlimitedShouldPass() {
     // Given
     List<OrganizationSetting> settings = settings(0, 0, 0);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);

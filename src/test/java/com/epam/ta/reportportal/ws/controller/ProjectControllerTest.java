@@ -170,7 +170,7 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void updateProject_WhenRetentionExceedsOrgLimits_ShouldReturnBadRequest() throws Exception {
+  void updateProjectWhenRetentionExceedsOrgLimitsShouldReturnBadRequest() throws Exception {
 
     ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
     HashMap<String, String> projectAttributes = new HashMap<>();

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Validates that requested project retention settings do not exceed the organization-level limits.
@@ -36,7 +37,7 @@ public class OrganizationRetentionLimitValidator {
   }
 
   public void validate(Long organizationId, Map<String, String> newAttributes) {
-    if (newAttributes == null || newAttributes.isEmpty()) {
+    if (CollectionUtils.isEmpty(newAttributes)) {
       return;
     }
 

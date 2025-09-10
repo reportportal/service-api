@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -73,7 +74,7 @@ import org.springframework.test.web.servlet.ResultActions;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Sql("/db/project/project-fill.sql")
+@Sql({"/db/project/project-fill.sql", "/db/organization/organization-settings-fill.sql"})
 @ExtendWith(MockitoExtension.class)
 class ProjectControllerTest extends BaseMvcTest {
 
@@ -153,7 +154,8 @@ class ProjectControllerTest extends BaseMvcTest {
     mockMvc.perform(put("/v1/project/test_project")
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+        .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
 
     Project project = projectRepository.findByKey("test_project")
         .orElseThrow(() -> new AssertionError("Test project 'test_project' not found"));
@@ -165,6 +167,34 @@ class ProjectControllerTest extends BaseMvcTest {
       assertTrue(pa.isPresent());
       assertEquals(value, pa.get().getValue());
     });
+  }
+
+  @Test
+  void updateProject_WhenRetentionExceedsOrgLimits_ShouldReturnBadRequest() throws Exception {
+
+    ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
+    HashMap<String, String> projectAttributes = new HashMap<>();
+    projectAttributes.put("notifications.enabled", "false");
+    // org limits are 30 days; set 31 days in seconds to exceed
+    projectAttributes.put("job.keepLaunches", String.valueOf(31L * 24 * 3600));
+    projectAttributes.put("job.keepLogs", String.valueOf(31L * 24 * 3600));
+    projectAttributes.put("job.keepScreenshots", String.valueOf(31L * 24 * 3600));
+    // valid interrupt time
+    projectAttributes.put("job.interruptJobTime", String.valueOf(7L * 24 * 3600));
+    configuration.setProjectAttributes(projectAttributes);
+    final UpdateProjectRQ rq = new UpdateProjectRQ();
+    rq.setConfiguration(configuration);
+
+    HashMap<String, String> userRoles = new HashMap<>();
+    userRoles.put("test_user", "EDITOR");
+    rq.setUserRoles(userRoles);
+    mockMvc.perform(put("/v1/project/test_project")
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message", containsString("New value for")))
+        .andExpect(jsonPath("$.message", containsString("should be less or equal to organization retention")));
   }
 
   @Test

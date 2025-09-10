@@ -66,6 +66,7 @@ import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.UnassignUserEvent;
 import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
+import com.epam.ta.reportportal.core.project.validator.attribute.OrganizationRetentionLimitValidator;
 import com.epam.ta.reportportal.core.project.validator.attribute.ProjectAttributeValidator;
 import com.epam.ta.reportportal.dao.AttributeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -136,6 +137,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private final ProjectAttributeValidator projectAttributeValidator;
 
+  private final OrganizationRetentionLimitValidator organizationRetentionLimitValidator;
+
   private final ProjectRepository projectRepository;
 
   private final UserRepository userRepository;
@@ -174,7 +177,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory,
       AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
       AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
-      ProjectConverter projectConverter, AttributeRepository attributeRepository) {
+      ProjectConverter projectConverter, AttributeRepository attributeRepository,
+      OrganizationRetentionLimitValidator organizationRetentionLimitValidator) {
     this.projectExtractor = projectExtractor;
     this.projectAttributeValidator = projectAttributeValidator;
     this.projectRepository = projectRepository;
@@ -192,6 +196,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     this.logIndexer = logIndexer;
     this.projectConverter = projectConverter;
     this.attributeRepository = attributeRepository;
+    this.organizationRetentionLimitValidator = organizationRetentionLimitValidator;
   }
 
   @Override
@@ -530,6 +535,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         .ifPresent(attributes -> {
           projectAttributeValidator.verifyProjectAttributes(
               ProjectUtils.getConfigParameters(project.getProjectAttributes()), attributes);
+          organizationRetentionLimitValidator.validate(project.getOrganizationId(), attributes);
           attributes.forEach((attribute, value) -> {
             Optional<ProjectAttribute> existingAttribute = project.getProjectAttributes().stream()
                 .filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))

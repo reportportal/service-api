@@ -42,7 +42,7 @@ public class MessageBusImpl implements MessageBus {
 
   /**
    * Publishes activity to the queue with the following routing key
-   * <pre>{@code activity.<project-id>.<entity-type>.<action>}</pre>
+   * <pre>{@code activity.<entity-type>.<action>}</pre>
    *
    * @param event Activity event to be converted to Activity object
    */

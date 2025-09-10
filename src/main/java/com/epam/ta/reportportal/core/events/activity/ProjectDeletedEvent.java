@@ -25,12 +25,14 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import java.util.Objects;
+import lombok.Getter;
 
 /**
  * Event publish when project is deleted.
  *
  * @author Ryhor_Kukharenka
  */
+@Getter
 public class ProjectDeletedEvent extends AbstractEvent implements ActivityEvent {
 
   private final Long projectId;

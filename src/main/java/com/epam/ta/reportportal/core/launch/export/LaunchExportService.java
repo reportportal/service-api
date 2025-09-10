@@ -57,7 +57,8 @@ public class LaunchExportService {
 
     response.setContentType(format.getContentType());
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=\"RP_LAUNCH_%s_Report.%s\"", format.name(), format.getValue()));
+        String.format("attachment; filename=\"%s_%s.%s\"", launch.getName(), launch.getNumber(),
+            format.getValue()));
 
     try (OutputStream out = response.getOutputStream()) {
       out.write(report);
@@ -79,7 +80,7 @@ public class LaunchExportService {
     ReportFormat format = reportService.resolveFormat(reportFormat);
     response.setContentType("application/zip");
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=\"RP_LAUNCH_%s_Report.zip\"", format.name()));
+        String.format("attachment; filename=\"%s_%s.zip\"", launch.getName(), launch.getNumber()));
 
     try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
       Map<Long, TestItemPojo> testItems = dataProvider.getTestItemsOfLaunch(launch, true);
@@ -98,7 +99,7 @@ public class LaunchExportService {
       for (Log log : launch.getLogs()) {
         if (log.getAttachment() != null) {
           String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
-              log.getAttachment().getFileName(), 
+              log.getAttachment().getFileName(),
               log.getAttachment().getContentType()
           );
           if (uniquePaths.add(fileNameWithExtension)) {
@@ -107,7 +108,8 @@ public class LaunchExportService {
         }
       }
 
-      ZipEntry reportEntry = new ZipEntry(String.format("RP_LAUNCH_%S_Report.%s", format.name(), format.getValue()));
+      ZipEntry reportEntry = new ZipEntry(
+          String.format("%s_%s.%s", launch.getName(), launch.getNumber(), format.getValue()));
       zipOut.putNextEntry(reportEntry);
       byte[] reportBytes = reportService.generateReport(launch, testItems.values(), username, format);
       zipOut.write(reportBytes);

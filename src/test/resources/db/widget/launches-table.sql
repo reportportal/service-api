@@ -1,7 +1,7 @@
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
-values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
+                   last_modified, mode, status, has_retries, organization_id)
+values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false, 1);
 
 insert into item_attribute(key, value, launch_id)
 VALUES ('key', 'value', 2);

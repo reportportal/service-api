@@ -89,8 +89,12 @@ public class DemoDataLaunchService {
         "3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "."
             + now.getSecond()
     ));
-    Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes)
-        .addProject(membershipDetails.getProjectId()).get();
+    Launch launch = new LaunchBuilder()
+        .addStartRQ(rq)
+        .addAttributes(attributes)
+        .addProject(membershipDetails.getProjectId())
+        .addOrganizationId(membershipDetails.getOrgId())
+        .get();
     launchAttributeHandlerService.handleLaunchStart(launch);
     launch.setUserId(user.getId());
     launchRepository.save(launch);

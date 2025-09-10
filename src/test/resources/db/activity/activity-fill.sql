@@ -1,6 +1,6 @@
 insert into launch (id, uuid, project_id, user_id, name, start_time, number, last_modified, mode,
-                    status)
-values (1, 'uuid', 2, 2, 'name', now(), 1, now(), 'DEFAULT', 'IN_PROGRESS');
+                    status, organization_id)
+values (1, 'uuid', 2, 2, 'name', now(), 1, now(), 'DEFAULT', 'IN_PROGRESS', 1);
 
 insert into test_item (test_case_hash, item_id, uuid, type, start_time, last_modified, launch_id)
 values (1, 1, 'uuid', 'STEP', now(), now(), 1);

@@ -90,6 +90,7 @@ project.ext {
             (migrationsUrl + '/migrations/209_add_activity_org_id.up.sql')             : 'V209__add_activity_org_id.sql',
             (migrationsUrl + '/migrations/210_organization_settings_table.up.sql')     : 'V210__organization_settings_table.sql',
             (migrationsUrl + '/migrations/212_update_default_users.up.sql')            : 'V212__update_default_users.sql',
+            (migrationsUrl + '/migrations/216_org_launch_foreign_key.up.sql')          : 'V216__org_launch_foreign_key.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

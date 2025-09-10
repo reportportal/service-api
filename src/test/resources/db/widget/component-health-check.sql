@@ -1,12 +1,12 @@
 INSERT INTO public.launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status,
-                           has_retries, rerun, approximate_duration)
+                           has_retries, rerun, approximate_duration, organization_id)
 VALUES (6, '6ccb1d60-5f6a-4d05-8ff2-87844aca75e6', 1, 1, 'Demo Api Tests', '### **Demonstration launch.**
 A typical *Launch structure* comprises the following elements: Suite > Test > Step > Log.
 Launch contains *randomly* generated `suites`, `tests`, `steps` with:
 * random issues and statuses,
 * logs,
 * attachments with different formats.', '2019-08-29 08:37:34.468000', '2019-08-29 08:37:41.057000', 1, '2019-08-29 11:37:41.113000',
-        'DEFAULT', 'FAILED', false, false, 0);
+        'DEFAULT', 'FAILED', false, false, 0, 1);
 
 INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)

@@ -80,6 +80,11 @@ public class LaunchBuilder implements Supplier<Launch> {
     return this;
   }
 
+  public LaunchBuilder addOrganizationId(Long orgId) {
+    launch.setOrganizationId(orgId);
+    return this;
+  }
+
   public LaunchBuilder addProject(Long projectId) {
     launch.setProjectId(projectId);
     return this;

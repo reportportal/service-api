@@ -74,9 +74,12 @@ public class StartLaunchHandlerImpl implements StartLaunchHandler {
     final Launch savedLaunch = Optional.of(request.isRerun()).filter(Boolean::booleanValue)
         .map(rerun -> rerunHandler.handleLaunch(request, membershipDetails.getProjectId(), user))
         .orElseGet(() -> {
-          Launch launch =
-              new LaunchBuilder().addStartRQ(request).addAttributes(request.getAttributes())
-                  .addProject(membershipDetails.getProjectId()).addUserId(user.getUserId()).get();
+          Launch launch = new LaunchBuilder()
+              .addStartRQ(request)
+              .addAttributes(request.getAttributes())
+              .addOrganizationId(membershipDetails.getOrgId())
+              .addProject(membershipDetails.getProjectId())
+              .addUserId(user.getUserId()).get();
           launchAttributeHandlerService.handleLaunchStart(launch);
           launchRepository.save(launch);
           launchRepository.refresh(launch);

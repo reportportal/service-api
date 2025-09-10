@@ -1,8 +1,8 @@
 INSERT INTO launch(id, uuid, project_id, user_id, name, description, start_time, end_time,
                    last_modified, mode, status, has_retries,
-                   rerun, approximate_duration)
+                   rerun, approximate_duration, organization_id)
 VALUES (1, 'uuid', 1, 1, 'launch', 'launch', now(), now(), now(), 'DEFAULT', 'FAILED', FALSE, FALSE,
-        0);
+        0, 1);
 
 INSERT INTO test_item(test_case_hash, item_id, uuid, name, type, start_time, description,
                       last_modified, path, unique_id, has_children,

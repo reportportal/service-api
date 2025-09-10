@@ -1,7 +1,7 @@
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
-values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false);
+                   last_modified, mode, status, has_retries, organization_id)
+values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false, 1);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -61,8 +61,8 @@ values (5, 1, 'to investigate', false, true);
 
 -- Second launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
-values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
+                   last_modified, mode, status, has_retries, organization_id)
+values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false, 1);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -122,9 +122,9 @@ values (10, 1, 'to investigate', false, true);
 
 -- Third launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
+                   last_modified, mode, status, has_retries, organization_id)
 values (3, 'uuid3', 1, 1, 'empty launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED',
-        false);
+        false, 1);
 
 -- Filter and widget
 INSERT INTO public.owned_entity (id, owner, project_id)

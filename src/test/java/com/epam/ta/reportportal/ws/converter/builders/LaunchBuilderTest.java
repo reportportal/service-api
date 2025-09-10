@@ -50,6 +50,7 @@ class LaunchBuilderTest {
 
     final Launch launch = new LaunchBuilder().addDescription(description)
         .addEndTime(endDate)
+        .addOrganizationId(1L)
         .addProject(projectId)
         .addAttribute(attributeResource)
         .addUserId(userId)

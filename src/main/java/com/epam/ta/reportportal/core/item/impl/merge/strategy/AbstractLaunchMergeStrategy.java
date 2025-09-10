@@ -79,8 +79,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
   protected Launch createNewLaunch(MembershipDetails membershipDetails,
       ReportPortalUser user, MergeLaunchesRQ rq, List<Launch> launchesList) {
-    Launch newLaunch =
-        createResultedLaunch(membershipDetails.getProjectId(), user.getUserId(), rq, launchesList);
+    Launch newLaunch = createResultedLaunch(membershipDetails, user.getUserId(), rq, launchesList);
     boolean isNameChanged = !newLaunch.getName().equals(launchesList.get(0).getName());
     updateChildrenOfLaunches(newLaunch, rq.getLaunches(), rq.isExtendSuitesDescription(),
         isNameChanged
@@ -98,7 +97,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
    * @param launches        {@link List} of the {@link Launch}
    * @return launch
    */
-  private Launch createResultedLaunch(Long projectId, Long userId, MergeLaunchesRQ mergeLaunchesRQ,
+  private Launch createResultedLaunch(MembershipDetails membershipDetails, Long userId, MergeLaunchesRQ mergeLaunchesRQ,
       List<Launch> launches) {
     Instant startTime = ofNullable(mergeLaunchesRQ.getStartTime())
         .orElse(launches.stream()
@@ -113,7 +112,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
                 () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
             .getEndTime());
     expect(endTime, time -> !time.isBefore(startTime)).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-        endTime, startTime, projectId
+        endTime, startTime, membershipDetails.getProjectId()
     );
 
     StartLaunchRQ startRQ = new StartLaunchRQ();
@@ -123,9 +122,14 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
         "Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
     startRQ.setStartTime(startTime);
-    Launch launch =
-        new LaunchBuilder().addStartRQ(startRQ).addProject(projectId).addStatus(IN_PROGRESS.name())
-            .addUserId(userId).addEndTime(endTime).get();
+    Launch launch = new LaunchBuilder()
+        .addStartRQ(startRQ)
+        .addOrganizationId(membershipDetails.getOrgId())
+        .addProject(membershipDetails.getProjectId())
+        .addStatus(IN_PROGRESS.name())
+        .addUserId(userId)
+        .addEndTime(endTime)
+        .get();
     launch.setHasRetries(launches.stream().anyMatch(Launch::isHasRetries));
 
     launchRepository.save(launch);

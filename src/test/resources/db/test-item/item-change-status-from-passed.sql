@@ -1,7 +1,7 @@
 -- Passed launch with 4 step items
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
-values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'PASSED', false);
+                   last_modified, mode, status, has_retries, organization_id)
+values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'PASSED', false, 1);
 
 insert into item_attribute(id, key, value, item_id, launch_id, system)
 values (1, 'skippedIssue', 'true', null, 1, true);
@@ -83,9 +83,9 @@ where result_id = 4;
 
 
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
+                   last_modified, mode, status, has_retries, organization_id)
 values (2, 'l2_uuid', 1, 1, 'test launch without skipped issue', 'desc', now(), null, 1, now(),
-        'DEFAULT', 'PASSED', false);
+        'DEFAULT', 'PASSED', false, 1);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -111,9 +111,9 @@ where result_id = 8;
 
 
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
+                   last_modified, mode, status, has_retries, organization_id)
 values (3, 'l3_uuid', 1, 1, 'test launch to finish', 'desc', now(), null, 1, now(), 'DEFAULT',
-        'PASSED', false);
+        'PASSED', false, 1);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)

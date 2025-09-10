@@ -1,14 +1,14 @@
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
+                   last_modified, mode, status, has_retries, organization_id)
 values (1, 'uuid', 1, 1, 'test launch', 'desc', now() - interval '9 minute', now(), 1, now(),
-        'DEFAULT', 'FAILED', false);
+        'DEFAULT', 'FAILED', false, 1);
 
 -- Second launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
+                   last_modified, mode, status, has_retries, organization_id)
 values (2, 'uuid2', 1, 1, 'test launch', 'desc', now() - interval '11 minute', now(), 2, now(),
-        'DEFAULT', 'FAILED', false);
+        'DEFAULT', 'FAILED', false, 1);
 
 -- Filters and widgets
 INSERT INTO public.owned_entity (id, owner, project_id)

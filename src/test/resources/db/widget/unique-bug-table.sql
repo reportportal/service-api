@@ -1,7 +1,7 @@
 -- First launch
 INSERT INTO launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
-VALUES (1, 'uuid', 1, 1, 'test launch', 'desc', now(), NULL, 1, now(), 'DEFAULT', 'FAILED', FALSE);
+                   last_modified, mode, status, has_retries, organization_id)
+VALUES (1, 'uuid', 1, 1, 'test launch', 'desc', now(), NULL, 1, now(), 'DEFAULT', 'FAILED', FALSE, 1);
 
 INSERT INTO test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -69,8 +69,8 @@ VALUES (5, 1, 'to investigate', FALSE, TRUE);
 
 -- Second launch
 INSERT INTO launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
-                   last_modified, mode, status, has_retries)
-VALUES (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), NULL, 2, now(), 'DEFAULT', 'FAILED', FALSE);
+                   last_modified, mode, status, has_retries, organization_id)
+VALUES (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), NULL, 2, now(), 'DEFAULT', 'FAILED', FALSE, 1);
 
 INSERT INTO test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)

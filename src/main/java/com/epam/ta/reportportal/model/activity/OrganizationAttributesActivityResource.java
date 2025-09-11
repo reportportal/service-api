@@ -17,13 +17,13 @@
 package com.epam.ta.reportportal.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import java.util.Map;
 import java.util.Collections;
+import java.util.Map;
+import lombok.Data;
 
 /**
- * Represents an activity resource for organization attributes.
- * This class contains details about an organization, including its ID, name, slug, and configuration.
+ * Represents an activity resource for organization attributes. This class contains details about an organization,
+ * including its ID, name, slug, and configuration.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  */

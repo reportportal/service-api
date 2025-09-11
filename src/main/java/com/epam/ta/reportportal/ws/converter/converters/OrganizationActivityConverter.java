@@ -22,12 +22,26 @@ import com.epam.ta.reportportal.model.activity.OrganizationAttributesActivityRes
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utility for converting organization information and retention policy settings into
+ * {@link com.epam.ta.reportportal.model.activity.OrganizationAttributesActivityResource} used in activity events.
+ */
 public final class OrganizationActivityConverter {
 
   private OrganizationActivityConverter() {
     // static only
   }
 
+  /**
+   * Builds an {@link OrganizationAttributesActivityResource} from the provided organization identifiers and retention
+   * policy.
+   *
+   * @param orgId  the organization id
+   * @param name   the organization name
+   * @param slug   the organization slug
+   * @param policy the retention policy to apply
+   * @return populated activity resource describing the organization attributes
+   */
   public static OrganizationAttributesActivityResource toAttributes(Long orgId, String name, String slug,
       OrganizationSettingsRetentionPolicy policy) {
     OrganizationAttributesActivityResource resource = new OrganizationAttributesActivityResource();

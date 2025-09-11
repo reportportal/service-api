@@ -15,16 +15,21 @@
  */
 package com.epam.ta.reportportal.core.events.activity.util;
 
-/**
- * @author Ihar Kahadouski
- */
-
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.google.common.base.Strings;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Utilities for building {@link com.epam.ta.reportportal.entity.activity.HistoryField} instances describing changes of
+ * entity attributes for activity logging.
+ *
+ * <p>Provides helpers for string, boolean and parameter comparisons, as well as configuration
+ * extraction and comparison utilities used across activity event creation.</p>
+ *
+ * @author Ihar Kahadouski
+ */
 public class ActivityDetailsUtil {
 
   private ActivityDetailsUtil() {
@@ -56,6 +61,13 @@ public class ActivityDetailsUtil {
   public static final String PATTERN_NAME = "patternName";
   public static final String RP_SUBJECT_NAME = "ReportPortal";
 
+  /**
+   * Builds a history field for a changed name value.
+   *
+   * @param oldName previous name
+   * @param newName current name
+   * @return optional history field present if name changed and newName is not empty
+   */
   public static Optional<HistoryField> processName(String oldName, String newName) {
     if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {
       return Optional.of(HistoryField.of(NAME, oldName, newName));
@@ -63,6 +75,13 @@ public class ActivityDetailsUtil {
     return Optional.empty();
   }
 
+  /**
+   * Builds a history field describing description change. Nulls are treated as empty.
+   *
+   * @param oldDescription previous description
+   * @param newDescription current description
+   * @return optional history field present if values differ
+   */
   public static Optional<HistoryField> processDescription(String oldDescription, String newDescription) {
     oldDescription = Strings.nullToEmpty(oldDescription);
     newDescription = Strings.nullToEmpty(newDescription);
@@ -72,6 +91,15 @@ public class ActivityDetailsUtil {
     return Optional.empty();
   }
 
+  /**
+   * Generic string field comparator producing a history field if values differ. Nulls are transformed to empty strings
+   * before comparison.
+   *
+   * @param fieldName field key to use in history field
+   * @param before    previous value
+   * @param after     current value
+   * @return optional history field present if values differ
+   */
   public static Optional<HistoryField> processField(String fieldName, String before, String after) {
     before = Strings.nullToEmpty(before);
     after = Strings.nullToEmpty(after);
@@ -81,6 +109,14 @@ public class ActivityDetailsUtil {
     return Optional.empty();
   }
 
+  /**
+   * Boolean comparator producing a history field when the value changes.
+   *
+   * @param type     history field key
+   * @param previous previous boolean value
+   * @param current  current boolean value
+   * @return optional history field present if values differ
+   */
   public static Optional<HistoryField> processBoolean(String type, boolean previous, boolean current) {
     if (previous != current) {
       return Optional.of(HistoryField.of(type, String.valueOf(previous), String.valueOf(current)));
@@ -88,6 +124,15 @@ public class ActivityDetailsUtil {
     return Optional.empty();
   }
 
+  /**
+   * Compares a concrete parameter value in two config maps and produces a history field if the parameter exists in the
+   * new config and its value changed.
+   *
+   * @param oldConfig     previous configuration map
+   * @param newConfig     new configuration map
+   * @param parameterName parameter key to compare
+   * @return optional history field present if parameter exists in new config and differs
+   */
   public static Optional<HistoryField> processParameter(Map<String, String> oldConfig, Map<String, String> newConfig,
       String parameterName) {
     String before = oldConfig.get(parameterName);
@@ -98,16 +143,39 @@ public class ActivityDetailsUtil {
     return Optional.empty();
   }
 
+  /**
+   * Checks equality of two configuration maps limited to entries with the given prefix.
+   *
+   * @param before previous configuration
+   * @param after  current configuration
+   * @param prefix key prefix to filter by
+   * @return true if filtered maps are equal
+   */
   public static boolean configEquals(Map<String, String> before, Map<String, String> after, String prefix) {
     Map<String, String> beforeJobConfig = extractConfigByPrefix(before, prefix);
     Map<String, String> afterJobConfig = extractConfigByPrefix(after, prefix);
     return beforeJobConfig.equals(afterJobConfig);
   }
 
+  /**
+   * Opposite of {@link #configEquals(Map, Map, String)} for convenience.
+   *
+   * @param before previous configuration
+   * @param after  current configuration
+   * @param prefix key prefix to filter by
+   * @return true if filtered maps are not equal
+   */
   public static boolean configChanged(Map<String, String> before, Map<String, String> after, String prefix) {
     return !configEquals(before, after, prefix);
   }
 
+  /**
+   * Extracts entries of the provided configuration whose keys start with the given prefix.
+   *
+   * @param config source configuration map
+   * @param prefix key prefix to filter by
+   * @return map containing only entries with keys starting with the prefix
+   */
   public static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
     return config.entrySet()
         .stream()

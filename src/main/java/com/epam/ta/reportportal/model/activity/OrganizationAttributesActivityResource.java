@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import java.util.Map;
+import java.util.Collections;
 
 /**
  * Represents an activity resource for organization attributes.
@@ -36,4 +38,7 @@ public class OrganizationAttributesActivityResource {
 
   @JsonProperty(value = "organizationSlug", required = true)
   private String organizationSlug;
+
+  @JsonProperty(value = "retention")
+  private Map<String, String> retention = Collections.emptyMap();
 }

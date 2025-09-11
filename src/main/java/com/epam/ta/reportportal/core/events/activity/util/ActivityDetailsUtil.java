@@ -72,6 +72,15 @@ public class ActivityDetailsUtil {
 		return Optional.empty();
 	}
 
+	public static Optional<HistoryField> processField(String fieldName, String before, String after) {
+		before = Strings.nullToEmpty(before);
+		after = Strings.nullToEmpty(after);
+		if (!after.equals(before)) {
+			return Optional.of(HistoryField.of(fieldName, before, after));
+		}
+		return Optional.empty();
+	}
+
 	public static Optional<HistoryField> processBoolean(String type, boolean previous, boolean current) {
 		if (previous != current) {
 			return Optional.of(HistoryField.of(type, String.valueOf(previous), String.valueOf(current)));

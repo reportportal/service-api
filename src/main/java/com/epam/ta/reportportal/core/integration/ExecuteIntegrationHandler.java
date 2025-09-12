@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import java.util.Map;
 
@@ -63,4 +64,5 @@ public interface ExecuteIntegrationHandler {
       String command,
       Map<String, Object> executionParams);
 
+  Object executeCommand(String pluginName, String commandName, PluginCommandRQ pluginCommandRq);
 }

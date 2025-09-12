@@ -16,8 +16,12 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processField;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
+
 import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsEnum;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.EventAction;
@@ -43,12 +47,12 @@ public class OrganizationUpdatedEvent extends AroundEvent<OrganizationAttributes
   /**
    * Constructs an OrganizationUpdatedEvent.
    *
-   * @param userId          The ID of the user who performed the update.
-   * @param userLogin       The login of the user who performed the update.
-   * @param organizationId  The ID of the organization that was updated.
+   * @param userId           The ID of the user who performed the update.
+   * @param userLogin        The login of the user who performed the update.
+   * @param organizationId   The ID of the organization that was updated.
    * @param organizationName The name of the organization that was updated.
-   * @param before          The state of the organization before the update.
-   * @param after           The state of the organization after the update.
+   * @param before           The state of the organization before the update.
+   * @param after            The state of the organization after the update.
    */
   public OrganizationUpdatedEvent(
       Long userId,
@@ -77,8 +81,16 @@ public class OrganizationUpdatedEvent extends AroundEvent<OrganizationAttributes
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(Objects.isNull(getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)
-        .addHistoryField("organizationName", getBefore().getOrganizationName(), getAfter().getOrganizationName())
-        .addHistoryField("organizationSlug", getBefore().getOrganizationSlug(), getAfter().getOrganizationSlug())
+        .addHistoryField(
+            processField("organizationName", getBefore().getOrganizationName(), getAfter().getOrganizationName()))
+        .addHistoryField(
+            processField("organizationSlug", getBefore().getOrganizationSlug(), getAfter().getOrganizationSlug()))
+        .addHistoryField(processParameter(getBefore().getRetention(), getAfter().getRetention(),
+            OrganizationSettingsEnum.RETENTION_LAUNCHES.getName()))
+        .addHistoryField(processParameter(getBefore().getRetention(), getAfter().getRetention(),
+            OrganizationSettingsEnum.RETENTION_LOGS.getName()))
+        .addHistoryField(processParameter(getBefore().getRetention(), getAfter().getRetention(),
+            OrganizationSettingsEnum.RETENTION_ATTACHMENTS.getName()))
         .get();
   }
 }

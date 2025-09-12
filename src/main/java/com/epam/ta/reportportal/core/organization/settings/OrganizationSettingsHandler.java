@@ -16,25 +16,29 @@
 
 package com.epam.ta.reportportal.core.organization.settings;
 
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsEnum.RETENTION_ATTACHMENTS;
 import static com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsEnum.RETENTION_LAUNCHES;
 import static com.epam.ta.reportportal.core.organization.settings.OrganizationSettingsEnum.RETENTION_LOGS;
 
 import com.epam.reportportal.api.model.OrganizationSettings;
+import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicy;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyAttachments;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLaunches;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLogs;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.events.activity.OrganizationUpdatedEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationSettingsRepository;
 import com.epam.ta.reportportal.entity.organization.OrganizationSetting;
+import com.epam.ta.reportportal.util.SecurityContextUtils;
+import com.epam.ta.reportportal.ws.converter.converters.OrganizationActivityConverter;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,6 +54,7 @@ public class OrganizationSettingsHandler {
   private final OrganizationSettingsRepository settingsRepository;
   private final OrganizationRetentionPolicyHandler organizationRetentionPolicyHandler;
   private final ProjectRepository projectRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   /**
    * Retrieves the full set of settings for a given organization ID.
@@ -66,7 +71,7 @@ public class OrganizationSettingsHandler {
   }
 
   public void updateOrgSettings(Long orgId, OrganizationSettings updateSettings) {
-    organizationRepository.findById(orgId)
+    var organization = organizationRepository.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var currentSettings = settingsRepository.findByOrganizationId(orgId);
@@ -98,7 +103,25 @@ public class OrganizationSettingsHandler {
       updateRetentionSettingsValue(currentSettings, RETENTION_LOGS, updatedLogsPeriod, orgId);
       updateRetentionSettingsValue(currentSettings, RETENTION_ATTACHMENTS, updatedAttachmentsPeriod, orgId);
 
+      OrganizationSettingsRetentionPolicy currentPolicy = buildRetentionPolicy(currentLaunchesPeriod,
+          currentLogsPeriod, currentAttachmentsPeriod);
+      OrganizationSettingsRetentionPolicy updatedPolicy = buildRetentionPolicy(updatedLaunchesPeriod,
+          updatedLogsPeriod, updatedAttachmentsPeriod);
+
+      if (!currentPolicy.equals(updatedPolicy)) {
+        publishOrganizationUpdatedEvent(orgId, organization.getName(), organization.getSlug(), currentPolicy,
+            updatedPolicy);
+      }
     }
+  }
+
+  private void publishOrganizationUpdatedEvent(Long orgId, String orgName, String orgSlug,
+      OrganizationSettingsRetentionPolicy currentPolicy, OrganizationSettingsRetentionPolicy updatedPolicy) {
+    var principal = SecurityContextUtils.getPrincipal();
+    var before = OrganizationActivityConverter.toAttributes(orgId, orgName, orgSlug, currentPolicy);
+    var after = OrganizationActivityConverter.toAttributes(orgId, orgName, orgSlug, updatedPolicy);
+    applicationEventPublisher.publishEvent(new OrganizationUpdatedEvent(principal.getUserId(), principal.getUsername(),
+        orgId, orgName, before, after));
   }
 
   private void updateRetentionSettingsValue(List<OrganizationSetting> settings,
@@ -111,5 +134,13 @@ public class OrganizationSettingsHandler {
       projectRepository.updateProjectAttributeValueIfGreater(TimeUnit.DAYS.toSeconds(updateValue),
           settingsEnum.getProjectFormatKey(), orgId);
     }
+  }
+
+  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(int launches, int logs, int attachments) {
+    return OrganizationSettingsRetentionPolicy.builder()
+        .launches(OrganizationSettingsRetentionPolicyLaunches.builder().period(launches).build())
+        .logs(OrganizationSettingsRetentionPolicyLogs.builder().period(logs).build())
+        .attachments(OrganizationSettingsRetentionPolicyAttachments.builder().period(attachments).build())
+        .build();
   }
 }

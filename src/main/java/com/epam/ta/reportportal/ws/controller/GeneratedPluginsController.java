@@ -19,8 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.reportportal.api.PluginsApi;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,12 +47,9 @@ public class GeneratedPluginsController implements PluginsApi {
    */
   @Override
   @Transactional
-  public ResponseEntity<Map<String, Object>> executePluginCommand(String pluginName, String commandName,
+  public ResponseEntity<Object> executePluginCommand(String pluginName, String commandName,
       PluginCommandRQ pluginCommandRq) {
-    Object result = executeIntegrationHandler.executeCommand(pluginName, commandName, pluginCommandRq);
-    Map<String, Object> response = new HashMap<>();
-    response.put("result", result);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(executeIntegrationHandler.executeCommand(pluginName, commandName, pluginCommandRq));
   }
 
 }

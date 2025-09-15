@@ -113,7 +113,6 @@ public class NotificationRuleUpdatedEvent extends AroundEvent<NotificationRuleAc
         .filter(Objects::nonNull)
         .map(a -> (a.getKey() == null ? EMPTY_STRING : a.getKey()) + ":"
             + (a.getValue() == null ? EMPTY_STRING : a.getValue()))
-//        .sorted()
         .toList();
   }
 }

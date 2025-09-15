@@ -20,13 +20,19 @@ import static com.epam.reportportal.rules.commons.validation.Suppliers.formatted
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.NotificationRuleCreatedEvent;
 import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.enums.LogicalOperator;
@@ -34,7 +40,9 @@ import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.ProjectConfiguration;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
@@ -43,10 +51,15 @@ import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
+@ExtendWith(MockitoExtension.class)
 class CreateProjectNotificationHandlerImplTest {
 
   private static final long DEFAULT_PROJECT_ID = 1L;
@@ -56,7 +69,7 @@ class CreateProjectNotificationHandlerImplTest {
 
   private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
   private final MessageBus messageBus = mock(MessageBus.class);
-  private final ProjectConverter projectConverter = mock(ProjectConverter.class);
+  private final ProjectConverter projectConverter = new ProjectConverter();
   private final ProjectNotificationValidator projectNotificationValidator =
       new ProjectNotificationValidator(senderCaseRepository);
 
@@ -64,6 +77,9 @@ class CreateProjectNotificationHandlerImplTest {
       new CreateProjectNotificationHandlerImpl(senderCaseRepository, messageBus, projectConverter,
           projectNotificationValidator
       );
+
+  @Captor
+  private ArgumentCaptor<ActivityEvent> activityCaptor;
 
   private SenderCaseDTO createNotificationRQ;
   private Project project;
@@ -84,8 +100,8 @@ class CreateProjectNotificationHandlerImplTest {
     launchAttribute.setValue("val");
     createNotificationRQ.setAttributes(Sets.newHashSet(launchAttribute));
 
-    project = mock(Project.class);
-    when(project.getId()).thenReturn(DEFAULT_PROJECT_ID);
+    project = new Project();
+    project.setId(DEFAULT_PROJECT_ID);
 
     rpUser = mock(ReportPortalUser.class);
   }
@@ -134,29 +150,70 @@ class CreateProjectNotificationHandlerImplTest {
 
   @Test
   public void createNotificationWithDuplicateContentButWithDifferentRuleNameTest() {
-    SenderCase dupeCreateNotificationRQ = mock(SenderCase.class);
-    when(dupeCreateNotificationRQ.getSendCase()).thenReturn(SendCase.ALWAYS);
-    when(dupeCreateNotificationRQ.getType()).thenReturn("email");
-    when(dupeCreateNotificationRQ.getRuleName()).thenReturn("Rule2");
-    when(dupeCreateNotificationRQ.getAttributesOperator()).thenReturn(LogicalOperator.AND);
-    when(dupeCreateNotificationRQ.getRecipients()).thenReturn(Collections.singleton("OWNER"));
-    when(dupeCreateNotificationRQ.getLaunchNames()).thenReturn(
-        Collections.singleton("test launch"));
-    when(dupeCreateNotificationRQ.isEnabled()).thenReturn(true);
-    when(dupeCreateNotificationRQ.getProject()).thenReturn(project);
-
-    LaunchAttributeRule launchAttribute = mock(LaunchAttributeRule.class);
-    when(launchAttribute.getKey()).thenReturn("key");
-    when(launchAttribute.getValue()).thenReturn("val");
-    when(dupeCreateNotificationRQ.getLaunchAttributeRules()).thenReturn(
-        Collections.singleton(launchAttribute));
+    SenderCase dupeCase = new SenderCase();
+    dupeCase.setSendCase(SendCase.ALWAYS);
+    dupeCase.setType("email");
+    dupeCase.setRuleName("Rule2");
+    dupeCase.setAttributesOperator(LogicalOperator.AND);
+    dupeCase.setRecipients(Collections.singleton("OWNER"));
+    dupeCase.setLaunchNames(Collections.singleton("test launch"));
+    dupeCase.setEnabled(true);
+    dupeCase.setProject(project);
+    LaunchAttributeRule launchAttribute = new LaunchAttributeRule();
+    launchAttribute.setKey("key");
+    launchAttribute.setValue("val");
+    dupeCase.setLaunchAttributeRules(Collections.singleton(launchAttribute));
 
     when(senderCaseRepository.findAllByProjectId(DEFAULT_PROJECT_ID)).thenReturn(
-        Collections.singletonList(dupeCreateNotificationRQ));
+        Collections.singletonList(dupeCase));
 
     assertTrue(assertThrows(ReportPortalException.class,
         () -> service.createNotification(project, createNotificationRQ, rpUser)
     ).getMessage().contains("Project notification settings contain duplicate cases for this communication channel"));
+  }
+
+  @Test
+  void createNotificationWhenRuleCreatedShouldPublishNotificationRuleCreatedEvent() {
+    // given
+    CreateProjectNotificationHandlerImpl serviceWithRealConverter = new CreateProjectNotificationHandlerImpl(
+        senderCaseRepository, messageBus, projectConverter, projectNotificationValidator);
+    project.setId(7L);
+    project.setOrganizationId(77L);
+
+    ProjectResource pr = new ProjectResource();
+    pr.setProjectId(7L);
+    ProjectConfiguration cfg = new ProjectConfiguration();
+    ProjectNotificationConfigDTO pcfg = new ProjectNotificationConfigDTO();
+    pcfg.setSenderCases(new java.util.ArrayList<>());
+    cfg.setProjectConfig(pcfg);
+    pr.setConfiguration(cfg);
+    projectConverter.TO_PROJECT_RESOURCE = p -> pr;
+
+    when(senderCaseRepository.findByProjectIdAndTypeAndRuleNameIgnoreCase(7L, createNotificationRQ.getType(),
+        createNotificationRQ.getRuleName())).thenReturn(java.util.Optional.empty());
+    when(senderCaseRepository.findAllByProjectId(7L)).thenReturn(java.util.Collections.emptyList());
+
+    SenderCase saved = new SenderCase();
+    saved.setId(55L);
+    saved.setProject(new Project());
+    saved.getProject().setId(7L);
+    saved.getProject().setOrganizationId(77L);
+    saved.setRuleName(createNotificationRQ.getRuleName());
+    when(senderCaseRepository.save(any(SenderCase.class))).thenReturn(saved);
+
+    when(rpUser.getUserId()).thenReturn(5L);
+    when(rpUser.getUsername()).thenReturn("u1");
+
+    // when
+    serviceWithRealConverter.createNotification(project, createNotificationRQ, rpUser);
+    // then
+    verify(messageBus).publishActivity(activityCaptor.capture());
+    var activityCaptorValue = activityCaptor.getValue();
+    assertInstanceOf(NotificationRuleCreatedEvent.class, activityCaptorValue);
+    var activity = activityCaptorValue.toActivity();
+    assertEquals("createNotificationRule", activity.getEventName());
+    assertEquals(7L, activity.getProjectId());
+    assertEquals(77L, activity.getOrganizationId());
   }
 
 }

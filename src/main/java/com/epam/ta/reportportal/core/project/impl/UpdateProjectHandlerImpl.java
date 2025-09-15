@@ -58,6 +58,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.AssignUserEvent;
 import com.epam.ta.reportportal.core.events.activity.ChangeRoleEvent;
+import com.epam.ta.reportportal.core.events.activity.NotificationSettingsUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
@@ -649,6 +650,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
                 user.getUsername(), project.getOrganizationId()
             ));
       }
+    }
+
+    if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.NOTIFICATIONS)) {
+      applicationEventPublisher.publishEvent(
+          new NotificationSettingsUpdatedEvent(before, after, user.getUserId(), user.getUsername(),
+              project.getOrganizationId()));
     }
   }
 

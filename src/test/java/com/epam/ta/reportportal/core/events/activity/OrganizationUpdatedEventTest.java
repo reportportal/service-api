@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
@@ -52,6 +53,9 @@ class OrganizationUpdatedEventTest {
     ActivityDetails details = new ActivityDetails();
     details.addHistoryField(new HistoryField("organizationName", "Old Organization", "Updated Organization"));
     details.addHistoryField(new HistoryField("organizationSlug", "old-org", "updated-org"));
+    details.addHistoryField(new HistoryField("retention_launches", "10", "30"));
+    details.addHistoryField(new HistoryField("retention_logs", "5", "15"));
+    details.addHistoryField(new HistoryField("retention_attachments", "3", "7"));
     activity.setDetails(details);
     return activity;
   }
@@ -61,6 +65,11 @@ class OrganizationUpdatedEventTest {
     resource.setOrganizationId(2L);
     resource.setOrganizationName("Old Organization");
     resource.setOrganizationSlug("old-org");
+    resource.setRetention(java.util.Map.of(
+        "retention_launches", "10",
+        "retention_logs", "5",
+        "retention_attachments", "3"
+    ));
     return resource;
   }
 
@@ -69,6 +78,11 @@ class OrganizationUpdatedEventTest {
     resource.setOrganizationId(2L);
     resource.setOrganizationName("Updated Organization");
     resource.setOrganizationSlug("updated-org");
+    resource.setRetention(java.util.Map.of(
+        "retention_launches", "30",
+        "retention_logs", "15",
+        "retention_attachments", "7"
+    ));
     return resource;
   }
 
@@ -77,5 +91,23 @@ class OrganizationUpdatedEventTest {
     final Activity actual = new OrganizationUpdatedEvent(1L, "user", 2L, "Updated Organization", getBefore(), getAfter()).toActivity();
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
+  }
+
+  @Test
+  void toActivityWhenNoNameOrSlugChangeOnlyRetentionHistory() {
+    OrganizationAttributesActivityResource before = getBefore();
+    OrganizationAttributesActivityResource after = getAfter();
+    after.setOrganizationName(before.getOrganizationName());
+    after.setOrganizationSlug(before.getOrganizationSlug());
+
+    Activity actual = new OrganizationUpdatedEvent(1L, "user", 2L, before.getOrganizationName(), before, after)
+        .toActivity();
+
+    var history = actual.getDetails().getHistory();
+    assertTrue(history.stream().noneMatch(h -> h.getField().equals("organizationName")));
+    assertTrue(history.stream().noneMatch(h -> h.getField().equals("organizationSlug")));
+    assertTrue(history.stream().anyMatch(h -> h.getField().equals("retention_launches")));
+    assertTrue(history.stream().anyMatch(h -> h.getField().equals("retention_logs")));
+    assertTrue(history.stream().anyMatch(h -> h.getField().equals("retention_attachments")));
   }
 }

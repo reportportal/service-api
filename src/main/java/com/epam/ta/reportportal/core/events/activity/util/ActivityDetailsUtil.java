@@ -17,7 +17,9 @@ package com.epam.ta.reportportal.core.events.activity.util;
 
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.google.common.base.Strings;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -61,6 +63,31 @@ public class ActivityDetailsUtil {
   public static final String PATTERN_NAME = "patternName";
   public static final String RP_SUBJECT_NAME = "ReportPortal";
 
+  public static final String RECIPIENTS = "recipients";
+  public static final String LAUNCH_NAMES = "launchNames";
+  public static final String ATTRIBUTES = "attributes";
+  public static final String SEND_CASE = "sendCase";
+  public static final String TYPE = "type";
+  public static final String ATTRIBUTES_OPERATOR = "attributesOperator";
+  public static final String RULE_DETAILS = "ruleDetails";
+
+  public static Optional<HistoryField> processList(String fieldName, List<String> before, List<String> after) {
+    var left = normalizeList(before);
+    var right = normalizeList(after);
+    return left.equals(right)
+        ? Optional.empty()
+        : Optional.of(HistoryField.of(fieldName, String.join(", ", left), String.join(", ", right)));
+  }
+
+  public static Optional<HistoryField> processMap(String fieldName, Map<String, Object> before,
+      Map<String, Object> after) {
+    String left = stableMapString(before);
+    String right = stableMapString(after);
+    return left.equals(right)
+        ? Optional.empty()
+        : Optional.of(HistoryField.of(fieldName, left, right));
+  }
+
   /**
    * Builds a history field for a changed name value.
    *
@@ -100,7 +127,7 @@ public class ActivityDetailsUtil {
    * @param after     current value
    * @return optional history field present if values differ
    */
-  public static Optional<HistoryField> processField(String fieldName, String before, String after) {
+  public static Optional<HistoryField> processString(String fieldName, String before, String after) {
     before = Strings.nullToEmpty(before);
     after = Strings.nullToEmpty(after);
     if (!after.equals(before)) {
@@ -182,4 +209,22 @@ public class ActivityDetailsUtil {
         .filter(entry -> entry.getKey().startsWith(prefix))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
+
+  private static List<String> normalizeList(List<String> input) {
+    return Optional.ofNullable(input)
+        .orElseGet(List::of)
+        .stream()
+        .map(v -> Objects.toString(v, EMPTY_STRING))
+        .toList();
+  }
+
+  private static String stableMapString(Map<String, Object> map) {
+    return Optional.ofNullable(map)
+        .orElseGet(Map::of)
+        .entrySet()
+        .stream()
+        .map(e -> e.getKey() + "=" + Objects.toString(e.getValue(), EMPTY_STRING))
+        .collect(Collectors.joining(", ", "{", "}"));
+  }
+
 }

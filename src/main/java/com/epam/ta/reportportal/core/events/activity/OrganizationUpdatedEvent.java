@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processField;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processString;
 
 import com.epam.ta.reportportal.builder.ActivityBuilder;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
@@ -82,9 +82,9 @@ public class OrganizationUpdatedEvent extends AroundEvent<OrganizationAttributes
         .addSubjectName(getUserLogin())
         .addSubjectType(Objects.isNull(getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)
         .addHistoryField(
-            processField("organizationName", getBefore().getOrganizationName(), getAfter().getOrganizationName()))
+            processString("organizationName", getBefore().getOrganizationName(), getAfter().getOrganizationName()))
         .addHistoryField(
-            processField("organizationSlug", getBefore().getOrganizationSlug(), getAfter().getOrganizationSlug()))
+            processString("organizationSlug", getBefore().getOrganizationSlug(), getAfter().getOrganizationSlug()))
         .addHistoryField(processParameter(getBefore().getRetention(), getAfter().getRetention(),
             OrganizationSettingsEnum.RETENTION_LAUNCHES.getName()))
         .addHistoryField(processParameter(getBefore().getRetention(), getAfter().getRetention(),

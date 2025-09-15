@@ -24,7 +24,7 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.NotificationRuleUpdatedEvent;
 import com.epam.ta.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.model.project.ProjectResource;
 import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.model.project.email.SenderCaseDTO;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
+import com.epam.ta.reportportal.ws.converter.converters.NotificationRuleConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.util.Objects;
@@ -64,27 +65,31 @@ public class UpdateProjectNotificationHandlerImpl implements UpdateProjectNotifi
     expect(updateNotificationRQ.getId(), Objects::nonNull).verify(ErrorType.BAD_REQUEST_ERROR,
         "Please specify notification Id"
     );
-    expect(senderCaseRepository.findById(updateNotificationRQ.getId()),
-        (notification) -> notification.map(
-            ntf -> Objects.equals(ntf.getProject().getId(), project.getId())).orElse(false)
+    var beforeOptional = senderCaseRepository.findById(updateNotificationRQ.getId());
+    expect(beforeOptional, (notification) -> notification.map(
+        ntf -> Objects.equals(ntf.getProject().getId(), project.getId())).orElse(false)
     ).verify(ErrorType.BAD_REQUEST_ERROR, Suppliers.formattedSupplier(
         "Notification '{}' not found. Did you use correct Notification ID?",
         updateNotificationRQ.getId()
     ).get());
     projectNotificationValidator.validateUpdateRQ(project, updateNotificationRQ);
-    SenderCase notification = NotificationConfigConverter.TO_CASE_MODEL.apply(updateNotificationRQ);
-    notification.setProject(project);
-    senderCaseRepository.save(notification);
 
     ProjectResource projectResource = projectConverter.TO_PROJECT_RESOURCE.apply(project);
     ProjectNotificationConfigDTO projectNotificationConfigDTO =
         projectResource.getConfiguration().getProjectConfig();
+
+    var beforeActivity = NotificationRuleConverter.TO_ACTIVITY_RESOURCE.apply(beforeOptional.orElseThrow());
+
+    SenderCase notification = NotificationConfigConverter.TO_CASE_MODEL.apply(updateNotificationRQ);
+    notification.setProject(project);
+    SenderCase saved = senderCaseRepository.save(notification);
     projectNotificationConfigDTO.getSenderCases().add(updateNotificationRQ);
 
-    messageBus.publishActivity(new NotificationsConfigUpdatedEvent(projectResource,
-        projectResource.getConfiguration().getProjectConfig(), user.getUserId(), user.getUsername(),
-        project.getOrganizationId()
-    ));
+    var afterActivity = NotificationRuleConverter.TO_ACTIVITY_RESOURCE.apply(saved);
+
+    messageBus.publishActivity(
+        new NotificationRuleUpdatedEvent(beforeActivity, afterActivity, user.getUserId(), user.getUsername(),
+            project.getOrganizationId()));
 
     return new OperationCompletionRS("Notification rule was updated successfully.");
   }

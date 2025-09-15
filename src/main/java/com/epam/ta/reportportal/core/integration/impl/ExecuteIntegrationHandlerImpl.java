@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
@@ -68,15 +69,14 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   @Override
   public Object executeCommand(MembershipDetails membershipDetails, String pluginName,
       String command, Map<String, Object> executionParams) {
-    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName,
-            ReportPortalExtensionPoint.class)
+    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
     executionParams.put(PROJECT_ID, membershipDetails.getProjectId());
     executionParams.put(PROJECT_NAME, membershipDetails.getProjectKey());
-    return ofNullable(pluginInstance.getCommonCommand(command)).map(
-            it -> it.executeCommand(executionParams))
+    return ofNullable(pluginInstance.getCommonCommand(command))
+        .map(it -> it.executeCommand(executionParams))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
         ));
@@ -134,6 +134,20 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
           formattedSupplier("Command '{}' is not found in plugin {}.", command,
               integration.getType().getName()).get());
     }
+  }
+
+  @Override
+  public Object executeCommand(String pluginName, String command, PluginCommandRQ pluginCommandRq) {
+    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
+        ));
+
+    return ofNullable(pluginInstance.getCommonCommand(command))
+        .map(it -> it.executeCommand(pluginCommandRq))
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
+        ));
   }
 
   @Async

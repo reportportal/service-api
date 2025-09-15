@@ -18,50 +18,66 @@
 
 package com.epam.ta.reportportal.core.project.settings.notification;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.NotificationRuleDeletedEvent;
 import com.epam.ta.reportportal.dao.SenderCaseRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.model.project.ProjectConfiguration;
+import com.epam.ta.reportportal.model.project.ProjectResource;
+import com.epam.ta.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
+@ExtendWith(MockitoExtension.class)
 class DeleteProjectNotificationHandlerImplTest {
 
   private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
   private final MessageBus messageBus = mock(MessageBus.class);
-  private final ProjectConverter projectConverter = mock(ProjectConverter.class);
+  private final ProjectConverter projectConverter = new ProjectConverter();
 
   private final DeleteProjectNotificationHandlerImpl service = new DeleteProjectNotificationHandlerImpl(
       senderCaseRepository, messageBus,
       projectConverter);
+
+  @Captor
+  private ArgumentCaptor<ActivityEvent> activityCaptor;
 
   private Project project;
   private ReportPortalUser rpUser;
 
   @BeforeEach
   public void beforeEach() {
-    project = mock(Project.class);
-    when(project.getId()).thenReturn(1L);
+    project = new Project();
+    project.setId(1L);
 
     rpUser = mock(ReportPortalUser.class);
   }
 
   @Test
   public void deleteNonExistingNotificationTest() {
-    Assertions.assertTrue(
+    assertTrue(
         assertThrows(ReportPortalException.class,
             () -> service.deleteNotification(project, 1L, rpUser))
             .getMessage().contains("Did you use correct Notification ID?")
@@ -77,11 +93,56 @@ class DeleteProjectNotificationHandlerImplTest {
     when(sc.getProject()).thenReturn(scProject);
     when(senderCaseRepository.findById(any())).thenReturn(Optional.of(sc));
 
-    Assertions.assertTrue(
+    assertTrue(
         assertThrows(ReportPortalException.class,
             () -> service.deleteNotification(project, 1L, rpUser))
             .getMessage().contains("Did you use correct Notification ID?")
     );
+  }
+
+  @Test
+  void deleteNotificationWhenRuleDeletedShouldPublishNotificationRuleDeletedEvent() {
+    // given
+    DeleteProjectNotificationHandlerImpl serviceReal = new DeleteProjectNotificationHandlerImpl(senderCaseRepository,
+        messageBus, projectConverter);
+
+    long ruleId = 55L;
+    Project project = new Project();
+    project.setId(7L);
+    project.setOrganizationId(77L);
+
+    projectConverter.TO_PROJECT_RESOURCE = p -> {
+      ProjectResource pr = new ProjectResource();
+      pr.setProjectId(p.getId());
+      ProjectConfiguration cfg = new ProjectConfiguration();
+      ProjectNotificationConfigDTO pcfg = new ProjectNotificationConfigDTO();
+      cfg.setProjectConfig(pcfg);
+      pr.setConfiguration(cfg);
+      return pr;
+    };
+
+    SenderCase existing = new SenderCase();
+    existing.setId(ruleId);
+    existing.setProject(project);
+    existing.setRuleName("rule-X");
+    existing.setAttributesOperator(com.epam.ta.reportportal.entity.enums.LogicalOperator.AND);
+    existing.setSendCase(com.epam.ta.reportportal.entity.enums.SendCase.ALWAYS);
+
+    when(senderCaseRepository.findById(ruleId)).thenReturn(java.util.Optional.of(existing));
+    ReportPortalUser user = mock(ReportPortalUser.class);
+    when(user.getUserId()).thenReturn(5L);
+    when(user.getUsername()).thenReturn("u1");
+
+    // when
+    serviceReal.deleteNotification(project, ruleId, user);
+
+    // then
+    verify(messageBus).publishActivity(activityCaptor.capture());
+    var activityCaptorValue = activityCaptor.getValue();
+    assertInstanceOf(NotificationRuleDeletedEvent.class, activityCaptorValue);
+    var activity = activityCaptorValue.toActivity();
+    assertEquals("deleteNotificationRule", activity.getEventName());
+    assertEquals(project.getId(), activity.getProjectId());
   }
 
 }

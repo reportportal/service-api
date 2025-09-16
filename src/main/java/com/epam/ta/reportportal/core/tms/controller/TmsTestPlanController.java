@@ -8,15 +8,14 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -64,19 +63,22 @@ public class TmsTestPlanController {
   /**
    * Retrieves a list of test plans filtered by criteria.
    *
-   * @param projectKey         The key of the project.
-   * @param pageable           Pagination details.
+   * @param projectKey The key of the project.
+   * @param search     Search term for full-text search by name and description (optional).
+   * @param pageable   Pagination details.
    * @return Paginated list of test plans matching the criteria ({@link TmsTestPlanRS}).
    */
   @GetMapping
   public Page<TmsTestPlanRS> getTestPlansByCriteria(
       @PathVariable String projectKey,
+      @RequestParam(required = false) String search,
       Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
+        search,
         pageable
     );
   }

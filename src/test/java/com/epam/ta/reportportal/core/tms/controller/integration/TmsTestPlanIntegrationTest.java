@@ -76,8 +76,71 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   void getTestPlansByCriteriaIntegrationTest() throws Exception {
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
             .param("page", "0")
-            .param("size", "1")
+            .param("size", "10")
             .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(3));
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithSearchIntegrationTest() throws Exception {
+    // Test search by name
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("search", "name1")
+            .param("page", "0")
+            .param("size", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").isNumber());
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithSearchByDescriptionIntegrationTest() throws Exception {
+    // Test search by description
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("search", "description")
+            .param("page", "0")
+            .param("size", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").isNumber());
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithEmptySearchIntegrationTest() throws Exception {
+    // Test with empty search parameter
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("search", "")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithNonExistentSearchIntegrationTest() throws Exception {
+    // Test search with non-existent term
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("search", "nonexistent_search_term")
+            .param("page", "0")
+            .param("size", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithoutSearchParameterIntegrationTest() throws Exception {
+    // Test without search parameter (should return all test plans)
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("page", "0")
+            .param("size", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(3));
   }

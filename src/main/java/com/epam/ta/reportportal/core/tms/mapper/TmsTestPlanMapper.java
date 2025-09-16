@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,6 +16,7 @@ import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @Mapper(config = CommonMapperConfig.class, uses = TmsTestPlanAttributeMapper.class)
 public abstract class TmsTestPlanMapper {
@@ -55,5 +57,17 @@ public abstract class TmsTestPlanMapper {
         .failureCount(totalCount - successCount)
         .errors(errors)
         .build();
+  }
+
+  public Page<TmsTestPlanRS> convertToRS(List<TmsTestPlan> orderedTestPlans, Page<Long> testPlanIds,
+      Pageable pageable) {
+    return new PageImpl<>(
+        orderedTestPlans
+            .stream()
+            .map(this::convertToRS)
+            .collect(Collectors.toList()),
+        pageable,
+        testPlanIds.getTotalElements()
+    );
   }
 }

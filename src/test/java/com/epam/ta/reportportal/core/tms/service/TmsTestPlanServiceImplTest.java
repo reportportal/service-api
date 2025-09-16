@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
@@ -125,24 +125,94 @@ class TmsTestPlanServiceImplTest {
   @Test
   void shouldGetByCriteria() {
     var projectId = 1L;
+    var search = "test search";
     var pageable = PageRequest.of(0, 10);
 
     var testPlan = new TmsTestPlan();
-    var testPlanRS = new TmsTestPlanRS();
-    Page<TmsTestPlan> testPlanPage = new PageImpl<>(List.of(testPlan));
+    testPlan.setId(1L);
 
-    when(testPlanRepository.findByCriteria(projectId, pageable)).thenReturn(testPlanPage);
-    when(tmsTestPlanMapper.convertToRS(testPlanPage)).thenReturn(
-        new PageImpl<>(List.of(testPlanRS)));
+    var testPlanRS = new TmsTestPlanRS();
+    testPlanRS.setId(1L);
+
+    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L), pageable, 1);
+    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(List.of(testPlanRS), pageable, 1);
+
+    when(testPlanRepository.findIdsByCriteria(projectId, search, pageable)).thenReturn(testPlanIdsPage);
+    when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
+    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable)).thenReturn(testPlanPage);
 
     var result = assertDoesNotThrow(
-        () -> sut.getByCriteria(projectId, pageable));
+        () -> sut.getByCriteria(projectId, search, pageable));
 
     assertNotNull(result);
+    assertNotNull(result.getContent());
     assertEquals(1, result.getContent().size());
-    assertEquals(testPlanRS, result.getContent().getFirst());
-    verify(testPlanRepository).findByCriteria(projectId, pageable);
-    verify(tmsTestPlanMapper).convertToRS(testPlanPage);
+    assertEquals(1L, result.getContent().iterator().next().getId());
+    assertEquals(10, result.getPage().getSize());
+    assertEquals(1, result.getPage().getNumber());
+    assertEquals(1, result.getPage().getTotalElements());
+    assertEquals(1, result.getPage().getTotalPages());
+
+    verify(testPlanRepository).findIdsByCriteria(projectId, search, pageable);
+    verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
+    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable);
+  }
+
+  @Test
+  void shouldGetByCriteriaWithNullSearch() {
+    var projectId = 1L;
+    String search = null;
+    var pageable = PageRequest.of(0, 10);
+
+    var testPlan = new TmsTestPlan();
+    testPlan.setId(1L);
+
+    var testPlanRS = new TmsTestPlanRS();
+    testPlanRS.setId(1L);
+
+    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L), pageable, 1);
+    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(List.of(testPlanRS), pageable, 1);
+
+    when(testPlanRepository.findIdsByCriteria(projectId, search, pageable)).thenReturn(testPlanIdsPage);
+    when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
+    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable)).thenReturn(testPlanPage);
+
+    var result = assertDoesNotThrow(
+        () -> sut.getByCriteria(projectId, search, pageable));
+
+    assertNotNull(result);
+    assertNotNull(result.getContent());
+    assertEquals(1, result.getContent().size());
+
+    verify(testPlanRepository).findIdsByCriteria(projectId, search, pageable);
+    verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
+    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable);
+  }
+
+  @Test
+  void shouldGetByCriteriaWhenEmpty() {
+    var projectId = 1L;
+    var search = "test search";
+    var pageable = PageRequest.of(0, 10);
+
+    org.springframework.data.domain.Page<Long> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(testPlanRepository.findIdsByCriteria(projectId, search, pageable)).thenReturn(emptyPage);
+
+    var result = assertDoesNotThrow(
+        () -> sut.getByCriteria(projectId, search, pageable));
+
+    assertNotNull(result);
+    assertNotNull(result.getContent());
+    assertEquals(0, result.getContent().size());
+    assertEquals(10, result.getPage().getSize());
+    assertEquals(1, result.getPage().getNumber()); // PagedResourcesAssembler добавляет +1
+    assertEquals(0, result.getPage().getTotalElements());
+    assertEquals(0, result.getPage().getTotalPages());
+
+    verify(testPlanRepository).findIdsByCriteria(projectId, search, pageable);
+    verify(testPlanRepository, never()).findByIdsWithAttributes(any());
+    verify(tmsTestPlanMapper, never()).convertToRS(anyList(), any(), any());
   }
 
   @Test

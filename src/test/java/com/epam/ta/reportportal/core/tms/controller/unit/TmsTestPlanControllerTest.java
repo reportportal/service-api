@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
+import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
@@ -33,8 +34,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -125,21 +124,70 @@ public class TmsTestPlanControllerTest {
   void getTestPlansByCriteriaTest() throws Exception {
     Pageable pageable = PageRequest.of(0, 1);
     List<TmsTestPlanRS> content = List.of(new TmsTestPlanRS(), new TmsTestPlanRS());
-    Page<TmsTestPlanRS> page = new PageImpl<>(content, pageable, content.size());
 
-    given(tmsTestPlanService.getByCriteria(projectId, pageable))
+    // Create com.epam.ta.reportportal.model.Page using constructor
+    Page<TmsTestPlanRS> page = new Page<>(content, 1, 1, 2, 2);
+
+    given(tmsTestPlanService.getByCriteria(projectId, null, pageable))
         .willReturn(page);
 
     mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
-            .param("environmentId", "1")
-            .param("productVersionId", "2")
             .param("page", "0")
             .param("size", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(2));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).getByCriteria(projectId, null, pageable);
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithSearchTest() throws Exception {
+    String search = "test search";
+    Pageable pageable = PageRequest.of(0, 10);
+    List<TmsTestPlanRS> content = List.of(new TmsTestPlanRS());
+
+    // Create Page using constructor: content, size, number, totalElements, totalPages
+    Page<TmsTestPlanRS> page = new Page<>(content, 10, 1, 1, 1);
+
+    given(tmsTestPlanService.getByCriteria(projectId, search, pageable))
+        .willReturn(page);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .param("search", search)
+            .param("page", "0")
+            .param("size", "10"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).getByCriteria(projectId, search, pageable);
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithEmptySearchTest() throws Exception {
+    String search = "";
+    Pageable pageable = PageRequest.of(0, 10);
+    List<TmsTestPlanRS> content = List.of(new TmsTestPlanRS());
+
+    Page<TmsTestPlanRS> page = new Page<>(content, 10, 1, 1, 1);
+
+    given(tmsTestPlanService.getByCriteria(projectId, search, pageable))
+        .willReturn(page);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .param("search", search)
+            .param("page", "0")
+            .param("size", "10"))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).getByCriteria(projectId, pageable);
+    verify(tmsTestPlanService).getByCriteria(projectId, search, pageable);
   }
 
   @Test

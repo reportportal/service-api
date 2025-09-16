@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -11,7 +12,11 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
 
   Page<TmsTestPlanRS> getByCriteria(Long projectId, Pageable pageable);
 
-  void addTestCasesToPlan(Long projectId, Long testPlanId, @NotEmpty List<Long> testCaseIds);
+  BatchOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId, @NotEmpty List<Long> testCaseIds);
 
-  void removeTestCasesFromPlan(Long projectId, Long testPlanId, @NotEmpty List<Long> testCaseIds);
+  BatchOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId, @NotEmpty List<Long> testCaseIds);
+
+  boolean addTestCaseToTestPlan(Long testPlanId, Long testCaseId);
+
+  boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId);
 }

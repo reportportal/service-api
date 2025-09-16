@@ -394,4 +394,20 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     return tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedDefaultVersion);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean existsById(Long projectId, Long testCaseId) {
+    return tmsTestCaseRepository.existsByIdAndProjectId(testCaseId, projectId);
+  }
+
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Long> getExistingTestCaseIds(Long projectId, List<Long> testCaseIds) {
+    if (testCaseIds == null || testCaseIds.isEmpty()) {
+      return List.of();
+    }
+    return tmsTestCaseRepository.findExistingTestCaseIds(projectId, testCaseIds);
+  }
 }

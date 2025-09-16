@@ -3,7 +3,10 @@ package com.epam.ta.reportportal.core.tms.mapper;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import java.util.List;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -44,4 +47,13 @@ public abstract class TmsTestPlanMapper {
         testPlansByCriteria.getTotalElements());
   }
 
+  public BatchOperationResultRS convertToRS(int totalCount, int successCount,
+      List<BatchOperationError> errors) {
+    return BatchOperationResultRS.builder()
+        .totalCount(totalCount)
+        .successCount(successCount)
+        .failureCount(totalCount - successCount)
+        .errors(errors)
+        .build();
+  }
 }

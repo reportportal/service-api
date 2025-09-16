@@ -173,7 +173,11 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").exists())
+        .andExpect(jsonPath("$.successCount").exists())
+        .andExpect(jsonPath("$.failureCount").exists())
+        .andExpect(jsonPath("$.errors").isArray());
   }
 
   @Test
@@ -191,7 +195,11 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(1))
+        .andExpect(jsonPath("$.successCount").exists())
+        .andExpect(jsonPath("$.failureCount").exists())
+        .andExpect(jsonPath("$.errors").isArray());
   }
 
   @Test
@@ -213,6 +221,28 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void addTestCasesToPlanWithExpectedResultsIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(14L, 15L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(2))
+        .andExpect(jsonPath("$.successCount").exists())
+        .andExpect(jsonPath("$.failureCount").exists())
+        .andExpect(jsonPath("$.errors").isArray());
+  }
+
+  @Test
   void removeTestCasesFromPlanIntegrationTest() throws Exception {
     // Given
     List<Long> testCaseIds = Arrays.asList(11L, 12L);
@@ -227,7 +257,11 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").exists())
+        .andExpect(jsonPath("$.successCount").exists())
+        .andExpect(jsonPath("$.failureCount").exists())
+        .andExpect(jsonPath("$.errors").isArray());
   }
 
   @Test
@@ -245,7 +279,11 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(1))
+        .andExpect(jsonPath("$.successCount").exists())
+        .andExpect(jsonPath("$.failureCount").exists())
+        .andExpect(jsonPath("$.errors").isArray());
   }
 
   @Test
@@ -269,7 +307,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   @Test
   void addMultipleTestCasesToPlanIntegrationTest() throws Exception {
     // Given
-    List<Long> testCaseIds = Arrays.asList(14L, 15L, 16L, 17L, 18L);
+    List<Long> testCaseIds = Arrays.asList(16L, 17L, 18L, 19L, 20L);
     BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
@@ -281,7 +319,11 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(5))
+        .andExpect(jsonPath("$.successCount").exists())
+        .andExpect(jsonPath("$.failureCount").exists())
+        .andExpect(jsonPath("$.errors").isArray());
   }
 
   @Test
@@ -299,6 +341,54 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(3))
+        .andExpect(jsonPath("$.successCount").exists())
+        .andExpect(jsonPath("$.failureCount").exists())
+        .andExpect(jsonPath("$.errors").isArray());
+  }
+
+  @Test
+  void addTestCasesToPlanWithValidationSuccessIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(7L, 8L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    // When & Then
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(2))
+        .andExpect(jsonPath("$.successCount").isNumber())
+        .andExpect(jsonPath("$.failureCount").isNumber())
+        .andExpect(jsonPath("$.errors").isArray());
+  }
+
+  @Test
+  void removeTestCasesFromPlanWithValidationSuccessIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = Arrays.asList(10L, 11L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    // When & Then
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/5/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(2))
+        .andExpect(jsonPath("$.successCount").isNumber())
+        .andExpect(jsonPath("$.failureCount").isNumber())
+        .andExpect(jsonPath("$.errors").isArray());
   }
 }

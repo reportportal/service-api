@@ -7,11 +7,13 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
 import jakarta.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -104,7 +106,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public void addTestCasesToPlan(Long projectId, Long testPlanId,
+  public BatchOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
       @NotEmpty List<Long> testCaseIds) {
     if (!testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)) {
       throw new ReportPortalException(
@@ -112,26 +114,113 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       );
     }
 
-    tmsTestCaseService.validateTestCasesExist(projectId, testCaseIds);
+    var errors = new ArrayList<BatchOperationError>();
+    var successCount = 0;
+    var totalCount = testCaseIds.size();
 
+    // Get existing test case IDs for the project
     var existingTestCaseIds = new HashSet<>(
+        tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)
+    );
+
+    // Get test case IDs already added to the plan
+    var testCaseIdsAreInTestPlan = new HashSet<>(
         tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)
     );
 
-    var newTestCaseIds = testCaseIds
-        .stream()
-        .filter(testCaseId -> !existingTestCaseIds.contains(testCaseId))
-        .collect(Collectors.toList());
+    for (var testCaseId : testCaseIds) {
+      try {
+        // Check if a test case exists
+        if (!existingTestCaseIds.contains(testCaseId)) {
+          errors.add(new BatchOperationError(testCaseId,
+              String.format("Test case with id %s not found", testCaseId)));
+          continue;
+        }
 
-    if (!newTestCaseIds.isEmpty()) {
-      tmsTestPlanTestCaseRepository.batchInsertTestPlanTestCases(testPlanId, newTestCaseIds);
+        // Check if already added to the plan
+        if (testCaseIdsAreInTestPlan.contains(testCaseId)) {
+          errors.add(new BatchOperationError(
+              testCaseId,
+              String.format("Test case with id %s already exists in test plan", testCaseId)
+          ));
+          continue;
+        }
+
+        // Try to add a test case
+        if (addTestCaseToTestPlan(testPlanId, testCaseId)) {
+          successCount++;
+          testCaseIdsAreInTestPlan.add(testCaseId);
+        } else {
+          errors.add(new BatchOperationError(testCaseId, "Failed to add test case"));
+        }
+      } catch (Exception e) {
+        errors.add(new BatchOperationError(testCaseId, e.getMessage()));
+      }
+    }
+
+    return tmsTestPlanMapper.convertToRS(totalCount, successCount, errors);
+  }
+
+  @Override
+  @Transactional
+  public BatchOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
+      List<Long> testCaseIds) {
+    var errors = new ArrayList<BatchOperationError>();
+    var successCount = 0;
+    var totalCount = testCaseIds.size();
+
+    // Get test case IDs that are actually in the plan
+    var testCaseIdsInTestPlan = new HashSet<>(
+        tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)
+    );
+
+    for (var testCaseId : testCaseIds) {
+      try {
+        // Check if a test case is in the plan
+        if (!testCaseIdsInTestPlan.contains(testCaseId)) {
+          errors.add(new BatchOperationError(testCaseId,
+              String.format("Test case with id %s not found in test plan", testCaseId)));
+          continue;
+        }
+
+        // Try to remove a test case
+        if (removeSingleTestCaseFromPlan(testPlanId, testCaseId)) {
+          successCount++;
+          testCaseIdsInTestPlan.remove(testCaseId);
+        } else {
+          errors.add(new BatchOperationError(
+              testCaseId, "Failed to remove test case")
+          );
+        }
+      } catch (Exception e) {
+        errors.add(new BatchOperationError(testCaseId, e.getMessage()));
+      }
+    }
+
+    return tmsTestPlanMapper.convertToRS(totalCount, successCount, errors);
+  }
+
+  @Override
+  @Transactional
+  public boolean addTestCaseToTestPlan(Long testPlanId, Long testCaseId) {
+    try {
+      int inserted = tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId,
+          testCaseId);
+      return inserted == 1;
+    } catch (Exception e) {
+      return false;
     }
   }
 
   @Override
   @Transactional
-  public void removeTestCasesFromPlan(Long projectId, Long testPlanId,
-      List<Long> testCaseIds) {
-    tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(testPlanId, testCaseIds);
+  public boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId) {
+    try {
+      int deleted = tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId,
+          testCaseId);
+      return deleted == 1;
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

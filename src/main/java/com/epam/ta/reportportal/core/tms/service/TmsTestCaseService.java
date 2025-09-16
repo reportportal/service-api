@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCaseRS, Long> {
@@ -49,6 +50,12 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
    * @param patchRequest  Patch request.
    */
   void patchTestCaseAttributes(Long projectId, BatchPatchTestCaseAttributesRQ patchRequest);
+
+  @Transactional(readOnly = true)
+  boolean existsById(Long projectId, Long testCaseId);
+
+  @Transactional(readOnly = true)
+  List<Long> getExistingTestCaseIds(Long projectId, List<Long> testCaseIds);
 
   /**
    * Verifies if test cases exist by provided ids in the project

@@ -168,4 +168,30 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       @Param("testCaseIds") List<Long> testCaseIds,
       @Param("testFolderId") Long testFolderId,
       @Param("priority") String priority);
+
+  /**
+   * Checks if a test case exists by ID within the project
+   *
+   * @param testCaseId test case ID
+   * @param projectId project ID
+   * @return true if a test case exists in the project
+   */
+  @Query("SELECT COUNT(tc) > 0 FROM TmsTestCase tc " +
+      "WHERE tc.id = :testCaseId " +
+      "AND tc.testFolder.project.id = :projectId")
+  boolean existsByIdAndProjectId(@Param("testCaseId") Long testCaseId,
+      @Param("projectId") Long projectId);
+
+  /**
+   * Returns list of test case IDs that exist in the project from the provided list
+   *
+   * @param projectId project ID
+   * @param testCaseIds list of test case IDs to check
+   * @return list of test case IDs that actually exist in the project
+   */
+  @Query("SELECT tc.id FROM TmsTestCase tc " +
+      "WHERE tc.id IN :testCaseIds " +
+      "AND tc.testFolder.project.id = :projectId")
+  List<Long> findExistingTestCaseIds(@Param("projectId") Long projectId,
+      @Param("testCaseIds") List<Long> testCaseIds);
 }

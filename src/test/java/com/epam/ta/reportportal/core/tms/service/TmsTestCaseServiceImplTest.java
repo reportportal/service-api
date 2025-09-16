@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -1688,5 +1689,134 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, emptyTestCaseIds);
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, 10L, null);
     verify(tmsTestCaseRepository, never()).save(any());
+  }
+
+  @Test
+  void existsById_WhenTestCaseExists_ShouldReturnTrue() {
+    // Given
+    when(tmsTestCaseRepository.existsByIdAndProjectId(testCaseId, projectId)).thenReturn(true);
+
+    // When
+    var result = sut.existsById(projectId, testCaseId);
+
+    // Then
+    assertTrue(result);
+    verify(tmsTestCaseRepository).existsByIdAndProjectId(testCaseId, projectId);
+  }
+
+  @Test
+  void existsById_WhenTestCaseDoesNotExist_ShouldReturnFalse() {
+    // Given
+    when(tmsTestCaseRepository.existsByIdAndProjectId(testCaseId, projectId)).thenReturn(false);
+
+    // When
+    var result = sut.existsById(projectId, testCaseId);
+
+    // Then
+    assertFalse(result);
+    verify(tmsTestCaseRepository).existsByIdAndProjectId(testCaseId, projectId);
+  }
+
+  @Test
+  void getExistingTestCaseIds_WithNullList_ShouldReturnEmptyList() {
+    // When
+    var result = sut.getExistingTestCaseIds(projectId, null);
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verify(tmsTestCaseRepository, never()).findExistingTestCaseIds(any(), any());
+  }
+
+  @Test
+  void getExistingTestCaseIds_WithEmptyList_ShouldReturnEmptyList() {
+    // Given
+    var emptyList = Collections.<Long>emptyList();
+
+    // When
+    var result = sut.getExistingTestCaseIds(projectId, emptyList);
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verify(tmsTestCaseRepository, never()).findExistingTestCaseIds(any(), any());
+  }
+
+  @Test
+  void getExistingTestCaseIds_WithAllExistingIds_ShouldReturnAllIds() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var existingIds = Arrays.asList(1L, 2L, 3L);
+
+    when(tmsTestCaseRepository.findExistingTestCaseIds(projectId, testCaseIds))
+        .thenReturn(existingIds);
+
+    // When
+    var result = sut.getExistingTestCaseIds(projectId, testCaseIds);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(3, result.size());
+    assertTrue(result.containsAll(existingIds));
+    verify(tmsTestCaseRepository).findExistingTestCaseIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void getExistingTestCaseIds_WithSomeExistingIds_ShouldReturnOnlyExistingIds() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L);
+    var existingIds = Arrays.asList(1L, 3L);
+
+    when(tmsTestCaseRepository.findExistingTestCaseIds(projectId, testCaseIds))
+        .thenReturn(existingIds);
+
+    // When
+    var result = sut.getExistingTestCaseIds(projectId, testCaseIds);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertTrue(result.contains(1L));
+    assertTrue(result.contains(3L));
+    assertFalse(result.contains(2L));
+    assertFalse(result.contains(4L));
+    verify(tmsTestCaseRepository).findExistingTestCaseIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void getExistingTestCaseIds_WithNoExistingIds_ShouldReturnEmptyList() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var existingIds = Collections.<Long>emptyList();
+
+    when(tmsTestCaseRepository.findExistingTestCaseIds(projectId, testCaseIds))
+        .thenReturn(existingIds);
+
+    // When
+    var result = sut.getExistingTestCaseIds(projectId, testCaseIds);
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verify(tmsTestCaseRepository).findExistingTestCaseIds(projectId, testCaseIds);
+  }
+
+  @Test
+  void getExistingTestCaseIds_WithSingleId_ShouldReturnCorrectResult() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var existingIds = List.of(1L);
+
+    when(tmsTestCaseRepository.findExistingTestCaseIds(projectId, testCaseIds))
+        .thenReturn(existingIds);
+
+    // When
+    var result = sut.getExistingTestCaseIds(projectId, testCaseIds);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(1L, result.getFirst());
+    verify(tmsTestCaseRepository).findExistingTestCaseIds(projectId, testCaseIds);
   }
 }

@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.db.repository;
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,14 +28,22 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   void deleteByIdAndProjectId(@Param("testPlanId") Long testPlanId,
       @Param("projectId") Long projectId);
 
+  @Query(value = "SELECT tp.id FROM tms_test_plan tp " +
+      "WHERE tp.project_id = :projectId " +
+      "AND (:search IS NULL OR tp.search_vector @@ plainto_tsquery('simple', :search))",
+      countQuery = "SELECT COUNT(tp.id) FROM tms_test_plan tp " +
+          "WHERE tp.project_id = :projectId " +
+          "AND (:search IS NULL OR tp.search_vector @@ plainto_tsquery('simple', :search))",
+      nativeQuery = true)
+  Page<Long> findIdsByCriteria(@Param("projectId") Long projectId,
+      @Param("search") String search,
+      Pageable pageable);
+
   @Query("SELECT tp FROM TmsTestPlan tp " +
       "LEFT JOIN FETCH tp.attributes atr " +
       "LEFT JOIN FETCH atr.attribute " +
-      "WHERE tp.project.id = :projectId"
-  )
-  Page<TmsTestPlan> findByCriteria(
-      @Param("projectId") Long projectId,
-      Pageable pageable);
+      "WHERE tp.id IN :ids")
+  List<TmsTestPlan> findByIdsWithAttributes(@Param("ids") List<Long> ids);
 
   Boolean existsByIdAndProject_Id(Long testPlanId, Long projectId);
 }

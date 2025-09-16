@@ -40,6 +40,9 @@ public class TmsTestPlan {
   @Column(name = "description")
   private String description;
 
+  @Column(name = "search_vector", insertable = false, updatable = false)
+  private String searchVector; //immutable, because trigger updates this field
+
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;

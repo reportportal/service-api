@@ -2,9 +2,13 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,6 +21,8 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
 import java.util.List;
 import java.util.Optional;
@@ -225,76 +231,64 @@ class TmsTestPlanServiceImplTest {
   }
 
   @Test
-  void shouldAddTestCasesToPlan() {
+  void shouldAddTestCasesToPlanSuccessfully() {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.of(10L, 20L, 30L);
-    var newTestCaseIds = List.of(20L, 30L); // 10L уже существует
+    var expectedResult = BatchOperationResultRS.builder()
+        .totalCount(3)
+        .successCount(2)
+        .failureCount(1)
+        .errors(List.of())
+        .build();
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds))
+        .thenReturn(List.of(10L, 20L, 30L));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
-        .thenReturn(List.of(10L)); // 10L уже существует
+        .thenReturn(List.of(10L)); // 10L already exists
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 20L))
+        .thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 30L))
+        .thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(expectedResult);
 
-    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
 
+    assertNotNull(result);
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
-    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
+    verify(tmsTestCaseService).getExistingTestCaseIds(projectId, testCaseIds);
     verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
-    verify(tmsTestPlanTestCaseRepository).batchInsertTestPlanTestCases(eq(testPlanId), eq(newTestCaseIds));
+    verify(tmsTestPlanMapper).convertToRS(eq(3), eq(2), anyList());
   }
 
   @Test
-  void shouldAddTestCasesToPlanWhenNoExistingAssociations() {
+  void shouldAddTestCasesToPlanWithErrors() {
     var projectId = 1L;
     var testPlanId = 2L;
-    var testCaseIds = List.of(10L, 20L);
+    var testCaseIds = List.of(10L, 999L); // 999L doesn't exist
+    var expectedResult = BatchOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(1)
+        .failureCount(1)
+        .errors(List.of(new BatchOperationError(999L, "Test case with id 999 not found")))
+        .build();
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds))
+        .thenReturn(List.of(10L)); // Only 10L exists
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
         .thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 10L))
+        .thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(expectedResult);
 
-    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
 
-    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
-    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
-    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
-    verify(tmsTestPlanTestCaseRepository).batchInsertTestPlanTestCases(eq(testPlanId), eq(testCaseIds));
-  }
-
-  @Test
-  void shouldNotAddTestCasesWhenAllAlreadyExist() {
-    var projectId = 1L;
-    var testPlanId = 2L;
-    var testCaseIds = List.of(10L, 20L);
-
-    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
-    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
-        .thenReturn(List.of(10L, 20L));
-
-    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
-
-    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
-    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
-    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
-    verify(tmsTestPlanTestCaseRepository, never()).batchInsertTestPlanTestCases(any(), any());
-  }
-
-  @Test
-  void shouldAddEmptyListOfTestCases() {
-    var projectId = 1L;
-    var testPlanId = 2L;
-    var testCaseIds = List.<Long>of();
-
-    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
-    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
-        .thenReturn(List.of());
-
-    assertDoesNotThrow(() -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
-
-    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
-    verify(tmsTestCaseService).validateTestCasesExist(projectId, testCaseIds);
-    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
-    verify(tmsTestPlanTestCaseRepository, never()).batchInsertTestPlanTestCases(any(), any());
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), anyList());
   }
 
   @Test
@@ -311,41 +305,194 @@ class TmsTestPlanServiceImplTest {
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
-    verify(tmsTestCaseService, never()).validateTestCasesExist(any(), any());
-    verify(tmsTestPlanTestCaseRepository, never()).findTestCaseIdsByTestPlanId(any());
-    verify(tmsTestPlanTestCaseRepository, never()).batchInsertTestPlanTestCases(any(), any());
+    verify(tmsTestCaseService, never()).getExistingTestCaseIds(any(), any());
   }
 
   @Test
-  void shouldRemoveTestCasesFromPlan() {
+  void shouldRemoveTestCasesFromPlanSuccessfully() {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.of(10L, 20L);
+    var expectedResult = BatchOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(2)
+        .failureCount(0)
+        .errors(List.of())
+        .build();
 
-    assertDoesNotThrow(() -> sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of(10L, 20L));
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 10L))
+        .thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 20L))
+        .thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(expectedResult);
 
-    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseIds(testPlanId, testCaseIds);
+    var result = sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanMapper).convertToRS(eq(2), eq(2), anyList());
   }
 
   @Test
-  void shouldRemoveTestCasesFromPlanEvenIfNoAssociationsExist() {
+  void shouldRemoveTestCasesFromPlanWithErrors() {
     var projectId = 1L;
     var testPlanId = 2L;
-    var testCaseIds = List.of(10L, 20L);
+    var testCaseIds = List.of(10L, 999L); // 999L not in plan
+    var expectedResult = BatchOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(1)
+        .failureCount(1)
+        .errors(List.of(new BatchOperationError(999L, "Test case with id 999 not found in test plan")))
+        .build();
 
-    assertDoesNotThrow(() -> sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of(10L)); // Only 10L is in plan
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 10L))
+        .thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(expectedResult);
 
-    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseIds(testPlanId, testCaseIds);
+    var result = sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), anyList());
   }
 
   @Test
-  void shouldRemoveEmptyListOfTestCasesFromPlan() {
+  void shouldHandleEmptyTestCaseListForAdd() {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.<Long>of();
+    var expectedResult = BatchOperationResultRS.builder()
+        .totalCount(0)
+        .successCount(0)
+        .failureCount(0)
+        .errors(List.of())
+        .build();
 
-    assertDoesNotThrow(() -> sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds));
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds))
+        .thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of());
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(expectedResult);
 
-    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseIds(testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(0), eq(0), anyList());
+  }
+
+  @Test
+  void shouldHandleEmptyTestCaseListForRemove() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.<Long>of();
+    var expectedResult = BatchOperationResultRS.builder()
+        .totalCount(0)
+        .successCount(0)
+        .failureCount(0)
+        .errors(List.of())
+        .build();
+
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of());
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(expectedResult);
+
+    var result = sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(0), eq(0), anyList());
+  }
+
+  // Tests for new helper methods
+
+  @Test
+  void shouldAddTestCaseToTestPlanSuccessfully() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+        .thenReturn(1);
+
+    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+
+    assertTrue(result);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldFailToAddTestCaseToTestPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+        .thenReturn(0);
+
+    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldHandleExceptionWhenAddingTestCaseToTestPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+        .thenThrow(new RuntimeException("Database error"));
+
+    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldRemoveSingleTestCaseFromPlanSuccessfully() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId))
+        .thenReturn(1);
+
+    var result = sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId);
+
+    assertTrue(result);
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldFailToRemoveSingleTestCaseFromPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId))
+        .thenReturn(0);
+
+    var result = sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldHandleExceptionWhenRemovingSingleTestCaseFromPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId))
+        .thenThrow(new RuntimeException("Database error"));
+
+    var result = sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
   }
 }

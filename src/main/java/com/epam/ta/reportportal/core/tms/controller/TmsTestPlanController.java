@@ -5,6 +5,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -166,18 +167,17 @@ public class TmsTestPlanController {
    * @param addRequest Request containing test case IDs to add to the test plan.
    */
   @PostMapping("/{id}/test-case/batch")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Add test cases to test plan",
       description = "Adds multiple test cases to a test plan by their IDs.",
       tags = {"Batch Operations"}
   )
   @ApiResponse(responseCode = "204", description = "Test cases added to test plan successfully")
-  public void addTestCasesToPlan(@PathVariable String projectKey,
+  public BatchOperationResultRS addTestCasesToPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @Valid @RequestBody BatchAddTestCasesToPlanRQ addRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    tmsTestPlanService.addTestCasesToPlan(
+    return tmsTestPlanService.addTestCasesToPlan(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
@@ -193,18 +193,17 @@ public class TmsTestPlanController {
    * @param removeRequest Request containing test case IDs to remove from the test plan.
    */
   @DeleteMapping("/{id}/test-case/batch")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Remove test cases from test plan",
       description = "Removes multiple test cases from a test plan by their IDs.",
       tags = {"Batch Operations"}
   )
   @ApiResponse(responseCode = "204", description = "Test cases removed from test plan successfully")
-  public void removeTestCasesFromPlan(@PathVariable String projectKey,
+  public BatchOperationResultRS removeTestCasesFromPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @Valid @RequestBody BatchRemoveTestCasesFromPlanRQ removeRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    tmsTestPlanService.removeTestCasesFromPlan(
+    return tmsTestPlanService.removeTestCasesFromPlan(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),

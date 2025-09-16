@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -17,6 +18,7 @@ import com.epam.ta.reportportal.core.tms.controller.TmsTestPlanController;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
@@ -215,14 +217,29 @@ public class TmsTestPlanControllerTest {
     BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(3)
+        .successCount(3)
+        .failureCount(0)
+        .errors(Collections.emptyList())
+        .build();
+
     String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
 
     // When & Then
     mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
             projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(3))
+        .andExpect(jsonPath("$.successCount").value(3))
+        .andExpect(jsonPath("$.failureCount").value(0))
+        .andExpect(jsonPath("$.errors").isArray());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
@@ -236,14 +253,28 @@ public class TmsTestPlanControllerTest {
     BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(1)
+        .successCount(1)
+        .failureCount(0)
+        .errors(Collections.emptyList())
+        .build();
+
     String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
 
     // When & Then
     mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
             projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(1))
+        .andExpect(jsonPath("$.successCount").value(1))
+        .andExpect(jsonPath("$.failureCount").value(0));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
@@ -268,6 +299,41 @@ public class TmsTestPlanControllerTest {
   }
 
   @Test
+  void addTestCasesToPlanWithPartialSuccessTest() throws Exception {
+    // Given
+    Long testPlanId = 9L;
+    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(3)
+        .successCount(2)
+        .failureCount(1)
+        .errors(Collections.emptyList()) // Можно добавить конкретные ошибки если нужно
+        .build();
+
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(3))
+        .andExpect(jsonPath("$.successCount").value(2))
+        .andExpect(jsonPath("$.failureCount").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
   void removeTestCasesFromPlanTest() throws Exception {
     // Given
     Long testPlanId = 2L;
@@ -275,14 +341,29 @@ public class TmsTestPlanControllerTest {
     BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(3)
+        .successCount(3)
+        .failureCount(0)
+        .errors(Collections.emptyList())
+        .build();
+
     String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    given(tmsTestPlanService.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
 
     // When & Then
     mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
             projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(3))
+        .andExpect(jsonPath("$.successCount").value(3))
+        .andExpect(jsonPath("$.failureCount").value(0))
+        .andExpect(jsonPath("$.errors").isArray());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
@@ -296,14 +377,28 @@ public class TmsTestPlanControllerTest {
     BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(1)
+        .successCount(1)
+        .failureCount(0)
+        .errors(Collections.emptyList())
+        .build();
+
     String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    given(tmsTestPlanService.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
 
     // When & Then
     mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
             projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(1))
+        .andExpect(jsonPath("$.successCount").value(1))
+        .andExpect(jsonPath("$.failureCount").value(0));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
@@ -335,14 +430,63 @@ public class TmsTestPlanControllerTest {
     BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(5)
+        .successCount(5)
+        .failureCount(0)
+        .errors(Collections.emptyList())
+        .build();
+
     String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    given(tmsTestPlanService.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
 
     // When & Then
     mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
             projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(5))
+        .andExpect(jsonPath("$.successCount").value(5))
+        .andExpect(jsonPath("$.failureCount").value(0));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
+  void removeTestCasesFromPlanWithPartialSuccessTest() throws Exception {
+    // Given
+    Long testPlanId = 10L;
+    List<Long> testCaseIds = Arrays.asList(15L, 16L, 17L);
+    BatchRemoveTestCasesFromPlanRQ removeRequest = BatchRemoveTestCasesFromPlanRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(3)
+        .successCount(2)
+        .failureCount(1)
+        .errors(Collections.emptyList())
+        .build();
+
+    String jsonContent = objectMapper.writeValueAsString(removeRequest);
+
+    given(tmsTestPlanService.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
+
+    // When & Then
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(3))
+        .andExpect(jsonPath("$.successCount").value(2))
+        .andExpect(jsonPath("$.failureCount").value(1));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
@@ -356,14 +500,28 @@ public class TmsTestPlanControllerTest {
     BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
         .testCaseIds(testCaseIds)
         .build();
+
+    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+        .totalCount(10)
+        .successCount(10)
+        .failureCount(0)
+        .errors(Collections.emptyList())
+        .build();
+
     String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+        .willReturn(expectedResult);
 
     // When & Then
     mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
             projectKey, testPlanId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(10))
+        .andExpect(jsonPath("$.successCount").value(10))
+        .andExpect(jsonPath("$.failureCount").value(0));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);

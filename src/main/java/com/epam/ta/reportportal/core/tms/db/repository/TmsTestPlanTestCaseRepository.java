@@ -66,4 +66,18 @@ public interface TmsTestPlanTestCaseRepository extends
       + ")")
   void deleteAllByTestFolderId(@Param("projectId") Long projectId,
       @Param("folderId") Long folderId);
+
+  @Modifying
+  @Query(value = "INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id) " +
+      "VALUES (:testPlanId, :testCaseId) " +
+      "ON CONFLICT (test_plan_id, test_case_id) DO NOTHING",
+      nativeQuery = true)
+  int insertTestPlanTestCaseIgnoreConflict(@Param("testPlanId") Long testPlanId,
+      @Param("testCaseId") Long testCaseId);
+
+  @Modifying
+  @Query("DELETE FROM TmsTestPlanTestCase tptc " +
+      "WHERE tptc.id.testPlanId = :testPlanId AND tptc.id.testCaseId = :testCaseId")
+  int deleteByTestPlanIdAndTestCaseId(@Param("testPlanId") Long testPlanId,
+      @Param("testCaseId") Long testCaseId);
 }

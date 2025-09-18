@@ -142,8 +142,10 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
   @Transactional
   public TmsTestCaseVersion duplicateDefaultVersion(TmsTestCase newTestCase,
       TmsTestCaseVersion originalVersion) {
-    var duplicatedVersion = tmsTestCaseVersionMapper.duplicateDefaultTestCaseVersion(
-        originalVersion, newTestCase);
+    var duplicatedVersion = tmsTestCaseVersionRepository.save(
+        tmsTestCaseVersionMapper.duplicateDefaultTestCaseVersion(
+            originalVersion, newTestCase)
+    );
 
     if (Objects.nonNull(originalVersion.getManualScenario())) {
       var duplicatedManualScenario = tmsManualScenarioService
@@ -153,6 +155,6 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
 
     newTestCase.setVersions(Collections.singleton(duplicatedVersion));
 
-    return tmsTestCaseVersionRepository.save(duplicatedVersion);
+    return duplicatedVersion;
   }
 }

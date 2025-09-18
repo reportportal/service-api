@@ -350,12 +350,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private Long getTestFolderId(long projectId, Long testFolderId,
       NewTestFolderRQ testFolderRQ) {
-    if (isNull(testFolderId) && isNull(testFolderRQ) ||
-        isNull(testFolderId) && isNull(testFolderRQ.getName()) ||
-        nonNull(testFolderId) && nonNull(testFolderRQ) && nonNull(testFolderRQ.getName())) {
-      throw new ReportPortalException(BAD_REQUEST_ERROR,
-          "Either parent folder id or parent folder name should be set");
-    } else if (Objects.nonNull(testFolderId)) {
+    if (Objects.isNull(testFolderId) && Objects.isNull(testFolderRQ)) {
+      return null;
+    }
+    if (Objects.nonNull(testFolderId)) {
       if (tmsTestFolderService.existsById(projectId, testFolderId)) {
         return testFolderId;
       } else {

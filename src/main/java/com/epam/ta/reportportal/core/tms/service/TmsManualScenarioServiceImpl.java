@@ -27,44 +27,53 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   private final TmsManualScenarioAttributeService tmsManualScenarioAttributeService;
   private final TmsManualScenarioImplServiceFactory tmsManualScenarioImplServiceFactory;
   private final TmsManualScenarioMapper tmsManualScenarioMapper;
+  private final TmsManualScenarioPreconditionsService tmsManualScenarioPreconditionsService;
 
   @Override
   @Transactional
   public TmsManualScenario createTmsManualScenario(TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
-    var tmsManualScenario = tmsManualScenarioMapper.createTmsManualScenario(
-        testCaseManualScenarioRQ
+    var tmsManualScenario = tmsManualScenarioRepository.save(
+        tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ)
+    );
+
+    tmsManualScenarioPreconditionsService.createPreconditions(
+        tmsManualScenario, testCaseManualScenarioRQ.getPreconditions()
     );
 
     tmsManualScenarioAttributeService.createAttributes(tmsManualScenario,
         testCaseManualScenarioRQ.getAttributes());
 
-    testCaseVersion.setManualScenario(tmsManualScenario);
-    tmsManualScenario.setTestCaseVersion(testCaseVersion);
-
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
         .createTmsManualScenarioImpl(tmsManualScenario, testCaseManualScenarioRQ);
 
-    return tmsManualScenarioRepository.save(tmsManualScenario);
+    testCaseVersion.setManualScenario(tmsManualScenario);
+    tmsManualScenario.setTestCaseVersion(testCaseVersion);
+
+    return tmsManualScenario;
   }
 
   @Override
   @Transactional
   public TmsManualScenario updateTmsManualScenario(TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
-    var manualScenario = testCaseVersion.getManualScenario();
-    if (Objects.nonNull(manualScenario)) {
-      tmsManualScenarioMapper.update(manualScenario,
+    var existingManualScenario = testCaseVersion.getManualScenario();
+    if (Objects.nonNull(existingManualScenario)) {
+      tmsManualScenarioMapper.update(existingManualScenario,
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
 
-      tmsManualScenarioAttributeService.updateAttributes(manualScenario,
+      tmsManualScenarioPreconditionsService.updatePreconditions(
+          existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
+      );
+
+      tmsManualScenarioAttributeService.updateAttributes(existingManualScenario,
           testCaseManualScenarioRQ.getAttributes());
 
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
-          .updateTmsManualScenarioImpl(manualScenario, testCaseManualScenarioRQ);
-      return tmsManualScenarioRepository.save(manualScenario);
+          .updateTmsManualScenarioImpl(existingManualScenario, testCaseManualScenarioRQ);
+      return tmsManualScenarioRepository.save(existingManualScenario);
     } else {
       return createTmsManualScenario(testCaseVersion, testCaseManualScenarioRQ);
     }
@@ -79,6 +88,10 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     if (Objects.nonNull(existingManualScenario)) {
       tmsManualScenarioMapper.patch(existingManualScenario,
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
+
+      tmsManualScenarioPreconditionsService.patchPreconditions(
+          existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
+      );
 
       tmsManualScenarioAttributeService.patchAttributes(existingManualScenario,
           testCaseManualScenarioRQ.getAttributes());
@@ -100,6 +113,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioImplServices()
         .forEach(service -> service.deleteAllByTestCaseId(testCaseId));
+    tmsManualScenarioPreconditionsService.deleteAllByTestCaseId(testCaseId);
     tmsManualScenarioAttributeService.deleteAllByTestCaseId(testCaseId);
     tmsManualScenarioRepository.deleteAllByTestCaseId(testCaseId);
   }
@@ -111,6 +125,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioImplServices()
           .forEach(service -> service.deleteAllByTestCaseIds(testCaseIds));
+      tmsManualScenarioPreconditionsService.deleteAllByTestCaseIds(testCaseIds);
       tmsManualScenarioAttributeService.deleteAllByTestCaseIds(testCaseIds);
       tmsManualScenarioRepository.deleteAllByTestCaseIds(testCaseIds);
     }
@@ -122,6 +137,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioImplServices()
         .forEach(service -> service.deleteAllByTestFolderId(projectId, folderId));
+    tmsManualScenarioPreconditionsService.deleteAllByTestFolderId(projectId, folderId);
     tmsManualScenarioAttributeService.deleteAllByTestFolderId(projectId, folderId);
     tmsManualScenarioRepository.deleteAllByTestFolderId(projectId, folderId);
   }
@@ -134,6 +150,11 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
         newVersion);
 
     tmsManualScenarioRepository.save(duplicatedScenario);
+
+    if (Objects.nonNull(originalScenario.getPreconditions())) {
+      tmsManualScenarioPreconditionsService.duplicatePreconditions(originalScenario,
+          duplicatedScenario);
+    }
 
     if (CollectionUtils.isNotEmpty(originalScenario.getAttributes())) {
       tmsManualScenarioAttributeService.duplicateAttributes(originalScenario, duplicatedScenario);

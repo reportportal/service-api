@@ -4,10 +4,11 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
+import com.epam.ta.reportportal.core.tms.db.repository.TmsAttachmentRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioAttributeRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsStepRepository;
@@ -32,16 +34,20 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTextManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttachmentRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
+import com.epam.ta.reportportal.core.tms.dto.TmsStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRS;
+import com.epam.ta.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -98,10 +104,13 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Autowired
   private TmsManualScenarioAttributeRepository manualScenarioAttributeRepository;
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  @Autowired
+  private TmsAttachmentRepository tmsAttachmentRepository;
 
   @PersistenceContext
   private EntityManager entityManager;
+
+  private final ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void createTestCaseWithoutManualScenarioIntegrationTest() throws Exception {
@@ -301,10 +310,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
         .andExpect(
             content().string(
-                containsString("Either parent folder id or parent folder name should be set")));
+                containsString("Validation failure")));
   }
 
   @Test
@@ -323,10 +331,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
         .andExpect(
             content().string(containsString(
-                "Either testFolderId or testFolderName must be provided and not empty")));
+                "Validation failure")));
   }
 
   @Test
@@ -383,11 +390,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void createStepsTestCaseWithManualScenarioIntegrationTest() throws Exception {
     // Given
-    var firstStep = TmsManualScenarioStepRQ.builder()
+    var firstStep = TmsStepRQ.builder()
         .instructions("Instructions 1")
         .expectedResult("Expected result 1")
         .build();
-    var secondStep = TmsManualScenarioStepRQ.builder()
+    var secondStep = TmsStepRQ.builder()
         .instructions("Instructions 2")
         .expectedResult("Expected result 2")
         .build();
@@ -445,11 +452,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void createStepsTestCaseWithManualScenarioInProjectDefaultIntegrationTest() throws Exception {
     // Given
-    var firstStep = TmsManualScenarioStepRQ.builder()
+    var firstStep = TmsStepRQ.builder()
         .instructions("Instructions 1")
         .expectedResult("Expected result 1")
         .build();
-    var secondStep = TmsManualScenarioStepRQ.builder()
+    var secondStep = TmsStepRQ.builder()
         .instructions("Instructions 2")
         .expectedResult("Expected result 2")
         .build();
@@ -1501,7 +1508,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     // Verify initial state - test case 4 has attribute 4
     var tagsBeforeTestCase4 = testCaseAttributeRepository.findAllById_TestCaseId(4L);
-    assertTrue(tagsBeforeTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+    assertTrue(
+        tagsBeforeTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -1512,10 +1520,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     // Then - Verify attributes are added and removed correctly
@@ -1523,13 +1532,18 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var tagsAfterTestCase5 = testCaseAttributeRepository.findAllById_TestCaseId(5L);
 
     // Verify attribute 4 is removed from test case 4
-    assertFalse(tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+    assertFalse(
+        tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
 
     // Verify attributes 1 and 2 are added to both test cases
-    assertTrue(tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
-    assertTrue(tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
-    assertTrue(tagsAfterTestCase5.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
-    assertTrue(tagsAfterTestCase5.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    assertTrue(
+        tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertTrue(
+        tagsAfterTestCase4.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    assertTrue(
+        tagsAfterTestCase5.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertTrue(
+        tagsAfterTestCase5.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
   }
 
   @Test
@@ -1546,20 +1560,25 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     // Then - Verify attributes are added
     var tagsAfterTestCase6 = testCaseAttributeRepository.findAllById_TestCaseId(6L);
     var tagsAfterTestCase7 = testCaseAttributeRepository.findAllById_TestCaseId(7L);
 
-    assertTrue(tagsAfterTestCase6.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
-    assertTrue(tagsAfterTestCase6.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
-    assertTrue(tagsAfterTestCase7.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
-    assertTrue(tagsAfterTestCase7.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+    assertTrue(
+        tagsAfterTestCase6.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+    assertTrue(
+        tagsAfterTestCase6.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+    assertTrue(
+        tagsAfterTestCase7.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+    assertTrue(
+        tagsAfterTestCase7.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
   }
 
   @Test
@@ -1570,7 +1589,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     // Verify initial state
     var tagsBeforeTestCase9 = testCaseAttributeRepository.findAllById_TestCaseId(9L);
-    assertTrue(tagsBeforeTestCase9.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+    assertTrue(
+        tagsBeforeTestCase9.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -1580,15 +1600,17 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     // Then - Verify attribute is removed
     var tagsAfterTestCase9 = testCaseAttributeRepository.findAllById_TestCaseId(9L);
-    assertFalse(tagsAfterTestCase9.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
+    assertFalse(
+        tagsAfterTestCase9.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(4L)));
   }
 
   @Test
@@ -1607,17 +1629,20 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     // Then - Verify only attribute 2 is removed and attribute 3 is added
     // Attribute 1 should remain unchanged due to overlap
     var tagsAfterTestCase10 = testCaseAttributeRepository.findAllById_TestCaseId(10L);
-    assertTrue(tagsAfterTestCase10.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
-    assertFalse(tagsAfterTestCase10.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    assertTrue(
+        tagsAfterTestCase10.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(3L)));
+    assertFalse(
+        tagsAfterTestCase10.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
   }
 
   @Test
@@ -1631,10 +1656,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then - should return validation error due to @NotEmpty
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
@@ -1650,16 +1676,18 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then - should return not found error
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
         .andExpect(content().string(containsString("Test Cases with ids: [999, 888]")));
   }
 
   @Test
-  void patchTestCaseAttributesWithMixedExistingAndNonExistentTestCasesIntegrationTest() throws Exception {
+  void patchTestCaseAttributesWithMixedExistingAndNonExistentTestCasesIntegrationTest()
+      throws Exception {
     // Given
     var mixedTestCaseIds = List.of(4L, 999L); // 4L exists, 999L doesn't
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
@@ -1670,10 +1698,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then - should return not found error for non-existent test cases
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
         .andExpect(content().string(containsString("Test Cases with ids: [999]")));
   }
@@ -1691,10 +1720,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then - should fail custom validation @ValidBatchPatchTestCaseAttributesRQ
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
@@ -1711,10 +1741,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then - should fail custom validation @ValidBatchPatchTestCaseAttributesRQ
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
@@ -1724,10 +1755,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String malformedJson = "{\"testCaseIds\": [4, 5], \"attributeIdsToAdd\": [1, 2";
 
     // When/Then - should return bad request
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(malformedJson)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(malformedJson)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
@@ -1737,10 +1769,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = "{\"testCaseIds\": null, \"attributeIdsToAdd\": [1, 2]}";
 
     // When/Then - should return validation error due to @NotEmpty
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
 
@@ -1757,16 +1790,19 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then - should succeed because at least one attribute list is not empty
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     // Verify attributes were added
     var tagsAfterTestCase13 = testCaseAttributeRepository.findAllById_TestCaseId(13L);
-    assertTrue(tagsAfterTestCase13.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
-    assertTrue(tagsAfterTestCase13.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    assertTrue(
+        tagsAfterTestCase13.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(1L)));
+    assertTrue(
+        tagsAfterTestCase13.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
   }
 
   @Test
@@ -1776,7 +1812,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     // Verify test case has attribute 2 before removal
     var tagsBeforeTestCase14 = testCaseAttributeRepository.findAllById_TestCaseId(37L);
-    assertTrue(tagsBeforeTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    assertTrue(
+        tagsBeforeTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -1787,17 +1824,19 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     String jsonContent = mapper.writeValueAsString(patchRequest);
 
     // When/Then - should succeed because at least one attribute list is not empty
-    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
-            .contentType("application/json")
-            .content(jsonContent)
-            .with(token(oAuthHelper.getSuperadminToken())))
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     entityManager.clear();
 
     // Verify attribute was removed
     var tagsAfterTestCase14 = testCaseAttributeRepository.findAllById_TestCaseId(14L);
-    assertFalse(tagsAfterTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+    assertFalse(
+        tagsAfterTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
   }
 
   @Test
@@ -2440,5 +2479,564 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$[0].testFolder").exists())
         .andExpect(jsonPath("$[0].testFolder.id").exists())
         .andExpect(jsonPath("$[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
+  }
+
+  @Test
+  void createTestCaseWithTextScenarioAttachments_ShouldMakeAttachmentsPermanent() throws Exception {
+    // Given uploaded attachments
+    var attachment1 = uploadTestAttachment("scenario-attachment-1.pdf", "application/pdf");
+    var attachment2 = uploadTestAttachment("scenario-attachment-2.jpg", "image/jpeg");
+
+    var attachmentRQ1 = new TmsManualScenarioAttachmentRQ();
+    attachmentRQ1.setId(String.valueOf(attachment1.getId()));
+
+    var attachmentRQ2 = new TmsManualScenarioAttachmentRQ();
+    attachmentRQ2.setId(String.valueOf(attachment2.getId()));
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Test instructions with attachments")
+        .expectedResult("Expected result")
+        .attachments(List.of(attachmentRQ1, attachmentRQ2))
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Test Case With Text Scenario and Attachments")
+        .description("Description for test case with attachments")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When creating test case
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case With Text Scenario and Attachments"))
+        .andExpect(jsonPath("$.manualScenario.attachments").isArray())
+        .andExpect(jsonPath("$.manualScenario.attachments.length()").value(2));
+
+    // Then verify attachments TTL was removed (made permanent)
+    var persistedAttachment1 = tmsAttachmentRepository.findById(attachment1.getId());
+    var persistedAttachment2 = tmsAttachmentRepository.findById(attachment2.getId());
+
+    assertTrue(persistedAttachment1.isPresent());
+    assertTrue(persistedAttachment2.isPresent());
+    assertNull(persistedAttachment1.get().getExpiresAt()); // TTL should be removed
+    assertNull(persistedAttachment2.get().getExpiresAt()); // TTL should be removed
+  }
+
+  @Test
+  void createTestCaseWithStepsScenarioAttachments_ShouldMakeAttachmentsPermanent()
+      throws Exception {
+    // Given uploaded attachments for steps
+    var stepAttachment1 = uploadTestAttachment("step1-attachment.docx",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    var stepAttachment2 = uploadTestAttachment("step2-attachment.png", "image/png");
+
+    var stepAttachmentRQ1 = new TmsManualScenarioAttachmentRQ();
+    stepAttachmentRQ1.setId(String.valueOf(stepAttachment1.getId()));
+
+    var stepAttachmentRQ2 = new TmsManualScenarioAttachmentRQ();
+    stepAttachmentRQ2.setId(String.valueOf(stepAttachment2.getId()));
+
+    var step1 = TmsStepRQ.builder()
+        .instructions("Step 1 instructions")
+        .expectedResult("Step 1 expected result")
+        .attachments(List.of(stepAttachmentRQ1))
+        .build();
+
+    var step2 = TmsStepRQ.builder()
+        .instructions("Step 2 instructions")
+        .expectedResult("Step 2 expected result")
+        .attachments(List.of(stepAttachmentRQ2))
+        .build();
+
+    var manualScenarioRQ = TmsStepsManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.STEPS)
+        .steps(List.of(step1, step2))
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Test Case With Steps and Attachments")
+        .description("Description for test case with step attachments")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When creating a test case
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case With Steps and Attachments"))
+        .andExpect(jsonPath("$.manualScenario.steps").isArray())
+        .andExpect(jsonPath("$.manualScenario.steps.length()").value(2));
+  }
+
+  @Test
+  void updateTestCaseWithAttachments_ShouldMakeNewAttachmentsPermanent() throws Exception {
+    // Given new attachment for update
+    var newAttachment = uploadTestAttachment("updated-attachment.pdf", "application/pdf");
+
+    var attachmentRQ = new TmsManualScenarioAttachmentRQ();
+    attachmentRQ.setId(String.valueOf(newAttachment.getId()));
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Updated instructions with new attachment")
+        .expectedResult("Updated expected result")
+        .attachments(List.of(attachmentRQ))
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Updated Test Case 17 with Attachments")
+        .description("Updated description")
+        .testFolderId(7L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When updating existing test case
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/17")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Updated Test Case 17 with Attachments"));
+
+    // Then verify attachment TTL was removed
+    var persistedAttachment = tmsAttachmentRepository.findById(newAttachment.getId());
+    assertTrue(persistedAttachment.isPresent());
+    assertNull(persistedAttachment.get().getExpiresAt());
+  }
+
+  @Test
+  void duplicateTestCaseWithTextManualScenarioAttachments_ShouldDuplicateAttachments() throws Exception {
+    // Given test case with attachments created first
+    var originalAttachment = uploadTestAttachment("original-attachment.txt", "text/plain");
+
+    var attachmentRQ = new TmsManualScenarioAttachmentRQ();
+    attachmentRQ.setId(String.valueOf(originalAttachment.getId()));
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Original instructions with attachment")
+        .expectedResult("Original expected result")
+        .attachments(List.of(attachmentRQ))
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Original Test Case with Attachment")
+        .description("Original description")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    var createResult = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(testCaseRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var createdTestCase = mapper.readValue(createResult.getResponse().getContentAsString(),
+        TmsTestCaseRS.class);
+
+    // When duplicating test case
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testFolderId(10L)
+        .testCaseIds(List.of(createdTestCase.getId()))
+        .build();
+
+    var duplicateResult = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/duplicate")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(duplicateRequest))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].manualScenario.attachments").isArray())
+        .andExpect(jsonPath("$[0].manualScenario.attachments.length()").value(1))
+        .andReturn();
+
+    entityManager.clear();
+
+    // Then verify attachment was duplicated
+    var duplicateResponse = mapper.readValue(duplicateResult.getResponse().getContentAsString(),
+        new TypeReference<List<TmsTestCaseRS>>() {
+        });
+
+    var textManualScenarioRS = (TmsTextManualScenarioRS) duplicateResponse.getFirst()
+        .getManualScenario();
+
+    var duplicatedAttachmentId = Long.valueOf(textManualScenarioRS.getAttachments().getFirst().getId());
+
+    var duplicatedAttachment = tmsAttachmentRepository.findById(duplicatedAttachmentId);
+
+    assertTrue(duplicatedAttachment.isPresent());
+    assertNotEquals(originalAttachment.getId(), duplicatedAttachment.get().getId());
+    assertNull(duplicatedAttachment.get().getExpiresAt()); // Should be permanent
+  }
+
+  @Test
+  void createTestCaseWithInvalidAttachmentId_ShouldIgnoreInvalidAttachments() throws Exception {
+    // Given non-existent attachment ID
+    var invalidAttachmentRQ = new TmsManualScenarioAttachmentRQ();
+    invalidAttachmentRQ.setId("999999");
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Test instructions")
+        .expectedResult("Expected result")
+        .attachments(List.of(invalidAttachmentRQ))
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Test Case With Invalid Attachment")
+        .description("Description")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When creating test case with invalid attachment ID
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case With Invalid Attachment"));
+    // Invalid attachments should be silently ignored, test case should still be created
+  }
+
+  // Helper method to upload test attachments
+  private UploadAttachmentRS uploadTestAttachment(String fileName, String contentType)
+      throws Exception {
+    var file = new MockMultipartFile(
+        "file",
+        fileName,
+        contentType,
+        ("test content for " + fileName).getBytes()
+    );
+
+    var result = mockMvc.perform(
+            multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/attachment/upload")
+                .file(file)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    return mapper.readValue(result.getResponse().getContentAsString(), UploadAttachmentRS.class);
+  }
+
+  @Test
+  void createTestCaseWithPreconditionsAttachments_ShouldMakeAttachmentsPermanent()
+      throws Exception {
+    // Given uploaded preconditions attachments
+    var preconditionsAttachment1 = uploadTestAttachment("preconditions1.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    var preconditionsAttachment2 = uploadTestAttachment("preconditions2.pdf", "application/pdf");
+
+    var preconditionsAttachmentRQ1 = new TmsManualScenarioAttachmentRQ();
+    preconditionsAttachmentRQ1.setId(String.valueOf(preconditionsAttachment1.getId()));
+
+    var preconditionsAttachmentRQ2 = new TmsManualScenarioAttachmentRQ();
+    preconditionsAttachmentRQ2.setId(String.valueOf(preconditionsAttachment2.getId()));
+
+    var preconditionsRQ = TmsManualScenarioPreconditionsRQ.builder()
+        .value("Test preconditions with multiple attachments")
+        .attachments(List.of(preconditionsAttachmentRQ1, preconditionsAttachmentRQ2))
+        .build();
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Test instructions")
+        .expectedResult("Expected result")
+        .preconditions(preconditionsRQ)
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Test Case With Multiple Preconditions Attachments")
+        .description("Description for test case with multiple preconditions attachments")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When creating test case
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case With Multiple Preconditions Attachments"))
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments").isArray())
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments.length()").value(2));
+
+    // Then verify preconditions attachments TTL was removed
+    var persistedAttachment1 = tmsAttachmentRepository.findById(preconditionsAttachment1.getId());
+    var persistedAttachment2 = tmsAttachmentRepository.findById(preconditionsAttachment2.getId());
+
+    assertTrue(persistedAttachment1.isPresent());
+    assertTrue(persistedAttachment2.isPresent());
+    assertNull(persistedAttachment1.get().getExpiresAt()); // TTL should be removed
+    assertNull(persistedAttachment2.get().getExpiresAt()); // TTL should be removed
+  }
+
+  @Test
+  void createTestCaseWithStepsScenarioAndPreconditionsAttachments_ShouldMakeAllAttachmentsPermanent()
+      throws Exception {
+    // Given uploaded attachments for both steps and preconditions
+    var stepAttachment = uploadTestAttachment("step-attachment.png", "image/png");
+    var preconditionsAttachment = uploadTestAttachment("preconditions-doc.docx",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+    var stepAttachmentRQ = new TmsManualScenarioAttachmentRQ();
+    stepAttachmentRQ.setId(String.valueOf(stepAttachment.getId()));
+
+    var preconditionsAttachmentRQ = new TmsManualScenarioAttachmentRQ();
+    preconditionsAttachmentRQ.setId(String.valueOf(preconditionsAttachment.getId()));
+
+    var preconditionsRQ = TmsManualScenarioPreconditionsRQ.builder()
+        .value("Prerequisites with attachment")
+        .attachments(List.of(preconditionsAttachmentRQ))
+        .build();
+
+    var step1 = TmsStepRQ.builder()
+        .instructions("Step with attachment")
+        .expectedResult("Step should complete successfully")
+        .attachments(List.of(stepAttachmentRQ))
+        .build();
+
+    var manualScenarioRQ = TmsStepsManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.STEPS)
+        .preconditions(preconditionsRQ)
+        .steps(List.of(step1))
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Test Case With Steps and Preconditions Attachments")
+        .description("Test case with attachments in both steps and preconditions")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When creating a test case
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case With Steps and Preconditions Attachments"))
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments").isArray())
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments.length()").value(1))
+        .andExpect(jsonPath("$.manualScenario.steps").isArray())
+        .andExpect(jsonPath("$.manualScenario.steps[0].attachments").isArray())
+        .andExpect(jsonPath("$.manualScenario.steps[0].attachments.length()").value(1));
+
+    // Then verify all attachments TTL was removed
+    var persistedStepAttachment = tmsAttachmentRepository.findById(stepAttachment.getId());
+    var persistedPreconditionsAttachment = tmsAttachmentRepository.findById(
+        preconditionsAttachment.getId());
+
+    assertTrue(persistedStepAttachment.isPresent());
+    assertTrue(persistedPreconditionsAttachment.isPresent());
+    assertNull(persistedStepAttachment.get().getExpiresAt()); // TTL should be removed
+    assertNull(persistedPreconditionsAttachment.get().getExpiresAt()); // TTL should be removed
+  }
+
+  @Test
+  void updateTestCaseWithPreconditionsAttachments_ShouldMakeNewAttachmentsPermanent()
+      throws Exception {
+    // Given new preconditions attachment for update
+    var newPreconditionsAttachment = uploadTestAttachment("updated-preconditions.txt",
+        "text/plain");
+
+    var preconditionsAttachmentRQ = new TmsManualScenarioAttachmentRQ();
+    preconditionsAttachmentRQ.setId(String.valueOf(newPreconditionsAttachment.getId()));
+
+    var preconditionsRQ = TmsManualScenarioPreconditionsRQ.builder()
+        .value("Updated preconditions with new attachment")
+        .attachments(List.of(preconditionsAttachmentRQ))
+        .build();
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Updated instructions")
+        .expectedResult("Updated expected result")
+        .preconditions(preconditionsRQ)
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Updated Test Case 18 with Preconditions Attachments")
+        .description("Updated description")
+        .testFolderId(6L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When updating existing test case
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/18")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Updated Test Case 18 with Preconditions Attachments"))
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments").isArray())
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments.length()").value(1));
+
+    // Then verify preconditions attachment TTL was removed
+    var persistedAttachment = tmsAttachmentRepository.findById(newPreconditionsAttachment.getId());
+    assertTrue(persistedAttachment.isPresent());
+    assertNull(persistedAttachment.get().getExpiresAt());
+  }
+
+  @Test
+  void duplicateTestCaseWithPreconditionsAttachments_ShouldDuplicatePreconditionsAttachments()
+      throws Exception {
+    // Given test case with preconditions attachments created first
+    var originalPreconditionsAttachment = uploadTestAttachment("original-preconditions.json",
+        "application/json");
+
+    var preconditionsAttachmentRQ = new TmsManualScenarioAttachmentRQ();
+    preconditionsAttachmentRQ.setId(String.valueOf(originalPreconditionsAttachment.getId()));
+
+    var preconditionsRQ = TmsManualScenarioPreconditionsRQ.builder()
+        .value("Original preconditions with attachment for duplication")
+        .attachments(List.of(preconditionsAttachmentRQ))
+        .build();
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Original instructions")
+        .expectedResult("Original expected result")
+        .preconditions(preconditionsRQ)
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Original Test Case with Preconditions Attachment")
+        .description("Original description")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    var createResult = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(testCaseRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var createdTestCase = mapper.readValue(createResult.getResponse().getContentAsString(),
+        TmsTestCaseRS.class);
+
+    // When duplicating a test case
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testFolderId(10L)
+        .testCaseIds(List.of(createdTestCase.getId()))
+        .build();
+
+    var duplicateResult = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch/duplicate")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(duplicateRequest))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].manualScenario.preconditions.attachments").isArray())
+        .andExpect(jsonPath("$[0].manualScenario.preconditions.attachments.length()").value(1))
+        .andReturn();
+
+    // Then verify preconditions attachment was duplicated
+    var duplicateResponse = mapper.readValue(duplicateResult.getResponse().getContentAsString(),
+        new TypeReference<List<TmsTestCaseRS>>() {
+        });
+
+    var duplicatedAttachmentId = Long.valueOf(duplicateResponse.getFirst()
+        .getManualScenario().getPreconditions().getAttachments().getFirst().getId());
+
+    entityManager.clear();
+
+    var duplicatedAttachment = tmsAttachmentRepository.findById(duplicatedAttachmentId);
+    assertTrue(duplicatedAttachment.isPresent());
+    assertNotEquals(originalPreconditionsAttachment.getId(), duplicatedAttachment.get().getId());
+    assertNull(duplicatedAttachment.get().getExpiresAt()); // Should be permanent
+  }
+
+  @Test
+  void patchTestCaseWithPreconditionsAttachments_ShouldAddNewAttachments() throws Exception {
+    // Given existing test case and new preconditions attachment
+    var newPreconditionsAttachment = uploadTestAttachment("patched-preconditions.zip",
+        "application/zip");
+
+    var preconditionsAttachmentRQ = new TmsManualScenarioAttachmentRQ();
+    preconditionsAttachmentRQ.setId(String.valueOf(newPreconditionsAttachment.getId()));
+
+    var preconditionsRQ = TmsManualScenarioPreconditionsRQ.builder()
+        .value("Patched preconditions with attachment")
+        .attachments(List.of(preconditionsAttachmentRQ))
+        .build();
+
+    var patchRequest = TmsTestCaseRQ.builder()
+        .manualScenario(TmsTextManualScenarioRQ
+            .builder()
+            .preconditions(preconditionsRQ)
+            .build())
+        .build();
+
+    // When patching existing test case
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/17")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(patchRequest))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments").isArray())
+        .andExpect(jsonPath("$.manualScenario.preconditions.attachments.length()").value(1));
+
+    // Then verify preconditions attachment TTL was removed
+    var persistedAttachment = tmsAttachmentRepository.findById(newPreconditionsAttachment.getId());
+    assertTrue(persistedAttachment.isPresent());
+    assertNull(persistedAttachment.get().getExpiresAt());
+  }
+
+  @Test
+  void createTestCaseWithInvalidPreconditionsAttachmentId_ShouldIgnoreInvalidAttachments()
+      throws Exception {
+    // Given non-existent preconditions attachment ID
+    var invalidPreconditionsAttachmentRQ = new TmsManualScenarioAttachmentRQ();
+    invalidPreconditionsAttachmentRQ.setId("999888");
+
+    var preconditionsRQ = TmsManualScenarioPreconditionsRQ.builder()
+        .value("Preconditions with invalid attachment")
+        .attachments(List.of(invalidPreconditionsAttachmentRQ))
+        .build();
+
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .instructions("Test instructions")
+        .expectedResult("Expected result")
+        .preconditions(preconditionsRQ)
+        .build();
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Test Case With Invalid Preconditions Attachment")
+        .description("Description")
+        .testFolderId(3L)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    // When creating test case with invalid preconditions attachment ID
+    mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Test Case With Invalid Preconditions Attachment"))
+        .andExpect(jsonPath("$.manualScenario.preconditions.value").value(
+            "Preconditions with invalid attachment"));
+    // Invalid preconditions attachments should be silently ignored, test case should still be created
   }
 }

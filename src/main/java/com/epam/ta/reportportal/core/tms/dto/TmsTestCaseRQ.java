@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.core.tms.dto;
 
-import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdentifier;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -13,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Valid
-@ValidTestFolderIdentifier
 public class TmsTestCaseRQ {
 
   private String name;

@@ -30,7 +30,4 @@ public interface TmsStepsManualScenarioMapper {
   @Mapping(target = "attributes", source = "attributes")
   @Mapping(target = "steps", source = "stepsScenario.steps")
   TmsStepsManualScenarioRS convert(TmsManualScenario tmsManualScenario);
-
-  @Mapping(target = "value", source = "value")
-  TmsManualScenarioPreconditionsRS convertToTmsManualScenarioPreconditionsRS(String value);
 }

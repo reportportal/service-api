@@ -135,6 +135,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     List<ResourceUpdater<TestItemResource>> resourceUpdaters =
         getResourceUpdaters(projectDetails.getProjectId(), Collections.singletonList(testItem));
     TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(testItem);
+    testItemResource.setHasNestedSteps(testItemRepository.hasNestedSteps(testItem.getItemId()));
     resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
     return testItemResource;
   }

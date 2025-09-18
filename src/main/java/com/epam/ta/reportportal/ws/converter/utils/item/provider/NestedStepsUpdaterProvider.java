@@ -53,6 +53,7 @@ public class NestedStepsUpdaterProvider
    * @param updaterContent The content containing test items to update.
    * @return A {@code ResourceUpdater} tailored to handle nested step mappings.
    */
+  @Override
   public ResourceUpdater<TestItemResource> retrieve(TestItemUpdaterContent updaterContent) {
     var itemIds = updaterContent.getTestItems().stream()
         .map(TestItem::getItemId)

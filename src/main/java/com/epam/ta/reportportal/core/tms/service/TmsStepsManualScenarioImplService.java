@@ -39,13 +39,14 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var tmsStepsManualScenario = tmsStepsManualScenarioMapper.createTmsStepsManualScenario();
 
-    tmsStepService.createSteps(tmsStepsManualScenario,
-        (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
-
-    tmsManualScenario.setStepsScenario(tmsStepsManualScenario);
     tmsStepsManualScenario.setManualScenario(tmsManualScenario);
 
-    tmsStepsManualScenarioRepository.save(tmsStepsManualScenario);
+    tmsStepsManualScenario = tmsStepsManualScenarioRepository.save(tmsStepsManualScenario);
+
+    tmsManualScenario.setStepsScenario(tmsStepsManualScenario);
+
+    tmsStepService.createSteps(tmsStepsManualScenario,
+        (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
   }
 
   @Override

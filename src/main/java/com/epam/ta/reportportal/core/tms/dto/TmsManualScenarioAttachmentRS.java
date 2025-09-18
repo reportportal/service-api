@@ -24,4 +24,10 @@ public class TmsManualScenarioAttachmentRS {
    */
   @NotBlank(message = "Attachment ID must not be blank")
   private String id;
+
+  private String fileName;
+
+  private String fileType;
+
+  private long fileSize;
 }

@@ -36,14 +36,15 @@ public abstract class TmsManualScenarioMapper implements DtoMapper<TmsManualScen
 
   @Mapping(target = "executionEstimationTime", source = "executionEstimationTime")
   @Mapping(target = "linkToRequirements", source = "linkToRequirements")
-  @Mapping(target = "preconditions", source = "preconditions.value")
   @Mapping(target = "type", source = "manualScenarioType")
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "preconditions", ignore = true)
   public abstract TmsManualScenario createTmsManualScenario(TmsManualScenarioRQ manualScenarioRQ);
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "testCaseVersion", ignore = true)
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "preconditions", ignore = true)
   @Mapping(target = "textScenario", ignore = true)
   @Mapping(target = "stepsScenario", ignore = true)
   @BeanMapping(nullValuePropertyMappingStrategy =
@@ -55,6 +56,7 @@ public abstract class TmsManualScenarioMapper implements DtoMapper<TmsManualScen
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "testCaseVersion", ignore = true)
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "preconditions", ignore = true)
   @Mapping(target = "textScenario", ignore = true)
   @Mapping(target = "stepsScenario", ignore = true)
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -65,9 +67,9 @@ public abstract class TmsManualScenarioMapper implements DtoMapper<TmsManualScen
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "textScenario", ignore = true)
   @Mapping(target = "stepsScenario", ignore = true)
+  @Mapping(target = "preconditions", ignore = true)
   @Mapping(target = "executionEstimationTime", source = "originalScenario.executionEstimationTime")
   @Mapping(target = "linkToRequirements", source = "originalScenario.linkToRequirements")
-  @Mapping(target = "preconditions", source = "originalScenario.preconditions")
   @Mapping(target = "type", source = "originalScenario.type")
   @Mapping(target = "testCaseVersion", source = "newVersion")
   public abstract TmsManualScenario duplicateManualScenario(TmsManualScenario originalScenario,

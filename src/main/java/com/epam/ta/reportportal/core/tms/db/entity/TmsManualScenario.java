@@ -44,8 +44,8 @@ public class TmsManualScenario {
   @Column(name = "link_to_requirements")
   private String linkToRequirements;
 
-  @Column(name = "preconditions")
-  private String preconditions;
+  @OneToOne(mappedBy = "manualScenario")
+  private TmsManualScenarioPreconditions preconditions;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type")

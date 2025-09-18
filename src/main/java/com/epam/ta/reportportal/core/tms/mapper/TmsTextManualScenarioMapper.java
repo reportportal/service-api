@@ -51,10 +51,8 @@ public interface TmsTextManualScenarioMapper {
   @Mapping(target = "attributes", source = "attributes")
   @Mapping(target = "instructions", source = "textScenario.instructions")
   @Mapping(target = "expectedResult", source = "textScenario.expectedResult")
+  @Mapping(target = "attachments", source = "textScenario.attachments")
   TmsTextManualScenarioRS convert(TmsManualScenario tmsManualScenario);
-
-  @Mapping(target = "value", source = "value")
-  TmsManualScenarioPreconditionsRS convertToTmsManualScenarioPreconditionsRS(String value);
 
   @Mapping(target = "manualScenarioId", ignore = true)
   @Mapping(target = "attachments", ignore = true)

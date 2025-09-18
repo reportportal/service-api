@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioStepRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
@@ -389,7 +389,7 @@ public class TmsTestCaseControllerTest {
         .manualScenarioType(TmsManualScenarioType.STEPS)
         .executionEstimationTime(30)
         .steps(List.of(
-            TmsManualScenarioStepRQ.builder()
+            TmsStepRQ.builder()
                 .instructions("Step 1: Navigate to login page")
                 .expectedResult("Login page should be displayed")
                 .attachments(List.of(
@@ -398,7 +398,7 @@ public class TmsTestCaseControllerTest {
                         .build()
                 ))
                 .build(),
-            TmsManualScenarioStepRQ.builder()
+            TmsStepRQ.builder()
                 .instructions("Step 2: Enter valid credentials")
                 .expectedResult("User should be logged in successfully")
                 .build()

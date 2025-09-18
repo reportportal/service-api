@@ -2,7 +2,6 @@ package com.epam.ta.reportportal.core.tms.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TmsManualScenarioStepRQ {
+public class TmsStepRQ {
 
   /**
    * Instructions for the step.

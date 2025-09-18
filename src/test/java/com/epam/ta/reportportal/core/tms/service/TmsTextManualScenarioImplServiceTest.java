@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTextManualScenario;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsTextManualScenarioRepository;
@@ -16,6 +17,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTextManualScenarioMapper;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +33,9 @@ class TmsTextManualScenarioImplServiceTest {
 
   @Mock
   private TmsTextManualScenarioRepository tmsTextManualScenarioRepository;
+
+  @Mock
+  private TmsTextManualScenarioAttachmentService tmsTextManualScenarioAttachmentService;
 
   @InjectMocks
   private TmsTextManualScenarioImplService textManualScenarioService;
@@ -68,6 +73,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     // Then
     verify(tmsTextManualScenarioMapper).createTmsManualScenario(textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).createAttachments(textManualScenario, textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(textManualScenario);
 
     assertThat(manualScenario.getTextScenario()).isEqualTo(textManualScenario);
@@ -87,8 +93,8 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.updateTmsManualScenarioImpl(manualScenario, textScenarioRQ);
 
     // Then
-    verify(tmsTextManualScenarioMapper).updateTmsManualScenario(existingTextManualScenario,
-        textScenarioRQ);
+    verify(tmsTextManualScenarioMapper).updateTmsManualScenario(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).updateAttachments(existingTextManualScenario, textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
     verify(tmsTextManualScenarioMapper, never()).createTmsManualScenario(any());
   }
@@ -110,6 +116,7 @@ class TmsTextManualScenarioImplServiceTest {
     verify(tmsTextManualScenarioMapper).createTmsManualScenario(textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(textManualScenario);
     verify(tmsTextManualScenarioMapper, never()).updateTmsManualScenario(any(), any());
+    verify(tmsTextManualScenarioAttachmentService, never()).updateAttachments(any(), any());
 
     assertThat(manualScenario.getTextScenario()).isEqualTo(textManualScenario);
     assertThat(textManualScenario.getManualScenario()).isEqualTo(manualScenario);
@@ -128,8 +135,8 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.patchTmsManualScenarioImpl(manualScenario, textScenarioRQ);
 
     // Then
-    verify(tmsTextManualScenarioMapper).patchTmsManualScenario(existingTextManualScenario,
-        textScenarioRQ);
+    verify(tmsTextManualScenarioMapper).patchTmsManualScenario(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).patchAttachments(existingTextManualScenario, textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
   }
 
@@ -144,6 +151,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     assertThat(exception.getMessage()).contains("Text Manual Scenario for Manual Scenario with id");
     verify(tmsTextManualScenarioRepository, never()).save(any());
+    verify(tmsTextManualScenarioAttachmentService, never()).patchAttachments(any(), any());
   }
 
   @Test
@@ -152,6 +160,7 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.deleteAllByTestCaseId(123L);
 
     // Then
+    verify(tmsTextManualScenarioAttachmentService).deleteAllByTestCaseId(123L);
     verify(tmsTextManualScenarioRepository).deleteAllByTestCaseId(123L);
   }
 
@@ -164,6 +173,7 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.deleteAllByTestCaseIds(testCaseIds);
 
     // Then
+    verify(tmsTextManualScenarioAttachmentService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsTextManualScenarioRepository).deleteAllByTestCaseIds(testCaseIds);
   }
 
@@ -173,6 +183,7 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.deleteAllByTestCaseIds(Collections.emptyList());
 
     // Then
+    verify(tmsTextManualScenarioAttachmentService, never()).deleteAllByTestCaseIds(any());
     verify(tmsTextManualScenarioRepository, never()).deleteAllByTestCaseIds(any());
   }
 
@@ -182,6 +193,7 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.deleteAllByTestCaseIds(null);
 
     // Then
+    verify(tmsTextManualScenarioAttachmentService, never()).deleteAllByTestCaseIds(any());
     verify(tmsTextManualScenarioRepository, never()).deleteAllByTestCaseIds(any());
   }
 
@@ -191,14 +203,15 @@ class TmsTextManualScenarioImplServiceTest {
     textManualScenarioService.deleteAllByTestFolderId(1L, 123L);
 
     // Then
+    verify(tmsTextManualScenarioAttachmentService).deleteAllByTestFolderId(1L, 123L);
     verify(tmsTextManualScenarioRepository).deleteAllByTestFolderId(1L, 123L);
   }
 
   @Test
-  void shouldDuplicateManualScenarioImplWhenOriginalHasTextScenario() {
+  void shouldDuplicateManualScenarioImplWhenOriginalHasTextScenarioWithAttachments() {
     // Given
     var originalScenario = createManualScenario();
-    var originalTextScenario = createExistingTextManualScenario();
+    var originalTextScenario = createExistingTextManualScenarioWithAttachments();
     originalScenario.setTextScenario(originalTextScenario);
 
     var newScenario = createManualScenario();
@@ -217,6 +230,36 @@ class TmsTextManualScenarioImplServiceTest {
 
     // Then
     verify(tmsTextManualScenarioMapper).duplicateTextScenario(newScenario, originalTextScenario);
+    verify(tmsTextManualScenarioAttachmentService).duplicateAttachments(originalTextScenario, duplicatedTextScenario);
+    verify(tmsTextManualScenarioRepository).save(duplicatedTextScenario);
+
+    assertThat(newScenario.getTextScenario()).isEqualTo(duplicatedTextScenario);
+  }
+
+  @Test
+  void shouldDuplicateManualScenarioImplWhenOriginalHasTextScenarioWithoutAttachments() {
+    // Given
+    var originalScenario = createManualScenario();
+    var originalTextScenario = createExistingTextManualScenarioWithoutAttachments();
+    originalScenario.setTextScenario(originalTextScenario);
+
+    var newScenario = createManualScenario();
+    newScenario.setId(2L);
+
+    var duplicatedTextScenario = createTextManualScenario();
+    duplicatedTextScenario.setManualScenarioId(2L);
+
+    when(tmsTextManualScenarioMapper.duplicateTextScenario(newScenario, originalTextScenario))
+        .thenReturn(duplicatedTextScenario);
+    when(tmsTextManualScenarioRepository.save(duplicatedTextScenario))
+        .thenReturn(duplicatedTextScenario);
+
+    // When
+    textManualScenarioService.duplicateManualScenarioImpl(newScenario, originalScenario);
+
+    // Then
+    verify(tmsTextManualScenarioMapper).duplicateTextScenario(newScenario, originalTextScenario);
+    verify(tmsTextManualScenarioAttachmentService, never()).duplicateAttachments(any(), any());
     verify(tmsTextManualScenarioRepository).save(duplicatedTextScenario);
 
     assertThat(newScenario.getTextScenario()).isEqualTo(duplicatedTextScenario);
@@ -236,6 +279,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     // Then
     verify(tmsTextManualScenarioMapper, never()).duplicateTextScenario(any(), any());
+    verify(tmsTextManualScenarioAttachmentService, never()).duplicateAttachments(any(), any());
     verify(tmsTextManualScenarioRepository, never()).save(any());
 
     assertThat(newScenario.getTextScenario()).isNull();
@@ -252,6 +296,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     // Then
     verify(tmsTextManualScenarioMapper, never()).duplicateTextScenario(any(), any());
+    verify(tmsTextManualScenarioAttachmentService, never()).duplicateAttachments(any(), any());
     verify(tmsTextManualScenarioRepository, never()).save(any());
 
     assertThat(newScenario.getTextScenario()).isNull();
@@ -261,7 +306,7 @@ class TmsTextManualScenarioImplServiceTest {
   void shouldDuplicateAndMaintainOriginalScenarioIntegrity() {
     // Given
     var originalScenario = createManualScenario();
-    var originalTextScenario = createExistingTextManualScenario();
+    var originalTextScenario = createExistingTextManualScenarioWithAttachments();
     originalTextScenario.setInstructions("Original instructions");
     originalTextScenario.setExpectedResult("Original result");
     originalScenario.setTextScenario(originalTextScenario);
@@ -284,6 +329,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     // Then
     verify(tmsTextManualScenarioMapper).duplicateTextScenario(newScenario, originalTextScenario);
+    verify(tmsTextManualScenarioAttachmentService).duplicateAttachments(originalTextScenario, duplicatedTextScenario);
     verify(tmsTextManualScenarioRepository).save(duplicatedTextScenario);
 
     // Original scenario should remain unchanged
@@ -295,6 +341,36 @@ class TmsTextManualScenarioImplServiceTest {
     assertThat(newScenario.getTextScenario()).isEqualTo(duplicatedTextScenario);
     assertThat(duplicatedTextScenario.getInstructions()).isEqualTo("Duplicated instructions");
     assertThat(duplicatedTextScenario.getExpectedResult()).isEqualTo("Duplicated result");
+  }
+
+  @Test
+  void shouldDuplicateManualScenarioWithNullAttachments() {
+    // Given
+    var originalScenario = createManualScenario();
+    var originalTextScenario = createExistingTextManualScenario();
+    originalTextScenario.setAttachments(null);
+    originalScenario.setTextScenario(originalTextScenario);
+
+    var newScenario = createManualScenario();
+    newScenario.setId(2L);
+
+    var duplicatedTextScenario = createTextManualScenario();
+    duplicatedTextScenario.setManualScenarioId(2L);
+
+    when(tmsTextManualScenarioMapper.duplicateTextScenario(newScenario, originalTextScenario))
+        .thenReturn(duplicatedTextScenario);
+    when(tmsTextManualScenarioRepository.save(duplicatedTextScenario))
+        .thenReturn(duplicatedTextScenario);
+
+    // When
+    textManualScenarioService.duplicateManualScenarioImpl(newScenario, originalScenario);
+
+    // Then
+    verify(tmsTextManualScenarioMapper).duplicateTextScenario(newScenario, originalTextScenario);
+    verify(tmsTextManualScenarioAttachmentService, never()).duplicateAttachments(any(), any());
+    verify(tmsTextManualScenarioRepository).save(duplicatedTextScenario);
+
+    assertThat(newScenario.getTextScenario()).isEqualTo(duplicatedTextScenario);
   }
 
   // Helper methods
@@ -329,5 +405,23 @@ class TmsTextManualScenarioImplServiceTest {
     textScenario.setInstructions("Existing instructions");
     textScenario.setExpectedResult("Existing result");
     return textScenario;
+  }
+
+  private TmsTextManualScenario createExistingTextManualScenarioWithAttachments() {
+    var textScenario = createExistingTextManualScenario();
+    textScenario.setAttachments(Set.of(createAttachment(1L), createAttachment(2L)));
+    return textScenario;
+  }
+
+  private TmsTextManualScenario createExistingTextManualScenarioWithoutAttachments() {
+    var textScenario = createExistingTextManualScenario();
+    textScenario.setAttachments(Collections.emptySet());
+    return textScenario;
+  }
+
+  private TmsAttachment createAttachment(Long id) {
+    var attachment = new TmsAttachment();
+    attachment.setId(id);
+    return attachment;
   }
 }

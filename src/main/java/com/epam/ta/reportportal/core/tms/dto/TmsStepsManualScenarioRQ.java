@@ -1,8 +1,6 @@
 package com.epam.ta.reportportal.core.tms.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,5 +21,5 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TmsStepsManualScenarioRQ extends TmsManualScenarioRQ {
 
-  private List<TmsManualScenarioStepRQ> steps;
+  private List<TmsStepRQ> steps;
 }

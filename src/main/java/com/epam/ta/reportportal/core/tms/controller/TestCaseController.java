@@ -5,11 +5,14 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
+import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdForBatchDuplicateTestCase;
+import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdForPatchTestCase;
+import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -131,7 +134,7 @@ public class TestCaseController {
   )
   @ApiResponse(responseCode = "200", description = "Test case created successfully")
   public TmsTestCaseRS createTestCase(@PathVariable("projectKey") String projectKey,
-      @RequestBody @Valid final TmsTestCaseRQ inputDto,
+      @RequestBody @Valid @ValidTestFolderIdForUpsertTestCase final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.create(
         projectExtractor
@@ -159,7 +162,7 @@ public class TestCaseController {
   @ApiResponse(responseCode = "200", description = "Test case updated successfully")
   public TmsTestCaseRS updateTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
-      @RequestBody @Valid final TmsTestCaseRQ inputDto,
+      @RequestBody @Valid @ValidTestFolderIdForUpsertTestCase final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.update(
         projectExtractor
@@ -187,7 +190,7 @@ public class TestCaseController {
   @ApiResponse(responseCode = "200", description = "Test case patched successfully")
   public TmsTestCaseRS patchTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
-      @RequestBody @Valid final TmsTestCaseRQ inputDto,
+      @RequestBody @Valid @ValidTestFolderIdForPatchTestCase final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.patch(
         projectExtractor
@@ -365,7 +368,7 @@ public class TestCaseController {
   /**
    * Patch specific attributes from multiple test cases.
    *
-   * @param projectKey    The key of the project.
+   * @param projectKey   The key of the project.
    * @param patchRequest Request containing test case IDs and attribute IDs to be patched.
    */
   @PatchMapping("/attributes/batch")

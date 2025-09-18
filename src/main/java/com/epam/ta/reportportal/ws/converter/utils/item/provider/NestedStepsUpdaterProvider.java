@@ -28,7 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Service to provide a {@link ResourceUpdater} for test items that checks and maps whether they have nested steps.
+ * Service to provide a {@link ResourceUpdater} for test items that checks and maps whether they
+ * have nested steps.
  */
 @Service
 public class NestedStepsUpdaterProvider
@@ -39,7 +40,8 @@ public class NestedStepsUpdaterProvider
   /**
    * Constructs the {@code NestedStepsUpdaterProvider}.
    *
-   * @param testItemRepository The repository used for fetching test item data related to nested steps.
+   * @param testItemRepository The repository used for fetching test item data related to nested
+   *                           steps.
    */
   @Autowired
   public NestedStepsUpdaterProvider(TestItemRepository testItemRepository) {
@@ -47,8 +49,8 @@ public class NestedStepsUpdaterProvider
   }
 
   /**
-   * Retrieves and constructs a {@code ResourceUpdater} for working with test items, mapping each item's ID to a flag
-   * indicating whether it has nested steps.
+   * Retrieves and constructs a {@code ResourceUpdater} for working with test items, mapping each
+   * item's ID to a flag indicating whether it has nested steps.
    *
    * @param updaterContent The content containing test items to update.
    * @return A {@code ResourceUpdater} tailored to handle nested step mappings.

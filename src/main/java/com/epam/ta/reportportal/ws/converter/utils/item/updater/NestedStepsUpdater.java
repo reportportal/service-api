@@ -20,6 +20,10 @@ import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.util.Map;
 
+/**
+ * Updates a {@link TestItemResource} by setting whether the associated test item has nested steps.
+ *
+ */
 public class NestedStepsUpdater implements ResourceUpdater<TestItemResource> {
 
   private final Map<Long, Boolean> hasNestedStepsMapping;
@@ -28,15 +32,26 @@ public class NestedStepsUpdater implements ResourceUpdater<TestItemResource> {
     this.hasNestedStepsMapping = hasNestedStepsMapping;
   }
 
-  @Override
-  public void updateResource(TestItemResource resource) {
-    Boolean value = hasNestedStepsMapping.get(resource.getItemId());
-    if (value != null) {
-      resource.setHasNestedSteps(value);
-    }
-  }
-
+  /**
+   * Factory method to create a {@code NestedStepsUpdater} instance.
+   *
+   * @param mapping A mapping of test item IDs to boolean values indicating nested step status.
+   * @return An instance of {@code NestedStepsUpdater}.
+   */
   public static NestedStepsUpdater of(Map<Long, Boolean> mapping) {
     return new NestedStepsUpdater(mapping);
+  }
+
+  /**
+   * Updates the {@code TestItemResource} by setting its {@code hasNestedSteps} property using the predefined mapping.
+   *
+   * @param resource The resource to be updated.
+   */
+  @Override
+  public void updateResource(TestItemResource resource) {
+    Boolean hasNestedSteps = hasNestedStepsMapping.get(resource.getItemId());
+    if (hasNestedSteps != null) {
+      resource.setHasNestedSteps(hasNestedSteps);
+    }
   }
 }

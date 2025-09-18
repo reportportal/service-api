@@ -43,7 +43,8 @@ public class NestedStepsUpdater implements ResourceUpdater<TestItemResource> {
   }
 
   /**
-   * Updates the {@code TestItemResource} by setting its {@code hasNestedSteps} property using the predefined mapping.
+   * Updates the {@code TestItemResource} by setting its {@code hasNestedSteps} property using the
+   * predefined mapping.
    *
    * @param resource The resource to be updated.
    */

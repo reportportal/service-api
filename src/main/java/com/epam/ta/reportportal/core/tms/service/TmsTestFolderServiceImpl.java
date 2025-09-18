@@ -18,7 +18,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ.ParentTmsTestFolder
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestFolderExporterFactory;
-import com.epam.ta.reportportal.core.tms.validation.TestFolderIdentifierValidator;
+import com.epam.ta.reportportal.core.tms.validation.TestFolderIdValidator;
 import com.epam.ta.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ValidationException;
@@ -55,7 +55,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   private final TmsTestFolderMapper tmsTestFolderMapper;
   private final TmsTestFolderRepository tmsTestFolderRepository;
   private final TmsTestFolderExporterFactory tmsTestFolderExporterFactory;
-  private final TestFolderIdentifierValidator testFolderIdentifierValidator;
+  private final TestFolderIdValidator testFolderIdValidator;
 
   private TmsTestCaseService tmsTestCaseService;
 
@@ -309,7 +309,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       TmsTestCaseRQ testCaseRequest,
       Long testFolderId,
       String testFolderName) {
-    testFolderIdentifierValidator.validate(testFolderId, testFolderName);
+    testFolderIdValidator.validate(testFolderId, testFolderName);
     if (Objects.nonNull(testCaseRequest)) {
       if (Objects.nonNull(testFolderId)) {
         testCaseRequest.setTestFolderId(testFolderId);

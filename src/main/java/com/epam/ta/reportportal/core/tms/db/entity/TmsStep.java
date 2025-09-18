@@ -11,7 +11,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Set;
@@ -20,8 +19,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_step", schema = "public")
@@ -46,8 +43,12 @@ public class TmsStep implements Serializable {
   @JoinColumn(name = "steps_manual_scenario_id")
   private TmsStepsManualScenario stepsManualScenario;
 
-  @OneToMany(mappedBy = "step")
-  @Fetch(FetchMode.SUBSELECT)
+  @ManyToMany
+  @JoinTable(
+      name = "tms_step_attachment",
+      joinColumns = @JoinColumn(name = "step_id"),
+      inverseJoinColumns = @JoinColumn(name = "attachment_id"))
+  @ToString.Exclude
   private Set<TmsAttachment> attachments;
 
   @ManyToMany

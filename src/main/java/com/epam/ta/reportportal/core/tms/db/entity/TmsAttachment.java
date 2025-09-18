@@ -1,19 +1,28 @@
 package com.epam.ta.reportportal.core.tms.db.entity;
 
+import com.epam.ta.reportportal.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "tms_attachment", schema = "public")
@@ -21,6 +30,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class TmsAttachment implements Serializable {
 
   @Id
@@ -40,16 +50,29 @@ public class TmsAttachment implements Serializable {
   @Column(name = "path_to_file")
   private String pathToFile;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "step_id")
-  private TmsStep step;
+  @Column(name = "expires_at")
+  @Convert(converter = JpaInstantConverter.class)
+  private Instant expiresAt;
+
+  @CreatedDate
+  @Column(name = "created_at", nullable = false)
+  @Convert(converter = JpaInstantConverter.class)
+  private Instant createdAt;
+
+  @ManyToMany(mappedBy = "attachments")
+  @ToString.Exclude
+  private Set<TmsTextManualScenario> textManualScenarios;
+
+  @ManyToMany(mappedBy = "attachments")
+  @ToString.Exclude
+  private Set<TmsStep> steps;
+
+  @ManyToMany(mappedBy = "attachments")
+  @ToString.Exclude
+  private Set<TmsManualScenarioPreconditions> manualScenarioPreconditions;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "environment_id")
   private TmsEnvironment environment;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "text_manual_scenario_id")
-  private TmsTextManualScenario textManualScenario;
 
 }

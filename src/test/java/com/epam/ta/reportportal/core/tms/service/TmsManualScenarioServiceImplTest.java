@@ -13,9 +13,11 @@ import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttribute;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttributeId;
+import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioPreconditions;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
+import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioMapper;
@@ -47,6 +49,9 @@ class TmsManualScenarioServiceImplTest {
 
   @Mock
   private TmsManualScenarioImplService tmsManualScenarioImplService;
+
+  @Mock
+  private TmsManualScenarioPreconditionsService tmsManualScenarioPreconditionsService;
 
   @InjectMocks
   private TmsManualScenarioServiceImpl tmsManualScenarioService;
@@ -81,6 +86,7 @@ class TmsManualScenarioServiceImplTest {
     // Then
     assertThat(result).isEqualTo(manualScenario);
     verify(tmsManualScenarioMapper).createTmsManualScenario(textScenarioRQ);
+    verify(tmsManualScenarioPreconditionsService).createPreconditions(eq(manualScenario), any());
     verify(tmsManualScenarioAttributeService).createAttributes(eq(manualScenario), any());
     verify(tmsManualScenarioImplService).createTmsManualScenarioImpl(manualScenario,
         textScenarioRQ);
@@ -107,6 +113,7 @@ class TmsManualScenarioServiceImplTest {
     // Then
     assertThat(result).isEqualTo(manualScenario);
     verify(tmsManualScenarioMapper).createTmsManualScenario(stepsScenarioRQ);
+    verify(tmsManualScenarioPreconditionsService).createPreconditions(eq(manualScenario), any());
     verify(tmsManualScenarioAttributeService).createAttributes(eq(manualScenario), any());
     verify(tmsManualScenarioImplService).createTmsManualScenarioImpl(manualScenario,
         stepsScenarioRQ);
@@ -133,6 +140,7 @@ class TmsManualScenarioServiceImplTest {
     // Then
     assertThat(result).isEqualTo(existingManualScenario);
     verify(tmsManualScenarioMapper).update(existingManualScenario, manualScenario);
+    verify(tmsManualScenarioPreconditionsService).updatePreconditions(eq(existingManualScenario), any());
     verify(tmsManualScenarioAttributeService).updateAttributes(eq(existingManualScenario), any());
     verify(tmsManualScenarioImplService).updateTmsManualScenarioImpl(existingManualScenario,
         textScenarioRQ);
@@ -158,6 +166,7 @@ class TmsManualScenarioServiceImplTest {
     // Then
     assertThat(result).isEqualTo(manualScenario);
     verify(tmsManualScenarioMapper).createTmsManualScenario(textScenarioRQ);
+    verify(tmsManualScenarioPreconditionsService).createPreconditions(eq(manualScenario), any());
     verify(tmsManualScenarioAttributeService).createAttributes(eq(manualScenario), any());
     verify(tmsManualScenarioImplService).createTmsManualScenarioImpl(manualScenario,
         textScenarioRQ);
@@ -184,6 +193,7 @@ class TmsManualScenarioServiceImplTest {
     // Then
     assertThat(result).isEqualTo(existingManualScenario);
     verify(tmsManualScenarioMapper).patch(existingManualScenario, manualScenario);
+    verify(tmsManualScenarioPreconditionsService).patchPreconditions(eq(existingManualScenario), any());
     verify(tmsManualScenarioAttributeService).patchAttributes(eq(existingManualScenario), any());
     verify(tmsManualScenarioImplService).patchTmsManualScenarioImpl(existingManualScenario,
         textScenarioRQ);
@@ -217,6 +227,7 @@ class TmsManualScenarioServiceImplTest {
 
     // Then
     verify(tmsManualScenarioImplService).deleteAllByTestCaseId(123L);
+    verify(tmsManualScenarioPreconditionsService).deleteAllByTestCaseId(123L);
     verify(tmsManualScenarioAttributeService).deleteAllByTestCaseId(123L);
     verify(tmsManualScenarioRepository).deleteAllByTestCaseId(123L);
   }
@@ -233,6 +244,7 @@ class TmsManualScenarioServiceImplTest {
 
     // Then
     verify(tmsManualScenarioImplService).deleteAllByTestCaseIds(testCaseIds);
+    verify(tmsManualScenarioPreconditionsService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsManualScenarioAttributeService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsManualScenarioRepository).deleteAllByTestCaseIds(testCaseIds);
   }
@@ -244,6 +256,7 @@ class TmsManualScenarioServiceImplTest {
 
     // Then
     verify(tmsManualScenarioImplServiceFactory, never()).getTmsManualScenarioImplServices();
+    verify(tmsManualScenarioPreconditionsService, never()).deleteAllByTestCaseIds(any());
     verify(tmsManualScenarioAttributeService, never()).deleteAllByTestCaseIds(any());
     verify(tmsManualScenarioRepository, never()).deleteAllByTestCaseIds(any());
   }
@@ -255,6 +268,7 @@ class TmsManualScenarioServiceImplTest {
 
     // Then
     verify(tmsManualScenarioImplServiceFactory, never()).getTmsManualScenarioImplServices();
+    verify(tmsManualScenarioPreconditionsService, never()).deleteAllByTestCaseIds(any());
     verify(tmsManualScenarioAttributeService, never()).deleteAllByTestCaseIds(any());
     verify(tmsManualScenarioRepository, never()).deleteAllByTestCaseIds(any());
   }
@@ -270,12 +284,43 @@ class TmsManualScenarioServiceImplTest {
 
     // Then
     verify(tmsManualScenarioImplService).deleteAllByTestFolderId(1L, 123L);
+    verify(tmsManualScenarioPreconditionsService).deleteAllByTestFolderId(1L, 123L);
     verify(tmsManualScenarioAttributeService).deleteAllByTestFolderId(1L, 123L);
     verify(tmsManualScenarioRepository).deleteAllByTestFolderId(1L, 123L);
   }
 
   @Test
-  void shouldDuplicateManualScenarioWithAttributes() {
+  void shouldDuplicateManualScenarioWithPreconditionsAndAttributes() {
+    // Given
+    var newVersion = createNewTestCaseVersion();
+    var originalScenario = createOriginalScenarioWithPreconditionsAndAttributes();
+    var duplicatedScenario = createDuplicatedManualScenario();
+
+    when(tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion))
+        .thenReturn(duplicatedScenario);
+    when(tmsManualScenarioRepository.save(duplicatedScenario))
+        .thenReturn(duplicatedScenario);
+    when(
+        tmsManualScenarioImplServiceFactory.getTmsManualScenarioService(originalScenario.getType()))
+        .thenReturn(tmsManualScenarioImplService);
+
+    // When
+    var result = tmsManualScenarioService.duplicateManualScenario(newVersion, originalScenario);
+
+    // Then
+    assertThat(result).isEqualTo(duplicatedScenario);
+    verify(tmsManualScenarioMapper).duplicateManualScenario(originalScenario, newVersion);
+    verify(tmsManualScenarioRepository).save(duplicatedScenario);
+    verify(tmsManualScenarioPreconditionsService).duplicatePreconditions(originalScenario,
+        duplicatedScenario);
+    verify(tmsManualScenarioAttributeService).duplicateAttributes(originalScenario,
+        duplicatedScenario);
+    verify(tmsManualScenarioImplService).duplicateManualScenarioImpl(duplicatedScenario,
+        originalScenario);
+  }
+
+  @Test
+  void shouldDuplicateManualScenarioWithAttributesButNoPreconditions() {
     // Given
     var newVersion = createNewTestCaseVersion();
     var originalScenario = createOriginalScenarioWithAttributes();
@@ -296,6 +341,7 @@ class TmsManualScenarioServiceImplTest {
     assertThat(result).isEqualTo(duplicatedScenario);
     verify(tmsManualScenarioMapper).duplicateManualScenario(originalScenario, newVersion);
     verify(tmsManualScenarioRepository).save(duplicatedScenario);
+    verify(tmsManualScenarioPreconditionsService, never()).duplicatePreconditions(any(), any());
     verify(tmsManualScenarioAttributeService).duplicateAttributes(originalScenario,
         duplicatedScenario);
     verify(tmsManualScenarioImplService).duplicateManualScenarioImpl(duplicatedScenario,
@@ -303,10 +349,10 @@ class TmsManualScenarioServiceImplTest {
   }
 
   @Test
-  void shouldDuplicateManualScenarioWithoutAttributes() {
+  void shouldDuplicateManualScenarioWithPreconditionsButNoAttributes() {
     // Given
     var newVersion = createNewTestCaseVersion();
-    var originalScenario = createOriginalScenarioWithoutAttributes();
+    var originalScenario = createOriginalScenarioWithPreconditions();
     var duplicatedScenario = createDuplicatedManualScenario();
 
     when(tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion))
@@ -324,6 +370,36 @@ class TmsManualScenarioServiceImplTest {
     assertThat(result).isEqualTo(duplicatedScenario);
     verify(tmsManualScenarioMapper).duplicateManualScenario(originalScenario, newVersion);
     verify(tmsManualScenarioRepository).save(duplicatedScenario);
+    verify(tmsManualScenarioPreconditionsService).duplicatePreconditions(originalScenario,
+        duplicatedScenario);
+    verify(tmsManualScenarioAttributeService, never()).duplicateAttributes(any(), any());
+    verify(tmsManualScenarioImplService).duplicateManualScenarioImpl(duplicatedScenario,
+        originalScenario);
+  }
+
+  @Test
+  void shouldDuplicateManualScenarioWithoutPreconditionsAndAttributes() {
+    // Given
+    var newVersion = createNewTestCaseVersion();
+    var originalScenario = createOriginalScenarioWithoutPreconditionsAndAttributes();
+    var duplicatedScenario = createDuplicatedManualScenario();
+
+    when(tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion))
+        .thenReturn(duplicatedScenario);
+    when(tmsManualScenarioRepository.save(duplicatedScenario))
+        .thenReturn(duplicatedScenario);
+    when(
+        tmsManualScenarioImplServiceFactory.getTmsManualScenarioService(originalScenario.getType()))
+        .thenReturn(tmsManualScenarioImplService);
+
+    // When
+    var result = tmsManualScenarioService.duplicateManualScenario(newVersion, originalScenario);
+
+    // Then
+    assertThat(result).isEqualTo(duplicatedScenario);
+    verify(tmsManualScenarioMapper).duplicateManualScenario(originalScenario, newVersion);
+    verify(tmsManualScenarioRepository).save(duplicatedScenario);
+    verify(tmsManualScenarioPreconditionsService, never()).duplicatePreconditions(any(), any());
     verify(tmsManualScenarioAttributeService, never()).duplicateAttributes(any(), any());
     verify(tmsManualScenarioImplService).duplicateManualScenarioImpl(duplicatedScenario,
         originalScenario);
@@ -351,6 +427,7 @@ class TmsManualScenarioServiceImplTest {
     assertThat(result).isEqualTo(duplicatedScenario);
     verify(tmsManualScenarioMapper).duplicateManualScenario(originalScenario, newVersion);
     verify(tmsManualScenarioRepository).save(duplicatedScenario);
+    verify(tmsManualScenarioPreconditionsService, never()).duplicatePreconditions(any(), any());
     verify(tmsManualScenarioAttributeService, never()).duplicateAttributes(any(), any());
     verify(tmsManualScenarioImplService).duplicateManualScenarioImpl(duplicatedScenario,
         originalScenario);
@@ -360,7 +437,7 @@ class TmsManualScenarioServiceImplTest {
   void shouldDuplicateManualScenarioWithTextType() {
     // Given
     var newVersion = createNewTestCaseVersion();
-    var originalScenario = createOriginalScenarioWithAttributes();
+    var originalScenario = createOriginalScenarioWithPreconditionsAndAttributes();
     originalScenario.setType(
         com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
     var duplicatedScenario = createDuplicatedManualScenario();
@@ -389,7 +466,7 @@ class TmsManualScenarioServiceImplTest {
   void shouldDuplicateManualScenarioWithStepsType() {
     // Given
     var newVersion = createNewTestCaseVersion();
-    var originalScenario = createOriginalScenarioWithAttributes();
+    var originalScenario = createOriginalScenarioWithPreconditionsAndAttributes();
     originalScenario.setType(
         com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
     var duplicatedScenario = createDuplicatedManualScenario();
@@ -430,22 +507,31 @@ class TmsManualScenarioServiceImplTest {
 
   private TmsTextManualScenarioRQ createTextScenarioRQ() {
     return TmsTextManualScenarioRQ.builder()
-        .manualScenarioType(com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType.TEXT)
+        .manualScenarioType(TmsManualScenarioType.TEXT)
         .executionEstimationTime(30)
         .linkToRequirements("http://requirements.com")
         .instructions("Test instructions")
         .expectedResult("Expected result")
+        .preconditions(createPreconditionsRQ())
         .attributes(Collections.emptyList())
         .build();
   }
 
   private TmsStepsManualScenarioRQ createStepsScenarioRQ() {
     return TmsStepsManualScenarioRQ.builder()
-        .manualScenarioType(com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType.STEPS)
+        .manualScenarioType(TmsManualScenarioType.STEPS)
         .executionEstimationTime(45)
         .linkToRequirements("http://requirements.com")
         .steps(Collections.emptyList())
+        .preconditions(createPreconditionsRQ())
         .attributes(Collections.emptyList())
+        .build();
+  }
+
+  private TmsManualScenarioPreconditionsRQ createPreconditionsRQ() {
+    return TmsManualScenarioPreconditionsRQ.builder()
+        .value("Test preconditions")
+        .attachments(Collections.emptyList())
         .build();
   }
 
@@ -467,12 +553,17 @@ class TmsManualScenarioServiceImplTest {
     return scenario;
   }
 
-  private TmsManualScenario createOriginalScenarioWithAttributes() {
+  private TmsManualScenario createOriginalScenarioWithPreconditionsAndAttributes() {
     var scenario = new TmsManualScenario();
     scenario.setId(10L);
     scenario.setExecutionEstimationTime(45);
     scenario.setLinkToRequirements("http://original-requirements.com");
     scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+
+    var preconditions = new TmsManualScenarioPreconditions();
+    preconditions.setId(1L);
+    preconditions.setManualScenario(scenario);
+    scenario.setPreconditions(preconditions);
 
     var attribute = createTmsManualScenarioAttribute(10L, 1L, "test-value");
     scenario.setAttributes(Set.of(attribute));
@@ -480,12 +571,44 @@ class TmsManualScenarioServiceImplTest {
     return scenario;
   }
 
-  private TmsManualScenario createOriginalScenarioWithoutAttributes() {
+  private TmsManualScenario createOriginalScenarioWithAttributes() {
+    var scenario = new TmsManualScenario();
+    scenario.setId(10L);
+    scenario.setExecutionEstimationTime(45);
+    scenario.setLinkToRequirements("http://original-requirements.com");
+    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+
+    scenario.setPreconditions(null);
+
+    var attribute = createTmsManualScenarioAttribute(10L, 1L, "test-value");
+    scenario.setAttributes(Set.of(attribute));
+
+    return scenario;
+  }
+
+  private TmsManualScenario createOriginalScenarioWithPreconditions() {
+    var scenario = new TmsManualScenario();
+    scenario.setId(11L);
+    scenario.setExecutionEstimationTime(50);
+    scenario.setLinkToRequirements("http://original-requirements-with-preconditions.com");
+    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+
+    var preconditions = new TmsManualScenarioPreconditions();
+    preconditions.setId(2L);
+    preconditions.setManualScenario(scenario);
+    scenario.setPreconditions(preconditions);
+
+    scenario.setAttributes(null);
+    return scenario;
+  }
+
+  private TmsManualScenario createOriginalScenarioWithoutPreconditionsAndAttributes() {
     var scenario = new TmsManualScenario();
     scenario.setId(11L);
     scenario.setExecutionEstimationTime(50);
     scenario.setLinkToRequirements("http://original-requirements-no-attr.com");
     scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+    scenario.setPreconditions(null);
     scenario.setAttributes(null);
     return scenario;
   }
@@ -496,6 +619,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setExecutionEstimationTime(55);
     scenario.setLinkToRequirements("http://original-requirements-empty-attr.com");
     scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    scenario.setPreconditions(null);
     scenario.setAttributes(Collections.emptySet());
     return scenario;
   }

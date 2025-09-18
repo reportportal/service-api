@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.tms.dto;
 
+import jakarta.validation.Valid;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +17,7 @@ public class TmsStepRS {
   private String instructions;
 
   private String expectedResult;
+
+  @Valid
+  private List<TmsManualScenarioAttachmentRS> attachments;
 }

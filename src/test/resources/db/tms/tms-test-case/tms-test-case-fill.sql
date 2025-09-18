@@ -359,101 +359,198 @@ values (35, 37, 'Default Version 36', true, false);
 
 -- Manual scenarios for each version
 -- TEXT scenarios for most cases
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (1, 1, 30, 'REQ-004', 'System must be ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (1, 1, 30, 'REQ-004', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (2, 2, 25, 'REQ-005', 'User must be logged in', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (2, 2, 25, 'REQ-005', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (3, 3, 20, 'REQ-006', 'Test environment ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (3, 3, 20, 'REQ-006', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (4, 4, 35, 'REQ-007', 'System initialized', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (4, 4, 35, 'REQ-007', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (5, 5, 40, 'REQ-008', 'User authentication ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (5, 5, 40, 'REQ-008', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (6, 6, 15, 'REQ-009', 'Basic setup complete', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (6, 6, 15, 'REQ-009', 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (7, 7, 45, 'REQ-010', 'High priority test setup', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (7, 7, 45, 'REQ-010', 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (8, 8, 30, 'REQ-011', 'Medium complexity setup', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (8, 8, 30, 'REQ-011', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (9, 9, 25, 'REQ-012', 'Low priority setup', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (9, 9, 25, 'REQ-012', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (10, 10, 50, 'REQ-013', 'Search functionality ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (10, 10, 50, 'REQ-013', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (11, 11, 35, 'REQ-014', 'Search system initialized', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (11, 11, 35, 'REQ-014', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (12, 12, 40, 'REQ-015', 'Login system ready', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (12, 12, 40, 'REQ-015', 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (13, 13, 30, 'REQ-016', 'API endpoints available', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (13, 13, 30, 'REQ-016', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (14, 14, 45, 'REQ-017', 'Version control ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (14, 14, 45, 'REQ-017', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (15, 15, 60, 'REQ-018', 'Complex scenario setup', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (15, 15, 60, 'REQ-018', 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (16, 16, 35, 'REQ-019', 'Draft version setup', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (16, 16, 35, 'REQ-019', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (17, 17, 20, 'REQ-020', 'Full-text search ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (17, 17, 20, 'REQ-020', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (18, 18, 25, 'REQ-021', 'Search indexing complete', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (18, 18, 25, 'REQ-021', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (19, 19, 30, 'REQ-022', 'Search filters ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (19, 19, 30, 'REQ-022', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (20, 20, 15, 'REQ-023', 'Batch processing ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (20, 20, 15, 'REQ-023', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (21, 21, 20, 'REQ-024', 'Priority batch ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (21, 21, 20, 'REQ-024', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (22, 22, 25, 'REQ-025', 'Tag management ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (22, 22, 25, 'REQ-025', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (23, 23, 30, 'REQ-026', 'Tag processing ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (23, 23, 30, 'REQ-026', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (24, 24, 20, 'REQ-027', 'Null field handling ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (24, 24, 20, 'REQ-027', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (25, 25, 25, 'REQ-028', 'Null validation ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (25, 25, 25, 'REQ-028', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (26, 26, 35, 'REQ-029', 'Attribute validation ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (26, 26, 35, 'REQ-029', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (27, 27, 40, 'REQ-030', 'Invalid attribute handling', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (27, 27, 40, 'REQ-030', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (28, 28, 45, 'REQ-031', 'Full attribute processing', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (28, 28, 45, 'REQ-031', 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (29, 29, 30, 'REQ-032', 'Complete attribute setup', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (29, 29, 30, 'REQ-032', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (30, 30, 25, 'REQ-033', 'Folder validation ready', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (30, 30, 25, 'REQ-033', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (31, 31, 30, 'REQ-034', 'Non-existing folder handling', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (31, 31, 30, 'REQ-034', 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, preconditions, type)
-values (32, 32, 35, 'REQ-035', 'Final version processing', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (32, 32, 35, 'REQ-035', 'STEPS');
+
+-- Manual scenario preconditions (NEW: separate table with one-to-one relationship)
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (1, 1, 'System must be ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (2, 2, 'User must be logged in');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (3, 3, 'Test environment ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (4, 4, 'System initialized');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (5, 5, 'User authentication ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (6, 6, 'Basic setup complete');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (7, 7, 'High priority test setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (8, 8, 'Medium complexity setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (9, 9, 'Low priority setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (10, 10, 'Search functionality ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (11, 11, 'Search system initialized');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (12, 12, 'Login system ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (13, 13, 'API endpoints available');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (14, 14, 'Version control ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (15, 15, 'Complex scenario setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (16, 16, 'Draft version setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (17, 17, 'Full-text search ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (18, 18, 'Search indexing complete');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (19, 19, 'Search filters ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (20, 20, 'Batch processing ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (21, 21, 'Priority batch ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (22, 22, 'Tag management ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (23, 23, 'Tag processing ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (24, 24, 'Null field handling ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (25, 25, 'Null validation ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (26, 26, 'Attribute validation ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (27, 27, 'Invalid attribute handling');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (28, 28, 'Full attribute processing');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (29, 29, 'Complete attribute setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (30, 30, 'Folder validation ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (31, 31, 'Non-existing folder handling');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (32, 32, 'Final version processing');
 
 -- Text manual scenarios
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
@@ -631,4 +728,5 @@ SELECT setval('tms_test_plan_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test
 SELECT setval('tms_attribute_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_attribute));
 SELECT setval('tms_test_case_version_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_version));
 SELECT setval('tms_manual_scenario_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario));
+SELECT setval('tms_manual_scenario_preconditions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario_preconditions));
 SELECT setval('tms_step_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_step));

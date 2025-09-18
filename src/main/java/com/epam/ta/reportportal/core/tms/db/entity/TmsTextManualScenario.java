@@ -5,8 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Set;
@@ -15,6 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -42,7 +44,12 @@ public class TmsTextManualScenario {
   @Column(name = "expected_result")
   private String expectedResult;
 
-  @OneToMany(mappedBy = "textManualScenario")
+  @ManyToMany
+  @JoinTable(
+      name = "tms_text_manual_scenario_attachment",
+      joinColumns = @JoinColumn(name = "text_manual_scenario_id"),
+      inverseJoinColumns = @JoinColumn(name = "attachment_id"))
   @Fetch(FetchMode.SUBSELECT)
+  @ToString.Exclude
   private Set<TmsAttachment> attachments;
 }

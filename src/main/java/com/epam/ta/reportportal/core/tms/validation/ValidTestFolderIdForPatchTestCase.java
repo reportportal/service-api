@@ -16,10 +16,10 @@ import java.lang.annotation.Target;
  * </p>
  */
 @Documented
-@Constraint(validatedBy = TestFolderIdentifierValidator.class)
-@Target({ElementType.TYPE})
+@Constraint(validatedBy = TestFolderIdForPatchTestCaseValidator.class)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidTestFolderIdentifier {
+public @interface ValidTestFolderIdForPatchTestCase {
 
   /**
    * The error message to be returned when validation fails.

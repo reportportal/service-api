@@ -22,7 +22,9 @@ import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaCons
 import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -39,10 +41,16 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
+import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
+import com.epam.ta.reportportal.ws.reporting.TestItemResource;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -59,239 +67,313 @@ import org.springframework.data.domain.PageRequest;
 @ExtendWith(MockitoExtension.class)
 class GetTestItemHandlerImplTest {
 
-	@Mock
-	private TestItemRepository testItemRepository;
+  @Mock
+  private TestItemRepository testItemRepository;
 
-	@Mock
-	private LaunchAccessValidator launchAccessValidator;
+  @Mock
+  private LaunchAccessValidator launchAccessValidator;
 
-	@Mock
-	private TestItemService testItemService;
+  @Mock
+  private TestItemService testItemService;
 
-	@Mock
-	private UserFilterRepository userFilterRepository;
+  @Mock
+  private UserFilterRepository userFilterRepository;
 
-	@InjectMocks
-	private GetTestItemHandlerImpl handler;
+  @Mock
+  private List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders;
 
-	@Test
-	void TestItemNotFound() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
-		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
+  @InjectMocks
+  private GetTestItemHandlerImpl handler;
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem("1", rpUserToMembership(rpUser), rpUser)
-		);
-		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
-	}
+  @Test
+  void TestItemNotFound() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
-	@Test
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getTestItem("1", rpUserToMembership(rpUser), rpUser)
+    );
+    assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
+  }
+
+  @Test
+  void getTestItemSetsHasNestedStepsTrue() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+
+    TestItem item = new TestItem();
+    item.setItemId(1L);
+    TestItemResults results = new TestItemResults();
+    results.setEndTime(Instant.now());
+    item.setItemResults(results);
+
+    Launch launch = new Launch();
+    launch.setId(1L);
+
+    when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+    when(testItemRepository.hasNestedSteps(1L)).thenReturn(true);
+
+    TestItemResource resource = handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser);
+
+    assertTrue(resource.getHasNestedSteps());
+  }
+
+  @Test
+  void getTestItemByUuidSetsHasNestedStepsTrue() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+
+    TestItem item = new TestItem();
+    item.setItemId(1L);
+    item.setUuid("some-uuid");
+    TestItemResults results = new TestItemResults();
+    results.setEndTime(Instant.now());
+    item.setItemResults(results);
+
+    Launch launch = new Launch();
+    launch.setId(1L);
+
+    when(testItemRepository.findByUuid("some-uuid")).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+    when(testItemRepository.hasNestedSteps(1L)).thenReturn(true);
+
+    TestItemResource resource = handler.getTestItem("some-uuid", extractProjectDetails(rpUser, "test_project"), rpUser);
+
+    assertTrue(resource.getHasNestedSteps());
+  }
+
+  @Test
+  void getTestItemSetsHasNestedStepsFalse() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+
+    TestItem item = new TestItem();
+    item.setItemId(2L);
+    TestItemResults results = new TestItemResults();
+    results.setEndTime(Instant.now());
+    item.setItemResults(results);
+
+    Launch launch = new Launch();
+    launch.setId(1L);
+
+    when(testItemRepository.findById(2L)).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+    when(testItemRepository.hasNestedSteps(2L)).thenReturn(false);
+
+    TestItemResource resource = handler.getTestItem("2", extractProjectDetails(rpUser, "test_project"), rpUser);
+
+    assertFalse(resource.getHasNestedSteps());
+  }
+
+  @Test
   @Disabled("waiting for requirements")
   void getTestItemUnderNotExistedLaunch() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		item.setLaunchId(launch.getId());
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    item.setLaunchId(launch.getId());
+    when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 
-		doThrow(new ReportPortalException("Launch '1' not found. Did you use correct Launch ID?")).when(launchAccessValidator)
-				.validate(launch.getId(), rpUserToMembership(rpUser), rpUser);
+    doThrow(new ReportPortalException("Launch '1' not found. Did you use correct Launch ID?")).when(
+            launchAccessValidator)
+        .validate(launch.getId(), rpUserToMembership(rpUser), rpUser);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem("1", rpUserToMembership(rpUser), rpUser)
-		);
-		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getTestItem("1", rpUserToMembership(rpUser), rpUser)
+    );
+    assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
+  }
 
-	@Test
+  @Test
   @Disabled("waiting for requirements")
   void getTestItemFromAnotherProject() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(2L);
-		item.setLaunchId(launch.getId());
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(2L);
+    item.setLaunchId(launch.getId());
+    when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 
-		doThrow(new ReportPortalException(
-				"Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'")).when(
-				launchAccessValidator).validate(launch.getId(), rpUserToMembership(rpUser), rpUser);
+    doThrow(new ReportPortalException(
+        "Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'")).when(
+        launchAccessValidator).validate(launch.getId(), rpUserToMembership(rpUser), rpUser);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem("1", rpUserToMembership(rpUser), rpUser)
-		);
-		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
-				exception.getMessage()
-		);
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getTestItem("1", rpUserToMembership(rpUser), rpUser)
+    );
+    assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
+        exception.getMessage()
+    );
+  }
 
-	@Test
+  @Test
   @Disabled("waiting for requirements")
   void getTestItemsUnderNotExistedLaunch() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		item.setLaunchId(launch.getId());
-		doThrow(new ReportPortalException("Launch '1' not found. Did you use correct Launch ID?")).when(launchAccessValidator)
-				.validate(item.getLaunchId(), rpUserToMembership(rpUser), rpUser);
-		final Executable executable = () -> handler.getTestItems(Filter.builder()
-				.withTarget(TestItem.class)
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
-						.withValue("100")
-						.withCondition(Condition.EQUALS)
-						.build())
-				.build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, 1L, null, false, 0);
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    item.setLaunchId(launch.getId());
+    doThrow(new ReportPortalException("Launch '1' not found. Did you use correct Launch ID?")).when(
+            launchAccessValidator)
+        .validate(item.getLaunchId(), rpUserToMembership(rpUser), rpUser);
+    final Executable executable = () -> handler.getTestItems(Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+            .withValue("100")
+            .withCondition(Condition.EQUALS)
+            .build())
+        .build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, 1L, null, false, 0);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
-		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+    assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
+  }
 
-	@Test
+  @Test
   @Disabled("waiting for requirements")
   public void getTestItemUnderAnotherProject() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(2L);
-		item.setLaunchId(launch.getId());
-		doThrow(new ReportPortalException(
-				"Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'")).when(
-				launchAccessValidator).validate(item.getLaunchId(), rpUserToMembership(rpUser), rpUser);
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(2L);
+    item.setLaunchId(launch.getId());
+    doThrow(new ReportPortalException(
+        "Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'")).when(
+        launchAccessValidator).validate(item.getLaunchId(), rpUserToMembership(rpUser), rpUser);
 
-		final Executable executable = () -> handler.getTestItems(Filter.builder()
-				.withTarget(TestItem.class)
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
-						.withValue("100")
-						.withCondition(Condition.EQUALS)
-						.build())
-				.build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, 1L, null, false, 0);
+    final Executable executable = () -> handler.getTestItems(Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+            .withValue("100")
+            .withCondition(Condition.EQUALS)
+            .build())
+        .build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, 1L, null, false, 0);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
-		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
-				exception.getMessage()
-		);
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+    assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
+        exception.getMessage()
+    );
+  }
 
-	@Test
+  @Test
   @Disabled("waiting for requirements")
   void getItemByViewer() {
-		ReportPortalUser operator = getRpUser("operator", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser operator = getRpUser("operator", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(2L);
-		launch.setMode(LaunchModeEnum.DEBUG);
-		launch.setProjectId(1L);
-		item.setLaunchId(launch.getId());
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(2L);
+    launch.setMode(LaunchModeEnum.DEBUG);
+    launch.setProjectId(1L);
+    item.setLaunchId(launch.getId());
 
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-		doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator)
-				.validate(launch.getId(), extractProjectDetails(operator, TEST_PROJECT_KEY), operator);
+    when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+    doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator)
+        .validate(launch.getId(), extractProjectDetails(operator, TEST_PROJECT_KEY), operator);
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem("1", extractProjectDetails(operator, TEST_PROJECT_KEY), operator)
-		);
-		assertEquals("You do not have enough permissions.", exception.getMessage());
-	}
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getTestItem("1", extractProjectDetails(operator, TEST_PROJECT_KEY), operator)
+    );
+    assertEquals("You do not have enough permissions.", exception.getMessage());
+  }
 
-	@Test
-	public void getItemsForNonExistingFilter() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+  @Test
+  public void getItemsForNonExistingFilter() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(2L);
-		item.setLaunchId(launch.getId());
-		when(userFilterRepository.findByIdAndProjectId(
-				1L,
-				rpUserToMembership(rpUser).getProjectId()
-		)).thenThrow(new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, 1L, TEST_PROJECT_KEY));
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(2L);
+    item.setLaunchId(launch.getId());
+    when(userFilterRepository.findByIdAndProjectId(
+        1L,
+        rpUserToMembership(rpUser).getProjectId()
+    )).thenThrow(new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, 1L, TEST_PROJECT_KEY));
 
-		final Executable executable = () -> handler.getTestItems(Filter.builder()
-				.withTarget(TestItem.class)
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
-						.withValue("100")
-						.withCondition(Condition.EQUALS)
-						.build())
-				.build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, null, 1L, false, 0);
+    final Executable executable = () -> handler.getTestItems(Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+            .withValue("100")
+            .withCondition(Condition.EQUALS)
+            .build())
+        .build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, null, 1L, false, 0);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
-		assertEquals("User filter with ID '1' not found on project 'o-slug.project-name'. Did you use correct User Filter ID?",
-				exception.getMessage()
-		);
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+    assertEquals(
+        "User filter with ID '1' not found on project 'o-slug.project-name'. Did you use correct User Filter ID?",
+        exception.getMessage()
+    );
+  }
 
-	@Test
-	public void getItemsForIncorrectTargetClass() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+  @Test
+  public void getItemsForIncorrectTargetClass() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(2L);
-		item.setLaunchId(launch.getId());
-		UserFilter filter = new UserFilter();
-		filter.setTargetClass(ObjectType.TestItem);
-		when(userFilterRepository.findByIdAndProjectId(1L, rpUserToMembership(rpUser).getProjectId())).thenReturn(
-				Optional.of(filter));
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(2L);
+    item.setLaunchId(launch.getId());
+    UserFilter filter = new UserFilter();
+    filter.setTargetClass(ObjectType.TestItem);
+    when(userFilterRepository.findByIdAndProjectId(1L, rpUserToMembership(rpUser).getProjectId())).thenReturn(
+        Optional.of(filter));
 
-		final Executable executable = () -> handler.getTestItems(Filter.builder()
-				.withTarget(TestItem.class)
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
-						.withValue("100")
-						.withCondition(Condition.EQUALS)
-						.build())
-				.build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, null, 1L, false, 0);
+    final Executable executable = () -> handler.getTestItems(Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+            .withValue("100")
+            .withCondition(Condition.EQUALS)
+            .build())
+        .build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, null, 1L, false, 0);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
-		assertEquals(
-				"Error in handled Request. Please, check specified parameters: 'Incorrect filter target - 'TestItem'. Allowed: 'Launch''",
-				exception.getMessage()
-		);
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+    assertEquals(
+        "Error in handled Request. Please, check specified parameters: 'Incorrect filter target - 'TestItem'. Allowed: 'Launch''",
+        exception.getMessage()
+    );
+  }
 
-	@Test
-	public void getItemsForIncorrectLaunchesLimit() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+  @Test
+  public void getItemsForIncorrectLaunchesLimit() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
-		TestItem item = new TestItem();
-		Launch launch = new Launch();
-		launch.setId(1L);
-		launch.setProjectId(2L);
-		item.setLaunchId(launch.getId());
-		UserFilter filter = new UserFilter();
-		filter.setTargetClass(ObjectType.Launch);
-		when(userFilterRepository.findByIdAndProjectId(1L, rpUserToMembership(rpUser).getProjectId())).thenReturn(
-				Optional.of(filter));
+    TestItem item = new TestItem();
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setProjectId(2L);
+    item.setLaunchId(launch.getId());
+    UserFilter filter = new UserFilter();
+    filter.setTargetClass(ObjectType.Launch);
+    when(userFilterRepository.findByIdAndProjectId(1L, rpUserToMembership(rpUser).getProjectId())).thenReturn(
+        Optional.of(filter));
 
-		final Executable executable = () -> handler.getTestItems(Filter.builder()
-				.withTarget(TestItem.class)
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
-						.withValue("100")
-						.withCondition(Condition.EQUALS)
-						.build())
-				.build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, null, 1L, false, 0);
+    final Executable executable = () -> handler.getTestItems(Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+            .withValue("100")
+            .withCondition(Condition.EQUALS)
+            .build())
+        .build(), PageRequest.of(0, 10), rpUserToMembership(rpUser), rpUser, null, 1L, false, 0);
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
-		assertEquals("Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0'",
-				exception.getMessage()
-		);
-	}
+    final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+    assertEquals(
+        "Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0'",
+        exception.getMessage()
+    );
+  }
 }

@@ -23,7 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -49,6 +51,8 @@ import com.epam.ta.reportportal.ws.reporting.TestItemResource;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -77,6 +81,9 @@ class GetTestItemHandlerImplTest {
 
   @Mock
   private List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders;
+
+  @Mock
+  private ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> provider;
 
   @InjectMocks
   private GetTestItemHandlerImpl handler;
@@ -107,11 +114,12 @@ class GetTestItemHandlerImplTest {
 
     when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-    when(testItemRepository.hasNestedSteps(1L)).thenReturn(true);
+    when(provider.retrieve(any())).thenReturn(resource -> resource.setHasNestedSteps(true));
+    when(resourceUpdaterProviders.stream()).thenReturn(Stream.of(provider));
 
     TestItemResource resource = handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser);
 
-    assertTrue(resource.getHasNestedSteps());
+    assertTrue(resource.isHasNestedSteps());
   }
 
   @Test
@@ -130,11 +138,12 @@ class GetTestItemHandlerImplTest {
 
     when(testItemRepository.findByUuid("some-uuid")).thenReturn(Optional.of(item));
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-    when(testItemRepository.hasNestedSteps(1L)).thenReturn(true);
+    when(provider.retrieve(any())).thenReturn(resource -> resource.setHasNestedSteps(true));
+    when(resourceUpdaterProviders.stream()).thenReturn(Stream.of(provider));
 
     TestItemResource resource = handler.getTestItem("some-uuid", extractProjectDetails(rpUser, "test_project"), rpUser);
 
-    assertTrue(resource.getHasNestedSteps());
+    assertTrue(resource.isHasNestedSteps());
   }
 
   @Test
@@ -152,11 +161,13 @@ class GetTestItemHandlerImplTest {
 
     when(testItemRepository.findById(2L)).thenReturn(Optional.of(item));
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-    when(testItemRepository.hasNestedSteps(2L)).thenReturn(false);
+    ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> provider = mock(ResourceUpdaterProvider.class);
+    when(provider.retrieve(any())).thenReturn(resource -> resource.setHasNestedSteps(false));
+    when(resourceUpdaterProviders.stream()).thenReturn(Stream.of(provider));
 
     TestItemResource resource = handler.getTestItem("2", extractProjectDetails(rpUser, "test_project"), rpUser);
 
-    assertFalse(resource.getHasNestedSteps());
+    assertFalse(resource.isHasNestedSteps());
   }
 
   @Test

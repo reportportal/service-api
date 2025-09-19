@@ -28,10 +28,8 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.core.log.LogService;
@@ -63,7 +61,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+ 
 import org.springframework.stereotype.Service;
 
 /**
@@ -85,9 +83,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
   private final AttachmentRepository attachmentRepository;
 
-  private final ApplicationEventPublisher eventPublisher;
-
-  private final ElementsCounterService elementsCounterService;
+  
 
   private final LogService logService;
 
@@ -95,15 +91,12 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
   public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository,
       ContentRemover<Long> itemContentRemover, LogIndexer logIndexer,
       LaunchRepository launchRepository, AttachmentRepository attachmentRepository,
-      ApplicationEventPublisher eventPublisher,
-      ElementsCounterService elementsCounterService, LogService logService) {
+      LogService logService) {
     this.testItemRepository = testItemRepository;
     this.itemContentRemover = itemContentRemover;
     this.logIndexer = logIndexer;
     this.launchRepository = launchRepository;
     this.attachmentRepository = attachmentRepository;
-    this.eventPublisher = eventPublisher;
-    this.elementsCounterService = elementsCounterService;
     this.logService = logService;
   }
 
@@ -123,10 +116,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         testItemRepository.selectAllDescendantsIds(item.getPath()));
     itemsForRemove.forEach(itemContentRemover::remove);
 
-    eventPublisher.publishEvent(new ElementsDeletedEvent(item,
-        membershipDetails.getProjectId(),
-        elementsCounterService.countNumberOfItemElements(item)
-    ));
     logService.deleteLogMessageByTestItemSet(membershipDetails.getProjectId(), itemsForRemove);
     itemContentRemover.remove(item.getItemId());
     testItemRepository.deleteById(item.getItemId());
@@ -182,11 +171,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         .collect(toSet());
 
     idsToDelete.forEach(itemContentRemover::remove);
-    eventPublisher.publishEvent(new ElementsDeletedEvent(
-        items,
-        membershipDetails.getProjectId(),
-        elementsCounterService.countNumberOfItemElements(items)
-    ));
     logService.deleteLogMessageByTestItemSet(membershipDetails.getProjectId(), removedItems);
     testItemRepository.deleteAllByItemIdIn(idsToDelete);
 

@@ -46,15 +46,13 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
- 
 import com.google.common.collect.Lists;
 import java.util.List;
- 
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -65,6 +63,7 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
+@RequiredArgsConstructor
 public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
   private final ContentRemover<Launch> launchContentRemover;
@@ -77,21 +76,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
   private final AttachmentRepository attachmentRepository;
 
-  
-
   private final LogService logService;
-
-  @Autowired
-  public DeleteLaunchHandlerImpl(ContentRemover<Launch> launchContentRemover,
-      LaunchRepository launchRepository, MessageBus messageBus, LogIndexer logIndexer,
-      AttachmentRepository attachmentRepository, LogService logService) {
-    this.launchContentRemover = launchContentRemover;
-    this.launchRepository = launchRepository;
-    this.messageBus = messageBus;
-    this.logIndexer = logIndexer;
-    this.attachmentRepository = attachmentRepository;
-    this.logService = logService;
-  }
 
   public OperationCompletionRS deleteLaunch(Long launchId,
       MembershipDetails membershipDetails, ReportPortalUser user) {
@@ -145,7 +130,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     toDelete.forEach(launch -> {
       LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(launch);
       messageBus.publishActivity(
-          new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername(), membershipDetails.getOrgId()));
+          new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername(),
+              membershipDetails.getOrgId()));
     });
 
     return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
@@ -159,8 +145,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
   /**
    * Validate user credentials and {@link Launch#getStatus()}
    *
-   * @param launch         {@link Launch}
-   * @param user           {@link ReportPortalUser}
+   * @param launch            {@link Launch}
+   * @param user              {@link ReportPortalUser}
    * @param membershipDetails {@link MembershipDetails}
    */
   private void validate(Launch launch, ReportPortalUser user,
@@ -181,8 +167,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
           && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId()))
             .verify(ACCESS_DENIED,
-            "You are not launch owner."
-        );
+                "You are not launch owner."
+            );
       }
     }
   }

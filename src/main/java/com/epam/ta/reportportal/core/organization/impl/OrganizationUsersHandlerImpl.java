@@ -33,6 +33,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.OrganizationConve
 import static com.epam.ta.reportportal.ws.converter.converters.OrganizationUserConverter.MEMBERSHIP_TO_ORG_USER_PROJECT;
 import static java.util.function.Predicate.isEqual;
 
+import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.OrgUserAssignment;
 import com.epam.reportportal.api.model.OrgUserProjectPage;
 import com.epam.reportportal.api.model.OrgUserUpdateRequest;
@@ -59,8 +60,11 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.OrganizationUser;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.util.SecurityContextUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -300,6 +304,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   private void assignToOrganization(OrgUserUpdateRequest orgUserUpdateRequest,
       Optional<OrganizationUser> userOrganization, Organization organization, User assignedUser) {
+    validateManagerChangingRole(orgUserUpdateRequest.getOrgRole(), organization.getId(), assignedUser);
+
     OrganizationUser organizationUser = userOrganization.orElse(new OrganizationUser());
     if (organizationUser.getOrganization() == null) {
       organizationUser.setOrganization(organization);
@@ -309,4 +315,19 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         orgUserUpdateRequest.getOrgRole().getValue()));
     organizationUserRepository.save(organizationUser);
   }
+
+  private void validateManagerChangingRole(OrgRole newOrgRole, Long orgId, User assignedUser) {
+    var rpUser = SecurityContextUtils.getPrincipal();
+    var currentOrgRole = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(), orgId);
+
+    if (Objects.equals(rpUser.getUserId(), assignedUser.getId())
+        && !rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)
+        && currentOrgRole.isPresent()
+        && currentOrgRole.get().getOrganizationRole().equals(OrganizationRole.MANAGER)
+        && !newOrgRole.equals(MANAGER)
+    ) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED, "Impossible to change the role of the own account");
+    }
+  }
 }
+

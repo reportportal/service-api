@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.reportportal.api.model.OrgRole;
 import com.epam.reportportal.api.model.OrgUserAssignment;
+import com.epam.reportportal.api.model.OrgUserUpdateRequest;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
@@ -269,7 +270,7 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
 
   @Test
   @DisplayName("Admin, Manager sends request to assign user to organization with duplicate projects and different project roles")
-  void duplicatePorjectsWithDifferentRoles() throws Exception {
+  void duplicateProjectsWithDifferentRoles() throws Exception {
     Long userId = 108L;
     UserProjectInfo project1 = new UserProjectInfo()
         .projectRole(ProjectRole.VIEWER)
@@ -327,6 +328,45 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     performUnassignUserFailed(203L, 107L, adminToken, status().is4xxClientError());
   }
 
+  @Test
+  @DisplayName("Manager tries to change their own role from MANAGER to MEMBER - should fail with ACCESS_DENIED")
+  void managerChangesOwnRoleToMember() throws Exception {
+    Long orgId = ORG_ID_1; // Organization 201 where user 104 is a manager
+    Long userId = 104L; // Manager user ID from test data
+    
+    OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
+        .orgRole(OrgRole.MEMBER)
+        .projects(new ArrayList<>());
+    
+    performUpdateUserFailed(orgId, userId, updateRequest, managerToken, status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("Manager changes another user's role - should succeed")
+  void managerChangesOtherUserRole() throws Exception {
+    Long orgId = ORG_ID_1; // Organization 201 where user 104 is a manager
+    Long userId = 107L; // Different user ID (member in this org)
+    
+    OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
+        .orgRole(OrgRole.MEMBER)
+        .projects(new ArrayList<>());
+    
+    performUpdateUserSuccess(orgId, userId, updateRequest, managerToken);
+  }
+
+  @Test
+  @DisplayName("Admin changes manager's role - should succeed")
+  void adminChangesManagerRole() throws Exception {
+    Long orgId = ORG_ID_1; // Organization 201
+    Long userId = 104L; // Manager user ID
+    
+    OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
+        .orgRole(OrgRole.MEMBER)
+        .projects(new ArrayList<>());
+    
+    performUpdateUserSuccess(orgId, userId, updateRequest, adminToken);
+  }
+
 
   private UserAssignmentResponse performAssignUserSuccess(Long orgId, OrgUserAssignment rq,
       String token)
@@ -352,7 +392,8 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     assertTrue(organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId).isEmpty());
   }
 
-  private Object performUnassignUserFailed(Long orgId, Long userId, String token, ResultMatcher status) throws Exception {
+  private Object performUnassignUserFailed(Long orgId, Long userId, String token, ResultMatcher status)
+      throws Exception {
     var result = performUnassignUserRequest(WITH_USER_ID_URL.formatted(orgId, userId), token, status);
     return objectMapper.readValue(result, Object.class);
   }
@@ -392,6 +433,29 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
       var projectUser = projectUserRepository.getById(projectUserId);
       Assertions.assertNotNull(projectUser);
     });
+  }
+
+  private void performUpdateUserSuccess(Long orgId, Long userId, OrgUserUpdateRequest request, String token)
+      throws Exception {
+    performUpdateUserRequest(WITH_USER_ID_URL.formatted(orgId, userId), request, token, status().isOk());
+  }
+
+  private void performUpdateUserFailed(Long orgId, Long userId, OrgUserUpdateRequest request, String token,
+      ResultMatcher status) throws Exception {
+    performUpdateUserRequest(WITH_USER_ID_URL.formatted(orgId, userId), request, token, status);
+  }
+
+  private String performUpdateUserRequest(String url, OrgUserUpdateRequest request, String token, ResultMatcher status)
+      throws Exception {
+    return mockMvc.perform(MockMvcRequestBuilders
+            .put(url)
+            .content(objectMapper.writeValueAsBytes(request))
+            .contentType(APPLICATION_JSON)
+            .with(token(token)))
+        .andExpect(status)
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
   }
 
 }

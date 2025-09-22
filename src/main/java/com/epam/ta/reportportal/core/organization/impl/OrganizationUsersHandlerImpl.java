@@ -304,7 +304,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   private void assignToOrganization(OrgUserUpdateRequest orgUserUpdateRequest,
       Optional<OrganizationUser> userOrganization, Organization organization, User assignedUser) {
-    validateManagerChangingRole(orgUserUpdateRequest.getOrgRole(), organization.getId(), assignedUser);
+    validateManagerChangingRole(orgUserUpdateRequest.getOrgRole(), assignedUser, userOrganization);
 
     OrganizationUser organizationUser = userOrganization.orElse(new OrganizationUser());
     if (organizationUser.getOrganization() == null) {
@@ -316,14 +316,15 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     organizationUserRepository.save(organizationUser);
   }
 
-  private void validateManagerChangingRole(OrgRole newOrgRole, Long orgId, User assignedUser) {
+  private void validateManagerChangingRole(OrgRole newOrgRole, User assignedUser,
+      Optional<OrganizationUser> userOrganization) {
     var rpUser = SecurityContextUtils.getPrincipal();
-    var currentOrgRole = organizationUserRepository.findByUserIdAndOrganization_Id(rpUser.getUserId(), orgId);
 
+    // Only check if the current user is trying to change their own role
     if (Objects.equals(rpUser.getUserId(), assignedUser.getId())
         && !rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)
-        && currentOrgRole.isPresent()
-        && currentOrgRole.get().getOrganizationRole().equals(OrganizationRole.MANAGER)
+        && userOrganization.isPresent()
+        && userOrganization.get().getOrganizationRole().equals(OrganizationRole.MANAGER)
         && !newOrgRole.equals(MANAGER)
     ) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED, "Impossible to change the role of the own account");

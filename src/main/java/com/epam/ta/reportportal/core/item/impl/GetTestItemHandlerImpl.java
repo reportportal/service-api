@@ -16,14 +16,8 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -46,12 +40,10 @@ import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
-import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.StatisticsConverter;
@@ -66,7 +58,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.Pair;
@@ -154,11 +145,11 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
         .map(launchFilterId ->
             getItemsWithLaunchesFiltering(filter, pageable, membershipDetails, launchFilterId, isLatest, launchesLimit))
         .orElseGet(() -> launchIdOptional.map(id -> {
-      launchAccessValidator.validate(id, membershipDetails, user);
-      return testItemRepository.findByFilter(filter, pageable);
-    }).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-        "Neither launch nor filter id specified."
-    )));
+          launchAccessValidator.validate(id, membershipDetails, user);
+          return testItemRepository.findByFilter(filter, pageable);
+        }).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Neither launch nor filter id specified."
+        )));
 
     return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
       List<ResourceUpdater<TestItemResource>> resourceUpdaters =

@@ -29,7 +29,6 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChangePasswordRQ {
 
-  @NotBlank
   @ValidPassword
   private String newPassword;
 

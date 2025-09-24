@@ -16,16 +16,12 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
-
-import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.ws.validation.ValidPassword;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -35,11 +31,9 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResetPasswordRQ {
 
-  @NotBlank
-  @Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
   @JsonProperty(value = "password")
   @Schema(requiredMode = RequiredMode.REQUIRED)
-  @Pattern(regexp = USER_PASSWORD_REGEXP)
+  @ValidPassword
   private String password;
 
   @NotBlank

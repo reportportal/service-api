@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.core.events.activity.OrganizationUpdatedEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.dao.organization.OrganizationSettingsRepository;
+import com.epam.ta.reportportal.entity.organization.Organization;
 import com.epam.ta.reportportal.entity.organization.OrganizationSetting;
 import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.epam.ta.reportportal.ws.converter.converters.OrganizationActivityConverter;
@@ -109,22 +110,21 @@ public class OrganizationSettingsHandler {
           updatedLogsPeriod, updatedAttachmentsPeriod);
 
       if (!currentPolicy.equals(updatedPolicy)) {
-        publishOrganizationUpdatedEvent(orgId, organization.getName(), organization.getSlug(), currentPolicy,
-            updatedPolicy);
+        publishOrganizationUpdatedEvent(organization, currentPolicy, updatedPolicy);
       }
     }
   }
 
-  private void publishOrganizationUpdatedEvent(Long orgId, String orgName, String orgSlug,
+  public void publishOrganizationUpdatedEvent(Organization org,
       OrganizationSettingsRetentionPolicy currentPolicy, OrganizationSettingsRetentionPolicy updatedPolicy) {
     var principal = SecurityContextUtils.getPrincipal();
-    var before = OrganizationActivityConverter.toAttributes(orgId, orgName, orgSlug, currentPolicy);
-    var after = OrganizationActivityConverter.toAttributes(orgId, orgName, orgSlug, updatedPolicy);
+    var before = OrganizationActivityConverter.toAttributes(org.getId(), org.getName(), org.getSlug(), currentPolicy);
+    var after = OrganizationActivityConverter.toAttributes(org.getId(), org.getName(), org.getSlug(), updatedPolicy);
     applicationEventPublisher.publishEvent(new OrganizationUpdatedEvent(principal.getUserId(), principal.getUsername(),
-        orgId, orgName, before, after));
+        org.getId(), org.getName(), before, after));
   }
 
-  private void updateRetentionSettingsValue(List<OrganizationSetting> settings,
+  public void updateRetentionSettingsValue(List<OrganizationSetting> settings,
       OrganizationSettingsEnum settingsEnum, Integer updateValue, long orgId) {
     var organizationSetting = organizationRetentionPolicyHandler.getOrganizationSetting(settings,
         settingsEnum);
@@ -136,7 +136,7 @@ public class OrganizationSettingsHandler {
     }
   }
 
-  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(int launches, int logs, int attachments) {
+  public OrganizationSettingsRetentionPolicy buildRetentionPolicy(int launches, int logs, int attachments) {
     return OrganizationSettingsRetentionPolicy.builder()
         .launches(OrganizationSettingsRetentionPolicyLaunches.builder().period(launches).build())
         .logs(OrganizationSettingsRetentionPolicyLogs.builder().period(logs).build())

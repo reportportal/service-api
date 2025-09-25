@@ -32,8 +32,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRange;
 import org.springframework.http.HttpStatus;
@@ -131,15 +133,15 @@ public class FileStorageController {
    * Remove attachments from file storage according to uploaded csv file.
    *
    * @param file Csv file with attachment ids to remove
-   * @param user Current user
    * @return Operation completion response
    */
   @Transactional
   @PreAuthorize(IS_ADMIN)
   @PostMapping(value = "/clean", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @Operation(summary = "Remove attachments from file storage according to uploaded csv file")
-  public OperationCompletionRS removeAttachmentsByCsv(@RequestParam("file") MultipartFile file,
-      @AuthenticationPrincipal ReportPortalUser user) {
+  public OperationCompletionRS removeAttachmentsByCsv(
+      @RequestParam("file") MultipartFile file
+  ) {
     return deleteFilesHandler.removeFilesByCsv(file);
   }
 
@@ -171,7 +173,6 @@ public class FileStorageController {
       HttpServletRequest request
   ) {
     final var binaryStream = binaryData.getInputStream();
-
     if (binaryStream == null) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -180,13 +181,13 @@ public class FileStorageController {
 
     headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
 
-    if (binaryData.getContentType() != null) {
-      headers.setContentType(MediaType.parseMediaType(binaryData.getContentType()));
-    }
+    Optional.ofNullable(binaryData.getContentType())
+        .map(MediaType::parseMediaType)
+        .ifPresent(headers::setContentType);
 
-    if (binaryData.getFileName() != null) {
-      headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + binaryData.getFileName() + "\"");
-    }
+    Optional.ofNullable(binaryData.getFileName())
+        .map(n -> ContentDisposition.builder("inline").filename(n).build())
+        .ifPresent(headers::setContentDisposition);
 
     var fileLength = binaryData.getLength();
     var requestHeader = request.getHeader(HttpHeaders.RANGE);
@@ -216,8 +217,8 @@ public class FileStorageController {
 
     long rangeStart = range.getRangeStart(fileLength);
     long rangeEnd = Math.min(range.getRangeEnd(fileLength), fileLength - 1);
-    headers.set(HttpHeaders.CONTENT_RANGE, "bytes " + rangeStart + "-" + rangeEnd + "/" + fileLength);
     headers.setContentLength(rangeEnd - rangeStart + 1);
+    headers.set(HttpHeaders.CONTENT_RANGE, "bytes " + rangeStart + "-" + rangeEnd + "/" + fileLength);
 
     StreamingResponseBody responseBody = outputStream -> {
       try (InputStream inputStream = binaryStream) {

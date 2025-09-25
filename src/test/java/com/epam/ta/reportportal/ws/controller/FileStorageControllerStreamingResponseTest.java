@@ -116,6 +116,27 @@ class FileStorageControllerStreamingResponseTest {
     assertArrayEquals(expected, output.toByteArray());
   }
 
+  @Test
+  void returnsRequestedRangeNotSatisfiableWhenRangeExceedsLength() {
+    var data = new byte[100];
+    var binaryData = mock(BinaryData.class);
+    when(binaryData.getInputStream()).thenReturn(new ByteArrayInputStream(data));
+    when(binaryData.getContentType()).thenReturn(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+    when(binaryData.getFileName()).thenReturn("data.bin");
+    when(binaryData.getLength()).thenReturn((long) data.length);
+    when(request.getHeader(HttpHeaders.RANGE)).thenReturn("bytes=1000-");
+
+    var response = invokeToStreamingResponse(binaryData);
+
+    assertEquals(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE, response.getStatusCode());
+    assertEquals(MediaType.APPLICATION_OCTET_STREAM, response.getHeaders().getContentType());
+    assertEquals("inline", response.getHeaders().getContentDisposition().getType());
+    assertEquals("data.bin", response.getHeaders().getContentDisposition().getFilename());
+    assertEquals("bytes", response.getHeaders().getFirst(HttpHeaders.ACCEPT_RANGES));
+    assertEquals("bytes */100", response.getHeaders().getFirst(HttpHeaders.CONTENT_RANGE));
+    assertNull(response.getBody());
+  }
+
   private ResponseEntity<StreamingResponseBody> invokeToStreamingResponse(BinaryData binaryData) {
     return ReflectionTestUtils.invokeMethod(fileStorageController, "toStreamingResponse", binaryData, request);
   }

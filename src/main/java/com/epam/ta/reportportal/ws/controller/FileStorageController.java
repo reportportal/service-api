@@ -217,8 +217,21 @@ public class FileStorageController {
 
     long rangeStart = range.getRangeStart(fileLength);
     long rangeEnd = Math.min(range.getRangeEnd(fileLength), fileLength - 1);
-    headers.setContentLength(rangeEnd - rangeStart + 1);
+
+    if (rangeStart >= fileLength || rangeStart > rangeEnd) {
+      try {
+        binaryStream.close();
+      } catch (IOException ignored) {
+      }
+
+      headers.set(HttpHeaders.CONTENT_RANGE, "bytes */" + fileLength);
+      return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
+          .headers(headers)
+          .build();
+    }
+
     headers.set(HttpHeaders.CONTENT_RANGE, "bytes " + rangeStart + "-" + rangeEnd + "/" + fileLength);
+    headers.setContentLength(rangeEnd - rangeStart + 1);
 
     StreamingResponseBody responseBody = outputStream -> {
       try (InputStream inputStream = binaryStream) {

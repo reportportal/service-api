@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.binary.impl.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsAttachmentRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioPreconditionsAttachmentRepository;
@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.core.tms.db.repository.TmsTextManualScenarioAtta
 import com.epam.ta.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsAttachmentMapper;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
@@ -53,7 +52,7 @@ class TmsAttachmentServiceImplTest {
   private TmsAttachmentRepository tmsAttachmentRepository;
 
   @Mock
-  private AttachmentDataStoreService attachmentDataStoreService;
+  private TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
 
   @Mock
   private TmsAttachmentMapper tmsAttachmentMapper;
@@ -106,7 +105,7 @@ class TmsAttachmentServiceImplTest {
   @Test
   void uploadAttachment_ShouldSucceed_WhenValidFile() throws Exception {
     // Given valid file to upload
-    when(attachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(fileId);
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(fileId);
     when(tmsAttachmentMapper.convertToAttachment(fileId, file)).thenReturn(attachment);
     when(tmsAttachmentRepository.save(attachment)).thenReturn(attachment);
     when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
@@ -120,7 +119,7 @@ class TmsAttachmentServiceImplTest {
     assertEquals(uploadAttachmentRS.getId(), result.getId());
     assertEquals(uploadAttachmentRS.getFileName(), result.getFileName());
 
-    verify(attachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
+    verify(tmsAttachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
     verify(tmsAttachmentMapper).convertToAttachment(fileId, file);
     verify(tmsAttachmentRepository).save(attachment);
     verify(tmsAttachmentMapper).convertToUploadAttachmentRS(attachment);
@@ -138,13 +137,13 @@ class TmsAttachmentServiceImplTest {
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     assertEquals("Error in handled Request. Please, check specified parameters: 'File cannot be empty'", exception.getMessage());
 
-    verifyNoInteractions(attachmentDataStoreService, tmsAttachmentMapper, tmsAttachmentRepository);
+    verifyNoInteractions(tmsAttachmentDataStoreService, tmsAttachmentMapper, tmsAttachmentRepository);
   }
 
   @Test
   void uploadAttachment_ShouldThrowException_WhenDataStoreServiceFails() throws Exception {
     // Given data store service throws IOException
-    when(attachmentDataStoreService.save(anyString(), any(InputStream.class)))
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
         .thenThrow(new RuntimeException("Storage error"));
 
     // When/Then exception should be thrown when storage fails
@@ -154,7 +153,7 @@ class TmsAttachmentServiceImplTest {
     assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
     assertTrue(exception.getMessage().contains("Failed to upload attachment"));
 
-    verify(attachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
+    verify(tmsAttachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
     verifyNoInteractions(tmsAttachmentRepository);
   }
 
@@ -189,7 +188,7 @@ class TmsAttachmentServiceImplTest {
   void deleteAttachment_ShouldSucceed_WhenAttachmentExists() {
     // Given attachment exists in repository
     when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
-    doNothing().when(attachmentDataStoreService).delete(fileId);
+    doNothing().when(tmsAttachmentDataStoreService).delete(fileId);
     doNothing().when(tmsAttachmentRepository).deleteById(attachmentId);
 
     // When deleting existing attachment
@@ -197,7 +196,7 @@ class TmsAttachmentServiceImplTest {
 
     // Then attachment should be deleted from both data store and repository
     verify(tmsAttachmentRepository).findById(attachmentId);
-    verify(attachmentDataStoreService).delete(fileId);
+    verify(tmsAttachmentDataStoreService).delete(fileId);
     verify(tmsAttachmentRepository).deleteById(attachmentId);
   }
 
@@ -214,7 +213,7 @@ class TmsAttachmentServiceImplTest {
     assertTrue(exception.getMessage().contains("Attachment not found: " + attachmentId));
 
     verify(tmsAttachmentRepository).findById(attachmentId);
-    verifyNoInteractions(attachmentDataStoreService);
+    verifyNoInteractions(tmsAttachmentDataStoreService);
     verify(tmsAttachmentRepository, never()).deleteById(attachmentId);
   }
 
@@ -222,7 +221,7 @@ class TmsAttachmentServiceImplTest {
   void deleteAttachment_ShouldThrowException_WhenDataStoreDeleteFails() {
     // Given attachment exists but data store delete operation fails
     when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
-    doThrow(new RuntimeException("Delete failed")).when(attachmentDataStoreService).delete(fileId);
+    doThrow(new RuntimeException("Delete failed")).when(tmsAttachmentDataStoreService).delete(fileId);
 
     // When/Then exception should be thrown when data store delete fails
     var exception = assertThrows(ReportPortalException.class,
@@ -231,7 +230,7 @@ class TmsAttachmentServiceImplTest {
     assertEquals(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, exception.getErrorType());
 
     verify(tmsAttachmentRepository).findById(attachmentId);
-    verify(attachmentDataStoreService).delete(fileId);
+    verify(tmsAttachmentDataStoreService).delete(fileId);
   }
 
   @Test
@@ -288,8 +287,8 @@ class TmsAttachmentServiceImplTest {
 
     // Then expired attachments should be cleaned up from both data store and repository
     verify(tmsAttachmentRepository).findExpiredAttachments(any(Instant.class));
-    verify(attachmentDataStoreService).delete("path1");
-    verify(attachmentDataStoreService).delete("path2");
+    verify(tmsAttachmentDataStoreService).delete("path1");
+    verify(tmsAttachmentDataStoreService).delete("path2");
     verify(tmsAttachmentRepository).deleteByIds(Arrays.asList(1L, 2L));
   }
 
@@ -304,7 +303,7 @@ class TmsAttachmentServiceImplTest {
 
     // Then no cleanup operations should be performed
     verify(tmsAttachmentRepository).findExpiredAttachments(any(Instant.class));
-    verifyNoInteractions(attachmentDataStoreService);
+    verifyNoInteractions(tmsAttachmentDataStoreService);
     verify(tmsAttachmentRepository, never()).deleteByIds(anyList());
   }
 
@@ -317,7 +316,7 @@ class TmsAttachmentServiceImplTest {
 
     when(tmsAttachmentRepository.findExpiredAttachments(any(Instant.class)))
         .thenReturn(List.of(expiredAttachment));
-    doThrow(new RuntimeException("File delete failed")).when(attachmentDataStoreService)
+    doThrow(new RuntimeException("File delete failed")).when(tmsAttachmentDataStoreService)
         .delete("path1");
 
     // When cleaning up expired attachments
@@ -325,7 +324,7 @@ class TmsAttachmentServiceImplTest {
 
     // Then cleanup should continue despite file delete error
     verify(tmsAttachmentRepository).findExpiredAttachments(any(Instant.class));
-    verify(attachmentDataStoreService).delete("path1");
+    verify(tmsAttachmentDataStoreService).delete("path1");
     verify(tmsAttachmentRepository).deleteByIds(List.of(1L));
   }
 
@@ -382,9 +381,9 @@ class TmsAttachmentServiceImplTest {
 
     var originalFileStream = new ByteArrayInputStream("test content".getBytes());
 
-    when(attachmentDataStoreService.load(attachment.getPathToFile()))
+    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile()))
         .thenReturn(Optional.of(originalFileStream));
-    when(attachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
         newFileId);
     when(tmsAttachmentMapper.duplicateAttachment(eq(attachment), eq(newFileId)))
         .thenReturn(duplicatedAttachment);
@@ -397,8 +396,8 @@ class TmsAttachmentServiceImplTest {
     assertNotNull(result);
     assertEquals(duplicatedAttachment, result);
 
-    verify(attachmentDataStoreService).load(attachment.getPathToFile());
-    verify(attachmentDataStoreService).save(anyString(), eq(originalFileStream));
+    verify(tmsAttachmentDataStoreService).load(attachment.getPathToFile());
+    verify(tmsAttachmentDataStoreService).save(anyString(), eq(originalFileStream));
     verify(tmsAttachmentMapper).duplicateAttachment(attachment, newFileId);
     verify(tmsAttachmentRepository).save(duplicatedAttachment);
   }
@@ -406,7 +405,7 @@ class TmsAttachmentServiceImplTest {
   @Test
   void duplicateTmsAttachment_ShouldThrowException_WhenOriginalFileNotFound() {
     // Given original file does not exist in data store
-    when(attachmentDataStoreService.load(attachment.getPathToFile())).thenReturn(Optional.empty());
+    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile())).thenReturn(Optional.empty());
 
     // When/Then exception should be thrown when original file is not found
     var exception = assertThrows(ReportPortalException.class,
@@ -414,7 +413,7 @@ class TmsAttachmentServiceImplTest {
 
     assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
 
-    verify(attachmentDataStoreService).load(attachment.getPathToFile());
+    verify(tmsAttachmentDataStoreService).load(attachment.getPathToFile());
     verifyNoInteractions(tmsAttachmentRepository);
   }
 
@@ -422,9 +421,9 @@ class TmsAttachmentServiceImplTest {
   void duplicateTmsAttachment_ShouldThrowException_WhenDataStoreSaveFails() throws Exception {
     // Given original file exists but data store save operation fails
     var originalFileStream = new ByteArrayInputStream("test content".getBytes());
-    when(attachmentDataStoreService.load(attachment.getPathToFile()))
+    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile()))
         .thenReturn(Optional.of(originalFileStream));
-    when(attachmentDataStoreService.save(anyString(), any(InputStream.class)))
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
         .thenThrow(new RuntimeException("Storage error"));
 
     // When/Then exception should be thrown when data store save fails

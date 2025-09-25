@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.binary.impl.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsAttachmentRepository;
 import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioPreconditionsAttachmentRepository;
@@ -34,7 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
   private final TmsAttachmentRepository tmsAttachmentRepository;
-  private final AttachmentDataStoreService attachmentDataStoreService;
+  private final TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
   private final TmsAttachmentMapper tmsAttachmentMapper;
   private final TmsStepAttachmentRepository tmsStepAttachmentRepository;
   private final TmsTextManualScenarioAttachmentRepository tmsTextManualScenarioAttachmentRepository;
@@ -51,7 +51,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     }
 
     try {
-      var fileId = attachmentDataStoreService.save(file.getOriginalFilename(),
+      var fileId = tmsAttachmentDataStoreService.save(file.getOriginalFilename(),
           file.getInputStream());
 
       var attachment = tmsAttachmentMapper.convertToAttachment(fileId, file);
@@ -80,7 +80,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
     try {
       // Delete file from data store
-      attachmentDataStoreService.delete(attachment.getPathToFile());
+      tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
 
       // Delete attachment record
       tmsAttachmentRepository.deleteById(attachmentId);
@@ -109,7 +109,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       // Delete files from data store
       expiredAttachments.forEach(attachment -> {
         try {
-          attachmentDataStoreService.delete(attachment.getPathToFile());
+          tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
         } catch (Exception e) {
           log.warn("Failed to delete file {} for expired attachment {}: {}",
               attachment.getPathToFile(), attachment.getId(), e.getMessage());
@@ -144,7 +144,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
     try {
       // Step 1: Load original file from data store
-      var originalFileStream = attachmentDataStoreService.load(originalAttachment.getPathToFile())
+      var originalFileStream = tmsAttachmentDataStoreService.load(originalAttachment.getPathToFile())
           .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
               "Original attachment file not found: " + originalAttachment.getPathToFile()));
 
@@ -152,7 +152,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       var newFileName = generateDuplicateFileName(originalAttachment.getFileName());
 
       // Step 3: Save file copy to data store
-      var newFileId = attachmentDataStoreService.save(newFileName, originalFileStream);
+      var newFileId = tmsAttachmentDataStoreService.save(newFileName, originalFileStream);
 
       // Step 4: Create duplicated attachment entity
       var duplicatedAttachment = tmsAttachmentMapper.duplicateAttachment(originalAttachment,

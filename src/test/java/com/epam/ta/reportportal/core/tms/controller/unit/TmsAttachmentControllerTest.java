@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.binary.impl.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.TmsAttachmentController;
 import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
@@ -58,7 +58,7 @@ public class TmsAttachmentControllerTest {
   private TmsAttachmentService tmsAttachmentService;
 
   @Mock
-  private AttachmentDataStoreService attachmentDataStoreService;
+  private TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
 
   @Mock
   private ProjectExtractor projectExtractor;
@@ -212,7 +212,7 @@ public class TmsAttachmentControllerTest {
     InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
 
     given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
-    given(attachmentDataStoreService.load("/path/to/file")).willReturn(Optional.of(inputStream));
+    given(tmsAttachmentDataStoreService.load("/path/to/file")).willReturn(Optional.of(inputStream));
 
     // When/Then
     mockMvc.perform(
@@ -225,7 +225,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "22"));
 
     verify(tmsAttachmentService).getTmsAttachment(attachmentId);
-    verify(attachmentDataStoreService).load("/path/to/file");
+    verify(tmsAttachmentDataStoreService).load("/path/to/file");
   }
 
   @Test
@@ -243,7 +243,7 @@ public class TmsAttachmentControllerTest {
     InputStream inputStream = new ByteArrayInputStream(imageContent);
 
     given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
-    given(attachmentDataStoreService.load("/path/to/image.png")).willReturn(
+    given(tmsAttachmentDataStoreService.load("/path/to/image.png")).willReturn(
         Optional.of(inputStream));
 
     // When/Then
@@ -257,7 +257,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "1024"));
 
     verify(tmsAttachmentService).getTmsAttachment(attachmentId);
-    verify(attachmentDataStoreService).load("/path/to/image.png");
+    verify(tmsAttachmentDataStoreService).load("/path/to/image.png");
   }
 
   @Test
@@ -287,7 +287,7 @@ public class TmsAttachmentControllerTest {
     attachment.setPathToFile("/path/to/missing/file");
 
     given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
-    given(attachmentDataStoreService.load("/path/to/missing/file")).willReturn(Optional.empty());
+    given(tmsAttachmentDataStoreService.load("/path/to/missing/file")).willReturn(Optional.empty());
 
     // When/Then
     assertThrows(ServletException.class, () -> mockMvc.perform(
@@ -295,7 +295,7 @@ public class TmsAttachmentControllerTest {
             .contentType(MediaType.APPLICATION_JSON)));
 
     verify(tmsAttachmentService).getTmsAttachment(attachmentId);
-    verify(attachmentDataStoreService).load("/path/to/missing/file");
+    verify(tmsAttachmentDataStoreService).load("/path/to/missing/file");
   }
 
   @Test
@@ -426,7 +426,7 @@ public class TmsAttachmentControllerTest {
     InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
 
     given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
-    given(attachmentDataStoreService.load("/path/to/file")).willReturn(Optional.of(inputStream));
+    given(tmsAttachmentDataStoreService.load("/path/to/file")).willReturn(Optional.of(inputStream));
 
     // When/Then
     mockMvc.perform(
@@ -439,6 +439,6 @@ public class TmsAttachmentControllerTest {
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "22"));
 
     verify(tmsAttachmentService).getTmsAttachment(attachmentId);
-    verify(attachmentDataStoreService).load("/path/to/file");
+    verify(tmsAttachmentDataStoreService).load("/path/to/file");
   }
 }

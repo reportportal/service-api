@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
-import com.epam.ta.reportportal.binary.impl.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.ta.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.ta.reportportal.core.tms.service.TmsAttachmentService;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -39,7 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class TmsAttachmentController {
 
   private final TmsAttachmentService tmsAttachmentService;
-  private final AttachmentDataStoreService attachmentDataStoreService;
+  private final TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
 
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(summary = "Upload TMS attachment",
@@ -66,7 +66,7 @@ public class TmsAttachmentController {
             "Attachment not found: " + attachmentId));
 
     var resource = new InputStreamResource(
-        attachmentDataStoreService
+        tmsAttachmentDataStoreService
             .load(attachment.getPathToFile())
             .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
                 "Attachment file not found: " + attachmentId))

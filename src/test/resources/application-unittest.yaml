@@ -12,6 +12,10 @@ rp:
     providers:
       internal:
         secret-key: ${rp.jwt.signing-key}
+  tms:
+    datastore:
+      type: filesystem
+      path: ${datastore.path:/data/storage}
 logging:
   file:
     name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log

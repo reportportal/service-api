@@ -159,18 +159,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 
   @Override
-  public YesNoRS validateInfo(String username, String email) {
-    if (null != username) {
-      Optional<User> user = userRepository.findByLogin(EntityUtils.normalizeId(username));
-      return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
-    } else if (null != email) {
-      Optional<User> user = userRepository.findByEmail(EntityUtils.normalizeId(email));
-      return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
-    }
-    return new YesNoRS(false);
-  }
-
-  @Override
   public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
     return projectRepository.findUserProjects(userName).stream()
         .collect(toMap(Project::getName, it -> {

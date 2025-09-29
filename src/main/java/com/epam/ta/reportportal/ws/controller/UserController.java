@@ -176,12 +176,6 @@ public class UserController {
     );
   }
 
-  @Transactional(readOnly = true)
-  @GetMapping(value = "/registration/info")
-  public YesNoRS validateInfo(@RequestParam(value = "username", required = false) String username,
-      @RequestParam(value = "email", required = false) String email) {
-    return getUserHandler.validateInfo(username, email);
-  }
 
   @Transactional
   @PostMapping(value = "/password/restore")

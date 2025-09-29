@@ -69,6 +69,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   public static final String BID_TYPE = "type";
   public static final String INTERNAL_BID_TYPE = "internal";
+  public static final String EMAIL_HAS_BEEN_SENT = "Email has been sent";
 
   private final UserRepository userRepository;
   private final MailServiceFactory emailServiceFactory;
@@ -105,27 +106,32 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
     var email = NORMALIZE_EMAIL.apply(rq.getEmail());
 
-    User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, email));
+    Optional<User> user = userRepository.findByEmail(email);
+    if (user.isEmpty()) {
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
 
-    var bid = restorePasswordBidRepository.findByEmail(rq.getEmail())
-        .orElseGet(() -> {
-          expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(
-              BAD_REQUEST_ERROR, "Unable to change password for external user");
+    Optional<RestorePasswordBid> bidOptional =
+        restorePasswordBidRepository.findByEmail(rq.getEmail());
 
-          RestorePasswordBid newBid = RestorePasswordBidConverter.TO_BID.apply(rq);
-          restorePasswordBidRepository.save(newBid);
-          return newBid;
-        });
+    RestorePasswordBid bid;
+    if (bidOptional.isEmpty()) {
+      expect(user.get().getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
+          "Unable to change password for external user");
+      bid = RestorePasswordBidConverter.TO_BID.apply(rq);
+      restorePasswordBidRepository.save(bid);
+    } else {
+      bid = bidOptional.get();
+    }
 
     emailServiceFactory.getDefaultEmailService(true)
         .sendRestorePasswordEmail("Password recovery",
             new String[]{email},
             baseUrl + "#login?reset=" + bid.getUuid(),
-            user.getLogin()
+            user.get().getLogin()
         );
 
-    return new OperationCompletionRS("Email has been sent");
+    return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
   }
 
   @Override

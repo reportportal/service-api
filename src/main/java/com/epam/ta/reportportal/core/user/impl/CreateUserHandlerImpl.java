@@ -103,7 +103,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   public static final String BID_TYPE = "type";
   public static final String INTERNAL_BID_TYPE = "internal";
-  public static final String EMAIL_HAS_BEEN_SENT = "Email has been sent";
+  public static final String EMAIL_HAS_BEEN_SENT = "Your request has been processed. The letter will be sent to the address if it is registered in the system.";
 
   private final ServerSettingsRepository settingsRepository;
 

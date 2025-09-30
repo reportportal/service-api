@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
+import com.epam.ta.reportportal.entity.tms.TmsDataset;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

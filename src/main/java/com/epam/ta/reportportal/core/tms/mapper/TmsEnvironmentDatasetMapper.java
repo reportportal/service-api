@@ -2,8 +2,8 @@ package com.epam.ta.reportportal.core.tms.mapper;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsEnvironmentDataset;
+import com.epam.ta.reportportal.entity.tms.TmsDataset;
+import com.epam.ta.reportportal.entity.tms.TmsEnvironmentDataset;
 import com.epam.ta.reportportal.core.tms.dto.TmsEnvironmentDatasetRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsEnvironmentDatasetRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

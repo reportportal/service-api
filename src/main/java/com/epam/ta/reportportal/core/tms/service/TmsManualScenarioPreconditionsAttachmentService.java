@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioPreconditions;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioPreconditions;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import java.util.List;
 

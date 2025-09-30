@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
 import java.util.List;
 
 public interface TmsMilestoneService {

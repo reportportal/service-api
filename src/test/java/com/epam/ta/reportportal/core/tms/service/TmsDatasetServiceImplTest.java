@@ -8,8 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsDatasetRepository;
+import com.epam.ta.reportportal.entity.tms.TmsDataset;
+import com.epam.ta.reportportal.dao.tms.TmsDatasetRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsDatasetMapper;

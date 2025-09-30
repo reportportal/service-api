@@ -8,9 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsEnvironmentDataset;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsEnvironmentDatasetRepository;
+import com.epam.ta.reportportal.entity.tms.TmsDataset;
+import com.epam.ta.reportportal.entity.tms.TmsEnvironmentDataset;
+import com.epam.ta.reportportal.dao.tms.TmsEnvironmentDatasetRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsEnvironmentDatasetRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsEnvironmentDatasetMapper;
 import java.util.ArrayList;

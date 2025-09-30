@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsProductVersion;
+import com.epam.ta.reportportal.entity.tms.TmsProductVersion;
 import com.epam.ta.reportportal.core.tms.dto.TmsProductVersionRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import org.mapstruct.Mapper;

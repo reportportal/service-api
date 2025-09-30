@@ -7,10 +7,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttribute;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttributeId;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioAttributeRepository;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioAttributeId;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioAttributeRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioAttributeMapper;
 import java.util.Arrays;

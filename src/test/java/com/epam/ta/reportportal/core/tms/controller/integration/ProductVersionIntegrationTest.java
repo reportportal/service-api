@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsProductVersion;
-import com.epam.ta.reportportal.core.tms.db.repository.ProductVersionRepository;
+import com.epam.ta.reportportal.entity.tms.TmsProductVersion;
+import com.epam.ta.reportportal.dao.tms.ProductVersionRepository;
 import com.epam.ta.reportportal.core.tms.dto.ProductVersionRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;

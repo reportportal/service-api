@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

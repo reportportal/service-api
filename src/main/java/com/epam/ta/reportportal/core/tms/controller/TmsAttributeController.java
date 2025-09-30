@@ -3,6 +3,8 @@ package com.epam.ta.reportportal.core.tms.controller;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.service.TmsAttributeService;
+import com.epam.ta.reportportal.util.OffsetRequest;
+import com.epam.ta.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -59,9 +61,8 @@ public class TmsAttributeController {
   @Operation(summary = "Get all TMS Attributes", description = "Retrieves paginated list of TMS attributes")
   @ApiResponse(responseCode = "200", description = "TMS Attributes retrieved successfully")
   public com.epam.ta.reportportal.model.Page<TmsAttributeRS> getAllAttributes(
-      @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.ASC)
-      @Parameter(description = "Pagination parameters") Pageable pageable) {
-    return tmsAttributeService.getAll(pageable);
+      @PagingOffset OffsetRequest offsetRequest) {
+    return tmsAttributeService.getAll(offsetRequest);
   }
 
   @GetMapping("/{attributeId}")

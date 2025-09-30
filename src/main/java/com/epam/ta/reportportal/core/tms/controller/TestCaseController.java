@@ -10,11 +10,13 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
-import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdForBatchDuplicateTestCase;
 import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdForPatchTestCase;
 import com.epam.ta.reportportal.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,7 +25,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -106,8 +107,7 @@ public class TestCaseController {
       @RequestParam(value = "search", required = false) String search,
       @RequestParam(value = "testFolderId", required = false) Long testFolderId,
       @RequestParam(value = "testPlanId", required = false) Long testPlanId,
-      //TODO add filter, sort
-//      @SortFor(TmsTestCase.class) Pageable pageable,
+      @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getTestCasesByCriteria(
         projectExtractor
@@ -116,7 +116,7 @@ public class TestCaseController {
         search,
         testFolderId,
         testPlanId,
-        Pageable.unpaged()); //TODO fix once added filter and sort
+        offsetRequest);
   }
 
   /**

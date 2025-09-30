@@ -7,7 +7,9 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TmsTestFolderService;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -224,11 +226,11 @@ public class TmsTestFolderController {
       @RequestParam(name = "testPlanId", required = false) Long testPlanId,
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Pagination parameters")
-      Pageable pageable) {
+      @PagingOffset OffsetRequest offsetRequest) {
     return tmsTestFolderService.getFoldersByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(), testPlanId, pageable);
+            .getProjectId(), testPlanId, offsetRequest);
   }
 
   /**
@@ -258,11 +260,11 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Parent folder ID", required = true)
       @PathVariable("folderId") Long folderId,
-      @Parameter(description = "Pagination parameters") Pageable pageable) {
+      @PagingOffset OffsetRequest offsetRequest) {
     return tmsTestFolderService.getSubFolders(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(), folderId, pageable);
+            .getProjectId(), folderId, offsetRequest);
   }
 
   /**

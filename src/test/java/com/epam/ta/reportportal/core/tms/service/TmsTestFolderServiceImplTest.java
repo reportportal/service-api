@@ -18,10 +18,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderIdWithCountOfTestCases;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolderWithCountOfTestCases;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestFolderRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolderIdWithCountOfTestCases;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolderWithCountOfTestCases;
+import com.epam.ta.reportportal.dao.tms.TmsTestFolderRepository;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;

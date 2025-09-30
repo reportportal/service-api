@@ -2,8 +2,8 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsDatasetDataRepository;
+import com.epam.ta.reportportal.entity.tms.TmsDataset;
+import com.epam.ta.reportportal.dao.tms.TmsDatasetDataRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetDataRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsDatasetDataMapper;
 import java.util.Collection;

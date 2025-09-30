@@ -2,8 +2,8 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseAttributeRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import jakarta.validation.Valid;

@@ -2,8 +2,8 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanAttributeRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanAttributeRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanAttributeMapper;
 import java.util.List;

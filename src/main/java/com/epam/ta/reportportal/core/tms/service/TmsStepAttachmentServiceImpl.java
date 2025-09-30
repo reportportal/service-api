@@ -1,8 +1,7 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStepAttachment;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsStepAttachmentRepository;
+import com.epam.ta.reportportal.entity.tms.TmsStep;
+import com.epam.ta.reportportal.dao.tms.TmsStepAttachmentRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepRQ;
 import java.util.Collection;
 import java.util.HashSet;

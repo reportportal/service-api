@@ -1,8 +1,7 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTextManualScenario;
-import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRS;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsTextManualScenario;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

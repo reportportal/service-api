@@ -1,14 +1,11 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;

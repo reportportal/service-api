@@ -15,11 +15,11 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestFolder;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseRepository;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;

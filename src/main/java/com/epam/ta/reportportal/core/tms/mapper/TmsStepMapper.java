@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsStep;
+import com.epam.ta.reportportal.entity.tms.TmsStepsManualScenario;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

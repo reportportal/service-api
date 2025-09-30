@@ -3,8 +3,8 @@ package com.epam.ta.reportportal.core.tms.service;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioAttributeRepository;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioAttributeRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioAttributeMapper;
 import java.util.HashSet;

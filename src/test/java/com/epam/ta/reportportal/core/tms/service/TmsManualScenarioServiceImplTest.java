@@ -9,13 +9,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttribute;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttributeId;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioPreconditions;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioAttributeId;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioPreconditions;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
@@ -439,7 +439,7 @@ class TmsManualScenarioServiceImplTest {
     var newVersion = createNewTestCaseVersion();
     var originalScenario = createOriginalScenarioWithPreconditionsAndAttributes();
     originalScenario.setType(
-        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+        com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
     var duplicatedScenario = createDuplicatedManualScenario();
 
     when(tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion))
@@ -448,7 +448,7 @@ class TmsManualScenarioServiceImplTest {
         .thenReturn(duplicatedScenario);
     when(
         tmsManualScenarioImplServiceFactory.getTmsManualScenarioService(
-            com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT))
+            com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT))
         .thenReturn(tmsManualScenarioImplService);
 
     // When
@@ -457,7 +457,7 @@ class TmsManualScenarioServiceImplTest {
     // Then
     assertThat(result).isEqualTo(duplicatedScenario);
     verify(tmsManualScenarioImplServiceFactory).getTmsManualScenarioService(
-        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+        com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
     verify(tmsManualScenarioImplService).duplicateManualScenarioImpl(duplicatedScenario,
         originalScenario);
   }
@@ -468,7 +468,7 @@ class TmsManualScenarioServiceImplTest {
     var newVersion = createNewTestCaseVersion();
     var originalScenario = createOriginalScenarioWithPreconditionsAndAttributes();
     originalScenario.setType(
-        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+        com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.STEPS);
     var duplicatedScenario = createDuplicatedManualScenario();
 
     when(tmsManualScenarioMapper.duplicateManualScenario(originalScenario, newVersion))
@@ -476,7 +476,7 @@ class TmsManualScenarioServiceImplTest {
     when(tmsManualScenarioRepository.save(duplicatedScenario))
         .thenReturn(duplicatedScenario);
     when(tmsManualScenarioImplServiceFactory.getTmsManualScenarioService(
-        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS))
+        com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.STEPS))
         .thenReturn(tmsManualScenarioImplService);
 
     // When
@@ -485,7 +485,7 @@ class TmsManualScenarioServiceImplTest {
     // Then
     assertThat(result).isEqualTo(duplicatedScenario);
     verify(tmsManualScenarioImplServiceFactory).getTmsManualScenarioService(
-        com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+        com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.STEPS);
     verify(tmsManualScenarioImplService).duplicateManualScenarioImpl(duplicatedScenario,
         originalScenario);
   }
@@ -540,7 +540,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(1L);
     scenario.setExecutionEstimationTime(30);
     scenario.setLinkToRequirements("http://requirements.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
     return scenario;
   }
 
@@ -549,7 +549,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(99L);
     scenario.setExecutionEstimationTime(60);
     scenario.setLinkToRequirements("http://existing-requirements.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
     return scenario;
   }
 
@@ -558,7 +558,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(10L);
     scenario.setExecutionEstimationTime(45);
     scenario.setLinkToRequirements("http://original-requirements.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
 
     var preconditions = new TmsManualScenarioPreconditions();
     preconditions.setId(1L);
@@ -576,7 +576,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(10L);
     scenario.setExecutionEstimationTime(45);
     scenario.setLinkToRequirements("http://original-requirements.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
 
     scenario.setPreconditions(null);
 
@@ -591,7 +591,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(11L);
     scenario.setExecutionEstimationTime(50);
     scenario.setLinkToRequirements("http://original-requirements-with-preconditions.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.STEPS);
 
     var preconditions = new TmsManualScenarioPreconditions();
     preconditions.setId(2L);
@@ -607,7 +607,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(11L);
     scenario.setExecutionEstimationTime(50);
     scenario.setLinkToRequirements("http://original-requirements-no-attr.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.STEPS);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.STEPS);
     scenario.setPreconditions(null);
     scenario.setAttributes(null);
     return scenario;
@@ -618,7 +618,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(12L);
     scenario.setExecutionEstimationTime(55);
     scenario.setLinkToRequirements("http://original-requirements-empty-attr.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
     scenario.setPreconditions(null);
     scenario.setAttributes(Collections.emptySet());
     return scenario;
@@ -629,7 +629,7 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(20L);
     scenario.setExecutionEstimationTime(45);
     scenario.setLinkToRequirements("http://duplicated-requirements.com");
-    scenario.setType(com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType.TEXT);
+    scenario.setType(com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType.TEXT);
     return scenario;
   }
 

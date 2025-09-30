@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlanAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanAttribute;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

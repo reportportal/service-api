@@ -3,9 +3,9 @@ package com.epam.ta.reportportal.core.tms.service;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioRepository;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.ta.reportportal.core.tms.service.factory.TmsManualScenarioImplServiceFactory;

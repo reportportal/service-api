@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.ta.reportportal.auth.OAuthHelper;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsAttachmentRepository;
+import com.epam.ta.reportportal.dao.tms.TmsAttachmentRepository;
 import com.epam.ta.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;

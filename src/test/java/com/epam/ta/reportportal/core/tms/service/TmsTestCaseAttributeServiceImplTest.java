@@ -7,11 +7,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttribute;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseAttributeId;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseAttributeRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseAttributeId;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseAttributeRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import java.util.ArrayList;

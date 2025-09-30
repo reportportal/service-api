@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

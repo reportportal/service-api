@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttribute;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioAttributeId;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioAttributeId;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

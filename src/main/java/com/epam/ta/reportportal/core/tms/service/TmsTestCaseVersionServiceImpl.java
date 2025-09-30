@@ -3,10 +3,10 @@ package com.epam.ta.reportportal.core.tms.service;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCase;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseDefaultVersionTestCaseId;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestCaseVersion;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestCaseVersionRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseDefaultVersionTestCaseId;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseVersionRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseVersionMapper;
 import jakarta.validation.Valid;

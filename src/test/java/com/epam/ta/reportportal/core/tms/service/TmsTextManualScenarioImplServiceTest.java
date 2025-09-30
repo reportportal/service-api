@@ -8,10 +8,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTextManualScenario;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTextManualScenarioRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttachment;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsTextManualScenario;
+import com.epam.ta.reportportal.dao.tms.TmsTextManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTextManualScenarioMapper;

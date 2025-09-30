@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
+import com.epam.ta.reportportal.entity.tms.TmsAttribute;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;

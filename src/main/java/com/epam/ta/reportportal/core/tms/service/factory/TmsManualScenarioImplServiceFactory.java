@@ -36,7 +36,7 @@ public class TmsManualScenarioImplServiceFactory {
   }
 
   public TmsManualScenarioImplService getTmsManualScenarioService(
-      com.epam.ta.reportportal.core.tms.db.entity.enums.TmsManualScenarioType type) {
+      com.epam.ta.reportportal.entity.tms.enums.TmsManualScenarioType type) {
     return getTmsManualScenarioService(TmsManualScenarioType.valueOf(type.name()));
   }
 

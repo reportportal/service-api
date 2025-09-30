@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
-import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttachmentRQ;
+import com.epam.ta.reportportal.entity.tms.TmsAttachment;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttachmentRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import java.util.List;

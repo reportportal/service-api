@@ -1,14 +1,11 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
+import com.epam.ta.reportportal.entity.tms.TmsAttachment;
 import com.epam.ta.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import java.time.Duration;
-import java.time.Instant;
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 

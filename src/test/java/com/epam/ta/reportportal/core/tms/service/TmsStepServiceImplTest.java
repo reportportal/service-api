@@ -4,14 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsStepRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttachment;
+import com.epam.ta.reportportal.entity.tms.TmsStep;
+import com.epam.ta.reportportal.entity.tms.TmsStepsManualScenario;
+import com.epam.ta.reportportal.dao.tms.TmsStepRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsStepMapper;

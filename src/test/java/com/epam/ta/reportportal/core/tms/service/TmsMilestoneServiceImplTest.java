@@ -7,9 +7,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsMilestone;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsMilestoneRepository;
+import com.epam.ta.reportportal.entity.tms.TmsMilestone;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
+import com.epam.ta.reportportal.dao.tms.TmsMilestoneRepository;
 import com.epam.ta.reportportal.core.tms.mapper.TmsMilestoneMapper;
 import java.util.Arrays;
 import java.util.Collections;

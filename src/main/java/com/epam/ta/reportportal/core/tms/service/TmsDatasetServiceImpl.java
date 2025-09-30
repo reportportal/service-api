@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.tms.service;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsDatasetRepository;
+import com.epam.ta.reportportal.dao.tms.TmsDatasetRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsDatasetRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsDatasetMapper;

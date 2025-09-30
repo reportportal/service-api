@@ -11,8 +11,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;

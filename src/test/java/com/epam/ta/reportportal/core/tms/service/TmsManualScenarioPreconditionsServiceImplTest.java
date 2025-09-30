@@ -7,9 +7,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioPreconditions;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioPreconditionRepository;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioPreconditions;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioPreconditionRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsManualScenarioPreconditionsMapper;
 import java.util.Arrays;

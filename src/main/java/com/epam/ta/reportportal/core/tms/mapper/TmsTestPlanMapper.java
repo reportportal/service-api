@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;

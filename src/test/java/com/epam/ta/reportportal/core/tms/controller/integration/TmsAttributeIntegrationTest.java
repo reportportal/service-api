@@ -12,8 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttribute;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsAttributeRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttribute;
+import com.epam.ta.reportportal.dao.tms.TmsAttributeRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;

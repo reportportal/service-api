@@ -21,7 +21,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.tms.controller.TmsAttachmentController;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
+import com.epam.ta.reportportal.entity.tms.TmsAttachment;
 import com.epam.ta.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.ta.reportportal.core.tms.service.TmsAttachmentService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;

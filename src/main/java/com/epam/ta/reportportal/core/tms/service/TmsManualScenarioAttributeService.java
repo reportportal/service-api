@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenario;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenario;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
 import java.util.List;
 

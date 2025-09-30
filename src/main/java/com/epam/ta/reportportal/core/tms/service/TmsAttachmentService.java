@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
+import com.epam.ta.reportportal.entity.tms.TmsAttachment;
 import com.epam.ta.reportportal.core.tms.dto.UploadAttachmentRS;
 import java.util.Collection;
 import java.util.List;

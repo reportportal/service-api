@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStep;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsStepsManualScenario;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsStepRepository;
+import com.epam.ta.reportportal.entity.tms.TmsStep;
+import com.epam.ta.reportportal.entity.tms.TmsStepsManualScenario;
+import com.epam.ta.reportportal.dao.tms.TmsStepRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsStepMapper;
 import java.util.Collection;

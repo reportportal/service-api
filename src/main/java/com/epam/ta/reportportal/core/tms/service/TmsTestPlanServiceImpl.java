@@ -3,9 +3,9 @@ package com.epam.ta.reportportal.core.tms.service;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsTestPlan;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanRepository;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsTestPlanTestCaseRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;

@@ -12,13 +12,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsAttachment;
-import com.epam.ta.reportportal.core.tms.db.entity.TmsManualScenarioPreconditions;
-import com.epam.ta.reportportal.core.tms.db.repository.TmsManualScenarioPreconditionsAttachmentRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttachment;
+import com.epam.ta.reportportal.entity.tms.TmsManualScenarioPreconditions;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;

@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
-import com.epam.ta.reportportal.core.tms.db.entity.TmsDataset;
+import com.epam.ta.reportportal.entity.tms.TmsDataset;
 import com.epam.ta.reportportal.core.tms.dto.TmsEnvironmentDatasetRQ;
 import java.util.Collection;
 

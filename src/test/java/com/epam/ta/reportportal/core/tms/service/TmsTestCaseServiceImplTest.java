@@ -9,17 +9,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.filterable.TmsTestCaseFilterableRepository;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.ta.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
@@ -65,6 +68,9 @@ class TmsTestCaseServiceImplTest {
   private TmsTestCaseRepository tmsTestCaseRepository;
 
   @Mock
+  private TmsTestCaseFilterableRepository tmsTestCaseFilterableRepository;
+
+  @Mock
   private TmsTestCaseAttributeService tmsTestCaseAttributeService;
 
   @Mock
@@ -107,14 +113,12 @@ class TmsTestCaseServiceImplTest {
   private long projectId;
   private Long testCaseId;
   private Long testFolderId;
-  private Long testPlanId;
 
   @BeforeEach
   void setUp() {
     projectId = 1L;
     testCaseId = 2L;
     testFolderId = 4L;
-    testPlanId = 5L;
 
     attributes = new ArrayList<>();
     var attribute = new TmsTestCaseAttributeRQ();
@@ -956,8 +960,7 @@ class TmsTestCaseServiceImplTest {
   @Test
   void getTestCasesByCriteria_WithContent_ShouldReturnPagedResults() {
     // Given
-    var search = "test search";
-    var testFolderId = 5L;
+    var filter = mock(Filter.class);
     var pageable = PageRequest.of(0, 10);
     var testCaseIds = List.of(testCaseId);
     var testCaseIdsPage = new PageImpl<>(testCaseIds, pageable, 1);
@@ -965,55 +968,50 @@ class TmsTestCaseServiceImplTest {
     var defaultVersions = Map.of(testCaseId, testCaseVersion);
     var convertedPage = new PageImpl<>(List.of(testCaseRS), pageable, 1);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, testPlanId,
-        pageable))
+    when(tmsTestCaseFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable))
         .thenReturn(testCaseIdsPage);
     when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(defaultVersions);
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
-    when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable, testCaseIds)).thenReturn(convertedPage);
+    when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable, 1L)).thenReturn(convertedPage);
 
     // When
-    var result = sut.getTestCasesByCriteria(projectId, search, testFolderId, testPlanId, pageable);
+    var result = sut.getTestCasesByCriteria(projectId, filter, pageable);
 
     // Then
     assertNotNull(result);
     assertNotNull(result.getContent());
     assertEquals(1, result.getContent().size());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, search, testFolderId, testPlanId,
-        pageable);
+    verify(tmsTestCaseFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
     verify(tmsTestCaseVersionService).getDefaultVersions(testCaseIds);
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
-    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable, testCaseIds);
+    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable, 1L);
   }
 
   @Test
   void getTestCasesByCriteria_WithNoContent_ShouldReturnEmptyPage() {
     // Given
-    var search = "test search";
-    var testFolderId = 5L;
+    var filter = mock(Filter.class);
     var pageable = PageRequest.of(0, 10);
     var emptyPage = new PageImpl<Long>(Collections.emptyList(), pageable, 0);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId, testPlanId,
-        pageable))
+    when(tmsTestCaseFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable))
         .thenReturn(emptyPage);
 
     // When
-    var result = sut.getTestCasesByCriteria(projectId, search, testFolderId, testPlanId, pageable);
+    var result = sut.getTestCasesByCriteria(projectId, filter, pageable);
 
     // Then
     assertNotNull(result);
     assertNotNull(result.getContent());
     assertEquals(0, result.getContent().size());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, search, testFolderId, testPlanId,
-        pageable);
+    verify(tmsTestCaseFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
     verify(tmsTestCaseVersionService, never()).getDefaultVersions(any());
     verify(tmsTestCaseRepository, never()).findByProjectIdAndIds(any(Long.class), any());
-    verify(tmsTestCaseMapper, never()).convert(any(List.class), any(Map.class), any(), testCaseIds);
+    verify(tmsTestCaseMapper, never()).convert(any(List.class), any(Map.class), any(), any(Long.class));
   }
 
   @Test
-  void getTestCasesByCriteria_WithNullParameters_ShouldReturnPagedResults() {
+  void getTestCasesByCriteria_WithNullFilter_ShouldReturnPagedResults() {
     // Given
     var pageable = PageRequest.of(0, 20);
     var testCaseIds = List.of(testCaseId);
@@ -1022,52 +1020,68 @@ class TmsTestCaseServiceImplTest {
     var defaultVersions = Map.of(testCaseId, testCaseVersion);
     var convertedPage = new PageImpl<>(List.of(testCaseRS), pageable, 1);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, null, pageable))
+    when(tmsTestCaseFilterableRepository.findIdsByProjectIdAndFilter(eq(projectId), any(), eq(pageable)))
         .thenReturn(testCaseIdsPage);
     when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(defaultVersions);
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
-    when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable, testCaseIds)).thenReturn(convertedPage);
+    when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable, 1L)).thenReturn(convertedPage);
 
     // When
-    var result = sut.getTestCasesByCriteria(projectId, null, null, null, pageable);
+    var result = sut.getTestCasesByCriteria(projectId, null, pageable);
 
     // Then
     assertNotNull(result);
     assertNotNull(result.getContent());
     assertEquals(1, result.getContent().size());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, null, pageable);
+    verify(tmsTestCaseFilterableRepository).findIdsByProjectIdAndFilter(eq(projectId), any(), eq(pageable));
     verify(tmsTestCaseVersionService).getDefaultVersions(testCaseIds);
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
-    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable, testCaseIds);
+    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable, 1L);
   }
 
   @Test
-  void getTestCasesByCriteria_WithTestPlanIdOnly_ShouldReturnFilteredResults() {
+  void getTestCasesByCriteria_WithMultipleTestCases_ShouldReturnOrderedResults() {
     // Given
+    var filter = mock(Filter.class);
     var pageable = PageRequest.of(0, 10);
-    var testCaseIds = List.of(testCaseId);
-    var testCaseIdsPage = new PageImpl<>(testCaseIds, pageable, 1);
-    var testCases = List.of(testCase);
-    var defaultVersions = Map.of(testCaseId, testCaseVersion);
-    var convertedPage = new PageImpl<>(List.of(testCaseRS), pageable, 1);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, testPlanId, pageable))
+    var testCase1 = new TmsTestCase();
+    testCase1.setId(1L);
+    var testCase2 = new TmsTestCase();
+    testCase2.setId(2L);
+    var testCase3 = new TmsTestCase();
+    testCase3.setId(3L);
+
+    // IDs в определенном порядке из БД
+    var testCaseIds = List.of(3L, 1L, 2L);
+    var testCaseIdsPage = new PageImpl<>(testCaseIds, pageable, 3);
+
+    // Тест-кейсы возвращаются из репозитория в произвольном порядке
+    var testCases = List.of(testCase1, testCase2, testCase3);
+    var defaultVersions = Map.of(
+        1L, testCaseVersion,
+        2L, testCaseVersion,
+        3L, testCaseVersion
+    );
+    var convertedPage = new PageImpl<>(List.of(testCaseRS), pageable, 3);
+
+    when(tmsTestCaseFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable))
         .thenReturn(testCaseIdsPage);
     when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(defaultVersions);
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
-    when(tmsTestCaseMapper.convert(testCases, defaultVersions, pageable, testCaseIds)).thenReturn(convertedPage);
+    when(tmsTestCaseMapper.convert(any(List.class), eq(defaultVersions), eq(pageable), eq(3L)))
+        .thenReturn(convertedPage);
 
     // When
-    var result = sut.getTestCasesByCriteria(projectId, null, null, testPlanId, pageable);
+    var result = sut.getTestCasesByCriteria(projectId, filter, pageable);
 
     // Then
     assertNotNull(result);
-    assertNotNull(result.getContent());
-    assertEquals(1, result.getContent().size());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, testPlanId, pageable);
+    verify(tmsTestCaseFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
     verify(tmsTestCaseVersionService).getDefaultVersions(testCaseIds);
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
-    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, pageable, testCaseIds);
+    // Проверяем что маппер получил список в правильном порядке (3L, 1L, 2L)
+    verify(tmsTestCaseMapper).convert(any(List.class), eq(defaultVersions), eq(pageable), eq(3L));
   }
 
   @Test
@@ -1118,7 +1132,6 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseAttributeService).deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
   }
 
-  // Новые тесты для метода patchTestCaseAttributes
   @Test
   void patchTestCaseAttributes_WithBothAddAndRemove_ShouldExecuteBothOperations() {
     // Given

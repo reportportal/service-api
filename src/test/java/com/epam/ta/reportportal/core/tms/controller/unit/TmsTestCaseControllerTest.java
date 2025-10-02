@@ -3,7 +3,6 @@ package com.epam.ta.reportportal.core.tms.controller.unit;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.controller.TestCaseController;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
@@ -36,7 +36,10 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
+import com.epam.ta.reportportal.ws.resolver.OffsetArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
@@ -48,7 +51,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -91,21 +93,25 @@ public class TmsTestCaseControllerTest {
         .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
         .build();
 
-    // Configure MockMvc with a custom argument resolver for @AuthenticationPrincipal
+    // Configure MockMvc with custom argument resolvers
     mockMvc = standaloneSetup(testCaseController)
-        .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
-          @Override
-          public boolean supportsParameter(MethodParameter parameter) {
-            return parameter.getParameterAnnotation(AuthenticationPrincipal.class) != null;
-          }
+        .setCustomArgumentResolvers(
+            new HandlerMethodArgumentResolver() {
+              @Override
+              public boolean supportsParameter(MethodParameter parameter) {
+                return parameter.getParameterAnnotation(AuthenticationPrincipal.class) != null;
+              }
 
-          @Override
-          public Object resolveArgument(MethodParameter parameter,
-              ModelAndViewContainer mavContainer,
-              NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-            return testUser;
-          }
-        })
+              @Override
+              public Object resolveArgument(MethodParameter parameter,
+                  ModelAndViewContainer mavContainer,
+                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                return testUser;
+              }
+            },
+            new OffsetArgumentResolver(),
+            new FilterCriteriaResolver()
+        )
         .build();
 
     // Setup the project extractor mock to return a MembershipDetails with the projectId
@@ -137,37 +143,34 @@ public class TmsTestCaseControllerTest {
   @Test
   void getTestCasesByCriteriaTest() throws Exception {
     // Given
-    var search = "test search";
-    var testFolderId = 5L;
-    var testPlanId = 3L;
     var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
     var page = new Page<>(testCases, 10, 0, 2, 1);
 
-    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), eq(testPlanId), any(Pageable.class))).willReturn(page);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
-                .param("search", search)
-                .param("testFolderId", Long.toString(testFolderId))
-                .param("testPlanId", Long.toString(testPlanId))
+                .param("filter.cnt.name", "test")
+                .param("offset", "0")
+                .param("limit", "10")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), eq(testPlanId), any(Pageable.class));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
   void getTestCasesByCriteriaWithoutParametersTest() throws Exception {
     // Given
     var emptyTestCases = Collections.<TmsTestCaseRS>emptyList();
-    var page = new Page<>(emptyTestCases, 10, 0, 0, 0);
+    var page = new Page<>(emptyTestCases, 100, 0, 0, 0);
 
-    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), isNull(), any(Pageable.class))).willReturn(page);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
@@ -176,124 +179,123 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), isNull(), any(Pageable.class));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
-  void getTestCasesByCriteriaWithSearchOnlyTest() throws Exception {
+  void getTestCasesByCriteriaWithFilterOnlyTest() throws Exception {
     // Given
-    var search = "search query";
     var testCases = List.of(new TmsTestCaseRS());
-    var page = new Page<>(testCases, 10, 0, 1, 1);
+    var page = new Page<>(testCases, 100, 0, 1, 1);
 
-    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
-        isNull(), isNull(), any(Pageable.class))).willReturn(page);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
-                .param("search", search)
+                .param("filter.eq.priority", "HIGH")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
-        isNull(), isNull(), any(Pageable.class));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
-  void getTestCasesByCriteriaWithTestFolderIdOnlyTest() throws Exception {
+  void getTestCasesByCriteriaWithPaginationOnlyTest() throws Exception {
     // Given
-    var testFolderId = 10L;
     var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
-    var page = new Page<>(testCases, 10, 0, 2, 1);
+    var page = new Page<>(testCases, 20, 10, 2, 1);
 
-    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
-        eq(testFolderId), isNull(), any(Pageable.class))).willReturn(page);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
-                .param("testFolderId", Long.toString(testFolderId))
+                .param("offset", "10")
+                .param("limit", "20")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
-        eq(testFolderId), isNull(), any(Pageable.class));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
-  void getTestCasesByCriteriaWithTestPlanIdOnlyTest() throws Exception {
+  void getTestCasesByCriteriaWithSortTest() throws Exception {
     // Given
-    var testPlanId = 7L;
     var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS());
     var page = new Page<>(testCases, 10, 0, 3, 1);
 
-    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), eq(testPlanId), any(Pageable.class))).willReturn(page);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
-                .param("testPlanId", Long.toString(testPlanId))
+                .param("sort", "name,asc")
+                .param("offset", "0")
+                .param("limit", "10")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
-        isNull(), eq(testPlanId), any(Pageable.class));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
-  void getTestCasesByCriteriaWithTestFolderAndTestPlanIdsTest() throws Exception {
+  void getTestCasesByCriteriaWithMultipleFiltersTest() throws Exception {
     // Given
-    var testFolderId = 15L;
-    var testPlanId = 12L;
     var testCases = List.of(new TmsTestCaseRS());
     var page = new Page<>(testCases, 10, 0, 1, 1);
 
-    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), isNull(),
-        eq(testFolderId), eq(testPlanId), any(Pageable.class))).willReturn(page);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
-                .param("testFolderId", Long.toString(testFolderId))
-                .param("testPlanId", Long.toString(testPlanId))
+                .param("filter.eq.priority", "HIGH")
+                .param("filter.cnt.name", "test")
+                .param("offset", "0")
+                .param("limit", "10")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), isNull(),
-        eq(testFolderId), eq(testPlanId), any(Pageable.class));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
   void getTestCasesByCriteriaWithAllParametersTest() throws Exception {
     // Given
-    var search = "comprehensive search";
-    var testFolderId = 20L;
-    var testPlanId = 25L;
     var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
-    var page = new Page<>(testCases, 10, 0, 2, 1);
+    var page = new Page<>(testCases, 20, 10, 2, 1);
 
-    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), eq(testPlanId), any(Pageable.class))).willReturn(page);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
-                .param("search", search)
-                .param("testFolderId", Long.toString(testFolderId))
-                .param("testPlanId", Long.toString(testPlanId))
+                .param("filter.cnt.name", "comprehensive")
+                .param("filter.eq.priority", "CRITICAL")
+                .param("offset", "10")
+                .param("limit", "20")
+                .param("sort", "createdAt,desc")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), eq(search),
-        eq(testFolderId), eq(testPlanId), any(Pageable.class));
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
@@ -749,7 +751,7 @@ public class TmsTestCaseControllerTest {
     var testFolderId = 3L;
     var importedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
 
-    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), isNull(), eq(file)))
+    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(null), eq(file)))
         .willReturn(importedTestCases);
 
     // When/Then
@@ -761,7 +763,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), isNull(), eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(null), eq(file));
   }
 
   @Test
@@ -773,7 +775,7 @@ public class TmsTestCaseControllerTest {
     var testFolderName = "Test Folder";
     var importedTestCases = List.of(new TmsTestCaseRS());
 
-    given(tmsTestCaseService.importFromFile(eq(projectId), isNull(), eq(testFolderName), eq(file)))
+    given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(testFolderName), eq(file)))
         .willReturn(importedTestCases);
 
     // When/Then
@@ -785,7 +787,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), isNull(), eq(testFolderName),
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(testFolderName),
         eq(file));
   }
 
@@ -797,7 +799,7 @@ public class TmsTestCaseControllerTest {
         fileContent.getBytes());
     var importedTestCases = List.of(new TmsTestCaseRS());
 
-    given(tmsTestCaseService.importFromFile(eq(projectId), isNull(), isNull(), eq(file)))
+    given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(null), eq(file)))
         .willReturn(importedTestCases);
 
     // When/Then
@@ -808,7 +810,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), isNull(), isNull(), eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(null), eq(file));
   }
 
   @Test
@@ -869,7 +871,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).exportToFile(eq(projectId), isNull(), eq("JSON"),
+    verify(tmsTestCaseService).exportToFile(eq(projectId), eq(null), eq("JSON"),
         eq(false), any(HttpServletResponse.class));
   }
 
@@ -886,7 +888,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).exportToFile(eq(projectId), isNull(), eq(format),
+    verify(tmsTestCaseService).exportToFile(eq(projectId), eq(null), eq(format),
         eq(false), any(HttpServletResponse.class));
   }
 

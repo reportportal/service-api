@@ -426,7 +426,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   @Test
   void getFoldersByCriteriaWithNonExistentTestPlanIdIntegrationTest() throws Exception {
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
-            .param("testPlanId", "999")
+            .param("filter.eq.testPlanId", "999")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -436,7 +436,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   @Test
   void getFoldersByCriteriaWithInvalidTestPlanIdIntegrationTest() throws Exception {
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
-            .param("testPlanId", "invalid")
+            .param("filter.eq.testPlanId", "invalid")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }

@@ -119,9 +119,7 @@ public class ProjectExtractor {
 
     //dirty hack to allow everything for user with 'admin' authority
     if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-      ReportPortalUser.ProjectDetails projectDetails = projectUserRepository
-          .findAdminDetailsProjectName(normalizeId(projectName))
-          .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+      ReportPortalUser.ProjectDetails projectDetails = requireProjectExists(projectName);
       user.getProjectDetails().put(
           normalizeId(projectName),
           projectDetails
@@ -132,6 +130,19 @@ public class ProjectExtractor {
         () -> new ReportPortalException(ErrorType.ACCESS_DENIED,
             "Please check the list of your available projects."
         ));
+  }
+
+  /**
+   * Ensures that a project with the given name exists or throws PROJECT_NOT_FOUND.
+   * Returns project details when it exists.
+   *
+   * @param projectName Project name (any case)
+   * @return Project details if exists
+   */
+  public ReportPortalUser.ProjectDetails requireProjectExists(String projectName) {
+    return projectUserRepository
+        .findAdminDetailsProjectName(normalizeId(projectName))
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
   }
 
 

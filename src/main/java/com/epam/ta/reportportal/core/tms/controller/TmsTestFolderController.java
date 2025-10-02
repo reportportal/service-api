@@ -229,7 +229,7 @@ public class TmsTestFolderController {
       @FilterFor(TmsTestFolder.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Pagination parameters")
-      @PagingOffset OffsetRequest offsetRequest) {
+      @PagingOffset(sortable = TmsTestFolder.class) OffsetRequest offsetRequest) {
     return tmsTestFolderService.getFoldersByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))

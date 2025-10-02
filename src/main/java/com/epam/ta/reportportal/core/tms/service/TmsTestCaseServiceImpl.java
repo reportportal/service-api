@@ -18,6 +18,7 @@ import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseImporterFactory;
 import com.epam.ta.reportportal.dao.tms.filterable.TmsTestCaseFilterableRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -251,9 +254,19 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       var testCaseDefaultVersions = tmsTestCaseVersionService.getDefaultVersions(
           testCaseIds.getContent());
       var testCases = tmsTestCaseRepository
-          .findByProjectIdAndIds(projectId, testCaseIds.getContent());
+          .findByProjectIdAndIds(projectId, testCaseIds.getContent())
+          .stream()
+          .collect(Collectors.toMap(TmsTestCase::getId, Function.identity()));
+
+      var orderedTestTestCases = testCaseIds
+          .getContent()
+          .stream()
+          .map(testCases::get)
+          .filter(Objects::nonNull)
+          .toList();
+
       var page = tmsTestCaseMapper.convert(
-          testCases, testCaseDefaultVersions, pageable, testCaseIds.getTotalElements()
+          orderedTestTestCases, testCaseDefaultVersions, pageable, testCaseIds.getTotalElements()
       );
 
       return PagedResourcesAssembler

@@ -77,7 +77,7 @@ public class TmsTestPlanController {
   public Page<TmsTestPlanRS> getTestPlansByCriteria(
       @PathVariable String projectKey,
       @FilterFor(TmsTestPlan.class) Filter filter,
-      @PagingOffset OffsetRequest offsetRequest,
+      @PagingOffset(sortable = TmsTestPlan.class) OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getByCriteria(
         projectExtractor

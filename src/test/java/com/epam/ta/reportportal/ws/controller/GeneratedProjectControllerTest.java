@@ -50,7 +50,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void getLogTypesReturns403ForCustomerRole() throws Exception {
+  void getLogTypesReturns403WhenUserNotAssignedToProject() throws Exception {
     mockMvc.perform(get("/projects/superadmin_personal/log-types")
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isForbidden());

@@ -18,6 +18,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolderWithCountOfTestCases;
@@ -58,7 +60,6 @@ class TmsTestFolderServiceImplTest {
 
   private final long projectId = 1L;
   private final long testFolderId = 2L;
-  private final Long testPlanId = 100L;
   private final Pageable pageable = PageRequest.of(0, 10);
   // Additional fields for hierarchy tests
   private final Long rootFolderId = 10L;
@@ -81,7 +82,11 @@ class TmsTestFolderServiceImplTest {
   @Mock
   private TestFolderIdValidator testFolderIdValidator;
   @Mock
+  private TmsTestFolderWithTestCaseCountRepository tmsTestFolderWithTestCaseCountRepository;
+  @Mock
   private HttpServletResponse mockResponse;
+  @Mock
+  private Filter filter;
   @InjectMocks
   private TmsTestFolderServiceImpl sut;
 
@@ -652,7 +657,7 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testGetFoldersByCriteriaWithNullTestPlanId() {
+  void testGetFoldersByCriteria() {
     // Arrange
     TmsTestFolderWithCountOfTestCases folder1 = new TmsTestFolderWithCountOfTestCases(testFolder,
         2L);
@@ -679,7 +684,8 @@ class TmsTestFolderServiceImplTest {
         new TmsTestFolderIdWithCountOfTestCases(5L, 1L)
     );
 
-    when(tmsTestFolderRepository.findAllByProjectIdWithCountOfTestCases(projectId, pageable))
+    when(tmsTestFolderWithTestCaseCountRepository.findAllByProjectIdAndFilterWithCountOfTestCases(
+        projectId, filter, pageable))
         .thenReturn(folderPage);
     when(tmsTestFolderRepository.findByIdsWithSubFolders(folderIds))
         .thenReturn(foldersWithSubFolders);
@@ -689,69 +695,14 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(folderRSPage);
 
     // Act
-    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, null, pageable);
+    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, filter, pageable);
 
     // Assert
     assertNotNull(result);
     assertEquals(2, result.getContent().size());
 
-    verify(tmsTestFolderRepository).findAllByProjectIdWithCountOfTestCases(projectId, pageable);
-    verify(tmsTestFolderRepository, never()).findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
-        eq(projectId), any(), eq(pageable));
-    verify(tmsTestFolderRepository).findByIdsWithSubFolders(folderIds);
-    verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L));
-    verify(tmsTestFolderMapper).convert(folderPage, subFolderTestCaseCounts);
-  }
-
-  @Test
-  void testGetFoldersByCriteriaWithTestPlanId() {
-    // Arrange
-    TmsTestFolderWithCountOfTestCases folder1 = new TmsTestFolderWithCountOfTestCases(testFolder,
-        2L);
-    TmsTestFolderWithCountOfTestCases folder2 = new TmsTestFolderWithCountOfTestCases(
-        parentTestFolder, 1L);
-
-    org.springframework.data.domain.Page<TmsTestFolderWithCountOfTestCases> folderPage =
-        new PageImpl<>(Arrays.asList(folder1, folder2), pageable, 2);
-
-    Page<TmsTestFolderRS> folderRSPage = new Page<>(
-        Arrays.asList(testFolderRS, testFolderRS),
-        10L, 0L, 2L
-    );
-
-    List<Long> folderIds = Arrays.asList(testFolderId, 3L);
-    List<TmsTestFolder> foldersWithSubFolders = Arrays.asList(testFolder, parentTestFolder);
-
-    Map<Long, Long> subFolderTestCaseCounts = new HashMap<>();
-    subFolderTestCaseCounts.put(4L, 2L);
-    subFolderTestCaseCounts.put(5L, 1L);
-
-    List<TmsTestFolderIdWithCountOfTestCases> testCaseCountResults = Arrays.asList(
-        new TmsTestFolderIdWithCountOfTestCases(4L, 2L),
-        new TmsTestFolderIdWithCountOfTestCases(5L, 1L)
-    );
-
-    when(tmsTestFolderRepository.findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
-        projectId, testPlanId, pageable))
-        .thenReturn(folderPage);
-    when(tmsTestFolderRepository.findByIdsWithSubFolders(folderIds))
-        .thenReturn(foldersWithSubFolders);
-    when(tmsTestFolderRepository.findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L)))
-        .thenReturn(testCaseCountResults);
-    when(tmsTestFolderMapper.convert(folderPage, subFolderTestCaseCounts))
-        .thenReturn(folderRSPage);
-
-    // Act
-    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, testPlanId, pageable);
-
-    // Assert
-    assertNotNull(result);
-    assertEquals(2, result.getContent().size());
-
-    verify(tmsTestFolderRepository).findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
-        projectId, testPlanId, pageable);
-    verify(tmsTestFolderRepository, never()).findAllByProjectIdWithCountOfTestCases(
-        eq(projectId), eq(pageable));
+    verify(tmsTestFolderWithTestCaseCountRepository).findAllByProjectIdAndFilterWithCountOfTestCases(
+        projectId, filter, pageable);
     verify(tmsTestFolderRepository).findByIdsWithSubFolders(folderIds);
     verify(tmsTestFolderRepository).findTestCaseCountsByFolderIds(projectId, Arrays.asList(4L, 5L));
     verify(tmsTestFolderMapper).convert(folderPage, subFolderTestCaseCounts);
@@ -767,19 +718,21 @@ class TmsTestFolderServiceImplTest {
         Collections.emptyList(), 10L, 0L, 0L
     );
 
-    when(tmsTestFolderRepository.findAllByProjectIdWithCountOfTestCases(projectId, pageable))
+    when(tmsTestFolderWithTestCaseCountRepository.findAllByProjectIdAndFilterWithCountOfTestCases(
+        projectId, filter, pageable))
         .thenReturn(emptyPage);
     when(tmsTestFolderMapper.convert(emptyPage))
         .thenReturn(emptyRSPage);
 
     // Act
-    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, null, pageable);
+    Page<TmsTestFolderRS> result = sut.getFoldersByCriteria(projectId, filter, pageable);
 
     // Assert
     assertNotNull(result);
     assertEquals(0, result.getContent().size());
 
-    verify(tmsTestFolderRepository).findAllByProjectIdWithCountOfTestCases(projectId, pageable);
+    verify(tmsTestFolderWithTestCaseCountRepository).findAllByProjectIdAndFilterWithCountOfTestCases(
+        projectId, filter, pageable);
     verify(tmsTestFolderRepository, never()).findByIdsWithSubFolders(anyList());
     verify(tmsTestFolderRepository, never()).findTestCaseCountsByFolderIds(eq(projectId), anyList());
     verify(tmsTestFolderMapper).convert(emptyPage);

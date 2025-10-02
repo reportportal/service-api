@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.tms.controller;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -16,6 +17,7 @@ import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -88,9 +90,7 @@ public class TestCaseController {
    * sorting, full-text search and pagination.
    *
    * @param projectKey   The key of the project.
-   * @param search       Optional full-text search query string for searching in test case names and
-   *                     descriptions
-   * @param testFolderId Optional test folder ID to filter test cases by specific folder
+   * @param filter       Optional filter
    * @param user         Authenticated user
    * @return A paginated list of data transfer objects ({@link TmsTestCaseRS}) representing test
    * cases.
@@ -104,18 +104,14 @@ public class TestCaseController {
   @ApiResponse(responseCode = "200", description = "Successful operation")
   public Page<TmsTestCaseRS> getTestCasesByCriteria(
       @PathVariable("projectKey") String projectKey,
-      @RequestParam(value = "search", required = false) String search,
-      @RequestParam(value = "testFolderId", required = false) Long testFolderId,
-      @RequestParam(value = "testPlanId", required = false) Long testPlanId,
       @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
+      @FilterFor(TmsTestCase.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getTestCasesByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        search,
-        testFolderId,
-        testPlanId,
+        filter,
         offsetRequest);
   }
 

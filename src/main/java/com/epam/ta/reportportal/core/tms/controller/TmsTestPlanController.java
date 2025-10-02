@@ -2,15 +2,18 @@ package com.epam.ta.reportportal.core.tms.controller;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -65,22 +68,22 @@ public class TmsTestPlanController {
   /**
    * Retrieves a list of test plans filtered by criteria.
    *
-   * @param projectKey The key of the project.
-   * @param search     Search term for full-text search by name and description (optional).
-   * @param pageable   Pagination details.
+   * @param projectKey      The key of the project.
+   * @param filter          Filter (optional).
+   * @param offsetRequest   Pagination details.
    * @return Paginated list of test plans matching the criteria ({@link TmsTestPlanRS}).
    */
   @GetMapping
   public Page<TmsTestPlanRS> getTestPlansByCriteria(
       @PathVariable String projectKey,
-      @RequestParam(required = false) String search,
-      @PagingOffset OffsetRequest offsetRequest,
+      @FilterFor(TmsTestPlan.class) Filter filter,
+      @PagingOffset(sortable = TmsTestPlan.class) OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        search,
+        filter,
         offsetRequest
     );
   }

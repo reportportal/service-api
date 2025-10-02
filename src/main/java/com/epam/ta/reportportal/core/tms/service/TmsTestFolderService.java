@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
@@ -12,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTestFolderRS, Long> {
 
-  Page<TmsTestFolderRS> getFoldersByCriteria(long projectId, Long testPlanId, Pageable pageable);
+  Page<TmsTestFolderRS> getFoldersByCriteria(long projectId, Filter filter, Pageable pageable);
 
   Page<TmsTestFolderRS> getSubFolders(long projectId, Long folderId, Pageable pageable);
 

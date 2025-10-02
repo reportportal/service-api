@@ -3,6 +3,8 @@ package com.epam.ta.reportportal.core.tms.service;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.dao.tms.filterable.TmsTestPlanFilterableRepository;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
@@ -34,6 +36,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   private static final String TMS_TEST_PLAN_NOT_FOUND_BY_ID = "TMS Test Plan with id: %d for project: %d";
 
   private final TmsTestPlanRepository testPlanRepository;
+  private final TmsTestPlanFilterableRepository tmsTestPlanFilterableRepository;
   private final TmsTestPlanMapper tmsTestPlanMapper;
   private final TmsTestPlanAttributeService tmsTestPlanAttributeService;
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
@@ -103,8 +106,10 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestPlanRS> getByCriteria(Long projectId, String search, Pageable pageable) {
-    var testPlanIds = testPlanRepository.findIdsByCriteria(projectId, search, pageable);
+  public Page<TmsTestPlanRS> getByCriteria(Long projectId, Filter filter, Pageable pageable) {
+    var testPlanIds = tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(
+        projectId, filter, pageable
+    );
 
     if (testPlanIds.isEmpty()) {
       return PagedResourcesAssembler
@@ -124,7 +129,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .toList();
     return PagedResourcesAssembler
         .<TmsTestPlanRS>pageConverter()
-        .apply(tmsTestPlanMapper.convertToRS(orderedTestPlans, testPlanIds, pageable));
+        .apply(tmsTestPlanMapper.convertToRS(
+            orderedTestPlans, testPlanIds, pageable, testPlanIds.getTotalElements()
+        ));
   }
 
   @Override

@@ -59,15 +59,18 @@ public abstract class TmsTestPlanMapper {
         .build();
   }
 
-  public Page<TmsTestPlanRS> convertToRS(List<TmsTestPlan> orderedTestPlans, Page<Long> testPlanIds,
-      Pageable pageable) {
+  public Page<TmsTestPlanRS> convertToRS(
+      List<TmsTestPlan> orderedTestPlans,
+      Page<Long> testPlanIds,
+      Pageable pageable,
+      long totalCount) {
     return new PageImpl<>(
         orderedTestPlans
             .stream()
             .map(this::convertToRS)
             .collect(Collectors.toList()),
         pageable,
-        testPlanIds.getTotalElements()
+        totalCount
     );
   }
 }

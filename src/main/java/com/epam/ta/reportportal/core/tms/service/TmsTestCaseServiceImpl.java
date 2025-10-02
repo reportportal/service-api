@@ -4,6 +4,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
@@ -16,6 +17,8 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseImporterFactory;
+import com.epam.ta.reportportal.dao.tms.filterable.TmsTestCaseFilterableRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +51,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private final TmsTestCaseMapper tmsTestCaseMapper;
   private final TmsTestCaseRepository tmsTestCaseRepository;
+  private final TmsTestCaseFilterableRepository tmsTestCaseFilterableRepository;
   private final TmsTestCaseAttributeService tmsTestCaseAttributeService;
   private final TmsTestCaseVersionService tmsTestCaseVersionService;
   private final TmsTestCaseImporterFactory importerFactory;
@@ -240,16 +246,28 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search,
-      Long testFolderId, Long testPlanId, Pageable pageable) {
-    var testCaseIds = tmsTestCaseRepository.findIdsByCriteria(projectId, search, testFolderId,
-        testPlanId, pageable);
+  public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, Filter filter, Pageable pageable) {
+    var testCaseIds = tmsTestCaseFilterableRepository.findIdsByProjectIdAndFilter(
+        projectId, filter, pageable
+    );
     if (testCaseIds.hasContent()) {
       var testCaseDefaultVersions = tmsTestCaseVersionService.getDefaultVersions(
           testCaseIds.getContent());
       var testCases = tmsTestCaseRepository
-          .findByProjectIdAndIds(projectId, testCaseIds.getContent());
-      var page = tmsTestCaseMapper.convert(testCases, testCaseDefaultVersions, pageable);
+          .findByProjectIdAndIds(projectId, testCaseIds.getContent())
+          .stream()
+          .collect(Collectors.toMap(TmsTestCase::getId, Function.identity()));
+
+      var orderedTestTestCases = testCaseIds
+          .getContent()
+          .stream()
+          .map(testCases::get)
+          .filter(Objects::nonNull)
+          .toList();
+
+      var page = tmsTestCaseMapper.convert(
+          orderedTestTestCases, testCaseDefaultVersions, pageable, testCaseIds.getTotalElements()
+      );
 
       return PagedResourcesAssembler
           .<TmsTestCaseRS>pageConverter()

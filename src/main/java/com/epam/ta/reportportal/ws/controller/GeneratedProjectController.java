@@ -1,18 +1,22 @@
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 import com.epam.reportportal.api.ProjectsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
+import com.epam.reportportal.api.model.GetLogTypes200Response;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
+import com.epam.ta.reportportal.core.logtype.GetLogTypesHandler;
+import lombok.RequiredArgsConstructor;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,19 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  **/
 @RestController
+@RequiredArgsConstructor
 public class GeneratedProjectController implements ProjectsApi {
 
-  private final Pf4jPluginBox pluginBox;
-
-  /**
-   * Constructor for the controller.
-   *
-   * @param pluginBox The {@link Pf4jPluginBox} instance used to access plugin extensions.
-   */
-  @Autowired
-  public GeneratedProjectController(Pf4jPluginBox pluginBox) {
-    this.pluginBox = pluginBox;
-  }
+  private final PluginManager pluginManager;
+  private final GetLogTypesHandler getLogTypesHandler;
 
   @Override
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
@@ -79,6 +75,12 @@ public class GeneratedProjectController implements ProjectsApi {
   public ResponseEntity<Void> deleteGroupFromProjectById(String projectName, Long groupId) {
     getGroupExtension().deleteGroupFromProject(projectName, groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @Override
+  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  public ResponseEntity<GetLogTypes200Response> getLogTypes(String projectName) {
+    return ResponseEntity.ok(getLogTypesHandler.getLogTypes(normalizeId(projectName)));
   }
 
   private GroupExtensionPoint getGroupExtension() {

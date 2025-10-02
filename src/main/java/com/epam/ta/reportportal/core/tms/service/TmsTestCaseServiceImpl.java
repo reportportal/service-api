@@ -252,7 +252,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           testCaseIds.getContent());
       var testCases = tmsTestCaseRepository
           .findByProjectIdAndIds(projectId, testCaseIds.getContent());
-      var page = tmsTestCaseMapper.convert(testCases, testCaseDefaultVersions, pageable);
+      var page = tmsTestCaseMapper.convert(
+          testCases, testCaseDefaultVersions, pageable, testCaseIds.getTotalElements()
+      );
 
       return PagedResourcesAssembler
           .<TmsTestCaseRS>pageConverter()

@@ -129,7 +129,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .toList();
     return PagedResourcesAssembler
         .<TmsTestPlanRS>pageConverter()
-        .apply(tmsTestPlanMapper.convertToRS(orderedTestPlans, testPlanIds, pageable));
+        .apply(tmsTestPlanMapper.convertToRS(
+            orderedTestPlans, testPlanIds, pageable, testPlanIds.getTotalElements()
+        ));
   }
 
   @Override

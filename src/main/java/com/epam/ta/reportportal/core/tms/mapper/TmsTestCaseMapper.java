@@ -36,13 +36,14 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   public Page<TmsTestCaseRS> convert(
       Collection<TmsTestCase> testCases,
       Map<Long, TmsTestCaseVersion> testCaseDefaultVersions,
-      Pageable pageable) {
+      Pageable pageable,
+      long totalCount) {
     var tmsTestCaseRSList = testCases
         .stream()
         .map(testCase -> convert(testCase, testCaseDefaultVersions.get(testCase.getId())))
         .toList();
     return new PageImpl<>(
-        tmsTestCaseRSList, pageable, tmsTestCaseRSList.size()
+        tmsTestCaseRSList, pageable, totalCount
     );
   }
 

@@ -139,7 +139,8 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.findIdsByCriteria(projectId, search, pageable)).thenReturn(testPlanIdsPage);
     when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
-    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable)).thenReturn(testPlanPage);
+    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable,
+        testPlanIds.getTotalElements())).thenReturn(testPlanPage);
 
     var result = assertDoesNotThrow(
         () -> sut.getByCriteria(projectId, search, pageable));
@@ -155,7 +156,8 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByCriteria(projectId, search, pageable);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
-    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable);
+    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable,
+        testPlanIds.getTotalElements());
   }
 
   @Test
@@ -175,7 +177,8 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.findIdsByCriteria(projectId, search, pageable)).thenReturn(testPlanIdsPage);
     when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
-    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable)).thenReturn(testPlanPage);
+    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable,
+        testPlanIds.getTotalElements())).thenReturn(testPlanPage);
 
     var result = assertDoesNotThrow(
         () -> sut.getByCriteria(projectId, search, pageable));
@@ -186,7 +189,8 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByCriteria(projectId, search, pageable);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
-    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable);
+    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable,
+        testPlanIds.getTotalElements());
   }
 
   @Test
@@ -212,7 +216,8 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByCriteria(projectId, search, pageable);
     verify(testPlanRepository, never()).findByIdsWithAttributes(any());
-    verify(tmsTestPlanMapper, never()).convertToRS(anyList(), any(), any());
+    verify(tmsTestPlanMapper, never()).convertToRS(anyList(), any(), any(),
+        testPlanIds.getTotalElements());
   }
 
   @Test

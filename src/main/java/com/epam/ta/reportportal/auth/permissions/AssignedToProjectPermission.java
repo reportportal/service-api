@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +61,9 @@ class AssignedToProjectPermission implements Permission {
     BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
 
     final String resolvedProjectName = String.valueOf(targetDomainObject);
+
+    projectExtractor.requireProjectExists(resolvedProjectName);
+
     final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(
         rpUser, resolvedProjectName);
     projectDetails.ifPresent(

@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.controller.TmsTestFolderController;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
@@ -24,7 +25,10 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TmsTestFolderService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
+import com.epam.ta.reportportal.ws.resolver.OffsetArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
@@ -35,8 +39,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -46,11 +49,10 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-public class TmsTestFolderControllerTmsTest {
+public class TmsTestFolderControllerTest {
 
   private final long projectId = 1L;
   private final String projectKey = "test_project";
-  private final Pageable pageable = PageRequest.of(0, 10);
 
   @Mock
   private TmsTestFolderService tmsTestFolderService;
@@ -77,7 +79,7 @@ public class TmsTestFolderControllerTmsTest {
         .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
         .build();
 
-    // Configure MockMvc with a custom argument resolver for @AuthenticationPrincipal
+    // Configure MockMvc with custom argument resolvers
     mockMvc = standaloneSetup(tmsTestFolderController)
         .setCustomArgumentResolvers(
             new HandlerMethodArgumentResolver() {
@@ -93,19 +95,8 @@ public class TmsTestFolderControllerTmsTest {
                 return testUser;
               }
             },
-            new HandlerMethodArgumentResolver() {
-              @Override
-              public boolean supportsParameter(MethodParameter parameter) {
-                return parameter.getParameterType().equals(Pageable.class);
-              }
-
-              @Override
-              public Object resolveArgument(MethodParameter parameter,
-                  ModelAndViewContainer mavContainer,
-                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-                return pageable;
-              }
-            },
+            new OffsetArgumentResolver(),
+            new FilterCriteriaResolver(),
             new HandlerMethodArgumentResolver() {
               @Override
               public boolean supportsParameter(MethodParameter parameter) {
@@ -147,7 +138,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
 
     mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -174,7 +165,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
 
     mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -202,7 +193,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
 
     mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -232,7 +223,7 @@ public class TmsTestFolderControllerTmsTest {
     given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
 
     mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -258,7 +249,7 @@ public class TmsTestFolderControllerTmsTest {
         .willReturn(expectedResponse);
 
     mockMvc.perform(put("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -287,7 +278,7 @@ public class TmsTestFolderControllerTmsTest {
         .willReturn(expectedResponse);
 
     mockMvc.perform(put("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -317,7 +308,7 @@ public class TmsTestFolderControllerTmsTest {
         .willReturn(expectedResponse);
 
     mockMvc.perform(put("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -344,7 +335,7 @@ public class TmsTestFolderControllerTmsTest {
         .willReturn(expectedResponse);
 
     mockMvc.perform(patch("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -374,7 +365,7 @@ public class TmsTestFolderControllerTmsTest {
         .willReturn(expectedResponse);
 
     mockMvc.perform(patch("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -399,7 +390,7 @@ public class TmsTestFolderControllerTmsTest {
         .willReturn(expectedResponse);
 
     mockMvc.perform(patch("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
-            .contentType("application/json")
+            .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
 
@@ -419,7 +410,8 @@ public class TmsTestFolderControllerTmsTest {
 
     given(tmsTestFolderService.getById(projectId, folderId)).willReturn(expectedResponse);
 
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.name").value("name"))
@@ -431,7 +423,7 @@ public class TmsTestFolderControllerTmsTest {
   }
 
   @Test
-  public void testGetFoldersByCriteria_WithoutTestPlanId() throws Exception {
+  public void testGetFoldersByCriteria_WithoutFilters() throws Exception {
     TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
         .id(1L)
         .name("name1")
@@ -447,16 +439,17 @@ public class TmsTestFolderControllerTmsTest {
 
     Page<TmsTestFolderRS> expectedResponse = new Page<>(
         Arrays.asList(folder1, folder2),
-        10L, // size
-        0L,  // number
-        2L   // totalElements
+        100L, // default size
+        0L,   // number
+        2L,   // totalElements
+        1L    // totalPages
     );
 
-    // Test without testPlanId parameter
-    given(tmsTestFolderService.getFoldersByCriteria(projectId, null, pageable))
-        .willReturn(expectedResponse);
+    given(tmsTestFolderService.getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
 
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey))
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey)
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(2))
@@ -469,12 +462,12 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.page.totalElements").value(2));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).getFoldersByCriteria(projectId, null, pageable);
+    verify(tmsTestFolderService).getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
-  public void testGetFoldersByCriteria_WithTestPlanId() throws Exception {
-    Long testPlanId = 123L;
+  public void testGetFoldersByCriteria_WithFilter() throws Exception {
     TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
         .id(1L)
         .name("name1")
@@ -484,17 +477,18 @@ public class TmsTestFolderControllerTmsTest {
 
     Page<TmsTestFolderRS> expectedResponse = new Page<>(
         Collections.singletonList(folder1),
-        10L, // size
-        0L,  // number
-        1L   // totalElements
+        100L, // default size
+        0L,   // number
+        1L,   // totalElements
+        1L    // totalPages
     );
 
-    // Test with testPlanId parameter
-    given(tmsTestFolderService.getFoldersByCriteria(projectId, testPlanId, pageable))
-        .willReturn(expectedResponse);
+    given(tmsTestFolderService.getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
 
     mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey)
-            .param("testPlanId", testPlanId.toString()))
+            .param("filter.cnt.name", "name1")
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(1))
@@ -504,7 +498,156 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.page.totalElements").value(1));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).getFoldersByCriteria(projectId, testPlanId, pageable);
+    verify(tmsTestFolderService).getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  public void testGetFoldersByCriteria_WithPagination() throws Exception {
+    TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
+        .id(1L)
+        .name("name1")
+        .description("doc1")
+        .countOfTestCases(2L)
+        .build();
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
+        Collections.singletonList(folder1),
+        10L, // size
+        1L,  // number (offset 10 / limit 10 = page 1)
+        11L, // totalElements
+        2L   // totalPages
+    );
+
+    given(tmsTestFolderService.getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey)
+            .param("offset", "10")
+            .param("limit", "10")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(1))
+        .andExpect(jsonPath("$.page.totalElements").value(11));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  public void testGetFoldersByCriteria_WithFilterAndPagination() throws Exception {
+    TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
+        .id(1L)
+        .name("test folder")
+        .description("test description")
+        .countOfTestCases(5L)
+        .build();
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
+        Collections.singletonList(folder1),
+        20L, // size
+        0L,  // number
+        1L,  // totalElements
+        1L   // totalPages
+    );
+
+    given(tmsTestFolderService.getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey)
+            .param("filter.cnt.name", "test")
+            .param("offset", "0")
+            .param("limit", "20")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(1))
+        .andExpect(jsonPath("$.content[0].name").value("test folder"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  public void testGetFoldersByCriteria_WithMultipleFilters() throws Exception {
+    TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
+        .id(1L)
+        .name("important folder")
+        .description("critical description")
+        .countOfTestCases(10L)
+        .build();
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
+        Collections.singletonList(folder1),
+        100L, // default size
+        0L,   // number
+        1L,   // totalElements
+        1L    // totalPages
+    );
+
+    given(tmsTestFolderService.getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey)
+            .param("filter.cnt.name", "important")
+            .param("filter.cnt.description", "critical")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(1))
+        .andExpect(jsonPath("$.content[0].name").value("important folder"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  public void testGetFoldersByCriteria_WithSort() throws Exception {
+    TmsTestFolderRS folder1 = TmsTestFolderRS.builder()
+        .id(1L)
+        .name("A Folder")
+        .description("doc1")
+        .countOfTestCases(2L)
+        .build();
+    TmsTestFolderRS folder2 = TmsTestFolderRS.builder()
+        .id(2L)
+        .name("B Folder")
+        .description("doc2")
+        .countOfTestCases(3L)
+        .build();
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
+        Arrays.asList(folder1, folder2),
+        100L, // default size
+        0L,   // number
+        2L,   // totalElements
+        1L    // totalPages
+    );
+
+    given(tmsTestFolderService.getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder", projectKey)
+            .param("sort", "name,asc")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[0].name").value("A Folder"))
+        .andExpect(jsonPath("$.content[1].name").value("B Folder"));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
@@ -525,16 +668,18 @@ public class TmsTestFolderControllerTmsTest {
 
     Page<TmsTestFolderRS> expectedResponse = new Page<>(
         Arrays.asList(subfolder1, subfolder2),
-        10L, // size
-        0L,  // number
-        2L   // totalElements
+        100L, // default size
+        0L,   // number
+        2L,   // totalElements
+        1L    // totalPages
     );
 
-    given(tmsTestFolderService.getSubFolders(projectId, parentFolderId, pageable))
-        .willReturn(expectedResponse);
+    given(tmsTestFolderService.getSubFolders(eq(projectId), eq(parentFolderId),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
 
     mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}/sub-folder",
-            projectKey, parentFolderId))
+            projectKey, parentFolderId)
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(2))
@@ -545,7 +690,87 @@ public class TmsTestFolderControllerTmsTest {
         .andExpect(jsonPath("$.page.totalElements").value(2));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).getSubFolders(projectId, parentFolderId, pageable);
+    verify(tmsTestFolderService).getSubFolders(eq(projectId), eq(parentFolderId),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  public void testGetSubfolders_WithPagination() throws Exception {
+    long parentFolderId = 1L;
+    TmsTestFolderRS subfolder1 = TmsTestFolderRS.builder()
+        .id(2L)
+        .name("subfolder1")
+        .description("subfolder doc1")
+        .countOfTestCases(0L)
+        .build();
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
+        Collections.singletonList(subfolder1),
+        10L, // size
+        1L,  // number (offset 10 / limit 10 = page 1)
+        15L, // totalElements
+        2L   // totalPages
+    );
+
+    given(tmsTestFolderService.getSubFolders(eq(projectId), eq(parentFolderId),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}/sub-folder",
+            projectKey, parentFolderId)
+            .param("offset", "10")
+            .param("limit", "10")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(2))
+        .andExpect(jsonPath("$.page.totalElements").value(15));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getSubFolders(eq(projectId), eq(parentFolderId),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  public void testGetSubfolders_WithSort() throws Exception {
+    long parentFolderId = 1L;
+    TmsTestFolderRS subfolder1 = TmsTestFolderRS.builder()
+        .id(2L)
+        .name("A Subfolder")
+        .description("subfolder doc1")
+        .countOfTestCases(0L)
+        .build();
+    TmsTestFolderRS subfolder2 = TmsTestFolderRS.builder()
+        .id(3L)
+        .name("B Subfolder")
+        .description("subfolder doc2")
+        .countOfTestCases(1L)
+        .build();
+
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(
+        Arrays.asList(subfolder1, subfolder2),
+        100L, // default size
+        0L,   // number
+        2L,   // totalElements
+        1L    // totalPages
+    );
+
+    given(tmsTestFolderService.getSubFolders(eq(projectId), eq(parentFolderId),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}/sub-folder",
+            projectKey, parentFolderId)
+            .param("sort", "name,asc")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[0].name").value("A Subfolder"))
+        .andExpect(jsonPath("$.content[1].name").value("B Subfolder"));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getSubFolders(eq(projectId), eq(parentFolderId),
+        any(OffsetRequest.class));
   }
 
   @Test
@@ -554,7 +779,8 @@ public class TmsTestFolderControllerTmsTest {
 
     doNothing().when(tmsTestFolderService).delete(projectId, folderId);
 
-    mockMvc.perform(delete("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId))
+    mockMvc.perform(delete("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -563,7 +789,6 @@ public class TmsTestFolderControllerTmsTest {
 
   @Test
   public void testExportFolder_CSV() throws Exception {
-    // Arrange
     long folderId = 2L;
     TmsTestFolderExportFileType fileType = TmsTestFolderExportFileType.CSV;
 
@@ -571,12 +796,11 @@ public class TmsTestFolderControllerTmsTest {
         .exportFolderById(eq(projectId), eq(folderId), eq(fileType),
             any(HttpServletResponse.class));
 
-    // Act & Assert
     mockMvc.perform(get("/v1/project/{projectKey}/tms/folder/{folderId}/export/{fileType}",
-            projectKey, folderId, fileType))
+            projectKey, folderId, fileType)
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    // Verify
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestFolderService).exportFolderById(eq(projectId), eq(folderId), eq(fileType),
         any(HttpServletResponse.class));

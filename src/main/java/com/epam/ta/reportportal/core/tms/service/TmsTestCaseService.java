@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
@@ -31,8 +32,7 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
   void exportToFile(Long projectId, List<Long> ids, String format, boolean includeAttachments,
       HttpServletResponse response);
 
-  Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, String search, Long testFolderId,
-      Long testPlanId, Pageable pageable);
+  Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, Filter filter, Pageable pageable);
 
   /**
    * Deletes specific attributes from a test case.

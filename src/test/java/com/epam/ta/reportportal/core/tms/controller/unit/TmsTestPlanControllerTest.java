@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.controller.unit;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -9,11 +10,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.controller.TmsTestPlanController;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
@@ -23,7 +25,10 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanR
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
+import com.epam.ta.reportportal.ws.resolver.OffsetArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,9 +39,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -78,7 +80,8 @@ public class TmsTestPlanControllerTest {
     // Configure MockMvc with custom argument resolvers
     mockMvc = standaloneSetup(testPlanController)
         .setCustomArgumentResolvers(
-            new PageableHandlerMethodArgumentResolver(),
+            new OffsetArgumentResolver(),
+            new FilterCriteriaResolver(),
             new HandlerMethodArgumentResolver() {
               @Override
               public boolean supportsParameter(MethodParameter parameter) {
@@ -121,73 +124,175 @@ public class TmsTestPlanControllerTest {
   }
 
   @Test
-  void getTestPlansByCriteriaTest() throws Exception {
-    Pageable pageable = PageRequest.of(0, 1);
-    List<TmsTestPlanRS> content = List.of(new TmsTestPlanRS(), new TmsTestPlanRS());
+  void getTestPlansByCriteria_WithoutFiltersTest() throws Exception {
+    List<TmsTestPlanRS> content = Arrays.asList(new TmsTestPlanRS(), new TmsTestPlanRS());
 
-    // Create com.epam.ta.reportportal.model.Page using constructor
-    Page<TmsTestPlanRS> page = new Page<>(content, 1, 1, 2, 2);
+    Page<TmsTestPlanRS> page = new Page<>(
+        content,
+        100L, // default size
+        0L,   // number
+        2L,   // totalElements
+        1L    // totalPages
+    );
 
-    given(tmsTestPlanService.getByCriteria(projectId, null, pageable))
-        .willReturn(page);
+    given(tmsTestPlanService.getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
 
     mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
-            .contentType(MediaType.APPLICATION_JSON)
-            .param("page", "0")
-            .param("size", "1"))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.page.totalElements").value(2));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  void getTestPlansByCriteria_WithFilterTest() throws Exception {
+    List<TmsTestPlanRS> content = Collections.singletonList(new TmsTestPlanRS());
+
+    Page<TmsTestPlanRS> page = new Page<>(
+        content,
+        100L, // default size
+        0L,   // number
+        1L,   // totalElements
+        1L    // totalPages
+    );
+
+    given(tmsTestPlanService.getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
+            .param("filter.cnt.name", "test plan")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  void getTestPlansByCriteria_WithPaginationTest() throws Exception {
+    List<TmsTestPlanRS> content = Collections.singletonList(new TmsTestPlanRS());
+
+    Page<TmsTestPlanRS> page = new Page<>(
+        content,
+        10L, // size
+        1L,  // number (offset 10 / limit 10 = page 1)
+        25L, // totalElements
+        3L   // totalPages
+    );
+
+    given(tmsTestPlanService.getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
+            .param("offset", "10")
+            .param("limit", "10")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.page.totalElements").value(25));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  void getTestPlansByCriteria_WithFilterAndPaginationTest() throws Exception {
+    List<TmsTestPlanRS> content = Collections.singletonList(new TmsTestPlanRS());
+
+    Page<TmsTestPlanRS> page = new Page<>(
+        content,
+        20L, // size
+        0L,  // number
+        1L,  // totalElements
+        1L   // totalPages
+    );
+
+    given(tmsTestPlanService.getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
+            .param("filter.cnt.name", "important")
+            .param("offset", "0")
+            .param("limit", "20")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  void getTestPlansByCriteria_WithMultipleFiltersTest() throws Exception {
+    List<TmsTestPlanRS> content = Collections.singletonList(new TmsTestPlanRS());
+
+    Page<TmsTestPlanRS> page = new Page<>(
+        content,
+        100L, // default size
+        0L,   // number
+        1L,   // totalElements
+        1L    // totalPages
+    );
+
+    given(tmsTestPlanService.getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
+            .param("filter.cnt.name", "test")
+            .param("filter.cnt.description", "important")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
+  }
+
+  @Test
+  void getTestPlansByCriteria_WithSortTest() throws Exception {
+    TmsTestPlanRS plan1 = new TmsTestPlanRS();
+    TmsTestPlanRS plan2 = new TmsTestPlanRS();
+    List<TmsTestPlanRS> content = Arrays.asList(plan1, plan2);
+
+    Page<TmsTestPlanRS> page = new Page<>(
+        content,
+        100L, // default size
+        0L,   // number
+        2L,   // totalElements
+        1L    // totalPages
+    );
+
+    given(tmsTestPlanService.getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
+
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
+            .param("sort", "name,asc")
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(2));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).getByCriteria(projectId, null, pageable);
-  }
-
-  @Test
-  void getTestPlansByCriteriaWithSearchTest() throws Exception {
-    String search = "test search";
-    Pageable pageable = PageRequest.of(0, 10);
-    List<TmsTestPlanRS> content = List.of(new TmsTestPlanRS());
-
-    // Create Page using constructor: content, size, number, totalElements, totalPages
-    Page<TmsTestPlanRS> page = new Page<>(content, 10, 1, 1, 1);
-
-    given(tmsTestPlanService.getByCriteria(projectId, search, pageable))
-        .willReturn(page);
-
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
-            .contentType(MediaType.APPLICATION_JSON)
-            .param("search", search)
-            .param("page", "0")
-            .param("size", "10"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(1));
-
-    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).getByCriteria(projectId, search, pageable);
-  }
-
-  @Test
-  void getTestPlansByCriteriaWithEmptySearchTest() throws Exception {
-    String search = "";
-    Pageable pageable = PageRequest.of(0, 10);
-    List<TmsTestPlanRS> content = List.of(new TmsTestPlanRS());
-
-    Page<TmsTestPlanRS> page = new Page<>(content, 10, 1, 1, 1);
-
-    given(tmsTestPlanService.getByCriteria(projectId, search, pageable))
-        .willReturn(page);
-
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan", projectKey)
-            .contentType(MediaType.APPLICATION_JSON)
-            .param("search", search)
-            .param("page", "0")
-            .param("size", "10"))
-        .andExpect(status().isOk());
-
-    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).getByCriteria(projectId, search, pageable);
+    verify(tmsTestPlanService).getByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 
   @Test
@@ -359,7 +464,7 @@ public class TmsTestPlanControllerTest {
         .totalCount(3)
         .successCount(2)
         .failureCount(1)
-        .errors(Collections.emptyList()) // Можно добавить конкретные ошибки если нужно
+        .errors(Collections.emptyList())
         .build();
 
     String jsonContent = objectMapper.writeValueAsString(addRequest);

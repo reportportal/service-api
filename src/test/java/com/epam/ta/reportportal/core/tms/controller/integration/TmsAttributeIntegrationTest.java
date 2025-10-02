@@ -222,7 +222,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content[?(@.key == 'api')]").exists())
         .andExpect(jsonPath("$.page.totalElements").value(12))
         .andExpect(jsonPath("$.page.totalPages").value(1))
-        .andExpect(jsonPath("$.page.size").value(50)) // Default page size
+        .andExpect(jsonPath("$.page.size").value(100)) // Default page size
         .andExpect(jsonPath("$.page.number").value(1)); // First page
   }
 

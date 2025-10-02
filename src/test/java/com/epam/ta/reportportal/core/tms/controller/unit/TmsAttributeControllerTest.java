@@ -18,6 +18,8 @@ import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.service.TmsAttributeService;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
+import com.epam.ta.reportportal.ws.resolver.OffsetArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +70,9 @@ public class TmsAttributeControllerTest {
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return Pageable.unpaged();
           }
-        })
+        },
+        new OffsetArgumentResolver(),
+        new FilterCriteriaResolver())
         .build();
   }
 
@@ -270,8 +274,8 @@ public class TmsAttributeControllerTest {
 
     // When/Then
     mockMvc.perform(get("/v1/tms/attribute")
-            .param("page", "1")
-            .param("size", "10")
+            .param("offset", "0")
+            .param("limit", "10")
             .param("sort", "key,desc")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())

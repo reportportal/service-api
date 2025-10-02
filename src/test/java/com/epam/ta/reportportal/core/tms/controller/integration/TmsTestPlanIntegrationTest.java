@@ -113,20 +113,18 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   void getTestPlansByCriteriaWithEmptySearchIntegrationTest() throws Exception {
     // Test with empty search parameter
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
-            .param("search", "")
+            .param("filter.fts.search", "")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(0));
+        .andExpect(status().isBadRequest());
   }
 
   @Test
   void getTestPlansByCriteriaWithNonExistentSearchIntegrationTest() throws Exception {
     // Test search with non-existent term
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
-            .param("search", "nonexistent_search_term")
-            .param("page", "0")
-            .param("size", "10")
+            .param("filter.fts.search", "nonexistent_search_term")
+            .param("offset", "0")
+            .param("limit", "10")
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())

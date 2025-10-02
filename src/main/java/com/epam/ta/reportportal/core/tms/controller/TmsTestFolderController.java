@@ -2,13 +2,16 @@ package com.epam.ta.reportportal.core.tms.controller;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.service.TmsTestFolderService;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.OffsetRequest;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -223,14 +226,17 @@ public class TmsTestFolderController {
   public Page<TmsTestFolderRS> getFoldersByCriteria(
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
-      @RequestParam(name = "testPlanId", required = false) Long testPlanId,
+      @FilterFor(TmsTestFolder.class) Filter filter,
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Pagination parameters")
       @PagingOffset OffsetRequest offsetRequest) {
     return tmsTestFolderService.getFoldersByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(), testPlanId, offsetRequest);
+            .getProjectId(),
+        filter,
+        offsetRequest
+    );
   }
 
   /**

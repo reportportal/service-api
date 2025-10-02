@@ -6,6 +6,8 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolderWithCountOfTestCases;
@@ -56,6 +58,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   private final TmsTestFolderRepository tmsTestFolderRepository;
   private final TmsTestFolderExporterFactory tmsTestFolderExporterFactory;
   private final TestFolderIdValidator testFolderIdValidator;
+  private final TmsTestFolderWithTestCaseCountRepository tmsTestFolderWithTestCaseCountRepository;
 
   private TmsTestCaseService tmsTestCaseService;
 
@@ -223,7 +226,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * subfolders it contains.
    *
    * @param projectId  The ID of the project
-   * @param testPlanId The ID of the test plan
+   * @param filter     The filter
    * @param pageable   Pagination parameters
    * @return A paginated list of response DTOs containing folder information
    */
@@ -231,13 +234,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   @Transactional(readOnly = true)
   public Page<TmsTestFolderRS> getFoldersByCriteria(
       final long projectId,
-      Long testPlanId,
+      Filter filter,
       Pageable pageable) {
-    var page = Objects.isNull(testPlanId) ?
-        tmsTestFolderRepository
-            .findAllByProjectIdWithCountOfTestCases(projectId, pageable) :
-        tmsTestFolderRepository //TODO refactor that when proper filtering will be implemented
-            .findAllByProjectIdAndTestPlanIdWithCountOfTestCases(projectId, testPlanId, pageable);
+    var page = tmsTestFolderWithTestCaseCountRepository
+        .findAllByProjectIdAndFilterWithCountOfTestCases(projectId, filter, pageable);
     return getTmsTestFoldersWithSubfoldersAndTmsTestCount(projectId, page);
   }
 

@@ -112,7 +112,7 @@ class UpdateLaunchHandlerImplTest {
   }
 
   @Test
-  void givenCustomerUpdatingOwnLaunch_whenDebugModeSet_thenLaunchShouldUpdate() {
+  void givenCustomerUpdatingOwnLaunchWhenDebugModeSetThenLaunchShouldUpdate() {
     // Given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
@@ -136,7 +136,7 @@ class UpdateLaunchHandlerImplTest {
   }
 
   @Test
-  void givenCustomerUpdatingNotOwnedLaunch_whenDebugModeSet_thenLaunchShouldUpdate() {
+  void givenCustomerUpdatingNotOwnedLaunchWhenDebugModeSetThenLaunchShouldUpdate() {
     // Given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
@@ -161,7 +161,7 @@ class UpdateLaunchHandlerImplTest {
   }
 
   @Test
-  void givenCustomerUpdatingNotOwnedLaunch_whenNonDebugParamsSet_thenShouldThrowPermissionsException() {
+  void givenCustomerUpdatingNotOwnedLaunchWhenNonDebugParamsSetThenShouldThrowPermissionsException() {
     // Given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 

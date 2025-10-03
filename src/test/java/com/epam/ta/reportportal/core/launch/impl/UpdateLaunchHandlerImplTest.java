@@ -28,9 +28,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
@@ -43,11 +46,15 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
+import com.epam.ta.reportportal.ws.reporting.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.reporting.Mode;
+import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -79,6 +86,12 @@ class UpdateLaunchHandlerImplTest {
   @Mock
   private UniqueErrorAnalysisStarter starter;
 
+  @Mock
+  private LaunchAttributeHandlerService launchAttributeHandlerService;
+
+  @Mock
+  private LogIndexer logIndexer;
+
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;
 
@@ -99,22 +112,82 @@ class UpdateLaunchHandlerImplTest {
   }
 
   @Test
-  void updateDebugLaunchByCustomer() {
+  void givenCustomerUpdatingOwnLaunch_whenDebugModeSet_thenLaunchShouldUpdate() {
+    // Given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
-    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(
-        new Project());
+    Project project = new Project();
+    project.setId(1L);
+    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
     final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
     updateLaunchRQ.setMode(Mode.DEBUG);
 
+    // When
+    OperationCompletionRS result = handler.updateLaunch(1L,
+        extractProjectDetails(rpUser, "test_project"), rpUser, updateLaunchRQ);
+
+    // Then
+    assertEquals("Launch with ID = '1' successfully updated.", result.getResultMessage());
+    verify(logIndexer).indexLaunchesRemove(1L, Collections.singletonList(1L));
+    verify(launchAttributeHandlerService).handleLaunchUpdate(any(), any());
+    verify(launchRepository).save(any());
+  }
+
+  @Test
+  void givenCustomerUpdatingNotOwnedLaunch_whenDebugModeSet_thenLaunchShouldUpdate() {
+    // Given
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+
+    Project project = new Project();
+    project.setId(1L);
+    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+    Optional<Launch> launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT);
+    launch.get().setUserId(12L);
+    when(launchRepository.findById(1L)).thenReturn(launch);
+    final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
+    updateLaunchRQ.setMode(Mode.DEBUG);
+
+    // When
+    OperationCompletionRS result = handler.updateLaunch(1L,
+        extractProjectDetails(rpUser, "test_project"), rpUser, updateLaunchRQ);
+
+    // Then
+    assertEquals("Launch with ID = '1' successfully updated.", result.getResultMessage());
+    verify(logIndexer).indexLaunchesRemove(1L, Collections.singletonList(1L));
+    verify(launchAttributeHandlerService).handleLaunchUpdate(any(), any());
+    verify(launchRepository).save(any());
+  }
+
+  @Test
+  void givenCustomerUpdatingNotOwnedLaunch_whenNonDebugParamsSet_thenShouldThrowPermissionsException() {
+    // Given
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+
+    when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(
+        new Project());
+    Optional<Launch> launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT);
+    launch.get().setUserId(12L);
+    when(launchRepository.findById(1L)).thenReturn(launch);
+    final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
+    updateLaunchRQ.setMode(Mode.DEBUG);
+    updateLaunchRQ.setDescription("Test description");
+    updateLaunchRQ.setAttributes(Set.of(
+        new ItemAttributeResource("key1", "value1"),
+        new ItemAttributeResource("key2", "value2")
+    ));
+
+    // When
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser,
-            updateLaunchRQ
-        )
+            updateLaunchRQ));
+
+    // Then
+    assertEquals(
+        "You do not have enough permissions. Customers may only update 'mode' for launches they do not own.",
+        exception.getMessage()
     );
-    assertEquals("You do not have enough permissions.", exception.getMessage());
   }
 
   @Test

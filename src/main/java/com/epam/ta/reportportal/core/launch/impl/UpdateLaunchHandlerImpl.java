@@ -61,11 +61,11 @@ import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -119,7 +119,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     Project project = getProjectHandler.get(membershipDetails);
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
-    validate(launch, user, membershipDetails, rq.getMode());
+    validate(launch, user, membershipDetails, rq);
 
     LaunchModeEnum previousMode = launch.getMode();
 
@@ -238,13 +238,13 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   }
 
   /**
-   * Valide {@link ReportPortalUser} credentials
+   * Validates access and edit permissions for launch update.
    *
-   * @param launch {@link Launch}
-   * @param user   {@link ReportPortalUser}
-   * @param mode   {@link Launch#mode}
+   * @param launch         {@link Launch}
+   * @param user           {@link ReportPortalUser}
+   * @param projectDetails project context
+   * @param rq             incoming update request
    */
-  //TODO *Validator refactoring
   private void validate(Launch launch, ReportPortalUser user,
       MembershipDetails membershipDetails, Mode mode) {
     if (user.getUserRole() != UserRole.ADMINISTRATOR && !OrganizationRole.MANAGER.equals(membershipDetails.getOrgRole())) {

@@ -20,14 +20,14 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -72,6 +74,9 @@ class StartLaunchHandlerImplTest {
 
   @Mock
   private LaunchAttributeHandlerService launchAttributeHandlerService;
+
+  @Mock
+  private LaunchBuilder launchBuilder;
 
   @InjectMocks
   private StartLaunchHandlerImpl startLaunchHandlerImpl;
@@ -106,12 +111,20 @@ class StartLaunchHandlerImplTest {
 
   @Test
   @Disabled("waiting for requirements")
-  void accessDeniedForCustomerRoleAndDebugMode() {
+  void startLaunchForCustomerRoleAndDebugMode() {
+    // given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
+    startLaunchRQ.setName("name");
     startLaunchRQ.setStartTime(Instant.now());
+    startLaunchRQ.setUuid("some-uuid");
     startLaunchRQ.setMode(Mode.DEBUG);
+    ProjectDetails mockProjectDetails = extractProjectDetails(rpUser, "test_project");
+
+    Launch mockLaunch = new Launch();
+    mockLaunch.setId(1L);
+    mockLaunch.setUuid("some-uuid");
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> startLaunchHandlerImpl.startLaunch(rpUser,

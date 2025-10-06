@@ -305,7 +305,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
+  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
+      HttpServletResponse response,
       ReportPortalUser user, MembershipDetails membershipDetails) {
     var launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));

@@ -70,7 +70,6 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -309,7 +308,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
+  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
+      HttpServletResponse response,
       ReportPortalUser user, ProjectDetails projectDetails) {
     var launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
@@ -338,10 +338,6 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
     expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(
         ACCESS_DENIED);
-    if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
-      expect(projectDetails.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(
-          ACCESS_DENIED);
-    }
   }
 
   /**

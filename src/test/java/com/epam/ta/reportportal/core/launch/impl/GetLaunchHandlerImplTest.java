@@ -32,8 +32,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
-import com.epam.ta.reportportal.core.launch.export.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.launch.export.JasperDataProvider;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -47,14 +47,19 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -91,8 +96,23 @@ class GetLaunchHandlerImplTest {
   @Mock
   private LaunchConverter launchConverter;
 
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
+
   @InjectMocks
   private GetLaunchHandlerImpl handler;
+
+  @BeforeEach
+  void setUp() throws Exception {
+    Function<Launch, LaunchResource> toResourceFunction = (l -> {
+      LaunchResource launchResource = new LaunchResource();
+      launchResource.setLaunchId(1L);
+      return launchResource;
+    });
+    Field toResourceField = LaunchConverter.class.getDeclaredField("TO_RESOURCE");
+    toResourceField.setAccessible(true);
+    toResourceField.set(launchConverter, toResourceFunction);
+  }
 
   @Test
   void getLaunchFromOtherProject() {
@@ -109,14 +129,17 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getDebugLaunchWithCustomerRole() {
+    // given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
-    when(launchRepository.findById(1L)).thenReturn(
-        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
+    Optional<Launch> launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG);
+    when(launchRepository.findById(1L)).thenReturn(launch);
 
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch("1", extractProjectDetails(rpUser, "test_project"))
-    );
-    assertEquals("You do not have enough permissions.", exception.getMessage());
+    // when
+    LaunchResource result = handler.getLaunch("1",
+        extractProjectDetails(rpUser, "test_project"));
+
+    // then
+    assertEquals(1L, result.getLaunchId());
   }
 
   @Test
@@ -275,6 +298,7 @@ class GetLaunchHandlerImplTest {
 
   @Test
   void getLaunchInDebugModeByCustomer() {
+    // given
     long projectId = 1L;
     ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.CUSTOMER, projectId);
     String launchId = "1";
@@ -284,10 +308,12 @@ class GetLaunchHandlerImplTest {
     launch.setMode(LaunchModeEnum.DEBUG);
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
 
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch(launchId, extractProjectDetails(user, "test_project"))
-    );
-    assertEquals("You do not have enough permissions.", exception.getMessage());
+    // when
+    LaunchResource result = handler.getLaunch("1",
+        extractProjectDetails(user, "test_project"));
+
+    // then
+    assertEquals(1L, result.getLaunchId());
   }
 
   @Test

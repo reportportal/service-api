@@ -52,8 +52,6 @@ public class LaunchStartProducer implements StartLaunchHandler {
   @Override
   public StartLaunchRS startLaunch(ReportPortalUser user, ProjectDetails projectDetails,
       StartLaunchRQ request) {
-    validateRoles(projectDetails, request);
-
     if (request.isRerun()) {
       request.setUuid(rerunHandler.getRerunLaunchUuid(request.getRerunOf(), request.getName(),
           projectDetails.getProjectId()));

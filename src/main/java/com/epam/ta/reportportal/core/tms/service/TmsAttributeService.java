@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.service;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +11,7 @@ public interface TmsAttributeService {
 
   TmsAttributeRS patch(Long attributeId, TmsAttributeRQ request);
 
-  com.epam.ta.reportportal.model.Page<TmsAttributeRS> getAll(Pageable pageable);
+  com.epam.ta.reportportal.model.Page<TmsAttributeRS> getAll(Filter filter, Pageable pageable);
 
   TmsAttributeRS getById(Long attributeId);
 }

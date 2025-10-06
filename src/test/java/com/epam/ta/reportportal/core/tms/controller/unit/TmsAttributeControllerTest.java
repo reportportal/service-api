@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.controller.TmsAttributeController;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
@@ -122,7 +123,7 @@ public class TmsAttributeControllerTest {
   @Test
   void shouldGetAllAttributes() throws Exception {
     // Given
-    given(tmsAttributeService.getAll(any(Pageable.class))).willReturn(mockPage);
+    given(tmsAttributeService.getAll(any(Filter.class), any(Pageable.class))).willReturn(mockPage);
 
     // When/Then
     mockMvc.perform(get("/v1/tms/attribute")
@@ -130,7 +131,7 @@ public class TmsAttributeControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-    verify(tmsAttributeService).getAll(any(Pageable.class));
+    verify(tmsAttributeService).getAll(any(Filter.class), any(Pageable.class));
   }
 
   @Test
@@ -257,20 +258,20 @@ public class TmsAttributeControllerTest {
   @Test
   void shouldCallServiceWithCorrectParametersForGetAll() throws Exception {
     // Given
-    given(tmsAttributeService.getAll(any(Pageable.class))).willReturn(mockPage);
+    given(tmsAttributeService.getAll(any(Filter.class), any(Pageable.class))).willReturn(mockPage);
 
     // When/Then
     mockMvc.perform(get("/v1/tms/attribute")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(tmsAttributeService).getAll(any(Pageable.class));
+    verify(tmsAttributeService).getAll(any(Filter.class), any(Pageable.class));
   }
 
   @Test
   void shouldGetAllAttributesWithCustomPagination() throws Exception {
     // Given
-    given(tmsAttributeService.getAll(any(Pageable.class))).willReturn(mockPage);
+    given(tmsAttributeService.getAll(any(Filter.class), any(Pageable.class))).willReturn(mockPage);
 
     // When/Then
     mockMvc.perform(get("/v1/tms/attribute")
@@ -281,13 +282,13 @@ public class TmsAttributeControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-    verify(tmsAttributeService).getAll(any(Pageable.class));
+    verify(tmsAttributeService).getAll(any(Filter.class), any(Pageable.class));
   }
 
   @Test
   void shouldGetAllAttributesWhenEmpty() throws Exception {
     // Given
-    given(tmsAttributeService.getAll(any(Pageable.class))).willReturn(mockPage);
+    given(tmsAttributeService.getAll(any(Filter.class), any(Pageable.class))).willReturn(mockPage);
 
     // When/Then
     mockMvc.perform(get("/v1/tms/attribute")
@@ -295,7 +296,7 @@ public class TmsAttributeControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-    verify(tmsAttributeService).getAll(any(Pageable.class));
+    verify(tmsAttributeService).getAll(any(Filter.class), any(Pageable.class));
   }
 
   @Test

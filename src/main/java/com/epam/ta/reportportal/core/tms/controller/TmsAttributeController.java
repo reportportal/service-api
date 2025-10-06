@@ -1,9 +1,12 @@
 package com.epam.ta.reportportal.core.tms.controller;
 
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.service.TmsAttributeService;
+import com.epam.ta.reportportal.entity.tms.TmsAttribute;
 import com.epam.ta.reportportal.util.OffsetRequest;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,9 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,11 +58,12 @@ public class TmsAttributeController {
   }
 
   @GetMapping
-  @Operation(summary = "Get all TMS Attributes", description = "Retrieves paginated list of TMS attributes")
+  @Operation(summary = "Get all TMS Attributes", description = "Retrieves paginated list of TMS attributes with filtering and full-text search support")
   @ApiResponse(responseCode = "200", description = "TMS Attributes retrieved successfully")
   public com.epam.ta.reportportal.model.Page<TmsAttributeRS> getAllAttributes(
-      @PagingOffset OffsetRequest offsetRequest) {
-    return tmsAttributeService.getAll(offsetRequest);
+      @PagingOffset(sortable = TmsAttribute.class) OffsetRequest offsetRequest,
+      @FilterFor(TmsAttribute.class) Filter filter) {
+    return tmsAttributeService.getAll(filter, offsetRequest);
   }
 
   @GetMapping("/{attributeId}")

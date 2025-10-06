@@ -227,6 +227,33 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void getAllAttributesWithFullTextSearchIntegrationTest() throws Exception {
+    // When/Then - Test full-text search functionality
+    mockMvc.perform(get("/v1/tms/attribute")
+            .param("filter.fts.search", "test")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").isNumber())
+        .andExpect(jsonPath("$.page.totalElements").isNumber());
+  }
+
+  @Test
+  void getAllAttributesWithPaginationIntegrationTest() throws Exception {
+    // When/Then - Test pagination parameters
+    mockMvc.perform(get("/v1/tms/attribute")
+            .param("offset", "0")
+            .param("limit", "5")
+            .param("sort", "key,asc")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(5))
+        .andExpect(jsonPath("$.page.size").value(5))
+        .andExpect(jsonPath("$.page.number").value(1));
+  }
+
+  @Test
   void getAttributeByIdIntegrationTest() throws Exception {
     // Given
     Long attributeId = 4L;

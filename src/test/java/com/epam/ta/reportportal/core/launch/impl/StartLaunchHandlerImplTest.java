@@ -108,7 +108,7 @@ class StartLaunchHandlerImplTest {
   }
 
   @Test
-  void accessDeniedForCustomerRoleAndDebugMode() {
+  void startLaunchForCustomerRoleAndDebugMode() {
     // given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 

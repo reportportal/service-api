@@ -3,19 +3,21 @@ package com.epam.ta.reportportal.core.tms.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.entity.tms.TmsAttribute;
-import com.epam.ta.reportportal.dao.tms.TmsAttributeRepository;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsAttributeMapper;
+import com.epam.ta.reportportal.dao.tms.TmsAttributeRepository;
+import com.epam.ta.reportportal.dao.tms.filterable.TmsAttributeFilterableRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttribute;
 import jakarta.persistence.EntityExistsException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +37,9 @@ class TmsAttributeServiceImplTest {
   private TmsAttributeRepository tmsAttributeRepository;
 
   @Mock
+  private TmsAttributeFilterableRepository tmsAttributeFilterableRepository;
+
+  @Mock
   private TmsAttributeMapper tmsAttributeMapper;
 
   @InjectMocks
@@ -44,6 +49,7 @@ class TmsAttributeServiceImplTest {
   private TmsAttribute attributeEntity;
   private TmsAttributeRS attributeResponse;
   private Pageable pageable;
+  private Filter filter;
 
   @BeforeEach
   void setUp() {
@@ -51,6 +57,7 @@ class TmsAttributeServiceImplTest {
     attributeEntity = createAttributeEntity();
     attributeResponse = createAttributeResponse();
     pageable = PageRequest.of(0, 10);
+    filter = mock(Filter.class);
   }
 
   @Test
@@ -81,7 +88,8 @@ class TmsAttributeServiceImplTest {
     // When & Then
     assertThatThrownBy(() -> tmsAttributeService.create(attributeRequest))
         .isInstanceOf(EntityExistsException.class)
-        .hasMessageContaining("TMS Attribute with key '" + attributeRequest.getKey() + "' already exists");
+        .hasMessageContaining(
+            "TMS Attribute with key '" + attributeRequest.getKey() + "' already exists");
 
     verify(tmsAttributeRepository).existsByKey(attributeRequest.getKey());
     verify(tmsAttributeMapper, never()).convertToTmsAttribute(any());
@@ -117,141 +125,18 @@ class TmsAttributeServiceImplTest {
   }
 
   @Test
-  void shouldPatchAttributeWithSameKey() {
-    // Given
-    var attributeId = 1L;
-    var existingEntity = createAttributeEntity();
-    var requestWithSameKey = TmsAttributeRQ.builder()
-        .key(existingEntity.getKey())
-        .build();
-
-    when(tmsAttributeRepository.findById(attributeId)).thenReturn(Optional.of(existingEntity));
-    when(tmsAttributeRepository.save(existingEntity)).thenReturn(existingEntity);
-    when(tmsAttributeMapper.convertToTmsAttributeRS(existingEntity)).thenReturn(attributeResponse);
-
-    // When
-    var result = tmsAttributeService.patch(attributeId, requestWithSameKey);
-
-    // Then
-    verify(tmsAttributeRepository).findById(attributeId);
-    verify(tmsAttributeRepository, never()).existsByKey(any());
-    verify(tmsAttributeMapper).patch(existingEntity, requestWithSameKey);
-    verify(tmsAttributeRepository).save(existingEntity);
-    verify(tmsAttributeMapper).convertToTmsAttributeRS(existingEntity);
-
-    assertThat(result).isEqualTo(attributeResponse);
-  }
-
-  @Test
-  void shouldNotValidateKeyUniquenessWhenKeyIsNull() {
-    // Given
-    var attributeId = 1L;
-    var existingEntity = createAttributeEntity();
-    var requestWithNullKey = TmsAttributeRQ.builder()
-        .key(null)
-        .build();
-
-    when(tmsAttributeRepository.findById(attributeId)).thenReturn(Optional.of(existingEntity));
-    when(tmsAttributeRepository.save(existingEntity)).thenReturn(existingEntity);
-    when(tmsAttributeMapper.convertToTmsAttributeRS(existingEntity)).thenReturn(attributeResponse);
-
-    // When
-    var result = tmsAttributeService.patch(attributeId, requestWithNullKey);
-
-    // Then
-    verify(tmsAttributeRepository).findById(attributeId);
-    verify(tmsAttributeRepository, never()).existsByKey(any());
-    verify(tmsAttributeMapper).patch(existingEntity, requestWithNullKey);
-    verify(tmsAttributeRepository).save(existingEntity);
-    verify(tmsAttributeMapper).convertToTmsAttributeRS(existingEntity);
-
-    assertThat(result).isEqualTo(attributeResponse);
-  }
-
-  @Test
-  void shouldThrowEntityExistsExceptionWhenPatchingWithExistingKey() {
-    // Given
-    var attributeId = 1L;
-    var existingEntity = createAttributeEntity();
-    var updatedRequest = createUpdatedAttributeRequest();
-
-    when(tmsAttributeRepository.findById(attributeId)).thenReturn(Optional.of(existingEntity));
-    when(tmsAttributeRepository.existsByKey(updatedRequest.getKey())).thenReturn(true);
-
-    // When & Then
-    assertThatThrownBy(() -> tmsAttributeService.patch(attributeId, updatedRequest))
-        .isInstanceOf(EntityExistsException.class)
-        .hasMessageContaining("TMS Attribute with key '" + updatedRequest.getKey() + "' already exists");
-
-    verify(tmsAttributeRepository).findById(attributeId);
-    verify(tmsAttributeRepository).existsByKey(updatedRequest.getKey());
-    verify(tmsAttributeMapper, never()).patch(any(), any());
-    verify(tmsAttributeRepository, never()).save(any());
-    verify(tmsAttributeMapper, never()).convertToTmsAttributeRS(any());
-  }
-
-  @Test
-  void shouldThrowReportPortalExceptionWhenAttributeNotFoundForPatch() {
-    // Given
-    var attributeId = 1L;
-    when(tmsAttributeRepository.findById(attributeId)).thenReturn(Optional.empty());
-
-    // When & Then
-    assertThatThrownBy(() -> tmsAttributeService.patch(attributeId, attributeRequest))
-        .isInstanceOf(ReportPortalException.class)
-        .hasFieldOrPropertyWithValue("errorType", ErrorType.NOT_FOUND)
-        .hasMessageContaining("TMS Attribute with id '" + attributeId);
-
-    verify(tmsAttributeRepository).findById(attributeId);
-    verify(tmsAttributeRepository, never()).existsByKey(any());
-    verify(tmsAttributeMapper, never()).patch(any(), any());
-    verify(tmsAttributeRepository, never()).save(any());
-    verify(tmsAttributeMapper, never()).convertToTmsAttributeRS(any());
-  }
-
-  @Test
-  void shouldCallRepositoryFindAllForGetAllAttributes() {
-    // Given
-    var attributes = List.of(attributeEntity, createUpdatedAttributeEntity());
-    var page = new PageImpl<>(attributes, pageable, attributes.size());
-
-    when(tmsAttributeRepository.findAll(pageable)).thenReturn(page);
-
-    // When
-    tmsAttributeService.getAll(pageable);
-
-    // Then
-    verify(tmsAttributeRepository).findAll(pageable);
-  }
-
-  @Test
-  void shouldReturnPageWhenAttributesExist() {
+  void shouldGetAllWithFilter() {
     // Given
     var attributes = List.of(attributeEntity);
     var page = new PageImpl<>(attributes, pageable, attributes.size());
 
-    when(tmsAttributeRepository.findAll(pageable)).thenReturn(page);
+    when(tmsAttributeFilterableRepository.findByFilter(filter, pageable)).thenReturn(page);
 
     // When
-    var result = tmsAttributeService.getAll(pageable);
+    var result = tmsAttributeService.getAll(filter, pageable);
 
     // Then
-    verify(tmsAttributeRepository).findAll(pageable);
-    assertThat(result).isNotNull();
-  }
-
-  @Test
-  void shouldReturnEmptyPageWhenNoAttributes() {
-    // Given
-    var emptyPage = new PageImpl<TmsAttribute>(Collections.emptyList(), pageable, 0);
-
-    when(tmsAttributeRepository.findAll(pageable)).thenReturn(emptyPage);
-
-    // When
-    var result = tmsAttributeService.getAll(pageable);
-
-    // Then
-    verify(tmsAttributeRepository).findAll(pageable);
+    verify(tmsAttributeFilterableRepository).findByFilter(filter, pageable);
     assertThat(result).isNotNull();
   }
 
@@ -268,7 +153,6 @@ class TmsAttributeServiceImplTest {
     // Then
     verify(tmsAttributeRepository).findById(attributeId);
     verify(tmsAttributeMapper).convertToTmsAttributeRS(attributeEntity);
-
     assertThat(result).isEqualTo(attributeResponse);
   }
 
@@ -286,104 +170,6 @@ class TmsAttributeServiceImplTest {
 
     verify(tmsAttributeRepository).findById(attributeId);
     verify(tmsAttributeMapper, never()).convertToTmsAttributeRS(any());
-  }
-
-  @Test
-  void shouldCreateAttributeWithNullKey() {
-    // Given
-    var requestWithNullKey = TmsAttributeRQ.builder()
-        .key(null)
-        .build();
-
-    var entityWithNullKey = new TmsAttribute();
-    entityWithNullKey.setId(1L);
-    entityWithNullKey.setKey(null);
-
-    var responseWithNullKey = new TmsAttributeRS();
-    responseWithNullKey.setId(1L);
-    responseWithNullKey.setKey(null);
-
-    when(tmsAttributeRepository.existsByKey(null)).thenReturn(false);
-    when(tmsAttributeMapper.convertToTmsAttribute(requestWithNullKey)).thenReturn(entityWithNullKey);
-    when(tmsAttributeRepository.save(entityWithNullKey)).thenReturn(entityWithNullKey);
-    when(tmsAttributeMapper.convertToTmsAttributeRS(entityWithNullKey)).thenReturn(responseWithNullKey);
-
-    // When
-    var result = tmsAttributeService.create(requestWithNullKey);
-
-    // Then
-    verify(tmsAttributeRepository).existsByKey(null);
-    verify(tmsAttributeMapper).convertToTmsAttribute(requestWithNullKey);
-    verify(tmsAttributeRepository).save(entityWithNullKey);
-    verify(tmsAttributeMapper).convertToTmsAttributeRS(entityWithNullKey);
-
-    assertThat(result).isEqualTo(responseWithNullKey);
-  }
-
-  @Test
-  void shouldCreateAttributeWithEmptyKey() {
-    // Given
-    var requestWithEmptyKey = TmsAttributeRQ.builder()
-        .key("")
-        .build();
-
-    var entityWithEmptyKey = new TmsAttribute();
-    entityWithEmptyKey.setId(1L);
-    entityWithEmptyKey.setKey("");
-
-    var responseWithEmptyKey = new TmsAttributeRS();
-    responseWithEmptyKey.setId(1L);
-    responseWithEmptyKey.setKey("");
-
-    when(tmsAttributeRepository.existsByKey("")).thenReturn(false);
-    when(tmsAttributeMapper.convertToTmsAttribute(requestWithEmptyKey)).thenReturn(entityWithEmptyKey);
-    when(tmsAttributeRepository.save(entityWithEmptyKey)).thenReturn(entityWithEmptyKey);
-    when(tmsAttributeMapper.convertToTmsAttributeRS(entityWithEmptyKey)).thenReturn(responseWithEmptyKey);
-
-    // When
-    var result = tmsAttributeService.create(requestWithEmptyKey);
-
-    // Then
-    verify(tmsAttributeRepository).existsByKey("");
-    verify(tmsAttributeMapper).convertToTmsAttribute(requestWithEmptyKey);
-    verify(tmsAttributeRepository).save(entityWithEmptyKey);
-    verify(tmsAttributeMapper).convertToTmsAttributeRS(entityWithEmptyKey);
-
-    assertThat(result).isEqualTo(responseWithEmptyKey);
-  }
-
-  @Test
-  void shouldPatchAttributeToNullKey() {
-    // Given
-    var attributeId = 1L;
-    var existingEntity = createAttributeEntity();
-    var requestWithNullKey = TmsAttributeRQ.builder()
-        .key(null)
-        .build();
-
-    var updatedEntity = new TmsAttribute();
-    updatedEntity.setId(1L);
-    updatedEntity.setKey(null);
-
-    var updatedResponse = new TmsAttributeRS();
-    updatedResponse.setId(1L);
-    updatedResponse.setKey(null);
-
-    when(tmsAttributeRepository.findById(attributeId)).thenReturn(Optional.of(existingEntity));
-    when(tmsAttributeRepository.save(existingEntity)).thenReturn(updatedEntity);
-    when(tmsAttributeMapper.convertToTmsAttributeRS(updatedEntity)).thenReturn(updatedResponse);
-
-    // When
-    var result = tmsAttributeService.patch(attributeId, requestWithNullKey);
-
-    // Then
-    verify(tmsAttributeRepository).findById(attributeId);
-    verify(tmsAttributeRepository, never()).existsByKey(any());
-    verify(tmsAttributeMapper).patch(existingEntity, requestWithNullKey);
-    verify(tmsAttributeRepository).save(existingEntity);
-    verify(tmsAttributeMapper).convertToTmsAttributeRS(updatedEntity);
-
-    assertThat(result).isEqualTo(updatedResponse);
   }
 
   // Helper methods

@@ -2,8 +2,10 @@ package com.epam.ta.reportportal.core.tms.service;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.entity.tms.TmsAttribute;
 import com.epam.ta.reportportal.dao.tms.TmsAttributeRepository;
+import com.epam.ta.reportportal.entity.tms.TmsAttribute;
+import com.epam.ta.reportportal.dao.tms.filterable.TmsAttributeFilterableRepository;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsAttributeMapper;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TmsAttributeServiceImpl implements TmsAttributeService {
 
+  private final TmsAttributeFilterableRepository tmsAttributeFilterableRepository;
   private final TmsAttributeRepository tmsAttributeRepository;
   private final TmsAttributeMapper tmsAttributeMapper;
 
@@ -52,10 +55,10 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
 
   @Override
   @Transactional(readOnly = true)
-  public com.epam.ta.reportportal.model.Page<TmsAttributeRS> getAll(Pageable pageable) {
+  public com.epam.ta.reportportal.model.Page<TmsAttributeRS> getAll(Filter filter, Pageable pageable) {
     return PagedResourcesAssembler
         .pageConverter(tmsAttributeMapper::convertToTmsAttributeRS)
-        .apply(tmsAttributeRepository.findAll(pageable));
+        .apply(tmsAttributeFilterableRepository.findByFilter(filter, pageable));
   }
 
   @Override
@@ -70,7 +73,7 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
     return tmsAttributeRepository
         .findById(attributeId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
-            "TMS Attribute with id '" + attributeId));
+            "TMS Attribute with id '" + attributeId + "' not found"));
   }
 
   private void validateKeyUniqueness(String key) {

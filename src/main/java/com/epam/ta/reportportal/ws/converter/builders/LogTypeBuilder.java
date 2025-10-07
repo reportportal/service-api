@@ -90,7 +90,7 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
   }
 
   /**
-   * Optionally marks the log type as filterable. If not provided, the database default will apply.
+   * Sets the `isFilterable` property of the log type.
    *
    * @param isFilterable True if the log type is filterable; otherwise false.
    * @return The builder instance.

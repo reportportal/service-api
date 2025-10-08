@@ -4,7 +4,7 @@ import com.epam.reportportal.api.model.GetLogTypes200Response;
 import com.epam.reportportal.api.model.LogType;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.logtype.GetLogTypesHandler;
+import com.epam.ta.reportportal.core.logtype.GetLogTypeHandler;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -15,12 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Implementation of {@link GetLogTypesHandler} to retrieve log types for a project.
+ * Implementation of {@link GetLogTypeHandler} to retrieve log types for a project.
  */
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class GetLogTypesHandlerImpl implements GetLogTypesHandler {
+public class GetLogTypeHandlerImpl implements GetLogTypeHandler {
 
   private final ProjectRepository projectRepository;
   private final LogTypeRepository logTypeRepository;

@@ -8,13 +8,15 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import com.epam.reportportal.api.ProjectsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
 import com.epam.reportportal.api.model.GetLogTypes200Response;
+import com.epam.reportportal.api.model.LogType;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
-import com.epam.ta.reportportal.core.logtype.GetLogTypesHandler;
+import com.epam.ta.reportportal.core.logtype.CreateLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.GetLogTypeHandler;
 import lombok.RequiredArgsConstructor;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import org.springframework.http.HttpStatus;
@@ -33,7 +35,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class GeneratedProjectController implements ProjectsApi {
 
   private final PluginManager pluginManager;
-  private final GetLogTypesHandler getLogTypesHandler;
+  private final GetLogTypeHandler getLogTypeHandler;
+  private final CreateLogTypeHandler createLogTypeHandler;
 
   @Override
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
@@ -80,7 +83,14 @@ public class GeneratedProjectController implements ProjectsApi {
   @Override
   @PreAuthorize(ASSIGNED_TO_PROJECT)
   public ResponseEntity<GetLogTypes200Response> getLogTypes(String projectName) {
-    return ResponseEntity.ok(getLogTypesHandler.getLogTypes(normalizeId(projectName)));
+    return ResponseEntity.ok(getLogTypeHandler.getLogTypes(normalizeId(projectName)));
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<LogType> createLogType(String projectName, LogType logType) {
+    return new ResponseEntity<>(createLogTypeHandler.createLogType(projectName, logType),
+        HttpStatus.CREATED);
   }
 
   private GroupExtensionPoint getGroupExtension() {

@@ -5,7 +5,7 @@ import com.epam.reportportal.api.model.GetLogTypes200Response;
 /**
  * Handles retrieval of log types for a given project.
  */
-public interface GetLogTypesHandler {
+public interface GetLogTypeHandler {
 
   /**
    * Retrieves log types for the specified project.

@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class GetLogTypesHandlerImplTest {
+class GetLogTypeHandlerImplTest {
 
   @Mock
   private ProjectRepository projectRepository;
@@ -46,7 +46,7 @@ class GetLogTypesHandlerImplTest {
   private LogTypeRepository logTypeRepository;
 
   @InjectMocks
-  private GetLogTypesHandlerImpl handler;
+  private GetLogTypeHandlerImpl handler;
 
   @Test
   void getLogTypesWhenProjectExistsShouldMapAndReturnSeveralItems() {

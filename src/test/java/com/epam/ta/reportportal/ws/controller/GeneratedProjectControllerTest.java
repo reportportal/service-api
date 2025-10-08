@@ -18,13 +18,23 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.api.model.LogType;
+import com.epam.reportportal.api.model.LogTypeStyle;
+import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 
 class GeneratedProjectControllerTest extends BaseMvcTest {
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Test
   void getLogTypesPositive() throws Exception {
@@ -54,5 +64,92 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
     mockMvc.perform(get("/projects/superadmin_personal/log-types")
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void createLogTypePositive() throws Exception {
+    LogType request = createLogType("custom log", 9000, false, "#123456", "#ffffff", "#000000",
+        TextStyleEnum.BOLD);
+
+    mockMvc.perform(post("/projects/default_personal/log-types")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.name").value("custom log"))
+        .andExpect(jsonPath("$.level").value(9000))
+        .andExpect(jsonPath("$.is_filterable").value(false))
+        .andExpect(jsonPath("$.style.label_color").value("#123456"))
+        .andExpect(jsonPath("$.style.background_color").value("#ffffff"))
+        .andExpect(jsonPath("$.style.text_color").value("#000000"))
+        .andExpect(jsonPath("$.style.text_style").value("bold"));
+  }
+
+  @Test
+  void createLogTypeReturnsConflictForDuplicateName() throws Exception {
+    LogType request = createLogType("trace", 7000, false, "#445A47", "#FFFFFF", "#445A47",
+        TextStyleEnum.NORMAL);
+
+    mockMvc.perform(post("/projects/default_personal/log-types")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.message").value("Resource 'Log type: trace - 7000' already exists. You couldn't create the duplicate."));
+  }
+
+  @Test
+  void createLogTypeReturnsBadRequestForExceedingFilterableLimit() throws Exception {
+    LogType request = createLogType("extraLog", 9500, true, "#445A47", "#FFFFFF", "#445A47",
+        TextStyleEnum.NORMAL);
+
+    mockMvc.perform(post("/projects/default_personal/log-types")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(
+            "Error in handled Request. Please, check specified parameters: 'Cannot create more than 6 filterable log types per project.'"));
+  }
+
+  @Test
+  void createLogTypeReturnsBadRequestForInvalidInput() throws Exception {
+    LogType request = createLogType("", -1, false, null, null, null,
+        null);
+
+    mockMvc.perform(post("/projects/default_personal/log-types")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void createLogTypeReturns403WhenUserNotAssignedToProject() throws Exception {
+    LogType request = createLogType("custom error", 8000, true, "#123456", "#ffffff", "#000000",
+        TextStyleEnum.BOLD);
+
+    mockMvc.perform(post("/projects/superadmin_personal/log-types")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
+  }
+
+  private LogType createLogType(String name, int level, boolean isFilterable,
+      String labelColor, String backgroundColor, String textColor, TextStyleEnum textStyle) {
+    LogTypeStyle style = new LogTypeStyle();
+    style.setLabelColor(labelColor);
+    style.setBackgroundColor(backgroundColor);
+    style.setTextColor(textColor);
+    style.setTextStyle(textStyle);
+
+    LogType logType = new LogType();
+    logType.setName(name);
+    logType.setLevel(level);
+    logType.setIsFilterable(isFilterable);
+    logType.setStyle(style);
+
+    return logType;
   }
 }

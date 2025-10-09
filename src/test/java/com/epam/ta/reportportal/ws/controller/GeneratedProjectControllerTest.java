@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 
 class GeneratedProjectControllerTest extends BaseMvcTest {
 
@@ -95,7 +97,9 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
             .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.message").value("Resource 'Log type: trace - 7000' already exists. You couldn't create the duplicate."));
+        .andExpect(jsonPath("$.message")
+            .value("Resource 'Log type: trace - 7000' already exists. "
+                + "You couldn't create the duplicate."));
   }
 
   @Test
@@ -134,6 +138,63 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
             .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @Sql("/db/log-type/log-type-fill.sql")
+  void deleteLogTypePositive() throws Exception {
+    mockMvc.perform(delete("/projects/default_personal/log-types/1000")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isNoContent());
+
+    mockMvc.perform(delete("/projects/default_personal/log-types/1000")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value(
+            "'Log type' not found. Did you use correct ID?"));
+  }
+
+  @Test
+  @Sql("/db/log-type/log-type-fill.sql")
+  void deleteLogTypeAdminCanDeleteFromAnyProject() throws Exception {
+    mockMvc.perform(delete("/projects/default_personal/log-types/1001")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void deleteLogTypeReturns404ForNonExistentLogType() throws Exception {
+    mockMvc.perform(delete("/projects/default_personal/log-types/99999")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value(
+            "'Log type' not found. Did you use correct ID?"));
+  }
+
+  @Test
+  void deleteLogTypeReturns403ForSystemLogType() throws Exception {
+    String result = mockMvc.perform(get("/projects/default_personal/log-types")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    long systemLogTypeId = objectMapper.readTree(result)
+        .get("items").elements().next().get("id").asLong();
+
+    mockMvc.perform(delete("/projects/default_personal/log-types/" + systemLogTypeId)
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void deleteLogTypeReturns403WhenUserNotAssignedToProject() throws Exception {
+    mockMvc.perform(delete("/projects/superadmin_personal/log-types/1001")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value(
+            "You do not have enough permissions."));
   }
 
   private LogType createLogType(String name, int level, boolean isFilterable,

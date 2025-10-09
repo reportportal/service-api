@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class LogTypeBuilder implements Supplier<ProjectLogType> {
@@ -96,7 +97,7 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
    * @return The builder instance.
    */
   public LogTypeBuilder addIsFilterable(Boolean isFilterable) {
-    logType.setFilterable(isFilterable);
+    logType.setFilterable(Optional.ofNullable(isFilterable).orElse(false));
     return this;
   }
 

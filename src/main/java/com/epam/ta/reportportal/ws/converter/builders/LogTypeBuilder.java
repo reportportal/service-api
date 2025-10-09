@@ -23,10 +23,10 @@ import java.util.function.Supplier;
 
 public class LogTypeBuilder implements Supplier<ProjectLogType> {
 
-  private static final String DEFAULT_LABEL_COLOR = "#4DB6AC";
-  private static final String DEFAULT_BACKGROUND_COLOR = "#FFFFFF";
-  private static final String DEFAULT_TEXT_COLOR = "#445A47";
-  private static final String DEFAULT_TEXT_STYLE = "normal";
+  private static final String DEFAULT_IF_UNSPECIFIED_LABEL_COLOR = "#4DB6AC";
+  private static final String DEFAULT_IF_UNSPECIFIED_BACKGROUND_COLOR = "#FFFFFF";
+  private static final String DEFAULT_IF_UNSPECIFIED_TEXT_COLOR = "#445A47";
+  private static final String DEFAULT_IF_UNSPECIFIED_TEXT_STYLE = "normal";
 
   private final ProjectLogType logType;
 
@@ -75,10 +75,10 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
    */
   public LogTypeBuilder addStyle(LogTypeStyle style) {
     if (Objects.isNull(style)) {
-      logType.setLabelColor(DEFAULT_LABEL_COLOR);
-      logType.setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
-      logType.setTextColor(DEFAULT_TEXT_COLOR);
-      logType.setTextStyle(DEFAULT_TEXT_STYLE);
+      logType.setLabelColor(DEFAULT_IF_UNSPECIFIED_LABEL_COLOR);
+      logType.setBackgroundColor(DEFAULT_IF_UNSPECIFIED_BACKGROUND_COLOR);
+      logType.setTextColor(DEFAULT_IF_UNSPECIFIED_TEXT_COLOR);
+      logType.setTextStyle(DEFAULT_IF_UNSPECIFIED_TEXT_STYLE);
       return this;
     }
 

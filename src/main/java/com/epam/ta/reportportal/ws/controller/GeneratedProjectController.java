@@ -14,8 +14,10 @@ import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import com.epam.ta.reportportal.core.logtype.CreateLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.DeleteLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.GetLogTypeHandler;
 import lombok.RequiredArgsConstructor;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
@@ -23,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -37,6 +40,7 @@ public class GeneratedProjectController implements ProjectsApi {
   private final PluginManager pluginManager;
   private final GetLogTypeHandler getLogTypeHandler;
   private final CreateLogTypeHandler createLogTypeHandler;
+  private final DeleteLogTypeHandler deleteLogTypeHandler;
 
   @Override
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
@@ -93,11 +97,25 @@ public class GeneratedProjectController implements ProjectsApi {
         HttpStatus.CREATED);
   }
 
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<Void> deleteLogTypeById(String projectName, Long logTypeId) {
+    deleteLogTypeHandler.deleteLogType(normalizeId(projectName), logTypeId, getPrincipal());
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
   private GroupExtensionPoint getGroupExtension() {
     return pluginBox.getInstance(GroupExtensionPoint.class)
         .orElseThrow(() -> new ReportPortalException(
             ErrorType.PAID_PLUGIN_REQUIRED,
             "Group", "Group management is not available"
         ));
+  }
+
+  private ReportPortalUser getPrincipal() {
+    return (ReportPortalUser) SecurityContextHolder
+        .getContext()
+        .getAuthentication()
+        .getPrincipal();
   }
 }

@@ -665,7 +665,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   /**
    * Converts job retention attributes from days to seconds for database storage.
    */
-   void convertJobAttributesToSeconds(Map<String, String> attributes) {
+  void convertJobAttributesToSeconds(Map<String, String> attributes) {
     convertDaysToSeconds(attributes, "job.keepLaunches");
     convertDaysToSeconds(attributes, "job.keepLogs");
     convertDaysToSeconds(attributes, "job.keepScreenshots");
@@ -676,9 +676,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     if (value != null && !value.isEmpty()) {
       try {
         long days = Long.parseLong(value);
-        long seconds = TimeUnit.DAYS.toSeconds(days); // Convert days to seconds
+        long seconds = TimeUnit.DAYS.toSeconds(days);
         attributes.put(attributeName, String.valueOf(seconds));
-        System.out.println(attributeName + ": " + seconds);
       } catch (NumberFormatException e) {
         // Keep original value if parsing fails
       }

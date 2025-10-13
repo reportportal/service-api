@@ -83,6 +83,9 @@ public final class ProjectConverter {
 
     Map<String, String> attributes =
         ProjectUtils.getConfigParameters(project.getProjectAttributes());
+    
+    // Convert job retention attributes from seconds to days for API exposure
+    convertJobAttributesToDays(attributes);
 
     attributes.put(
         INDEXING_RUN, String.valueOf(
@@ -112,5 +115,28 @@ public final class ProjectConverter {
     projectResource.setConfiguration(projectConfiguration);
     return projectResource;
   };
+
+  /**
+   * Converts job retention attributes from seconds to days for API exposure
+   * while keeping the original values in seconds in the database
+   */
+  private void convertJobAttributesToDays(Map<String, String> attributes) {
+    convertSecondsTodays(attributes, "job.keepLaunches");
+    convertSecondsTodays(attributes, "job.keepLogs");
+    convertSecondsTodays(attributes, "job.keepScreenshots");
+  }
+
+  private void convertSecondsTodays(Map<String, String> attributes, String attributeName) {
+    String value = attributes.get(attributeName);
+    if (value != null && !value.isEmpty()) {
+      try {
+        long seconds = Long.parseLong(value);
+        long days = seconds / (24 * 3600); // Convert seconds to days
+        attributes.put(attributeName, String.valueOf(days));
+      } catch (NumberFormatException e) {
+        // Keep original value if parsing fails
+      }
+    }
+  }
 
 }

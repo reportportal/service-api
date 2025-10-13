@@ -67,7 +67,7 @@ class OrganizationRetentionLimitValidatorTest {
   @Test
   void validateWhenProjectLaunchesEqualsOrgLimitShouldPass() {
     // Given
-    List<OrganizationSetting> settings = settings(5, 0, 0);
+    List<OrganizationSetting> settings = settings(5 * 24 * 3600, 0, 0);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
     Map<String, String> attrs = Map.of("job.keepLaunches", String.valueOf(5 * 24 * 3600L));
 
@@ -78,7 +78,7 @@ class OrganizationRetentionLimitValidatorTest {
   @Test
   void validateWhenProjectAttachmentsLessThanOrgLimitShouldPass() {
     // Given
-    List<OrganizationSetting> settings = settings(0, 0, 7);
+    List<OrganizationSetting> settings = settings(0, 0, 7 * 24 * 3600);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
     Map<String, String> attrs = Map.of("job.keepScreenshots", String.valueOf(3 * 24 * 3600L));
 

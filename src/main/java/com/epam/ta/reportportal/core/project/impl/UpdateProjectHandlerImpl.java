@@ -115,6 +115,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -534,6 +535,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       Project project) {
     ofNullable(configuration).flatMap(config -> ofNullable(config.getProjectAttributes()))
         .ifPresent(attributes -> {
+          // Convert job retention attributes from days to seconds before storing
+          convertJobAttributesToSeconds(attributes);
           projectAttributeValidator.verifyProjectAttributes(
               ProjectUtils.getConfigParameters(project.getProjectAttributes()), attributes);
           organizationRetentionLimitValidator.validate(project.getOrganizationId(), attributes);
@@ -659,4 +662,26 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     }
   }
 
+  /**
+   * Converts job retention attributes from days to seconds for database storage.
+   */
+   void convertJobAttributesToSeconds(Map<String, String> attributes) {
+    convertDaysToSeconds(attributes, "job.keepLaunches");
+    convertDaysToSeconds(attributes, "job.keepLogs");
+    convertDaysToSeconds(attributes, "job.keepScreenshots");
+  }
+
+  public static void convertDaysToSeconds(Map<String, String> attributes, String attributeName) {
+    String value = attributes.get(attributeName);
+    if (value != null && !value.isEmpty()) {
+      try {
+        long days = Long.parseLong(value);
+        long seconds = TimeUnit.DAYS.toSeconds(days); // Convert days to seconds
+        attributes.put(attributeName, String.valueOf(seconds));
+        System.out.println(attributeName + ": " + seconds);
+      } catch (NumberFormatException e) {
+        // Keep original value if parsing fails
+      }
+    }
+  }
 }

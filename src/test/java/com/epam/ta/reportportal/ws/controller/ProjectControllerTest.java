@@ -16,9 +16,10 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.core.project.impl.UpdateProjectHandlerImpl.convertDaysToSeconds;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -96,20 +97,20 @@ class ProjectControllerTest extends BaseMvcTest {
     Mockito.reset(rabbitClient, rabbitTemplate);
   }
 
-	@Test
+  @Test
   @Disabled("waiting for requirements")
   void createProjectPositive() throws Exception {
-		CreateProjectRQ rq = new CreateProjectRQ();
-		rq.setProjectName("TestProject");
+    CreateProjectRQ rq = new CreateProjectRQ();
+    rq.setProjectName("TestProject");
     rq.setOrganizationId(1L);
 
     mockMvc.perform(post("/v1/project")
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
-		assertTrue(createdProjectOptional.isPresent());
-		assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
+    final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
+    assertTrue(createdProjectOptional.isPresent());
+    assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
     assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
   }
 
@@ -129,14 +130,10 @@ class ProjectControllerTest extends BaseMvcTest {
     ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
     HashMap<String, String> projectAttributes = new HashMap<>();
     projectAttributes.put("notifications.enabled", "false");
-    //2 weeks in seconds
-    projectAttributes.put("job.keepLaunches", String.valueOf(3600 * 24 * 14));
-    //2 weeks in seconds
-    projectAttributes.put("job.keepLogs", String.valueOf(3600 * 24 * 14));
-    //1 week in seconds
+    projectAttributes.put("job.keepLaunches", String.valueOf(14));
+    projectAttributes.put("job.keepLogs", String.valueOf(14));
     projectAttributes.put("job.interruptJobTime", String.valueOf(3600 * 24 * 7));
-    //1 week in seconds
-    projectAttributes.put("job.keepScreenshots", String.valueOf(3600 * 24 * 7));
+    projectAttributes.put("job.keepScreenshots", String.valueOf(7));
     projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
     projectAttributes.put("analyzer.minShouldMatch", "5");
     projectAttributes.put("analyzer.numberOfLogLines", "5");
@@ -145,20 +142,24 @@ class ProjectControllerTest extends BaseMvcTest {
     projectAttributes.put("analyzer.uniqueError.enabled", "true");
     projectAttributes.put("analyzer.uniqueError.removeNumbers", "true");
     configuration.setProjectAttributes(projectAttributes);
-		final UpdateProjectRQ rq = new UpdateProjectRQ();
+    final UpdateProjectRQ rq = new UpdateProjectRQ();
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
     userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
-        .content(objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken())))
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     Project project = projectRepository.findByKey("test_project")
         .orElseThrow(() -> new AssertionError("Test project 'test_project' not found"));
+
+    convertDaysToSeconds(projectAttributes, "job.keepLaunches");
+    convertDaysToSeconds(projectAttributes, "job.keepLogs");
+    convertDaysToSeconds(projectAttributes, "job.keepScreenshots");
     projectAttributes.forEach((key, value) -> {
       Optional<ProjectAttribute> pa = project.getProjectAttributes()
           .stream()
@@ -175,10 +176,10 @@ class ProjectControllerTest extends BaseMvcTest {
     ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
     HashMap<String, String> projectAttributes = new HashMap<>();
     projectAttributes.put("notifications.enabled", "false");
-    // org limits are 30 days; set 31 days in seconds to exceed
-    projectAttributes.put("job.keepLaunches", String.valueOf(31L * 24 * 3600));
-    projectAttributes.put("job.keepLogs", String.valueOf(31L * 24 * 3600));
-    projectAttributes.put("job.keepScreenshots", String.valueOf(31L * 24 * 3600));
+    // org limits are 30 days; set 31 days to exceed (API now accepts days)
+    projectAttributes.put("job.keepLaunches", "31");
+    projectAttributes.put("job.keepLogs", "31");
+    projectAttributes.put("job.keepScreenshots", "31");
     // valid interrupt time
     projectAttributes.put("job.interruptJobTime", String.valueOf(7L * 24 * 3600));
     configuration.setProjectAttributes(projectAttributes);
@@ -203,19 +204,19 @@ class ProjectControllerTest extends BaseMvcTest {
     HashMap<String, String> projectAttributes = new HashMap<>();
     projectAttributes.put("notifications.enabled", "false");
     //2 weeks in seconds
-    projectAttributes.put("job.keepLaunches", String.valueOf(3600 * 24 * 14));
+    projectAttributes.put("job.keepLaunches", String.valueOf(14));
     //2 weeks in seconds
-    projectAttributes.put("job.keepLogs", String.valueOf(3600 * 24 * 14));
+    projectAttributes.put("job.keepLogs", String.valueOf(14));
     //1 week in seconds
-    projectAttributes.put("job.interruptJobTime", String.valueOf(3600 * 24 * 7));
+    projectAttributes.put("job.interruptJobTime", String.valueOf(7));
     //3 weeks in seconds
-    projectAttributes.put("job.keepScreenshots", String.valueOf(3600 * 24 * 21));
+    projectAttributes.put("job.keepScreenshots", String.valueOf(21));
     projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
     projectAttributes.put("analyzer.minShouldMatch", "5");
     projectAttributes.put("analyzer.numberOfLogLines", "5");
     projectAttributes.put("analyzer.isAutoAnalyzerEnabled", "false");
     configuration.setProjectAttributes(projectAttributes);
-		final UpdateProjectRQ rq = new UpdateProjectRQ();
+    final UpdateProjectRQ rq = new UpdateProjectRQ();
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
@@ -234,7 +235,7 @@ class ProjectControllerTest extends BaseMvcTest {
     projectAttributes.put("notifications.enabled", "false");
     projectAttributes.put("job.keepLogs", "110000d");
     configuration.setProjectAttributes(projectAttributes);
-		UpdateProjectRQ rq = new UpdateProjectRQ();
+    UpdateProjectRQ rq = new UpdateProjectRQ();
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
@@ -675,7 +676,7 @@ class ProjectControllerTest extends BaseMvcTest {
 
     verify(rabbitTemplate, times(1))
         .convertSendAndReceiveAsType(eq(exchangeInfo.getName()),
-        eq("delete"), eq(2L), any());
+            eq("delete"), eq(2L), any());
   }
 
   private void verifyProjectIndexEvent() {

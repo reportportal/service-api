@@ -67,7 +67,8 @@ public class OrganizationSettingsHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
     var organizationSettings = settingsRepository.findByOrganizationId(orgId);
     return OrganizationSettings.builder()
-        .retentionPolicy(organizationRetentionPolicyHandler.getRetentionPolicySettings(organizationSettings)).build();
+        .retentionPolicy(organizationRetentionPolicyHandler.getRetentionPolicySettings(organizationSettings))
+        .build();
   }
 
   public void updateOrgSettings(Long orgId, OrganizationSettings updateSettings) {
@@ -87,11 +88,20 @@ public class OrganizationSettingsHandler {
       //Replace it with a separate service if new settings appeared.
       var retentionPolicies = updateSettings.getRetentionPolicy();
       var updatedLaunchesPeriod = Optional.of(retentionPolicies.getLaunches())
-          .map(OrganizationSettingsRetentionPolicyLaunches::getPeriod).orElse(currentLaunchesPeriod);
+          .map(OrganizationSettingsRetentionPolicyLaunches::getPeriod)
+          .map(TimeUnit.DAYS::toSeconds)
+          .map(Math::toIntExact)
+          .orElse(currentLaunchesPeriod);
       var updatedLogsPeriod = Optional.of(retentionPolicies.getLogs())
-          .map(OrganizationSettingsRetentionPolicyLogs::getPeriod).orElse(currentLogsPeriod);
+          .map(OrganizationSettingsRetentionPolicyLogs::getPeriod)
+          .map(TimeUnit.DAYS::toSeconds)
+          .map(Math::toIntExact)
+          .orElse(currentLogsPeriod);
       var updatedAttachmentsPeriod = Optional.of(retentionPolicies.getAttachments())
-          .map(OrganizationSettingsRetentionPolicyAttachments::getPeriod).orElse(currentAttachmentsPeriod);
+          .map(OrganizationSettingsRetentionPolicyAttachments::getPeriod)
+          .map(TimeUnit.DAYS::toSeconds)
+          .map(Math::toIntExact)
+          .orElse(currentAttachmentsPeriod);
 
       if (!organizationRetentionPolicyHandler.isRetentionOrderValid(updatedLaunchesPeriod, updatedLogsPeriod,
           updatedAttachmentsPeriod)) {

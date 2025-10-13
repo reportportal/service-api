@@ -27,6 +27,7 @@ import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLogs;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.organization.OrganizationSetting;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,11 +49,14 @@ public class OrganizationRetentionPolicyHandler {
   public OrganizationSettingsRetentionPolicy getRetentionPolicySettings(List<OrganizationSetting> settings) {
     return OrganizationSettingsRetentionPolicy.builder()
         .launches(OrganizationSettingsRetentionPolicyLaunches.builder()
-            .period(getRetentionValue(settings, RETENTION_LAUNCHES)).build())
+            .period(Math.toIntExact(TimeUnit.SECONDS.toDays(getRetentionValue(settings, RETENTION_LAUNCHES))))
+            .build())
         .logs(OrganizationSettingsRetentionPolicyLogs.builder()
-            .period(getRetentionValue(settings, RETENTION_LOGS)).build())
+            .period(Math.toIntExact(TimeUnit.SECONDS.toDays(getRetentionValue(settings, RETENTION_LOGS))))
+            .build())
         .attachments(OrganizationSettingsRetentionPolicyAttachments.builder()
-            .period(getRetentionValue(settings, RETENTION_ATTACHMENTS)).build())
+            .period(Math.toIntExact(TimeUnit.SECONDS.toDays(getRetentionValue(settings, RETENTION_ATTACHMENTS))))
+            .build())
         .build();
   }
 

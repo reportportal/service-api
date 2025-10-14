@@ -138,7 +138,7 @@ class DeleteLogTypeHandlerImplTest {
   }
 
   @Test
-  void deleteLogTypeWhenAdminCanDeleteFromAnyProject() {
+  void deleteLogTypeWhenAdminCannotDeleteFromAnyProject() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, 2L, "custom", 9000,
@@ -149,10 +149,11 @@ class DeleteLogTypeHandlerImplTest {
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
 
     // When
-    handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, admin);
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, admin));
 
     // Then
-    verify(logTypeRepository).delete(logType);
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
   }
 
   private ProjectLogType createLogType(Long id, Long projectId, String name, Integer level,

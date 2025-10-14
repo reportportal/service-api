@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
@@ -52,8 +51,7 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
    * @param projectName The name of the project.
    * @param logTypeId   The ID of the log type to delete.
    * @param user        The user performing the deletion.
-   * @throws ReportPortalException if the project or log type is not found, or if the log type is a
-   *                               system log type.
+   * @throws ReportPortalException if the project or log type is not found, or if the log type is a system log type.
    */
   @Override
   @Transactional
@@ -70,9 +68,7 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
   }
 
   private void validate(ProjectLogType logType, Project project, ReportPortalUser user) {
-    if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-      validateLogTypeBelongsToProject(logType, project.getId());
-    }
+    validateLogTypeBelongsToProject(logType, project.getId());
     validateNotSystemLogType(logType);
   }
 

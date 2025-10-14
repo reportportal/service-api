@@ -171,6 +171,14 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
             "'Log type' not found. Did you use correct ID?"));
   }
 
+
+  @Test
+  void deleteLogTypeReturns400WithNonNumericId() throws Exception {
+    mockMvc.perform(delete("/projects/default_personal/log-types/99999nonNumeric")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().is4xxClientError());
+  }
+
   @Test
   void deleteLogTypeReturns403ForSystemLogType() throws Exception {
     String result = mockMvc.perform(get("/projects/default_personal/log-types")

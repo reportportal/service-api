@@ -59,6 +59,8 @@ public final class ExceptionMappings {
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(MissingServletRequestParameterException.class,
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
+      .put(IllegalArgumentException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(AccessDeniedException.class,
           new RestErrorDefinition<>(403, ErrorType.ACCESS_DENIED, DEFAULT_MESSAGE_BUILDER))
       .put(BadCredentialsException.class,

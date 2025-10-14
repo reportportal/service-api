@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
@@ -63,6 +64,8 @@ public final class ExceptionMappings {
       .put(MissingServletRequestParameterException.class,
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(IllegalArgumentException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
+      .put(MethodArgumentTypeMismatchException.class,
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(AccessDeniedException.class,
           new RestErrorDefinition<>(403, ErrorType.ACCESS_DENIED, DEFAULT_MESSAGE_BUILDER))

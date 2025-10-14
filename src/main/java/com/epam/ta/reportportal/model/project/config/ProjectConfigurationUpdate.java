@@ -20,28 +20,24 @@ import com.epam.reportportal.annotations.NotNullMapValue;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Map;
 import jakarta.validation.constraints.NotNull;
+import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * Project configuration model
+ * Project configuration model.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Setter
+@Getter
 @JsonInclude(Include.NON_NULL)
 public class ProjectConfigurationUpdate {
 
-	@NotNull
-	@NotNullMapValue
-	@JsonProperty(value = "attributes", required = true)
-	private Map<String, String> projectAttributes;
-
-	public Map<String, String> getProjectAttributes() {
-		return projectAttributes;
-	}
-
-	public void setProjectAttributes(Map<String, String> projectAttributes) {
-		this.projectAttributes = projectAttributes;
-	}
+  @NotNull
+  @NotNullMapValue
+  @JsonProperty(value = "attributes", required = true)
+  private Map<String, String> projectAttributes;
 
 }

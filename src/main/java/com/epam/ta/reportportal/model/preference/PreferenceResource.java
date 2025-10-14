@@ -19,52 +19,25 @@ package com.epam.ta.reportportal.model.preference;
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
+import lombok.Data;
 
 /**
- * JSON representation of ReportPortal domain object
+ * JSON representation of ReportPortal domain object.
  *
  * @author Dzmitry_Kavalets
  */
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PreferenceResource {
 
-	@JsonProperty(value = "userId")
-	private Long userId;
+  @JsonProperty(value = "userId")
+  private Long userId;
 
-	@JsonProperty(value = "projectId", required = true)
-	private Long projectId;
+  @JsonProperty(value = "projectId", required = true)
+  private Long projectId;
 
-	@JsonProperty(value = "filters")
-	private List<UserFilterResource> filters;
+  @JsonProperty(value = "filters")
+  private List<UserFilterResource> filters;
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
-
-	public void setProjectId(Long projectId) {
-		this.projectId = projectId;
-	}
-
-	public List<UserFilterResource> getFilters() {
-		return filters;
-	}
-
-	public void setFilters(List<UserFilterResource> filters) {
-		this.filters = filters;
-	}
-
-	@Override
-	public String toString() {
-		return "PreferenceResource{" + "userId=" + userId + ", projectId=" + projectId + ", filters=" + filters + '}';
-	}
 }

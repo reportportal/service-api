@@ -12,7 +12,6 @@ import com.epam.ta.reportportal.entity.organization.OrganizationSetting;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -47,7 +46,7 @@ public class OrganizationRetentionLimitValidator {
         .filter(PROJECT_KEY_TO_ORG_KEY::containsKey)
         .forEach(projectKey -> {
           OrganizationSettingsEnum orgKey = PROJECT_KEY_TO_ORG_KEY.get(projectKey);
-          long orgLimitSeconds = toSecondsOrMax(retentionPolicyHandler.getRetentionValue(orgSettings, orgKey));
+          long orgLimitSeconds = orMax(retentionPolicyHandler.getRetentionValue(orgSettings, orgKey));
           if (!isUnlimited(orgLimitSeconds)) {
             long requestedSeconds = parseSecondsOrMax(newAttributes.get(projectKey));
             if (requestedSeconds > orgLimitSeconds) {
@@ -70,7 +69,7 @@ public class OrganizationRetentionLimitValidator {
     return Long.parseLong(value);
   }
 
-  private long toSecondsOrMax(int days) {
-    return days == 0 ? Long.MAX_VALUE : TimeUnit.DAYS.toSeconds(days);
+  private long orMax(long seconds) {
+    return seconds == 0 ? Long.MAX_VALUE : seconds;
   }
 }

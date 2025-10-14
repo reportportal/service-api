@@ -72,13 +72,6 @@ public final class ProjectConverter {
       return projectUser;
     }).collect(Collectors.toList()));
 
-    Map<String, List<IssueSubTypeResource>> subTypes =
-        project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
-            .collect(Collectors.groupingBy(
-                it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
-                Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
-            ));
-
     ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 
     Map<String, String> attributes =
@@ -107,6 +100,12 @@ public final class ProjectConverter {
         NotificationConfigConverter.TO_RESOURCE.apply(senderCases)));
     projectConfiguration.setProjectConfig(notificationConfig);
 
+    Map<String, List<IssueSubTypeResource>> subTypes =
+        project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
+            .collect(Collectors.groupingBy(
+                it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+                Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
+            ));
     projectConfiguration.setSubTypes(subTypes);
 
     projectResource.setConfiguration(projectConfiguration);

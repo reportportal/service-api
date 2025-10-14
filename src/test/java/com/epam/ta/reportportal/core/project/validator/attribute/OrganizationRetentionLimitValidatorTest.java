@@ -67,7 +67,7 @@ class OrganizationRetentionLimitValidatorTest {
   @Test
   void validateWhenProjectLaunchesEqualsOrgLimitShouldPass() {
     // Given
-    List<OrganizationSetting> settings = settings(5, 0, 0);
+    List<OrganizationSetting> settings = settings(5 * 24 * 3600, 0, 0);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
     Map<String, String> attrs = Map.of("job.keepLaunches", String.valueOf(5 * 24 * 3600L));
 
@@ -78,7 +78,7 @@ class OrganizationRetentionLimitValidatorTest {
   @Test
   void validateWhenProjectAttachmentsLessThanOrgLimitShouldPass() {
     // Given
-    List<OrganizationSetting> settings = settings(0, 0, 7);
+    List<OrganizationSetting> settings = settings(0, 0, 7 * 24 * 3600);
     when(settingsRepository.findByOrganizationId(orgId)).thenReturn(settings);
     Map<String, String> attrs = Map.of("job.keepScreenshots", String.valueOf(3 * 24 * 3600L));
 
@@ -119,18 +119,18 @@ class OrganizationRetentionLimitValidatorTest {
     assertDoesNotThrow(() -> validator.validate(orgId, attrs));
   }
 
-  private List<OrganizationSetting> settings(int launchesDays, int logsDays, int attachmentsDays) {
+  private List<OrganizationSetting> settings(int launchesSeconds, int logsSeconds, int attachmentsSeconds) {
     OrganizationSetting launches = new OrganizationSetting();
     launches.setSettingKey(OrganizationSettingsEnum.RETENTION_LAUNCHES.getName());
-    launches.setSettingValue(String.valueOf(launchesDays));
+    launches.setSettingValue(String.valueOf(launchesSeconds));
 
     OrganizationSetting logs = new OrganizationSetting();
     logs.setSettingKey(OrganizationSettingsEnum.RETENTION_LOGS.getName());
-    logs.setSettingValue(String.valueOf(logsDays));
+    logs.setSettingValue(String.valueOf(logsSeconds));
 
     OrganizationSetting attachments = new OrganizationSetting();
     attachments.setSettingKey(OrganizationSettingsEnum.RETENTION_ATTACHMENTS.getName());
-    attachments.setSettingValue(String.valueOf(attachmentsDays));
+    attachments.setSettingValue(String.valueOf(attachmentsSeconds));
 
     return List.of(launches, logs, attachments);
   }

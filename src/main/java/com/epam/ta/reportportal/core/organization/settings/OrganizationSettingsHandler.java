@@ -36,7 +36,6 @@ import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.epam.ta.reportportal.ws.converter.converters.OrganizationActivityConverter;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -67,7 +66,8 @@ public class OrganizationSettingsHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
     var organizationSettings = settingsRepository.findByOrganizationId(orgId);
     return OrganizationSettings.builder()
-        .retentionPolicy(organizationRetentionPolicyHandler.getRetentionPolicySettings(organizationSettings)).build();
+        .retentionPolicy(organizationRetentionPolicyHandler.getRetentionPolicySettings(organizationSettings))
+        .build();
   }
 
   public void updateOrgSettings(Long orgId, OrganizationSettings updateSettings) {
@@ -87,11 +87,14 @@ public class OrganizationSettingsHandler {
       //Replace it with a separate service if new settings appeared.
       var retentionPolicies = updateSettings.getRetentionPolicy();
       var updatedLaunchesPeriod = Optional.of(retentionPolicies.getLaunches())
-          .map(OrganizationSettingsRetentionPolicyLaunches::getPeriod).orElse(currentLaunchesPeriod);
+          .map(OrganizationSettingsRetentionPolicyLaunches::getPeriod)
+          .orElse(currentLaunchesPeriod);
       var updatedLogsPeriod = Optional.of(retentionPolicies.getLogs())
-          .map(OrganizationSettingsRetentionPolicyLogs::getPeriod).orElse(currentLogsPeriod);
+          .map(OrganizationSettingsRetentionPolicyLogs::getPeriod)
+          .orElse(currentLogsPeriod);
       var updatedAttachmentsPeriod = Optional.of(retentionPolicies.getAttachments())
-          .map(OrganizationSettingsRetentionPolicyAttachments::getPeriod).orElse(currentAttachmentsPeriod);
+          .map(OrganizationSettingsRetentionPolicyAttachments::getPeriod)
+          .orElse(currentAttachmentsPeriod);
 
       if (!organizationRetentionPolicyHandler.isRetentionOrderValid(updatedLaunchesPeriod, updatedLogsPeriod,
           updatedAttachmentsPeriod)) {
@@ -125,18 +128,17 @@ public class OrganizationSettingsHandler {
   }
 
   private void updateRetentionSettingsValue(List<OrganizationSetting> settings,
-      OrganizationSettingsEnum settingsEnum, Integer updateValue, long orgId) {
+      OrganizationSettingsEnum settingsEnum, long updateValue, long orgId) {
     var organizationSetting = organizationRetentionPolicyHandler.getOrganizationSetting(settings,
         settingsEnum);
     organizationSetting.setSettingValue(String.valueOf(updateValue));
     settingsRepository.save(organizationSetting);
     if (updateValue != 0) {
-      projectRepository.updateProjectAttributeValueIfGreater(TimeUnit.DAYS.toSeconds(updateValue),
-          settingsEnum.getProjectFormatKey(), orgId);
+      projectRepository.updateProjectAttributeValueIfGreater(updateValue, settingsEnum.getProjectFormatKey(), orgId);
     }
   }
 
-  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(int launches, int logs, int attachments) {
+  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(long launches, long logs, long attachments) {
     return OrganizationSettingsRetentionPolicy.builder()
         .launches(OrganizationSettingsRetentionPolicyLaunches.builder().period(launches).build())
         .logs(OrganizationSettingsRetentionPolicyLogs.builder().period(logs).build())

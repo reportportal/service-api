@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -96,20 +96,20 @@ class ProjectControllerTest extends BaseMvcTest {
     Mockito.reset(rabbitClient, rabbitTemplate);
   }
 
-	@Test
+  @Test
   @Disabled("waiting for requirements")
   void createProjectPositive() throws Exception {
-		CreateProjectRQ rq = new CreateProjectRQ();
-		rq.setProjectName("TestProject");
+    CreateProjectRQ rq = new CreateProjectRQ();
+    rq.setProjectName("TestProject");
     rq.setOrganizationId(1L);
 
     mockMvc.perform(post("/v1/project")
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
-		assertTrue(createdProjectOptional.isPresent());
-		assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
+    final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
+    assertTrue(createdProjectOptional.isPresent());
+    assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
     assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
   }
 
@@ -145,16 +145,16 @@ class ProjectControllerTest extends BaseMvcTest {
     projectAttributes.put("analyzer.uniqueError.enabled", "true");
     projectAttributes.put("analyzer.uniqueError.removeNumbers", "true");
     configuration.setProjectAttributes(projectAttributes);
-		final UpdateProjectRQ rq = new UpdateProjectRQ();
+    final UpdateProjectRQ rq = new UpdateProjectRQ();
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
     userRoles.put("test_user", "EDITOR");
     rq.setUserRoles(userRoles);
     mockMvc.perform(put("/v1/project/test_project")
-        .content(objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken())))
+            .content(objectMapper.writeValueAsBytes(rq))
+            .contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
     Project project = projectRepository.findByKey("test_project")
@@ -215,7 +215,7 @@ class ProjectControllerTest extends BaseMvcTest {
     projectAttributes.put("analyzer.numberOfLogLines", "5");
     projectAttributes.put("analyzer.isAutoAnalyzerEnabled", "false");
     configuration.setProjectAttributes(projectAttributes);
-		final UpdateProjectRQ rq = new UpdateProjectRQ();
+    final UpdateProjectRQ rq = new UpdateProjectRQ();
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
@@ -234,7 +234,7 @@ class ProjectControllerTest extends BaseMvcTest {
     projectAttributes.put("notifications.enabled", "false");
     projectAttributes.put("job.keepLogs", "110000d");
     configuration.setProjectAttributes(projectAttributes);
-		UpdateProjectRQ rq = new UpdateProjectRQ();
+    UpdateProjectRQ rq = new UpdateProjectRQ();
     rq.setConfiguration(configuration);
 
     HashMap<String, String> userRoles = new HashMap<>();
@@ -675,7 +675,7 @@ class ProjectControllerTest extends BaseMvcTest {
 
     verify(rabbitTemplate, times(1))
         .convertSendAndReceiveAsType(eq(exchangeInfo.getName()),
-        eq("delete"), eq(2L), any());
+            eq("delete"), eq(2L), any());
   }
 
   private void verifyProjectIndexEvent() {

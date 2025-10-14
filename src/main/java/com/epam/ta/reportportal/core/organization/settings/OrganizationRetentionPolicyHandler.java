@@ -27,7 +27,6 @@ import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLogs;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.organization.OrganizationSetting;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,20 +48,20 @@ public class OrganizationRetentionPolicyHandler {
   public OrganizationSettingsRetentionPolicy getRetentionPolicySettings(List<OrganizationSetting> settings) {
     return OrganizationSettingsRetentionPolicy.builder()
         .launches(OrganizationSettingsRetentionPolicyLaunches.builder()
-            .period(Math.toIntExact(TimeUnit.SECONDS.toDays(getRetentionValue(settings, RETENTION_LAUNCHES))))
+            .period(getRetentionValue(settings, RETENTION_LAUNCHES))
             .build())
         .logs(OrganizationSettingsRetentionPolicyLogs.builder()
-            .period(Math.toIntExact(TimeUnit.SECONDS.toDays(getRetentionValue(settings, RETENTION_LOGS))))
+            .period(getRetentionValue(settings, RETENTION_LOGS))
             .build())
         .attachments(OrganizationSettingsRetentionPolicyAttachments.builder()
-            .period(Math.toIntExact(TimeUnit.SECONDS.toDays(getRetentionValue(settings, RETENTION_ATTACHMENTS))))
+            .period(getRetentionValue(settings, RETENTION_ATTACHMENTS))
             .build())
         .build();
   }
 
-  public int getRetentionValue(List<OrganizationSetting> retentionPolicySettings,
+  public long getRetentionValue(List<OrganizationSetting> retentionPolicySettings,
       OrganizationSettingsEnum retentionKey) {
-    return Integer.parseInt(
+    return Long.parseLong(
         retentionPolicySettings.stream().filter(it -> retentionKey.getName().equalsIgnoreCase(it.getSettingKey()))
             .findFirst().orElseThrow(() -> new ReportPortalException("Incorrect retention key: " + retentionKey))
             .getSettingValue());
@@ -78,7 +77,7 @@ public class OrganizationRetentionPolicyHandler {
    * Validates that retention values follow the rule: launches ≥ logs ≥ attachments where 0 means "forever" and is
    * considered greater than any positive number.
    */
-  public boolean isRetentionOrderValid(int launches, int logs, int attachments) {
+  public boolean isRetentionOrderValid(long launches, long logs, long attachments) {
     return compareWithUnlimitedAsMax(launches, logs) >= 0 && compareWithUnlimitedAsMax(logs, attachments) >= 0;
   }
 
@@ -87,10 +86,10 @@ public class OrganizationRetentionPolicyHandler {
    *
    * @return positive if first ≥ second, negative if not
    */
-  private int compareWithUnlimitedAsMax(int first, int second) {
-    first = first == 0 ? Integer.MAX_VALUE : first;
-    second = second == 0 ? Integer.MAX_VALUE : second;
-    return Integer.compare(first, second);
+  private int compareWithUnlimitedAsMax(long first, long second) {
+    first = first == 0 ? Long.MAX_VALUE : first;
+    second = second == 0 ? Long.MAX_VALUE : second;
+    return Long.compare(first, second);
   }
 
 }

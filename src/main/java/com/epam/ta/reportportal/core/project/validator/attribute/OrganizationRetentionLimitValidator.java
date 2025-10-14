@@ -69,7 +69,7 @@ public class OrganizationRetentionLimitValidator {
     return Long.parseLong(value);
   }
 
-  private long orMax(int seconds) {
+  private long orMax(long seconds) {
     return seconds == 0 ? Long.MAX_VALUE : seconds;
   }
 }

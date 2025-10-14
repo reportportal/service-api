@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.core.project.impl.UpdateProjectHandlerImpl.convertDaysToSeconds;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -130,10 +129,14 @@ class ProjectControllerTest extends BaseMvcTest {
     ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
     HashMap<String, String> projectAttributes = new HashMap<>();
     projectAttributes.put("notifications.enabled", "false");
-    projectAttributes.put("job.keepLaunches", String.valueOf(14));
-    projectAttributes.put("job.keepLogs", String.valueOf(14));
+    //2 weeks in seconds
+    projectAttributes.put("job.keepLaunches", String.valueOf(3600 * 24 * 14));
+    //2 weeks in seconds
+    projectAttributes.put("job.keepLogs", String.valueOf(3600 * 24 * 14));
+    //1 week in seconds
     projectAttributes.put("job.interruptJobTime", String.valueOf(3600 * 24 * 7));
-    projectAttributes.put("job.keepScreenshots", String.valueOf(7));
+    //1 week in seconds
+    projectAttributes.put("job.keepScreenshots", String.valueOf(3600 * 24 * 7));
     projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
     projectAttributes.put("analyzer.minShouldMatch", "5");
     projectAttributes.put("analyzer.numberOfLogLines", "5");
@@ -156,10 +159,6 @@ class ProjectControllerTest extends BaseMvcTest {
 
     Project project = projectRepository.findByKey("test_project")
         .orElseThrow(() -> new AssertionError("Test project 'test_project' not found"));
-
-    convertDaysToSeconds(projectAttributes, "job.keepLaunches");
-    convertDaysToSeconds(projectAttributes, "job.keepLogs");
-    convertDaysToSeconds(projectAttributes, "job.keepScreenshots");
     projectAttributes.forEach((key, value) -> {
       Optional<ProjectAttribute> pa = project.getProjectAttributes()
           .stream()
@@ -176,10 +175,10 @@ class ProjectControllerTest extends BaseMvcTest {
     ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
     HashMap<String, String> projectAttributes = new HashMap<>();
     projectAttributes.put("notifications.enabled", "false");
-    // org limits are 30 days; set 31 days to exceed (API now accepts days)
-    projectAttributes.put("job.keepLaunches", "31");
-    projectAttributes.put("job.keepLogs", "31");
-    projectAttributes.put("job.keepScreenshots", "31");
+    // org limits are 30 days; set 31 days in seconds to exceed
+    projectAttributes.put("job.keepLaunches", String.valueOf(31L * 24 * 3600));
+    projectAttributes.put("job.keepLogs", String.valueOf(31L * 24 * 3600));
+    projectAttributes.put("job.keepScreenshots", String.valueOf(31L * 24 * 3600));
     // valid interrupt time
     projectAttributes.put("job.interruptJobTime", String.valueOf(7L * 24 * 3600));
     configuration.setProjectAttributes(projectAttributes);
@@ -204,13 +203,13 @@ class ProjectControllerTest extends BaseMvcTest {
     HashMap<String, String> projectAttributes = new HashMap<>();
     projectAttributes.put("notifications.enabled", "false");
     //2 weeks in seconds
-    projectAttributes.put("job.keepLaunches", String.valueOf(14));
+    projectAttributes.put("job.keepLaunches", String.valueOf(3600 * 24 * 14));
     //2 weeks in seconds
-    projectAttributes.put("job.keepLogs", String.valueOf(14));
+    projectAttributes.put("job.keepLogs", String.valueOf(3600 * 24 * 14));
     //1 week in seconds
-    projectAttributes.put("job.interruptJobTime", String.valueOf(7));
+    projectAttributes.put("job.interruptJobTime", String.valueOf(3600 * 24 * 7));
     //3 weeks in seconds
-    projectAttributes.put("job.keepScreenshots", String.valueOf(21));
+    projectAttributes.put("job.keepScreenshots", String.valueOf(3600 * 24 * 21));
     projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
     projectAttributes.put("analyzer.minShouldMatch", "5");
     projectAttributes.put("analyzer.numberOfLogLines", "5");

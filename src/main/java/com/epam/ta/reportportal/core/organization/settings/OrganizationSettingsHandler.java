@@ -36,7 +36,6 @@ import com.epam.ta.reportportal.util.SecurityContextUtils;
 import com.epam.ta.reportportal.ws.converter.converters.OrganizationActivityConverter;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -89,18 +88,12 @@ public class OrganizationSettingsHandler {
       var retentionPolicies = updateSettings.getRetentionPolicy();
       var updatedLaunchesPeriod = Optional.of(retentionPolicies.getLaunches())
           .map(OrganizationSettingsRetentionPolicyLaunches::getPeriod)
-          .map(TimeUnit.DAYS::toSeconds)
-          .map(Math::toIntExact)
           .orElse(currentLaunchesPeriod);
       var updatedLogsPeriod = Optional.of(retentionPolicies.getLogs())
           .map(OrganizationSettingsRetentionPolicyLogs::getPeriod)
-          .map(TimeUnit.DAYS::toSeconds)
-          .map(Math::toIntExact)
           .orElse(currentLogsPeriod);
       var updatedAttachmentsPeriod = Optional.of(retentionPolicies.getAttachments())
           .map(OrganizationSettingsRetentionPolicyAttachments::getPeriod)
-          .map(TimeUnit.DAYS::toSeconds)
-          .map(Math::toIntExact)
           .orElse(currentAttachmentsPeriod);
 
       if (!organizationRetentionPolicyHandler.isRetentionOrderValid(updatedLaunchesPeriod, updatedLogsPeriod,
@@ -135,18 +128,17 @@ public class OrganizationSettingsHandler {
   }
 
   private void updateRetentionSettingsValue(List<OrganizationSetting> settings,
-      OrganizationSettingsEnum settingsEnum, Integer updateValue, long orgId) {
+      OrganizationSettingsEnum settingsEnum, long updateValue, long orgId) {
     var organizationSetting = organizationRetentionPolicyHandler.getOrganizationSetting(settings,
         settingsEnum);
     organizationSetting.setSettingValue(String.valueOf(updateValue));
     settingsRepository.save(organizationSetting);
     if (updateValue != 0) {
-      projectRepository.updateProjectAttributeValueIfGreater(TimeUnit.DAYS.toSeconds(updateValue),
-          settingsEnum.getProjectFormatKey(), orgId);
+      projectRepository.updateProjectAttributeValueIfGreater(updateValue, settingsEnum.getProjectFormatKey(), orgId);
     }
   }
 
-  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(int launches, int logs, int attachments) {
+  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(long launches, long logs, long attachments) {
     return OrganizationSettingsRetentionPolicy.builder()
         .launches(OrganizationSettingsRetentionPolicyLaunches.builder().period(launches).build())
         .logs(OrganizationSettingsRetentionPolicyLogs.builder().period(logs).build())

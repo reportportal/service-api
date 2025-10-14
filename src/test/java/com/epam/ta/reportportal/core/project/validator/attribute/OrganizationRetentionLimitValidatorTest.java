@@ -119,18 +119,18 @@ class OrganizationRetentionLimitValidatorTest {
     assertDoesNotThrow(() -> validator.validate(orgId, attrs));
   }
 
-  private List<OrganizationSetting> settings(int launchesDays, int logsDays, int attachmentsDays) {
+  private List<OrganizationSetting> settings(int launchesSeconds, int logsSeconds, int attachmentsSeconds) {
     OrganizationSetting launches = new OrganizationSetting();
     launches.setSettingKey(OrganizationSettingsEnum.RETENTION_LAUNCHES.getName());
-    launches.setSettingValue(String.valueOf(launchesDays));
+    launches.setSettingValue(String.valueOf(launchesSeconds));
 
     OrganizationSetting logs = new OrganizationSetting();
     logs.setSettingKey(OrganizationSettingsEnum.RETENTION_LOGS.getName());
-    logs.setSettingValue(String.valueOf(logsDays));
+    logs.setSettingValue(String.valueOf(logsSeconds));
 
     OrganizationSetting attachments = new OrganizationSetting();
     attachments.setSettingKey(OrganizationSettingsEnum.RETENTION_ATTACHMENTS.getName());
-    attachments.setSettingValue(String.valueOf(attachmentsDays));
+    attachments.setSettingValue(String.valueOf(attachmentsSeconds));
 
     return List.of(launches, logs, attachments);
   }

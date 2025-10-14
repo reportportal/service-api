@@ -156,10 +156,10 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Test
   @Sql("/db/log-type/log-type-fill.sql")
-  void deleteLogTypeAdminCanDeleteFromAnyProject() throws Exception {
+  void deleteLogTypeAdminCannotDeleteFromAnyProject() throws Exception {
     mockMvc.perform(delete("/projects/default_personal/log-types/1001")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isForbidden());
   }
 
   @Test

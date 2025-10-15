@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanWithStatistic;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.mapstruct.BeanMapping;
@@ -23,6 +24,13 @@ public abstract class TmsTestPlanMapper {
 
   @Mapping(target = "attributes", source = "attributes")
   public abstract TmsTestPlanRS convertToRS(TmsTestPlan tmsTestPlan);
+
+  @Mapping(target = "id", source = "tmsTestPlan.testPlan.id")
+  @Mapping(target = "name", source = "tmsTestPlan.testPlan.name")
+  @Mapping(target = "description", source = "tmsTestPlan.testPlan.description")
+  @Mapping(target = "attributes", source = "tmsTestPlan.testPlan.attributes")
+  @Mapping(target = "executionStatistic", source = "tmsTestPlan.executionStatistic")
+  public abstract TmsTestPlanRS convertTmsTestPlanWithStatisticToRS(TmsTestPlanWithStatistic tmsTestPlan);
 
   @Mapping(target = "project.id", source = "projectId")
   @Mapping(target = "attributes", ignore = true)
@@ -59,15 +67,14 @@ public abstract class TmsTestPlanMapper {
         .build();
   }
 
-  public Page<TmsTestPlanRS> convertToRS(
-      List<TmsTestPlan> orderedTestPlans,
-      Page<Long> testPlanIds,
+  public Page<TmsTestPlanRS> convertTmsTestPlanWithStatisticToRS(
+      List<TmsTestPlanWithStatistic> orderedTestPlans,
       Pageable pageable,
       long totalCount) {
     return new PageImpl<>(
         orderedTestPlans
             .stream()
-            .map(this::convertToRS)
+            .map(this::convertTmsTestPlanWithStatisticToRS)
             .collect(Collectors.toList()),
         pageable,
         totalCount

@@ -4,15 +4,17 @@ import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.dao.tms.filterable.TmsTestPlanFilterableRepository;
-import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
-import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.filterable.TmsTestPlanFilterableRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatisticRS;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanWithStatistic;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.validation.constraints.NotEmpty;
@@ -24,6 +26,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,9 +34,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
-  private static final String TMS_TEST_PLAN_NOT_FOUND_BY_ID = "TMS Test Plan with id: %d for project: %d";
+  private static final String TMS_TEST_PLAN_NOT_FOUND_BY_ID =
+      "TMS Test Plan with id: %d for project: %d";
 
   private final TmsTestPlanRepository testPlanRepository;
   private final TmsTestPlanFilterableRepository tmsTestPlanFilterableRepository;
@@ -41,12 +46,14 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   private final TmsTestPlanAttributeService tmsTestPlanAttributeService;
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
   private final TmsTestCaseService tmsTestCaseService;
+  private final TmsTestPlanExecutionService tmsTestPlanExecutionService;
 
   @Override
   @Transactional(readOnly = true)
   public TmsTestPlanRS getById(long projectId, Long testPlanId) {
     return testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
-        .map(tmsTestPlanMapper::convertToRS)
+        .map(tmsTestPlanExecutionService::enrichWithStatistics)
+        .map(tmsTestPlanMapper::convertTmsTestPlanWithStatisticToRS)
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
         );
@@ -62,7 +69,12 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     tmsTestPlanAttributeService.createTestPlanAttributes(tmsTestPlan,
         testPlanRQ.getAttributes());
 
-    return tmsTestPlanMapper.convertToRS(tmsTestPlan);
+    return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
+        TmsTestPlanWithStatistic.of(
+            tmsTestPlan,
+            new TmsTestPlanExecutionStatisticRS(0, 0) //TODO fix that
+        )
+    );
   }
 
   @Override
@@ -76,8 +88,11 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           tmsTestPlanAttributeService.updateTestPlanAttributes(existingTestPlan,
               testPlanRQ.getAttributes());
 
-          return tmsTestPlanMapper.convertToRS(existingTestPlan);
-        }).orElseGet(() -> create(projectId, testPlanRQ));
+          return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
+              tmsTestPlanExecutionService.enrichWithStatistics(existingTestPlan)
+          );
+        })
+        .orElseGet(() -> create(projectId, testPlanRQ));
   }
 
   @Override
@@ -91,7 +106,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           tmsTestPlanAttributeService.patchTestPlanAttributes(existingTestPlan,
               testPlanRQ.getAttributes());
 
-          return tmsTestPlanMapper.convertToRS(existingTestPlan);
+          return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
+              tmsTestPlanExecutionService.enrichWithStatistics(existingTestPlan)
+          );
         }).orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
         );
@@ -125,13 +142,14 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .getContent()
         .stream()
         .map(testPlans::get)
+        .map(tmsTestPlanExecutionService::enrichWithStatistics)
         .filter(Objects::nonNull)
         .toList();
+
     return PagedResourcesAssembler
         .<TmsTestPlanRS>pageConverter()
-        .apply(tmsTestPlanMapper.convertToRS(
-            orderedTestPlans, testPlanIds, pageable, testPlanIds.getTotalElements()
-        ));
+        .apply(tmsTestPlanMapper
+            .convertTmsTestPlanWithStatisticToRS(orderedTestPlans, pageable, testPlanIds.getTotalElements()));
   }
 
   @Override

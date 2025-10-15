@@ -80,7 +80,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(3));
+        .andExpect(jsonPath("$.content.length()").value(6));
   }
 
   @Test
@@ -140,7 +140,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(3));
+        .andExpect(jsonPath("$.content.length()").value(6));
   }
 
   @Test
@@ -451,5 +451,92 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.successCount").isNumber())
         .andExpect(jsonPath("$.failureCount").isNumber())
         .andExpect(jsonPath("$.errors").isArray());
+  }
+
+  @Test
+  void getTestPlanByIdWithExecutionStatisticIntegrationTest() throws Exception {
+    // Given - test plan 100 with execution statistics (2 total, 1 covered)
+
+    // When/Then
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/100")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(100L))
+        .andExpect(jsonPath("$.name").value("Test Plan with Executions"))
+        .andExpect(jsonPath("$.executionStatistic").exists())
+        .andExpect(jsonPath("$.executionStatistic.total").value(2))
+        .andExpect(jsonPath("$.executionStatistic.covered").value(1));
+  }
+
+  @Test
+  void getTestPlanByIdWithoutExecutionStatisticIntegrationTest() throws Exception {
+    // Given - test plan 101 without execution statistics (2 total, 0 covered)
+
+    // When/Then
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/101")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(101L))
+        .andExpect(jsonPath("$.name").value("Test Plan without Executions"))
+        .andExpect(jsonPath("$.executionStatistic").exists())
+        .andExpect(jsonPath("$.executionStatistic.total").value(2))
+        .andExpect(jsonPath("$.executionStatistic.covered").value(0));
+  }
+
+  @Test
+  void getTestPlansByCriteriaWithExecutionStatisticsIntegrationTest() throws Exception {
+    // When/Then - Get test plans that have execution statistics
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.in.id", "100,101,102")
+            .param("offset", "0")
+            .param("limit", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(3))
+        // Test plan 100 - 2 total, 1 covered
+        .andExpect(jsonPath("$.content[?(@.id == 100)].executionStatistic.total").value(2))
+        .andExpect(jsonPath("$.content[?(@.id == 100)].executionStatistic.covered").value(1))
+        // Test plan 101 - 2 total, 0 covered
+        .andExpect(jsonPath("$.content[?(@.id == 101)].executionStatistic.total").value(2))
+        .andExpect(jsonPath("$.content[?(@.id == 101)].executionStatistic.covered").value(0))
+        // Test plan 102 - 3 total, 2 covered (mixed statuses)
+        .andExpect(jsonPath("$.content[?(@.id == 102)].executionStatistic.total").value(3))
+        .andExpect(jsonPath("$.content[?(@.id == 102)].executionStatistic.covered").value(2));
+  }
+
+  @Test
+  void patchTestPlanWithExecutionStatisticIntegrationTest() throws Exception {
+    // Given
+    TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
+    tmsTestPlan.setDescription("Patched description for test plan with executions");
+
+    String jsonContent = objectMapper.writeValueAsString(tmsTestPlan);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/102")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(102L))
+        .andExpect(jsonPath("$.description").value("Patched description for test plan with executions"))
+        .andExpect(jsonPath("$.executionStatistic").exists())
+        .andExpect(jsonPath("$.executionStatistic.total").value(3))
+        .andExpect(jsonPath("$.executionStatistic.covered").value(2));
+  }
+
+  @Test
+  void getTestPlanWithMixedExecutionStatusesIntegrationTest() throws Exception {
+    // Given - test plan 102 has mixed execution statuses (PASSED, FAILED, SKIPPED)
+    // Only PASSED and FAILED should count as "covered"
+
+    // When/Then
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/102")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(102L))
+        .andExpect(jsonPath("$.executionStatistic.total").value(3))
+        .andExpect(jsonPath("$.executionStatistic.covered").value(2)); // Only PASSED and FAILED count
   }
 }

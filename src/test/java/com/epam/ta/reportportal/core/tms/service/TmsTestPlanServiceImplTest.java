@@ -19,15 +19,16 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.dao.tms.filterable.TmsTestPlanFilterableRepository;
-import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
-import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.filterable.TmsTestPlanFilterableRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanWithStatistic;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +61,9 @@ class TmsTestPlanServiceImplTest {
   @Mock
   private TmsTestCaseService tmsTestCaseService;
 
+  @Mock
+  private TmsTestPlanExecutionService tmsTestPlanExecutionService;
+
   @InjectMocks
   private TmsTestPlanServiceImpl sut;
 
@@ -69,18 +73,22 @@ class TmsTestPlanServiceImplTest {
     var testPlanId = 2L;
 
     var testPlan = new TmsTestPlan();
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
     var testPlanRS = new TmsTestPlanRS();
 
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(
         Optional.of(testPlan));
-    when(tmsTestPlanMapper.convertToRS(testPlan)).thenReturn(testPlanRS);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(
+        testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
 
     var result = assertDoesNotThrow(() -> sut.getById(projectId, testPlanId));
 
     assertEquals(testPlanRS, result);
 
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
-    verify(tmsTestPlanMapper).convertToRS(testPlan);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
   }
 
   @Test
@@ -97,6 +105,7 @@ class TmsTestPlanServiceImplTest {
 
     assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
   }
 
   @Test
@@ -107,7 +116,8 @@ class TmsTestPlanServiceImplTest {
     var testPlanRS = new TmsTestPlanRS();
 
     when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(testPlan);
-    when(tmsTestPlanMapper.convertToRS(testPlan)).thenReturn(testPlanRS);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class))).thenReturn(
+        testPlanRS);
 
     var result = sut.create(projectId, testPlanRQ);
 
@@ -116,6 +126,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
         testPlanRQ.getAttributes());
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
   }
 
   @Test
@@ -138,16 +149,21 @@ class TmsTestPlanServiceImplTest {
     var testPlan = new TmsTestPlan();
     testPlan.setId(1L);
 
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
     var testPlanRS = new TmsTestPlanRS();
     testPlanRS.setId(1L);
 
-    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L), pageable, 1);
-    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(List.of(testPlanRS), pageable, 1);
+    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L),
+        pageable, 1);
+    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(
+        List.of(testPlanRS), pageable, 1);
 
     when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable))
         .thenReturn(testPlanIdsPage);
     when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
-    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable, 1L))
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(
+        testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L))
         .thenReturn(testPlanPage);
 
     var result = assertDoesNotThrow(
@@ -162,9 +178,11 @@ class TmsTestPlanServiceImplTest {
     assertEquals(1, result.getPage().getTotalElements());
     assertEquals(1, result.getPage().getTotalPages());
 
-    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
+    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter,
+        pageable);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
-    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable, 1L);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L);
   }
 
   @Test
@@ -176,16 +194,21 @@ class TmsTestPlanServiceImplTest {
     var testPlan = new TmsTestPlan();
     testPlan.setId(1L);
 
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
     var testPlanRS = new TmsTestPlanRS();
     testPlanRS.setId(1L);
 
-    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L), pageable, 1);
-    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(List.of(testPlanRS), pageable, 1);
+    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L),
+        pageable, 1);
+    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(
+        List.of(testPlanRS), pageable, 1);
 
     when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable))
         .thenReturn(testPlanIdsPage);
     when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
-    when(tmsTestPlanMapper.convertToRS(List.of(testPlan), testPlanIdsPage, pageable, 1L))
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(
+        testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L))
         .thenReturn(testPlanPage);
 
     var result = assertDoesNotThrow(
@@ -195,9 +218,11 @@ class TmsTestPlanServiceImplTest {
     assertNotNull(result.getContent());
     assertEquals(1, result.getContent().size());
 
-    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
+    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter,
+        pageable);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
-    verify(tmsTestPlanMapper).convertToRS(List.of(testPlan), testPlanIdsPage, pageable, 1L);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L);
   }
 
   @Test
@@ -206,7 +231,8 @@ class TmsTestPlanServiceImplTest {
     var filter = mock(Filter.class);
     var pageable = PageRequest.of(0, 10);
 
-    org.springframework.data.domain.Page<Long> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+    org.springframework.data.domain.Page<Long> emptyPage = new PageImpl<>(Collections.emptyList(),
+        pageable, 0);
 
     when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable))
         .thenReturn(emptyPage);
@@ -222,9 +248,11 @@ class TmsTestPlanServiceImplTest {
     assertEquals(0, result.getPage().getTotalElements());
     assertEquals(0, result.getPage().getTotalPages());
 
-    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
+    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter,
+        pageable);
     verify(testPlanRepository, never()).findByIdsWithAttributes(any());
-    verify(tmsTestPlanMapper, never()).convertToRS(anyList(), any(), any(), anyLong());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any(TmsTestPlan.class));
+    verify(tmsTestPlanMapper, never()).convertTmsTestPlanWithStatisticToRS(anyList(), any(), anyLong());
   }
 
   @Test
@@ -234,12 +262,15 @@ class TmsTestPlanServiceImplTest {
     var testPlanRQ = new TmsTestPlanRQ();
     var existingTestPlan = new TmsTestPlan();
     var updatedTestPlan = new TmsTestPlan();
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
     var testPlanRS = new TmsTestPlanRS();
 
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(
         Optional.of(existingTestPlan));
     when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(updatedTestPlan);
-    when(tmsTestPlanMapper.convertToRS(existingTestPlan)).thenReturn(testPlanRS);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(existingTestPlan)).thenReturn(
+        testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
 
     var result = assertDoesNotThrow(() -> sut.update(projectId, testPlanId, testPlanRQ));
 
@@ -248,6 +279,8 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).update(existingTestPlan, updatedTestPlan);
     verify(tmsTestPlanAttributeService).updateTestPlanAttributes(existingTestPlan,
         testPlanRQ.getAttributes());
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(existingTestPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
   }
 
   @Test
@@ -261,7 +294,8 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(
         Optional.empty());
     when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(testPlan);
-    when(tmsTestPlanMapper.convertToRS(testPlan)).thenReturn(testPlanRS);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class))).thenReturn(
+        testPlanRS);
 
     var result = assertDoesNotThrow(() -> sut.update(projectId, testPlanId, testPlanRQ));
 
@@ -270,6 +304,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
         testPlanRQ.getAttributes());
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
   }
 
   @Test
@@ -279,12 +314,15 @@ class TmsTestPlanServiceImplTest {
     var testPlanRQ = new TmsTestPlanRQ();
     var existingTestPlan = new TmsTestPlan();
     var patchedTestPlan = new TmsTestPlan();
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
     var testPlanRS = new TmsTestPlanRS();
 
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(
         Optional.of(existingTestPlan));
     when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(patchedTestPlan);
-    when(tmsTestPlanMapper.convertToRS(existingTestPlan)).thenReturn(testPlanRS);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(existingTestPlan)).thenReturn(
+        testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
 
     var result = assertDoesNotThrow(() -> sut.patch(projectId, testPlanId, testPlanRQ));
 
@@ -293,6 +331,8 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).patch(existingTestPlan, patchedTestPlan);
     verify(tmsTestPlanAttributeService).patchTestPlanAttributes(existingTestPlan,
         testPlanRQ.getAttributes());
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(existingTestPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
   }
 
   @Test
@@ -310,6 +350,7 @@ class TmsTestPlanServiceImplTest {
 
     assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
   }
 
   @Test
@@ -427,7 +468,8 @@ class TmsTestPlanServiceImplTest {
         .totalCount(2)
         .successCount(1)
         .failureCount(1)
-        .errors(List.of(new BatchOperationError(999L, "Test case with id 999 not found in test plan")))
+        .errors(
+            List.of(new BatchOperationError(999L, "Test case with id 999 not found in test plan")))
         .build();
 
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
@@ -499,13 +541,15 @@ class TmsTestPlanServiceImplTest {
     var testPlanId = 1L;
     var testCaseId = 2L;
 
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId,
+        testCaseId))
         .thenReturn(1);
 
     var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
 
     assertTrue(result);
-    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId,
+        testCaseId);
   }
 
   @Test
@@ -513,13 +557,15 @@ class TmsTestPlanServiceImplTest {
     var testPlanId = 1L;
     var testCaseId = 2L;
 
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId,
+        testCaseId))
         .thenReturn(0);
 
     var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
 
     assertFalse(result);
-    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId,
+        testCaseId);
   }
 
   @Test
@@ -527,13 +573,15 @@ class TmsTestPlanServiceImplTest {
     var testPlanId = 1L;
     var testCaseId = 2L;
 
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId,
+        testCaseId))
         .thenThrow(new RuntimeException("Database error"));
 
     var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
 
     assertFalse(result);
-    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId,
+        testCaseId);
   }
 
   @Test

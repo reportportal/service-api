@@ -245,4 +245,16 @@ public class TmsTestPlanController {
       @AuthenticationPrincipal ReportPortalUser user) {
     throw new UnsupportedOperationException();
   }
+
+  @PostMapping("/{id}")
+  @Operation(
+      summary = "Duplicate test plan",
+      description = "Duplicates test plan by test plan ID."
+  )
+  @ApiResponse(responseCode = "200", description = "Duplicated test plan")
+  public TmsTestPlanRS duplicateTestPlan(@PathVariable String projectKey,
+      @PathVariable("id") Long testPlanId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    throw new UnsupportedOperationException();
+  }
 }

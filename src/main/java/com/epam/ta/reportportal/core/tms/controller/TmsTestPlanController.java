@@ -3,12 +3,16 @@ package com.epam.ta.reportportal.core.tms.controller;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.util.OffsetRequest;
@@ -20,7 +24,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +33,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -216,5 +218,31 @@ public class TmsTestPlanController {
             .getProjectId(),
         testPlanId,
         removeRequest.getTestCaseIds());
+  }
+
+  @GetMapping("/{id}/test-case")
+  @Operation(
+      summary = "Get test cases added to test plan",
+      description = "Get test cases added to a test plan by its ID."
+  )
+  @ApiResponse(responseCode = "200", description = "Test cases added to test plan")
+  public Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(@PathVariable String projectKey,
+      @PathVariable("id") Long testPlanId,
+      @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    throw new UnsupportedOperationException();
+  }
+
+  @GetMapping("/{id}/folder")
+  @Operation(
+      summary = "Get folders where test cases added to test plan",
+      description = "Gets folders where test cases added to a test plan by test plan ID."
+  )
+  @ApiResponse(responseCode = "200", description = "Test folders from test plan")
+  public Page<TmsTestFolderRS> getTestFoldersFromPlan(@PathVariable String projectKey,
+      @PathVariable("id") Long testPlanId,
+      @PagingOffset(sortable = TmsTestFolder.class) OffsetRequest offsetRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    throw new UnsupportedOperationException();
   }
 }

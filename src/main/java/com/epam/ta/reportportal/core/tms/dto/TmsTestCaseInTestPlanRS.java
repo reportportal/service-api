@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class TmsTestCaseRS {
+public class TmsTestCaseInTestPlanRS {
 
   private Long id;
 
@@ -26,11 +26,13 @@ public class TmsTestCaseRS {
 
   private Long updatedAt;
 
-  private Long lastExecutionAt;
-
   private TmsTestCaseTestFolderRS testFolder;
 
   private TmsManualScenarioRS manualScenario;
 
   private Set<TmsTestCaseAttributeRS> attributes;
+
+  private TmsTestCaseExecutionInTestPlanRS lastExecution;
+
+  private Set<TmsTestCaseExecutionInTestPlanRS> executions;
 }

@@ -176,7 +176,8 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
   void deleteLogTypeReturns400WithNonNumericId() throws Exception {
     mockMvc.perform(delete("/projects/default_personal/log-types/99999nonNumeric")
             .with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().is4xxClientError());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(4001));
   }
 
   @Test

@@ -17,25 +17,46 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
+import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.model.log.LogResource;
+import com.epam.ta.reportportal.service.LogTypeResolver;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@ExtendWith(MockitoExtension.class)
 class LogConverterTest {
+
+  @Mock
+  private LogTypeRepository logTypeRepository;
+
+  //  @InjectMocks
+  private LogConverter logConverter;
+
+  @BeforeEach
+  void setUp() {
+    logConverter = new LogConverter((new LogTypeResolver(logTypeRepository)));
+  }
 
   private static LogFull getLogFull() {
     LogFull logFull = new LogFull();
     logFull.setLogLevel(50000);
     logFull.setLogMessage("message");
+    logFull.setProjectId(1L);
     final TestItem testItem = new TestItem();
     testItem.setItemId(1L);
     logFull.setTestItem(testItem);
@@ -52,15 +73,36 @@ class LogConverterTest {
     return logFull;
   }
 
+  private static LogFull getLogFullWithCustomLogType(Long projectId, int customLogLevel) {
+    LogFull logFull = new LogFull();
+    logFull.setLogLevel(customLogLevel);
+    logFull.setLogMessage("custom log message");
+    logFull.setProjectId(projectId);
+    final TestItem testItem = new TestItem();
+    testItem.setItemId(2L);
+    logFull.setTestItem(testItem);
+    logFull.setLogTime(Instant.now());
+    logFull.setId(3L);
+    logFull.setUuid("custom-uuid");
+    logFull.setLastModified(Instant.now());
+    return logFull;
+  }
+
   @Test
   void toResource() {
-    final LogFull logFull = getLogFull();
-    final LogResource resource = LogConverter.TO_RESOURCE.apply(logFull);
+    // Given
+//    when(logTypeResolver.resolveNameFromLogLevel(anyLong(), anyInt())).thenReturn("FATAL");
 
+    final LogFull logFull = getLogFull();
+
+    // When
+    final LogResource resource = logConverter.toResource(logFull);
+
+    // Then
     assertEquals(resource.getId(), logFull.getId());
     assertEquals(resource.getUuid(), logFull.getUuid());
     assertEquals(resource.getMessage(), logFull.getLogMessage());
-    assertEquals(resource.getLevel(), LogLevel.toLevel(logFull.getLogLevel()).toString());
+    assertEquals("FATAL", resource.getLevel());
     assertEquals(resource.getLogTime().truncatedTo(ChronoUnit.SECONDS),
         Instant.now().truncatedTo(ChronoUnit.SECONDS));
     assertEquals(resource.getItemId(), logFull.getTestItem().getItemId());
@@ -70,5 +112,79 @@ class LogConverterTest {
     assertEquals(binaryContent.getContentType(), logFull.getAttachment().getContentType());
     assertEquals(binaryContent.getBinaryDataId(), String.valueOf(logFull.getAttachment().getId()));
     assertEquals(binaryContent.getThumbnailId(), logFull.getAttachment().getThumbnailId());
+  }
+
+  @Test
+  void toResourceWithCustomLogType() {
+    // Given
+    Long projectId = 1L;
+    int customLogLevel = 8500;
+    String customLogTypeName = "CUSTOM1";
+
+//    when(logTypeResolver.resolveNameFromLogLevel(projectId, customLogLevel))
+//        .thenReturn(customLogTypeName);
+
+    when(logTypeRepository.findNameByProjectIdAndLevel(projectId, customLogLevel))
+        .thenReturn(customLogTypeName);
+
+
+    final LogFull logFull = getLogFullWithCustomLogType(projectId, customLogLevel);
+
+    // When
+    final LogResource resource = logConverter.toResource(logFull);
+
+    // Then
+    assertEquals(resource.getId(), logFull.getId());
+    assertEquals(resource.getUuid(), logFull.getUuid());
+    assertEquals(resource.getMessage(), logFull.getLogMessage());
+    assertEquals("CUSTOM1", resource.getLevel());
+    assertEquals(resource.getItemId(), logFull.getTestItem().getItemId());
+  }
+
+  @Test
+  void toResourceFallbackToEnumWhenProjectIdIsNull() {
+    // Given
+    final LogFull logFull = getLogFull();
+    logFull.setProjectId(null);
+    logFull.setLogLevel(40000);
+
+    // When
+    final LogResource resource = logConverter.toResource(logFull);
+
+    // Then
+    assertEquals("ERROR", resource.getLevel());
+  }
+
+  @Test
+  void toResourceWithStandardLogLevel() {
+    // Given
+//    when(logTypeResolver.resolveNameFromLogLevel(anyLong(), anyInt())).thenReturn("ERROR");
+//    when(logTypeRepository.findNameByProjectIdAndLevel(projectId, customLogLevel))
+//        .thenReturn(customLogTypeName);
+
+    final LogFull logFull = getLogFull();
+    logFull.setLogLevel(40000);
+
+    // When
+    final LogResource resource = logConverter.toResource(logFull);
+
+    // Then
+    assertEquals("ERROR", resource.getLevel());
+  }
+
+  @Test
+  void toResourceHandlesUnknownLevelFallback() {
+    // Given
+    when(logTypeRepository.findNameByProjectIdAndLevel(anyLong(), anyInt()))
+        .thenReturn(null);
+
+    final LogFull logFull = getLogFull();
+    logFull.setLogLevel(99999);
+
+    // When
+    final LogResource resource = logConverter.toResource(logFull);
+
+    // Then
+    assertEquals("UNKNOWN", resource.getLevel());
   }
 }

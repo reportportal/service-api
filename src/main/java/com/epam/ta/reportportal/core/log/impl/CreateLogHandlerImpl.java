@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.log.impl;
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.TestItemService;
@@ -32,10 +34,9 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.service.LogTypeResolver;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -85,15 +86,19 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
   @Qualifier("saveLogsTaskExecutor")
   private TaskExecutor taskExecutor;
 
+  @Autowired
+  private LogTypeResolver logTypeResolver;
+
   @Override
   @Nonnull
   //TODO check saving an attachment of the item of the project A in the project's B directory
   public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file,
       ReportPortalUser.ProjectDetails projectDetails) {
-    validate(request);
-
-    final LogFullBuilder logFullBuilder =
-        new LogFullBuilder().addSaveLogRq(request).addProjectId(projectDetails.getProjectId());
+    final Long projectId = projectDetails.getProjectId();
+    final LogFullBuilder logFullBuilder = new LogFullBuilder()
+        .addSaveLogRq(request)
+        .addProjectId(projectId)
+        .addLevel(logTypeResolver.resolveLogLevelFromName(projectId, request.getLevel()));
 
     final Launch launch = testItemRepository.findByUuid(request.getItemUuid()).map(item -> {
       logFullBuilder.addTestItem(item);

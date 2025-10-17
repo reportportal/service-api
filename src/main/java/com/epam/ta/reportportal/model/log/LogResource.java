@@ -19,9 +19,8 @@ package com.epam.ta.reportportal.model.log;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.Instant;
 import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -37,50 +36,49 @@ import lombok.ToString;
 @ToString
 public class LogResource {
 
-	@JsonInclude(Include.NON_NULL)
+  @JsonInclude(Include.NON_NULL)
   @Getter
   @Setter
   @ToString
-	public static class BinaryContent {
+  public static class BinaryContent {
 
-		@NotNull
-		@JsonProperty(value = "id", required = true)
-		private String binaryDataId;
+    @NotNull
+    @JsonProperty(value = "id", required = true)
+    private String binaryDataId;
 
-		@JsonProperty(value = "thumbnailId", required = true)
-		private String thumbnailId;
+    @JsonProperty(value = "thumbnailId", required = true)
+    private String thumbnailId;
 
-		@JsonProperty(value = "contentType", required = true)
-		private String contentType;
+    @JsonProperty(value = "contentType", required = true)
+    private String contentType;
 
-	}
+  }
 
-	@JsonProperty(value = "id", required = true)
-	private Long id;
+  @JsonProperty(value = "id", required = true)
+  private Long id;
 
-	@JsonProperty(value = "uuid", required = true)
-	private String uuid;
+  @JsonProperty(value = "uuid", required = true)
+  private String uuid;
 
-	@JsonProperty(value = "time")
-	private Instant logTime;
+  @JsonProperty(value = "time")
+  private Instant logTime;
 
-	@JsonProperty(value = "message")
-	private String message;
+  @JsonProperty(value = "message")
+  private String message;
 
-	@JsonProperty(value = "binaryContent")
-	private BinaryContent binaryContent;
+  @JsonProperty(value = "binaryContent")
+  private BinaryContent binaryContent;
 
-	@JsonProperty(value = "thumbnail")
-	private String thumbnail;
+  @JsonProperty(value = "thumbnail")
+  private String thumbnail;
 
-	@JsonProperty(value = "level")
-	@Schema(allowableValues = "error, warn, info, debug, trace, fatal, unknown")
-	private String level;
+  @JsonProperty(value = "level")
+  private String level;
 
-	@JsonProperty(value = "itemId")
-	private Long itemId;
+  @JsonProperty(value = "itemId")
+  private Long itemId;
 
-	@JsonProperty(value = "launchId")
-	private Long launchId;
+  @JsonProperty(value = "launchId")
+  private Long launchId;
 
 }

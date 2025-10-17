@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
-import com.epam.ta.reportportal.reporting.async.message.MessageRetriever;
+import com.epam.ta.reportportal.service.LogTypeResolver;
 import com.epam.ta.reportportal.ws.converter.builders.LogFullBuilder;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -45,6 +45,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,6 +56,7 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
+@RequiredArgsConstructor
 public class LogMessageHandler implements ReportingMessageHandler {
 
   private static final Logger LOGGER = LogManager.getLogger(LogMessageHandler.class);
@@ -65,19 +67,7 @@ public class LogMessageHandler implements ReportingMessageHandler {
   private final AttachmentBinaryDataService attachmentBinaryDataService;
   private final LogService logService;
   private final ObjectMapper objectMapper;
-
-  public LogMessageHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      LogRepository logRepository, TestItemService testItemService,
-      AttachmentBinaryDataService attachmentBinaryDataService, LogService logService,
-      ObjectMapper objectMapper) {
-    this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
-    this.logRepository = logRepository;
-    this.testItemService = testItemService;
-    this.attachmentBinaryDataService = attachmentBinaryDataService;
-    this.logService = logService;
-    this.objectMapper = objectMapper;
-  }
+  private final LogTypeResolver logTypeResolver;
 
   @Override
   public void handleMessage(Message message) {
@@ -127,8 +117,12 @@ public class LogMessageHandler implements ReportingMessageHandler {
 
   private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo,
       Long projectId) {
-    LogFull logFull = new LogFullBuilder().addSaveLogRq(request).addTestItem(item)
-        .addProjectId(projectId).get();
+    LogFull logFull = new LogFullBuilder()
+        .addSaveLogRq(request)
+        .addTestItem(item)
+        .addProjectId(projectId)
+        .addLevel(logTypeResolver.resolveLogLevelFromName(projectId, request.getLevel()))
+        .get();
     Log log = LOG_FULL_TO_LOG.apply(logFull);
     logRepository.save(log);
     logFull.setId(log.getId());
@@ -149,8 +143,12 @@ public class LogMessageHandler implements ReportingMessageHandler {
 
   private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,
       Long projectId) {
-    LogFull logFull = new LogFullBuilder().addSaveLogRq(request).addLaunch(launch)
-        .addProjectId(projectId).get();
+    LogFull logFull = new LogFullBuilder()
+        .addSaveLogRq(request)
+        .addLaunch(launch)
+        .addProjectId(projectId)
+        .addLevel(logTypeResolver.resolveLogLevelFromName(projectId, request.getLevel()))
+        .get();
     Log log = LOG_FULL_TO_LOG.apply(logFull);
     logRepository.save(log);
     logFull.setId(log.getId());

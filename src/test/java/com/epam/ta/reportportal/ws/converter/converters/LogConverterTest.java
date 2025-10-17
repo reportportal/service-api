@@ -44,7 +44,6 @@ class LogConverterTest {
   @Mock
   private LogTypeRepository logTypeRepository;
 
-  //  @InjectMocks
   private LogConverter logConverter;
 
   @BeforeEach
@@ -91,8 +90,6 @@ class LogConverterTest {
   @Test
   void toResource() {
     // Given
-//    when(logTypeResolver.resolveNameFromLogLevel(anyLong(), anyInt())).thenReturn("FATAL");
-
     final LogFull logFull = getLogFull();
 
     // When
@@ -121,12 +118,8 @@ class LogConverterTest {
     int customLogLevel = 8500;
     String customLogTypeName = "CUSTOM1";
 
-//    when(logTypeResolver.resolveNameFromLogLevel(projectId, customLogLevel))
-//        .thenReturn(customLogTypeName);
-
     when(logTypeRepository.findNameByProjectIdAndLevel(projectId, customLogLevel))
         .thenReturn(customLogTypeName);
-
 
     final LogFull logFull = getLogFullWithCustomLogType(projectId, customLogLevel);
 
@@ -158,10 +151,6 @@ class LogConverterTest {
   @Test
   void toResourceWithStandardLogLevel() {
     // Given
-//    when(logTypeResolver.resolveNameFromLogLevel(anyLong(), anyInt())).thenReturn("ERROR");
-//    when(logTypeRepository.findNameByProjectIdAndLevel(projectId, customLogLevel))
-//        .thenReturn(customLogTypeName);
-
     final LogFull logFull = getLogFull();
     logFull.setLogLevel(40000);
 

@@ -44,11 +44,16 @@ class LogFullBuilderTest {
     item.setItemId(1L);
     item.setUniqueId("uuid");
 
-    final LogFull logFull = new LogFullBuilder().addSaveLogRq(createLogRQ).addTestItem(item).get();
+    final LogFull logFull = new LogFullBuilder()
+        .addSaveLogRq(createLogRQ)
+        .addTestItem(item)
+        .addLevel(40000)
+        .get();
 
     assertEquals(message, logFull.getLogMessage());
     assertEquals(40000, (int) logFull.getLogLevel());
-    assertEquals(now.truncatedTo(ChronoUnit.SECONDS), logFull.getLogTime().truncatedTo(ChronoUnit.SECONDS));
+    assertEquals(now.truncatedTo(ChronoUnit.SECONDS),
+        logFull.getLogTime().truncatedTo(ChronoUnit.SECONDS));
     assertThat(logFull.getTestItem()).isEqualToComparingFieldByField(item);
   }
 }

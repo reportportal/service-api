@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -48,8 +49,10 @@ class GetLogHandlerTest {
 
   private final TestItemService testItemService = mock(TestItemService.class);
 
+  private final LogConverter logConverter = mock(LogConverter.class);
+
   private final GetLogHandler getLogHandler = new GetLogHandlerImpl(logRepository, logService,
-      testItemRepository, testItemService);
+      testItemRepository, testItemService, logConverter);
 
   @Test
   void getLogs() {

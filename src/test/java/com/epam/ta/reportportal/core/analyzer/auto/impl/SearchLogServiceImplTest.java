@@ -48,11 +48,14 @@ import com.epam.ta.reportportal.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -82,10 +85,11 @@ class SearchLogServiceImplTest {
 
   private CurrentLaunchCollector currentLaunchCollector = mock(CurrentLaunchCollector.class);
 
+  private LogConverter logConverter = mock(LogConverter.class);
+
   private final SearchLogServiceImpl searchLogService =
       new SearchLogServiceImpl(projectRepository, launchRepository, testItemRepository, logService,
-          analyzerServiceClient, searchCollectorFactory
-      );
+          analyzerServiceClient, searchCollectorFactory, logConverter);
 
   @Test
   void searchTest() {

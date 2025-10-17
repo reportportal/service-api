@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
@@ -38,7 +37,6 @@ public class LogFullBuilder implements Supplier<LogFull> {
   }
 
   public LogFullBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
-    logFull.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
     logFull.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
     logFull.setLogTime(createLogRQ.getLogTime());
     logFull.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
@@ -57,6 +55,11 @@ public class LogFullBuilder implements Supplier<LogFull> {
 
   public LogFullBuilder addProjectId(Long projectId) {
     logFull.setProjectId(projectId);
+    return this;
+  }
+
+  public LogFullBuilder addLevel(Integer level) {
+    logFull.setLogLevel(level);
     return this;
   }
 

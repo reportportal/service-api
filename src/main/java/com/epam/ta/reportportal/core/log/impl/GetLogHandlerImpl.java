@@ -68,9 +68,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -85,6 +85,7 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
+@RequiredArgsConstructor
 public class GetLogHandlerImpl implements GetLogHandler {
 
   public static final String EXCLUDE_PASSED_LOGS = "excludePassedLogs";
@@ -103,14 +104,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
   private final TestItemService testItemService;
 
-  @Autowired
-  public GetLogHandlerImpl(LogRepository logRepository, LogService logService,
-      TestItemRepository testItemRepository, TestItemService testItemService) {
-    this.logRepository = logRepository;
-    this.logService = logService;
-    this.testItemRepository = testItemRepository;
-    this.testItemService = testItemService;
-  }
+  private final LogConverter logConverter;
+
 
   @Override
   public com.epam.ta.reportportal.model.Page<LogResource> getLogs(@Nullable String path,
@@ -120,7 +115,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
         logService.findByFilter(ProjectFilter.of(filterable, membershipDetails.getProjectId()),
             pageable
         );
-    return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logFullPage);
+    return PagedResourcesAssembler.pageConverter(logConverter::toResource).apply(logFullPage);
   }
 
   @Override
@@ -136,7 +131,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
           validate(launch, membershipDetails);
           return logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
                   launch.getId(), item.getItemId(), logLevel.toInt(), LOG_UNDER_ITEM_BATCH_SIZE)
-              .stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
+              .stream().map(logConverter::toResource).collect(Collectors.toList());
         }));
   }
 
@@ -156,7 +151,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
       logFull = findByUuid(logId);
     }
     validate(logFull, membershipDetails);
-    return LogConverter.TO_RESOURCE.apply(logFull);
+    return logConverter.toResource(logFull);
   }
 
   @Override
@@ -199,7 +194,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
     List<Object> resources = Lists.newArrayListWithExpectedSize(content.size());
     content.forEach(nestedItem -> {
       if (LogRepositoryConstants.LOG.equals(nestedItem.getType())) {
-        ofNullable(logMap.get(nestedItem.getId())).map(LogConverter.TO_RESOURCE)
+        ofNullable(logMap.get(nestedItem.getId())).map(logConverter::toResource)
             .ifPresent(resources::add);
       } else if (LogRepositoryConstants.ITEM.equals(nestedItem.getType())) {
         ofNullable(nestedStepMap.get(nestedItem.getId())).map(
@@ -241,7 +236,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
           .collect(toMap(LogFull::getId, l -> l));
       loadedLogs.forEach(resource -> {
         final LogFull model = logMap.get(resource.getId());
-        LogConverter.FILL_WITH_LOG_CONTENT.apply(model, resource);
+        logConverter.fillWithLogContent(model, resource);
       });
     }
     return loadedLogs;

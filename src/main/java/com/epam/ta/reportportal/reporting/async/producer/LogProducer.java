@@ -31,12 +31,12 @@ import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Provider;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,7 +68,6 @@ public class LogProducer implements CreateLogHandler {
   public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, @Nullable MultipartFile file,
       MembershipDetails membershipDetails) {
 
-    validate(request);
     if (!StringUtils.hasText(request.getUuid())) {
       request.setUuid(UUID.randomUUID().toString());
     }

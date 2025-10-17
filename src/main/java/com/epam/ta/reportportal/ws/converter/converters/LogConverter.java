@@ -19,35 +19,35 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import com.epam.ta.reportportal.core.log.impl.PagedLogResource;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
+import com.epam.ta.reportportal.service.LogTypeResolver;
 import com.google.common.base.Preconditions;
-import java.util.function.BiFunction;
 import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * Converts internal DB model to DTO
  *
  * @author Pavel Bortnik
  */
-public final class LogConverter {
+@Component
+@RequiredArgsConstructor
+public class LogConverter {
 
-  private LogConverter() {
-    //static only
-  }
+  private final LogTypeResolver logTypeResolver;
 
-  public static final Function<LogFull, LogResource> TO_RESOURCE = model -> {
+  public LogResource toResource(LogFull model) {
     Preconditions.checkNotNull(model);
     LogResource resource = new LogResource();
     fillWithLogContent(model, resource);
     return resource;
-  };
+  }
 
-  private static void fillWithLogContent(LogFull model, LogResource resource) {
+  public void fillWithLogContent(LogFull model, LogResource resource) {
     resource.setId(model.getId());
     resource.setUuid(model.getUuid());
     resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
@@ -65,21 +65,19 @@ public final class LogConverter {
 
     ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
     ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
-    ofNullable(model.getLogLevel()).ifPresent(
-        level -> resource.setLevel(LogLevel.toLevel(level).toString()));
+    ofNullable(model.getLogLevel())
+        .ifPresent(level -> resource.setLevel(
+            logTypeResolver.resolveNameFromLogLevel(model.getProjectId(), level)));
   }
 
-  public static final BiFunction<LogFull, PagedLogResource, PagedLogResource> FILL_WITH_LOG_CONTENT = (model, pagedLog) -> {
-    fillWithLogContent(model, pagedLog);
-    return pagedLog;
-  };
-
-  public static final Function<LogFull, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
+  public SearchLogRs.LogEntry toLogEntry(LogFull log) {
     SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
     logEntry.setMessage(log.getLogMessage());
-    logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
+    ofNullable(log.getLogLevel()).ifPresent(
+        level -> logEntry.setLevel(
+            logTypeResolver.resolveNameFromLogLevel(log.getProjectId(), level)));
     return logEntry;
-  };
+  }
 
   public static final Function<LogFull, Log> LOG_FULL_TO_LOG = logFull -> {
     Log log = new Log();

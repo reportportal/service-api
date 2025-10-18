@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
 import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseExecution;
 import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
@@ -30,17 +31,34 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
-  public abstract TmsTestCaseRS convert(TmsTestCase tmsTestCase,
-      TmsTestCaseVersion defaultCaseVersion);
+  public abstract TmsTestCaseRS convert(
+      TmsTestCase tmsTestCase,
+      TmsTestCaseVersion defaultCaseVersion
+  );
+
+  @Mapping(target = "manualScenario",
+      expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
+  @Mapping(target = "id", source = "tmsTestCase.id")
+  @Mapping(target = "name", source = "tmsTestCase.name")
+  @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
+  public abstract TmsTestCaseRS convert(
+      TmsTestCase tmsTestCase,
+      TmsTestCaseVersion defaultCaseVersion,
+      TmsTestCaseExecution lastTestCaseExecution
+  );
 
   public Page<TmsTestCaseRS> convert(
       Collection<TmsTestCase> testCases,
       Map<Long, TmsTestCaseVersion> testCaseDefaultVersions,
+      Map<Long, TmsTestCaseExecution> testCaseExecutions,
       Pageable pageable,
       long totalCount) {
     var tmsTestCaseRSList = testCases
         .stream()
-        .map(testCase -> convert(testCase, testCaseDefaultVersions.get(testCase.getId())))
+        .map(testCase -> convert(
+            testCase,
+            testCaseDefaultVersions.get(testCase.getId()),
+            testCaseExecutions.get(testCase.getId())))
         .toList();
     return new PageImpl<>(
         tmsTestCaseRSList, pageable, totalCount

@@ -57,6 +57,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestCaseImporterFactory importerFactory;
   private final TmsTestCaseExporterFactory exporterFactory;
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
+  private final TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
   private TmsTestFolderService tmsTestFolderService;
 
@@ -70,7 +71,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional(readOnly = true)
   public List<TmsTestCaseRS> getTestCaseByProjectId(long projectId) {
     return tmsTestCaseRepository
-        .findByTestFolder_ProjectId(projectId)
+        .findByProjectId(projectId)
         .stream()
         .map(tmsTestCaseMapper::convert)
         .toList();
@@ -85,7 +86,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             .orElseThrow(() -> new ReportPortalException(
                 NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
             ),
-        tmsTestCaseVersionService.getDefaultVersion(testCaseId));
+        tmsTestCaseVersionService.getDefaultVersion(testCaseId),
+        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId));
   }
 
 
@@ -130,7 +132,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               existingTestCase,
               tmsTestCaseRQ.getManualScenario());
 
-          return tmsTestCaseMapper.convert(existingTestCase, defaultVersion);
+          var lastTestCaseExecution = tmsTestCaseExecutionService.getLastTestCaseExecution(
+              existingTestCase.getId()
+          );
+
+          return tmsTestCaseMapper.convert(
+              existingTestCase, defaultVersion, lastTestCaseExecution
+          );
         })
         .orElseGet(() -> create(projectId, tmsTestCaseRQ));
   }
@@ -153,7 +161,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               existingTestCase,
               tmsTestCaseRQ.getManualScenario());
 
-          return tmsTestCaseMapper.convert(existingTestCase, defaultVersion);
+          var lastTestCaseExecution = tmsTestCaseExecutionService.getLastTestCaseExecution(
+              existingTestCase.getId()
+          );
+
+          return tmsTestCaseMapper.convert(
+              existingTestCase, defaultVersion, lastTestCaseExecution
+          );
         })
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
@@ -265,8 +279,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           .filter(Objects::nonNull)
           .toList();
 
+      var lastTestCasesExecutions = tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(
+          testCaseIds.getContent()
+      );
+
       var page = tmsTestCaseMapper.convert(
-          orderedTestTestCases, testCaseDefaultVersions, pageable, testCaseIds.getTotalElements()
+          orderedTestTestCases,
+          testCaseDefaultVersions,
+          lastTestCasesExecutions,
+          pageable,
+          testCaseIds.getTotalElements()
       );
 
       return PagedResourcesAssembler

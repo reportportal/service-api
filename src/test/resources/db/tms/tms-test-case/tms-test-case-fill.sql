@@ -149,6 +149,18 @@ values (36, 'Test Case With Version 36', 'Test case with default version 36', 9,
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (37, 'Test Case With Version 37', 'Test case with default version 37', 10, 'HIGH');
 
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (100, 'Test Case with Last Execution', 'Test case that has execution data', 3, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (101, 'Test Case with Multiple Executions', 'Test case with multiple executions, should return latest', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (102, 'Test Case without Execution', 'Test case with no execution data', 3, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (103, 'Test Case with Single Execution', 'Test case with single execution', 3, 'HIGH');
+
 insert into tms_test_plan_test_case (test_plan_id, test_case_id)
 values (1, 4), (1, 5), (1, 6); -- Test Plan 1 contains test cases 4, 5, 6
 
@@ -356,6 +368,18 @@ values (34, 36, 'Default Version 34', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
 values (35, 37, 'Default Version 36', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (100, 100, 'Default Version 100', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (101, 101, 'Default Version 101', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (102, 102, 'Default Version 102', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (103, 103, 'Default Version 103', true, false);
 
 -- Manual scenarios for each version
 -- TEXT scenarios for most cases
@@ -721,6 +745,39 @@ values (17, 32, 'Execute final processing', 'Final processing should complete');
 insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
 values (18, 32, 'Verify final results', 'Final results should be correct');
 
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
+values (100, '550e8400-e29b-41d4-a716-446655440100', 1, 1, 'Launch for TC Execution Tests', 'Launch for testing last execution functionality', '2023-10-06 10:00:00.000000', '2023-10-06 11:00:00.000000', 100, '2023-10-06 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
+values (101, '550e8400-e29b-41d4-a716-446655440101', 1, 1, 'Launch for Multiple Executions', 'Launch for testing multiple executions', '2023-10-07 10:00:00.000000', '2023-10-07 11:00:00.000000', 101, '2023-10-07 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
+values (102, '550e8400-e29b-41d4-a716-446655440102', 1, 1, 'Launch for Latest Execution', 'Launch for testing latest execution logic', '2023-10-08 10:00:00.000000', '2023-10-08 11:00:00.000000', 102, '2023-10-08 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1000, '550e8400-e29b-41d4-a716-446655441000', 'Test Item for TC 100', 'com.test.TC100', 'TEST', '2023-10-06 10:00:00.000000', 'Test execution for test case 100', '2023-10-06 10:05:00.000000', '1000', 'tc-100-exec-1', null, false, false, true, null, null, 100, 2839437);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1010, '550e8400-e29b-41d4-a716-446655441010', 'Test Item for TC 101 - First', 'com.test.TC101', 'TEST', '2023-10-05 10:00:00.000000', 'First execution for test case 101', '2023-10-05 10:05:00.000000', '1010', 'tc-101-exec-1', null, false, false, true, null, null, 100, 2839438);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1011, '550e8400-e29b-41d4-a716-446655441011', 'Test Item for TC 101 - Latest', 'com.test.TC101', 'TEST', '2023-10-07 14:00:00.000000', 'Latest execution for test case 101', '2023-10-07 14:05:00.000000', '1011', 'tc-101-exec-2', null, false, false, true, null, null, 101, 2839439);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1030, '550e8400-e29b-41d4-a716-446655441030', 'Test Item for TC 103', 'com.test.TC103', 'TEST', '2023-10-08 15:00:00.000000', 'Test execution for test case 103', '2023-10-08 15:05:00.000000', '1030', 'tc-103-exec-1', null, false, false, true, null, null, 102, 2839440);
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (1, 100, 1000, '{"id": 100, "name": "Test Case with Last Execution", "priority": "HIGH"}');
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (2, 101, 1010, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}');
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (3, 101, 1011, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}');
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (4, 103, 1030, '{"id": 103, "name": "Test Case with Single Execution", "priority": "HIGH"}');
+
 -- Set sequences to continue from highest ID
 SELECT setval('tms_test_folder_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));
 SELECT setval('tms_test_case_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case));
@@ -730,3 +787,4 @@ SELECT setval('tms_test_case_version_id_seq', (SELECT COALESCE(MAX(id), 1) FROM 
 SELECT setval('tms_manual_scenario_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario));
 SELECT setval('tms_manual_scenario_preconditions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario_preconditions));
 SELECT setval('tms_step_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_step));
+SELECT setval('tms_test_case_execution_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));

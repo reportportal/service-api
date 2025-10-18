@@ -20,18 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.ta.reportportal.entity.tms.TmsTestCase;
-import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
-import com.epam.ta.reportportal.dao.tms.TmsAttachmentRepository;
-import com.epam.ta.reportportal.dao.tms.TmsManualScenarioAttributeRepository;
-import com.epam.ta.reportportal.dao.tms.TmsManualScenarioRepository;
-import com.epam.ta.reportportal.dao.tms.TmsStepRepository;
-import com.epam.ta.reportportal.dao.tms.TmsStepsManualScenarioRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTestCaseAttributeRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTestCaseVersionRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTestFolderRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTextManualScenarioRepository;
 import com.epam.ta.reportportal.core.tms.dto.DeleteTagsRQ;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsManualScenarioAttachmentRQ;
@@ -49,6 +37,18 @@ import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.ta.reportportal.dao.tms.TmsAttachmentRepository;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioAttributeRepository;
+import com.epam.ta.reportportal.dao.tms.TmsManualScenarioRepository;
+import com.epam.ta.reportportal.dao.tms.TmsStepRepository;
+import com.epam.ta.reportportal.dao.tms.TmsStepsManualScenarioRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseAttributeRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseVersionRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestFolderRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTextManualScenarioRepository;
+import com.epam.ta.reportportal.entity.tms.TmsTestCase;
+import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -2613,7 +2613,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void duplicateTestCaseWithTextManualScenarioAttachments_ShouldDuplicateAttachments() throws Exception {
+  void duplicateTestCaseWithTextManualScenarioAttachments_ShouldDuplicateAttachments()
+      throws Exception {
     // Given test case with attachments created first
     var originalAttachment = uploadTestAttachment("original-attachment.txt", "text/plain");
 
@@ -2673,7 +2674,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var textManualScenarioRS = (TmsTextManualScenarioRS) duplicateResponse.getFirst()
         .getManualScenario();
 
-    var duplicatedAttachmentId = Long.valueOf(textManualScenarioRS.getAttachments().getFirst().getId());
+    var duplicatedAttachmentId = Long.valueOf(
+        textManualScenarioRS.getAttachments().getFirst().getId());
 
     var duplicatedAttachment = tmsAttachmentRepository.findById(duplicatedAttachmentId);
 
@@ -3038,5 +3040,67 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.manualScenario.preconditions.value").value(
             "Preconditions with invalid attachment"));
     // Invalid preconditions attachments should be silently ignored, test case should still be created
+  }
+
+  @Test
+  void getTestCaseByIdWithLastExecutionIntegrationTest() throws Exception {
+    // Given - test case 100 has last execution with start_time = 1696579200000 (timestamp)
+
+    // When/Then
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/100")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(100L))
+        .andExpect(jsonPath("$.name").value("Test Case with Last Execution"))
+        .andExpect(jsonPath("$.lastExecutionAt").value(1696575600000L)); // Latest execution
+  }
+
+  @Test
+  void getTestCasesByCriteriaWithLastExecutionIntegrationTest() throws Exception {
+    // When/Then - Get test cases with last executions
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.in.id", "100,101,102,103")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(4))
+        .andExpect(jsonPath("$.content[?(@.id == 100)].lastExecutionAt").value(1696575600000L))
+        .andExpect(jsonPath("$.content[?(@.id == 101)].lastExecutionAt").value(1696676400000L))
+        .andExpect(jsonPath("$.content[?(@.id == 102)].lastExecutionAt").doesNotExist())
+        .andExpect(jsonPath("$.content[?(@.id == 103)].lastExecutionAt").value(1696766400000L));
+  }
+
+  @Test
+  void getTestCaseByIdWithoutExecutionIntegrationTest() throws Exception {
+    // Given - test case 102 has no executions
+
+    // When/Then
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/102")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(102L))
+        .andExpect(jsonPath("$.name").value("Test Case without Execution"))
+        .andExpect(jsonPath("$.lastExecutionAt").doesNotExist()); // No execution
+  }
+
+  @Test
+  void patchTestCaseWithLastExecutionIntegrationTest() throws Exception {
+    // Given
+    var testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setDescription("Patched description for test case with execution");
+
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/101")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(101L))
+        .andExpect(
+            jsonPath("$.description").value("Patched description for test case with execution"))
+        .andExpect(
+            jsonPath("$.lastExecutionAt").value(1696676400000L)); // Should have the latest execution
   }
 }

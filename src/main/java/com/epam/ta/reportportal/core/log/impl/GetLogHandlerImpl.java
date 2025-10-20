@@ -22,6 +22,7 @@ import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATIO
 import static com.epam.reportportal.rules.exception.ErrorType.LOG_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_LOG_MESSAGE;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_RETRY_PARENT_LAUNCH_ID;
 import static java.util.Optional.ofNullable;
@@ -61,10 +62,12 @@ import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.google.common.collect.Lists;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +76,7 @@ import org.jooq.Operator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -90,6 +94,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
   public static final String EXCLUDE_PASSED_LOGS = "excludePassedLogs";
   public static final String EXCLUDE_EMPTY_STEPS = "excludeEmptySteps";
   public static final String EXCLUDE_LOG_CONTENT = "excludeLogContent";
+  public static final String INCLUDE_SEARCH_FILTER = "includeSearchFilter";
 
   private static final int NESTED_STEP_MAX_PAGE_SIZE = 300;
 
@@ -212,66 +217,126 @@ public class GetLogHandlerImpl implements GetLogHandler {
       ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params,
       Queryable queryable, Pageable pageable) {
 
-    TestItem parentItem = testItemRepository.findById(parentId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
-    Launch launch = testItemService.getEffectiveLaunch(parentItem);
-    validate(launch, projectDetails);
+    validateTestItemAndLaunch(parentId, projectDetails);
 
-    Boolean excludeEmptySteps =
-        ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
-    Boolean excludePassedLogs =
-        ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false);
-    Boolean excludeLogContent =
-        ofNullable(params.get(EXCLUDE_LOG_CONTENT)).map(BooleanUtils::toBoolean).orElse(false);
+    LogLocationParams locationParams = extractLogLocationParams(params);
 
-    List<PagedLogResource> loadedLogs = new LinkedList<>();
-    loadInnerLogs(parentId, loadedLogs, Collections.emptyList(), excludeEmptySteps,
-        excludePassedLogs, queryable, pageable
-    );
+    List<PagedLogResource> loadedLogs = locationParams.includeSearchFilter()
+        ? loadLogsWithSearchFilter(parentId, locationParams, queryable, pageable)
+        : loadLogsErrorsOnly(parentId, locationParams, queryable, pageable);
 
-    if (!excludeLogContent) {
-      Map<Long, LogFull> logMap = logService.findAllById(
-              loadedLogs.stream().map(PagedLogResource::getId).collect(Collectors.toSet())).stream()
-          .collect(toMap(LogFull::getId, l -> l));
-      loadedLogs.forEach(resource -> {
-        final LogFull model = logMap.get(resource.getId());
-        logConverter.fillWithLogContent(model, resource);
-      });
+    if (!locationParams.excludeLogContent() && !loadedLogs.isEmpty()) {
+      enrichLogsWithContent(loadedLogs);
     }
     return loadedLogs;
   }
 
-  private void loadInnerLogs(Long parentId, List<PagedLogResource> results,
-      List<Map.Entry<Long, Integer>> pagesLocation, boolean excludeEmptySteps,
-      boolean excludePassedLogs, Queryable queryable, Pageable pageable) {
+  private List<PagedLogResource> loadLogsErrorsOnly(Long parentId, LogLocationParams params,
+      Queryable queryable, Pageable pageable) {
 
-    TestItem parentItem = testItemRepository.findById(parentId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
+    Predicate<NestedItemPage> inclusionFilter = item ->
+        item.getType().equals(LogRepositoryConstants.ITEM)
+            || item.getLogLevel() >= LogLevel.ERROR_INT;
+
+    return processNestedItemsWithFilter(parentId, params, queryable, pageable, inclusionFilter);
+  }
+
+
+  private List<PagedLogResource> loadLogsWithSearchFilter(Long parentId, LogLocationParams params,
+      Queryable queryable, Pageable pageable) {
+
+    Set<Long> matchingLogIds = collectMatchingLogIdsRecursively(parentId, params, queryable,
+        pageable.getSort());
+
+    Queryable queryableWithoutMessage = removeMessageFilters(queryable);
+
+    Predicate<NestedItemPage> inclusionFilter = item ->
+        item.getType().equals(LogRepositoryConstants.ITEM) || matchingLogIds.contains(item.getId());
+
+    return processNestedItemsWithFilter(parentId, params, queryableWithoutMessage, pageable,
+        inclusionFilter);
+  }
+
+  private List<PagedLogResource> processNestedItemsWithFilter(Long parentId,
+      LogLocationParams params, Queryable queryable, Pageable pageable,
+      Predicate<NestedItemPage> inclusionFilter) {
+
+    List<PagedLogResource> results = new ArrayList<>();
+    processNestedItems(parentId, results, Collections.emptyList(), params.excludeEmptySteps(),
+        params.excludePassedLogs(), queryable, pageable, inclusionFilter);
+    return results;
+  }
+
+  private void processNestedItems(Long parentId, List<PagedLogResource> results,
+      List<Map.Entry<Long, Integer>> pagesLocation, boolean excludeEmptySteps,
+      boolean excludePassedLogs, Queryable queryable, Pageable pageable,
+      Predicate<NestedItemPage> inclusionFilter) {
+
+    final TestItem parentItem = getValidatedTestItem(parentId);
 
     if (isLogsExclusionRequired(parentItem, excludePassedLogs)) {
       return;
     }
 
-    final List<NestedItemPage> nestedItems =
-        logRepository.findNestedItemsWithPage(parentId, excludeEmptySteps,
-            isLogsExclusionRequired(parentItem, excludePassedLogs), queryable, pageable
-        );
-    nestedItems.stream().filter(
-        nestedItem -> nestedItem.getType().equals(LogRepositoryConstants.ITEM)
-            || nestedItem.getLogLevel() >= LogLevel.ERROR_INT).forEach(nestedItem -> {
-      List<Map.Entry<Long, Integer>> copy = new LinkedList<>(pagesLocation);
-      copy.add(new AbstractMap.SimpleEntry<>(nestedItem.getId(), nestedItem.getPageNumber()));
-      if (nestedItem.getType().equals(LogRepositoryConstants.ITEM)) {
-        loadInnerLogs(nestedItem.getId(), results, copy, excludeEmptySteps, excludePassedLogs,
-            queryable, PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort())
-        );
-      } else {
-        PagedLogResource pagedLogResource = new PagedLogResource();
-        pagedLogResource.setId(nestedItem.getId());
-        pagedLogResource.setPagesLocation(copy);
-        results.add(pagedLogResource);
-      }
-    });
+    logRepository.findNestedItemsWithPage(parentId, excludeEmptySteps,
+            isLogsExclusionRequired(parentItem, excludePassedLogs), queryable, pageable)
+        .stream()
+        .filter(inclusionFilter)
+        .forEach(nestedItem -> processNestedItem(nestedItem, results, pagesLocation,
+            excludeEmptySteps, excludePassedLogs, queryable, pageable, inclusionFilter));
+  }
+
+  private void processNestedItem(NestedItemPage nestedItem, List<PagedLogResource> results,
+      List<Map.Entry<Long, Integer>> pagesLocation, boolean excludeEmptySteps,
+      boolean excludePassedLogs, Queryable queryable, Pageable pageable,
+      Predicate<NestedItemPage> inclusionFilter) {
+
+    List<Map.Entry<Long, Integer>> itemLocation = new ArrayList<>(pagesLocation);
+    itemLocation.add(new AbstractMap.SimpleEntry<>(nestedItem.getId(), nestedItem.getPageNumber()));
+
+    if (nestedItem.getType().equals(LogRepositoryConstants.ITEM)) {
+      processNestedItems(nestedItem.getId(), results, itemLocation, excludeEmptySteps,
+          excludePassedLogs, queryable,
+          PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort()), inclusionFilter);
+    } else {
+      PagedLogResource pagedLogResource = new PagedLogResource();
+      pagedLogResource.setId(nestedItem.getId());
+      pagedLogResource.setPagesLocation(itemLocation);
+      results.add(pagedLogResource);
+    }
+  }
+
+  private Set<Long> collectMatchingLogIdsRecursively(Long parentId, LogLocationParams params,
+      Queryable queryable, Sort sort) {
+
+    TestItem parentItem = getValidatedTestItem(parentId);
+
+    if (isLogsExclusionRequired(parentItem, params.excludePassedLogs())) {
+      return Collections.emptySet();
+    }
+
+    Page<NestedItem> items = logRepository.findNestedItems(parentId, params.excludeEmptySteps(),
+        isLogsExclusionRequired(parentItem, params.excludePassedLogs()), queryable,
+        PageRequest.of(0, NESTED_STEP_MAX_PAGE_SIZE, sort));
+
+    return items.getContent().stream()
+        .flatMap(item -> LogRepositoryConstants.ITEM.equals(item.getType())
+            ? collectMatchingLogIdsRecursively(item.getId(), params, queryable, sort).stream()
+            : Stream.of(item.getId()))
+        .collect(Collectors.toSet());
+  }
+
+  private Queryable removeMessageFilters(Queryable queryable) {
+    var filteredConditions = queryable.getFilterConditions().stream()
+        .filter(this::shouldKeepCondition)
+        .toList();
+
+    return new Filter(queryable.getTarget().getClazz(), filteredConditions);
+  }
+
+  private boolean shouldKeepCondition(ConvertibleCondition condition) {
+    return !(condition instanceof FilterCondition filterCondition
+        && CRITERIA_LOG_MESSAGE.equalsIgnoreCase(filterCondition.getSearchCriteria()));
   }
 
   /**
@@ -409,5 +474,42 @@ public class GetLogHandlerImpl implements GetLogHandler {
           .anyMatch(s -> s == parent.getItemResults().getStatus());
     }
     return false;
+  }
+
+  private TestItem getValidatedTestItem(Long parentId) {
+    return testItemRepository.findById(parentId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
+  }
+
+  private void validateTestItemAndLaunch(Long parentId,
+      ReportPortalUser.ProjectDetails projectDetails) {
+    TestItem parentItem = getValidatedTestItem(parentId);
+    Launch launch = testItemService.getEffectiveLaunch(parentItem);
+    validate(launch, projectDetails);
+  }
+
+  private LogLocationParams extractLogLocationParams(Map<String, String> params) {
+    return new LogLocationParams(
+        ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false),
+        ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false),
+        ofNullable(params.get(EXCLUDE_LOG_CONTENT)).map(BooleanUtils::toBoolean).orElse(false),
+        ofNullable(params.get(INCLUDE_SEARCH_FILTER)).map(BooleanUtils::toBoolean).orElse(false)
+    );
+  }
+
+  private void enrichLogsWithContent(List<PagedLogResource> logs) {
+    Map<Long, LogFull> logMap = logService.findAllById(logs.stream()
+            .map(PagedLogResource::getId)
+            .collect(Collectors.toSet()))
+        .stream()
+        .collect(toMap(LogFull::getId, l -> l));
+
+    logs.forEach(resource -> ofNullable(logMap.get(resource.getId()))
+        .ifPresent(model -> logConverter.fillWithLogContent(model, resource)));
+  }
+
+  private record LogLocationParams(boolean excludeEmptySteps, boolean excludePassedLogs,
+                                   boolean excludeLogContent, boolean includeSearchFilter) {
+
   }
 }

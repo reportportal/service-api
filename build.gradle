@@ -77,6 +77,10 @@ dependencies {
         }
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+
+    implementation 'org.opensearch.client:opensearch-java:3.2.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
+
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'

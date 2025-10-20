@@ -3,12 +3,13 @@ package com.epam.ta.reportportal.core.tms.controller;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.tms.dto.DuplicateTmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.entity.tms.TmsTestCase;
@@ -182,7 +183,7 @@ public class TmsTestPlanController {
       tags = {"Batch Operations"}
   )
   @ApiResponse(responseCode = "204", description = "Test cases added to test plan successfully")
-  public BatchOperationResultRS addTestCasesToPlan(@PathVariable String projectKey,
+  public BatchTestCaseOperationResultRS addTestCasesToPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @Valid @RequestBody BatchAddTestCasesToPlanRQ addRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -208,7 +209,7 @@ public class TmsTestPlanController {
       tags = {"Batch Operations"}
   )
   @ApiResponse(responseCode = "204", description = "Test cases removed from test plan successfully")
-  public BatchOperationResultRS removeTestCasesFromPlan(@PathVariable String projectKey,
+  public BatchTestCaseOperationResultRS removeTestCasesFromPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @Valid @RequestBody BatchRemoveTestCasesFromPlanRQ removeRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -246,15 +247,19 @@ public class TmsTestPlanController {
     throw new UnsupportedOperationException();
   }
 
-  @PostMapping("/{id}")
+  @PostMapping("/{id}/duplicate")
   @Operation(
       summary = "Duplicate test plan",
       description = "Duplicates test plan by test plan ID."
   )
   @ApiResponse(responseCode = "200", description = "Duplicated test plan")
-  public TmsTestPlanRS duplicateTestPlan(@PathVariable String projectKey,
+  public DuplicateTmsTestPlanRS duplicateTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    throw new UnsupportedOperationException();
+    return tmsTestPlanService.duplicate(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        testPlanId);
   }
 }

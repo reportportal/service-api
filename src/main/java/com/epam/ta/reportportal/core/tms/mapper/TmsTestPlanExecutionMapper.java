@@ -1,17 +1,18 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
+import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanExecutionStatisticRS;
 import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
-import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatisticRS;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatistic;
 import org.mapstruct.Mapper;
 
 @Mapper(config = CommonMapperConfig.class)
 public interface TmsTestPlanExecutionMapper {
 
   TmsTestPlanExecutionStatisticRS toDto(
-      com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatisticRS executionStatistic);
+      TmsTestPlanExecutionStatistic executionStatistic);
 
-  default TmsTestPlanExecutionStatisticRS createEmptyStatistics() {
-    return TmsTestPlanExecutionStatisticRS.builder()
+  default TmsTestPlanExecutionStatistic createEmptyStatistics() {
+    return TmsTestPlanExecutionStatistic.builder()
         .total(0L)
         .covered(0L)
         .build();

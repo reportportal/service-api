@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanExecutionMapper;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanStatisticsRepository;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
-import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatisticRS;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatistic;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,8 +31,8 @@ class TmsTestPlanExecutionServiceImplTest {
 
   private Long testPlanId;
   private TmsTestPlan testPlan;
-  private TmsTestPlanExecutionStatisticRS statistics;
-  private TmsTestPlanExecutionStatisticRS emptyStatistics;
+  private TmsTestPlanExecutionStatistic statistics;
+  private TmsTestPlanExecutionStatistic emptyStatistics;
 
   @BeforeEach
   void setUp() {
@@ -48,9 +48,9 @@ class TmsTestPlanExecutionServiceImplTest {
     testPlan.setName("Test Plan");
     testPlan.setDescription("Test Plan Description");
 
-    statistics = new TmsTestPlanExecutionStatisticRS(10, 5);
+    statistics = new TmsTestPlanExecutionStatistic(10, 5);
 
-    emptyStatistics = new TmsTestPlanExecutionStatisticRS(0, 0);
+    emptyStatistics = new TmsTestPlanExecutionStatistic(0, 0);
   }
 
   @Test
@@ -58,7 +58,6 @@ class TmsTestPlanExecutionServiceImplTest {
     // Given
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
         .thenReturn(statistics);
-    when(tmsTestPlanExecutionMapper.toDto(statistics)).thenReturn(statistics);
 
     // When
     var result = sut.getStatisticsForTestPlan(testPlanId);
@@ -68,7 +67,6 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(10L, result.getTotal());
     assertEquals(5L, result.getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(statistics);
     verify(tmsTestPlanExecutionMapper, never()).createEmptyStatistics();
   }
 
@@ -88,7 +86,6 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(0L, result.getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
     verify(tmsTestPlanExecutionMapper).createEmptyStatistics();
-    verify(tmsTestPlanExecutionMapper, never()).toDto(any());
   }
 
   @Test
@@ -107,20 +104,18 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(0L, result.getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
     verify(tmsTestPlanExecutionMapper).createEmptyStatistics();
-    verify(tmsTestPlanExecutionMapper, never()).toDto(any());
   }
 
   @Test
   void getStatisticsForTestPlan_WithZeroValues_ShouldReturnZeroStatistics() {
     // Given
-    var zeroStatistics = TmsTestPlanExecutionStatisticRS.builder()
+    var zeroStatistics = TmsTestPlanExecutionStatistic.builder()
         .total(0L)
         .covered(0L)
         .build();
 
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
         .thenReturn(zeroStatistics);
-    when(tmsTestPlanExecutionMapper.toDto(zeroStatistics)).thenReturn(zeroStatistics);
 
     // When
     var result = sut.getStatisticsForTestPlan(testPlanId);
@@ -130,20 +125,17 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(0L, result.getTotal());
     assertEquals(0L, result.getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(zeroStatistics);
   }
 
   @Test
   void getStatisticsForTestPlan_WithFullyCoveredPlan_ShouldReturnCorrectStatistics() {
     // Given
-    var fullyCoveredStatistics = TmsTestPlanExecutionStatisticRS.builder()
+    var fullyCoveredStatistics = TmsTestPlanExecutionStatistic.builder()
         .total(10L)
         .covered(10L)
         .build();
 
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(fullyCoveredStatistics);
-    when(tmsTestPlanExecutionMapper.toDto(fullyCoveredStatistics))
         .thenReturn(fullyCoveredStatistics);
 
     // When
@@ -154,17 +146,15 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(10L, result.getTotal());
     assertEquals(10L, result.getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(fullyCoveredStatistics);
   }
 
   @Test
   void getStatisticsForTestPlan_WithNotCoveredPlan_ShouldReturnCorrectStatistics() {
     // Given
-    var notCoveredStatistics = new TmsTestPlanExecutionStatisticRS(10, 0);
+    var notCoveredStatistics = new TmsTestPlanExecutionStatistic(10, 0);
 
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
         .thenReturn(notCoveredStatistics);
-    when(tmsTestPlanExecutionMapper.toDto(notCoveredStatistics)).thenReturn(notCoveredStatistics);
 
     // When
     var result = sut.getStatisticsForTestPlan(testPlanId);
@@ -174,17 +164,15 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(10L, result.getTotal());
     assertEquals(0L, result.getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(notCoveredStatistics);
   }
 
   @Test
   void getStatisticsForTestPlan_WithLargeNumbers_ShouldReturnCorrectStatistics() {
     // Given
-    var largeStatistics = new TmsTestPlanExecutionStatisticRS(1000, 750);
+    var largeStatistics = new TmsTestPlanExecutionStatistic(1000, 750);
 
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
         .thenReturn(largeStatistics);
-    when(tmsTestPlanExecutionMapper.toDto(largeStatistics)).thenReturn(largeStatistics);
 
     // When
     var result = sut.getStatisticsForTestPlan(testPlanId);
@@ -194,7 +182,6 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(1000L, result.getTotal());
     assertEquals(750L, result.getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(largeStatistics);
   }
 
   @Test
@@ -214,7 +201,6 @@ class TmsTestPlanExecutionServiceImplTest {
     // Given
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
         .thenReturn(statistics);
-    when(tmsTestPlanExecutionMapper.toDto(statistics)).thenReturn(statistics);
 
     // When
     var result = sut.enrichWithStatistics(testPlan);
@@ -230,7 +216,6 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(10L, result.getExecutionStatistic().getTotal());
     assertEquals(5L, result.getExecutionStatistic().getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(statistics);
   }
 
   @Test
@@ -286,14 +271,13 @@ class TmsTestPlanExecutionServiceImplTest {
   @Test
   void enrichWithStatistics_WithZeroStatistics_ShouldReturnEnrichedTestPlan() {
     // Given
-    var zeroStatistics = TmsTestPlanExecutionStatisticRS.builder()
+    var zeroStatistics = TmsTestPlanExecutionStatistic.builder()
         .total(0L)
         .covered(0L)
         .build();
 
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
         .thenReturn(zeroStatistics);
-    when(tmsTestPlanExecutionMapper.toDto(zeroStatistics)).thenReturn(zeroStatistics);
 
     // When
     var result = sut.enrichWithStatistics(testPlan);
@@ -305,7 +289,6 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(0L, result.getExecutionStatistic().getTotal());
     assertEquals(0L, result.getExecutionStatistic().getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(zeroStatistics);
   }
 
   @Test
@@ -316,11 +299,10 @@ class TmsTestPlanExecutionServiceImplTest {
     anotherTestPlan.setId(anotherTestPlanId);
     anotherTestPlan.setName("Another Test Plan");
 
-    var anotherStatistics = new TmsTestPlanExecutionStatisticRS(20, 15);
+    var anotherStatistics = new TmsTestPlanExecutionStatistic(20, 15);
 
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(anotherTestPlanId))
         .thenReturn(anotherStatistics);
-    when(tmsTestPlanExecutionMapper.toDto(anotherStatistics)).thenReturn(anotherStatistics);
 
     // When
     var result = sut.enrichWithStatistics(anotherTestPlan);
@@ -332,6 +314,5 @@ class TmsTestPlanExecutionServiceImplTest {
     assertEquals(20L, result.getExecutionStatistic().getTotal());
     assertEquals(15L, result.getExecutionStatistic().getCovered());
     verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(anotherTestPlanId);
-    verify(tmsTestPlanExecutionMapper).toDto(anotherStatistics);
   }
 }

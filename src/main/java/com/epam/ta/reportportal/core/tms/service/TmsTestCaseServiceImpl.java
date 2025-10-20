@@ -5,24 +5,27 @@ import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
-import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.ta.reportportal.core.tms.mapper.factory.TmsTestCaseImporterFactory;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
+import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.dao.tms.filterable.TmsTestCaseFilterableRepository;
 import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -105,7 +108,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     tmsTestCaseRepository.save(tmsTestCase);
 
     if (CollectionUtils.isNotEmpty(tmsTestCaseRQ.getAttributes())) {
-      tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase, tmsTestCaseRQ.getAttributes());
+      tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase,
+          tmsTestCaseRQ.getAttributes());
     }
 
     var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(tmsTestCase,
@@ -260,7 +264,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, Filter filter, Pageable pageable) {
+  public Page<TmsTestCaseRS> getTestCasesByCriteria(long projectId, Filter filter,
+      Pageable pageable) {
     var testCaseIds = tmsTestCaseFilterableRepository.findIdsByProjectIdAndFilter(
         projectId, filter, pageable
     );
@@ -385,6 +390,53 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         .toList();
   }
 
+  @Override
+  @Transactional
+  public BatchTestCaseOperationResultRS duplicateTestCases(long projectId, List<Long> testCaseIds) {
+    var errors = new ArrayList<BatchTestCaseOperationError>();
+    var successfulIds = new ArrayList<Long>();
+
+    for (var testCaseId : testCaseIds) {
+      try {
+        var originalTestCase = tmsTestCaseRepository
+            .findByProjectIdAndId(projectId, testCaseId)
+            .orElseThrow(() -> new ReportPortalException(
+                NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
+            );
+
+        var originalDefaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
+
+        var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(
+            originalTestCase, originalTestCase.getTestFolder()
+        );
+
+        duplicatedTestCase.setName(generateUniqueTestCaseName(
+            projectId,
+            originalTestCase.getName(),
+            originalTestCase.getTestFolder().getId())
+        );
+
+        duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
+
+        tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase,
+            originalDefaultVersion);
+
+        if (CollectionUtils.isNotEmpty(originalTestCase.getAttributes())) {
+          tmsTestCaseAttributeService.duplicateTestCaseAttributes(originalTestCase,
+              duplicatedTestCase);
+        }
+
+        successfulIds.add(duplicatedTestCase.getId());
+
+      } catch (Exception e) {
+        errors.add(new BatchTestCaseOperationError(testCaseId,
+            "Failed to duplicate test case: " + e.getMessage()));
+      }
+    }
+
+    return tmsTestCaseMapper.toBatchOperationResult(successfulIds, errors);
+  }
+
   private Long getTestFolderId(long projectId, Long testFolderId,
       NewTestFolderRQ testFolderRQ) {
     if (Objects.isNull(testFolderId) && Objects.isNull(testFolderRQ)) {
@@ -416,9 +468,14 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     var targetFolder = tmsTestFolderService.getEntityById(projectId, targetFolderId);
 
-    var duplicatedTestCase = tmsTestCaseRepository.save(
-        tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder)
+    var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder);
+
+    duplicatedTestCase.setName(generateUniqueTestCaseName(
+        projectId, originalTestCase.getName(),
+        originalTestCase.getTestFolder().getId())
     );
+
+    duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
 
     var duplicatedDefaultVersion = tmsTestCaseVersionService.duplicateDefaultVersion(
         duplicatedTestCase, originalDefaultVersion);
@@ -445,4 +502,18 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     }
     return tmsTestCaseRepository.findExistingTestCaseIds(projectId, testCaseIds);
   }
+
+  private String generateUniqueTestCaseName(long projectId, String originalName, Long testFolderId) {
+    var baseName = originalName + "-copy";
+    var uniqueName = baseName;
+    var counter = 1;
+
+    while (tmsTestCaseRepository.existsByNameAndTestFolder(projectId, uniqueName, testFolderId)) {
+      uniqueName = baseName + "-" + counter;
+      counter++;
+    }
+
+    return uniqueName;
+  }
+
 }

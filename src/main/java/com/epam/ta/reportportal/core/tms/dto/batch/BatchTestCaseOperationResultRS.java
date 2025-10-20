@@ -11,9 +11,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BatchOperationResultRS {
-  private int totalCount;
-  private int successCount;
-  private int failureCount;
-  private List<BatchOperationError> errors;
+public class BatchTestCaseOperationResultRS {
+  private Integer totalCount;
+  private Integer successCount;
+  private Integer failureCount;
+  private List<Long> successTestCaseIds;
+  private List<BatchTestCaseOperationError> errors;
 }

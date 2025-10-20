@@ -1,14 +1,17 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
+import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.tms.TmsTestCase;
 import com.epam.ta.reportportal.entity.tms.TmsTestCaseExecution;
 import com.epam.ta.reportportal.entity.tms.TmsTestCaseVersion;
 import com.epam.ta.reportportal.entity.tms.TmsTestFolder;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRQ;
-import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.ta.reportportal.core.tms.mapper.config.CommonMapperConfig;
-import com.epam.ta.reportportal.entity.project.Project;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -123,10 +126,21 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testItems", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "name", source = "originalTestCase.name")
+  @Mapping(target = "name", ignore = true) //unique name will be set later in service
   @Mapping(target = "priority", source = "originalTestCase.priority")
   @Mapping(target = "description", source = "originalTestCase.description")
   @Mapping(target = "testFolder", source = "targetFolder")
   public abstract TmsTestCase duplicateTestCase(TmsTestCase originalTestCase,
       TmsTestFolder targetFolder);
+
+  public BatchTestCaseOperationResultRS toBatchOperationResult(List<Long> successfulIds,
+      List<BatchTestCaseOperationError> errors) {
+    BatchTestCaseOperationResultRS result = new BatchTestCaseOperationResultRS();
+    result.setSuccessCount(successfulIds.size());
+    result.setFailureCount(errors.size());
+    result.setTotalCount(successfulIds.size() + errors.size());
+    result.setErrors(errors);
+    result.setSuccessTestCaseIds(successfulIds);
+    return result;
+  }
 }

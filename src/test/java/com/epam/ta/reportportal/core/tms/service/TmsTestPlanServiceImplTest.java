@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -19,11 +20,13 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.tms.dto.DuplicateTmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.dao.tms.filterable.TmsTestPlanFilterableRepository;
@@ -60,6 +63,9 @@ class TmsTestPlanServiceImplTest {
 
   @Mock
   private TmsTestCaseService tmsTestCaseService;
+
+  @Mock
+  private TmsTestCaseRepository tmsTestCaseRepository;
 
   @Mock
   private TmsTestPlanExecutionService tmsTestPlanExecutionService;
@@ -244,7 +250,7 @@ class TmsTestPlanServiceImplTest {
     assertNotNull(result.getContent());
     assertEquals(0, result.getContent().size());
     assertEquals(10, result.getPage().getSize());
-    assertEquals(1, result.getPage().getNumber()); // PagedResourcesAssembler добавляет +1
+    assertEquals(1, result.getPage().getNumber()); // PagedResourcesAssembler adds +1
     assertEquals(0, result.getPage().getTotalElements());
     assertEquals(0, result.getPage().getTotalPages());
 
@@ -358,7 +364,7 @@ class TmsTestPlanServiceImplTest {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.of(10L, 20L, 30L);
-    var expectedResult = BatchOperationResultRS.builder()
+    var expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(3)
         .successCount(2)
         .failureCount(1)
@@ -391,11 +397,11 @@ class TmsTestPlanServiceImplTest {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.of(10L, 999L); // 999L doesn't exist
-    var expectedResult = BatchOperationResultRS.builder()
+    var expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(2)
         .successCount(1)
         .failureCount(1)
-        .errors(List.of(new BatchOperationError(999L, "Test case with id 999 not found")))
+        .errors(List.of(new BatchTestCaseOperationError(999L, "Test case with id 999 not found")))
         .build();
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
@@ -436,7 +442,7 @@ class TmsTestPlanServiceImplTest {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.of(10L, 20L);
-    var expectedResult = BatchOperationResultRS.builder()
+    var expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(2)
         .successCount(2)
         .failureCount(0)
@@ -464,12 +470,12 @@ class TmsTestPlanServiceImplTest {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.of(10L, 999L); // 999L not in plan
-    var expectedResult = BatchOperationResultRS.builder()
+    var expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(2)
         .successCount(1)
         .failureCount(1)
         .errors(
-            List.of(new BatchOperationError(999L, "Test case with id 999 not found in test plan")))
+            List.of(new BatchTestCaseOperationError(999L, "Test case with id 999 not found in test plan")))
         .build();
 
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
@@ -490,7 +496,7 @@ class TmsTestPlanServiceImplTest {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.<Long>of();
-    var expectedResult = BatchOperationResultRS.builder()
+    var expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(0)
         .successCount(0)
         .failureCount(0)
@@ -516,7 +522,7 @@ class TmsTestPlanServiceImplTest {
     var projectId = 1L;
     var testPlanId = 2L;
     var testCaseIds = List.<Long>of();
-    var expectedResult = BatchOperationResultRS.builder()
+    var expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(0)
         .successCount(0)
         .failureCount(0)
@@ -534,7 +540,7 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).convertToRS(eq(0), eq(0), anyList());
   }
 
-  // Tests for new helper methods
+  // Tests for helper methods
 
   @Test
   void shouldAddTestCaseToTestPlanSuccessfully() {
@@ -624,5 +630,339 @@ class TmsTestPlanServiceImplTest {
 
     assertFalse(result);
     verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
+  }
+
+  // Tests for duplicate method
+
+  @Test
+  void shouldDuplicateTestPlanSuccessfully() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+
+    var originalTestCaseIds = List.of(10L, 20L);
+    var duplicatedTestCaseIds = List.of(30L, 40L);
+
+    var duplicationResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(2)
+        .failureCount(0)
+        .successTestCaseIds(duplicatedTestCaseIds)
+        .errors(List.of())
+        .build();
+
+    var addToPlanResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(2)
+        .failureCount(0)
+        .errors(List.of())
+        .build();
+
+    var combinedResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(2)
+        .failureCount(0)
+        .errors(List.of())
+        .build();
+
+    var expectedResponse = DuplicateTmsTestPlanRS.builder()
+        .id(3L)
+        .duplicationStatistic(combinedResult)
+        .build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(originalTestCaseIds);
+    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+        .thenReturn(duplicationResult);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds))
+        .thenReturn(duplicatedTestCaseIds);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L))
+        .thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(eq(3L), anyLong()))
+        .thenReturn(1);
+    when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(addToPlanResult);
+    when(tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult))
+        .thenReturn(combinedResult);
+    when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult))
+        .thenReturn(expectedResponse);
+
+    var result = sut.duplicate(projectId, testPlanId);
+
+    assertNotNull(result);
+    assertEquals(3L, result.getId());
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan);
+    verify(testPlanRepository).save(duplicatedTestPlan);
+    verify(tmsTestPlanAttributeService).duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
+    verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult);
+  }
+
+  @Test
+  void shouldDuplicateTestPlanWithoutTestCases() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+
+    var emptyResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(0)
+        .successCount(0)
+        .failureCount(0)
+        .errors(List.of())
+        .build();
+
+    var expectedResponse = DuplicateTmsTestPlanRS.builder()
+        .id(3L)
+        .duplicationStatistic(emptyResult)
+        .build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(List.of());
+    when(tmsTestPlanMapper.createFailedBatchResult(eq(Collections.emptyList()), anyString()))
+        .thenReturn(emptyResult);
+    when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult))
+        .thenReturn(expectedResponse);
+
+    var result = sut.duplicate(projectId, testPlanId);
+
+    assertNotNull(result);
+    assertEquals(3L, result.getId());
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan);
+    verify(testPlanRepository).save(duplicatedTestPlan);
+    verify(tmsTestPlanAttributeService).duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
+    verify(tmsTestCaseService, never()).duplicateTestCases(anyLong(), anyList());
+    verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult);
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenDuplicatingNonExistentTestPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class, () ->
+        sut.duplicate(projectId, testPlanId)
+    );
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper, never()).duplicateTestPlan(any());
+    verify(testPlanRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldHandlePartialTestCaseDuplicationFailure() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+
+    var originalTestCaseIds = List.of(10L, 20L, 30L);
+    var duplicatedTestCaseIds = List.of(40L, 50L); // Only 2 out of 3 duplicated
+
+    var duplicationResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(3)
+        .successCount(2)
+        .failureCount(1)
+        .successTestCaseIds(duplicatedTestCaseIds)
+        .errors(List.of(new BatchTestCaseOperationError(30L, "Failed to duplicate")))
+        .build();
+
+    var addToPlanResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(2)
+        .failureCount(0)
+        .errors(List.of())
+        .build();
+
+    var combinedResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(3)
+        .successCount(2)
+        .failureCount(1)
+        .errors(List.of(new BatchTestCaseOperationError(30L, "Failed to duplicate")))
+        .build();
+
+    var expectedResponse = DuplicateTmsTestPlanRS.builder()
+        .id(3L)
+        .duplicationStatistic(combinedResult)
+        .build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(originalTestCaseIds);
+    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+        .thenReturn(duplicationResult);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds))
+        .thenReturn(duplicatedTestCaseIds);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L))
+        .thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(eq(3L), anyLong()))
+        .thenReturn(1);
+    when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(addToPlanResult);
+    when(tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult))
+        .thenReturn(combinedResult);
+    when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult))
+        .thenReturn(expectedResponse);
+
+    var result = sut.duplicate(projectId, testPlanId);
+
+    assertNotNull(result);
+    assertEquals(3L, result.getId());
+    assertNotNull(result.getDuplicationStatistic());
+    assertEquals(1, result.getDuplicationStatistic().getFailureCount());
+    verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
+    verify(tmsTestPlanMapper).combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult);
+  }
+
+  @Test
+  void shouldHandleCompleteTestCaseDuplicationFailure() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+
+    var originalTestCaseIds = List.of(10L, 20L);
+
+    var duplicationResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(0)
+        .failureCount(2)
+        .successTestCaseIds(List.of())
+        .errors(List.of(
+            new BatchTestCaseOperationError(10L, "Failed to duplicate"),
+            new BatchTestCaseOperationError(20L, "Failed to duplicate")
+        ))
+        .build();
+
+    var expectedResponse = DuplicateTmsTestPlanRS.builder()
+        .id(3L)
+        .duplicationStatistic(duplicationResult)
+        .build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(originalTestCaseIds);
+    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+        .thenReturn(duplicationResult);
+    when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, duplicationResult))
+        .thenReturn(expectedResponse);
+
+    var result = sut.duplicate(projectId, testPlanId);
+
+    assertNotNull(result);
+    assertEquals(3L, result.getId());
+    assertNotNull(result.getDuplicationStatistic());
+    assertEquals(2, result.getDuplicationStatistic().getFailureCount());
+    assertEquals(0, result.getDuplicationStatistic().getSuccessCount());
+    verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
+    verify(tmsTestCaseService, never()).getExistingTestCaseIds(anyLong(), anyList());
+    verify(tmsTestPlanMapper, never()).combineDuplicateTestPlanBatchResults(any(), any());
+  }
+
+  @Test
+  void shouldHandleExceptionWhenAddingDuplicatedTestCasesToPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+
+    var originalTestCaseIds = List.of(10L, 20L);
+    var duplicatedTestCaseIds = List.of(30L, 40L);
+
+    var duplicationResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(2)
+        .failureCount(0)
+        .successTestCaseIds(duplicatedTestCaseIds)
+        .errors(List.of())
+        .build();
+
+    var failedAddResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(0)
+        .failureCount(2)
+        .errors(List.of(
+            new BatchTestCaseOperationError(30L, "Failed to add duplicated test case to plan: Database error"),
+            new BatchTestCaseOperationError(40L, "Failed to add duplicated test case to plan: Database error")
+        ))
+        .build();
+
+    var combinedResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(0)
+        .failureCount(2)
+        .errors(failedAddResult.getErrors())
+        .build();
+
+    var expectedResponse = DuplicateTmsTestPlanRS.builder()
+        .id(3L)
+        .duplicationStatistic(combinedResult)
+        .build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
+        .thenReturn(originalTestCaseIds);
+    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+        .thenReturn(duplicationResult);
+    when(testPlanRepository.existsByIdAndProject_Id(3L, projectId))
+        .thenThrow(new RuntimeException("Database error"));
+    when(tmsTestPlanMapper.createFailedBatchResult(duplicatedTestCaseIds,
+        "Failed to add duplicated test case to plan: Database error"))
+        .thenReturn(failedAddResult);
+    when(tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, failedAddResult))
+        .thenReturn(combinedResult);
+    when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult))
+        .thenReturn(expectedResponse);
+
+    var result = sut.duplicate(projectId, testPlanId);
+
+    assertNotNull(result);
+    assertEquals(3L, result.getId());
+    assertNotNull(result.getDuplicationStatistic());
+    assertEquals(2, result.getDuplicationStatistic().getFailureCount());
+    verify(tmsTestPlanMapper).createFailedBatchResult(eq(duplicatedTestCaseIds), anyString());
+    verify(tmsTestPlanMapper).combineDuplicateTestPlanBatchResults(duplicationResult, failedAddResult);
   }
 }

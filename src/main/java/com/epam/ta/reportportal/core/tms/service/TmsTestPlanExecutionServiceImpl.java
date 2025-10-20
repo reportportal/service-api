@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.tms.service;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanExecutionMapper;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanStatisticsRepository;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
-import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatisticRS;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatistic;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlanWithStatistic;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class TmsTestPlanExecutionServiceImpl implements TmsTestPlanExecutionServ
 
   @Override
   @Transactional(readOnly = true)
-  public TmsTestPlanExecutionStatisticRS getStatisticsForTestPlan(Long testPlanId) {
+  public TmsTestPlanExecutionStatistic getStatisticsForTestPlan(Long testPlanId) {
     log.debug("Loading execution statistics for test plan: {}", testPlanId);
 
     try {
@@ -32,12 +32,10 @@ public class TmsTestPlanExecutionServiceImpl implements TmsTestPlanExecutionServ
         return tmsTestPlanExecutionMapper.createEmptyStatistics();
       }
 
-      var result = tmsTestPlanExecutionMapper.toDto(statistics);
-
       log.debug("Loaded statistics for test plan {}: total={}, covered={}",
-          testPlanId, result.getTotal(), result.getCovered());
+          testPlanId, statistics.getTotal(), statistics.getCovered());
 
-      return result;
+      return statistics;
     } catch (Exception e) {
       log.error("Failed to load statistics for test plan {}", testPlanId, e);
       return tmsTestPlanExecutionMapper.createEmptyStatistics();

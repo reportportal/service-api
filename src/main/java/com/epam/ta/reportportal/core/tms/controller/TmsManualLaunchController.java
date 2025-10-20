@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -121,7 +120,7 @@ public class TmsManualLaunchController {
   // Test Case management in Launch
   @PostMapping("/launch/{launchId}/test-case")
   @Operation(summary = "Add single test case to Manual Launch")
-  public BatchOperationResultRS addTestCaseToLaunch(
+  public BatchTestCaseOperationResultRS addTestCaseToLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
@@ -135,7 +134,7 @@ public class TmsManualLaunchController {
 
   @PostMapping("/launch/{launchId}/test-case/batch")
   @Operation(summary = "Add multiple test cases to Manual Launch")
-  public BatchOperationResultRS addTestCasesToLaunch(
+  public BatchTestCaseOperationResultRS addTestCasesToLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)

@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.tms.mapper;
 
+import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlanAttribute;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanAttributeRS;
@@ -25,4 +26,13 @@ public abstract class TmsTestPlanAttributeMapper {
   @Mapping(target = "value", source = "tmsTestPlanAttribute.value")
   public abstract TmsTestPlanAttributeRS convertTmsPlanAttributeRS(
       TmsTestPlanAttribute tmsTestPlanAttribute);
+
+  @Mapping(target = "id.testPlanId", ignore = true)
+  @Mapping(target = "id.attributeId", source = "originalAttribute.id.attributeId")
+  @Mapping(target = "attribute", source = "originalAttribute.attribute")
+  @Mapping(target = "value", source = "originalAttribute.value")
+  @Mapping(target = "testPlan", source = "newTestPlan")
+  public abstract TmsTestPlanAttribute duplicateTestPlanAttribute(
+      TmsTestPlanAttribute originalAttribute, 
+      TmsTestPlan newTestPlan);
 }

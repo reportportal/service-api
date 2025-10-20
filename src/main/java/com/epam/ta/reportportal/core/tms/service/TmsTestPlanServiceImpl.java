@@ -4,16 +4,18 @@ import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.tms.dto.DuplicateTmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationError;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.ta.reportportal.core.tms.mapper.TmsTestPlanMapper;
+import com.epam.ta.reportportal.dao.tms.TmsTestCaseRepository;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanRepository;
 import com.epam.ta.reportportal.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.ta.reportportal.dao.tms.filterable.TmsTestPlanFilterableRepository;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlan;
-import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatisticRS;
+import com.epam.ta.reportportal.entity.tms.TmsTestPlanExecutionStatistic;
 import com.epam.ta.reportportal.entity.tms.TmsTestPlanWithStatistic;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -46,6 +48,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   private final TmsTestPlanAttributeService tmsTestPlanAttributeService;
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
   private final TmsTestCaseService tmsTestCaseService;
+  private final TmsTestCaseRepository tmsTestCaseRepository;
   private final TmsTestPlanExecutionService tmsTestPlanExecutionService;
 
   @Override
@@ -72,7 +75,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
         TmsTestPlanWithStatistic.of(
             tmsTestPlan,
-            new TmsTestPlanExecutionStatisticRS(0, 0) //TODO fix that
+            new TmsTestPlanExecutionStatistic(0, 0) //TODO fix that
         )
     );
   }
@@ -149,12 +152,13 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     return PagedResourcesAssembler
         .<TmsTestPlanRS>pageConverter()
         .apply(tmsTestPlanMapper
-            .convertTmsTestPlanWithStatisticToRS(orderedTestPlans, pageable, testPlanIds.getTotalElements()));
+            .convertTmsTestPlanWithStatisticToRS(orderedTestPlans, pageable,
+                testPlanIds.getTotalElements()));
   }
 
   @Override
   @Transactional
-  public BatchOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
+  public BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
       @NotEmpty List<Long> testCaseIds) {
     if (!testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)) {
       throw new ReportPortalException(
@@ -162,7 +166,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       );
     }
 
-    var errors = new ArrayList<BatchOperationError>();
+    var errors = new ArrayList<BatchTestCaseOperationError>();
     var successCount = 0;
     var totalCount = testCaseIds.size();
 
@@ -180,14 +184,14 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       try {
         // Check if a test case exists
         if (!existingTestCaseIds.contains(testCaseId)) {
-          errors.add(new BatchOperationError(testCaseId,
+          errors.add(new BatchTestCaseOperationError(testCaseId,
               String.format("Test case with id %s not found", testCaseId)));
           continue;
         }
 
         // Check if already added to the plan
         if (testCaseIdsAreInTestPlan.contains(testCaseId)) {
-          errors.add(new BatchOperationError(
+          errors.add(new BatchTestCaseOperationError(
               testCaseId,
               String.format("Test case with id %s already exists in test plan", testCaseId)
           ));
@@ -199,10 +203,10 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           successCount++;
           testCaseIdsAreInTestPlan.add(testCaseId);
         } else {
-          errors.add(new BatchOperationError(testCaseId, "Failed to add test case"));
+          errors.add(new BatchTestCaseOperationError(testCaseId, "Failed to add test case"));
         }
       } catch (Exception e) {
-        errors.add(new BatchOperationError(testCaseId, e.getMessage()));
+        errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
       }
     }
 
@@ -211,9 +215,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public BatchOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
+  public BatchTestCaseOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
       List<Long> testCaseIds) {
-    var errors = new ArrayList<BatchOperationError>();
+    var errors = new ArrayList<BatchTestCaseOperationError>();
     var successCount = 0;
     var totalCount = testCaseIds.size();
 
@@ -226,7 +230,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       try {
         // Check if a test case is in the plan
         if (!testCaseIdsInTestPlan.contains(testCaseId)) {
-          errors.add(new BatchOperationError(testCaseId,
+          errors.add(new BatchTestCaseOperationError(testCaseId,
               String.format("Test case with id %s not found in test plan", testCaseId)));
           continue;
         }
@@ -236,12 +240,12 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           successCount++;
           testCaseIdsInTestPlan.remove(testCaseId);
         } else {
-          errors.add(new BatchOperationError(
+          errors.add(new BatchTestCaseOperationError(
               testCaseId, "Failed to remove test case")
           );
         }
       } catch (Exception e) {
-        errors.add(new BatchOperationError(testCaseId, e.getMessage()));
+        errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
       }
     }
 
@@ -258,6 +262,64 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  @Override
+  @Transactional
+  public DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId) {
+    // Get original test plan
+    var originalTestPlan = testPlanRepository
+        .findByIdAndProjectId(testPlanId, projectId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
+        );
+
+    // Duplicate test plan entity
+    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan);
+
+    duplicatedTestPlan = testPlanRepository.save(duplicatedTestPlan);
+
+    // Duplicate test plan attributes
+    tmsTestPlanAttributeService.duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
+
+    // Get test case IDs from the original plan
+    var originalTestCaseIds = tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(
+        originalTestPlan.getId());
+
+    // Process test case duplication and addition to plan
+    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(projectId, duplicatedTestPlan.getId(),
+        originalTestCaseIds);
+
+    return tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, duplicateTestCasesStatistic);
+  }
+
+  private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(long projectId, Long newTestPlanId,
+      List<Long> originalTestCaseIds) {
+    if (originalTestCaseIds.isEmpty()) {
+      return tmsTestPlanMapper.createFailedBatchResult(Collections.emptyList(),
+          "No test cases to duplicate");
+    }
+
+    // Step 1: Duplicate test cases in batch
+    var duplicationResult = tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds);
+
+    // Step 2: Add successfully duplicated test cases to the new plan
+    if (!duplicationResult.getSuccessTestCaseIds().isEmpty()) {
+      try {
+        var addToPlanResult = addTestCasesToPlan(projectId, newTestPlanId,
+            duplicationResult.getSuccessTestCaseIds());
+        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult);
+      } catch (Exception e) {
+        // If adding to plan fails completely, mark all duplicated test cases as failed
+        var failedAddResult = tmsTestPlanMapper.createFailedBatchResult(
+            duplicationResult.getSuccessTestCaseIds(),
+            "Failed to add duplicated test case to plan: " + e.getMessage()
+        );
+        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, failedAddResult);
+      }
+    }
+
+    return duplicationResult;
   }
 
   @Override

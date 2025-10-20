@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BatchOperationError {
-  private Long testCaseId;
+public class BatchTestCaseOperationError {
+  private Long testCaseIds;
   private String errorMessage;
 }

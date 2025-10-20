@@ -17,10 +17,11 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.tms.controller.TmsTestPlanController;
+import com.epam.ta.reportportal.core.tms.dto.DuplicateTmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.ta.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
-import com.epam.ta.reportportal.core.tms.dto.batch.BatchOperationResultRS;
+import com.epam.ta.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.ta.reportportal.core.tms.dto.batch.BatchRemoveTestCasesFromPlanRQ;
 import com.epam.ta.reportportal.core.tms.service.TmsTestPlanService;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
@@ -371,7 +372,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(3)
         .successCount(3)
         .failureCount(0)
@@ -407,7 +408,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(1)
         .successCount(1)
         .failureCount(0)
@@ -460,7 +461,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(3)
         .successCount(2)
         .failureCount(1)
@@ -495,7 +496,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(3)
         .successCount(3)
         .failureCount(0)
@@ -531,7 +532,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(1)
         .successCount(1)
         .failureCount(0)
@@ -584,7 +585,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(5)
         .successCount(5)
         .failureCount(0)
@@ -619,7 +620,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(3)
         .successCount(2)
         .failureCount(1)
@@ -654,7 +655,7 @@ public class TmsTestPlanControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    BatchOperationResultRS expectedResult = BatchOperationResultRS.builder()
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(10)
         .successCount(10)
         .failureCount(0)
@@ -678,5 +679,53 @@ public class TmsTestPlanControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+  }
+
+  @Test
+  void duplicateTestPlanTest() throws Exception {
+    // Given
+    Long testPlanId = 2L;
+    Long duplicatedTestPlanId = 3L;
+
+    DuplicateTmsTestPlanRS expectedResult = DuplicateTmsTestPlanRS.builder()
+        .id(duplicatedTestPlanId)
+        .build();
+
+    given(tmsTestPlanService.duplicate(projectId, testPlanId))
+        .willReturn(expectedResult);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(duplicatedTestPlanId));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).duplicate(projectId, testPlanId);
+  }
+
+  @Test
+  void duplicateTestPlanWithDifferentProjectTest() throws Exception {
+    // Given
+    Long testPlanId = 5L;
+    Long duplicatedTestPlanId = 6L;
+
+    DuplicateTmsTestPlanRS expectedResult = DuplicateTmsTestPlanRS.builder()
+        .id(duplicatedTestPlanId)
+        .build();
+
+    given(tmsTestPlanService.duplicate(projectId, testPlanId))
+        .willReturn(expectedResult);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(duplicatedTestPlanId));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestPlanService).duplicate(projectId, testPlanId);
   }
 }

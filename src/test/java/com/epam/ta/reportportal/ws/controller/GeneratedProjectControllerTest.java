@@ -156,10 +156,10 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Test
   @Sql("/db/log-type/log-type-fill.sql")
-  void deleteLogTypeAdminCanDeleteFromAnyProject() throws Exception {
+  void deleteLogTypeAdminCannotDeleteFromAnyProject() throws Exception {
     mockMvc.perform(delete("/projects/default_personal/log-types/1001")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -169,6 +169,15 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value(
             "'Log type' not found. Did you use correct ID?"));
+  }
+
+
+  @Test
+  void deleteLogTypeReturns400WithNonNumericId() throws Exception {
+    mockMvc.perform(delete("/projects/default_personal/log-types/99999nonNumeric")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(4001));
   }
 
   @Test

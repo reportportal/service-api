@@ -29,23 +29,17 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator for log type operations. Encapsulates common validation logic shared between create and
- * update handlers.
+ * Validates log type operations (create / update).
  */
 @Component
 @RequiredArgsConstructor
 public class LogTypeValidator {
 
   private static final int MAX_FILTERABLE_LOG_TYPES = 6;
-
   private final LogTypeRepository logTypeRepository;
 
   /**
-   * Validates that the name and level combination is unique within the project.
-   *
-   * @param projectId The project ID
-   * @param name      The name to validate
-   * @param level     The level to validate
+   * Checks that name–level pair is unique within a project.
    */
   public void validateUniqueness(Long projectId, String name, Integer level) {
     expect(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCase(projectId, name, level),
@@ -54,11 +48,7 @@ public class LogTypeValidator {
   }
 
   /**
-   * Validates that creating or enabling filterable for a log type doesn't exceed the maximum
-   * limit.
-   *
-   * @param projectId    The project ID
-   * @param isFilterable Whether the log type should be filterable
+   * Ensures filterable count does not exceed {@value #MAX_FILTERABLE_LOG_TYPES}.
    */
   public void validateFilterableLimit(Long projectId, Boolean isFilterable) {
     if (Boolean.TRUE.equals(isFilterable)) {
@@ -70,6 +60,9 @@ public class LogTypeValidator {
     }
   }
 
+  /**
+   * Verifies that given log type belongs to the specified project.
+   */
   public void validateLogTypeBelongsToProject(ProjectLogType logType, Long projectId) {
     expect(logType.getProjectId(), equalTo(projectId))
         .verify(ACCESS_DENIED, formattedSupplier(

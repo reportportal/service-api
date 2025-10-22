@@ -39,6 +39,12 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
     this.logType = new ProjectLogType();
   }
 
+  /**
+   * Creates a new {@code LogTypeBuilder} for an existing {@link ProjectLogType} instance. This
+   * allows updating or augmenting an already populated log type.
+   *
+   * @param logType the log type instance to wrap
+   */
   public LogTypeBuilder(ProjectLogType logType) {
     this.logType = logType;
   }

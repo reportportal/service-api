@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.logtype.UpdateLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.converter.builders.LogTypeBuilder;
@@ -38,8 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
-
-  private static final String UNKNOWN_LOG_TYPE_NAME = "unknown";
 
   private final ProjectRepository projectRepository;
   private final LogTypeRepository logTypeRepository;
@@ -131,7 +130,7 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
   }
 
   private void validateUnknownLogType(ProjectLogType existingLogType) {
-    if (UNKNOWN_LOG_TYPE_NAME.equalsIgnoreCase(existingLogType.getName())) {
+    if (LogLevel.UNKNOWN.toString().equalsIgnoreCase(existingLogType.getName())) {
       throw new ReportPortalException(
           ErrorType.ACCESS_DENIED,
           "The 'unknown' log type cannot be set as filterable"

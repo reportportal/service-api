@@ -8,7 +8,8 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import com.epam.reportportal.api.ProjectsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
 import com.epam.reportportal.api.model.GetLogTypes200Response;
-import com.epam.reportportal.api.model.LogType;
+import com.epam.reportportal.api.model.LogTypeRequest;
+import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
@@ -19,6 +20,7 @@ import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import com.epam.ta.reportportal.core.logtype.CreateLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.DeleteLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.GetLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.UpdateLogTypeHandler;
 import lombok.RequiredArgsConstructor;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,7 @@ public class GeneratedProjectController implements ProjectsApi {
   private final PluginManager pluginManager;
   private final GetLogTypeHandler getLogTypeHandler;
   private final CreateLogTypeHandler createLogTypeHandler;
+  private final UpdateLogTypeHandler updateLogTypeHandler;
   private final DeleteLogTypeHandler deleteLogTypeHandler;
 
   @Override
@@ -92,15 +95,23 @@ public class GeneratedProjectController implements ProjectsApi {
 
   @Override
   @PreAuthorize(PROJECT_MANAGER)
-  public ResponseEntity<LogType> createLogType(String projectName, LogType logType) {
+  public ResponseEntity<LogTypeResponse> createLogType(String projectName, LogTypeRequest logType) {
     return new ResponseEntity<>(createLogTypeHandler.createLogType(projectName, logType),
         HttpStatus.CREATED);
   }
 
   @Override
   @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<SuccessfulUpdate> updateLogTypeById(String projectName, Long logTypeId,
+      LogTypeRequest logType) {
+    return ResponseEntity.ok(
+        updateLogTypeHandler.updateLogType(normalizeId(projectName), logTypeId, logType));
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
   public ResponseEntity<Void> deleteLogTypeById(String projectName, Long logTypeId) {
-    deleteLogTypeHandler.deleteLogType(normalizeId(projectName), logTypeId, getPrincipal());
+    deleteLogTypeHandler.deleteLogType(normalizeId(projectName), logTypeId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
@@ -110,12 +121,5 @@ public class GeneratedProjectController implements ProjectsApi {
             ErrorType.PAID_PLUGIN_REQUIRED,
             "Group", "Group management is not available"
         ));
-  }
-
-  private ReportPortalUser getPrincipal() {
-    return (ReportPortalUser) SecurityContextHolder
-        .getContext()
-        .getAuthentication()
-        .getPrincipal();
   }
 }

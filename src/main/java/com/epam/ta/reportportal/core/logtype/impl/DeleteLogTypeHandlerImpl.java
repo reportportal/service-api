@@ -17,15 +17,13 @@
 package com.epam.ta.reportportal.core.logtype.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.logtype.DeleteLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
@@ -44,38 +42,34 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
 
   private final ProjectRepository projectRepository;
   private final LogTypeRepository logTypeRepository;
+  private final LogTypeValidator logTypeValidator;
 
   /**
    * Deletes a log type by ID from the specified project.
    *
    * @param projectName The name of the project.
    * @param logTypeId   The ID of the log type to delete.
-   * @param user        The user performing the deletion.
-   * @throws ReportPortalException if the project or log type is not found, or if the log type is a system log type.
+   * @throws ReportPortalException if the project or log type is not found, or if the log type is a
+   *                               system log type.
    */
   @Override
   @Transactional
-  public void deleteLogType(String projectName, Long logTypeId, ReportPortalUser user) {
+  public void deleteLogType(String projectName, Long logTypeId) {
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
     ProjectLogType logType = logTypeRepository.findById(logTypeId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Log type"));
 
-    validate(logType, project, user);
+    validate(logType, project);
 
     logTypeRepository.delete(logType);
   }
 
-  private void validate(ProjectLogType logType, Project project, ReportPortalUser user) {
-    validateLogTypeBelongsToProject(logType, project.getId());
-    validateNotSystemLogType(logType);
-  }
+  private void validate(ProjectLogType logType, Project project) {
+    logTypeValidator.validateLogTypeBelongsToProject(logType, project.getId());
 
-  private void validateLogTypeBelongsToProject(ProjectLogType logType, Long projectId) {
-    expect(logType.getProjectId(), equalTo(projectId))
-        .verify(ACCESS_DENIED, formattedSupplier(
-            "Log type '{}' does not belong to the specified project", logType.getId()));
+    validateNotSystemLogType(logType);
   }
 
   private void validateNotSystemLogType(ProjectLogType logType) {

@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.logtype;
 
-import com.epam.reportportal.api.model.LogType;
+import com.epam.reportportal.api.model.LogTypeRequest;
+import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 
 /**
@@ -16,5 +17,5 @@ public interface CreateLogTypeHandler {
    * @return The newly created log type as a DTO.
    * @throws ReportPortalException if the project is not found or validation fails.
    */
-  LogType createLogType(String projectName, LogType logType);
+  LogTypeResponse createLogType(String projectName, LogTypeRequest logType);
 }

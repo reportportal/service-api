@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.GetLogTypes200Response;
-import com.epam.reportportal.api.model.LogType;
+import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
@@ -62,7 +62,7 @@ class GetLogTypeHandlerImplTest {
     GetLogTypes200Response response = handler.getLogTypes(projectName);
 
     // Then
-    List<LogType> items = response.getItems();
+    List<LogTypeResponse> items = response.getItems();
     assertEquals(2, items.size());
     assertEquals("INFO", items.get(0).getName());
     assertEquals(20000, items.get(0).getLevel());

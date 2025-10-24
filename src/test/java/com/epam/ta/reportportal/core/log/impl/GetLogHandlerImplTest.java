@@ -14,6 +14,7 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.LogFilterPreparator;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
@@ -26,6 +27,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.service.LogTypeResolver;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import java.util.List;
 import java.util.Optional;
@@ -50,9 +52,11 @@ class GetLogHandlerTest {
   private final TestItemService testItemService = mock(TestItemService.class);
 
   private final LogConverter logConverter = mock(LogConverter.class);
+  private final LogFilterPreparator logFilterPreparator = mock(LogFilterPreparator.class);
+  private final LogTypeResolver logTypeResolver = mock(LogTypeResolver.class);
 
   private final GetLogHandler getLogHandler = new GetLogHandlerImpl(logRepository, logService,
-      testItemRepository, testItemService, logConverter);
+      testItemRepository, testItemService, logConverter, logFilterPreparator, logTypeResolver);
 
   @Test
   void getLogs() {
@@ -83,6 +87,8 @@ class GetLogHandlerTest {
 
     when(testItemRepository.findByPath(correctPath)).thenReturn(Optional.of(testItem));
     when(testItemService.getEffectiveLaunch(testItem)).thenReturn(launch);
+    when(logFilterPreparator.prepare(any(Filter.class), any(Long.class))).thenAnswer(
+        invocation -> invocation.getArgument(0));
 
     ArgumentCaptor<Queryable> queryableArgumentCaptor = ArgumentCaptor.forClass(Queryable.class);
     when(

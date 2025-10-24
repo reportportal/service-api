@@ -48,7 +48,7 @@ class LogConverterTest {
 
   @BeforeEach
   void setUp() {
-    logConverter = new LogConverter((new LogTypeResolver(logTypeRepository)));
+    logConverter = new LogConverter(new LogTypeResolver(logTypeRepository));
   }
 
   private static LogFull getLogFull() {
@@ -164,8 +164,7 @@ class LogConverterTest {
   @Test
   void toResourceHandlesUnknownLevelFallback() {
     // Given
-    when(logTypeRepository.findNameByProjectIdAndLevel(anyLong(), anyInt()))
-        .thenReturn(null);
+    when(logTypeRepository.findNameByProjectIdAndLevel(anyLong(), anyInt())).thenReturn(null);
 
     final LogFull logFull = getLogFull();
     logFull.setLogLevel(99999);

@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
+import com.epam.ta.reportportal.commons.querygen.LogFilterPreparator;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.TestItemService;
@@ -58,6 +59,7 @@ import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.model.log.GetLogsUnderRq;
 import com.epam.ta.reportportal.model.log.LogResource;
+import com.epam.ta.reportportal.service.LogTypeResolver;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
@@ -68,6 +70,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,6 +78,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -111,39 +115,50 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
   private final LogConverter logConverter;
 
+  private final LogFilterPreparator logFilterPreparator;
+
+  private final LogTypeResolver logTypeResolver;
+
 
   @Override
   public com.epam.ta.reportportal.model.Page<LogResource> getLogs(@Nullable String path,
       MembershipDetails membershipDetails, Filter filterable, Pageable pageable) {
     ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
+    Filter resolvedFilter = logFilterPreparator.prepare(filterable, projectDetails.getProjectId());
     Page<LogFull> logFullPage =
-        logService.findByFilter(ProjectFilter.of(filterable, membershipDetails.getProjectId()),
+        logService.findByFilter(ProjectFilter.of(resolvedFilter, membershipDetails.getProjectId()),
             pageable
         );
-    return PagedResourcesAssembler.pageConverter(logConverter::toResource).apply(logFullPage);
+    List<LogResource> resources = logConverter.toResources(logFullPage.getContent(),
+        projectDetails.getProjectId());
+    return PagedResourcesAssembler.<LogResource>pageConverter().apply(
+        new PageImpl<>(resources, logFullPage.getPageable(), logFullPage.getTotalElements())
+    );
   }
 
   @Override
   public Map<Long, List<LogResource>> getLogs(GetLogsUnderRq logsUnderRq,
       MembershipDetails membershipDetails) {
 
-    final LogLevel logLevel = LogLevel.toLevel(logsUnderRq.getLogLevel()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, logsUnderRq.getLogLevel()));
+    final int logLevel = logTypeResolver.resolveLogLevelFromName(projectDetails.getProjectId(),
+        logsUnderRq.getLogLevel());
 
     return testItemRepository.findAllById(logsUnderRq.getItemIds()).stream()
         .collect(toMap(TestItem::getItemId, item -> {
           final Launch launch = testItemService.getEffectiveLaunch(item);
           validate(launch, membershipDetails);
-          return logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
-                  launch.getId(), item.getItemId(), logLevel.toInt(), LOG_UNDER_ITEM_BATCH_SIZE)
-              .stream().map(logConverter::toResource).collect(Collectors.toList());
+          List<LogFull> logs = logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
+              launch.getId(), item.getItemId(), logLevel, LOG_UNDER_ITEM_BATCH_SIZE);
+          return logConverter.toResources(logs, projectDetails.getProjectId());
         }));
   }
 
   @Override
   public long getPageNumber(Long logId, MembershipDetails membershipDetails,
       Filter filterable, Pageable pageable) {
-    return logRepository.getPageNumber(logId, filterable, pageable);
+    return logRepository.getPageNumber(logId,
+        logFilterPreparator.prepare(filterable, projectDetails.getProjectId()),
+        pageable);
   }
 
   @Override
@@ -169,13 +184,16 @@ public class GetLogHandlerImpl implements GetLogHandler {
     Launch launch = testItemService.getEffectiveLaunch(parentItem);
     validate(launch, membershipDetails);
 
+    Queryable resolvedFilter = logFilterPreparator.prepare(queryable,
+        projectDetails.getProjectId());
+
     Boolean excludeEmptySteps =
         ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
     Boolean excludePassedLogs =
         ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false);
 
     Page<NestedItem> nestedItems = logRepository.findNestedItems(parentId, excludeEmptySteps,
-        isLogsExclusionRequired(parentItem, excludePassedLogs), queryable, pageable
+        isLogsExclusionRequired(parentItem, excludePassedLogs), resolvedFilter, pageable
     );
 
     List<NestedItem> content = nestedItems.getContent();
@@ -188,18 +206,22 @@ public class GetLogHandlerImpl implements GetLogHandler {
                 logs.stream().map(NestedItem::getId).collect(Collectors.toSet())).stream()
             .collect(toMap(LogFull::getId, l -> l))).orElseGet(Collections::emptyMap);
 
-    queryable.getFilterConditions().add(getLaunchCondition(launch.getId()));
-    queryable.getFilterConditions().add(getParentPathCondition(parentItem));
+    resolvedFilter.getFilterConditions().add(getLaunchCondition(launch.getId()));
+    resolvedFilter.getFilterConditions().add(getParentPathCondition(parentItem));
     Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(
         testItems -> testItemRepository.findAllNestedStepsByIds(
-            testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()), queryable,
+            testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()), resolvedFilter,
             excludePassedLogs
         ).stream().collect(toMap(NestedStep::getId, i -> i))).orElseGet(Collections::emptyMap);
+
+    Map<Long, LogResource> logResourceMap = logConverter.toResources(logMap.values(),
+            projectDetails.getProjectId()).stream()
+        .collect(toMap(LogResource::getId, Function.identity()));
 
     List<Object> resources = Lists.newArrayListWithExpectedSize(content.size());
     content.forEach(nestedItem -> {
       if (LogRepositoryConstants.LOG.equals(nestedItem.getType())) {
-        ofNullable(logMap.get(nestedItem.getId())).map(logConverter::toResource)
+        ofNullable(logResourceMap.get(nestedItem.getId()))
             .ifPresent(resources::add);
       } else if (LogRepositoryConstants.ITEM.equals(nestedItem.getType())) {
         ofNullable(nestedStepMap.get(nestedItem.getId())).map(
@@ -220,14 +242,17 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
     validateTestItemAndLaunch(parentId, membershipDetails);
 
+    Queryable resolvedFilter = logFilterPreparator.prepare(queryable,
+        projectDetails.getProjectId());
+
     LogLocationParams locationParams = extractLogLocationParams(params);
 
     List<PagedLogResource> loadedLogs = locationParams.includeSearchFilter()
-        ? loadLogsWithSearchFilter(parentId, locationParams, queryable, pageable)
-        : loadLogsErrorsOnly(parentId, locationParams, queryable, pageable);
+        ? loadLogsWithSearchFilter(parentId, locationParams, resolvedFilter, pageable)
+        : loadLogsErrorsOnly(parentId, locationParams, resolvedFilter, pageable);
 
     if (!locationParams.excludeLogContent() && !loadedLogs.isEmpty()) {
-      enrichLogsWithContent(loadedLogs);
+      enrichLogsWithContent(loadedLogs, projectDetails.getProjectId());
     }
     return loadedLogs;
   }
@@ -498,15 +523,14 @@ public class GetLogHandlerImpl implements GetLogHandler {
     );
   }
 
-  private void enrichLogsWithContent(List<PagedLogResource> logs) {
+  private void enrichLogsWithContent(List<PagedLogResource> logs, Long projectId) {
     Map<Long, LogFull> logMap = logService.findAllById(logs.stream()
             .map(PagedLogResource::getId)
             .collect(Collectors.toSet()))
         .stream()
         .collect(toMap(LogFull::getId, l -> l));
 
-    logs.forEach(resource -> ofNullable(logMap.get(resource.getId()))
-        .ifPresent(model -> logConverter.fillWithLogContent(model, resource)));
+    logConverter.fillWithLogContent(logMap, logs, projectId);
   }
 
   private record LogLocationParams(boolean excludeEmptySteps, boolean excludePassedLogs,

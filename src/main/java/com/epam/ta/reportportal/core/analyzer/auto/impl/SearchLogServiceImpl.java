@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -150,21 +151,28 @@ public class SearchLogServiceImpl implements SearchLogService {
         .stream()
         .collect(toMap(TestItem::getItemId, item -> item));
     List<LogFull> foundLogs = logService.findAllById(logIdMapping.keySet());
+    List<SearchLogRs.LogEntry> logEntries = logConverter.toLogEntries(foundLogs, projectId);
+    
+    Map<Long, SearchLogRs.LogEntry> logEntryByLogId = IntStream.range(0, foundLogs.size())
+        .boxed()
+        .collect(toMap(i -> foundLogs.get(i).getId(), logEntries::get));
+    
     Map<Long, SearchLogRs> foundLogsMap = Maps.newHashMap();
 
     foundLogs.forEach(log -> ofNullable(logIdMapping.get(log.getId())).ifPresent(itemId -> {
+      SearchLogRs.LogEntry logEntry = logEntryByLogId.get(log.getId());
       foundLogsMap.computeIfPresent(itemId, (key, value) -> {
-        value.getLogs().add(logConverter.toLogEntry(log));
+        value.getLogs().add(logEntry);
         return value;
       });
       foundLogsMap.computeIfAbsent(itemId,
-          key -> composeResponse(testItemMapping, projectId, itemId, log));
+          key -> composeResponse(testItemMapping, projectId, itemId, logEntry));
     }));
     return foundLogsMap.values();
   }
 
   private SearchLogRs composeResponse(Map<Long, TestItem> testItemMapping, Long projectId,
-      Long itemId, LogFull log) {
+      Long itemId, SearchLogRs.LogEntry logEntry) {
     TestItem testItem = ofNullable(testItemMapping.get(itemId)).orElseThrow(
         () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
             itemId
@@ -202,7 +210,7 @@ public class SearchLogServiceImpl implements SearchLogService {
     }
 
     response.setIssue(IssueConverter.TO_MODEL.apply(itemWithStats.getItemResults().getIssue()));
-    response.setLogs(Lists.newArrayList(logConverter.toLogEntry(log)));
+    response.setLogs(Lists.newArrayList(logEntry));
     return response;
   }
 

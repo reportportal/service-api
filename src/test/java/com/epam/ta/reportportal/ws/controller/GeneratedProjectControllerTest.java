@@ -20,10 +20,11 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.api.model.LogType;
+import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -70,7 +71,8 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Test
   void createLogTypePositive() throws Exception {
-    LogType request = createLogType("custom log", 9000, false, "#123456", "#ffffff", "#000000",
+    LogTypeRequest request = createLogType("custom log", 9000, false, "#123456", "#ffffff",
+        "#000000",
         TextStyleEnum.BOLD);
 
     mockMvc.perform(post("/projects/default_personal/log-types")
@@ -89,7 +91,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Test
   void createLogTypeReturnsConflictForDuplicateName() throws Exception {
-    LogType request = createLogType("trace", 7000, false, "#445A47", "#FFFFFF", "#445A47",
+    LogTypeRequest request = createLogType("trace", 7000, false, "#445A47", "#FFFFFF", "#445A47",
         TextStyleEnum.NORMAL);
 
     mockMvc.perform(post("/projects/default_personal/log-types")
@@ -104,7 +106,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Test
   void createLogTypeReturnsBadRequestForExceedingFilterableLimit() throws Exception {
-    LogType request = createLogType("extraLog", 9500, true, "#445A47", "#FFFFFF", "#445A47",
+    LogTypeRequest request = createLogType("extraLog", 9500, true, "#445A47", "#FFFFFF", "#445A47",
         TextStyleEnum.NORMAL);
 
     mockMvc.perform(post("/projects/default_personal/log-types")
@@ -118,7 +120,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Test
   void createLogTypeReturnsBadRequestForInvalidInput() throws Exception {
-    LogType request = createLogType("", -1, false, null, null, null,
+    LogTypeRequest request = createLogType("", -1, false, null, null, null,
         null);
 
     mockMvc.perform(post("/projects/default_personal/log-types")
@@ -130,7 +132,8 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Test
   void createLogTypeReturns403WhenUserNotAssignedToProject() throws Exception {
-    LogType request = createLogType("custom error", 8000, true, "#123456", "#ffffff", "#000000",
+    LogTypeRequest request = createLogType("custom error", 8000, true, "#123456", "#ffffff",
+        "#000000",
         TextStyleEnum.BOLD);
 
     mockMvc.perform(post("/projects/superadmin_personal/log-types")
@@ -206,7 +209,51 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
             "You do not have enough permissions."));
   }
 
-  private LogType createLogType(String name, int level, boolean isFilterable,
+  @Test
+  @Sql("/db/log-type/log-type-fill.sql")
+  void updateLogTypePositive() throws Exception {
+    LogTypeRequest updateRequest = createLogType("updated custom", 8550, false, "#FF0000",
+        "#000000",
+        "#FFFFFF", TextStyleEnum.BOLD);
+
+    mockMvc.perform(put("/projects/default_personal/log-types/1000")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(updateRequest))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("The update was completed successfully."));
+  }
+
+  @Test
+  @Sql("/db/log-type/log-type-fill.sql")
+  void updateLogTypeReturns400WhenFilterableLimitExceeded() throws Exception {
+    LogTypeRequest updateRequest = createLogType("custom", 9000, true, "#4DB6AC", "#FFFFFF",
+        "#445A47", TextStyleEnum.NORMAL);
+
+    mockMvc.perform(put("/projects/default_personal/log-types/1000")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(updateRequest))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(
+            "Error in handled Request. Please, check specified parameters: 'Cannot create more than 6 filterable log types per project.'"));
+  }
+
+  @Test
+  void updateLogTypeReturns403WhenUserNotAssignedToProject() throws Exception {
+    LogTypeRequest updateRequest = createLogType("updated custom", 8550, true, "#FF0000", "#000000",
+        "#FFFFFF", TextStyleEnum.BOLD);
+
+    mockMvc.perform(put("/projects/superadmin_personal/log-types/1001")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(updateRequest))
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value(
+            "You do not have enough permissions."));
+  }
+
+  private LogTypeRequest createLogType(String name, int level, boolean isFilterable,
       String labelColor, String backgroundColor, String textColor, TextStyleEnum textStyle) {
     LogTypeStyle style = new LogTypeStyle();
     style.setLabelColor(labelColor);
@@ -214,7 +261,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
     style.setTextColor(textColor);
     style.setTextStyle(textStyle);
 
-    LogType logType = new LogType();
+    LogTypeRequest logType = new LogTypeRequest();
     logType.setName(name);
     logType.setLevel(level);
     logType.setIsFilterable(isFilterable);

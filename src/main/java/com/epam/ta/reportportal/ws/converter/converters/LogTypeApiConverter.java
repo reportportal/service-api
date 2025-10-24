@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.reportportal.api.model.LogType;
+import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import java.util.function.Function;
@@ -14,8 +14,8 @@ public final class LogTypeApiConverter {
     // static only
   }
 
-  public static final Function<ProjectLogType, LogType> TO_RESOURCE = entity -> {
-    LogType logType = new LogType();
+  public static final Function<ProjectLogType, LogTypeResponse> TO_RESOURCE = entity -> {
+    LogTypeResponse logType = new LogTypeResponse();
     logType.setId(entity.getId());
     logType.setName(entity.getName());
     logType.setLevel(entity.getLevel());

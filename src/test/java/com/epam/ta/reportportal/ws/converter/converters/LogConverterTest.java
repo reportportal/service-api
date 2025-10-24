@@ -25,12 +25,10 @@ import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
-import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.service.LogTypeResolver;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,7 +91,6 @@ class LogConverterTest {
   void toResource() {
     // Given
     final LogFull logFull = getLogFull();
-    // No mock needed - LogLevel enum handles 50000 -> FATAL
 
     // When
     final LogResource resource = logConverter.toResource(logFull);
@@ -143,7 +140,6 @@ class LogConverterTest {
     final LogFull logFull = getLogFull();
     logFull.setProjectId(null);
     logFull.setLogLevel(40000);
-    // LogLevel enum handles 40000 -> ERROR even when projectId is null
 
     // When
     final LogResource resource = logConverter.toResource(logFull);
@@ -157,7 +153,6 @@ class LogConverterTest {
     // Given
     final LogFull logFull = getLogFull();
     logFull.setLogLevel(40000);
-    // No mock needed - LogLevel enum will handle it
 
     // When
     final LogResource resource = logConverter.toResource(logFull);
@@ -179,25 +174,5 @@ class LogConverterTest {
 
     // Then
     assertEquals("UNKNOWN", resource.getLevel());
-  }
-
-  private List<ProjectLogType> getDefaultLogTypes(Long projectId) {
-    return List.of(
-        createLogType(projectId, "trace", 5000),
-        createLogType(projectId, "debug", 10000),
-        createLogType(projectId, "info", 20000),
-        createLogType(projectId, "warn", 30000),
-        createLogType(projectId, "error", 40000),
-        createLogType(projectId, "fatal", 50000),
-        createLogType(projectId, "unknown", 60000)
-    );
-  }
-
-  private ProjectLogType createLogType(Long projectId, String name, int level) {
-    ProjectLogType logType = new ProjectLogType();
-    logType.setProjectId(projectId);
-    logType.setName(name);
-    logType.setLevel(level);
-    return logType;
   }
 }

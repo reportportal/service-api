@@ -48,6 +48,16 @@ public class LogTypeValidator {
   }
 
   /**
+   * Checks that name–level pair is unique within a project, excluding the specified log type ID.
+   * Used during updates to avoid false positives when the log type is being compared to itself.
+   */
+  public void validateUniquenessExcludingId(Long projectId, String name, Integer level, Long excludeId) {
+    expect(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCaseExcludingId(projectId, name, level, excludeId),
+        BooleanUtils::isFalse)
+        .verify(ErrorType.RESOURCE_ALREADY_EXISTS, String.format("Log type: %s - %s", name, level));
+  }
+
+  /**
    * Ensures filterable count does not exceed {@value #MAX_FILTERABLE_LOG_TYPES}.
    */
   public void validateFilterableLimit(Long projectId, Boolean isFilterable) {

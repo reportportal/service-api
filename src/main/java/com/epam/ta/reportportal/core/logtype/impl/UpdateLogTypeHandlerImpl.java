@@ -112,7 +112,8 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
     if (nameUpdated || levelUpdated) {
       var nameToValidate = nameUpdated ? updateRq.getName() : existingLogType.getName();
       var levelToValidate = levelUpdated ? updateRq.getLevel() : existingLogType.getLevel();
-      logTypeValidator.validateUniqueness(projectId, nameToValidate, levelToValidate);
+      logTypeValidator.validateUniquenessExcludingId(projectId, nameToValidate, levelToValidate,
+          existingLogType.getId());
     }
   }
 

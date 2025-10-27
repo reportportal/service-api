@@ -72,7 +72,8 @@ class UpdateLogTypeHandlerImplTest {
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
-    doNothing().when(logTypeValidator).validateUniqueness(PROJECT_ID, "updated-name", 9500);
+    doNothing().when(logTypeValidator)
+        .validateUniquenessExcludingId(PROJECT_ID, "updated-name", 9500, LOG_TYPE_ID);
     doNothing().when(logTypeValidator).validateFilterableLimit(PROJECT_ID, true);
     when(logTypeRepository.save(any(ProjectLogType.class))).thenAnswer(invocation -> {
       ProjectLogType saved = invocation.getArgument(0);
@@ -142,7 +143,8 @@ class UpdateLogTypeHandlerImplTest {
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
     doThrow(new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS))
-        .when(logTypeValidator).validateUniqueness(PROJECT_ID, "custom new", 50000);
+        .when(logTypeValidator)
+        .validateUniquenessExcludingId(PROJECT_ID, "custom new", 50000, LOG_TYPE_ID);
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
@@ -150,7 +152,8 @@ class UpdateLogTypeHandlerImplTest {
 
     // Then
     assertEquals(ErrorType.RESOURCE_ALREADY_EXISTS, ex.getErrorType());
-    verify(logTypeValidator).validateUniqueness(PROJECT_ID, "custom new", 50000);
+    verify(logTypeValidator).validateUniquenessExcludingId(PROJECT_ID, "custom new", 50000,
+        LOG_TYPE_ID);
   }
 
   @Test
@@ -173,6 +176,34 @@ class UpdateLogTypeHandlerImplTest {
     assertEquals(
         "You do not have enough permissions. The 'unknown' log type cannot be set as filterable",
         ex.getMessage());
+  }
+
+  @Test
+  void updateLogTypeWhenOnlyNameChangedShouldNotThrowDuplicateError() {
+    // Given
+    Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    ProjectLogType existingLogType = createLogType("custom error", 50002, false);
+    LogTypeRequest updateRequest = createUpdateRequest("custom error updated", 50002);
+
+    when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
+    when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
+    doNothing().when(logTypeValidator)
+        .validateUniquenessExcludingId(PROJECT_ID, "custom error updated", 50002, LOG_TYPE_ID);
+    doNothing().when(logTypeValidator).validateFilterableLimit(PROJECT_ID, true);
+    when(logTypeRepository.save(any(ProjectLogType.class))).thenAnswer(invocation -> {
+      ProjectLogType saved = invocation.getArgument(0);
+      saved.setId(LOG_TYPE_ID);
+      return saved;
+    });
+
+    // When
+    SuccessfulUpdate successfulUpdate = handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID,
+        updateRequest);
+
+    // Then
+    assertEquals("The update was completed successfully.", successfulUpdate.getMessage());
+    verify(logTypeValidator).validateUniquenessExcludingId(PROJECT_ID, "custom error updated",
+        50002, LOG_TYPE_ID);
   }
 
   private ProjectLogType createLogType(String name, Integer level, boolean isSystem) {

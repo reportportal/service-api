@@ -30,17 +30,23 @@ import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.ReportPortalUserUtil;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.LogTypeUpdatedEvent;
 import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateLogTypeHandlerImplTest {
@@ -60,6 +66,9 @@ class UpdateLogTypeHandlerImplTest {
   @Mock
   private LogTypeValidator logTypeValidator;
 
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks
   private UpdateLogTypeHandlerImpl handler;
 
@@ -69,6 +78,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType(LOG_TYPE_NAME, LOG_TYPE_LEVEL, false);
     LogTypeRequest updateRequest = createUpdateRequest("updated-name", 9500);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
@@ -83,10 +94,11 @@ class UpdateLogTypeHandlerImplTest {
 
     // When
     SuccessfulUpdate successfulUpdate = handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID,
-        updateRequest);
+        updateRequest, user);
 
     // Then
     assertEquals("The update was completed successfully.", successfulUpdate.getMessage());
+    verify(eventPublisher).publishEvent(any(LogTypeUpdatedEvent.class));
   }
 
   @Test
@@ -95,13 +107,15 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("error", 40000, true);
     LogTypeRequest updateRequest = createUpdateRequest("error upd", 40000);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest));
+        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest, user));
 
     // Then
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
@@ -117,13 +131,15 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("error", 40000, true);
     LogTypeRequest updateRequest = createUpdateRequest("error", 50000);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest));
+        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest, user));
 
     // Then
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
@@ -139,6 +155,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("custom", 42000, false);
     LogTypeRequest updateRequest = createUpdateRequest("custom new", 50000);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
@@ -148,7 +166,7 @@ class UpdateLogTypeHandlerImplTest {
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest));
+        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest, user));
 
     // Then
     assertEquals(ErrorType.RESOURCE_ALREADY_EXISTS, ex.getErrorType());
@@ -163,13 +181,15 @@ class UpdateLogTypeHandlerImplTest {
     ProjectLogType existingLogType = createLogType("unknown", 10000, false);
     LogTypeRequest updateRequest = createUpdateRequest("unknown", 10000);
     updateRequest.setIsFilterable(true);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest));
+        () -> handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID, updateRequest, user));
 
     // Then
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
@@ -184,6 +204,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("custom error", 50002, false);
     LogTypeRequest updateRequest = createUpdateRequest("custom error updated", 50002);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
@@ -198,12 +220,14 @@ class UpdateLogTypeHandlerImplTest {
 
     // When
     SuccessfulUpdate successfulUpdate = handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID,
-        updateRequest);
+        updateRequest, user);
 
-    // Then
+            // Then
     assertEquals("The update was completed successfully.", successfulUpdate.getMessage());
-    verify(logTypeValidator).validateUniquenessExcludingId(PROJECT_ID, "custom error updated",
-        50002, LOG_TYPE_ID);
+    verify(logTypeValidator).validateUniquenessExcludingId(PROJECT_ID, "custom error updated", 50002, LOG_TYPE_ID);
+    verify(eventPublisher).publishEvent(any(LogTypeUpdatedEvent.class));
+  }
+
   }
 
   private ProjectLogType createLogType(String name, Integer level, boolean isSystem) {

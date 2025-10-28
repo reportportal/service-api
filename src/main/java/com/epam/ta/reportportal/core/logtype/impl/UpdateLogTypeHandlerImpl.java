@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.logtype.impl;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+
 import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -34,6 +36,7 @@ import com.epam.ta.reportportal.ws.converter.builders.LogTypeBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.LogTypeConverter;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,15 +124,31 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
   private void validateNameAndLevelUniqueness(ProjectLogType existingLogType,
       LogTypeRequest updateRq,
       Long projectId) {
-    var nameUpdated = isUpdated(existingLogType.getName(), updateRq.getName());
-    var levelUpdated = isUpdated(existingLogType.getLevel(), updateRq.getLevel());
+    boolean nameUpdated = isUpdated(existingLogType.getName(), updateRq.getName());
+    boolean levelUpdated = isUpdated(existingLogType.getLevel(), updateRq.getLevel());
 
     if (nameUpdated || levelUpdated) {
-      var nameToValidate = nameUpdated ? updateRq.getName() : existingLogType.getName();
-      var levelToValidate = levelUpdated ? updateRq.getLevel() : existingLogType.getLevel();
-      logTypeValidator.validateUniquenessExcludingId(projectId, nameToValidate, levelToValidate,
-          existingLogType.getId());
+      String nameToValidate = nameUpdated ? updateRq.getName() : existingLogType.getName();
+      Integer levelToValidate = levelUpdated ? updateRq.getLevel() : existingLogType.getLevel();
+
+      expect(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCaseExcludingId(projectId,
+              nameToValidate, levelToValidate, existingLogType.getId()),
+          BooleanUtils::isFalse)
+          .verify(ErrorType.RESOURCE_ALREADY_EXISTS,
+              buildDuplicateErrorMessage(nameToValidate, levelToValidate, nameUpdated,
+                  levelUpdated));
     }
+  }
+
+  private String buildDuplicateErrorMessage(String name, Integer level, boolean nameUpdated,
+      boolean levelUpdated) {
+    if (nameUpdated && levelUpdated) {
+      return String.format("Log type name '%s' and level '%s'", name, level);
+    }
+    if (nameUpdated) {
+      return String.format("Log type '%s'", name);
+    }
+    return String.format("Log type level '%s'", level);
   }
 
   private void validateFilterableConstraints(ProjectLogType existingLogType,

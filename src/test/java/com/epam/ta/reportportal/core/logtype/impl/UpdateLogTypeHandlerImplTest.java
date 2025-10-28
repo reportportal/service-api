@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,8 +82,8 @@ class UpdateLogTypeHandlerImplTest {
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
-    doNothing().when(logTypeValidator)
-        .validateUniquenessExcludingId(PROJECT_ID, "updated-name", 9500, LOG_TYPE_ID);
+    when(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCaseExcludingId(PROJECT_ID,
+        "updated-name", 9500, LOG_TYPE_ID)).thenReturn(false);
     doNothing().when(logTypeValidator).validateFilterableLimit(PROJECT_ID, true);
     when(logTypeRepository.save(any(ProjectLogType.class))).thenAnswer(invocation -> {
       ProjectLogType saved = invocation.getArgument(0);
@@ -160,9 +159,8 @@ class UpdateLogTypeHandlerImplTest {
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
-    doThrow(new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS))
-        .when(logTypeValidator)
-        .validateUniquenessExcludingId(PROJECT_ID, "custom new", 50000, LOG_TYPE_ID);
+    when(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCaseExcludingId(PROJECT_ID,
+        "custom new", 50000, LOG_TYPE_ID)).thenReturn(true);
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
@@ -170,8 +168,6 @@ class UpdateLogTypeHandlerImplTest {
 
     // Then
     assertEquals(ErrorType.RESOURCE_ALREADY_EXISTS, ex.getErrorType());
-    verify(logTypeValidator).validateUniquenessExcludingId(PROJECT_ID, "custom new", 50000,
-        LOG_TYPE_ID);
   }
 
   @Test
@@ -209,8 +205,8 @@ class UpdateLogTypeHandlerImplTest {
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(existingLogType));
-    doNothing().when(logTypeValidator)
-        .validateUniquenessExcludingId(PROJECT_ID, "custom error updated", 50002, LOG_TYPE_ID);
+    when(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCaseExcludingId(PROJECT_ID,
+        "custom error updated", 50002, LOG_TYPE_ID)).thenReturn(false);
     doNothing().when(logTypeValidator).validateFilterableLimit(PROJECT_ID, true);
     when(logTypeRepository.save(any(ProjectLogType.class))).thenAnswer(invocation -> {
       ProjectLogType saved = invocation.getArgument(0);
@@ -224,7 +220,6 @@ class UpdateLogTypeHandlerImplTest {
 
     // Then
     assertEquals("The update was completed successfully.", successfulUpdate.getMessage());
-    verify(logTypeValidator).validateUniquenessExcludingId(PROJECT_ID, "custom error updated", 50002, LOG_TYPE_ID);
     verify(eventPublisher).publishEvent(any(LogTypeUpdatedEvent.class));
   }
 

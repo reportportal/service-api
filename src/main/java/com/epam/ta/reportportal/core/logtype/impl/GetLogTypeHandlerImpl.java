@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.core.logtype.GetLogTypeHandler;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.ws.converter.converters.LogTypeApiConverter;
+import com.epam.ta.reportportal.ws.converter.converters.LogTypeConverter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class GetLogTypeHandlerImpl implements GetLogTypeHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
     List<LogTypeResponse> items = logTypeRepository.findByProjectId(project.getId()).stream()
-        .map(LogTypeApiConverter.TO_RESOURCE)
+        .map(LogTypeConverter.TO_RESOURCE)
         .toList();
 
     return new GetLogTypes200Response(items);

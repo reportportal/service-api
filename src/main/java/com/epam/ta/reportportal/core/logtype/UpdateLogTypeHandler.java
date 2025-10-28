@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.logtype;
 import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 
 /**
  * Handler for updating log types in a project.
@@ -31,9 +32,11 @@ public interface UpdateLogTypeHandler {
    * @param projectName The name of the project.
    * @param logTypeId   The ID of the log type to update.
    * @param logType     The log type data containing the updated fields.
+   * @param user        The user performing the action.
    * @return SuccessfulUpdate
    * @throws ReportPortalException if the project or log type is not found, or validation fails.
    */
-  SuccessfulUpdate updateLogType(String projectName, Long logTypeId, LogTypeRequest logType);
+  SuccessfulUpdate updateLogType(String projectName, Long logTypeId, LogTypeRequest logType,
+      ReportPortalUser user);
 }
 

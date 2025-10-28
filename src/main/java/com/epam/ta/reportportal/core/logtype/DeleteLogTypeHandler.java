@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.logtype;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+
 /**
  * Handler for deletion of log types from a project.
  */
@@ -26,6 +28,7 @@ public interface DeleteLogTypeHandler {
    *
    * @param projectName The name of the project.
    * @param logTypeId   The ID of the log type to delete.
+   * @param user        The user performing the action.
    */
-  void deleteLogType(String projectName, Long logTypeId);
+  void deleteLogType(String projectName, Long logTypeId, ReportPortalUser user);
 }

@@ -222,12 +222,10 @@ class UpdateLogTypeHandlerImplTest {
     SuccessfulUpdate successfulUpdate = handler.updateLogType(PROJECT_NAME, LOG_TYPE_ID,
         updateRequest, user);
 
-            // Then
+    // Then
     assertEquals("The update was completed successfully.", successfulUpdate.getMessage());
     verify(logTypeValidator).validateUniquenessExcludingId(PROJECT_ID, "custom error updated", 50002, LOG_TYPE_ID);
     verify(eventPublisher).publishEvent(any(LogTypeUpdatedEvent.class));
-  }
-
   }
 
   private ProjectLogType createLogType(String name, Integer level, boolean isSystem) {

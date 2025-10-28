@@ -13,6 +13,7 @@ import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import com.epam.ta.reportportal.core.logtype.CreateLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.DeleteLogTypeHandler;
@@ -23,6 +24,7 @@ import org.pf4j.PluginManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -88,7 +90,8 @@ public class GeneratedProjectController implements ProjectsApi {
   @Override
   @PreAuthorize(PROJECT_MANAGER)
   public ResponseEntity<LogTypeResponse> createLogType(String projectName, LogTypeRequest logType) {
-    return new ResponseEntity<>(createLogTypeHandler.createLogType(projectName, logType),
+    return new ResponseEntity<>(
+        createLogTypeHandler.createLogType(projectName, logType, getPrincipal()),
         HttpStatus.CREATED);
   }
 
@@ -97,14 +100,21 @@ public class GeneratedProjectController implements ProjectsApi {
   public ResponseEntity<SuccessfulUpdate> updateLogTypeById(String projectName, Long logTypeId,
       LogTypeRequest logType) {
     return ResponseEntity.ok(
-        updateLogTypeHandler.updateLogType(normalizeId(projectName), logTypeId, logType));
+        updateLogTypeHandler.updateLogType(normalizeId(projectName), logTypeId, logType,
+            getPrincipal()));
   }
 
   @Override
   @PreAuthorize(PROJECT_MANAGER)
   public ResponseEntity<Void> deleteLogTypeById(String projectName, Long logTypeId) {
-    deleteLogTypeHandler.deleteLogType(normalizeId(projectName), logTypeId);
+    deleteLogTypeHandler.deleteLogType(normalizeId(projectName), logTypeId, getPrincipal());
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  private ReportPortalUser getPrincipal() {
+    return (ReportPortalUser) SecurityContextHolder.getContext()
+        .getAuthentication()
+        .getPrincipal();
   }
 
   private GroupExtensionPoint getGroupExtension() {

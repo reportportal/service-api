@@ -20,6 +20,8 @@ import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.LogTypeUpdatedEvent;
 import com.epam.ta.reportportal.core.logtype.UpdateLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
@@ -27,9 +29,12 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.model.activity.LogTypeActivityResource;
 import com.epam.ta.reportportal.ws.converter.builders.LogTypeBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.LogTypeConverter;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +48,7 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
   private final ProjectRepository projectRepository;
   private final LogTypeRepository logTypeRepository;
   private final LogTypeValidator logTypeValidator;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * Updates a log type by ID in the specified project.
@@ -50,13 +56,14 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
    * @param projectName The name of the project.
    * @param logTypeId   The ID of the log type to update.
    * @param updateRq    The log type data containing the updated fields.
+   * @param user        The user performing the action.
    * @return SuccessfulUpdate
    * @throws ReportPortalException if the project or log type is not found, or validation fails.
    */
   @Override
   @Transactional
   public SuccessfulUpdate updateLogType(String projectName, Long logTypeId,
-      LogTypeRequest updateRq) {
+      LogTypeRequest updateRq, ReportPortalUser user) {
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
@@ -66,11 +73,19 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
     logTypeValidator.validateLogTypeBelongsToProject(existingLogType, project.getId());
     validateUpdate(existingLogType, updateRq, project.getId());
 
+    LogTypeActivityResource before = LogTypeConverter.TO_ACTIVITY_RESOURCE.apply(existingLogType);
+
     ProjectLogType updatedLogType = new LogTypeBuilder(existingLogType)
         .addUpdateRq(updateRq)
         .get();
 
     logTypeRepository.save(updatedLogType);
+
+    LogTypeActivityResource after = LogTypeConverter.TO_ACTIVITY_RESOURCE.apply(updatedLogType);
+
+    eventPublisher.publishEvent(
+        new LogTypeUpdatedEvent(before, after, user.getUserId(), user.getUsername()
+        ));
 
     return new SuccessfulUpdate("The update was completed successfully.");
   }

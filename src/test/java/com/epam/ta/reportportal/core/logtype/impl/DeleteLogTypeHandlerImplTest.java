@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.logtype.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -25,17 +26,23 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.ReportPortalUserUtil;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.LogTypeDeletedEvent;
 import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteLogTypeHandlerImplTest {
@@ -53,6 +60,9 @@ class DeleteLogTypeHandlerImplTest {
   @Mock
   private LogTypeValidator logTypeValidator;
 
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks
   private DeleteLogTypeHandlerImpl handler;
 
@@ -61,26 +71,31 @@ class DeleteLogTypeHandlerImplTest {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, PROJECT_ID, "custom", 9000, false);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
     doNothing().when(logTypeValidator).validateLogTypeBelongsToProject(logType, PROJECT_ID);
 
     // When
-    handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID);
+    handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user);
 
     // Then
     verify(logTypeRepository).delete(logType);
+    verify(eventPublisher).publishEvent(any(LogTypeDeletedEvent.class));
   }
 
   @Test
   void deleteLogTypeWhenProjectNotFoundShouldThrowProjectNotFound() {
     // Given
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.empty());
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID));
+        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.PROJECT_NOT_FOUND, ex.getErrorType());
@@ -90,12 +105,14 @@ class DeleteLogTypeHandlerImplTest {
   void deleteLogTypeWhenLogTypeNotFoundShouldThrowNotFound() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.empty());
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID));
+        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.NOT_FOUND, ex.getErrorType());
@@ -106,6 +123,8 @@ class DeleteLogTypeHandlerImplTest {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, 2L, "custom", 9000, false);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
@@ -115,7 +134,7 @@ class DeleteLogTypeHandlerImplTest {
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID));
+        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
@@ -126,6 +145,8 @@ class DeleteLogTypeHandlerImplTest {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, PROJECT_ID, "error", 40000, true);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
@@ -133,7 +154,7 @@ class DeleteLogTypeHandlerImplTest {
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID));
+        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());

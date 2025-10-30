@@ -59,7 +59,7 @@ public class LaunchConverter {
   private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>
       resourceAttributeUpdaterMapping;
 
-  private static final String DELETED_USER = "deleted_user";
+  public static final String DELETED_USER = "deleted_user";
 
   public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
     LaunchActivityResource resource = new LaunchActivityResource();

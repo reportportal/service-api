@@ -16,19 +16,27 @@
 
 package com.epam.ta.reportportal.core.logtype;
 
+import com.epam.reportportal.api.model.LogTypeRequest;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 
 /**
- * Handler for deletion of log types from a project.
+ * Handler for updating log types in a project.
  */
-public interface DeleteLogTypeHandler {
+public interface UpdateLogTypeHandler {
 
   /**
-   * Deletes a log type by ID from the specified project.
+   * Updates a log type by ID in the specified project.
    *
    * @param projectName The name of the project.
-   * @param logTypeId   The ID of the log type to delete.
+   * @param logTypeId   The ID of the log type to update.
+   * @param logType     The log type data containing the updated fields.
    * @param user        The user performing the action.
+   * @return SuccessfulUpdate
+   * @throws ReportPortalException if the project or log type is not found, or validation fails.
    */
-  void deleteLogType(String projectName, Long logTypeId, ReportPortalUser user);
+  SuccessfulUpdate updateLogType(String projectName, Long logTypeId, LogTypeRequest logType,
+      ReportPortalUser user);
 }
+

@@ -16,7 +16,11 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import static java.util.Optional.ofNullable;
+
+import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.LogTypeStyle;
+import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,6 +37,16 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
 
   public LogTypeBuilder() {
     this.logType = new ProjectLogType();
+  }
+
+  /**
+   * Creates a new {@code LogTypeBuilder} for an existing {@link ProjectLogType} instance. This
+   * allows updating or augmenting an already populated log type.
+   *
+   * @param logType the log type instance to wrap
+   */
+  public LogTypeBuilder(ProjectLogType logType) {
+    this.logType = logType;
   }
 
   /**
@@ -69,7 +83,7 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
   }
 
   /**
-   * Adds the entire style object to the LogType, setting default values when the style is null.
+   * Adds the entire style object to the LogType, setting default values for missing fields.
    *
    * @param style The `LogTypeStyle` object.
    * @return The builder instance.
@@ -83,10 +97,16 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
       return this;
     }
 
-    logType.setLabelColor(style.getLabelColor());
-    logType.setBackgroundColor(style.getBackgroundColor());
-    logType.setTextColor(style.getTextColor());
-    logType.setTextStyle(style.getTextStyle().getValue());
+    logType.setLabelColor(ofNullable(style.getLabelColor())
+        .orElse(DEFAULT_IF_UNSPECIFIED_LABEL_COLOR));
+    logType.setBackgroundColor(ofNullable(style.getBackgroundColor())
+        .orElse(DEFAULT_IF_UNSPECIFIED_BACKGROUND_COLOR));
+    logType.setTextColor(ofNullable(style.getTextColor())
+        .orElse(DEFAULT_IF_UNSPECIFIED_TEXT_COLOR));
+    logType.setTextStyle(ofNullable(style.getTextStyle())
+        .map(TextStyleEnum::getValue)
+        .orElse(DEFAULT_IF_UNSPECIFIED_TEXT_STYLE));
+
     return this;
   }
 
@@ -98,6 +118,22 @@ public class LogTypeBuilder implements Supplier<ProjectLogType> {
    */
   public LogTypeBuilder addIsFilterable(Boolean isFilterable) {
     logType.setFilterable(Optional.ofNullable(isFilterable).orElse(false));
+    return this;
+  }
+
+  /**
+   * Updates the log type with fields from the update request following PUT semantics. All required
+   * fields must be provided in the request. Missing optional fields will be set to defaults.
+   *
+   * @param updateRq The update request containing the complete log type representation.
+   * @return The builder instance.
+   */
+  public LogTypeBuilder addUpdateRq(LogTypeRequest updateRq) {
+    logType.setName(updateRq.getName());
+    logType.setLevel(updateRq.getLevel());
+    logType.setFilterable(updateRq.getIsFilterable());
+
+    addStyle(updateRq.getStyle());
     return this;
   }
 

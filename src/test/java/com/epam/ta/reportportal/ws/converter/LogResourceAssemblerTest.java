@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.ws.converter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.ta.reportportal.dao.LogTypeRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.model.log.LogResource;
@@ -57,7 +56,7 @@ class LogResourceAssemblerTest {
     LogResource logResource = resourceAssembler.toResource(logFull);
 
     assertEquals(logResource.getId(), logFull.getId());
-    assertEquals(logResource.getLevel(), LogLevel.toLevel(logFull.getLogLevel()).get());
+    assertEquals("ERROR", logResource.getLevel());
     assertEquals(logResource.getMessage(), logFull.getLogMessage());
     assertEquals(logResource.getItemId(), logFull.getTestItem().getItemId());
   }
@@ -76,7 +75,7 @@ class LogResourceAssemblerTest {
     LogResource logResource = resourceAssembler.apply(logFull);
 
     assertEquals(logResource.getId(), logFull.getId());
-    assertEquals(logResource.getLevel(), LogLevel.toLevel(logFull.getLogLevel()).get());
+    assertEquals("ERROR", logResource.getLevel());
     assertEquals(logResource.getMessage(), logFull.getLogMessage());
     assertEquals(logResource.getItemId(), logFull.getTestItem().getItemId());
   }
@@ -88,10 +87,12 @@ class LogResourceAssemblerTest {
     logFull.setLastModified(Instant.now());
     logFull.setLogMessage("message");
     logFull.setLogLevel(40000);
+    logFull.setProjectId(1L);
     TestItem testItem = new TestItem();
     testItem.setItemId(2L);
     logFull.setTestItem(testItem);
 
     return logFull;
   }
+
 }

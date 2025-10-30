@@ -4,23 +4,38 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.api.model.LogType;
+import com.epam.reportportal.api.model.LogTypeRequest;
+import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.ReportPortalUserUtil;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.LogTypeCreatedEvent;
+import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class CreateLogTypeHandlerImplTest {
@@ -36,6 +51,12 @@ class CreateLogTypeHandlerImplTest {
   @Mock
   private LogTypeRepository logTypeRepository;
 
+  @Mock
+  private LogTypeValidator logTypeValidator;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks
   private CreateLogTypeHandlerImpl handler;
 
@@ -44,11 +65,13 @@ class CreateLogTypeHandlerImplTest {
   void createLogTypeWhenProjectExistsShouldValidateAndSaveLogType() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
-    LogType style = createDefaultLogTypeStyle(LOG_TYPE_NAME, LOG_TYPE_LEVEL, true);
+    LogTypeRequest style = createDefaultLogTypeStyle();
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
+
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
-    when(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCase(PROJECT_ID, LOG_TYPE_NAME,
-        LOG_TYPE_LEVEL)).thenReturn(false);
-    when(logTypeRepository.countFilterableLogTypes(PROJECT_ID)).thenReturn(5L);
+    doNothing().when(logTypeValidator).validateUniqueness(anyLong(), anyString(), anyInt());
+    doNothing().when(logTypeValidator).validateFilterableLimit(anyLong(), anyBoolean());
     when(logTypeRepository.save(any(ProjectLogType.class))).thenAnswer(invocation -> {
       ProjectLogType saved = invocation.getArgument(0);
       saved.setId(10L);
@@ -56,7 +79,7 @@ class CreateLogTypeHandlerImplTest {
     });
 
     // When
-    LogType created = handler.createLogType(PROJECT_NAME, style);
+    LogTypeResponse created = handler.createLogType(PROJECT_NAME, style, user);
 
     // Then
     assertEquals(10L, created.getId());
@@ -67,17 +90,20 @@ class CreateLogTypeHandlerImplTest {
     assertEquals("#FFFFFF", created.getStyle().getBackgroundColor());
     assertEquals("#445A47", created.getStyle().getTextColor());
     assertEquals("normal", created.getStyle().getTextStyle().getValue());
+    verify(eventPublisher).publishEvent(any(LogTypeCreatedEvent.class));
   }
 
   @Test
   void createLogTypeWhenProjectMissingShouldThrowProjectNotFound() {
     // Given
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.empty());
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
         () -> handler.createLogType(PROJECT_NAME,
-            createDefaultLogTypeStyle(LOG_TYPE_NAME, LOG_TYPE_LEVEL, true)));
+            createDefaultLogTypeStyle(), user));
 
     // Then
     assertEquals(ErrorType.PROJECT_NOT_FOUND, ex.getErrorType());
@@ -87,14 +113,17 @@ class CreateLogTypeHandlerImplTest {
   void createLogTypeWhenDuplicateExistsShouldThrowResourceAlreadyExists() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
-    when(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCase(PROJECT_ID, LOG_TYPE_NAME,
-        LOG_TYPE_LEVEL)).thenReturn(true);
+    doThrow(new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS,
+        "Log type: INFO - 20000")).when(logTypeValidator)
+        .validateUniqueness(PROJECT_ID, LOG_TYPE_NAME, LOG_TYPE_LEVEL);
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
         () -> handler.createLogType(PROJECT_NAME,
-            createDefaultLogTypeStyle(LOG_TYPE_NAME, LOG_TYPE_LEVEL, true)));
+            createDefaultLogTypeStyle(), user));
 
     // Then
     assertEquals(ErrorType.RESOURCE_ALREADY_EXISTS, ex.getErrorType());
@@ -107,29 +136,30 @@ class CreateLogTypeHandlerImplTest {
   void createLogTypeWhenFilterableLimitExceededShouldThrowBadRequestError() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
-    when(logTypeRepository.existsByProjectIdAndNameOrLevelIgnoreCase(PROJECT_ID, LOG_TYPE_NAME,
-        LOG_TYPE_LEVEL)).thenReturn(false);
-    when(logTypeRepository.countFilterableLogTypes(PROJECT_ID)).thenReturn(6L);
+    doNothing().when(logTypeValidator)
+        .validateUniqueness(PROJECT_ID, LOG_TYPE_NAME, LOG_TYPE_LEVEL);
+    doThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+        "Cannot set more than 6 filterable log types per project. Current count: 6")).when(
+        logTypeValidator).validateFilterableLimit(PROJECT_ID, true);
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
         () -> handler.createLogType(PROJECT_NAME,
-            createDefaultLogTypeStyle(LOG_TYPE_NAME, LOG_TYPE_LEVEL, true)));
+            createDefaultLogTypeStyle(), user));
 
     // Then
     assertEquals(ErrorType.BAD_REQUEST_ERROR, ex.getErrorType());
-    assertEquals(
-        "Error in handled Request. Please, check specified parameters: 'Cannot create more than 6 filterable log types per project.'",
-        ex.getMessage());
   }
 
-  private LogType createDefaultLogTypeStyle(String name, Integer level, Boolean isFilterable) {
-    LogType logType = new LogType();
-    logType.setName(name);
-    logType.setLevel(level);
+  private LogTypeRequest createDefaultLogTypeStyle() {
+    LogTypeRequest logType = new LogTypeRequest();
+    logType.setName(CreateLogTypeHandlerImplTest.LOG_TYPE_NAME);
+    logType.setLevel(CreateLogTypeHandlerImplTest.LOG_TYPE_LEVEL);
     logType.setStyle(getDefaultLogTypeStyle());
-    logType.setIsFilterable(isFilterable);
+    logType.setIsFilterable(true);
     return logType;
   }
 

@@ -17,21 +17,23 @@
 package com.epam.ta.reportportal.core.logtype.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.activity.LogTypeDeletedEvent;
 import com.epam.ta.reportportal.core.logtype.DeleteLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.ws.converter.converters.LogTypeConverter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,14 +46,17 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
 
   private final ProjectRepository projectRepository;
   private final LogTypeRepository logTypeRepository;
+  private final LogTypeValidator logTypeValidator;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * Deletes a log type by ID from the specified project.
    *
    * @param projectName The name of the project.
    * @param logTypeId   The ID of the log type to delete.
-   * @param user        The user performing the deletion.
-   * @throws ReportPortalException if the project or log type is not found, or if the log type is a system log type.
+   * @param user        The user performing the action.
+   * @throws ReportPortalException if the project or log type is not found, or if the log type is a
+   *                               system log type.
    */
   @Override
   @Transactional
@@ -62,20 +67,20 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
     ProjectLogType logType = logTypeRepository.findById(logTypeId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Log type"));
 
-    validate(logType, project, user);
+    validate(logType, project);
 
     logTypeRepository.delete(logType);
+
+    eventPublisher.publishEvent(
+        new LogTypeDeletedEvent(LogTypeConverter.TO_ACTIVITY_RESOURCE.apply(logType),
+            user.getUserId(), user.getUsername()
+        ));
   }
 
-  private void validate(ProjectLogType logType, Project project, ReportPortalUser user) {
-    validateLogTypeBelongsToProject(logType, project.getId());
+  private void validate(ProjectLogType logType, Project project) {
+    logTypeValidator.validateLogTypeBelongsToProject(logType, project.getId());
+
     validateNotSystemLogType(logType);
-  }
-
-  private void validateLogTypeBelongsToProject(ProjectLogType logType, Long projectId) {
-    expect(logType.getProjectId(), equalTo(projectId))
-        .verify(ACCESS_DENIED, formattedSupplier(
-            "Log type '{}' does not belong to the specified project", logType.getId()));
   }
 
   private void validateNotSystemLogType(ProjectLogType logType) {

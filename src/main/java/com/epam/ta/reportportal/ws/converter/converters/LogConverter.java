@@ -19,12 +19,18 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.epam.ta.reportportal.service.LogTypeResolver;
 import com.google.common.base.Preconditions;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -42,12 +48,87 @@ public class LogConverter {
 
   public LogResource toResource(LogFull model) {
     Preconditions.checkNotNull(model);
-    LogResource resource = new LogResource();
-    fillWithLogContent(model, resource);
+    var resource = new LogResource();
+    fillBaseFields(model, resource);
+    resource.setLevel(getNameFromLogLevel(model));
     return resource;
   }
 
+  public List<LogResource> toResources(Collection<LogFull> logs, Long projectId) {
+    if (logs.isEmpty()) {
+      return Collections.emptyList();
+    }
+    var logLevelMap = logTypeResolver.getLogLevelMapForProject(projectId);
+    return logs.stream()
+        .map(log -> fillLogResource(log, logLevelMap))
+        .toList();
+  }
+
+  public SearchLogRs.LogEntry toLogEntry(LogFull log) {
+    Preconditions.checkNotNull(log);
+    var entry = new SearchLogRs.LogEntry();
+    entry.setMessage(log.getLogMessage());
+    entry.setLevel(getNameFromLogLevel(log));
+    return entry;
+  }
+
+  public List<SearchLogRs.LogEntry> toLogEntries(Collection<LogFull> logs, Long projectId) {
+    if (logs.isEmpty()) {
+      return Collections.emptyList();
+    }
+    var logLevelMap = logTypeResolver.getLogLevelMapForProject(projectId);
+    return logs.stream()
+        .map(log -> fillLogEntry(log, logLevelMap))
+        .toList();
+  }
+
   public void fillWithLogContent(LogFull model, LogResource resource) {
+    fillBaseFields(model, resource);
+    resource.setLevel(getNameFromLogLevel(model));
+  }
+
+  public void fillWithLogContent(Map<Long, LogFull> logMap, List<? extends LogResource> resources,
+      Long projectId) {
+    if (logMap.isEmpty() || resources.isEmpty()) {
+      return;
+    }
+
+    var logLevelMap = logTypeResolver.getLogLevelMapForProject(projectId);
+
+    resources.forEach(resource ->
+        ofNullable(logMap.get(resource.getId()))
+            .ifPresent(model -> {
+              fillBaseFields(model, resource);
+              setLogLevel(model.getLogLevel(), logLevelMap, resource::setLevel);
+            })
+    );
+  }
+
+  private String getNameFromLogLevel(LogFull model) {
+    return logTypeResolver.resolveNameFromLogLevel(model.getProjectId(), model.getLogLevel());
+  }
+
+  private LogResource fillLogResource(LogFull log, Map<Integer, String> logLevelMap) {
+    var resource = new LogResource();
+    fillBaseFields(log, resource);
+    setLogLevel(log.getLogLevel(), logLevelMap, resource::setLevel);
+    return resource;
+  }
+
+  private SearchLogRs.LogEntry fillLogEntry(LogFull log, Map<Integer, String> logLevelMap) {
+    var entry = new SearchLogRs.LogEntry();
+    entry.setMessage(log.getLogMessage());
+    setLogLevel(log.getLogLevel(), logLevelMap, entry::setLevel);
+    return entry;
+  }
+
+  private void setLogLevel(Integer level, Map<Integer, String> logLevelMap,
+      Consumer<String> setter) {
+    ofNullable(level).ifPresent(
+        l -> setter.accept(logLevelMap.getOrDefault(l, LogLevel.UNKNOWN.toString())));
+  }
+
+  private void fillBaseFields(LogFull model, LogResource resource) {
     resource.setId(model.getId());
     resource.setUuid(model.getUuid());
     resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
@@ -65,18 +146,6 @@ public class LogConverter {
 
     ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
     ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
-    ofNullable(model.getLogLevel())
-        .ifPresent(level -> resource.setLevel(
-            logTypeResolver.resolveNameFromLogLevel(model.getProjectId(), level)));
-  }
-
-  public SearchLogRs.LogEntry toLogEntry(LogFull log) {
-    SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
-    logEntry.setMessage(log.getLogMessage());
-    ofNullable(log.getLogLevel()).ifPresent(
-        level -> logEntry.setLevel(
-            logTypeResolver.resolveNameFromLogLevel(log.getProjectId(), level)));
-    return logEntry;
   }
 
   public static final Function<LogFull, Log> LOG_FULL_TO_LOG = logFull -> {

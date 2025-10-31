@@ -38,6 +38,7 @@ import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.auth.authenticator.UserAuthenticator;
+import com.epam.ta.reportportal.core.events.activity.AssignUserEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.organization.OrganizationUserService;
@@ -240,6 +241,8 @@ public class UserInvitationHandler {
                 .withProject(projectEntity)
                 .withProjectRole(calculateProjectRole(orgUser.getOrganizationRole(), project.get("role").toString()))
                 .withUser(createdUser));
+            AssignUserEvent assignUserEvent = new AssignUserEvent(createdUser, projectEntity);
+            eventPublisher.publishEvent(assignUserEvent);
           });
     }
   }

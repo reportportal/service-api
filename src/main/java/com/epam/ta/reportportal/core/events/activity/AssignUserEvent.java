@@ -26,23 +26,54 @@ import com.epam.ta.reportportal.entity.activity.EventAction;
 import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.model.activity.UserActivityResource;
+import com.epam.ta.reportportal.util.SecurityContextUtils;
 
+/**
+ * An event that is triggered when a user is assigned to a project.
+ */
 public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
 
 
-  private UserActivityResource userActivityResource;
+  private final UserActivityResource userActivityResource;
 
   private final boolean isSystemEvent;
-  private Long orgId;
+
+  private final Long orgId;
 
 
+  /**
+   * Constructs an AssignUserEvent with the specified details.
+   *
+   * @param userActivityResource The user activity resource.
+   * @param userId               The ID of the user who triggered the event.
+   * @param userLogin            The login of the user who triggered the event.
+   * @param isSystemEvent        A flag indicating if this is a system event.
+   * @param orgId                The ID of the organization.
+   */
   public AssignUserEvent(UserActivityResource userActivityResource, Long userId, String userLogin,
       boolean isSystemEvent, Long orgId) {
     super(userId, userLogin);
     this.userActivityResource = userActivityResource;
     this.isSystemEvent = isSystemEvent;
     this.orgId = orgId;
+  }
+
+  /**
+   * Constructs an AssignUserEvent based on the user being assigned and the project they are assigned to. The user
+   * triggering the event is retrieved from the security context.
+   *
+   * @param user    The user being assigned.
+   * @param project The project to which the user is being assigned.
+   */
+  public AssignUserEvent(User user, Project project) {
+    super(SecurityContextUtils.getPrincipal().getUserId(),
+        SecurityContextUtils.getPrincipal().getUsername());
+    this.isSystemEvent = false;
+    this.userActivityResource = getUserActivityResource(user, project);
+    this.orgId = project.getOrganizationId();
   }
 
   @Override
@@ -60,6 +91,21 @@ public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
         .addSubjectId(isSystemEvent ? null : getUserId())
         .addSubjectName(isSystemEvent ? RP_SUBJECT_NAME : getUserLogin())
         .addSubjectType(isSystemEvent ? EventSubject.APPLICATION : EventSubject.USER).get();
+  }
+
+  /**
+   * Creates a {@link UserActivityResource} from a {@link User} and a {@link Project}.
+   *
+   * @param user    The user.
+   * @param project The project.
+   * @return The created {@link UserActivityResource}.
+   */
+  private UserActivityResource getUserActivityResource(User user, Project project) {
+    UserActivityResource userActivityResource = new UserActivityResource();
+    userActivityResource.setId(user.getId());
+    userActivityResource.setDefaultProjectId(project.getId());
+    userActivityResource.setFullName(user.getLogin());
+    return userActivityResource;
   }
 
 }

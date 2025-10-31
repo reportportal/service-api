@@ -87,7 +87,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   @Autowired
   public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
       @Qualifier("projectJasperReportHandler")
-          GetJasperReportHandler<ProjectInfo> jasperReportHandler, ProjectConverter projectConverter) {
+      GetJasperReportHandler<ProjectInfo> jasperReportHandler, ProjectConverter projectConverter) {
     this.projectRepository = projectRepository;
     this.userRepository = userRepository;
     this.jasperReportHandler = jasperReportHandler;
@@ -95,7 +95,8 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public com.epam.ta.reportportal.model.Page<UserResource> getProjectUsers(MembershipDetails membershipDetails, Filter filter,
+  public com.epam.ta.reportportal.model.Page<UserResource> getProjectUsers(MembershipDetails membershipDetails,
+      Filter filter,
       Pageable pageable, ReportPortalUser user) {
     Project project = projectRepository.findByKey(membershipDetails.getProjectKey())
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
@@ -176,11 +177,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
     final CompositeFilterCondition userCondition = (userRole.equals(UserRole.ADMINISTRATOR))
         ? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
 
-    final Filter filter = Filter.builder().withTarget(User.class).withCondition(userCondition)
-        .withCondition(
-            new FilterCondition(Operator.AND, Condition.ANY, true, membershipDetails.getProjectName(),
-                CRITERIA_PROJECT
-            )).build();
+    final Filter filter = Filter.builder()
+        .withTarget(User.class)
+        .withCondition(userCondition)
+        .withCondition(new FilterCondition(Operator.AND, Condition.ANY, false, membershipDetails.getProjectName(),
+            CRITERIA_PROJECT
+        ))
+        .build();
 
     return PagedResourcesAssembler.pageConverter(UserConverter.TO_SEARCH_RESOURCE)
         .apply(userRepository.findByFilterExcludingProjects(filter, pageable));

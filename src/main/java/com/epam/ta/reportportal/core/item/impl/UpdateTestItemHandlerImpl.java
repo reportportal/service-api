@@ -189,6 +189,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
         testItem.getItemResults().setIssue(issueEntity);
         issueEntity.setTestItemResults(testItem.getItemResults());
+        testItem.setAnalysisOwnerId(user.getUserId());
+
         testItemRepository.save(testItem);
 
         if (ITEM_CAN_BE_INDEXED.test(testItem)) {
@@ -249,6 +251,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       TestItemActivityResource before =
           TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
       strategy.changeStatus(testItem, providedStatus.get(), user, true);
+      testItem.setAnalysisOwnerId(user.getUserId());
+
       messageBus.publishActivity(new TestItemStatusChangedEvent(before,
           TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId()), user.getUserId(),
           user.getUsername()
@@ -288,6 +292,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           testItems.stream().map(it -> it.getItemResults().getIssue()).collect(Collectors.toList()),
           linkRequest.getIssues()
       );
+      testItems.forEach(testItem -> testItem.setAnalysisOwnerId(user.getUserId()));
     }
 
     if (UnlinkExternalIssueRQ.class.equals(request.getClass())) {

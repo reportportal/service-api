@@ -32,9 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Service for extracting project details for a specified user by project name. This service
- * provides methods to extract project details for users, including special handling for
- * administrators.
+ * Service for extracting project details for a specified user by project name. This service provides methods to extract
+ * project details for users, including special handling for administrators.
  *
  * @author Pavel Bortnik
  */
@@ -107,8 +106,8 @@ public class ProjectExtractor {
   }
 
   /**
-   * Extracts project details for specified user by specified project name If user is ADMINISTRATOR
-   * - he is added as a PROJECT_MANAGER to the project.
+   * Extracts project details for specified user by specified project name If user is ADMINISTRATOR - he is added as a
+   * PROJECT_MANAGER to the project.
    *
    * @param projectKey Project unique key
    * @return Project Details
@@ -117,19 +116,5 @@ public class ProjectExtractor {
     return projectUserRepository.findAdminDetailsProjectKey(normalizeId(projectKey))
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
   }
-
-  /**
-   * Ensures that a project with the given name exists or throws PROJECT_NOT_FOUND.
-   * Returns project details when it exists.
-   *
-   * @param projectName Project name (any case)
-   * @return Project details if exists
-   */
-  public ReportPortalUser.ProjectDetails requireProjectExists(String projectName) {
-    return projectUserRepository
-        .findAdminDetailsProjectName(normalizeId(projectName))
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-  }
-
 
 }

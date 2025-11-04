@@ -73,8 +73,7 @@ public class GlobalExceptionHandler {
       UnsupportedOperationException.class,
       jakarta.validation.ConstraintViolationException.class,
       RestClientException.class
-    }
-  )
+  })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorRS handleCustomBadRequest(Exception exception) {
     return defaultErrorResolver.resolveError(exception).errorRs();

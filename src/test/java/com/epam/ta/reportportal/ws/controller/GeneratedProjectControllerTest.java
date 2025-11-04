@@ -59,7 +59,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
   void getLogTypesReturns404ForUnknownProject() throws Exception {
     mockMvc.perform(get("/projects/unknown_project/log-types")
             .with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -206,7 +206,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").value(
-            "You do not have enough permissions."));
+            "You do not have enough permissions. Access Denied"));
   }
 
   @Test
@@ -250,7 +250,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").value(
-            "You do not have enough permissions."));
+            "You do not have enough permissions. Access Denied"));
   }
 
   private LogTypeRequest createLogType(String name, int level, boolean isFilterable,

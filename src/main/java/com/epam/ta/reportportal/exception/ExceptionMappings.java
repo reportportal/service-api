@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
@@ -65,8 +64,6 @@ public final class ExceptionMappings {
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(IllegalArgumentException.class,
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
-      .put(MethodArgumentTypeMismatchException.class,
-          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(AccessDeniedException.class,
           new RestErrorDefinition<>(403, ErrorType.ACCESS_DENIED, DEFAULT_MESSAGE_BUILDER))
       .put(BadCredentialsException.class,
@@ -74,8 +71,6 @@ public final class ExceptionMappings {
       .put(LockedException.class, new RestErrorDefinition<>(403, ErrorType.ADDRESS_LOCKED, DEFAULT_MESSAGE_BUILDER))
       .put(RestClientException.class,
           new RestErrorDefinition<>(400, ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, DEFAULT_MESSAGE_BUILDER))
-      .put(IllegalArgumentException.class,
-          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(UnsupportedOperationException.class,
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(jakarta.validation.ConstraintViolationException.class,

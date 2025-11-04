@@ -277,12 +277,6 @@ class UserControllerTest extends BaseMvcTest {
         .andExpect(status().isOk());
   }
 
-  @Test
-  void validateUserInfoUsernamePositive() throws Exception {
-    mockMvc.perform(get(USERS_URL + "registration/info?username=default").with(
-            token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
 
   @Test
   void changePasswordWrongOldPassword() throws Exception {

@@ -120,7 +120,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void updateNotExistedTestItem() {
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
+        getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     when(itemRepository.findById(1L)).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.updateTestItem(rpUserToMembership(rpUser), 1L,
@@ -135,7 +135,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void updateTestItemUnderNotExistedLaunch() {
     final ReportPortalUser rpUser =
-        getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
+        getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
 
     TestItem testItem = new TestItem();
     testItem.setLaunchId(2L);
@@ -153,7 +153,8 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void updateTestItemUnderNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER , 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+        1L);
 
     TestItem item = new TestItem();
     Launch launch = new Launch();
@@ -347,7 +348,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void updateTestItemStatusShouldSetAnalysisOwner() {
     ReportPortalUser user =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setStatus("PASSED");
@@ -379,7 +380,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void defineIssuesShouldSetAnalysisOwner() {
     ReportPortalUser user =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     long itemId = 1L;
     TestItem item = new TestItem();
@@ -427,7 +428,7 @@ class UpdateTestItemHandlerImplTest {
   @Test
   void linkExternalIssueShouldSetAnalysisOwner() {
     ReportPortalUser user =
-        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     long itemId = 1L;
     TestItem item = new TestItem();

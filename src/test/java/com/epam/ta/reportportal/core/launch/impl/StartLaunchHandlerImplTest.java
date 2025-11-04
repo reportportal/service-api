@@ -20,14 +20,14 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
@@ -47,7 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -120,17 +119,13 @@ class StartLaunchHandlerImplTest {
     startLaunchRQ.setStartTime(Instant.now());
     startLaunchRQ.setUuid("some-uuid");
     startLaunchRQ.setMode(Mode.DEBUG);
-    ProjectDetails mockProjectDetails = extractProjectDetails(rpUser, "test_project");
 
     Launch mockLaunch = new Launch();
     mockLaunch.setId(1L);
     mockLaunch.setUuid("some-uuid");
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> startLaunchHandlerImpl.startLaunch(rpUser,
-            rpUserToMembership(rpUser), startLaunchRQ
-        )
-    );
+        () -> startLaunchHandlerImpl.startLaunch(rpUser, rpUserToMembership(rpUser), startLaunchRQ));
     assertEquals("Forbidden operation.", exception.getMessage());
   }
 }

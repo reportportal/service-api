@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.ws.controller;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -16,20 +15,19 @@ import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
 import com.epam.ta.reportportal.core.logtype.CreateLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.DeleteLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.GetLogTypeHandler;
 import com.epam.ta.reportportal.core.logtype.UpdateLogTypeHandler;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
 import lombok.RequiredArgsConstructor;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import org.pf4j.PluginManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -42,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GeneratedProjectController implements ProjectsApi {
 
   private final PluginManager pluginManager;
+  private final PluginBox pluginBox;
   private final GetLogTypeHandler getLogTypeHandler;
   private final CreateLogTypeHandler createLogTypeHandler;
   private final UpdateLogTypeHandler updateLogTypeHandler;
@@ -84,38 +83,38 @@ public class GeneratedProjectController implements ProjectsApi {
   @Override
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Transactional
-  public ResponseEntity<Void> deleteGroupFromProjectById(String projectName, Long groupId) {
-    getGroupExtension().deleteGroupFromProject(projectName, groupId);
+  public ResponseEntity<Void> deleteGroupFromProjectById(String projectKey, Long groupId) {
+    getGroupExtension().deleteGroupFromProject(projectKey, groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
-  @PreAuthorize(ASSIGNED_TO_PROJECT)
-  public ResponseEntity<GetLogTypes200Response> getLogTypes(String projectName) {
-    return ResponseEntity.ok(getLogTypeHandler.getLogTypes(normalizeId(projectName)));
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  public ResponseEntity<GetLogTypes200Response> getLogTypes(String projectKey) {
+    return ResponseEntity.ok(getLogTypeHandler.getLogTypes(normalizeId(projectKey)));
   }
 
   @Override
-  @PreAuthorize(PROJECT_MANAGER)
-  public ResponseEntity<LogTypeResponse> createLogType(String projectName, LogTypeRequest logType) {
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  public ResponseEntity<LogTypeResponse> createLogType(String projectKey, LogTypeRequest logType) {
     return new ResponseEntity<>(
-        createLogTypeHandler.createLogType(projectName, logType, getPrincipal()),
+        createLogTypeHandler.createLogType(projectKey, logType, getPrincipal()),
         HttpStatus.CREATED);
   }
 
   @Override
-  @PreAuthorize(PROJECT_MANAGER)
-  public ResponseEntity<SuccessfulUpdate> updateLogTypeById(String projectName, Long logTypeId,
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  public ResponseEntity<SuccessfulUpdate> updateLogTypeById(String projectKey, Long logTypeId,
       LogTypeRequest logType) {
     return ResponseEntity.ok(
-        updateLogTypeHandler.updateLogType(normalizeId(projectName), logTypeId, logType,
+        updateLogTypeHandler.updateLogType(normalizeId(projectKey), logTypeId, logType,
             getPrincipal()));
   }
 
   @Override
-  @PreAuthorize(PROJECT_MANAGER)
-  public ResponseEntity<Void> deleteLogTypeById(String projectName, Long logTypeId) {
-    deleteLogTypeHandler.deleteLogType(normalizeId(projectName), logTypeId, getPrincipal());
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  public ResponseEntity<Void> deleteLogTypeById(String projectKey, Long logTypeId) {
+    deleteLogTypeHandler.deleteLogType(normalizeId(projectKey), logTypeId, getPrincipal());
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 

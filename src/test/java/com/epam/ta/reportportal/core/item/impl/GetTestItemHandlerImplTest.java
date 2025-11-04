@@ -104,77 +104,6 @@ class GetTestItemHandlerImplTest {
 
   @Test
   void getTestItemSetsHasNestedStepsTrue() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-
-    TestItem item = new TestItem();
-    item.setItemId(1L);
-    TestItemResults results = new TestItemResults();
-    results.setEndTime(Instant.now());
-    item.setItemResults(results);
-
-    Launch launch = new Launch();
-    launch.setId(1L);
-
-    when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-    when(provider.retrieve(any())).thenReturn(resource -> resource.setHasNestedSteps(true));
-    when(resourceUpdaterProviders.stream()).thenReturn(Stream.of(provider));
-
-    TestItemResource resource = handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser);
-
-    assertTrue(resource.isHasNestedSteps());
-  }
-
-  @Test
-  void getTestItemByUuidSetsHasNestedStepsTrue() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-
-    TestItem item = new TestItem();
-    item.setItemId(1L);
-    item.setUuid("some-uuid");
-    TestItemResults results = new TestItemResults();
-    results.setEndTime(Instant.now());
-    item.setItemResults(results);
-
-    Launch launch = new Launch();
-    launch.setId(1L);
-
-    when(testItemRepository.findByUuid("some-uuid")).thenReturn(Optional.of(item));
-    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-    when(provider.retrieve(any())).thenReturn(resource -> resource.setHasNestedSteps(true));
-    when(resourceUpdaterProviders.stream()).thenReturn(Stream.of(provider));
-
-    TestItemResource resource = handler.getTestItem("some-uuid", extractProjectDetails(rpUser, "test_project"), rpUser);
-
-    assertTrue(resource.isHasNestedSteps());
-  }
-
-  @Test
-  void getTestItemSetsHasNestedStepsFalse() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-
-    TestItem item = new TestItem();
-    item.setItemId(2L);
-    TestItemResults results = new TestItemResults();
-    results.setEndTime(Instant.now());
-    item.setItemResults(results);
-
-    Launch launch = new Launch();
-    launch.setId(1L);
-
-    when(testItemRepository.findById(2L)).thenReturn(Optional.of(item));
-    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
-    ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> provider = mock(ResourceUpdaterProvider.class);
-    when(provider.retrieve(any())).thenReturn(resource -> resource.setHasNestedSteps(false));
-    when(resourceUpdaterProviders.stream()).thenReturn(Stream.of(provider));
-
-    TestItemResource resource = handler.getTestItem("2", extractProjectDetails(rpUser, "test_project"), rpUser);
-
-    assertFalse(resource.isHasNestedSteps());
-  }
-
-  @Test
-  void getTestItemSetsHasNestedStepsTrue() {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     TestItem item = new TestItem();
@@ -198,7 +127,7 @@ class GetTestItemHandlerImplTest {
 
   @Test
   void getTestItemByUuidSetsHasNestedStepsTrue() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     TestItem item = new TestItem();
     item.setItemId(1L);
@@ -222,7 +151,7 @@ class GetTestItemHandlerImplTest {
 
   @Test
   void getTestItemSetsHasNestedStepsFalse() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     TestItem item = new TestItem();
     item.setItemId(2L);
@@ -243,6 +172,7 @@ class GetTestItemHandlerImplTest {
 
     assertFalse(resource.isHasNestedSteps());
   }
+
 
   @Test
   @Disabled("waiting for requirements")

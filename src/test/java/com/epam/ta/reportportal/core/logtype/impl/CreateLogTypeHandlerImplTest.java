@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.log.ProjectLogType;
+import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -66,8 +67,8 @@ class CreateLogTypeHandlerImplTest {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     LogTypeRequest style = createDefaultLogTypeStyle();
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
-        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     doNothing().when(logTypeValidator).validateUniqueness(anyLong(), anyString(), anyInt());
@@ -96,8 +97,8 @@ class CreateLogTypeHandlerImplTest {
   @Test
   void createLogTypeWhenProjectMissingShouldThrowProjectNotFound() {
     // Given
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
-        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.empty());
 
     // When
@@ -113,8 +114,8 @@ class CreateLogTypeHandlerImplTest {
   void createLogTypeWhenDuplicateExistsShouldThrowResourceAlreadyExists() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
-        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     doThrow(new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS,
         "Log type: INFO - 20000")).when(logTypeValidator)
@@ -136,8 +137,8 @@ class CreateLogTypeHandlerImplTest {
   void createLogTypeWhenFilterableLimitExceededShouldThrowBadRequestError() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
-        ProjectRole.PROJECT_MANAGER, PROJECT_ID);
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     doNothing().when(logTypeValidator)
         .validateUniqueness(PROJECT_ID, LOG_TYPE_NAME, LOG_TYPE_LEVEL);

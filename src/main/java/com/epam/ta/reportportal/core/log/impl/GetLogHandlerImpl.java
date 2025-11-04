@@ -124,13 +124,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
   public com.epam.ta.reportportal.model.Page<LogResource> getLogs(@Nullable String path,
       MembershipDetails membershipDetails, Filter filterable, Pageable pageable) {
     ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
-    Filter resolvedFilter = logFilterPreparator.prepare(filterable, projectDetails.getProjectId());
+    Filter resolvedFilter = logFilterPreparator.prepare(filterable, membershipDetails.getProjectId());
     Page<LogFull> logFullPage =
         logService.findByFilter(ProjectFilter.of(resolvedFilter, membershipDetails.getProjectId()),
             pageable
         );
     List<LogResource> resources = logConverter.toResources(logFullPage.getContent(),
-        projectDetails.getProjectId());
+        membershipDetails.getProjectId());
     return PagedResourcesAssembler.<LogResource>pageConverter().apply(
         new PageImpl<>(resources, logFullPage.getPageable(), logFullPage.getTotalElements())
     );
@@ -140,7 +140,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
   public Map<Long, List<LogResource>> getLogs(GetLogsUnderRq logsUnderRq,
       MembershipDetails membershipDetails) {
 
-    final int logLevel = logTypeResolver.resolveLogLevelFromName(projectDetails.getProjectId(),
+    final int logLevel = logTypeResolver.resolveLogLevelFromName(membershipDetails.getProjectId(),
         logsUnderRq.getLogLevel());
 
     return testItemRepository.findAllById(logsUnderRq.getItemIds()).stream()
@@ -149,7 +149,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
           validate(launch, membershipDetails);
           List<LogFull> logs = logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
               launch.getId(), item.getItemId(), logLevel, LOG_UNDER_ITEM_BATCH_SIZE);
-          return logConverter.toResources(logs, projectDetails.getProjectId());
+          return logConverter.toResources(logs, membershipDetails.getProjectId());
         }));
   }
 
@@ -157,7 +157,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
   public long getPageNumber(Long logId, MembershipDetails membershipDetails,
       Filter filterable, Pageable pageable) {
     return logRepository.getPageNumber(logId,
-        logFilterPreparator.prepare(filterable, projectDetails.getProjectId()),
+        logFilterPreparator.prepare(filterable, membershipDetails.getProjectId()),
         pageable);
   }
 
@@ -185,7 +185,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
     validate(launch, membershipDetails);
 
     Queryable resolvedFilter = logFilterPreparator.prepare(queryable,
-        projectDetails.getProjectId());
+        membershipDetails.getProjectId());
 
     Boolean excludeEmptySteps =
         ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
@@ -215,7 +215,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
         ).stream().collect(toMap(NestedStep::getId, i -> i))).orElseGet(Collections::emptyMap);
 
     Map<Long, LogResource> logResourceMap = logConverter.toResources(logMap.values(),
-            projectDetails.getProjectId()).stream()
+            membershipDetails.getProjectId()).stream()
         .collect(toMap(LogResource::getId, Function.identity()));
 
     List<Object> resources = Lists.newArrayListWithExpectedSize(content.size());
@@ -242,8 +242,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
     validateTestItemAndLaunch(parentId, membershipDetails);
 
-    Queryable resolvedFilter = logFilterPreparator.prepare(queryable,
-        projectDetails.getProjectId());
+    Queryable resolvedFilter = logFilterPreparator.prepare(queryable, membershipDetails.getProjectId());
 
     LogLocationParams locationParams = extractLogLocationParams(params);
 
@@ -252,7 +251,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
         : loadLogsErrorsOnly(parentId, locationParams, resolvedFilter, pageable);
 
     if (!locationParams.excludeLogContent() && !loadedLogs.isEmpty()) {
-      enrichLogsWithContent(loadedLogs, projectDetails.getProjectId());
+      enrichLogsWithContent(loadedLogs, membershipDetails.getProjectId());
     }
     return loadedLogs;
   }
@@ -368,7 +367,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
   /**
    * Validate log item on existence, availability under specified project, etc.
    *
-   * @param log            - logFull item
+   * @param log               - logFull item
    * @param membershipDetails Membership details
    */
   private void validate(LogFull log, MembershipDetails membershipDetails) {
@@ -419,13 +418,11 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   /**
-   * Updates 'filterable' with {@link TestItem#getLaunchId()} condition if
-   * {@link TestItem#getRetryOf()} is NULL otherwise updates 'filterable' with 'launchId' of the
-   * 'retry' parent
+   * Updates 'filterable' with {@link TestItem#getLaunchId()} condition if {@link TestItem#getRetryOf()} is NULL
+   * otherwise updates 'filterable' with 'launchId' of the 'retry' parent
    *
    * @param filterable {@link Filter} with {@link FilterTarget#getClazz()} of {@link Log}
-   * @param path       {@link TestItem#getPath()} under which {@link Log} entities should be
-   *                   searched
+   * @param path       {@link TestItem#getPath()} under which {@link Log} entities should be searched
    */
   private void updateFilter(Filter filterable, String path) {
     TestItem testItem = testItemRepository.findByPath(path)
@@ -451,8 +448,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   /**
-   * Updates 'path' condition of the {@link TestItem} whose {@link Log} entities should be searched.
-   * Required when there are 'Nested Steps' under the {@link TestItem} that is a 'retry'
+   * Updates 'path' condition of the {@link TestItem} whose {@link Log} entities should be searched. Required when there
+   * are 'Nested Steps' under the {@link TestItem} that is a 'retry'
    *
    * @param testItem   {@link TestItem} containing logs
    * @param filterable {@link Filter} with {@link FilterTarget#getClazz()} of {@link Log}
@@ -487,8 +484,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
   }
 
   /**
-   * Method to determine whether logs of the {@link TestItem} with {@link StatusEnum#PASSED} should
-   * be retrieved with nested steps or should be excluded from the select query
+   * Method to determine whether logs of the {@link TestItem} with {@link StatusEnum#PASSED} should be retrieved with
+   * nested steps or should be excluded from the select query
    *
    * @param parent            {@link Log#getTestItem()}
    * @param excludePassedLogs if 'true' logs of the passed items should be excluded
@@ -507,11 +504,10 @@ public class GetLogHandlerImpl implements GetLogHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
   }
 
-  private void validateTestItemAndLaunch(Long parentId,
-      ReportPortalUser.ProjectDetails projectDetails) {
+  private void validateTestItemAndLaunch(Long parentId, MembershipDetails membershipDetails) {
     TestItem parentItem = getValidatedTestItem(parentId);
     Launch launch = testItemService.getEffectiveLaunch(parentItem);
-    validate(launch, projectDetails);
+    validate(launch, membershipDetails);
   }
 
   private LogLocationParams extractLogLocationParams(Map<String, String> params) {

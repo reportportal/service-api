@@ -39,6 +39,7 @@ import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.core.events.activity.AssignUserEvent;
 import com.epam.ta.reportportal.core.events.activity.CreateInvitationLinkEvent;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.organization.OrganizationUserService;
@@ -211,6 +212,9 @@ public class UserInvitationServiceImpl implements UserInvitationService {
           .withProject(projectEntity)
           .withProjectRole(resolveProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
           .withUser(user));
+
+      AssignUserEvent assignUserEvent = new AssignUserEvent(user, projectEntity);
+      eventPublisher.publishEvent(assignUserEvent);
     });
 
   }

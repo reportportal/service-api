@@ -68,7 +68,7 @@ class SecurityConfiguration {
   @Bean
   public SecurityFilterChain web(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/**/user**/registration/info*",
+            .requestMatchers(
                 "/**/invitations/**",
                 "/**/user**/password/reset/*",
                 "/**/user**/password/reset**",

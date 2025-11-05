@@ -151,16 +151,17 @@ public class ActivityDetailsUtil {
     return Optional.empty();
   }
 
-  /**
-   * Compares a concrete parameter value in two config maps and produces a history field if the parameter exists in the
-   * new config and its value changed.
-   *
-   * @param oldConfig     previous configuration map
-   * @param newConfig     new configuration map
-   * @param parameterName parameter key to compare
-   * @return optional history field present if parameter exists in new config and differs
-   */
-  public static Optional<HistoryField> processParameter(Map<String, String> oldConfig, Map<String, String> newConfig,
+  public static Optional<HistoryField> processField(String fieldName, Object before, Object after) {
+    String beforeStr = Objects.toString(before, "");
+    String afterStr = Objects.toString(after, "");
+    if (!afterStr.equals(beforeStr)) {
+      return Optional.of(HistoryField.of(fieldName, beforeStr, afterStr));
+    }
+    return Optional.empty();
+  }
+
+  public static Optional<HistoryField> processParameter(Map<String, String> oldConfig,
+      Map<String, String> newConfig,
       String parameterName) {
     String before = oldConfig.get(parameterName);
     String after = newConfig.get(parameterName);
@@ -226,5 +227,4 @@ public class ActivityDetailsUtil {
         .map(e -> e.getKey() + "=" + Objects.toString(e.getValue(), EMPTY_STRING))
         .collect(Collectors.joining(", ", "{", "}"));
   }
-
 }

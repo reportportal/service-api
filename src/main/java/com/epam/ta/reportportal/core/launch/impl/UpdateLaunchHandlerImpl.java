@@ -61,7 +61,6 @@ import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -119,7 +118,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     Project project = getProjectHandler.get(membershipDetails);
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
-    validate(launch, user, membershipDetails, rq.getMode());
+    validate(launch, user, membershipDetails);
 
     LaunchModeEnum previousMode = launch.getMode();
 
@@ -238,19 +237,18 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   }
 
   /**
-   * Valide {@link ReportPortalUser} credentials
+   * Validates access and edit permissions for launch update.
    *
    * @param launch {@link Launch}
    * @param user   {@link ReportPortalUser}
-   * @param mode   {@link Launch#mode}
    */
-  //TODO *Validator refactoring
-  private void validate(Launch launch, ReportPortalUser user,
-      MembershipDetails membershipDetails, Mode mode) {
-    if (user.getUserRole() != UserRole.ADMINISTRATOR && !OrganizationRole.MANAGER.equals(membershipDetails.getOrgRole())) {
+  private void validate(Launch launch, ReportPortalUser user, MembershipDetails membershipDetails) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR && !OrganizationRole.MANAGER.equals(
+        membershipDetails.getOrgRole())) {
       expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId()))
           .verify(ACCESS_DENIED);
-      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER))) {
+      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole()
+          .equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED);
       }
     }

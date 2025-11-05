@@ -17,15 +17,17 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
@@ -43,15 +45,13 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.reportportal.model.project.AnalyzerConfig;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.time.temporal.ChronoUnit;
@@ -61,8 +61,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.IntStream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +72,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class SearchLogServiceImpl implements SearchLogService {
 
   private final ProjectRepository projectRepository;
@@ -85,19 +87,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 
   private final SearchCollectorFactory searchCollectorFactory;
 
-  @Autowired
-  public SearchLogServiceImpl(ProjectRepository projectRepository,
-      LaunchRepository launchRepository,
-      TestItemRepository testItemRepository, LogService logService,
-      AnalyzerServiceClient analyzerServiceClient,
-      SearchCollectorFactory searchCollectorFactory) {
-    this.projectRepository = projectRepository;
-    this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
-    this.logService = logService;
-    this.analyzerServiceClient = analyzerServiceClient;
-    this.searchCollectorFactory = searchCollectorFactory;
-  }
+  private final LogConverter logConverter;
 
   @Override
   public Iterable<SearchLogRs> search(Long itemId, SearchLogRq request,
@@ -161,21 +151,28 @@ public class SearchLogServiceImpl implements SearchLogService {
         .stream()
         .collect(toMap(TestItem::getItemId, item -> item));
     List<LogFull> foundLogs = logService.findAllById(logIdMapping.keySet());
+    List<SearchLogRs.LogEntry> logEntries = logConverter.toLogEntries(foundLogs, projectId);
+    
+    Map<Long, SearchLogRs.LogEntry> logEntryByLogId = IntStream.range(0, foundLogs.size())
+        .boxed()
+        .collect(toMap(i -> foundLogs.get(i).getId(), logEntries::get));
+    
     Map<Long, SearchLogRs> foundLogsMap = Maps.newHashMap();
 
     foundLogs.forEach(log -> ofNullable(logIdMapping.get(log.getId())).ifPresent(itemId -> {
+      SearchLogRs.LogEntry logEntry = logEntryByLogId.get(log.getId());
       foundLogsMap.computeIfPresent(itemId, (key, value) -> {
-        value.getLogs().add(TO_LOG_ENTRY.apply(log));
+        value.getLogs().add(logEntry);
         return value;
       });
       foundLogsMap.computeIfAbsent(itemId,
-          key -> composeResponse(testItemMapping, projectId, itemId, log));
+          key -> composeResponse(testItemMapping, projectId, itemId, logEntry));
     }));
     return foundLogsMap.values();
   }
 
   private SearchLogRs composeResponse(Map<Long, TestItem> testItemMapping, Long projectId,
-      Long itemId, LogFull log) {
+      Long itemId, SearchLogRs.LogEntry logEntry) {
     TestItem testItem = ofNullable(testItemMapping.get(itemId)).orElseThrow(
         () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
             itemId
@@ -213,7 +210,7 @@ public class SearchLogServiceImpl implements SearchLogService {
     }
 
     response.setIssue(IssueConverter.TO_MODEL.apply(itemWithStats.getItemResults().getIssue()));
-    response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
+    response.setLogs(Lists.newArrayList(logEntry));
     return response;
   }
 

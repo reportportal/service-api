@@ -127,7 +127,7 @@ class GetTestItemHandlerImplTest {
 
   @Test
   void getTestItemByUuidSetsHasNestedStepsTrue() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     TestItem item = new TestItem();
     item.setItemId(1L);
@@ -151,7 +151,7 @@ class GetTestItemHandlerImplTest {
 
   @Test
   void getTestItemSetsHasNestedStepsFalse() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     TestItem item = new TestItem();
     item.setItemId(2L);
@@ -172,6 +172,7 @@ class GetTestItemHandlerImplTest {
 
     assertFalse(resource.isHasNestedSteps());
   }
+
 
   @Test
   @Disabled("waiting for requirements")

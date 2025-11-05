@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
@@ -30,7 +31,7 @@ import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ class SuggestItemServiceTest {
   private final LogService logService = mock(LogService.class);
 
   private final TestItemValidator testItemValidator = mock(TestItemValidator.class);
+  private final LogConverter logConverter = mock(LogConverter.class);
   private final List<TestItemValidator> validators = List.of(testItemValidator);
 
   private final SuggestItemService suggestItemService = new SuggestItemService(
@@ -63,7 +65,9 @@ class SuggestItemServiceTest {
       getClusterHandler,
       launchAccessValidator,
       testItemRepository,
-      logService, validators
+      logService,
+      logConverter,
+      validators
   );
 
   @Test

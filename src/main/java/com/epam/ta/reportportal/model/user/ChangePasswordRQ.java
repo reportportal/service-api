@@ -16,13 +16,9 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
-
-import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.ta.reportportal.ws.validation.ValidPassword;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -33,10 +29,8 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChangePasswordRQ {
 
-	@NotBlank
-	@Size(min = ValidationConstraints.MIN_PASSWORD_LENGTH, max = ValidationConstraints.MAX_PASSWORD_LENGTH)
-  @Pattern(regexp = USER_PASSWORD_REGEXP)
-	private String newPassword;
+  @ValidPassword
+  private String newPassword;
 
   @NotBlank
   private String oldPassword;

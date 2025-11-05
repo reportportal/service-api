@@ -30,26 +30,23 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.dao.GroupMembershipRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.group.GroupProject;
-import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserResource;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
@@ -59,7 +56,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -84,8 +80,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   private final GroupMembershipRepository groupMembershipRepository;
 
-  private final UserCreationBidRepository userCreationBidRepository;
-
   private final GetJasperReportHandler<User> jasperReportHandler;
 
   /**
@@ -94,7 +88,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
    * @param userRepo                  User repository
    * @param projectRepository         Project repository
    * @param groupMembershipRepository Group project repository
-   * @param userCreationBidRepository User creation bid repository
    * @param jasperReportHandler       Jasper report handler
    */
   @Autowired
@@ -102,12 +95,10 @@ public class GetUserHandlerImpl implements GetUserHandler {
       UserRepository userRepo,
       ProjectRepository projectRepository,
       GroupMembershipRepository groupMembershipRepository,
-      UserCreationBidRepository userCreationBidRepository,
       @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler
   ) {
     this.userRepository = Preconditions.checkNotNull(userRepo);
     this.groupMembershipRepository = groupMembershipRepository;
-    this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
     this.projectRepository = projectRepository;
     this.jasperReportHandler = jasperReportHandler;
   }
@@ -157,18 +148,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
         .apply(userRepository.findByFilterExcluding(filter, pageable, "email"));
   }
 
-
-  @Override
-  public YesNoRS validateInfo(String username, String email) {
-    if (null != username) {
-      Optional<User> user = userRepository.findByLogin(EntityUtils.normalizeId(username));
-      return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
-    } else if (null != email) {
-      Optional<User> user = userRepository.findByEmail(EntityUtils.normalizeId(email));
-      return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
-    }
-    return new YesNoRS(false);
-  }
 
   @Override
   public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {

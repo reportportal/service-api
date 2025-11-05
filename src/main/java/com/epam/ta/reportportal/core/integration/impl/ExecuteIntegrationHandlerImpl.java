@@ -24,6 +24,7 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ReportPortalException;

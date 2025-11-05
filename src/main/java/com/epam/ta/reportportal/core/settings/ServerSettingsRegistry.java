@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.settings;
 
 import java.util.HashMap;
@@ -22,8 +23,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * Registry that maps server setting keys to their respective handlers. Automatically populated via
- * Spring's component scanning.
+ * Registry that maps server setting keys to their respective handlers. Automatically populated via Spring's component
+ * scanning.
  * <p>
  * Supports dynamic and extensible handler registration using Spring DI.
  * <p>

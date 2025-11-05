@@ -30,8 +30,10 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
@@ -48,9 +50,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
-import com.epam.ta.reportportal.ws.reporting.Mode;
 import java.util.Map;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -82,12 +82,19 @@ class UpdateLaunchHandlerImplTest {
   @Mock
   private UniqueErrorAnalysisStarter starter;
 
+  @Mock
+  private LaunchAttributeHandlerService launchAttributeHandlerService;
+
+  @Mock
+  private LogIndexer logIndexer;
+
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;
 
   @Test
   void updateNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,  1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+        1L);
     rpUser.setUserId(2L);
     when(getProjectHandler.get(any(MembershipDetails.class)))
         .thenReturn(new Project());
@@ -101,24 +108,6 @@ class UpdateLaunchHandlerImplTest {
     assertEquals("You do not have enough permissions.", exception.getMessage());
   }
 
-  @Test
-  @Disabled("waiting for requirements")
-  void updateDebugLaunchByCustomer() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
-
-    when(getProjectHandler.get(any(MembershipDetails.class))).thenReturn(new Project());
-    when(launchRepository.findById(1L)).thenReturn(
-        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
-    final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
-    updateLaunchRQ.setMode(Mode.DEBUG);
-
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateLaunch(1L, rpUserToMembership(rpUser), rpUser,
-            updateLaunchRQ
-        )
-    );
-    assertEquals("You do not have enough permissions.", exception.getMessage());
-  }
 
   @Test
   void createClustersLaunchInProgress() {

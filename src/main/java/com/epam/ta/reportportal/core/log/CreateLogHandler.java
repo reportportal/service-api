@@ -16,12 +16,6 @@
 
 package com.epam.ta.reportportal.core.log;
 
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-
-import com.epam.reportportal.rules.commons.validation.Suppliers;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.ws.reporting.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
@@ -42,21 +36,4 @@ public interface CreateLogHandler {
   @Nonnull
   EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ createLogRQ, @Nullable MultipartFile file,
       @Nullable MembershipDetails membershipDetails);
-
-  /**
-   * Validates business rules related to test item of this log
-   *
-   * @param saveLogRQ Save log request
-   */
-  default void validate(SaveLogRQ saveLogRQ) {
-    // todo : seems we need to loosen (throw out) this time check
-//		expect(saveLogRQ.getLogTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(
-//				ErrorType.LOGGING_IS_NOT_ALLOWED,
-//				Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time.")
-//		);
-    expect(LogLevel.toCustomLogLevel(saveLogRQ.getLevel()), Predicates.notNull()).verify(
-        ErrorType.BAD_SAVE_LOG_REQUEST,
-        Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
-    );
-  }
 }

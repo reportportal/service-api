@@ -39,14 +39,4 @@ public interface StartLaunchHandler {
    */
   StartLaunchRS startLaunch(ReportPortalUser user, MembershipDetails membershipDetails,
       StartLaunchRQ startLaunchRQ);
-
-  /**
-   * Validate {@link ReportPortalUser} credentials.
-   *
-   * @param membershipDetails {@link MembershipDetails}
-   * @param startLaunchRQ  {@link StartLaunchRQ}
-   */
-  default void validateRoles(MembershipDetails membershipDetails,
-      StartLaunchRQ startLaunchRQ) {
   }
-}

@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.organization.OrganizationRole;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
@@ -73,6 +74,9 @@ class StartLaunchHandlerImplTest {
   @Mock
   private LaunchAttributeHandlerService launchAttributeHandlerService;
 
+  @Mock
+  private LaunchBuilder launchBuilder;
+
   @InjectMocks
   private StartLaunchHandlerImpl startLaunchHandlerImpl;
 
@@ -106,18 +110,22 @@ class StartLaunchHandlerImplTest {
 
   @Test
   @Disabled("waiting for requirements")
-  void accessDeniedForCustomerRoleAndDebugMode() {
+  void startLaunchForCustomerRoleAndDebugMode() {
+    // given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
 
     StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
+    startLaunchRQ.setName("name");
     startLaunchRQ.setStartTime(Instant.now());
+    startLaunchRQ.setUuid("some-uuid");
     startLaunchRQ.setMode(Mode.DEBUG);
 
+    Launch mockLaunch = new Launch();
+    mockLaunch.setId(1L);
+    mockLaunch.setUuid("some-uuid");
+
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> startLaunchHandlerImpl.startLaunch(rpUser,
-            rpUserToMembership(rpUser), startLaunchRQ
-        )
-    );
+        () -> startLaunchHandlerImpl.startLaunch(rpUser, rpUserToMembership(rpUser), startLaunchRQ));
     assertEquals("Forbidden operation.", exception.getMessage());
   }
 }

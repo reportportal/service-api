@@ -67,9 +67,7 @@ public class StartLaunchHandlerImpl implements StartLaunchHandler {
 
   @Override
   @Transactional
-  public StartLaunchRS startLaunch(ReportPortalUser user,
-      MembershipDetails membershipDetails, StartLaunchRQ request) {
-    validateRoles(membershipDetails, request);
+  public StartLaunchRS startLaunch(ReportPortalUser user, MembershipDetails membershipDetails, StartLaunchRQ request) {
 
     final Launch savedLaunch = Optional.of(request.isRerun()).filter(Boolean::booleanValue)
         .map(rerun -> rerunHandler.handleLaunch(request, membershipDetails.getProjectId(), user))

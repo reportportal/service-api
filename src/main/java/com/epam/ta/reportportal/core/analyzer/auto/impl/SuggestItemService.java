@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
+@RequiredArgsConstructor
 public class SuggestItemService {
 
   private static final int SUGGESTED_ITEMS_LOGS_LIMIT = 5;
@@ -73,25 +74,10 @@ public class SuggestItemService {
 
   private final TestItemRepository testItemRepository;
   private final LogService logService;
+  private final LogConverter logConverter;
 
   private final List<TestItemValidator> testItemValidators;
 
-  @Autowired
-  public SuggestItemService(AnalyzerServiceClient analyzerServiceClient,
-      GetProjectHandler getProjectHandler,
-      GetLaunchHandler getLaunchHandler, GetClusterHandler getClusterHandler,
-      LaunchAccessValidator launchAccessValidator,
-      TestItemRepository testItemRepository, LogService logService,
-      List<TestItemValidator> testItemValidators) {
-    this.analyzerServiceClient = analyzerServiceClient;
-    this.getProjectHandler = getProjectHandler;
-    this.getLaunchHandler = getLaunchHandler;
-    this.getClusterHandler = getClusterHandler;
-    this.launchAccessValidator = launchAccessValidator;
-    this.testItemRepository = testItemRepository;
-    this.logService = logService;
-    this.testItemValidators = testItemValidators;
-  }
 
   @Transactional(readOnly = true)
   public List<SuggestedItem> suggestItems(Long testItemId,
@@ -200,7 +186,7 @@ public class SuggestItemService {
         relevantTestItem.getItemId(),
         ERROR_INT,
         SUGGESTED_ITEMS_LOGS_LIMIT
-    ).stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toSet()));
+    ).stream().map(logConverter::toResource).collect(Collectors.toSet()));
     return suggestedItem;
   }
 

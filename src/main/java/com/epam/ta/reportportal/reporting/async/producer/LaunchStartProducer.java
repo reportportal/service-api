@@ -21,8 +21,8 @@ import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyC
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
+import com.epam.ta.reportportal.entity.organization.MembershipDetails;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
@@ -52,8 +52,6 @@ public class LaunchStartProducer implements StartLaunchHandler {
   @Override
   public StartLaunchRS startLaunch(ReportPortalUser user, MembershipDetails membershipDetails,
       StartLaunchRQ request) {
-    validateRoles(membershipDetails, request);
-
     if (request.isRerun()) {
       request.setUuid(rerunHandler.getRerunLaunchUuid(request.getRerunOf(), request.getName(),
           membershipDetails.getProjectId()));

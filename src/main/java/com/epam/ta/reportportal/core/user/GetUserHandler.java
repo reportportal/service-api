@@ -63,15 +63,6 @@ public interface GetUserHandler {
 
 
   /**
-   * Validate existence of username or email
-   *
-   * @param username User name
-   * @param email    email
-   * @return {@link YesNoRS}
-   */
-  YesNoRS validateInfo(String username, String email);
-
-  /**
    * Get all users by filter with paging
    *
    * @param filter         Filter

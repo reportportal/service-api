@@ -24,14 +24,26 @@ package com.epam.ta.reportportal.core.settings;
 public interface ServerSettingHandler {
 
   /**
-   * Handles the updated value for the setting.
-   *
-   * @param value the new value associated with the setting
+   * Validates an incoming value for this setting. Invoked <b>before</b> persisting the value.
+   * Implementations should throw a {@code ReportPortalException} with {@code BAD_REQUEST_ERROR} for
+   * invalid values. Default implementation accepts any value to keep backward compatibility.
    */
-  void handle(String value);
+  default void validate(String value) {
+    // no-op by default
+  }
 
   /**
-   * Returns the key this handler supports.
+   * Post-persist side effects for the updated setting value. Called only if validation succeeded
+   * and the value has been saved.
+   *
+   * @param value the new, already-persisted value
+   */
+  default void handle(String value) {
+    // no-op by default
+  }
+
+  /**
+   * Returns the server setting key this handler serves.
    *
    * @return the server setting key
    */

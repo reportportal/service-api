@@ -50,15 +50,20 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import com.epam.ta.reportportal.ws.reporting.LaunchResource;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -95,8 +100,23 @@ class GetLaunchHandlerImplTest {
   @Mock
   private LaunchConverter launchConverter;
 
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
+
   @InjectMocks
   private GetLaunchHandlerImpl handler;
+
+  @BeforeEach
+  void setUp() throws Exception {
+    Function<Launch, LaunchResource> toResourceFunction = (l -> {
+      LaunchResource launchResource = new LaunchResource();
+      launchResource.setLaunchId(1L);
+      return launchResource;
+    });
+    Field toResourceField = LaunchConverter.class.getDeclaredField("TO_RESOURCE");
+    toResourceField.setAccessible(true);
+    toResourceField.set(launchConverter, toResourceFunction);
+  }
 
   @Test
   void getLaunchFromOtherProject() {
@@ -114,14 +134,17 @@ class GetLaunchHandlerImplTest {
   @Test
   @Disabled("waiting for requirements")
   void getDebugLaunchWithCustomerRole() {
+    // given
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
-    when(launchRepository.findById(1L)).thenReturn(
-        getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
+    Optional<Launch> launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG);
+    when(launchRepository.findById(1L)).thenReturn(launch);
 
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch("1", rpUserToMembership(rpUser))
-    );
-    assertEquals("You do not have enough permissions.", exception.getMessage());
+    // when
+    LaunchResource result = handler.getLaunch("1",
+        rpUserToMembership(rpUser));
+
+    // then
+    assertEquals(1L, result.getLaunchId());
   }
 
   @Test
@@ -283,6 +306,7 @@ class GetLaunchHandlerImplTest {
   @Test
   @Disabled("waiting for requirements")
   void getLaunchInDebugModeByCustomer() {
+    // given
     long projectId = 1L;
     ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, projectId);
     String launchId = "1";
@@ -292,10 +316,12 @@ class GetLaunchHandlerImplTest {
     launch.setMode(LaunchModeEnum.DEBUG);
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
 
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.getLaunch(launchId, extractProjectDetails(user, TEST_PROJECT_KEY))
-    );
-    assertEquals("You do not have enough permissions.", exception.getMessage());
+    // when
+    LaunchResource result = handler.getLaunch("1",
+        extractProjectDetails(user, TEST_PROJECT_KEY));
+
+    // then
+    assertEquals(1L, result.getLaunchId());
   }
 
   @Test

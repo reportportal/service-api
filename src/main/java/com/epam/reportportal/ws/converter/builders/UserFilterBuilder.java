@@ -1,0 +1,115 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.ws.converter.builders;
+
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
+import com.epam.reportportal.infrastructure.persistence.commons.querygen.Condition;
+import com.epam.reportportal.infrastructure.persistence.commons.querygen.FilterCondition;
+import com.epam.reportportal.infrastructure.persistence.entity.filter.FilterSort;
+import com.epam.reportportal.infrastructure.persistence.entity.filter.ObjectType;
+import com.epam.reportportal.infrastructure.persistence.entity.filter.UserFilter;
+import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.model.filter.Order;
+import com.epam.reportportal.model.filter.UpdateUserFilterRQ;
+import com.epam.reportportal.model.filter.UserFilterCondition;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import org.springframework.data.domain.Sort;
+
+/**
+ * @author Pavel Bortnik
+ */
+public class UserFilterBuilder implements Supplier<UserFilter> {
+
+  private UserFilter userFilter;
+
+  public UserFilterBuilder() {
+    userFilter = new UserFilter();
+  }
+
+  public UserFilterBuilder(UserFilter userFilter) {
+    this.userFilter = userFilter;
+  }
+
+  public UserFilterBuilder addFilterRq(UpdateUserFilterRQ rq) {
+    userFilter.setDescription(rq.getDescription());
+    ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
+    ofNullable(rq.getObjectType()).ifPresent(
+        it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
+    addFilterConditions(rq.getConditions());
+    addSelectionParameters(rq.getOrders());
+    return this;
+  }
+
+  /**
+   * Convert provided conditions into db and add them to filter object
+   *
+   * @param conditions Conditions from rq
+   * @return UserFilterBuilder
+   */
+  public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
+    userFilter.getFilterCondition().clear();
+    ofNullable(conditions).ifPresent(c -> userFilter.getFilterCondition().addAll(c.stream().map(
+        entity -> FilterCondition.builder().withSearchCriteria(entity.getFilteringField())
+            .withValue(entity.getValue()).withNegative(Condition.isNegative(entity.getCondition()))
+            .withCondition(Condition.findByMarker(entity.getCondition()).orElseThrow(
+                () -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+                    entity.getCondition()
+                ))).build()).collect(toList())));
+
+    return this;
+  }
+
+  /**
+   * Convert provided selection into db and add them in correct order to filter object
+   *
+   * @param orders Filter sorting conditions
+   * @return UserFilterBuilder
+   */
+  public UserFilterBuilder addSelectionParameters(List<Order> orders) {
+    userFilter.getFilterSorts().clear();
+    ofNullable(orders).ifPresent(o -> o.forEach(order -> {
+      FilterSort filterSort = new FilterSort();
+      filterSort.setField(order.getSortingColumnName());
+      filterSort.setDirection(order.getIsAsc() ? Sort.Direction.ASC : Sort.Direction.DESC);
+      userFilter.getFilterSorts().add(filterSort);
+    }));
+    return this;
+  }
+
+  public UserFilterBuilder addProject(Long projectId) {
+    Project project = new Project();
+    project.setId(projectId);
+    userFilter.setProject(project);
+    return this;
+  }
+
+  public UserFilterBuilder addOwner(String owner) {
+    userFilter.setOwner(owner);
+    return this;
+  }
+
+  @Override
+  public UserFilter get() {
+    return userFilter;
+  }
+}

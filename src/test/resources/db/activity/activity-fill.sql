@@ -7,7 +7,7 @@ values (1, 1, 'uuid', 'STEP', now(), now(), 1);
 
 insert into activity(created_at, action, event_name, priority, object_id, object_name, object_type, project_id, details, subject_id, subject_name, subject_type, organization_id)
 values (now() - interval '12 day', 'UPDATE', 'updateDashboard', 'MEDIUM', 1, 'name', 'DASHBOARD', 2, '{
-  "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
+  "type": "com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails",
   "history": [
     {
       "field": "name",
@@ -23,22 +23,22 @@ values (now() - interval '12 day', 'UPDATE', 'updateDashboard', 'MEDIUM', 1, 'na
 }', 2, 'user', 'USER', 1),
 
        (now() - INTERVAL '20 day', 'CREATE', 'createWidget', 'MEDIUM', 1, 'widget test', 'WIDGET', 2, '{
-  "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
+  "type": "com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails",
   "history": null
 }', 2, 'user', 'USER', 1),
 
        (now() - INTERVAL '3 day', 'CREATE', 'createFilter', 'MEDIUM', 1, 'filter test', 'FILTER', 2, '{
-  "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
+  "type": "com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails",
   "history": null
 }', 2, 'user', 'USER', 1),
 
        (now() - INTERVAL '2 day', 'CREATE', 'createFilter', 'MEDIUM', 1, 'filter new test', 'FILTER', 2, '{
-  "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
+  "type": "com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails",
   "history": null
 }', 2, 'user', 'USER', 1),
 
        (now() - INTERVAL '1 day' - INTERVAL '4 hour', 'UPDATE', 'updateFilter', 'MEDIUM', 2, 'filter new test', 'FILTER', 2, '{
-  "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
+  "type": "com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails",
   "history": [
     {
       "field": "name",
@@ -54,11 +54,11 @@ values (now() - interval '12 day', 'UPDATE', 'updateDashboard', 'MEDIUM', 1, 'na
 }', 2, 'user', 'USER', 1),
 
        (now() - INTERVAL '2 day', 'START', 'startLaunch', 'MEDIUM', 3, 'launch test', 'LAUNCH', 2, '{
-  "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
+  "type": "com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails",
   "history": []
 }', 2, 'user', 'USER', 1),
 
        (now() - INTERVAL '1 day', 'FINISH', 'finishLaunch', 'MEDIUM', 4, 'launch test', 'LAUNCH', 1, '{
-  "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
+  "type": "com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails",
   "history": []
 }', 1, 'admin@reportportal.internal', 'USER', 1);

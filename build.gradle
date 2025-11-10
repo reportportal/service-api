@@ -20,6 +20,7 @@ plugins {
     alias(libs.plugins.drill.integration)
     alias(libs.plugins.openapi.generator)
     alias(libs.plugins.spring.boot)
+    id "org.jooq.jooq-codegen-gradle" version "${jooqVersion}"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -45,29 +46,29 @@ java {
 println("Release mode: $releaseMode")
 
 dependencies {
-    if (releaseMode) {
-        println("Using release dependencies")
-        implementation(libs.reportportal.commons)
-        implementation(libs.reportportal.commons.dao) {
-            exclude group: 'com.epam.reportportal', module: 'commons'
-        }
-        implementation(libs.reportportal.plugin.api) {
-            exclude group: 'com.epam.reportportal', module: 'commons-dao'
-            exclude group: 'com.epam.reportportal', module: 'commons'
-        }
-    } else {
-        println("Using snapshot dependencies")
-        implementation(libs.reportportal.commons.dev)
-        implementation(libs.reportportal.commons.dao.dev) {
-            exclude group: 'com.github.reportportal', module: 'commons'
-        }
-        implementation(libs.reportportal.plugin.api.dev) {
-            exclude group: 'com.github.reportportal', module: 'commons-dao'
-            exclude group: 'com.github.reportportal', module: 'commons'
-        }
-    }
+    implementation "org.postgresql:postgresql:${jdbcDriverVersion}"
+    jooqCodegen "org.postgresql:postgresql:${jdbcDriverVersion}"
+    implementation "org.apache.tika:tika-core:3.2.3"
+    api 'org.jasypt:jasypt:1.9.3'
+    implementation 'net.coobird:thumbnailator:0.4.21'
+    implementation 'org.json:json:20250107' // TODO get rid of
+    implementation 'io.zonky.test:embedded-postgres:2.0.7' // TODO switch to testcontainers
+
+    api "org.apache.jclouds.api:s3:${jcloudsVersion}"
+    api "org.apache.jclouds.provider:aws-s3:${jcloudsVersion}"
+    api "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
+    implementation 'org.flywaydb:flyway-core:10.15.2'
+    implementation 'org.flywaydb:flyway-database-postgresql:10.20.0'
+    implementation 'software.amazon.awssdk:aws-core:2.38.2'
+    implementation 'software.amazon.awssdk:sts:2.38.2'
+    api 'org.pf4j:pf4j:3.12.1'
+    api 'org.pf4j:pf4j-update:2.3.0'
+    implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
+    api 'com.google.guava:guava:33.5.0-jre'
+    testImplementation "org.glassfish:jakarta.el:4.0.2"
+
     api(platform(libs.spring.boot.bom))
-    implementation(platform(libs.reportportal.commons.bom))
     implementation(platform(libs.zonky.postgres.bom))
     implementation(libs.bundles.spring.boot.starters)
     implementation(libs.bundles.spring.security)

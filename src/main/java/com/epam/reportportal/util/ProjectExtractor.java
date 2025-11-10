@@ -1,0 +1,120 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.util;
+
+import static com.epam.reportportal.infrastructure.persistence.commons.EntityUtils.normalizeId;
+import static com.epam.reportportal.infrastructure.persistence.entity.user.UserRole.ADMINISTRATOR;
+
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.infrastructure.persistence.dao.GroupMembershipRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import java.util.ArrayList;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * Service for extracting project details for a specified user by project name. This service provides methods to extract
+ * project details for users, including special handling for administrators.
+ *
+ * @author Pavel Bortnik
+ */
+@Service
+public class ProjectExtractor {
+
+  private final ProjectUserRepository projectUserRepository;
+  private final GroupMembershipRepository groupMembershipRepository;
+
+  /**
+   * Constructor for ProjectExtractor.
+   *
+   * @param projectUserRepository     ProjectUserRepository
+   * @param groupMembershipRepository GroupMembershipRepository
+   */
+  @Autowired
+  public ProjectExtractor(
+      ProjectUserRepository projectUserRepository,
+      GroupMembershipRepository groupMembershipRepository
+  ) {
+    this.projectUserRepository = projectUserRepository;
+    this.groupMembershipRepository = groupMembershipRepository;
+  }
+
+  /**
+   * Extracts project details for specified user by specified project name.
+   *
+   * @param user       User
+   * @param projectKey Project name
+   * @return Project Details
+   */
+  public MembershipDetails extractMembershipDetails(ReportPortalUser user,
+      String projectKey) {
+
+    final String normalizedProjectKey = normalizeId(projectKey);
+    if (user.getUserRole().equals(ADMINISTRATOR)) {
+      return extractProjectDetailsAdmin(projectKey);
+    }
+    return findMembershipDetails(user, normalizedProjectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+            "Please check the list of your available projects."
+        ));
+  }
+
+  /**
+   * Find project details for specified user by specified project name.
+   *
+   * @param user       User
+   * @param projectKey Project unique key
+   * @return {@link Optional} with Project Details found in ProjectUserRepository or GroupRepository
+   */
+  public Optional<MembershipDetails> findMembershipDetails(ReportPortalUser user,
+      String projectKey) {
+    return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey)
+        .map(details -> {
+          var projectRoles = groupMembershipRepository.findUserProjectRoles(
+              user.getUserId(),
+              details.getProjectId()
+          );
+
+          Optional.ofNullable(details.getProjectRole()).ifPresent(projectRoles::add);
+
+          var highestRole = new ArrayList<>(projectRoles).stream()
+              .max(ProjectRole::compareTo)
+              .orElse(null);
+
+          details.setProjectRole(highestRole);
+          return details;
+        });
+  }
+
+  /**
+   * Extracts project details for specified user by specified project name If user is ADMINISTRATOR - he is added as a
+   * PROJECT_MANAGER to the project.
+   *
+   * @param projectKey Project unique key
+   * @return Project Details
+   */
+  public MembershipDetails extractProjectDetailsAdmin(String projectKey) {
+    return projectUserRepository.findAdminDetailsProjectKey(normalizeId(projectKey))
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+  }
+
+}

@@ -63,8 +63,7 @@ public class PluginStartUpService {
   public void loadPlugins() {
     pluginBox.startUp();
     if (defaultPluginsLoad) {
-      UpdateManager updateManager = new UpdateManager(pluginManager,
-          getDefaultPluginRepositories());
+      UpdateManager updateManager = new UpdateManager(pluginManager, getDefaultPluginRepositories());
       if (updateManager.hasAvailablePlugins()) {
         updateManager.getAvailablePlugins()
             .forEach(pluginInfo -> loadLatestVersion(updateManager, pluginInfo));

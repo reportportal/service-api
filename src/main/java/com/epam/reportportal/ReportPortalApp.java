@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Andrei Varabyeu
  */
 @SpringBootApplication(
-    scanBasePackages = {"com.epam.reportportal", "com.epam.reportportal"},
+    scanBasePackages = {"com.epam.reportportal"},
     exclude = {FlywayAutoConfiguration.class})
 @Configuration
 public class ReportPortalApp {

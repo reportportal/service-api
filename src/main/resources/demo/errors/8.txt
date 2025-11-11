@@ -1,5 +1,5 @@
 14:05:57.127 [TestNG-tests-1] ERROR c.e.t.r.q.w.c.FailureLoggingListener - Configuration restoreDefaultServerSettings has been failed with exception java.lang.NullPointerException
-	at com.epam.ta.reportportal.qa.ws.tests.email_settings.EmailServerSettingsTest.restoreDefaultServerSettings(EmailServerSettingsTest.java:61)
+	at com.epam.reportportal.qa.ws.tests.email_settings.EmailServerSettingsTest.restoreDefaultServerSettings(EmailServerSettingsTest.java:61)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)

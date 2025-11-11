@@ -18,7 +18,7 @@ datastore:
 logging:
   level:
     org.hibernate.SQL: debug
-    com.epam.ta.reportportal.core:
+    com.epam.reportportal.core:
       integration:
         migration: debug
       analyzer: debug

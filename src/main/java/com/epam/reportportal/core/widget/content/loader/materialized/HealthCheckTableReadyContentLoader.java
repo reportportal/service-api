@@ -1,0 +1,162 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.core.widget.content.loader.materialized;
+
+import static com.epam.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
+import static com.epam.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
+import static com.epam.reportportal.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
+import static com.epam.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+import static com.epam.reportportal.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
+import static com.epam.reportportal.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
+import static java.util.Collections.emptyMap;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.groupingBy;
+
+import com.epam.reportportal.core.widget.util.WidgetOptionUtil;
+import com.epam.reportportal.infrastructure.persistence.dao.WidgetContentRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.widget.Widget;
+import com.epam.reportportal.infrastructure.persistence.entity.widget.WidgetOptions;
+import com.epam.reportportal.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableContent;
+import com.epam.reportportal.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableGetParams;
+import com.epam.reportportal.infrastructure.persistence.entity.widget.content.healthcheck.LevelEntry;
+import com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.model.widget.SortEntry;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
+
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
+@Service(value = "healthCheckTableReadyContentLoader")
+public class HealthCheckTableReadyContentLoader implements MaterializedWidgetContentLoader {
+
+  public static final String SORT = "sort";
+  public static final String CUSTOM_COLUMN = "customColumn";
+  public static final String TOTAL = "total";
+  public static final String STATISTICS = "statistics";
+  public static final String PASSING_RATE = "passingRate";
+
+  private final WidgetContentRepository widgetContentRepository;
+  private final ObjectMapper objectMapper;
+
+  @Autowired
+  public HealthCheckTableReadyContentLoader(WidgetContentRepository widgetContentRepository,
+      ObjectMapper objectMapper) {
+    this.widgetContentRepository = widgetContentRepository;
+    this.objectMapper = objectMapper;
+  }
+
+  @Override
+  public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
+    HealthCheckTableGetParams getParams =
+        getParams(widget.getWidgetOptions(), ofNullable(params.get(ATTRIBUTES)).map(
+            attributes -> attributes.stream().filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList())).orElseGet(Collections::emptyList));
+    List<HealthCheckTableContent> content =
+        widgetContentRepository.componentHealthCheckTable(getParams);
+
+    if (CollectionUtils.isEmpty(content)) {
+      return emptyMap();
+    }
+
+    Map<String, Integer> totalStatistics =
+        content.stream().map(HealthCheckTableContent::getStatistics).map(Map::entrySet)
+            .flatMap(Collection::stream)
+            .collect(groupingBy(Map.Entry::getKey, Collectors.summingInt(Map.Entry::getValue)));
+
+    return ImmutableMap.<String, Object>builder().put(RESULT, content)
+        .put(TOTAL, ImmutableMap.<String, Object>builder().put(STATISTICS, totalStatistics)
+            .put(PASSING_RATE, calculatePassingRate(totalStatistics)).build()).build();
+  }
+
+  private HealthCheckTableGetParams getParams(WidgetOptions widgetOptions,
+      List<String> attributeValues) {
+    List<String> attributeKeys = WidgetOptionUtil.getListByKey(ATTRIBUTE_KEYS, widgetOptions);
+    int currentLevel = attributeValues.size();
+    BusinessRule.expect(attributeKeys, keys -> keys.size() > currentLevel)
+        .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Incorrect level definition");
+
+    String viewName =
+        ofNullable(WidgetOptionUtil.getValueByKey(VIEW_NAME, widgetOptions)).orElseThrow(
+            () -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+                "Widget view name not provided"
+            ));
+    String currentLevelKey = attributeKeys.get(currentLevel);
+    boolean includeCustomColumn =
+        ofNullable(WidgetOptionUtil.getValueByKey(CUSTOM_COLUMN, widgetOptions)).isPresent();
+
+    return HealthCheckTableGetParams.of(viewName, currentLevelKey, resolveSort(widgetOptions),
+        includeCustomColumn, getLevelEntries(attributeKeys, attributeValues),
+        WidgetOptionUtil.getBooleanByKey(EXCLUDE_SKIPPED, widgetOptions)
+    );
+
+  }
+
+  private Sort resolveSort(WidgetOptions widgetOptions) {
+    return ofNullable(widgetOptions).flatMap(
+        wo -> ofNullable(wo.getOptions()).map(options -> options.get(SORT))).map(s -> {
+      try {
+        SortEntry sortEntry =
+            objectMapper.readValue(objectMapper.writeValueAsString(s), SortEntry.class);
+        return Sort.by(sortEntry.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
+            sortEntry.getSortingColumn()
+        );
+      } catch (JsonProcessingException e) {
+        throw new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+            "Sort format error: " + e.getMessage()
+        );
+      }
+    }).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+        "Sort parameter not provided"
+    ));
+  }
+
+  private List<LevelEntry> getLevelEntries(List<String> attributeKeys,
+      List<String> attributeValues) {
+    return IntStream.range(0, attributeValues.size()).mapToObj(index -> {
+      String attributeKey = attributeKeys.get(index);
+      String attributeValue = attributeValues.get(index);
+      return LevelEntry.of(attributeKey, attributeValue);
+    }).collect(Collectors.toList());
+  }
+
+  private double calculatePassingRate(Map<String, Integer> totalStatistics) {
+    double passingRate =
+        100.0 * totalStatistics.getOrDefault(EXECUTIONS_PASSED, 0) / totalStatistics.getOrDefault(
+            EXECUTIONS_TOTAL, 1);
+    return BigDecimal.valueOf(passingRate).setScale(2, RoundingMode.HALF_UP).doubleValue();
+  }
+
+}

@@ -1,0 +1,30 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.core.widget.content.updater.validator;
+
+import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.widget.WidgetOptions;
+import java.util.List;
+import java.util.Map;
+import org.springframework.data.domain.Sort;
+
+public interface MultilevelValidatorStrategy {
+
+  void validate(List<String> contentFields, Map<Filter, Sort> filterSortMap,
+      WidgetOptions widgetOptions,
+      String[] attributes, Map<String, String> params, int limit);
+}

@@ -1,0 +1,83 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.core.events.activity;
+
+import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
+
+import com.epam.reportportal.core.events.ActivityEvent;
+import com.epam.reportportal.core.events.activity.util.IntegrationActivityPriorityResolver;
+import com.epam.reportportal.infrastructure.persistence.builder.ActivityBuilder;
+import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
+import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityAction;
+import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
+import com.epam.reportportal.infrastructure.persistence.entity.activity.EventObject;
+import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
+import com.epam.reportportal.infrastructure.persistence.entity.activity.HistoryField;
+import com.epam.reportportal.model.activity.IntegrationActivityResource;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * @author Andrei Varabyeu
+ */
+public class IntegrationUpdatedEvent extends AroundEvent<IntegrationActivityResource> implements
+    ActivityEvent {
+
+  private Long orgId;
+
+  public IntegrationUpdatedEvent() {
+  }
+
+  public IntegrationUpdatedEvent(Long userId, String userLogin, IntegrationActivityResource before,
+      IntegrationActivityResource after) {
+    super(userId, userLogin, before, after);
+  }
+
+  public IntegrationUpdatedEvent(Long userId, String userLogin, IntegrationActivityResource before,
+      IntegrationActivityResource after, Long orgId) {
+    super(userId, userLogin, before, after);
+    this.orgId = orgId;
+  }
+
+
+  @Override
+  public Activity toActivity() {
+
+    HistoryField integrationNameField;
+    if (StringUtils.equalsIgnoreCase(getBefore().getName(), getAfter().getName())) {
+      integrationNameField = HistoryField.of(NAME, null, getAfter().getName());
+    } else {
+      integrationNameField = HistoryField.of(NAME, getBefore().getName(), getAfter().getName());
+    }
+
+    return new ActivityBuilder()
+        .addCreatedNow()
+        .addAction(EventAction.UPDATE)
+        .addEventName(ActivityAction.UPDATE_INTEGRATION.getValue())
+        .addPriority(IntegrationActivityPriorityResolver.resolvePriority(getAfter()))
+        .addObjectId(getAfter().getId())
+        .addObjectName(getAfter().getTypeName())
+        .addObjectType(EventObject.INTEGRATION)
+        .addProjectId(getAfter().getProjectId())
+        .addOrganizationId(orgId)
+        .addSubjectId(getUserId())
+        .addSubjectName(getUserLogin())
+        .addSubjectType(EventSubject.USER)
+        .addHistoryField(Optional.of(integrationNameField))
+        .get();
+  }
+}

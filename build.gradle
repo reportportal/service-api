@@ -47,7 +47,7 @@ println("Release mode: $releaseMode")
 
 dependencies {
     implementation(platform(libs.zonky.postgres.bom))
-    api (libs.embedded.postgres)
+    api(libs.embedded.postgres)
 
     api(platform(libs.spring.boot.bom))
     api(libs.jclouds.s3)
@@ -56,6 +56,8 @@ dependencies {
     api(libs.guava)
     api(libs.jasypt)
     api(libs.pf4j)
+    api(libs.jackson.databind)
+    api(libs.jackson.jsr310)
     api 'org.pf4j:pf4j-update:2.3.0' // TODO get rid of and rewrite with the latest version of pf4j
     implementation(libs.bundles.spring.boot.starters)
     implementation(libs.bundles.spring.security)

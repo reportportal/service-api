@@ -69,6 +69,7 @@ dependencies {
 
     implementation(libs.springdoc.openapi)
     implementation(libs.micrometer)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.25")
     implementation(libs.opencsv)
     implementation(libs.slugify)
     implementation(libs.postgresql)

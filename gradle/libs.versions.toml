@@ -113,6 +113,14 @@ pf4j = { group = "org.pf4j", name = "pf4j", version.ref = "pf4j" }
 embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version.ref = "embedded-postgres" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jsr310" }
+spring-context = { group = "org.springframework", name = "spring-context" }
+spring-jdbc = { group = "org.springframework", name = "spring-jdbc" }
+spring-web = { group = "org.springframework", name = "spring-web" }
+spring-data-jpa = { group = "org.springframework.data", name = "spring-data-jpa" }
+spring-security-core = { group = "org.springframework.security", name = "spring-security-core" }
+spring-data-commons = { group = "org.springframework.data", name = "spring-data-commons" }
+hibernate-core = { group = "org.hibernate.orm", name = "hibernate-core" }
+jakarta-validation = { group = "jakarta.validation", name = "jakarta.validation-api" }
 
 
 # Lombok

@@ -11,6 +11,7 @@ drill-integration = "0.1.6"
 openapi-generator = "7.11.0"
 
 # Library versions
+apache-commons-collections4 = "4.5.0"
 apache-commons-compress = "1.28.0"
 apache-poi = "5.4.1"
 aws-sdk = "2.38.2"
@@ -92,6 +93,7 @@ google-api-client = { group = "com.google.api-client", name = "google-api-client
 commons-validator = { group = "commons-validator", name = "commons-validator", version.ref = "commons-validator" }
 apache-jclouds-filesystem = { group = "org.apache.jclouds.api", name = "filesystem", version.ref = "jclouds" }
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "apache-commons-compress" }
+apache-commons-collections4 = { group = "org.apache.commons", name = "commons-collections4", version.ref = "apache-commons-collections4" }
 hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator", version.ref = "hibernate-validator" }
 json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version.ref = "json-schema-validator" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
@@ -111,6 +113,14 @@ pf4j = { group = "org.pf4j", name = "pf4j", version.ref = "pf4j" }
 embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version.ref = "embedded-postgres" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jsr310" }
+spring-context = { group = "org.springframework", name = "spring-context" }
+spring-jdbc = { group = "org.springframework", name = "spring-jdbc" }
+spring-web = { group = "org.springframework", name = "spring-web" }
+spring-data-jpa = { group = "org.springframework.data", name = "spring-data-jpa" }
+spring-security-core = { group = "org.springframework.security", name = "spring-security-core" }
+spring-data-commons = { group = "org.springframework.data", name = "spring-data-commons" }
+hibernate-core = { group = "org.hibernate.orm", name = "hibernate-core" }
+jakarta-validation = { group = "jakarta.validation", name = "jakarta.validation-api" }
 
 
 # Lombok

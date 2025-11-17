@@ -59,6 +59,18 @@ dependencies {
     api(libs.jackson.databind)
     api(libs.jackson.jsr310)
     api(libs.jooq)
+    api(libs.apache.commons.collections4)
+    api(libs.tika)
+    api(libs.httpclient5) // supports gzip encoding
+    api(libs.spring.context)
+    api(libs.spring.jdbc)
+    api(libs.spring.web)
+    api(libs.spring.data.jpa)
+    api(libs.spring.security.core)
+    api(libs.spring.data.commons)
+    api(libs.hibernate.core)
+    api(libs.jakarta.validation)
+
     api 'org.pf4j:pf4j-update:2.3.0' // TODO get rid of and rewrite with the latest version of pf4j
     implementation(libs.bundles.spring.boot.starters)
     implementation(libs.bundles.spring.security)
@@ -74,7 +86,6 @@ dependencies {
     implementation(libs.slugify)
     implementation(libs.postgresql)
     jooqCodegen(libs.postgresql)
-    implementation(libs.tika)
     implementation(libs.thumbnailator)
     implementation(libs.aws.core)
     implementation(libs.aws.sts)
@@ -86,7 +97,6 @@ dependencies {
 
     // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)
-    implementation(libs.httpclient5) // supports gzip encoding
 
     // Check authentication error response format for versions higher than 6.21.3 TODO: consider upgrade to 7.0.1+
     implementation(libs.jasperreports) {

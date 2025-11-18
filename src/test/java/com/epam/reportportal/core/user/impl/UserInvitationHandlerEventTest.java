@@ -106,7 +106,6 @@ class UserInvitationHandlerEventTest {
   @Test
   void activateInvitationWithProjectShouldPublishAssignUserToOrgAndProjectEvents() {
     // given
-    String invitationId = "baf08d9f-72ea-46f6-81ef-3950a34deae9";
     InvitationActivation activation = new InvitationActivation();
     activation.setFullName("Test User");
     activation.setPassword("Password123!");
@@ -125,7 +124,7 @@ class UserInvitationHandlerEventTest {
     orgMetadata.put("projects", List.of(projectMetadata));
 
     UserCreationBid bid = new UserCreationBid();
-    bid.setUuid(invitationId);
+    bid.setUuid("baf08d9f-72ea-46f6-81ef-3950a34deae9");
     bid.setEmail("newuser@example.com");
     bid.setInvitingUser(invitingUser);
     bid.setMetadata(new Metadata(Map.of("organizations", List.of(orgMetadata))));
@@ -151,7 +150,7 @@ class UserInvitationHandlerEventTest {
     project.setName("Test Project");
     project.setOrganizationId(100L);
 
-    when(userCreationBidRepository.findByUuidAndType(invitationId, INTERNAL_BID_TYPE))
+    when(userCreationBidRepository.findByUuidAndType("baf08d9f-72ea-46f6-81ef-3950a34deae9", INTERNAL_BID_TYPE))
         .thenReturn(Optional.of(bid));
     when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(createdUser);
@@ -164,7 +163,7 @@ class UserInvitationHandlerEventTest {
         .thenReturn(Optional.empty());
 
     // when
-    handler.activate(activation, invitationId);
+    handler.activate(activation, "baf08d9f-72ea-46f6-81ef-3950a34deae9");
 
     // then
     verify(eventPublisher).publishEvent(any(UserCreatedEvent.class));

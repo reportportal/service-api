@@ -30,10 +30,13 @@ import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.model.activity.UserActivityResource;
 import com.epam.reportportal.util.SecurityContextUtils;
+import java.time.Instant;
+import lombok.Getter;
 
 /**
  * An event that is triggered when a user is assigned to a project.
  */
+@Getter
 public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
 
 
@@ -42,6 +45,8 @@ public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
   private final boolean isSystemEvent;
 
   private final Long orgId;
+
+  private final Instant createdAt;
 
 
   /**
@@ -59,11 +64,28 @@ public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
     this.userActivityResource = userActivityResource;
     this.isSystemEvent = isSystemEvent;
     this.orgId = orgId;
+    this.createdAt = Instant.now();
   }
 
   /**
-   * Constructs an AssignUserEvent based on the user being assigned and the project they are assigned to. The user
-   * triggering the event is retrieved from the security context.
+   * Constructs an AssignUserEvent with the specified details (without userId, userLogin - system
+   * event).
+   *
+   * @param userActivityResource The user activity resource.
+   * @param isSystemEvent        A flag indicating if this is a system event.
+   * @param orgId                The ID of the organization.
+   */
+  public AssignUserEvent(UserActivityResource userActivityResource, boolean isSystemEvent,
+      Long orgId) {
+    this.userActivityResource = userActivityResource;
+    this.isSystemEvent = isSystemEvent;
+    this.orgId = orgId;
+    this.createdAt = Instant.now();
+  }
+
+  /**
+   * Constructs an AssignUserEvent based on the user being assigned and the project they are
+   * assigned to. The user triggering the event is retrieved from the security context.
    *
    * @param user    The user being assigned.
    * @param project The project to which the user is being assigned.
@@ -74,12 +96,13 @@ public class AssignUserEvent extends AbstractEvent implements ActivityEvent {
     this.isSystemEvent = false;
     this.userActivityResource = getUserActivityResource(user, project);
     this.orgId = project.getOrganizationId();
+    this.createdAt = Instant.now();
   }
 
   @Override
   public Activity toActivity() {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(createdAt)
         .addAction(EventAction.ASSIGN)
         .addEventName(ASSIGN_USER.getValue())
         .addPriority(EventPriority.HIGH)

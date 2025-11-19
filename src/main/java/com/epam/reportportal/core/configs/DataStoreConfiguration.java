@@ -23,6 +23,8 @@ import com.epam.reportportal.infrastructure.commons.TikaContentTypeResolver;
 import com.epam.reportportal.infrastructure.persistence.filesystem.DataStore;
 import com.epam.reportportal.infrastructure.persistence.filesystem.LocalDataStore;
 import com.epam.reportportal.infrastructure.persistence.filesystem.distributed.s3.S3DataStore;
+import com.epam.reportportal.infrastructure.persistence.filesystem.tms.LocalTmsDataStore;
+import com.epam.reportportal.infrastructure.persistence.filesystem.tms.TmsDataStore;
 import com.epam.reportportal.infrastructure.persistence.util.FeatureFlagHandler;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
@@ -42,10 +44,12 @@ import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.rest.ConfiguresHttpApi;
 import org.jclouds.s3.S3Client;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author Dzianis_Shybeka
@@ -137,6 +141,7 @@ public class DataStoreConfiguration {
 
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "filesystem")
+  @Primary
   public BlobStore filesystemBlobStore(
       @Value("${datastore.path:/data/store}") String baseDirectory) {
 
@@ -171,6 +176,7 @@ public class DataStoreConfiguration {
    */
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "s3-compatible")
+  @Primary
   public BlobStore minioBlobStore(@Value("${datastore.accessKey}") String accessKey,
       @Value("${datastore.secretKey}") String secretKey,
       @Value("${datastore.endpoint}") String endpoint) {
@@ -213,6 +219,7 @@ public class DataStoreConfiguration {
    */
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "aws-s3")
+  @Primary
   public BlobStore s3BlobStore(
       @Value("${datastore.accessKey:}") String accessKey,
       @Value("${datastore.secretKey:}") String secretKey,
@@ -245,6 +252,33 @@ public class DataStoreConfiguration {
     return new S3DataStore(blobStore, bucketPrefix, bucketPostfix, defaultBucketName, region,
         featureFlagHandler
     );
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "rp.tms.datastore.type", havingValue = "filesystem")
+  public BlobStore tmsFilesystemBlobStore(
+      @Value("${rp.tms.datastore.path:/data/store}") String baseDirectory) {
+
+    Properties properties = new Properties();
+    properties.setProperty(FilesystemConstants.PROPERTY_BASEDIR, baseDirectory);
+
+    BlobStoreContext blobStoreContext =
+        ContextBuilder.newBuilder("filesystem").overrides(properties)
+            .buildView(BlobStoreContext.class);
+
+    return blobStoreContext.getBlobStore();
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "rp.tms.datastore.type", havingValue = "filesystem")
+  public TmsDataStore tmsLocalDataStore(
+      @Autowired @Qualifier("tmsFilesystemBlobStore") BlobStore tmsFilesystemBlobStore,
+      FeatureFlagHandler featureFlagHandler,
+      @Value("${rp.tms.datastore.bucketPrefix:tms-prj-}") String bucketPrefix,
+      @Value("${rp.tms.datastore.bucketPostfix:}") String bucketPostfix,
+      @Value("${rp.tms.datastore.defaultBucketName:tms-rp-bucket}") String defaultBucketName) {
+    return new LocalTmsDataStore(
+        tmsFilesystemBlobStore, featureFlagHandler, bucketPrefix, bucketPostfix, defaultBucketName);
   }
 
   @Bean("attachmentThumbnailator")

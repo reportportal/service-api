@@ -30,6 +30,10 @@ rp:
     providers:
       internal:
         secret-key: ${rp.jwt.signing-key}
+  tms:
+    datastore:
+      type: filesystem
+      path: ${rp.binarystore.path:/data/storage}
   binarystore:
     path: ${java.io.tmpdir}/reportportal/datastore
   feature:

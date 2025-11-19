@@ -548,4 +548,14 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       nativeQuery = true
   )
   List<Long> findParentsWithNestedSteps(@Param("itemIds") List<Long> itemIds);
+
+  /**
+   * Deletes all test items by launch ID.
+   *
+   * @param launchId launch ID
+   * @return number of deleted test items
+   */
+  @Modifying
+  @Query("DELETE FROM TestItem ti WHERE ti.launchId = :launchId")
+  int deleteByLaunchId(@Param("launchId") Long launchId);
 }

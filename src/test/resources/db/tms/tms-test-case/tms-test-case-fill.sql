@@ -1,0 +1,790 @@
+-- Test folders
+insert into tms_test_folder (id, "name", description, project_id)
+values (3, 'Test Folder 3', 'Description for test folder 3', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (4, 'Test Folder 4', 'Description for test folder 4', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (5, 'Test Folder 5', 'Description for test folder 5', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (6, 'Test Folder 6', 'Description for test folder 6', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (7, 'Search Folder', 'Folder for search tests', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (8, 'Search Folder', 'Folder for full-text search tests', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (9, 'Test Folder 9', 'Description for test folder 9', 2);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (10, 'Test Folder 10', 'Description for test folder 10', 1);
+
+insert into tms_test_folder (id, "name", description, project_id)
+values (11, 'Test Folder 11', 'Description for test folder 11', 2);
+
+-- Test plans
+insert into tms_test_plan (id, "name", description, project_id)
+values (1, 'Test Plan 1', 'Description for test plan 1', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (2, 'Test Plan 2', 'Description for test plan 2', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (3, 'Test Plan 3', 'Description for test plan 3', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (4, 'Integration Test Plan', 'Test plan for integration tests', 1);
+
+insert into tms_test_plan (id, "name", description, project_id)
+values (5, 'Regression Test Plan', 'Test plan for regression tests', 1);
+
+-- Test cases
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (4, 'Test Case 4', 'Description for test case 4', 4, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (5, 'Test Case 5', 'Description for test case 5', 5, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (6, 'Test Case 6', 'Description for test case 6', 6, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (7, 'Test Case 7', 'Description for test case 7', 4, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (8, 'Test Case 8', 'Description for test case 8', 5, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (9, 'Test Case 9', 'Description for test case 9', 4, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (10, 'Test Case 10', 'Description for test case 10', 5, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (11, 'Test Case 11', 'Description for test case 11', 5, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (12, 'Test Case 12', 'Description for test case 12', 5, 'LOW');
+
+-- Search test cases
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (13, 'Search Test Case', 'This is a searchable test case', 7, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (14, 'Another Test', 'Another description for search', 7, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (15, 'Login Test Case', 'Test case for login functionality', 7, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (16, 'API Test Case', 'Test case for API testing', 7, 'MEDIUM');
+
+-- Test cases with versions and manual scenarios
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (17, 'Test Case With Version', 'Test case with default version', 6, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (18, 'Complex Test Case', 'Test case with complex scenario', 6, 'MEDIUM');
+
+-- Test cases for full-text searching
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (19, '3test', 'Test for full-text search 1', 8, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (20, 'Test for full-text search 2', 'Test for full-text search 2', 8, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (21, '3test', 'Test for full-text search 3', 7, 'MEDIUM');
+
+-- Additional test cases for batch patch testing
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (22, 'Batch Test Case 22', 'Test case for batch patch with priority', 4, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (23, 'Batch Test Case 23', 'Test case for batch patch with priority', 4, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (24, 'Batch Test Case 24', 'Test case for batch patch with tags only', 5, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (25, 'Batch Test Case 25', 'Test case for batch patch with tags only', 5, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (26, 'Batch Test Case 26', 'Test case for batch patch with null fields', 6, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (27, 'Batch Test Case 27', 'Test case for batch patch with null fields', 6, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (28, 'Batch Test Case 28', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (29, 'Batch Test Case 29', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (30, 'Batch Test Case 30', 'Test case for batch patch with full attributes', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (31, 'Batch Test Case 31', 'Test case for batch patch with full attributes', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (32, 'Batch Test Case 32', 'Test case for batch patch with non existing folder 32', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (33, 'Batch Test Case 33', 'Test case for batch patch with non existing folder 33', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (34, 'Test Case With Version 34', 'Test case with default version 34', 6, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (35, 'Test Case With Version 35', 'Test case with default version 35', 9, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (36, 'Test Case With Version 36', 'Test case with default version 36', 9, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (37, 'Test Case With Version 37', 'Test case with default version 37', 10, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (100, 'Test Case with Last Execution', 'Test case that has execution data', 3, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (101, 'Test Case with Multiple Executions', 'Test case with multiple executions, should return latest', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (102, 'Test Case without Execution', 'Test case with no execution data', 3, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (103, 'Test Case with Single Execution', 'Test case with single execution', 3, 'HIGH');
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (1, 4), (1, 5), (1, 6); -- Test Plan 1 contains test cases 4, 5, 6
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (2, 7), (2, 8), (2, 9); -- Test Plan 2 contains test cases 7, 8, 9
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (3, 10), (3, 11), (3, 12); -- Test Plan 3 contains test cases 10, 11, 12
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (4, 13), (4, 14), (4, 15); -- Integration Test Plan contains test cases 13, 14, 15
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (5, 16), (5, 17), (5, 18); -- Regression Test Plan contains test cases 16, 17, 18
+
+-- Some test cases in multiple test plans
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (4, 4), (4, 5); -- Test cases 4, 5 also in Integration Test Plan
+
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (1, 13), (2, 15); -- Cross-plan assignments for testing
+
+-- Test cases for test plan filtering in folder 7
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (1, 14), (1, 15), (1, 16); -- Additional folder 7 test cases in Test Plan 1
+
+-- Test cases for folder 8 in different test plans
+insert into tms_test_plan_test_case (test_plan_id, test_case_id)
+values (2, 19), (3, 20); -- Folder 8 test cases in different plans
+
+-- Attributes
+insert into tms_attribute (id, "key")
+values (1, 'test1');
+
+insert into tms_attribute (id, "key")
+values (2, 'test2');
+
+insert into tms_attribute (id, "key")
+values (3, 'test3');
+
+insert into tms_attribute (id, "key")
+values (4, 'test4');
+
+insert into tms_attribute (id, "key")
+values (5, 'test5');
+
+insert into tms_attribute (id, "key")
+values (6, 'test6');
+
+insert into tms_attribute (id, "key")
+values (7, 'priority');
+
+insert into tms_attribute (id, "key")
+values (8, 'environment');
+
+-- Test case attributes
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (4, 4, 'test value 4');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (5, 5, 'test value 5');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (7, 4, 'test value 7');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (8, 5, 'test value 8');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (9, 4, 'test value 9');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (10, 5, 'test value 10');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (13, 7, 'high');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (15, 8, 'production');
+
+-- Additional test case attributes for batch patch tests
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (22, 1, 'existing-tag-22');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (23, 2, 'existing-tag-23');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (24, 3, 'existing-tag-24');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (25, 1, 'existing-tag-25');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (36, 1, 'existing-tag-36');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (37, 1, 'existing-tag-37-1');
+
+insert into tms_test_case_attribute (test_case_id, attribute_id, value)
+values (37, 2, 'existing-tag-37-2');
+
+-- Test case versions (Default version for each test case)
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (1, 4, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (2, 5, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (3, 6, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (4, 7, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (5, 8, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (6, 9, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (7, 10, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (8, 11, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (9, 12, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (10, 13, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (11, 14, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (12, 15, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (13, 16, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (14, 17, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (15, 18, 'Version 1.0', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (16, 18, 'Version 2.0', false, true);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (17, 19, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (18, 20, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (19, 21, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (20, 22, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (21, 23, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (22, 24, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (23, 25, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (24, 26, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (25, 27, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (26, 28, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (27, 29, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (28, 30, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (29, 31, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (30, 32, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (31, 33, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (32, 34, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (33, 35, 'Default Version 35', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (34, 36, 'Default Version 34', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (35, 37, 'Default Version 36', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (100, 100, 'Default Version 100', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (101, 101, 'Default Version 101', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (102, 102, 'Default Version 102', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (103, 103, 'Default Version 103', true, false);
+
+-- Manual scenarios for each version
+-- TEXT scenarios for most cases
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (1, 1, 30, 'REQ-004', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (2, 2, 25, 'REQ-005', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (3, 3, 20, 'REQ-006', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (4, 4, 35, 'REQ-007', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (5, 5, 40, 'REQ-008', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (6, 6, 15, 'REQ-009', 'STEPS');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (7, 7, 45, 'REQ-010', 'STEPS');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (8, 8, 30, 'REQ-011', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (9, 9, 25, 'REQ-012', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (10, 10, 50, 'REQ-013', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (11, 11, 35, 'REQ-014', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (12, 12, 40, 'REQ-015', 'STEPS');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (13, 13, 30, 'REQ-016', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (14, 14, 45, 'REQ-017', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (15, 15, 60, 'REQ-018', 'STEPS');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (16, 16, 35, 'REQ-019', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (17, 17, 20, 'REQ-020', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (18, 18, 25, 'REQ-021', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (19, 19, 30, 'REQ-022', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (20, 20, 15, 'REQ-023', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (21, 21, 20, 'REQ-024', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (22, 22, 25, 'REQ-025', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (23, 23, 30, 'REQ-026', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (24, 24, 20, 'REQ-027', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (25, 25, 25, 'REQ-028', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (26, 26, 35, 'REQ-029', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (27, 27, 40, 'REQ-030', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (28, 28, 45, 'REQ-031', 'STEPS');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (29, 29, 30, 'REQ-032', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (30, 30, 25, 'REQ-033', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (31, 31, 30, 'REQ-034', 'TEXT');
+
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
+values (32, 32, 35, 'REQ-035', 'STEPS');
+
+-- Manual scenario preconditions (NEW: separate table with one-to-one relationship)
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (1, 1, 'System must be ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (2, 2, 'User must be logged in');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (3, 3, 'Test environment ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (4, 4, 'System initialized');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (5, 5, 'User authentication ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (6, 6, 'Basic setup complete');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (7, 7, 'High priority test setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (8, 8, 'Medium complexity setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (9, 9, 'Low priority setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (10, 10, 'Search functionality ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (11, 11, 'Search system initialized');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (12, 12, 'Login system ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (13, 13, 'API endpoints available');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (14, 14, 'Version control ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (15, 15, 'Complex scenario setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (16, 16, 'Draft version setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (17, 17, 'Full-text search ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (18, 18, 'Search indexing complete');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (19, 19, 'Search filters ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (20, 20, 'Batch processing ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (21, 21, 'Priority batch ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (22, 22, 'Tag management ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (23, 23, 'Tag processing ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (24, 24, 'Null field handling ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (25, 25, 'Null validation ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (26, 26, 'Attribute validation ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (27, 27, 'Invalid attribute handling');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (28, 28, 'Full attribute processing');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (29, 29, 'Complete attribute setup');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (30, 30, 'Folder validation ready');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (31, 31, 'Non-existing folder handling');
+
+insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)
+values (32, 32, 'Final version processing');
+
+-- Text manual scenarios
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (1, 'Execute test case 4 functionality', 'Test should pass with high priority');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (2, 'Execute test case 5 functionality', 'Test should pass with medium priority');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (3, 'Execute test case 6 functionality', 'Test should pass with low priority');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (4, 'Execute test case 7 functionality', 'System should respond correctly');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (5, 'Execute test case 8 functionality', 'Authentication should work');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (8, 'Execute test case 11 functionality', 'Medium complexity test should pass');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (9, 'Execute test case 12 functionality', 'Low priority test should complete');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (10, 'Execute search test case functionality', 'Search should return correct results');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (11, 'Execute another test functionality', 'System should handle the test');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (13, 'Execute API test case functionality', 'API endpoints should respond');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (14, 'Execute version test functionality', 'Version control should work');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (16, 'Execute draft version functionality', 'Draft should be processed');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (17, 'Execute full-text search test', 'Search indexing should work');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (18, 'Execute search indexing test', 'Indexing should complete');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (19, 'Execute search filter test', 'Filters should apply correctly');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (20, 'Execute batch test 22', 'Batch processing should work');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (21, 'Execute batch test 23', 'Priority batch should process');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (22, 'Execute tag management test', 'Tags should be managed correctly');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (23, 'Execute tag processing test', 'Tag processing should work');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (24, 'Execute null field test', 'Null fields should be handled');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (25, 'Execute null validation test', 'Null validation should work');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (26, 'Execute attribute validation test', 'Attributes should be validated');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (27, 'Execute invalid attribute test', 'Invalid attributes should be handled');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (29, 'Execute complete attribute test', 'All attributes should process');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (30, 'Execute folder validation test', 'Folder validation should work');
+
+insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
+values (31, 'Execute non-existing folder test', 'Non-existing folders should be handled');
+
+-- Steps manual scenarios
+insert into tms_steps_manual_scenario (manual_scenario_id)
+values (6);
+
+insert into tms_steps_manual_scenario (manual_scenario_id)
+values (7);
+
+insert into tms_steps_manual_scenario (manual_scenario_id)
+values (12);
+
+insert into tms_steps_manual_scenario (manual_scenario_id)
+values (15);
+
+insert into tms_steps_manual_scenario (manual_scenario_id)
+values (28);
+
+insert into tms_steps_manual_scenario (manual_scenario_id)
+values (32);
+
+-- Manual scenario attributes
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id, value)
+values (1, 7, 'high');
+
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id, value)
+values (2, 8, 'production');
+
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id, value)
+values (10, 7, 'critical');
+
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id, value)
+values (12, 8, 'staging');
+
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id, value)
+values (15, 7, 'medium');
+
+-- Steps for STEPS scenarios
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (1, 6, 'Navigate to test case 6', 'Application should start');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (2, 6, 'Execute basic functionality', 'Basic functions should work');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (3, 6, 'Verify results', 'Results should be correct');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (4, 7, 'Navigate to high priority test', 'High priority test should load');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (5, 7, 'Execute high priority actions', 'Actions should complete');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (6, 7, 'Verify high priority results', 'Results should meet criteria');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (7, 12, 'Navigate to login page', 'Login page should appear');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (8, 12, 'Enter credentials', 'Credentials should be accepted');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (9, 12, 'Verify login success', 'User should be logged in');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (10, 15, 'Navigate to complex scenario', 'Complex scenario should load');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (11, 15, 'Execute complex operations', 'Operations should complete');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (12, 15, 'Verify complex results', 'All results should be correct');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (13, 28, 'Navigate to attribute processing', 'Attribute processing should start');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (14, 28, 'Execute full attribute test', 'All attributes should be processed');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (15, 28, 'Verify attribute results', 'Attribute processing should succeed');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (16, 32, 'Navigate to final version test', 'Final version should load');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (17, 32, 'Execute final processing', 'Final processing should complete');
+
+insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
+values (18, 32, 'Verify final results', 'Final results should be correct');
+
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
+values (100, '550e8400-e29b-41d4-a716-446655440100', 1, 1, 'Launch for TC Execution Tests', 'Launch for testing last execution functionality', '2023-10-06 10:00:00.000000', '2023-10-06 11:00:00.000000', 100, '2023-10-06 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
+values (101, '550e8400-e29b-41d4-a716-446655440101', 1, 1, 'Launch for Multiple Executions', 'Launch for testing multiple executions', '2023-10-07 10:00:00.000000', '2023-10-07 11:00:00.000000', 101, '2023-10-07 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
+values (102, '550e8400-e29b-41d4-a716-446655440102', 1, 1, 'Launch for Latest Execution', 'Launch for testing latest execution logic', '2023-10-08 10:00:00.000000', '2023-10-08 11:00:00.000000', 102, '2023-10-08 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1000, '550e8400-e29b-41d4-a716-446655441000', 'Test Item for TC 100', 'com.test.TC100', 'TEST', '2023-10-06 10:00:00.000000', 'Test execution for test case 100', '2023-10-06 10:05:00.000000', '1000', 'tc-100-exec-1', null, false, false, true, null, null, 100, 2839437);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1010, '550e8400-e29b-41d4-a716-446655441010', 'Test Item for TC 101 - First', 'com.test.TC101', 'TEST', '2023-10-05 10:00:00.000000', 'First execution for test case 101', '2023-10-05 10:05:00.000000', '1010', 'tc-101-exec-1', null, false, false, true, null, null, 100, 2839438);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1011, '550e8400-e29b-41d4-a716-446655441011', 'Test Item for TC 101 - Latest', 'com.test.TC101', 'TEST', '2023-10-07 14:00:00.000000', 'Latest execution for test case 101', '2023-10-07 14:05:00.000000', '1011', 'tc-101-exec-2', null, false, false, true, null, null, 101, 2839439);
+
+insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
+values (1030, '550e8400-e29b-41d4-a716-446655441030', 'Test Item for TC 103', 'com.test.TC103', 'TEST', '2023-10-08 15:00:00.000000', 'Test execution for test case 103', '2023-10-08 15:05:00.000000', '1030', 'tc-103-exec-1', null, false, false, true, null, null, 102, 2839440);
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (1, 100, 1000, '{"id": 100, "name": "Test Case with Last Execution", "priority": "HIGH"}');
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (2, 101, 1010, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}');
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (3, 101, 1011, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}');
+
+insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
+values (4, 103, 1030, '{"id": 103, "name": "Test Case with Single Execution", "priority": "HIGH"}');
+
+-- Set sequences to continue from highest ID
+SELECT setval('tms_test_folder_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));
+SELECT setval('tms_test_case_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case));
+SELECT setval('tms_test_plan_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_plan));
+SELECT setval('tms_attribute_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_attribute));
+SELECT setval('tms_test_case_version_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_version));
+SELECT setval('tms_manual_scenario_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario));
+SELECT setval('tms_manual_scenario_preconditions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario_preconditions));
+SELECT setval('tms_step_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_step));
+SELECT setval('tms_test_case_execution_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));

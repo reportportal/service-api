@@ -33,7 +33,7 @@ rp:
   tms:
     datastore:
       type: filesystem
-      path: ${rp.binarystore.path:/data/storage}
+      path: ${datastore.path:/data/storage}
   binarystore:
     path: ${java.io.tmpdir}/reportportal/datastore
   feature:

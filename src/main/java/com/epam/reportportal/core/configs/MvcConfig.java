@@ -19,6 +19,7 @@ package com.epam.reportportal.core.configs;
 import com.epam.reportportal.ws.resolver.ActiveUserWebArgumentResolver;
 import com.epam.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.reportportal.ws.resolver.JsonViewSupportFactoryBean;
+import com.epam.reportportal.ws.resolver.OffsetArgumentResolver;
 import com.epam.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver;
 import com.epam.reportportal.ws.resolver.PredefinedFilterCriteriaResolver;
 import com.epam.reportportal.ws.resolver.SortArgumentResolver;
@@ -97,6 +98,7 @@ public class MvcConfig implements WebMvcConfigurer {
     argumentResolvers.add(new ActiveUserWebArgumentResolver());
     argumentResolvers.add(new FilterCriteriaResolver());
     argumentResolvers.add(new PredefinedFilterCriteriaResolver());
+    argumentResolvers.add(new OffsetArgumentResolver());
   }
 
   @Override

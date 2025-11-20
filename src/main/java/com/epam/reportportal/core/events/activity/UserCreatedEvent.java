@@ -27,6 +27,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.EventObj
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.model.activity.UserActivityResource;
+import java.time.Instant;
 
 /**
  * @author Andrei Varabyeu
@@ -35,12 +36,14 @@ public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   private UserActivityResource userActivityResource;
   private final boolean isSystemEvent;
+  private final Instant createdAt;
 
   public UserCreatedEvent(UserActivityResource userActivityResource, Long userId,
       String userLogin, boolean isSystemEvent) {
     super(userId, userLogin);
     this.userActivityResource = userActivityResource;
     this.isSystemEvent = isSystemEvent;
+    this.createdAt = Instant.now();
   }
 
   public UserActivityResource getUserActivityResource() {
@@ -54,7 +57,7 @@ public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
   @Override
   public Activity toActivity() {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(createdAt)
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_USER.getValue())
         .addPriority(EventPriority.HIGH)

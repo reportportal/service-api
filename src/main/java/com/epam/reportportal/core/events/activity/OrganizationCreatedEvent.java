@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.core.events.activity;
 
+import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
+
 import com.epam.reportportal.core.events.ActivityEvent;
 import com.epam.reportportal.infrastructure.persistence.builder.ActivityBuilder;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
@@ -24,6 +26,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAct
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
+import java.time.Instant;
 import java.util.Objects;
 import lombok.Getter;
 
@@ -37,6 +40,7 @@ public class OrganizationCreatedEvent extends AbstractEvent implements ActivityE
 
   private final Long organizationId;
   private final String organizationName;
+  private final Instant createdAt;
 
   /**
    * Constructs a new OrganizationCreatedEvent.
@@ -46,16 +50,30 @@ public class OrganizationCreatedEvent extends AbstractEvent implements ActivityE
    * @param organizationId   The ID of the created organization.
    * @param organizationName The name of the created organization.
    */
-  public OrganizationCreatedEvent(Long userId, String userLogin, Long organizationId, String organizationName) {
+  public OrganizationCreatedEvent(Long userId, String userLogin, Long organizationId,
+      String organizationName) {
     super(userId, userLogin);
     this.organizationId = organizationId;
     this.organizationName = organizationName;
+    this.createdAt = Instant.now();
+  }
+
+  /**
+   * Constructs a new OrganizationCreatedEvent (without userId, userLogin - system event).
+   *
+   * @param organizationId   The ID of the created organization.
+   * @param organizationName The name of the created organization.
+   */
+  public OrganizationCreatedEvent(Long organizationId, String organizationName) {
+    this.organizationId = organizationId;
+    this.organizationName = organizationName;
+    this.createdAt = Instant.now();
   }
 
   @Override
   public Activity toActivity() {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(createdAt)
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_ORGANIZATION.getValue())
         .addPriority(EventPriority.MEDIUM)
@@ -64,7 +82,7 @@ public class OrganizationCreatedEvent extends AbstractEvent implements ActivityE
         .addObjectType(EventObject.ORGANIZATION)
         .addOrganizationId(organizationId)
         .addSubjectId(getUserId())
-        .addSubjectName(getUserLogin())
+        .addSubjectName(Objects.isNull(getUserLogin()) ? RP_SUBJECT_NAME : getUserLogin())
         .addSubjectType(Objects.isNull(getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)
         .get();
   }

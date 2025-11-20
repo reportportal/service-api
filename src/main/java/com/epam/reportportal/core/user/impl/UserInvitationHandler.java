@@ -49,6 +49,7 @@ import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.ProjectUser;
@@ -65,6 +66,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -77,6 +79,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserInvitationHandler {
 
   private final HttpServletRequest httpServletRequest;
@@ -92,34 +95,6 @@ public class UserInvitationHandler {
   private final UserInvitationService userInvitationService;
   private final PersonalOrganizationService personalOrganizationService;
   private final LinkGenerator linkGenerator;
-
-  /**
-   * Constructor of UserInvitationHandlerImpl.
-   */
-  public UserInvitationHandler(HttpServletRequest httpServletRequest,
-      UserCreationBidRepository userCreationBidRepository,
-      UserRepository userRepository, ApplicationEventPublisher eventPublisher,
-      UserAuthenticator userAuthenticator,
-      ProjectUserRepository projectUserRepository,
-      OrganizationUserService organizationUserService,
-      OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository, PasswordEncoder passwordEncoder,
-      UserInvitationService userInvitationService, PersonalOrganizationService personalOrganizationService,
-      LinkGenerator linkGenerator) {
-    this.httpServletRequest = httpServletRequest;
-    this.userCreationBidRepository = userCreationBidRepository;
-    this.userRepository = userRepository;
-    this.eventPublisher = eventPublisher;
-    this.userAuthenticator = userAuthenticator;
-    this.projectUserRepository = projectUserRepository;
-    this.organizationUserService = organizationUserService;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
-    this.projectRepository = projectRepository;
-    this.passwordEncoder = passwordEncoder;
-    this.userInvitationService = userInvitationService;
-    this.personalOrganizationService = personalOrganizationService;
-    this.linkGenerator = linkGenerator;
-  }
 
   /**
    * Sends invitation for external user or assigns existing user on organizations and projects.
@@ -170,18 +145,11 @@ public class UserInvitationHandler {
             "Impossible to register user. UUID expired or already registered."));
 
     var createdUser = saveUser(invitationActivation, bid);
-    assignOrganizationsAndProjects(createdUser, bid.getMetadata());
+    publishUserCreatedEvent(createdUser, bid);
+
+    assignOrganizationsAndProjects(createdUser, bid.getMetadata(), bid.getInvitingUser());
     userCreationBidRepository.deleteByUuid(bid.getUuid());
     personalOrganizationService.createPersonalOrganization(createdUser.getId());
-
-    var userCreatedEvent = new UserCreatedEvent(
-        TO_ACTIVITY_RESOURCE.apply(createdUser, null),
-        bid.getInvitingUser().getId(),
-        bid.getInvitingUser().getLogin(),
-        true
-    );
-    eventPublisher.publishEvent(userCreatedEvent);
-
     userAuthenticator.authenticate(createdUser);
 
     return new Invitation()
@@ -192,8 +160,8 @@ public class UserInvitationHandler {
         .status(ACTIVATED);
   }
 
-
-  private void assignOrganizationsAndProjects(User createdUser, Metadata metadata) {
+  private void assignOrganizationsAndProjects(User createdUser, Metadata metadata,
+      User invitingUser) {
     var orgs = metadata.getMetadata().entrySet()
         .stream()
         .filter(entry -> "organizations".equals(entry.getKey()))
@@ -208,16 +176,19 @@ public class UserInvitationHandler {
             .orElseThrow(
                 () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, org.get("id")));
         var orgUser =
-            organizationUserService.saveOrganizationUser(organization, createdUser, org.get("role").toString());
+            organizationUserService.saveOrganizationUser(organization, createdUser,
+                org.get("role").toString());
+        publishAssignUserToOrganizationEvent(createdUser, invitingUser, orgId);
 
-        assignProjects(createdUser, org, orgUser);
+        assignProjects(createdUser, org, orgUser, invitingUser);
       } catch (Exception e) {
         log.warn("Failed to assign organization {}. {}", org.get("id").toString(), e.getMessage());
       }
     });
   }
 
-  private void assignProjects(User createdUser, Map<String, Object> orgFields, OrganizationUser orgUser) {
+  private void assignProjects(User createdUser, Map<String, Object> orgFields,
+      OrganizationUser orgUser, User invitingUser) {
     if (orgFields.get("projects") != null) {
       ((List<Map<String, Object>>) orgFields.get("projects"))
           .forEach(project -> {
@@ -239,10 +210,11 @@ public class UserInvitationHandler {
 
             projectUserRepository.save(new ProjectUser()
                 .withProject(projectEntity)
-                .withProjectRole(calculateProjectRole(orgUser.getOrganizationRole(), project.get("role").toString()))
+                .withProjectRole(calculateProjectRole(orgUser.getOrganizationRole(),
+                    project.get("role").toString()))
                 .withUser(createdUser));
-            AssignUserEvent assignUserEvent = new AssignUserEvent(createdUser, projectEntity);
-            eventPublisher.publishEvent(assignUserEvent);
+
+            publishAssignUserToProjectEvent(createdUser, invitingUser, projectEntity);
           });
     }
   }
@@ -250,7 +222,7 @@ public class UserInvitationHandler {
   private ProjectRole calculateProjectRole(OrganizationRole orgRole, String projectRole) {
     return orgRole.equals(OrganizationRole.MANAGER)
         ? ProjectRole.EDITOR
-        : com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole.valueOf(projectRole);
+        : ProjectRole.valueOf(projectRole);
   }
 
   private User saveUser(InvitationActivation activationRq, UserCreationBid bid) {
@@ -274,5 +246,40 @@ public class UserInvitationHandler {
               .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));
           return userRepository.save(user);
         });
+  }
+
+  private void publishUserCreatedEvent(User createdUser, UserCreationBid bid) {
+    var userCreatedEvent = new UserCreatedEvent(
+        TO_ACTIVITY_RESOURCE.apply(createdUser, null),
+        bid.getInvitingUser().getId(),
+        bid.getInvitingUser().getLogin(),
+        true
+    );
+    eventPublisher.publishEvent(userCreatedEvent);
+  }
+
+  private void publishAssignUserToOrganizationEvent(User assignedUser, User invitingUser,
+      Long organizationId) {
+    var event = new AssignUserEvent(
+        TO_ACTIVITY_RESOURCE.apply(assignedUser, null),
+        invitingUser.getId(),
+        invitingUser.getLogin(),
+        false,
+        organizationId
+    );
+    eventPublisher.publishEvent(event);
+  }
+
+  private void publishAssignUserToProjectEvent(User assignedUser, User invitingUser,
+      Project project) {
+    var userActivityResource = TO_ACTIVITY_RESOURCE.apply(assignedUser, project.getId());
+    var event = new AssignUserEvent(
+        userActivityResource,
+        invitingUser.getId(),
+        invitingUser.getLogin(),
+        false,
+        project.getOrganizationId()
+    );
+    eventPublisher.publishEvent(event);
   }
 }

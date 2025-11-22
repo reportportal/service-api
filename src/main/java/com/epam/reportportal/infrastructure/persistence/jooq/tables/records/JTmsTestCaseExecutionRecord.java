@@ -61,11 +61,25 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
     }
 
     /**
+     * Setter for <code>public.tms_test_case_execution.launch_id</code>.
+     */
+    public void setLaunchId(Long value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case_execution.launch_id</code>.
+     */
+    public Long getLaunchId() {
+        return (Long) get(3);
+    }
+
+    /**
      * Setter for
      * <code>public.tms_test_case_execution.test_case_version_id</code>.
      */
     public void setTestCaseVersionId(Long value) {
-        set(3, value);
+        set(4, value);
     }
 
     /**
@@ -73,7 +87,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
      * <code>public.tms_test_case_execution.test_case_version_id</code>.
      */
     public Long getTestCaseVersionId() {
-        return (Long) get(3);
+        return (Long) get(4);
     }
 
     /**
@@ -81,7 +95,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
      * <code>public.tms_test_case_execution.test_case_snapshot</code>.
      */
     public void setTestCaseSnapshot(JSONB value) {
-        set(4, value);
+        set(5, value);
     }
 
     /**
@@ -89,7 +103,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
      * <code>public.tms_test_case_execution.test_case_snapshot</code>.
      */
     public JSONB getTestCaseSnapshot() {
-        return (JSONB) get(4);
+        return (JSONB) get(5);
     }
 
     // -------------------------------------------------------------------------
@@ -115,12 +129,13 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
     /**
      * Create a detached, initialised JTmsTestCaseExecutionRecord
      */
-    public JTmsTestCaseExecutionRecord(Long id, Long testItemId, Long testCaseId, Long testCaseVersionId, JSONB testCaseSnapshot) {
+    public JTmsTestCaseExecutionRecord(Long id, Long testItemId, Long testCaseId, Long launchId, Long testCaseVersionId, JSONB testCaseSnapshot) {
         super(JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION);
 
         setId(id);
         setTestItemId(testItemId);
         setTestCaseId(testCaseId);
+        setLaunchId(launchId);
         setTestCaseVersionId(testCaseVersionId);
         setTestCaseSnapshot(testCaseSnapshot);
         resetChangedOnNotNull();

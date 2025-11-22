@@ -87,20 +87,4 @@ public class TmsTestCase implements Serializable {
   @ManyToMany(mappedBy = "testCases")
   @ToString.Exclude
   private Set<TmsTestPlan> testPlans;
-
-  @ManyToMany
-  @JoinTable(
-      name = "tms_test_case_launch",
-      joinColumns = @JoinColumn(name = "test_case_id"),
-      inverseJoinColumns = @JoinColumn(name = "launch_id"))
-  @ToString.Exclude
-  private Set<Launch> launches;
-
-  @ManyToMany
-  @JoinTable(
-      name = "tms_test_case_test_item",
-      joinColumns = @JoinColumn(name = "test_case_id"),
-      inverseJoinColumns = @JoinColumn(name = "test_item_id"))
-  @ToString.Exclude
-  private Set<TestItem> testItems;
 }

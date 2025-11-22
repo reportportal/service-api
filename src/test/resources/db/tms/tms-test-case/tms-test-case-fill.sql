@@ -766,17 +766,17 @@ values (1011, '550e8400-e29b-41d4-a716-446655441011', 'Test Item for TC 101 - La
 insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
 values (1030, '550e8400-e29b-41d4-a716-446655441030', 'Test Item for TC 103', 'com.test.TC103', 'TEST', '2023-10-08 15:00:00.000000', 'Test execution for test case 103', '2023-10-08 15:05:00.000000', '1030', 'tc-103-exec-1', null, false, false, true, null, null, 102, 2839440);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (1, 100, 1000, '{"id": 100, "name": "Test Case with Last Execution", "priority": "HIGH"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (1, 100, 100, 1000, '{"id": 100, "name": "Test Case with Last Execution", "priority": "HIGH"}', 100);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (2, 101, 1010, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (2, 101, 101, 1010, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}', 101);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (3, 101, 1011, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (3, 101, 101, 1011, '{"id": 101, "name": "Test Case with Multiple Executions", "priority": "MEDIUM"}', 101);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (4, 103, 1030, '{"id": 103, "name": "Test Case with Single Execution", "priority": "HIGH"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (4, 103, 103, 1030, '{"id": 103, "name": "Test Case with Single Execution", "priority": "HIGH"}', 102);
 
 -- Set sequences to continue from highest ID
 SELECT setval('tms_test_folder_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));

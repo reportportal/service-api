@@ -71,6 +71,10 @@ public class TmsAttachment implements Serializable {
   @ToString.Exclude
   private Set<TmsManualScenarioPreconditions> manualScenarioPreconditions;
 
+  @ManyToMany(mappedBy = "attachments")
+  @ToString.Exclude
+  private Set<TmsTestCaseExecutionComment> executionComments;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "environment_id")
   private TmsEnvironment environment;

@@ -127,6 +127,27 @@ values (100, 'Test Case for Plan 100 - Covered', 'Test case with execution', 7),
        (105, 'Test Case for Plan 102 - Failed', 'Test case with FAILED execution', 8),
        (106, 'Test Case for Plan 102 - Skipped', 'Test case with SKIPPED execution', 8);
 
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (100, 100, 'Default Version 100', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (101, 101, 'Default Version 101', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (102, 102, 'Default Version 102', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (103, 103, 'Default Version 103', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (104, 104, 'Default Version 104', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (105, 105, 'Default Version 105', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (106, 106, 'Default Version 106', true, false);
+
 -- Test plan 100: 2 total, 1 covered (only test case 100 has execution)
 insert into tms_test_plan_test_case (test_plan_id, test_case_id)
 values (100, 100), (100, 101);
@@ -208,59 +229,59 @@ values (12, 6, 'test case 12 attribute');
 
 -- Test case versions for complete duplication testing
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (104, 4, 'Default Version 4', true, false);
+values (4, 4, 'Default Version 4', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (105, 5, 'Default Version 5', true, false);
+values (5, 5, 'Default Version 5', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (106, 6, 'Default Version 6', true, false);
+values (6, 6, 'Default Version 6', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (107, 7, 'Default Version 7', true, false);
+values (7, 7, 'Default Version 7', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (108, 8, 'Default Version 8', true, false);
+values (8, 8, 'Default Version 8', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (109, 9, 'Default Version 9', true, false);
+values (9, 9, 'Default Version 9', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (110, 10, 'Default Version 10', true, false);
+values (10, 10, 'Default Version 10', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (111, 11, 'Default Version 11', true, false);
+values (11, 11, 'Default Version 11', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
-values (112, 12, 'Default Version 12', true, false);
+values (12, 12, 'Default Version 12', true, false);
 
 -- Manual scenarios for test cases to ensure complete duplication
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (104, 104, 30, 'REQ-004', 'TEXT');
+values (104, 4, 30, 'REQ-004', 'TEXT');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (105, 105, 25, 'REQ-005', 'TEXT');
+values (105, 5, 25, 'REQ-005', 'TEXT');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (106, 106, 20, 'REQ-006', 'STEPS');
+values (106, 6, 20, 'REQ-006', 'STEPS');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (107, 107, 35, 'REQ-007', 'TEXT');
+values (107, 7, 35, 'REQ-007', 'TEXT');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (108, 108, 40, 'REQ-008', 'TEXT');
+values (108, 8, 40, 'REQ-008', 'TEXT');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (109, 109, 45, 'REQ-009', 'STEPS');
+values (109, 9, 45, 'REQ-009', 'STEPS');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (110, 110, 50, 'REQ-010', 'TEXT');
+values (110, 10, 50, 'REQ-010', 'TEXT');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (111, 111, 55, 'REQ-011', 'TEXT');
+values (111, 11, 55, 'REQ-011', 'TEXT');
 
 insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (112, 112, 60, 'REQ-012', 'STEPS');
+values (112, 12, 60, 'REQ-012', 'STEPS');
 
 -- Text manual scenarios for TEXT type scenarios
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
@@ -367,17 +388,17 @@ insert into test_item_results (result_id, status, end_time, duration)
 values (2060, 'SKIPPED', '2023-10-11 10:55:00.000000', 300.0);
 
 -- TMS Test Case Executions for execution statistics
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (10, 100, 2000, '{"id": 100, "name": "Test Case for Plan 100 - Covered"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (10, 100, 100, 2000, '{"id": 100, "name": "Test Case for Plan 100 - Covered"}', 200);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (11, 104, 2040, '{"id": 104, "name": "Test Case for Plan 102 - Passed"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (11, 104, 104, 2040, '{"id": 104, "name": "Test Case for Plan 102 - Passed"}', 201);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (12, 105, 2050, '{"id": 105, "name": "Test Case for Plan 102 - Failed"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (12, 105, 105, 2050, '{"id": 105, "name": "Test Case for Plan 102 - Failed"}', 201);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (13, 106, 2060, '{"id": 106, "name": "Test Case for Plan 102 - Skipped"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (13, 106, 106, 2060, '{"id": 106, "name": "Test Case for Plan 102 - Skipped"}', 201);
 
 -- =====================================================
 -- Test data for getTestCasesAddedToPlan and getTestCaseInTestPlan endpoints
@@ -524,25 +545,25 @@ values (3020, 'PASSED', '2023-12-01 12:05:00.000000', 300.0);
 
 -- TMS Test Case Executions
 -- Test case 200 executions
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (200, 200, 3000, '{"id": 200, "name": "Test Case with Multiple Executions"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (200, 200, 200, 3000, '{"id": 200, "name": "Test Case with Multiple Executions"}', 300);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (201, 200, 3001, '{"id": 200, "name": "Test Case with Multiple Executions"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (201, 200, 200,  3001, '{"id": 200, "name": "Test Case with Multiple Executions"}', 301);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (202, 200, 3002, '{"id": 200, "name": "Test Case with Multiple Executions"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (202, 200, 200, 3002, '{"id": 200, "name": "Test Case with Multiple Executions"}', 300);
 
 -- Test case 201 executions
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (210, 201, 3010, '{"id": 201, "name": "Test Case with Two Executions"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (210, 201, 201, 3010, '{"id": 201, "name": "Test Case with Two Executions"}', 301);
 
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (211, 201, 3011, '{"id": 201, "name": "Test Case with Two Executions"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (211, 201, 201, 3011, '{"id": 201, "name": "Test Case with Two Executions"}', 301);
 
 -- Test case 202 execution
-insert into tms_test_case_execution (id, test_case_id, test_item_id, test_case_snapshot)
-values (220, 202, 3020, '{"id": 202, "name": "Test Case with One Execution"}');
+insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
+values (220, 202, 202, 3020, '{"id": 202, "name": "Test Case with One Execution"}', 300);
 
 -- =====================================================
 -- Test data for getTestFoldersFromPlan endpoint

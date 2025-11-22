@@ -199,19 +199,6 @@ public class JTmsTestCaseVersion extends TableImpl<JTmsTestCaseVersionRecord> {
         return _tmsManualScenario;
     }
 
-    private transient JTmsTestCaseExecutionPath _tmsTestCaseExecution;
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public.tms_test_case_execution</code> table
-     */
-    public JTmsTestCaseExecutionPath tmsTestCaseExecution() {
-        if (_tmsTestCaseExecution == null)
-            _tmsTestCaseExecution = new JTmsTestCaseExecutionPath(this, null, Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_CASE_VERSION.getInverseKey());
-
-        return _tmsTestCaseExecution;
-    }
-
     @Override
     public JTmsTestCaseVersion as(String alias) {
         return new JTmsTestCaseVersion(DSL.name(alias), this);

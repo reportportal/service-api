@@ -79,7 +79,8 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepsMan
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
-import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseLaunch;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestFolder;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan;
@@ -509,10 +510,15 @@ public class Tables {
      */
     public static final JTmsTestCaseExecution TMS_TEST_CASE_EXECUTION = JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION;
 
-    /**
-     * The table <code>public.tms_test_case_launch</code>.
-     */
-    public static final JTmsTestCaseLaunch TMS_TEST_CASE_LAUNCH = JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH;
+  /**
+   * The table <code>public.tms_test_case_execution_comment</code>.
+   */
+  public static final JTmsTestCaseExecutionComment TMS_TEST_CASE_EXECUTION_COMMENT = JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT;
+
+  /**
+   * The table <code>public.tms_test_case_execution_comment_attachment</code>.
+   */
+  public static final JTmsTestCaseExecutionCommentAttachment TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT = JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT;
 
     /**
      * The table <code>public.tms_test_case_version</code>.

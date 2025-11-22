@@ -92,7 +92,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "testItems", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   public abstract void update(@MappingTarget TmsTestCase targetTestCase, TmsTestCase tmsTestCase);
@@ -104,7 +103,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "testItems", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
@@ -132,7 +130,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testPlans", ignore = true)
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "externalId", ignore = true) //externalId is unique
-  @Mapping(target = "testItems", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "name", ignore = true) //unique name will be set later in service

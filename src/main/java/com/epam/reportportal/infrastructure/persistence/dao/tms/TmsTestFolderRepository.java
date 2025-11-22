@@ -324,4 +324,27 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("testCaseIds") List<Long> testCaseIds,
       @Param("folderId") Long folderId
   );
+
+  /**
+   * Finds unique test folders from test cases in a specific launch with test case counts.
+   *
+   * @param launchId launch ID
+   * @param pageable pagination information
+   * @return paginated list of unique folders with test case counts
+   */
+  @Query("""
+    SELECT new com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases(
+        tc.testFolder, 
+        COUNT(DISTINCT tc.id)
+    )
+    FROM TmsTestCaseExecution e
+    JOIN TmsTestCase tc ON e.testCaseId = tc.id
+    WHERE e.launchId = :launchId
+    GROUP BY tc.testFolder.id, tc.testFolder.name, tc.testFolder.description, tc.testFolder.project.id, tc.testFolder.parentTestFolder.id
+    ORDER BY tc.testFolder.name
+    """)
+  Page<TmsTestFolderWithCountOfTestCases> findUniqueFoldersByLaunchIdWithTestCaseCount(
+      @Param("launchId") Long launchId,
+      Pageable pageable
+  );
 }

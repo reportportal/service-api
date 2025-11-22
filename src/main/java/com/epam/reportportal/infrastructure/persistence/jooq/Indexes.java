@@ -38,8 +38,8 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualSc
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase;
-import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
-import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseLaunch;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTextManualScenarioAttachment;
@@ -133,6 +133,18 @@ public class Indexes {
   public static final Index IDX_TMS_ATTRIBUTE_SEARCH_VECTOR = Internal.createIndex(
       DSL.name("idx_tms_attribute_search_vector"), JTmsAttribute.TMS_ATTRIBUTE,
       new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.SEARCH_VECTOR}, false);
+  public static final Index IDX_TMS_EXECUTION_COMMENT_ATTACHMENT_ATTACHMENT_ID = Internal.createIndex(
+      DSL.name("idx_tms_execution_comment_attachment_attachment_id"),
+      JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT,
+      new OrderField[]{
+          JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT.ATTACHMENT_ID},
+      false);
+  public static final Index IDX_TMS_EXECUTION_COMMENT_ATTACHMENT_COMMENT_ID = Internal.createIndex(
+      DSL.name("idx_tms_execution_comment_attachment_comment_id"),
+      JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT,
+      new OrderField[]{
+          JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT.EXECUTION_COMMENT_ID},
+      false);
   public static final Index IDX_TMS_MANUAL_SCENARIO_PRECONDITIONS_SCENARIO_UNIQUE = Internal.createIndex(
       DSL.name("idx_tms_manual_scenario_preconditions_scenario_unique"),
       JTmsManualScenarioPreconditions.TMS_MANUAL_SCENARIO_PRECONDITIONS, new OrderField[]{
@@ -147,33 +159,11 @@ public class Indexes {
   public static final Index IDX_TMS_STEP_ATTACHMENT_STEP_ID = Internal.createIndex(
       DSL.name("idx_tms_step_attachment_step_id"), JTmsStepAttachment.TMS_STEP_ATTACHMENT,
       new OrderField[]{JTmsStepAttachment.TMS_STEP_ATTACHMENT.STEP_ID}, false);
-  public static final Index IDX_TMS_TEST_CASE_EXECUTION_CASE_ITEM = Internal.createIndex(
-      DSL.name("idx_tms_test_case_execution_case_item"),
-      JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
-      new OrderField[]{JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.TEST_CASE_ID,
-          JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID}, false);
-  public static final Index IDX_TMS_TEST_CASE_EXECUTION_SNAPSHOT = Internal.createIndex(
-      DSL.name("idx_tms_test_case_execution_snapshot"),
-      JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
-      new OrderField[]{JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT}, false);
-  public static final Index IDX_TMS_TEST_CASE_EXECUTION_TEST_CASE_ID = Internal.createIndex(
-      DSL.name("idx_tms_test_case_execution_test_case_id"),
-      JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
-      new OrderField[]{JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.TEST_CASE_ID}, false);
-  public static final Index IDX_TMS_TEST_CASE_EXECUTION_TEST_ITEM_ID = Internal.createIndex(
-      DSL.name("idx_tms_test_case_execution_test_item_id"),
-      JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
-      new OrderField[]{JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID}, false);
-  public static final Index IDX_TMS_TEST_CASE_EXECUTION_VERSION_ID = Internal.createIndex(
-      DSL.name("idx_tms_test_case_execution_version_id"),
-      JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
-      new OrderField[]{JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID}, false);
-  public static final Index IDX_TMS_TEST_CASE_LAUNCH_LAUNCH_ID = Internal.createIndex(
-      DSL.name("idx_tms_test_case_launch_launch_id"), JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH,
-      new OrderField[]{JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH.LAUNCH_ID}, false);
-  public static final Index IDX_TMS_TEST_CASE_LAUNCH_TEST_CASE_ID = Internal.createIndex(
-      DSL.name("idx_tms_test_case_launch_test_case_id"), JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH,
-      new OrderField[]{JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH.TEST_CASE_ID}, false);
+  public static final Index IDX_TMS_TEST_CASE_EXECUTION_COMMENT_EXECUTION_ID = Internal.createIndex(
+      DSL.name("idx_tms_test_case_execution_comment_execution_id"),
+      JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT,
+      new OrderField[]{JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT.EXECUTION_ID},
+      false);
   public static final Index IDX_TMS_TEST_CASE_SEARCH_VECTOR = Internal.createIndex(
       DSL.name("idx_tms_test_case_search_vector"), JTmsTestCase.TMS_TEST_CASE,
       new OrderField[]{JTmsTestCase.TMS_TEST_CASE.SEARCH_VECTOR}, false);

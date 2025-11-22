@@ -9,6 +9,7 @@ import com.epam.reportportal.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment.JTmsTestCaseExecutionCommentPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion.JTmsTestCaseVersionPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsTestCaseExecutionRecord;
 import java.util.Arrays;
@@ -76,10 +77,15 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
     public final TableField<JTmsTestCaseExecutionRecord, Long> TEST_CASE_ID = createField(DSL.name("test_case_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
+     * The column <code>public.tms_test_case_execution.launch_id</code>.
+     */
+    public final TableField<JTmsTestCaseExecutionRecord, Long> LAUNCH_ID = createField(DSL.name("launch_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
      * The column
      * <code>public.tms_test_case_execution.test_case_version_id</code>.
      */
-    public final TableField<JTmsTestCaseExecutionRecord, Long> TEST_CASE_VERSION_ID = createField(DSL.name("test_case_version_id"), SQLDataType.BIGINT, this, "");
+    public final TableField<JTmsTestCaseExecutionRecord, Long> TEST_CASE_VERSION_ID = createField(DSL.name("test_case_version_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column
@@ -157,11 +163,6 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
     }
 
     @Override
-    public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_EXECUTION_CASE_ITEM, Indexes.IDX_TMS_TEST_CASE_EXECUTION_SNAPSHOT, Indexes.IDX_TMS_TEST_CASE_EXECUTION_TEST_CASE_ID, Indexes.IDX_TMS_TEST_CASE_EXECUTION_TEST_ITEM_ID, Indexes.IDX_TMS_TEST_CASE_EXECUTION_VERSION_ID);
-    }
-
-    @Override
     public Identity<JTmsTestCaseExecutionRecord, Long> getIdentity() {
         return (Identity<JTmsTestCaseExecutionRecord, Long>) super.getIdentity();
     }
@@ -178,33 +179,7 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
 
     @Override
     public List<ForeignKey<JTmsTestCaseExecutionRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_CASE, Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_CASE_VERSION, Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_ITEM);
-    }
-
-    private transient JTmsTestCasePath _tmsTestCase;
-
-    /**
-     * Get the implicit join path to the <code>public.tms_test_case</code>
-     * table.
-     */
-    public JTmsTestCasePath tmsTestCase() {
-        if (_tmsTestCase == null)
-            _tmsTestCase = new JTmsTestCasePath(this, Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_CASE, null);
-
-        return _tmsTestCase;
-    }
-
-    private transient JTmsTestCaseVersionPath _tmsTestCaseVersion;
-
-    /**
-     * Get the implicit join path to the
-     * <code>public.tms_test_case_version</code> table.
-     */
-    public JTmsTestCaseVersionPath tmsTestCaseVersion() {
-        if (_tmsTestCaseVersion == null)
-            _tmsTestCaseVersion = new JTmsTestCaseVersionPath(this, Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_CASE_VERSION, null);
-
-        return _tmsTestCaseVersion;
+        return Arrays.asList(Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_ITEM);
     }
 
     private transient JTestItemPath _testItem;
@@ -217,6 +192,19 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
             _testItem = new JTestItemPath(this, Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_ITEM, null);
 
         return _testItem;
+    }
+
+    private transient JTmsTestCaseExecutionCommentPath _tmsTestCaseExecutionComment;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_test_case_execution_comment</code> table
+     */
+    public JTmsTestCaseExecutionCommentPath tmsTestCaseExecutionComment() {
+        if (_tmsTestCaseExecutionComment == null)
+            _tmsTestCaseExecutionComment = new JTmsTestCaseExecutionCommentPath(this, null, Keys.TMS_TEST_CASE_EXECUTION_COMMENT__TMS_TEST_CASE_EXECUTION_COMMENT_FK_EXECUTION.getInverseKey());
+
+        return _tmsTestCaseExecutionComment;
     }
 
     @Override

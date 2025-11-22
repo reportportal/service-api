@@ -170,4 +170,22 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
       String name, Long number, Long launchId, LaunchModeEnum mode);
 
   Optional<Launch> findByIdAndProjectId(@Param("id") Long id, @Param("projectId") Long projectId);
+
+  /**
+   * Checks if launch exists by ID and project ID.
+   *
+   * @param launchId  launch ID
+   * @param projectId project ID
+   * @return true if launch exists in a project, false otherwise
+   */
+  boolean existsByIdAndProjectId(Long launchId, Long projectId);
+
+  /**
+   * Finds test plan ID by launch ID.
+   *
+   * @param launchId the launch ID
+   * @return optional test plan ID
+   */
+  @Query("SELECT l.testPlanId FROM Launch l WHERE l.id = :launchId")
+  Optional<Long> findTestPlanIdById(@Param("launchId") Long launchId);
 }

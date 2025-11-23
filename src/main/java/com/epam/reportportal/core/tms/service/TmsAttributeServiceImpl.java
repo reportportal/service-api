@@ -11,7 +11,11 @@ import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.persistence.EntityExistsException;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -67,6 +71,15 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
     return tmsAttributeMapper.convertToTmsAttributeRS(
         findAttributeById(attributeId)
     );
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Long, TmsAttribute> getAllByIds(List<Long> ids) {
+    return tmsAttributeRepository
+        .findAllById(ids)
+        .stream()
+        .collect(Collectors.toMap(TmsAttribute::getId, Function.identity()));
   }
 
   private TmsAttribute findAttributeById(Long attributeId) {

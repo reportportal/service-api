@@ -19,6 +19,7 @@ package com.epam.reportportal.infrastructure.persistence.dao;
 import static org.hibernate.jpa.QueryHints.HINT_FETCH_SIZE;
 
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
@@ -179,6 +180,15 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
    * @return true if launch exists in a project, false otherwise
    */
   boolean existsByIdAndProjectId(Long launchId, Long projectId);
+
+  /**
+   * Checks if launch by type exists by ID and project ID.
+   *
+   * @param launchId  launch ID
+   * @param projectId project ID
+   * @return true if launch by type exists in a project, false otherwise
+   */
+  boolean existsByIdAndProjectIdAndLaunchType(Long launchId, Long projectId, LaunchTypeEnum launchType);
 
   /**
    * Finds test plan ID by launch ID.

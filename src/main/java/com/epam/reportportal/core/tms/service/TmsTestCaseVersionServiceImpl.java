@@ -17,10 +17,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service implementation for managing TMS Test Case Versions.
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService {
@@ -156,5 +161,20 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
     newTestCase.setVersions(Collections.singleton(duplicatedVersion));
 
     return duplicatedVersion;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<TmsTestCaseVersion> findDefaultByTestCaseId(Long testCaseId) {
+    log.debug("Finding default version for test case: {}", testCaseId);
+    return tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<Long> findDefaultVersionIdByTestCaseId(Long testCaseId) {
+    log.debug("Finding default version ID for test case: {}", testCaseId);
+    return tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId)
+        .map(TmsTestCaseVersion::getId);
   }
 }

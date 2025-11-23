@@ -16,25 +16,27 @@ public class TmsTestCaseExecutionRS {
 
   private Long id;
 
+  private String executionStatus;
+
+  private TmsTestCaseExecutionCommentRS executionComment;
+
+  private Long startedAt;
+
+  private Long finishedAt;
+
+  private Long duration;
+
   private Long testCaseVersionId;
 
   private Long testItemId;
 
   private Long testCaseId;
 
-  private String status;
+  private String testCaseName;
 
-  private TmsTestCaseExecutionCommentRS executionComment;
+  private String testCaseDescription;
 
-  private String name;
-
-  private String description;
-
-  private String priority;
-
-  private Long createdAt;
-
-  private Long updatedAt;
+  private String testCasePriority;
 
   private TmsTestCaseTestFolderRS testFolder;
 

@@ -4,22 +4,20 @@
 package com.epam.reportportal.infrastructure.persistence.jooq.tables;
 
 
-import com.epam.reportportal.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
-import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment.JTmsTestCaseExecutionCommentPath;
-import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion.JTmsTestCaseVersionPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsTestCaseExecutionRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
-import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.JSONB;
 import org.jooq.Name;
@@ -92,6 +90,11 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
      * <code>public.tms_test_case_execution.test_case_snapshot</code>.
      */
     public final TableField<JTmsTestCaseExecutionRecord, JSONB> TEST_CASE_SNAPSHOT = createField(DSL.name("test_case_snapshot"), SQLDataType.JSONB.nullable(false), this, "");
+
+    /**
+     * The column <code>public.tms_test_case_execution.priority</code>.
+     */
+    public final TableField<JTmsTestCaseExecutionRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255), this, "");
 
     private JTmsTestCaseExecution(Name alias, Table<JTmsTestCaseExecutionRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

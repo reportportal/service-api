@@ -16,7 +16,9 @@
 
 package com.epam.reportportal.infrastructure.persistence.dao;
 
+import com.epam.reportportal.core.tms.dto.CountOfChildTestItemsByParentId;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
@@ -39,12 +41,14 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
     TestItemRepositoryCustom {
 
   /**
-   * Among the provided parent test item and its retries, finds the parent item whose direct child steps have the
-   * longest continuous sequence of non-failed nested steps from the start until the first failure occurs.
+   * Among the provided parent test item and its retries, finds the parent item whose direct child
+   * steps have the longest continuous sequence of non-failed nested steps from the start until the
+   * first failure occurs.
    *
-   * @param itemId {@link TestItem#getItemId()} of a parent item (or any of its retries) whose child steps are analyzed
-   * @return {@link Long} parent item id with the maximum number of steps before the first failed step; {@code null} if
-   * no matching steps are found
+   * @param itemId {@link TestItem#getItemId()} of a parent item (or any of its retries) whose child
+   *               steps are analyzed
+   * @return {@link Long} parent item id with the maximum number of steps before the first failed
+   * step; {@code null} if no matching steps are found
    */
   @Query(value = """
       WITH parent_items AS (
@@ -188,8 +192,8 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   List<Long> findIdsByLaunchId(@Param("launchId") Long launchId);
 
   /**
-   * Retrieve the {@link List} of the {@link TestItem#getItemId()} by launch ID, {@link StatusEnum#name()} and
-   * {@link TestItem#isHasChildren()} == false
+   * Retrieve the {@link List} of the {@link TestItem#getItemId()} by launch ID,
+   * {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == false
    *
    * @param launchId {@link Launch#getId()}
    * @param status   {@link StatusEnum#name()}
@@ -204,8 +208,9 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       @Param("pageSize") Integer limit, @Param("pageOffset") Long offset);
 
   /**
-   * Retrieve the {@link List} of the {@link TestItem#getItemId()} by launch ID, {@link StatusEnum#name()} and
-   * {@link TestItem#isHasChildren()} == true ordered (DESCENDING) by 'nlevel' of the {@link TestItem#getPath()}
+   * Retrieve the {@link List} of the {@link TestItem#getItemId()} by launch ID,
+   * {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == true ordered (DESCENDING) by
+   * 'nlevel' of the {@link TestItem#getPath()}
    *
    * @param launchId {@link Launch#getId()}
    * @param status   {@link StatusEnum#name()}
@@ -223,8 +228,9 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       @Param("pageOffset") Long offset);
 
   /**
-   * Retrieve the {@link Stream} of the {@link TestItem#getItemId()} under parent {@link TestItem#getPath()},
-   * {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == false
+   * Retrieve the {@link Stream} of the {@link TestItem#getItemId()} under parent
+   * {@link TestItem#getPath()}, {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} ==
+   * false
    *
    * @param parentPath {@link TestItem#getPath()} of the parent item
    * @param status     {@link StatusEnum#name()}
@@ -239,9 +245,9 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       @Param("pageSize") Integer limit, @Param("pageOffset") Long offset);
 
   /**
-   * Retrieve the {@link Stream} of the {@link TestItem#getItemId()} under parent {@link TestItem#getPath()},
-   * {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == true ordered (DESCENDING) by 'nlevel' of the
-   * {@link TestItem#getPath()}
+   * Retrieve the {@link Stream} of the {@link TestItem#getItemId()} under parent
+   * {@link TestItem#getPath()}, {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} ==
+   * true ordered (DESCENDING) by 'nlevel' of the {@link TestItem#getPath()}
    *
    * @param parentPath {@link TestItem#getPath()} of the parent item
    * @param status     {@link StatusEnum#name()}
@@ -266,9 +272,9 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   Optional<TestItem> findByUuid(String uuid);
 
   /**
-   * Finds {@link TestItem#getItemId()} by {@link TestItem#getUuid()} and sets a lock on the found 'item' row in the
-   * database. Required for fetching 'item' from the concurrent environment to provide synchronization between dependant
-   * entities
+   * Finds {@link TestItem#getItemId()} by {@link TestItem#getUuid()} and sets a lock on the found
+   * 'item' row in the database. Required for fetching 'item' from the concurrent environment to
+   * provide synchronization between dependant entities
    *
    * @param uuid {@link TestItem#getUuid()}
    * @return {@link Optional} with {@link TestItem} object
@@ -285,14 +291,16 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   List<TestItem> findTestItemsByLaunchIdOrderByStartTimeAsc(Long launchId);
 
   /**
-   * Execute sql-function that changes a structure of retries according to the MAX {@link TestItem#getStartTime()}. If
-   * the new-inserted {@link TestItem} with specified {@link TestItem#getItemId()} is a retry and it has
-   * {@link TestItem#getStartTime()} greater than MAX {@link TestItem#getStartTime()} of the other {@link TestItem} with
-   * the same {@link TestItem#getUniqueId()} then all those test items become retries of the new-inserted one: theirs
-   * {@link TestItem#isHasRetries()} flag is set to 'false' and {@link TestItem#getRetryOf()} gets the new-inserted
-   * {@link TestItem#getItemId()} value. The same operation applies to the new-inserted {@link TestItem} if its
-   * {@link TestItem#getStartTime()} is less than MAX {@link TestItem#getStartTime()} of the other {@link TestItem} with
-   * the same {@link TestItem#getUniqueId()}
+   * Execute sql-function that changes a structure of retries according to the MAX
+   * {@link TestItem#getStartTime()}. If the new-inserted {@link TestItem} with specified
+   * {@link TestItem#getItemId()} is a retry and it has {@link TestItem#getStartTime()} greater than
+   * MAX {@link TestItem#getStartTime()} of the other {@link TestItem} with the same
+   * {@link TestItem#getUniqueId()} then all those test items become retries of the new-inserted
+   * one: theirs {@link TestItem#isHasRetries()} flag is set to 'false' and
+   * {@link TestItem#getRetryOf()} gets the new-inserted {@link TestItem#getItemId()} value. The
+   * same operation applies to the new-inserted {@link TestItem} if its
+   * {@link TestItem#getStartTime()} is less than MAX {@link TestItem#getStartTime()} of the other
+   * {@link TestItem} with the same {@link TestItem#getUniqueId()}
    *
    * @param itemId The new-inserted {@link TestItem#getItemId()}
    * @deprecated {@link TestItemRepository#handleRetry(Long, Long)} should be used instead
@@ -302,8 +310,9 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   void handleRetries(@Param("itemId") Long itemId);
 
   /**
-   * Execute sql-function that changes a structure of retries assigning {@link TestItem#getRetryOf()} value of the
-   * previously inserted retries and previous retries' parent to the new inserted parent id
+   * Execute sql-function that changes a structure of retries assigning
+   * {@link TestItem#getRetryOf()} value of the previously inserted retries and previous retries'
+   * parent to the new inserted parent id
    *
    * @param itemId      Previous retries' parent {@link TestItem#getItemId()}
    * @param retryParent The new-inserted {@link TestItem#getItemId()}
@@ -395,9 +404,11 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   boolean hasItemsWithIssueByLaunch(@Param("launchId") Long launchId);
 
   /**
-   * Interrupts all {@link com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum#IN_PROGRESS}
+   * Interrupts all
+   * {@link com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum#IN_PROGRESS}
    * children items of the launch with provided launchId. Sets them
-   * {@link com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum#INTERRUPTED} status
+   * {@link com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum#INTERRUPTED}
+   * status
    *
    * @param launchId Launch id
    */
@@ -408,8 +419,8 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   void interruptInProgressItems(@Param("launchId") Long launchId);
 
   /**
-   * Checks if all children of test item with id = {@code parentId}, except item with id = {@code stepId}, has status
-   * not in provided {@code statuses}
+   * Checks if all children of test item with id = {@code parentId}, except item with id =
+   * {@code stepId}, has status not in provided {@code statuses}
    *
    * @param parentId Id of parent test item
    * @param stepId   Id of test item that should be ignored during the checking
@@ -434,7 +445,8 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   Optional<TestItem> findByPath(@Param("path") String path);
 
   /**
-   * Finds latest {@link TestItem#getItemId()} with specified {@code uniqueId}, {@code launchId}, {@code parentId}
+   * Finds latest {@link TestItem#getItemId()} with specified {@code uniqueId}, {@code launchId},
+   * {@code parentId}
    *
    * @param uniqueId {@link TestItem#getUniqueId()}
    * @param launchId {@link TestItem#getLaunchId()}
@@ -450,8 +462,8 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       @Param("parentId") Long parentId);
 
   /**
-   * Finds latest {@link TestItem#getItemId()} with specified {@code uniqueId}, {@code launchId}, {@code parentId} and
-   * not equal {@code itemId}
+   * Finds latest {@link TestItem#getItemId()} with specified {@code uniqueId}, {@code launchId},
+   * {@code parentId} and not equal {@code itemId}
    *
    * @param uniqueId {@link TestItem#getUniqueId()}
    * @param launchId {@link TestItem#getLaunchId()}
@@ -480,11 +492,13 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   void deleteAllByItemIdIn(Collection<Long> ids);
 
   /**
-   * Finds latest root(without any parent) {@link TestItem} with specified {@code testCaseHash} and {@code launchId}
+   * Finds latest root(without any parent) {@link TestItem} with specified {@code testCaseHash} and
+   * {@code launchId}
    *
    * @param testCaseHash {@link TestItem#getTestCaseHash()}
    * @param launchId     {@link TestItem#getLaunchId()}
-   * @return {@link Optional} of {@link TestItem#getItemId()} if exists otherwise {@link Optional#empty()}
+   * @return {@link Optional} of {@link TestItem#getItemId()} if exists otherwise
+   * {@link Optional#empty()}
    */
   @Query(value =
       "SELECT t.item_id FROM test_item t WHERE t.test_case_hash = :testCaseHash AND t.launch_id = :launchId AND t.parent_id IS NULL "
@@ -494,13 +508,14 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       @Param("launchId") Long launchId);
 
   /**
-   * Finds latest {@link TestItem#getItemId()} with specified {@code testCaseHash}, {@code launchId} and
-   * {@code parentId}
+   * Finds latest {@link TestItem#getItemId()} with specified {@code testCaseHash}, {@code launchId}
+   * and {@code parentId}
    *
    * @param testCaseHash {@link TestItem#getTestCaseHash()}
    * @param launchId     {@link TestItem#getLaunchId()}
    * @param parentId     {@link TestItem#getParentId()}
-   * @return {@link Optional} of {@link TestItem#getItemId()} if exists otherwise {@link Optional#empty()}
+   * @return {@link Optional} of {@link TestItem#getItemId()} if exists otherwise
+   * {@link Optional#empty()}
    */
   @Query(value =
       "SELECT t.item_id FROM test_item t WHERE t.test_case_hash = :testCaseHash AND t.launch_id = :launchId "
@@ -570,7 +585,6 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   @Query("DELETE FROM TestItem ti WHERE ti.launchId = :launchId")
   int deleteByLaunchId(@Param("launchId") Long launchId);
 
-
   /**
    * Finds all test items by item IDs filtered by project ID.
    *
@@ -586,4 +600,61 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       ORDER BY ti.item_id
       """, nativeQuery = true)
   List<TestItem> findAllByItemIdInAndProjectId(@Param("ids") Collection<Long> ids, @Param("projectId") Long projectId);
+
+  /**
+   * Finds SUITE (test folder) item in a specific launch by finding the junction.
+   *
+   * @param launchId     launch ID
+   * @param testFolderId test folder ID
+   * @return Optional containing SUITE test item if exists
+   */
+  @Query("SELECT tft.testItem FROM TmsTestFolderTestItem tft " +
+      "WHERE tft.testFolderId = :testFolderId " +
+      "AND tft.launchId = :launchId")
+  Optional<TestItem> findSuiteItemInLaunchForFolder(
+      @Param("launchId") Long launchId,
+      @Param("testFolderId") Long testFolderId);
+
+  /**
+   * Counts direct children of a parent item with specific type.
+   *
+   * @param parentId parent item ID
+   * @param type     item type (TEST, STEP, etc.)
+   * @return count of children with specified type
+   */
+  @Query("SELECT COUNT(ti) FROM TestItem ti WHERE ti.parentId = :parentId AND ti.type = :type")
+  long countByParentIdAndType(
+      @Param("parentId") Long parentId,
+      @Param("type") TestItemTypeEnum type);
+
+  /**
+   * Finds all nested steps (hasStats=false) under a parent item.
+   *
+   * @param parentId parent item ID
+   * @return list of nested step items
+   */
+  @Query("SELECT ti FROM TestItem ti WHERE ti.parentId = :parentId AND ti.hasStats = false " +
+      "ORDER BY ti.itemId ASC")
+  List<TestItem> findNestedStepsByParentId(@Param("parentId") Long parentId);
+
+  /**
+   * Finds all direct children of a parent item.
+   *
+   * @param parentId parent item ID
+   * @return list of direct child items
+   */
+  @Query("SELECT ti FROM TestItem ti WHERE ti.parentId = :parentId ORDER BY ti.itemId ASC")
+  List<TestItem> findDirectChildrenByParentId(@Param("parentId") Long parentId);
+
+  @Query("""
+      SELECT new com.epam.reportportal.core.tms.dto.CountOfChildTestItemsByParentId(ti.parentId, COUNT(ti.itemId))
+      FROM TestItem ti
+      WHERE ti.parentId IN :parentIds
+        AND ti.type = :type
+      GROUP BY ti.parentId
+      """)
+  List<CountOfChildTestItemsByParentId> countChildrenByParentIdsAndType(
+      @Param("parentIds") List<Long> parentIds,
+      @Param("type") TestItemTypeEnum type
+  );
 }

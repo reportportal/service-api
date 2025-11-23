@@ -779,4 +779,25 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
     return tmsTestFolderMapper.convert(foldersPage);
   }
+
+  /**
+   * Gets unique folders from test cases in launch.
+   *
+   * @param projectId project ID
+   * @param launchId  launch ID
+   * @param pageable  pagination parameters
+   * @return page of test folders
+   */
+  @Override
+  @Transactional(readOnly = true)
+  public Page<TmsTestFolderRS> getFoldersByLaunchIdWithTestCaseCount(Long projectId, Long launchId,
+      Pageable pageable) {
+    // Get unique folders from test case executions
+    var foldersPage = tmsTestFolderRepository.findUniqueFoldersByLaunchIdWithTestCaseCount(
+        launchId, pageable
+    ); //TODO add projectID to execution
+
+    // Convert using existing mapper
+    return tmsTestFolderMapper.convert(foldersPage);
+  }
 }

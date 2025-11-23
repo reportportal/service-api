@@ -919,7 +919,7 @@ public class TmsTestFolderControllerTest {
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.totalCount").value(5))
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.successCount").value(4))
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.failureCount").value(1))
-        .andExpect(jsonPath("$.testCaseDuplicationStatistic.errors[0].testCaseIds").value(24))
+        .andExpect(jsonPath("$.testCaseDuplicationStatistic.errors[0].testCaseId").value(24))
         .andExpect(
             jsonPath("$.testCaseDuplicationStatistic.errors[0].errorMessage").value("Failed to duplicate test case"));
 

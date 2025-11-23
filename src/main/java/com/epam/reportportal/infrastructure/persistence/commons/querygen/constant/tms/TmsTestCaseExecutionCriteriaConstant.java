@@ -17,4 +17,6 @@ public class TmsTestCaseExecutionCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_CASE_EXECUTION_LAUNCH_ID = "launchId";
   public static final String CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_VERSION_ID = "testCaseVersionId";
   public static final String CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS = "status";
+  public static final String CRITERIA_TMS_TEST_CASE_EXECUTION_PRIORITY = "priority";
+  public static final String CRITERIA_TMS_TEST_CASE_EXECUTION_TAG = "tag";
 }

@@ -1,8 +1,17 @@
 package com.epam.reportportal.core.tms.service;
 
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.model.Page;
+import com.epam.reportportal.util.OffsetRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 
 public interface TmsTestCaseExecutionService {
 
@@ -30,4 +39,158 @@ public interface TmsTestCaseExecutionService {
    * @return list of executions ordered by start time descending
    */
   List<TmsTestCaseExecution> findByTestCaseIdAndTestPlanId(Long testCaseId, Long testPlanId);
+
+  /**
+   * Creates execution for test case in launch.
+   *
+   * @param testCase test case entity
+   * @param launch   launch entity
+   */
+  void createExecution(TmsTestCaseRS testCase, Launch launch);
+
+  /**
+   * Creates executions for multiple test cases in launch.
+   *
+   * @param projectId
+   * @param testCaseIds list of test case IDs
+   * @param launch      launch entity
+   */
+  void createExecutions(long projectId, List<Long> testCaseIds, Launch launch);
+
+  /**
+   * Adds test cases to launch (creates executions).
+   *
+   * @param projectId
+   * @param launch      launch entity
+   * @param testCaseIds list of test case IDs
+   */
+  void addTestCasesToLaunch(long projectId, Launch launch, List<Long> testCaseIds);
+
+  /**
+   * Removes test case execution from launch.
+   *
+   * @param testCaseExecutionId test case execution ID
+   * @param launchId   launch ID
+   */
+  void removeTestCaseExecutionFromLaunch(Long testCaseExecutionId, Long launchId);
+
+  /**
+   * Checks if test case is in launch.
+   *
+   * @param testCaseId test case ID
+   * @param launchId   launch ID
+   * @return true if exists
+   */
+  boolean isTestCaseInLaunch(Long testCaseId, Long launchId);
+
+  /**
+   * Deletes all executions by launch ID.
+   *
+   * @param launchId launch ID
+   */
+  void deleteByLaunchId(Long launchId);
+
+  /**
+   * Gets count of test cases in launch.
+   *
+   * @param launchId launch ID
+   * @return count of test cases
+   */
+  Long countTestCasesInLaunch(Long launchId);
+
+  /**
+   * Checks if execution exists for test item.
+   *
+   * @param testItemId test item ID
+   * @return true if exists
+   */
+  boolean existsByTestItemId(Long testItemId);
+
+  /**
+   * Finds all executions by launch ID.
+   *
+   * @param launchId launch ID
+   * @return list of executions
+   */
+  List<TmsTestCaseExecution> findByLaunchId(Long launchId);
+
+  /**
+   * Finds all executions by launch ID with full details loaded.
+   *
+   * @param launchId launch ID
+   * @return list of executions with associations
+   */
+  List<TmsTestCaseExecution> findByLaunchIdWithDetails(Long launchId);
+
+  /**
+   * Finds execution by test case ID and launch ID.
+   *
+   * @param testCaseId test case ID
+   * @param launchId   launch ID
+   * @return optional execution
+   */
+  Optional<TmsTestCaseExecution> findByTestCaseExecutionIdAndLaunchId(Long testCaseId, Long launchId);
+
+  /**
+   * Finds executions by launch ID as map (test case ID -> execution).
+   *
+   * @param launchId launch ID
+   * @return map of test case ID to execution
+   */
+  Map<Long, TmsTestCaseExecution> findExecutionsByLaunchIdAsMap(Long launchId);
+
+  /**
+   * Finds test case executions by launch ID with pagination and filtering.
+   *
+   * @param launchId launch ID
+   * @param filter   filter criteria
+   * @param pageable pagination parameters
+   * @return page of test case execution DTOs
+   */
+  Page<TmsTestCaseExecutionRS> findByLaunchIdWithFilter(
+      Long launchId,
+      Filter filter,
+      Pageable pageable
+  );
+
+  /**
+   * Finds test case execution by ID and launch ID with full details.
+   *
+   * @param executionId execution ID
+   * @param launchId    launch ID
+   * @return test case execution DTO
+   */
+  TmsTestCaseExecutionRS findByIdAndLaunchIdWithDetails(
+      Long executionId,
+      Long launchId
+  );
+
+  /**
+   * Finds test case executions by test case ID and launch ID.
+   *
+   * @param testCaseId test case ID
+   * @param launchId   launch ID
+   * @param pageable   pageable
+   * @return list of test case execution DTOs
+   */
+  Page<TmsTestCaseExecutionRS> findByTestCaseIdAndLaunchId(
+      Long testCaseId,
+      Long launchId,
+      Pageable pageable);
+
+  /**
+   * Updates test case execution.
+   *
+   * @param executionId execution ID
+   * @param launchId    launch ID
+   * @param request     update request
+   * @return updated test case execution DTO
+   */
+  TmsTestCaseExecutionRS patch(
+      Long executionId,
+      Long launchId,
+      TmsTestCaseExecutionRQ request
+  );
+
+  boolean existsByTestCaseExecutionIdAndLaunchId(Long executionId, Long launchId);
 }

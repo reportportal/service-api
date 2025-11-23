@@ -7,19 +7,25 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.core.tms.service.TmsManualLaunchService;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.reporting.OperationCompletionRS;
+import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.model.Page;
+import com.epam.reportportal.util.OffsetRequest;
+import com.epam.reportportal.util.ProjectExtractor;
+import com.epam.reportportal.ws.resolver.FilterFor;
+import com.epam.reportportal.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,28 +34,33 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
+/**
+ * REST controller for managing TMS Manual Launches.
+ */
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms")
 @RequiredArgsConstructor
 @Tag(name = "TMS Manual Launch Controller", description = "Operations for managing TMS Manual Launches")
 public class TmsManualLaunchController {
 
-  // Manual Launch CRUD operations
+  private final TmsManualLaunchService tmsManualLaunchService;
+  private final ProjectExtractor projectExtractor;
+
   @PostMapping("/launch")
-  @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Create a new TMS Manual Launch")
   public TmsManualLaunchRS createManualLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Valid @RequestBody TmsManualLaunchRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.create(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        request
+    );
   }
 
   @GetMapping("/launch/manual")
@@ -57,11 +68,16 @@ public class TmsManualLaunchController {
   public Page<TmsManualLaunchRS> getManualLaunches(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
-      Pageable pageable,
+      @FilterFor(Launch.class) Filter filter,
+      @PagingOffset(sortable = Launch.class) OffsetRequest pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.getManualLaunches(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        filter,
+        pageable
+    );
   }
 
   @GetMapping("/launch/{launchId}")
@@ -72,22 +88,28 @@ public class TmsManualLaunchController {
       @Parameter(description = "Launch ID", required = true)
       @PathVariable Long launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.getById(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId
+    );
   }
 
   @DeleteMapping("/launch/{launchId}")
   @Operation(summary = "Delete Manual Launch by ID")
-  public OperationCompletionRS deleteManualLaunch(
+  public void deleteManualLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
       @PathVariable Long launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    tmsManualLaunchService.delete(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId
+    );
   }
 
   @PatchMapping("/launch/{launchId}")
@@ -100,36 +122,47 @@ public class TmsManualLaunchController {
       @Valid @RequestBody TmsManualLaunchRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
 
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.patch(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        request
+    );
   }
 
   @DeleteMapping("/launch/manual")
   @Operation(summary = "Batch delete Manual Launches")
-  public OperationCompletionRS batchDeleteManualLaunches(
+  public BatchManualLaunchOperationResultRS batchDeleteManualLaunches(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "List of Launch IDs to delete", required = true)
-      @RequestBody List<Long> launchIds,
+      @RequestBody BatchDeleteManualLaunchesRQ batchDeleteManualLaunchesRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.batchDeleteManualLaunches(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        batchDeleteManualLaunchesRQ
+    );
   }
 
-  // Test Case management in Launch
   @PostMapping("/launch/{launchId}/test-case")
   @Operation(summary = "Add single test case to Manual Launch")
-  public BatchTestCaseOperationResultRS addTestCaseToLaunch(
+  public void addTestCaseToLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
       @PathVariable Long launchId,
       @Valid @RequestBody AddTestCaseToLaunchRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    tmsManualLaunchService.addTestCaseToLaunch(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        request
+    );
   }
 
   @PostMapping("/launch/{launchId}/test-case/batch")
@@ -141,26 +174,33 @@ public class TmsManualLaunchController {
       @PathVariable Long launchId,
       @Valid @RequestBody BatchAddTestCasesToLaunchRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.addTestCasesToLaunch(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        request
+    );
   }
 
-  // Launch folders
   @GetMapping("/launch/{launchId}/folder")
   @Operation(summary = "Get folders of launch")
-  public List<TmsTestFolderRS> getLaunchFolders(
+  public Page<TmsTestFolderRS> getLaunchFolders(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
       @PathVariable Long launchId,
+      @PagingOffset(sortable = TmsTestFolder.class) OffsetRequest pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.getLaunchFolders(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        pageable
+    );
   }
 
-  // Test Case Execution operations
   @GetMapping("/launch/{launchId}/test-case/execution")
   @Operation(summary = "Get all test case executions of launch")
   public Page<TmsTestCaseExecutionRS> getLaunchTestCaseExecutions(
@@ -168,11 +208,17 @@ public class TmsManualLaunchController {
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
       @PathVariable Long launchId,
-      Pageable pageable,
+      @FilterFor(TmsTestCaseExecution.class) Filter filter,
+      @PagingOffset(sortable = TmsTestCaseExecution.class) OffsetRequest pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.getLaunchTestCaseExecutions(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        filter,
+        pageable
+    );
   }
 
   @GetMapping("/launch/{launchId}/test-case/execution/{executionId}")
@@ -185,14 +231,18 @@ public class TmsManualLaunchController {
       @Parameter(description = "Execution ID", required = true)
       @PathVariable Long executionId,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.getTestCaseExecution(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        executionId
+    );
   }
 
   @DeleteMapping("/launch/{launchId}/test-case/execution/{executionId}")
   @Operation(summary = "Delete specific test case execution from launch")
-  public OperationCompletionRS deleteTestCaseExecution(
+  public void deleteTestCaseExecution(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
@@ -200,24 +250,34 @@ public class TmsManualLaunchController {
       @Parameter(description = "Execution ID", required = true)
       @PathVariable Long executionId,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    tmsManualLaunchService.deleteTestCaseExecution(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        executionId
+    );
   }
 
   @GetMapping("/launch/{launchId}/test-case/{testCaseId}/execution")
   @Operation(summary = "Get all executions of specific test case in launch")
-  public List<TmsTestCaseExecutionRS> getTestCaseExecutionsInLaunch(
+  public Page<TmsTestCaseExecutionRS> getTestCaseExecutionsInLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
       @PathVariable Long launchId,
       @Parameter(description = "Test Case ID", required = true)
       @PathVariable Long testCaseId,
+      @PagingOffset OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.getTestCaseExecutionsInLaunchForTestCase(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        testCaseId,
+        offsetRequest
+    );
   }
 
   @PatchMapping("/launch/{launchId}/test-case/execution/{executionId}")
@@ -231,8 +291,13 @@ public class TmsManualLaunchController {
       @PathVariable Long executionId,
       @Valid @RequestBody TmsTestCaseExecutionRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
-
-    // TODO: Implement
-    throw new UnsupportedOperationException("Not implemented yet");
+    return tmsManualLaunchService.patchTestCaseExecution(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        executionId,
+        request
+    );
   }
 }

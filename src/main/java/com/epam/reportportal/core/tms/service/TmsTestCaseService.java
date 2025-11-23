@@ -5,11 +5,13 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
-import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -50,7 +52,7 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
    * Patch specific attributes from multiple test cases.
    *
    * @param projectId    The project ID.
-   * @param patchRequest  Patch request.
+   * @param patchRequest Patch request.
    */
   void patchTestCaseAttributes(Long projectId, BatchPatchTestCaseAttributesRQ patchRequest);
 
@@ -79,11 +81,12 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
 
   BatchTestCaseOperationResultRS duplicateTestCases(long projectId, List<Long> originalTestCaseIds);
 
-  BatchTestCaseOperationResultRS duplicateTestCases(long projectId, TmsTestFolder targetFolder, List<Long> originalTestCaseIds);
+  BatchTestCaseOperationResultRS duplicateTestCases(long projectId, TmsTestFolder targetFolder,
+      List<Long> originalTestCaseIds);
 
   /**
-   * Retrieves test cases added to a test plan with pagination.
-   * Returns test cases with last execution only (without full execution history).
+   * Retrieves test cases added to a test plan with pagination. Returns test cases with last
+   * execution only (without full execution history).
    *
    * @param projectId  the project ID
    * @param testPlanId the test plan ID
@@ -102,4 +105,13 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
    * @return test case with last execution and all executions
    */
   TmsTestCaseInTestPlanRS getTestCaseInTestPlan(Long projectId, Long testPlanId, Long testCaseId);
+
+  /**
+   * Gets test case entity by ID (for internal service usage).
+   *
+   * @param testCaseId test case ID
+   * @return test case entity
+   * @throws ReportPortalException if test case not found
+   */
+  TmsTestCase getEntityById(Long testCaseId);
 }

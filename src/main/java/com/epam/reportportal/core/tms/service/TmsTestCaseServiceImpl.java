@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
@@ -47,6 +48,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 @Valid
+@Slf4j
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case with id: %d for projectId: %d";
@@ -63,14 +65,20 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestCaseImporterFactory importerFactory;
   private final TmsTestCaseExporterFactory exporterFactory;
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
-  private final TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
   private TmsTestFolderService tmsTestFolderService;
+  private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
   @Autowired
   public void setTmsTestFolderService(
       TmsTestFolderService tmsTestFolderService) {
     this.tmsTestFolderService = tmsTestFolderService;
+  }
+
+  @Autowired
+  public void setTmsTestCaseExecutionService(
+      TmsTestCaseExecutionService tmsTestCaseExecutionService) {
+    this.tmsTestCaseExecutionService = tmsTestCaseExecutionService;
   }
 
   @Override
@@ -641,6 +649,17 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     );
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestCase getEntityById(Long testCaseId) {
+    log.debug("Getting test case entity by ID: {}", testCaseId);
+
+    return tmsTestCaseRepository.findById(testCaseId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, "Test case with id: " + testCaseId + " not found")
+        );
+  }
+
   /**
    * Verifies that test case is added to the test plan.
    *
@@ -672,5 +691,4 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     return uniqueName;
   }
-
 }

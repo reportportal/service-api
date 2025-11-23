@@ -53,8 +53,8 @@ public class TmsStep implements Serializable {
 
   @ManyToMany
   @JoinTable(
-      name = "tms_step_test_item",
-      joinColumns = @JoinColumn(name = "step_id"),
+      name = "tms_step_execution",
+      joinColumns = @JoinColumn(name = "tms_step_id"),
       inverseJoinColumns = @JoinColumn(name = "test_item_id"))
   @ToString.Exclude
   private Set<TestItem> testItems;

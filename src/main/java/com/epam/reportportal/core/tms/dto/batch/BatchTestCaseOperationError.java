@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BatchTestCaseOperationError {
-  private Long testCaseIds;
+  private Long testCaseId;
   private String errorMessage;
 }

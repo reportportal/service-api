@@ -50,7 +50,12 @@ public interface TmsTestCaseExecutionCommentRepository extends
    * Deletes execution comments by launch ID.
    */
   @Modifying
-  @Query("DELETE FROM TmsTestCaseExecutionComment tec WHERE tec.execution.launchId = :launchId")
+  @Query(value = """
+      DELETE FROM tms_test_case_execution_comment 
+      WHERE execution_id IN (
+        SELECT id FROM tms_test_case_execution WHERE launch_id = :launchId
+      )
+      """, nativeQuery = true)
   void deleteByLaunchId(@Param("launchId") Long launchId);
 
   /**

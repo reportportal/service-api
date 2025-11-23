@@ -825,6 +825,7 @@ public class RecordMappers {
     execution.setTestCaseId(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_ID));
     execution.setLaunchId(r.get(TMS_TEST_CASE_EXECUTION.LAUNCH_ID));
     execution.setTestCaseVersionId(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID));
+    execution.setPriority(r.get(TMS_TEST_CASE_EXECUTION.PRIORITY, String.class));
     execution.setTestCaseSnapshot(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT, String.class));
 
     //Create TestItem with id, if test_item_id exists

@@ -43,6 +43,9 @@ public class TmsTestCaseExecutionComment implements Serializable {
   @Column(name = "comment", columnDefinition = "text")
   private String comment;
 
+  @Column(name = "bts_ticket_id")
+  private Long btsTicketId;
+
   @ManyToMany
   @JoinTable(
       name = "tms_test_case_execution_comment_attachment",

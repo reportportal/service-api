@@ -240,8 +240,8 @@ class TmsTestCaseServiceImplTest {
         .name("Test Case 2")
         .build();
 
-    // Setup TmsTestFolderService injection
     sut.setTmsTestFolderService(tmsTestFolderService);
+    sut.setTmsTestCaseExecutionService(tmsTestCaseExecutionService);
   }
 
   @Test
@@ -2383,7 +2383,7 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     assertTrue(result.getSuccessTestCaseIds().isEmpty());
     assertEquals(1, result.getErrors().size());
-    assertEquals(999L, result.getErrors().get(0).getTestCaseIds());
+    assertEquals(999L, result.getErrors().get(0).getTestCaseId());
 
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 999L);
     verify(tmsTestCaseRepository, never()).save(any());
@@ -2455,7 +2455,7 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     assertEquals(2, result.getSuccessTestCaseIds().size());
     assertEquals(1, result.getErrors().size());
-    assertEquals(999L, result.getErrors().get(0).getTestCaseIds());
+    assertEquals(999L, result.getErrors().get(0).getTestCaseId());
 
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 1L);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 999L);
@@ -2622,7 +2622,7 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     assertTrue(result.getSuccessTestCaseIds().isEmpty());
     assertEquals(1, result.getErrors().size());
-    assertEquals(1L, result.getErrors().get(0).getTestCaseIds());
+    assertEquals(1L, result.getErrors().get(0).getTestCaseId());
 
     verify(tmsTestCaseRepository).save(duplicatedTestCase);
     verify(tmsTestCaseVersionService, never()).duplicateDefaultVersion(any(), any());

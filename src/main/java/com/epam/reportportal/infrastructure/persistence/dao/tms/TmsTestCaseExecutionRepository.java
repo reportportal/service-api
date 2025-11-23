@@ -2,6 +2,8 @@ package com.epam.reportportal.infrastructure.persistence.dao.tms;
 
 import com.epam.reportportal.infrastructure.persistence.dao.ReportPortalRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.projection.TmsTestCaseExecutionStatusCount;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.projection.TmsTestCaseExecutionStatusCountByLaunch;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -149,7 +151,7 @@ public interface TmsTestCaseExecutionRepository extends
    * Finds execution by test case execution ID and launch ID.
    *
    * @param testCaseExecutionId test case execution ID
-   * @param launchId   launch ID
+   * @param launchId            launch ID
    * @return optional execution
    */
   @Query("SELECT e FROM TmsTestCaseExecution e "
@@ -313,4 +315,21 @@ public interface TmsTestCaseExecutionRepository extends
       @Param("testCaseExecutionId") Long testCaseExecutionId,
       @Param("launchId") Long launchId
   );
+
+  /**
+   * Aggregates execution counts by status for a given launch.
+   */
+  @Query("SELECT e.testItem.itemResults.status as status, COUNT(e) as count " +
+      "FROM TmsTestCaseExecution e " +
+      "WHERE e.launchId = :launchId " +
+      "GROUP BY e.testItem.itemResults.status")
+  List<TmsTestCaseExecutionStatusCount> findTestCaseExecutionCountsByLaunchId(@Param("launchId") Long launchId);
+
+  @Query("SELECT e.launchId as launchId, e.testItem.itemResults.status as status, COUNT(e) as count " +
+      "FROM TmsTestCaseExecution e " +
+      "WHERE e.launchId IN :launchIds " +
+      "GROUP BY e.launchId, e.testItem.itemResults.status")
+  List<TmsTestCaseExecutionStatusCountByLaunch> findTestCaseExecutionCountsByLaunchIds(@Param("launchIds") List<Long> launchIds);
+
+  List<TmsTestCaseExecution> findAllByLaunchIdAndTestCaseId(Long launchId, long testCaseId);
 }

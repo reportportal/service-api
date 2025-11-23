@@ -105,4 +105,14 @@ public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTe
    * @return page of test folders with count of test cases
    */
   Page<TmsTestFolderRS> getFoldersByTestPlanId(Long projectId, Long testPlanId, Pageable pageable);
+
+  /**
+   * Gets unique folders from test cases in launch.
+   *
+   * @param projectId project ID
+   * @param launchId  launch ID
+   * @param pageable  pagination parameters
+   * @return page of test folders
+   */
+  Page<TmsTestFolderRS> getFoldersByLaunchIdWithTestCaseCount(Long projectId, Long launchId, Pageable pageable);
 }

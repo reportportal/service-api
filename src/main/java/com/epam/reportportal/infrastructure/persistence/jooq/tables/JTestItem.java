@@ -17,13 +17,18 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JPatternTemp
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JPatternTemplateTestItem.JPatternTemplateTestItemPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JStatistics.JStatisticsPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JStatisticsField.JStatisticsFieldPath;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTestItemResults.JTestItemResultsPath;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepExecution.JTmsStepExecutionPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution.JTmsTestCaseExecutionPath;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem.JTmsTestFolderTestItemPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTestItemRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -374,6 +379,19 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
         return _testItemResults;
     }
 
+    private transient JTmsStepExecutionPath _tmsStepExecution;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_step_execution</code> table
+     */
+    public JTmsStepExecutionPath tmsStepExecution() {
+        if (_tmsStepExecution == null)
+            _tmsStepExecution = new JTmsStepExecutionPath(this, null, Keys.TMS_STEP_EXECUTION__TMS_STEP_EXECUTION_TEST_ITEM_FK_TEST_ITEM.getInverseKey());
+
+        return _tmsStepExecution;
+    }
+
     private transient JTmsTestCaseExecutionPath _tmsTestCaseExecution;
 
     /**
@@ -385,6 +403,19 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
             _tmsTestCaseExecution = new JTmsTestCaseExecutionPath(this, null, Keys.TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_ITEM.getInverseKey());
 
         return _tmsTestCaseExecution;
+    }
+
+    private transient JTmsTestFolderTestItemPath _tmsTestFolderTestItem;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_test_folder_test_item</code> table
+     */
+    public JTmsTestFolderTestItemPath tmsTestFolderTestItem() {
+        if (_tmsTestFolderTestItem == null)
+            _tmsTestFolderTestItem = new JTmsTestFolderTestItemPath(this, null, Keys.TMS_TEST_FOLDER_TEST_ITEM__TMS_TEST_FOLDER_TEST_ITEM_FK_TEST_ITEM.getInverseKey());
+
+        return _tmsTestFolderTestItem;
     }
 
     /**

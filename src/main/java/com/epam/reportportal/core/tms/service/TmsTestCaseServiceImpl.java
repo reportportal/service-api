@@ -24,6 +24,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.Page;
+import com.epam.reportportal.util.PageableUtils;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -36,6 +37,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
@@ -47,6 +49,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 @Valid
+@Slf4j
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case with id: %d for projectId: %d";
@@ -63,14 +66,20 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestCaseImporterFactory importerFactory;
   private final TmsTestCaseExporterFactory exporterFactory;
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
-  private final TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
   private TmsTestFolderService tmsTestFolderService;
+  private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
   @Autowired
   public void setTmsTestFolderService(
       TmsTestFolderService tmsTestFolderService) {
     this.tmsTestFolderService = tmsTestFolderService;
+  }
+
+  @Autowired
+  public void setTmsTestCaseExecutionService(
+      TmsTestCaseExecutionService tmsTestCaseExecutionService) {
+    this.tmsTestCaseExecutionService = tmsTestCaseExecutionService;
   }
 
   @Override
@@ -641,6 +650,42 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     );
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestCase getEntityById(Long testCaseId) {
+    log.debug("Getting test case entity by ID: {}", testCaseId);
+
+    return tmsTestCaseRepository.findById(testCaseId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, "Test case with id: " + testCaseId + " not found")
+        );
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TmsTestCaseRS> getByIds(long projectId, List<Long> testCaseIds) {
+    return tmsTestCaseRepository
+        .findByProjectIdAndIds(projectId, testCaseIds)
+        .stream()
+        .map(tmsTestCaseMapper::convert)
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Long> getTestCaseIdsInTestPlan(long projectId, Long testPlanId) {
+    return PageableUtils
+        .loadAll(
+          pageable -> tmsTestCaseRepository.findIdsByCriteria(
+              projectId,
+              null, // no search query
+              null, // no folder filter
+              testPlanId, // filter by test plan
+              pageable
+          )
+        );
+  }
+
   /**
    * Verifies that test case is added to the test plan.
    *
@@ -672,5 +717,4 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     return uniqueName;
   }
-
 }

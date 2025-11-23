@@ -5,6 +5,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
+
 import org.jooq.JSONB;
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -106,6 +107,20 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
         return (JSONB) get(5);
     }
 
+    /**
+     * Setter for <code>public.tms_test_case_execution.priority</code>.
+     */
+    public void setPriority(String value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case_execution.priority</code>.
+     */
+    public String getPriority() {
+        return (String) get(6);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -129,7 +144,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
     /**
      * Create a detached, initialised JTmsTestCaseExecutionRecord
      */
-    public JTmsTestCaseExecutionRecord(Long id, Long testItemId, Long testCaseId, Long launchId, Long testCaseVersionId, JSONB testCaseSnapshot) {
+    public JTmsTestCaseExecutionRecord(Long id, Long testItemId, Long testCaseId, Long launchId, Long testCaseVersionId, JSONB testCaseSnapshot, String priority) {
         super(JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION);
 
         setId(id);
@@ -138,6 +153,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
         setLaunchId(launchId);
         setTestCaseVersionId(testCaseVersionId);
         setTestCaseSnapshot(testCaseSnapshot);
+        setPriority(priority);
         resetChangedOnNotNull();
     }
 }

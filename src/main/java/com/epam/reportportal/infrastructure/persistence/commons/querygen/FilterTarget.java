@@ -145,7 +145,9 @@ import static com.epam.reportportal.infrastructure.persistence.commons.querygen.
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_UPDATED_AT;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_LAUNCH_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_PRIORITY;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TAG;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_VERSION_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_ITEM_ID;
@@ -1986,9 +1988,21 @@ public enum FilterTarget {
               TMS_TEST_CASE_EXECUTION.LAUNCH_ID, Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_VERSION_ID,
               TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID, Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_PRIORITY,
+              TMS_TEST_CASE_EXECUTION.PRIORITY, String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS,
               TEST_ITEM_RESULTS.STATUS,
               JStatusEnum.class
+          ).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_TAG,
+              ITEM_ATTRIBUTE.VALUE,
+              List.class,
+              Lists.newArrayList(JoinEntity.of(ITEM_ATTRIBUTE,
+                  JoinType.LEFT_OUTER_JOIN,
+                  TEST_ITEM.ITEM_ID.eq(ITEM_ATTRIBUTE.ITEM_ID)
+                      .and(ITEM_ATTRIBUTE.KEY.eq(CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS))
+                      .and(DSL.coalesce(ITEM_ATTRIBUTE.SYSTEM, false).eq(false))
+              ))
           ).get()
       )
   ) {
@@ -2000,6 +2014,7 @@ public enum FilterTarget {
           TMS_TEST_CASE_EXECUTION.TEST_CASE_ID,
           TMS_TEST_CASE_EXECUTION.LAUNCH_ID,
           TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID,
+          TMS_TEST_CASE_EXECUTION.PRIORITY,
           TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT,
           TEST_ITEM.START_TIME,
           TEST_ITEM_RESULTS.STATUS,

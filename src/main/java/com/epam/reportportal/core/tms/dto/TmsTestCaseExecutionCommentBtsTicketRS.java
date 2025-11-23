@@ -7,12 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class TmsManualLaunchAttributeRQ {
+@Builder
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class TmsTestCaseExecutionCommentBtsTicketRS {
   private Long id;
-
-  private String value;
 }

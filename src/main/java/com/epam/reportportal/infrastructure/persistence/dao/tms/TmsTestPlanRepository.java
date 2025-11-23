@@ -46,4 +46,12 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   List<TmsTestPlan> findByIdsWithAttributes(@Param("ids") List<Long> ids);
 
   Boolean existsByIdAndProject_Id(Long testPlanId, Long projectId);
+
+  /**
+   * Find test plans by their IDs
+   * @param testPlanIds list of test plan IDs
+   * @return list of test plans
+   */
+  @Query("SELECT tp FROM TmsTestPlan tp WHERE tp.id IN :testPlanIds")
+  List<TmsTestPlan> findByIds(@Param("testPlanIds") List<Long> testPlanIds);
 }

@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class TmsTestCaseExecutionCommentAttachmentRS {
 
   @NotBlank(message = "Attachment ID must not be blank")
-  private String id;
+  private Long id;
 
   private String fileName;
 

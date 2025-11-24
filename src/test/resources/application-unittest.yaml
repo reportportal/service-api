@@ -1,6 +1,24 @@
 datastore:
   type: filesystem
   path: ${java.io.tmpdir}/reportportal/datastore
+  bucketPrefix: prj-
+  defaultBucketName: rp-bucket
+  bucketPostfix: ""
+  seaweed:
+    master:
+      host: ${rp.binarystore.master.host:localhost}
+      port: ${rp.binarystore.master.port:9333}
+  s3:
+    endpoint: ${rp.binarystore.s3.endpoint:https://play.min.io}
+    accessKey: ${rp.binarystore.s3.accessKey:Q3AM3UQ867SPQQA43P2F}
+    secretKey: ${rp.binarystore.s3.secretKey:zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG}
+  thumbnail:
+    attachment:
+      width: ${rp.binarystore.thumbnail.attachment.width:100}
+      height: ${rp.binarystore.thumbnail.attachment.height:55}
+    avatar:
+      width: ${rp.binarystore.thumbnail.avatar.width:40}
+      height: ${rp.binarystore.thumbnail.avatar.height:50}
 rp:
   jwt:
     signing-key: 60KNvXzuqCW1yoh1TZC+/3CjWVGhfnMqmuEV0RyLW3A=
@@ -12,6 +30,11 @@ rp:
     providers:
       internal:
         secret-key: ${rp.jwt.signing-key}
+  binarystore:
+    path: ${java.io.tmpdir}/reportportal/datastore
+  feature:
+    flags: ""
+
 logging:
   file:
     name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log

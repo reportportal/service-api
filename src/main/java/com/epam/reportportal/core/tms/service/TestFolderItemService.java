@@ -1,38 +1,26 @@
-/*
- * Copyright 2019 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.epam.reportportal.core.tms.service;
 
-import com.epam.reportportal.core.tms.mapper.SuiteItemBuilder;
+import com.epam.reportportal.core.tms.dto.TmsTestFolderRS;
+import com.epam.reportportal.core.tms.mapper.SuiteTestItemBuilder;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TmsTestFolderTestItemRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
+import com.epam.reportportal.model.Page;
+import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for managing SUITE test items (test folder containers in manual launches).
- * Handles creation, retrieval, and linking of SUITE items to test folders.
- *
- * @author ReportPortal
+ * Service for managing SUITE test items (test folder containers in manual launches). Handles
+ * creation, retrieval, linking, and listing SUITE items by launch.
  */
 @Slf4j
 @Service
@@ -42,16 +30,15 @@ public class TestFolderItemService {
   private final TestItemRepository testItemRepository;
   private final TmsTestFolderTestItemRepository testFolderTestItemRepository;
   private final TmsTestFolderService tmsTestFolderService;
-  private final SuiteItemBuilder suiteItemBuilder;
+  private final SuiteTestItemBuilder suiteItemBuilder;
 
   /**
-   * Finds or creates a SUITE item for a test folder in a launch.
-   * If SUITE item already exists for this folder in this launch, returns existing one.
-   * Otherwise, creates new SUITE item and links it to the test folder.
+   * Finds or creates a SUITE item for a test folder in a launch. If the folder has a parent folder,
+   * ensures parent SUITE is created and sets parent relation.
    *
-   * @param projectId project ID
+   * @param projectId    project ID
    * @param testFolderId test folder ID
-   * @param launch launch entity
+   * @param launch       launch entity
    * @return SUITE test item (persisted)
    */
   @Transactional
@@ -60,10 +47,8 @@ public class TestFolderItemService {
         testFolderId, launch.getId());
 
     // Try to find existing SUITE item
-    var existingSuite = testItemRepository.findSuiteItemInLaunchForFolder(
-        launch.getId(), testFolderId
-    );
-
+    var existingSuite = testItemRepository.findSuiteItemInLaunchForFolder(launch.getId(),
+        testFolderId);
     if (existingSuite.isPresent()) {
       log.debug("Found existing SUITE item: {} for test folder: {}",
           existingSuite.get().getItemId(), testFolderId);
@@ -72,23 +57,15 @@ public class TestFolderItemService {
 
     // Create new SUITE item
     var suiteItem = createSuiteItem(projectId, testFolderId, launch);
-    log.info("Created new SUITE item: {} for test folder: {}", suiteItem.getItemId(),
-        testFolderId);
-
+    log.info("Created new SUITE item: {} for test folder: {}", suiteItem.getItemId(), testFolderId);
     return suiteItem;
   }
 
   /**
-   * Creates a new SUITE item for a test folder.
-   * Loads test folder metadata and creates SUITE item with proper initialization.
-   * Creates junction record linking SUITE item to test folder.
-   *
-   * @param projectId project ID
-   * @param testFolderId test folder ID
-   * @param launch launch entity
-   * @return created SUITE test item (persisted)
+   * Creates SUITE item and sets parent SUITE relation if the folder has a parent folder.
    */
-  private TestItem createSuiteItem(Long projectId, Long testFolderId, Launch launch) {
+  private TestItem createSuiteItem(Long projectId, Long testFolderId,
+      Launch launch) {
     log.debug("Creating SUITE item for test folder: {}", testFolderId);
 
     // Load test folder metadata
@@ -100,58 +77,69 @@ public class TestFolderItemService {
       log.warn("Failed to load test folder metadata for: {}, using default name", testFolderId);
     }
 
-    // Build SUITE item
+    // Create SUITE item without a parent reference
     var suiteItem = suiteItemBuilder.buildSuiteItem(testFolder, launch, testFolderId);
-
-    // Persist SUITE item
     suiteItem = testItemRepository.save(suiteItem);
     log.trace("Persisted SUITE item with ID: {}", suiteItem.getItemId());
 
-    // Create junction record linking SUITE item to test folder
-    createFolderTestItemLink(testFolder, suiteItem);
+    // If folder has a parent, ensure parent SUITE exists and set parent relation
+    if (testFolder != null && testFolder.getParentTestFolder() != null) {
+      var parentFolderId = testFolder.getParentTestFolder().getId();
+      var parentSuite = findTestFolderItem(projectId, parentFolderId,
+          launch); // recursion ensures parent exists
 
-    log.info("Successfully created SUITE item: {} for test folder: {}", suiteItem.getItemId(),
-        testFolderId);
+      // Set parentId and complete path
+      suiteItem.setParentId(parentSuite.getItemId());
+      suiteItem.setPath(parentSuite.getPath() + "." + suiteItem.getItemId());
+      suiteItem = testItemRepository.save(suiteItem);
+    }
+
+    // Create junction record linking SUITE item to test folder
+    createFolderTestItem(testFolder, suiteItem);
+
     return suiteItem;
   }
 
   /**
-   * Creates a junction record linking test folder to SUITE test item.
-   *
-   * @param testFolder test folder entity
-   * @param suiteItem SUITE test item
+   * Creates a junction record linking test folder to SUITE test item. Sets launchId, name and
+   * description in junction for per-launch display.
    */
-  private void createFolderTestItemLink(TmsTestFolder testFolder, TestItem suiteItem) {
+  private void createFolderTestItem(TmsTestFolder testFolder, TestItem suiteItem) {
+    if (testFolder == null || suiteItem == null) {
+      log.warn("Cannot create folder-item link: testFolder or suiteItem is null");
+      return;
+    }
+
     log.debug("Creating test folder-test item link for folder: {} and item: {}",
         testFolder.getId(), suiteItem.getItemId());
 
     // Check if link already exists (safety check)
-    if (testFolderTestItemRepository.existsByTestFolderIdAndTestItemId(
-        testFolder.getId(), suiteItem.getItemId())) {
-      log.debug("Link already exists between folder: {} and item: {}",
-          testFolder.getId(), suiteItem.getItemId());
+    if (testFolderTestItemRepository.existsByTestFolderIdAndTestItemId(testFolder.getId(),
+        suiteItem.getItemId())) {
+      log.debug("Link already exists between folder: {} and item: {}", testFolder.getId(),
+          suiteItem.getItemId());
       return;
     }
 
-    // Create and save junction record
     var folderTestItem = TmsTestFolderTestItem.builder()
         .testFolderId(testFolder.getId())
+        .launchId(suiteItem.getLaunchId())
         .testItem(suiteItem)
+        .name(testFolder.getName())
+        .description(testFolder.getDescription())
         .build();
 
     testFolderTestItemRepository.save(folderTestItem);
-    log.trace("Created junction record linking folder: {} to item: {}",
-        testFolder.getId(), suiteItem.getItemId());
+    log.trace("Created junction record linking folder: {} to item: {}", testFolder.getId(),
+        suiteItem.getItemId());
   }
 
   /**
-   * Marks SUITE item as having stats-aware children.
-   *
-   * @param testFolderItem SUITE test item
+   * Marks SUITE item as having stat-aware children.
    */
   @Transactional
   public void markAsHavingChildren(TestItem testFolderItem) {
-    if (!testFolderItem.isHasChildren()) {
+    if (testFolderItem != null && !testFolderItem.isHasChildren()) {
       log.debug("Marking SUITE item: {} as having children", testFolderItem.getItemId());
       testFolderItem.setHasChildren(true);
       testItemRepository.save(testFolderItem);
@@ -160,13 +148,55 @@ public class TestFolderItemService {
 
   /**
    * Removes junction link between test folder and test item.
-   *
-   * @param testItemId test item ID
    */
   @Transactional
   public void removeFolderTestItemLink(Long testItemId) {
     log.debug("Removing test folder-test item links for item: {}", testItemId);
     testFolderTestItemRepository.deleteByTestItem_ItemId(testItemId);
     log.trace("Removed links for item: {}", testItemId);
+  }
+
+  /**
+   * Retrieves a flat list of SUITE test items mapped to TmsTestFolderRS for a given launch. Uses
+   * junction metadata (name/description), counts TEST children, and resolves parent SUITE id.
+   *
+   * @param launchId the Launch ID
+   * @param pageable pagination
+   * @return page of TmsTestFolderRS
+   */
+  @Transactional(readOnly = true)
+  public Page<TmsTestFolderRS> getSuiteFoldersByLaunch(
+      Long projectId,
+      Long launchId,
+      Pageable pageable) {
+    var suitePage = testFolderTestItemRepository
+        .findByLaunchId(launchId, pageable)
+        .map(suiteTestItem -> {
+          var suiteItem = suiteTestItem.getTestItem();
+          var testChildrenCount = 0L;
+          Long parentSuiteId = null;
+
+          if (suiteItem != null) {
+            testChildrenCount = testItemRepository.countByParentIdAndType(suiteItem.getItemId(),
+                TestItemTypeEnum.TEST);
+            parentSuiteId = suiteItem.getParentId();
+          }
+
+          return TmsTestFolderRS.builder()
+              .id(suiteItem != null ? suiteItem.getItemId() : null)
+              .name(suiteTestItem.getName() != null ? suiteTestItem.getName()
+                  : (suiteItem != null ? suiteItem.getName() : null))
+              .description(suiteTestItem.getDescription() != null ? suiteTestItem.getDescription()
+                  : (suiteItem != null ? suiteItem.getDescription() : null))
+              .countOfTestCases(testChildrenCount)
+              .parentFolderId(parentSuiteId)
+              .build();
+        });
+    return PagedResourcesAssembler.<TmsTestFolderRS>pageConverter()
+        .apply(new PageImpl<>(
+            suitePage.getContent(),
+            pageable,
+            suitePage.getTotalElements()
+        ));
   }
 }

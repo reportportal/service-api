@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class SuiteItemBuilder {
+public class SuiteTestItemBuilder {
 
   /**
    * Creates a SUITE test item (test folder container) with given metadata.

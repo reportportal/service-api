@@ -62,8 +62,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final TmsManualLaunchMapper tmsManualLaunchMapper;
   private final TmsManualLaunchAttributeService tmsManualLaunchAttributeService;
   private final TestItemService testItemService;
-  private final TmsTestFolderService tmsTestFolderService;
   private final DeleteLaunchHandler deleteLaunchHandler;
+  private final TestFolderItemService testFolderItemService;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
@@ -392,7 +392,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     validateLaunchBelongsToProject(launchId, projectId);
 
     // Get unique folders from test case executions
-    return tmsTestFolderService.getFoldersByLaunchIdWithTestCaseCount(projectId,
+    return testFolderItemService.getSuiteFoldersByLaunch(projectId,
         launchId, pageable
     );
   }

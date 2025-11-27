@@ -12,7 +12,9 @@ import com.epam.reportportal.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.util.OffsetRequest;
 import jakarta.validation.Valid;
@@ -55,10 +57,9 @@ public interface TmsManualLaunchService {
   /**
    * Deletes manual launch by ID.
    *
-   * @param projectId project ID
    * @param launchId  launch ID
    */
-  void delete(long projectId, Long launchId);
+  void delete(MembershipDetails membershipDetails, Long launchId, ReportPortalUser user);
 
   /**
    * Patches manual launch.
@@ -173,7 +174,7 @@ public interface TmsManualLaunchService {
    */
   Page<TmsTestFolderRS> getLaunchFolders(Long projectId, Long launchId, Pageable pageable);
 
-  BatchManualLaunchOperationResultRS batchDeleteManualLaunches(Long projectId, BatchDeleteManualLaunchesRQ batchDeleteManualLaunchesRQ);
+  BatchManualLaunchOperationResultRS batchDeleteManualLaunches(MembershipDetails membershipDetails,  BatchDeleteManualLaunchesRQ batchDeleteManualLaunchesRQ, ReportPortalUser user);
 
   Optional<Long> getTestPlanIdByLaunchId(Long launchId);
 

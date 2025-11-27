@@ -4,6 +4,7 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.BAD
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.core.item.TestItemService;
+import com.epam.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
@@ -19,10 +20,12 @@ import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationResult
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.mapper.TmsManualLaunchMapper;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.filterable.TmsManualLaunchFilterableRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchTypeEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.Page;
@@ -60,6 +63,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final TmsManualLaunchAttributeService tmsManualLaunchAttributeService;
   private final TestItemService testItemService;
   private final TmsTestFolderService tmsTestFolderService;
+  private final DeleteLaunchHandler deleteLaunchHandler;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
@@ -135,26 +139,28 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public void delete(long projectId, Long launchId) {
+  public void delete(MembershipDetails membershipDetails, Long launchId, ReportPortalUser user) {
+    var projectId = membershipDetails.getProjectId();
     log.debug("Deleting manual launch: {} for project: {}", launchId, projectId);
 
-    var launch = launchRepository
-        .findByIdAndProjectId(launchId, projectId)
-        .orElseThrow(() -> new ReportPortalException(
-            NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
-        );
+    if (!launchRepository.existsByIdAndProjectId(launchId, projectId)) {
+      throw new ReportPortalException(
+          NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId));
+    }
 
     // Delete test case executions (includes launch-test case associations)
     tmsTestCaseExecutionService.deleteByLaunchId(launchId);
 
     // Delete test items
-    testItemService.deleteByLaunchId(projectId, launchId);
+    testItemService.deleteByLaunchId(projectId,
+        launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
 
     // Delete attributes
-    tmsManualLaunchAttributeService.deleteAllByLaunchId(launchId);
+    tmsManualLaunchAttributeService.deleteAllByLaunchId(
+        launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
 
     // Delete launch
-    launchRepository.delete(launch);
+    deleteLaunchHandler.deleteLaunch(launchId, membershipDetails, user);
 
     log.info("Deleted manual launch: {} for project: {}", launchId, projectId);
   }
@@ -393,8 +399,10 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public BatchManualLaunchOperationResultRS batchDeleteManualLaunches(Long projectId,
-      BatchDeleteManualLaunchesRQ request) {
+  public BatchManualLaunchOperationResultRS batchDeleteManualLaunches(
+      MembershipDetails membershipDetails,
+      BatchDeleteManualLaunchesRQ request, ReportPortalUser user) {
+    var projectId = membershipDetails.getProjectId();
     log.debug("Batch deleting manual launches for project: {}", projectId);
 
     List<Long> successLaunchIds = new ArrayList<>();
@@ -406,24 +414,12 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     for (var launchId : launchIds) {
       try {
         // Check if launch exists and belongs to project
-        var launch = launchRepository.findByIdAndProjectId(launchId, projectId);
-        if (launch.isEmpty()) {
+        if (!launchRepository.existsByIdAndProjectIdAndLaunchType(launchId, projectId,
+            LaunchTypeEnum.MANUAL)) {
           log.warn("Launch {} not found in project {}", launchId, projectId);
           errors.add(new BatchManualLaunchOperationError(
               launchId,
-              "Launch not found in project"
-          ));
-          continue;
-        }
-
-        var launchEntity = launch.get();
-
-        // Check if it's manual launch
-        if (launchEntity.getLaunchType() != LaunchTypeEnum.MANUAL) {
-          log.warn("Launch {} is not manual launch", launchId);
-          errors.add(new BatchManualLaunchOperationError(
-              launchId,
-              "Launch is not manual launch"
+              "Manual Launch not found in project"
           ));
           continue;
         }
@@ -432,13 +428,15 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
         tmsTestCaseExecutionService.deleteByLaunchId(launchId);
 
         // Delete test items
-        testItemService.deleteByLaunchId(projectId, launchId);
+        testItemService.deleteByLaunchId(projectId,
+            launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
 
         // Delete attributes
-        tmsManualLaunchAttributeService.deleteAllByLaunchId(launchId);
+        tmsManualLaunchAttributeService.deleteAllByLaunchId(
+            launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
 
         // Delete launch
-        launchRepository.delete(launchEntity);
+        deleteLaunchHandler.deleteLaunch(launchId, membershipDetails, user);
 
         successLaunchIds.add(launchId);
 

@@ -495,7 +495,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             var testItem = execution.getTestItem();
             if (testItem != null && testItem.getItemResults() != null) {
               execution.setTestItem(
-                  testItemService.patchTestItemStatus(testItem, request.getStatus()));
+                  testItemService.patchTestItemStatus(testItem, request.getStatus().toUpperCase()));
               // Add the test case to test plan for PASSED or FAILED status
               addTestCaseToTestPlan(execution, request.getStatus());
               updated = true;

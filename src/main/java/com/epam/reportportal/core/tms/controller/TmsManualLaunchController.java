@@ -109,9 +109,9 @@ public class TmsManualLaunchController {
       @AuthenticationPrincipal ReportPortalUser user) {
     tmsManualLaunchService.delete(
         projectExtractor
-            .extractMembershipDetails(user, projectKey)
-            .getProjectId(),
-        launchId
+            .extractMembershipDetails(user, projectKey),
+        launchId,
+        user
     );
   }
 
@@ -144,9 +144,9 @@ public class TmsManualLaunchController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsManualLaunchService.batchDeleteManualLaunches(
         projectExtractor
-            .extractMembershipDetails(user, projectKey)
-            .getProjectId(),
-        batchDeleteManualLaunchesRQ
+            .extractMembershipDetails(user, projectKey),
+        batchDeleteManualLaunchesRQ,
+        user
     );
   }
 

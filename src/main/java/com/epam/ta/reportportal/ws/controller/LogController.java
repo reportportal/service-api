@@ -302,6 +302,18 @@ public class LogController {
     );
   }
 
+  @GetMapping(value = "/locations/search/{parentId}")
+  @Operation(summary = "Get logs with location by search filter")
+  @Transactional(readOnly = true)
+  public Page<PagedLogResource> getLogsWithLocationBySearch(@PathVariable String projectName,
+      @PathVariable Long parentId, @RequestParam Map<String, String> params,
+      @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return getLogHandler.getLogsWithLocationBySearch(parentId,
+        projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable
+    );
+  }
+
   @PostMapping("search/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Search test items with similar error logs")

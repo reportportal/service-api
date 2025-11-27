@@ -1,0 +1,184 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.ta.reportportal.core.log.impl;
+
+import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.log.impl.GetLogHandlerImpl.LogLocationParams;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.constant.LogRepositoryConstants;
+import com.epam.ta.reportportal.entity.item.NestedItem;
+import com.epam.ta.reportportal.entity.item.NestedItemPage;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+/**
+ * Collects logs recursively with page locations for search functionality. Implements early stopping
+ * to avoid fetching more data than needed.
+ */
+@Component
+@RequiredArgsConstructor
+public class LogSearchCollector {
+
+  private static final int NESTED_STEP_MAX_PAGE_SIZE = 300;
+
+  private final LogRepository logRepository;
+  private final TestItemRepository testItemRepository;
+
+  public List<PagedLogResource> collect(Long parentId, LogLocationParams params,
+      Queryable filterWithMessage, Queryable filterNoMessage, Pageable pageable) {
+
+    int targetResultCount = (int) (pageable.getOffset() + pageable.getPageSize());
+    List<PagedLogResource> allResults = new ArrayList<>();
+
+    var context = new CollectionContext(params, filterWithMessage, filterNoMessage, pageable,
+        allResults, targetResultCount);
+
+    collectRecursively(parentId, Collections.emptyList(), context);
+
+    return allResults.stream()
+        .skip(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .toList();
+  }
+
+  public int getTotalCount(Pageable pageable, List<PagedLogResource> pageResults) {
+    return (int) pageable.getOffset() + pageResults.size();
+  }
+
+  private void collectRecursively(Long parentId, List<Map.Entry<Long, Integer>> pagesLocation,
+      CollectionContext context) {
+
+    if (hasEnoughResults(context)) {
+      return;
+    }
+
+    TestItem parentItem = testItemRepository.findById(parentId).orElse(null);
+    if (shouldSkipItem(parentItem, context.params())) {
+      return;
+    }
+
+    Set<Long> matchingIds = findMatchingItemIds(parentId, context);
+    if (CollectionUtils.isEmpty(matchingIds)) {
+      return;
+    }
+
+    List<NestedItemPage> itemsWithPages = fetchItemsWithPageNumbers(parentId, context);
+
+    processItems(itemsWithPages, matchingIds, pagesLocation, context);
+  }
+
+  private boolean hasEnoughResults(CollectionContext context) {
+    return context.results().size() >= context.targetResultCount();
+  }
+
+  private boolean shouldSkipItem(TestItem item, LogLocationParams params) {
+    return Objects.isNull(item) || shouldExcludePassedLogs(item, params.excludePassedLogs());
+  }
+
+  private Set<Long> findMatchingItemIds(Long parentId, CollectionContext context) {
+    boolean excludeLogs = shouldExcludePassedLogsForParent(parentId, context.params());
+
+    Page<NestedItem> matchingItems = logRepository.findNestedItems(parentId,
+        context.params().excludeEmptySteps(), excludeLogs, context.filterWithMessage(),
+        PageRequest.of(0, NESTED_STEP_MAX_PAGE_SIZE, context.pageable().getSort()));
+
+    return matchingItems.getContent().stream()
+        .map(NestedItem::getId)
+        .collect(Collectors.toSet());
+  }
+
+  private List<NestedItemPage> fetchItemsWithPageNumbers(Long parentId, CollectionContext context) {
+    boolean excludeLogs = shouldExcludePassedLogsForParent(parentId, context.params());
+
+    return logRepository.findNestedItemsWithPage(parentId, context.params().excludeEmptySteps(),
+        excludeLogs, context.filterNoMessage(), context.pageable());
+  }
+
+  private void processItems(List<NestedItemPage> items, Set<Long> matchingIds,
+      List<Map.Entry<Long, Integer>> pagesLocation, CollectionContext context) {
+
+    items.stream()
+        .takeWhile(item -> !hasEnoughResults(context))
+        .filter(item -> matchingIds.contains(item.getId()))
+        .forEach(item -> processMatchingItem(item, pagesLocation, context));
+  }
+
+  private void processMatchingItem(NestedItemPage item,
+      List<Map.Entry<Long, Integer>> pagesLocation,
+      CollectionContext context) {
+
+    List<Map.Entry<Long, Integer>> updatedLocation = buildPageLocation(item, pagesLocation);
+
+    switch (item.getType()) {
+      case LogRepositoryConstants.ITEM ->
+          collectRecursively(item.getId(), updatedLocation, context);
+      case LogRepositoryConstants.LOG -> addLogResult(item, updatedLocation, context);
+      default -> { /* ignore unknown types */ }
+    }
+  }
+
+  private List<Map.Entry<Long, Integer>> buildPageLocation(NestedItemPage item,
+      List<Map.Entry<Long, Integer>> parentLocation) {
+    List<Map.Entry<Long, Integer>> location = new ArrayList<>(parentLocation);
+    location.add(new AbstractMap.SimpleEntry<>(item.getId(), item.getPageNumber()));
+    return location;
+  }
+
+  private void addLogResult(NestedItemPage item, List<Map.Entry<Long, Integer>> location,
+      CollectionContext context) {
+    PagedLogResource resource = new PagedLogResource();
+    resource.setId(item.getId());
+    resource.setPagesLocation(location);
+    context.results().add(resource);
+  }
+
+  private boolean shouldExcludePassedLogsForParent(Long parentId, LogLocationParams params) {
+    if (!params.excludePassedLogs()) {
+      return false;
+    }
+    TestItem item = testItemRepository.findById(parentId).orElse(null);
+    return Objects.nonNull(item) && shouldExcludePassedLogs(item, true);
+  }
+
+  private boolean shouldExcludePassedLogs(TestItem item, boolean excludePassedLogs) {
+    if (!excludePassedLogs) {
+      return false;
+    }
+    return item.getItemResults().getStatus().isPositive();
+  }
+
+  private record CollectionContext(LogLocationParams params, Queryable filterWithMessage,
+                                   Queryable filterNoMessage, Pageable pageable,
+                                   List<PagedLogResource> results,
+                                   int targetResultCount) {
+
+  }
+}

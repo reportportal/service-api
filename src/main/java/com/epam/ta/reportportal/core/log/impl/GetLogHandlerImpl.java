@@ -301,7 +301,6 @@ public class GetLogHandlerImpl implements GetLogHandler {
     return results;
   }
 
-
   private void processNestedItems(Long parentId, List<PagedLogResource> results,
       List<Map.Entry<Long, Integer>> pagesLocation, boolean excludeEmptySteps,
       boolean excludePassedLogs, Queryable queryable, Pageable pageable,
@@ -316,7 +315,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
     logRepository.findNestedItemsWithPage(parentId, excludeEmptySteps,
             isLogsExclusionRequired(parentItem, excludePassedLogs), queryable, pageable)
         .stream()
-//        .filter(inclusionFilter)
+        .filter(inclusionFilter)
         .forEach(nestedItem -> processNestedItem(nestedItem, results, pagesLocation,
             excludeEmptySteps, excludePassedLogs, queryable, pageable, inclusionFilter));
   }

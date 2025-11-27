@@ -516,6 +516,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
     logConverter.fillWithLogContent(logMap, logs, projectId);
   }
 
+  /**
+   * Parameters for log location retrieval.
+   *
+   * @param excludeEmptySteps whether to exclude empty steps
+   * @param excludePassedLogs whether to exclude logs from passed items
+   * @param excludeLogContent whether to exclude log content from response
+   */
   public record LogLocationParams(boolean excludeEmptySteps, boolean excludePassedLogs,
                                   boolean excludeLogContent) {
 

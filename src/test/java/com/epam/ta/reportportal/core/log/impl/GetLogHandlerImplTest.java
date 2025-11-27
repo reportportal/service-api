@@ -55,7 +55,8 @@ class GetLogHandlerTest {
   private final LogSearchCollector logSearchCollector = mock(LogSearchCollector.class);
 
   private final GetLogHandler getLogHandler = new GetLogHandlerImpl(logRepository, logService,
-      testItemRepository, testItemService, logConverter, logFilterPreparator, logTypeResolver, logSearchCollector);
+      testItemRepository, testItemService, logConverter, logFilterPreparator, logTypeResolver,
+      logSearchCollector);
 
   @Test
   void getLogs() {

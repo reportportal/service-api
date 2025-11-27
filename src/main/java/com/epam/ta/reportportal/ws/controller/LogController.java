@@ -302,6 +302,17 @@ public class LogController {
     );
   }
 
+  /**
+   * Retrieves logs with their page locations filtered by search criteria.
+   *
+   * @param projectName project name
+   * @param parentId parent item ID
+   * @param params additional parameters
+   * @param filter search filter
+   * @param pageable pagination settings
+   * @param user authenticated user
+   * @return page of logs with their page locations
+   */
   @GetMapping(value = "/locations/search/{parentId}")
   @Operation(summary = "Get logs with location by search filter")
   @Transactional(readOnly = true)

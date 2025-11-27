@@ -52,6 +52,16 @@ public class LogSearchCollector {
   private final LogRepository logRepository;
   private final TestItemRepository testItemRepository;
 
+  /**
+   * Collects matching logs with their page locations, stopping early when enough results are found.
+   *
+   * @param parentId parent item ID
+   * @param params log location parameters
+   * @param filterWithMessage filter including message search criteria
+   * @param filterNoMessage filter without message criteria (for correct page numbering)
+   * @param pageable pagination settings
+   * @return list of logs with page locations for the requested page
+   */
   public List<PagedLogResource> collect(Long parentId, LogLocationParams params,
       Queryable filterWithMessage, Queryable filterNoMessage, Pageable pageable) {
 
@@ -69,6 +79,13 @@ public class LogSearchCollector {
         .toList();
   }
 
+  /**
+   * Gets total count of matching logs (may be partial if early stopping occurred).
+   *
+   * @param pageable pagination settings
+   * @param pageResults already collected results for the current page
+   * @return total count (may be estimate if stopped early)
+   */
   public int getTotalCount(Pageable pageable, List<PagedLogResource> pageResults) {
     return (int) pageable.getOffset() + pageResults.size();
   }

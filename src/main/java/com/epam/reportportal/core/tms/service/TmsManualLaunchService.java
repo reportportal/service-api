@@ -3,6 +3,8 @@ package com.epam.reportportal.core.tms.service;
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestFolderRS;
@@ -13,6 +15,7 @@ import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.util.OffsetRequest;
+import jakarta.validation.Valid;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 
@@ -173,4 +176,8 @@ public interface TmsManualLaunchService {
   BatchManualLaunchOperationResultRS batchDeleteManualLaunches(Long projectId, BatchDeleteManualLaunchesRQ batchDeleteManualLaunchesRQ);
 
   Optional<Long> getTestPlanIdByLaunchId(Long launchId);
+
+  TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId, Long executionId, @Valid TmsTestCaseExecutionCommentRQ request);
+
+  void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 }

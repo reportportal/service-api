@@ -1,5 +1,7 @@
 package com.epam.reportportal.core.tms.service;
 
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -7,12 +9,10 @@ import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.model.Page;
-import com.epam.reportportal.util.OffsetRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface TmsTestCaseExecutionService {
 
@@ -21,8 +21,8 @@ public interface TmsTestCaseExecutionService {
   TmsTestCaseExecution getLastTestCaseExecution(Long testCaseId);
 
   /**
-   * Finds last executions for multiple test cases within a specific test plan.
-   * Returns a map where key is test case ID and value is the last execution.
+   * Finds last executions for multiple test cases within a specific test plan. Returns a map where
+   * key is test case ID and value is the last execution.
    *
    * @param testCaseIds list of test case IDs
    * @param testPlanId  the test plan ID
@@ -32,8 +32,8 @@ public interface TmsTestCaseExecutionService {
       List<Long> testCaseIds, Long testPlanId);
 
   /**
-   * Finds all executions for a specific test case within a test plan.
-   * Results are ordered by test_item.start_time DESC (latest first).
+   * Finds all executions for a specific test case within a test plan. Results are ordered by
+   * test_item.start_time DESC (latest first).
    *
    * @param testCaseId the test case ID
    * @param testPlanId the test plan ID
@@ -53,9 +53,9 @@ public interface TmsTestCaseExecutionService {
   /**
    * Creates execution for a test case in launch.
    *
-   * @param projectId   project id
-   * @param testCase test case entity
-   * @param launch   launch entity
+   * @param projectId project id
+   * @param testCase  test case entity
+   * @param launch    launch entity
    */
 
   void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch);
@@ -74,7 +74,7 @@ public interface TmsTestCaseExecutionService {
    * Removes test case execution from launch.
    *
    * @param executionId test case execution ID
-   * @param launchId   launch ID
+   * @param launchId    launch ID
    */
   void removeTestCaseExecutionFromLaunch(long projectId, Long launchId,
       Long executionId);
@@ -134,7 +134,8 @@ public interface TmsTestCaseExecutionService {
    * @param launchId   launch ID
    * @return optional execution
    */
-  Optional<TmsTestCaseExecution> findByTestCaseExecutionIdAndLaunchId(Long testCaseId, Long launchId);
+  Optional<TmsTestCaseExecution> findByTestCaseExecutionIdAndLaunchId(Long testCaseId,
+      Long launchId);
 
   /**
    * Finds executions by launch ID as map (test case ID -> execution).
@@ -198,4 +199,10 @@ public interface TmsTestCaseExecutionService {
   );
 
   boolean existsByTestCaseExecutionIdAndLaunchId(Long executionId, Long launchId);
+
+  TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId,
+      Long executionId, TmsTestCaseExecutionCommentRQ request);
+
+  void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
+
 }

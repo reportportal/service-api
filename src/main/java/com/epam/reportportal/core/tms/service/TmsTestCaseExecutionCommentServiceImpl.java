@@ -1,6 +1,7 @@
 package com.epam.reportportal.core.tms.service;
 
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.mapper.TmsTestCaseExecutionCommentMapper;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
@@ -22,7 +23,7 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
   @Override
   @Transactional
-  public void update(TmsTestCaseExecution existingExecution,
+  public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(TmsTestCaseExecution existingExecution,
       TmsTestCaseExecutionCommentRQ executionCommentRQ) {
     log.debug("Updating execution comment for execution: {}", existingExecution.getId());
 
@@ -30,26 +31,32 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
       log.debug("No comment data provided, removing existing comment for execution: {}",
           existingExecution.getId());
       removeExistingComment(existingExecution);
-      return;
+      return null;
     }
 
     var existingComment = existingExecution.getExecutionComment();
 
     if (existingComment != null) {
       // Update existing comment
-      updateExistingComment(existingComment, executionCommentRQ);
+      return updateExistingComment(existingComment, executionCommentRQ);
     } else {
       // Create new comment
-      createNewComment(existingExecution, executionCommentRQ);
+      return createNewComment(existingExecution, executionCommentRQ);
     }
+  }
 
-    log.info("Successfully updated execution comment for execution: {}", existingExecution.getId());
+  @Override
+  @Transactional
+  public void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId) {
+    tmsTestCaseExecutionCommentRepository.deleteByExecutionId(executionId);
   }
 
   /**
    * Updates existing execution comment with new data.
+   *
+   * @return
    */
-  private void updateExistingComment(TmsTestCaseExecutionComment existingComment,
+  private TmsTestCaseExecutionCommentRS updateExistingComment(TmsTestCaseExecutionComment existingComment,
       TmsTestCaseExecutionCommentRQ executionCommentRQ) {
     log.debug("Updating existing comment: {}", existingComment.getId());
 
@@ -61,15 +68,17 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
         executionCommentRQ);
 
     // Save updated comment
-    tmsTestCaseExecutionCommentRepository.save(existingComment);
-
-    log.debug("Updated existing comment: {}", existingComment.getId());
+    return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
+        tmsTestCaseExecutionCommentRepository.save(existingComment)
+    );
   }
 
   /**
    * Creates new execution comment.
+   *
+   * @return
    */
-  private void createNewComment(TmsTestCaseExecution existingExecution,
+  private TmsTestCaseExecutionCommentRS createNewComment(TmsTestCaseExecution existingExecution,
       TmsTestCaseExecutionCommentRQ executionCommentRQ) {
     log.debug("Creating new comment for execution: {}", existingExecution.getId());
 
@@ -88,6 +97,9 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
     existingExecution.setExecutionComment(savedComment);
 
     log.debug("Created new comment: {}", savedComment.getId());
+    return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
+        savedComment
+    );
   }
 
   /**

@@ -4,6 +4,8 @@ import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.tms.dto.NestedStepResult;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioRS;
 import com.epam.reportportal.core.tms.dto.TmsStepRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -482,11 +484,11 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   @Transactional(readOnly = true)
   public TmsTestCaseExecutionRS patch(Long executionId, Long launchId,
       TmsTestCaseExecutionRQ request) {
-    log.debug("Updating test case execution: {} in launch: {}", executionId, launchId);
+    log.debug("Updating test case execution: {} in launch: {}", executionId, launchId); //TODO check that anf think how to fix
     return findByTestCaseExecutionIdAndLaunchId(executionId, launchId)
         .map(execution -> {
           // Update execution fields from request
-          boolean updated = false;
+          var updated = false;
 
           if (request.getStatus() != null) {
             // Update test item status
@@ -498,12 +500,6 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
               addTestCaseToTestPlan(execution, request.getStatus());
               updated = true;
             }
-          }
-
-          if (request.getExecutionComment() != null) {
-            tmsTestCaseExecutionCommentService.update(execution,
-                request.getExecutionComment());
-            updated = true;
           }
 
           if (updated) {
@@ -560,5 +556,26 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   public boolean existsByTestCaseExecutionIdAndLaunchId(Long executionId, Long launchId) {
     return tmsTestCaseExecutionRepository.existsByTestCaseExecutionIdAndLaunchId(executionId,
         launchId);
+  }
+
+  @Override
+  @Transactional
+  public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId,
+      Long executionId, TmsTestCaseExecutionCommentRQ request) {
+    var execution = findByTestCaseExecutionIdAndLaunchId(executionId, launchId)
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.NOT_FOUND,
+            TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
+        ));
+
+    return tmsTestCaseExecutionCommentService.putTestCaseExecutionComment(execution, request);
+  }
+
+  @Override
+  @Transactional
+  public void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId) {
+    tmsTestCaseExecutionCommentService.deleteTestCaseExecutionComment(
+        projectId, launchId, executionId
+    );
   }
 }

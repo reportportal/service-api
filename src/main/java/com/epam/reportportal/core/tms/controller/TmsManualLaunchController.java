@@ -3,6 +3,8 @@ package com.epam.reportportal.core.tms.controller;
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestFolderRS;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -298,6 +301,46 @@ public class TmsManualLaunchController {
         launchId,
         executionId,
         request
+    );
+  }
+
+  @PutMapping("/launch/{launchId}/test-case/execution/{executionId}/comment")
+  @Operation(summary = "Put test case execution comment")
+  public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(
+      @Parameter(description = "Project key", required = true)
+      @PathVariable String projectKey,
+      @Parameter(description = "Launch ID", required = true)
+      @PathVariable Long launchId,
+      @Parameter(description = "Execution ID", required = true)
+      @PathVariable Long executionId,
+      @Valid @RequestBody TmsTestCaseExecutionCommentRQ request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return tmsManualLaunchService.putTestCaseExecutionComment(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        executionId,
+        request
+    );
+  }
+
+  @DeleteMapping("/launch/{launchId}/test-case/execution/{executionId}/comment")
+  @Operation(summary = "Delete test case execution comment")
+  public void deleteTestCaseExecutionComment(
+      @Parameter(description = "Project key", required = true)
+      @PathVariable String projectKey,
+      @Parameter(description = "Launch ID", required = true)
+      @PathVariable Long launchId,
+      @Parameter(description = "Execution ID", required = true)
+      @PathVariable Long executionId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    tmsManualLaunchService.deleteTestCaseExecutionComment(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        executionId
     );
   }
 }

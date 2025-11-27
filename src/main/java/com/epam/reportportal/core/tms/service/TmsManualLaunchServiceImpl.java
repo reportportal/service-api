@@ -7,6 +7,8 @@ import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestFolderRS;
@@ -179,7 +181,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Add test cases if present (don't remove existing ones)
     if (CollectionUtils.isNotEmpty(request.getTestCaseIds())) {
-      tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, existingLaunch, request.getTestCaseIds());
+      tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, existingLaunch,
+          request.getTestCaseIds());
     }
 
     log.info("Patched manual launch: {} for project: {}", launchId, projectId);
@@ -215,7 +218,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public BatchTestCaseOperationResultRS addTestCasesToLaunch(Long projectId, Long launchId, BatchAddTestCasesToLaunchRQ request) {
+  public BatchTestCaseOperationResultRS addTestCasesToLaunch(Long projectId, Long launchId,
+      BatchAddTestCasesToLaunchRQ request) {
 
     // Verify launch exists and belongs to project
     var launch = launchRepository.findByIdAndProjectId(launchId, projectId)
@@ -254,7 +258,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
       }
     }
 
-    var result = tmsManualLaunchMapper.convertBatchAddTestCaseOperationResultRS(testCaseIds, successTestCaseIds, errors);
+    var result = tmsManualLaunchMapper.convertBatchAddTestCaseOperationResultRS(testCaseIds,
+        successTestCaseIds, errors);
 
     log.info("Added test cases to launch: {} - success: {}, failed: {}",
         launchId, successTestCaseIds.size(), errors.size());
@@ -292,7 +297,6 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     // Validate launch belongs to project
     validateLaunchBelongsToProject(launchId, projectId);
 
-
     // Delegate to execution service
     return tmsTestCaseExecutionService.findByIdAndLaunchIdWithDetails(
         executionId,
@@ -314,7 +318,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     validateLaunchBelongsToProject(launchId, projectId);
 
     // Verify execution exists before deletion
-    if (!tmsTestCaseExecutionService.existsByTestCaseExecutionIdAndLaunchId(executionId, launchId)) {
+    if (!tmsTestCaseExecutionService.existsByTestCaseExecutionIdAndLaunchId(executionId,
+        launchId)) {
       throw new ReportPortalException(
           NOT_FOUND,
           TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
@@ -388,7 +393,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public BatchManualLaunchOperationResultRS batchDeleteManualLaunches(Long projectId, BatchDeleteManualLaunchesRQ request) {
+  public BatchManualLaunchOperationResultRS batchDeleteManualLaunches(Long projectId,
+      BatchDeleteManualLaunchesRQ request) {
     log.debug("Batch deleting manual launches for project: {}", projectId);
 
     List<Long> successLaunchIds = new ArrayList<>();
@@ -456,6 +462,28 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   @Override
   public Optional<Long> getTestPlanIdByLaunchId(Long launchId) {
     return launchRepository.findTestPlanIdById(launchId);
+  }
+
+  @Override
+  @Transactional
+  public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId,
+      Long executionId, TmsTestCaseExecutionCommentRQ request) {
+    // Validate launch belongs to project
+    validateLaunchBelongsToProject(launchId, projectId);
+
+    return tmsTestCaseExecutionService.putTestCaseExecutionComment(
+        projectId, launchId, executionId, request
+    );
+  }
+
+  @Override
+  @Transactional
+  public void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId) {
+    // Validate launch belongs to project
+    validateLaunchBelongsToProject(launchId, projectId);
+
+    tmsTestCaseExecutionService.deleteTestCaseExecutionComment(projectId, launchId,
+        executionId);
   }
 
   /**

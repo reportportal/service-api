@@ -1,6 +1,7 @@
 package com.epam.reportportal.core.tms.mapper;
 
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentAttachmentRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentBtsTicketRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -175,6 +176,14 @@ public abstract class TmsTestCaseExecutionMapper {
     result.setComment(comment.getComment());
     if (CollectionUtils.isNotEmpty(attachmentRSList)) {
       result.setAttachments(attachmentRSList);
+    }
+    var btsTicketId = comment.getBtsTicketId();
+    if (btsTicketId != null) {
+      result.setBtsTicket(
+          TmsTestCaseExecutionCommentBtsTicketRS.builder()
+              .id(btsTicketId)
+              .build()
+      );
     }
 
     return result;

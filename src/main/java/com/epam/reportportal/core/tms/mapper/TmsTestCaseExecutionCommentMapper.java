@@ -1,6 +1,7 @@
 package com.epam.reportportal.core.tms.mapper;
 
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
@@ -16,4 +17,6 @@ public interface TmsTestCaseExecutionCommentMapper {
         .comment(executionCommentRQ.getComment())
         .build();
   }
+
+  TmsTestCaseExecutionCommentRS toTmsTestCaseExecutionCommentRS(TmsTestCaseExecutionComment comment);
 }

@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class TmsTestCaseExecutionRQ {
-
-  private String status;
+public class TmsTestCaseExecutionCommentBtsTicketRS {
+  private Long id;
 }

@@ -302,6 +302,29 @@ public class LogController {
     );
   }
 
+  /**
+   * Retrieves logs with their page locations filtered by search criteria.
+   *
+   * @param projectName project name
+   * @param parentId parent item ID
+   * @param params additional parameters
+   * @param filter search filter
+   * @param pageable pagination settings
+   * @param user authenticated user
+   * @return page of logs with their page locations
+   */
+  @GetMapping(value = "/locations/search/{parentId}")
+  @Operation(summary = "Get logs with location by search filter")
+  @Transactional(readOnly = true)
+  public Page<PagedLogResource> getLogsWithLocationBySearch(@PathVariable String projectName,
+      @PathVariable Long parentId, @RequestParam Map<String, String> params,
+      @FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return getLogHandler.getLogsWithLocationBySearch(parentId,
+        projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable
+    );
+  }
+
   @PostMapping("search/{itemId}")
   @ResponseStatus(OK)
   @Operation(summary = "Search test items with similar error logs")

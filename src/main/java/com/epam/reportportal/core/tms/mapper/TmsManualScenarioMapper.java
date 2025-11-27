@@ -2,6 +2,8 @@ package com.epam.reportportal.core.tms.mapper;
 
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioRS;
+import com.epam.reportportal.core.tms.dto.TmsStepsManualScenarioRS;
+import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRS;
 import com.epam.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
@@ -74,4 +76,65 @@ public abstract class TmsManualScenarioMapper implements DtoMapper<TmsManualScen
   @Mapping(target = "testCaseVersion", source = "newVersion")
   public abstract TmsManualScenario duplicateManualScenario(TmsManualScenario originalScenario,
       TmsTestCaseVersion newVersion);
+
+  /**
+   * Checks if scenario is steps-based (TmsStepsManualScenarioRS).
+   *
+   * @param scenario manual scenario
+   * @return true if steps-based, false otherwise
+   */
+  public boolean isStepsBasedScenario(TmsManualScenarioRS scenario) {
+    return scenario instanceof TmsStepsManualScenarioRS;
+  }
+
+  /**
+   * Checks if scenario is text-based (TmsTextManualScenarioRS).
+   *
+   * @param scenario manual scenario
+   * @return true if text-based, false otherwise
+   */
+  public boolean isTextBasedScenario(TmsManualScenarioRS scenario) {
+    return scenario instanceof TmsTextManualScenarioRS;
+  }
+
+  /**
+   * Safely casts scenario to TmsStepsManualScenarioRS.
+   *
+   * @param scenario manual scenario
+   * @return casted scenario or null if not instance of TmsStepsManualScenarioRS
+   */
+  public TmsStepsManualScenarioRS asStepsScenario(TmsManualScenarioRS scenario) {
+    if (scenario instanceof TmsStepsManualScenarioRS) {
+      return (TmsStepsManualScenarioRS) scenario;
+    }
+    return null;
+  }
+
+  /**
+   * Safely casts scenario to TmsTextManualScenarioRS.
+   *
+   * @param scenario manual scenario
+   * @return casted scenario or null if not instance of TmsTextManualScenarioRS
+   */
+  public TmsTextManualScenarioRS asTextScenario(TmsManualScenarioRS scenario) {
+    if (scenario instanceof TmsTextManualScenarioRS) {
+      return (TmsTextManualScenarioRS) scenario;
+    }
+    return null;
+  }
+
+  /**
+   * Validates that scenario has required data.
+   *
+   * @param scenario manual scenario
+   * @return true if scenario has data, false otherwise
+   */
+  public boolean isValidScenario(TmsManualScenarioRS scenario) {
+    if (scenario instanceof TmsStepsManualScenarioRS stepsScenario) {
+      return stepsScenario.getSteps() != null && !stepsScenario.getSteps().isEmpty();
+    } else if (scenario instanceof TmsTextManualScenarioRS textScenario) {
+      return textScenario.getInstructions() != null && !textScenario.getInstructions().isEmpty();
+    }
+    return false;
+  }
 }

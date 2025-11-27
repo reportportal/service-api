@@ -1,14 +1,21 @@
 package com.epam.reportportal.core.tms.service;
 
 import com.epam.reportportal.core.item.TestItemService;
+import com.epam.reportportal.core.tms.dto.NestedStepResult;
+import com.epam.reportportal.core.tms.dto.TmsManualScenarioRS;
+import com.epam.reportportal.core.tms.dto.TmsStepRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.reportportal.core.tms.mapper.TmsTestCaseExecutionMapper;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.filterable.TmsTestCaseExecutionFilterableRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemTypeEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
@@ -48,6 +55,12 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private final TmsTestCaseExecutionCommentService tmsTestCaseExecutionCommentService;
   private final TmsTestCaseExecutionMapper tmsTestCaseExecutionMapper;
   private final TmsTestPlanService tmsTestPlanService;
+  private final TestItemRepository testItemRepository;
+  private final TestFolderItemService testFolderItemService;
+  private final TestCaseItemService testCaseItemService;
+  private final NestedStepsService nestedStepsService;
+  private final TmsStepExecutionService tmsStepExecutionService;
+  private final TmsManualScenarioMapper tmsManualScenarioMapper;
 
   private TmsTestCaseService tmsTestCaseService;
   private TmsManualLaunchService tmsManualLaunchService;
@@ -116,13 +129,26 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     return tmsTestCaseExecutionRepository.findByTestCaseIdAndTestPlanId(testCaseId, testPlanId);
   }
 
-  @Override
+  /**
+   * Creates a complete test case execution with hierarchical structure.
+   * Orchestrates:
+   * 1. Find or create SUITE item (test folder container)
+   * 2. Create TEST item (test case) under SUITE
+   * 3. Create nested steps from a manual scenario (if exists)
+   * 4. Create TmsTestCaseExecution record
+   * 5. Create TmsStepExecution records for nested steps
+   *
+   * @param projectId project ID
+   * @param testCase test case entity
+   * @param launch launch entity
+   */
   @Transactional
-  public void createExecution(TmsTestCaseRS testCase, Launch launch) {
+  @Override
+  public void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch) {
     log.debug("Creating execution for test case: {} in launch: {}",
         testCase.getId(), launch.getId());
 
-    // Check if execution already exists
+    // Check if execution already exists - prevent duplicates
     if (tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(
         testCase.getId(), launch.getId())) {
       log.warn("Execution for test case: {} already exists in launch: {}, skipping",
@@ -130,37 +156,140 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
       return;
     }
 
-    // Create TestItem through TestItemService
-    var testItem = testItemService.createToRunTestItemForTestCase(testCase, launch);
+    // Step 1: Find or create SUITE item for the test folder
+    var testFolderId = testCase.getTestFolder().getId();
 
-    // Get default version ID through TmsTestCaseVersionService
+    var testFolderItem = testFolderItemService.findTestFolderItem(projectId, testFolderId, launch);
+    testFolderItemService.markAsHavingChildren(testFolderItem);
+    log.debug("SUITE item resolved: {}", testFolderItem.getItemId());
+
+    // Step 2: Create TEST item (test case execution) under SUITE
+    var testItem = testCaseItemService.createTestCaseItem(
+        testCase.getName(),
+        testCase.getDescription(),
+        testCase.getAttributes(),
+        testFolderItem,
+        launch
+    );
+    log.debug("TEST item created: {}", testItem.getItemId());
+
+    // Step 3: Create nested steps from a manual scenario (if exists)
+    var nestedSteps = List.<TestItem>of();
+    var tmsStepIds = List.<Long>of();
+
+    if (testCase.getManualScenario() != null && tmsManualScenarioMapper.isValidScenario(
+        testCase.getManualScenario())) {
+      var scenarioResult = createNestedStepsFromScenario(
+          testCase.getManualScenario(), testItem, launch
+      );
+      nestedSteps = scenarioResult.getNestedSteps();
+      tmsStepIds = scenarioResult.getTmsStepIds();
+
+      if (!nestedSteps.isEmpty()) {
+        testCaseItemService.markAsHavingNestedChildren(testItem);
+        log.trace("Nested steps created: {} for TEST item: {}", nestedSteps.size(),
+            testItem.getItemId());
+      }
+    }
+
+    // Step 4: Create TmsTestCaseExecution record
     var defaultVersionId = tmsTestCaseVersionService
         .findDefaultVersionIdByTestCaseId(testCase.getId())
-        .orElse(
-            null); //TODO at the moment we don't have test case versions => using default version every time
+        .orElse(null);
 
-    tmsTestCaseExecutionRepository.save(
-        tmsTestCaseExecutionMapper.createTestCaseExecution(testCase, launch, testItem,
-            defaultVersionId)
+    var execution = tmsTestCaseExecutionMapper.createTestCaseExecution(
+        testCase, launch, testItem, defaultVersionId
     );
+    execution = tmsTestCaseExecutionRepository.save(execution);
+    log.trace("TmsTestCaseExecution created: {}", execution.getId());
 
-    log.info("Created execution for test case: {} in launch: {}",
+    // Step 5: Create TmsStepExecution records for nested steps
+    if (!nestedSteps.isEmpty()) {
+      tmsStepExecutionService.createStepExecutionRecords(
+          execution.getId(), nestedSteps, launch, tmsStepIds
+      );
+      log.trace("Step execution records created: {}", nestedSteps.size());
+    }
+
+    log.info("Successfully created execution for test case: {} in launch: {}",
         testCase.getId(), launch.getId());
   }
 
+  /**
+   * Creates nested steps from a manual scenario.
+   * Handles both steps-based and text-based scenarios.
+   *
+   * @param scenario manual scenario
+   * @param parentTestItem parent TEST item
+   * @param launch launch entity
+   * @return result object containing nested steps and their TMS step IDs
+   */
+  @Transactional
+  public NestedStepResult createNestedStepsFromScenario(
+      TmsManualScenarioRS scenario,
+      TestItem parentTestItem,
+      Launch launch) {
+
+    log.debug("Creating nested steps from scenario for test item: {}",
+        parentTestItem.getItemId());
+
+    if (tmsManualScenarioMapper.isStepsBasedScenario(scenario)) {
+      var stepsScenario = tmsManualScenarioMapper.asStepsScenario(scenario);
+      var nestedSteps = nestedStepsService.createNestedStepsFromStepScenario(
+          stepsScenario, parentTestItem, launch
+      );
+
+      // Extract TMS step IDs for correlation
+      var tmsStepIds = stepsScenario
+          .getSteps()
+          .stream()
+          .map(TmsStepRS::getId)
+          .toList();
+
+      return new NestedStepResult(nestedSteps, tmsStepIds);
+
+    } else if (tmsManualScenarioMapper.isTextBasedScenario(scenario)) {
+      var textScenario = tmsManualScenarioMapper.asTextScenario(scenario);
+      var nestedStep = nestedStepsService.createNestedStepFromTextScenario(
+          textScenario, parentTestItem, launch
+      );
+
+      return new NestedStepResult(List.of(nestedStep), List.of());
+    }
+
+    log.warn("Unknown scenario type, no nested steps created");
+    return new NestedStepResult(List.of(), List.of());
+  }
+
+  /**
+   * Internal method to create executions for multiple test cases.
+   * Handles batch creation with error handling and transaction management.
+   *
+   * @param projectId project ID
+   * @param testCaseIds list of test case IDs to create executions for
+   * @param launch launch entity
+   */
   @Override
   @Transactional
   public void createExecutions(long projectId, List<Long> testCaseIds, Launch launch) {
-    log.debug("Creating executions for {} test cases in launch: {}",
-        testCaseIds.size(), launch.getId());
+    log.debug("Creating {} executions in batch for launch: {}", testCaseIds.size(),
+        launch.getId());
 
-    for (Long testCaseId : testCaseIds) {
-      var testCase = tmsTestCaseService.getById(projectId, testCaseId);
-      createExecution(testCase, launch); //TODO work with test case version once required
+    for (var testCaseId : testCaseIds) {
+      try {
+        // Load test case details
+        var testCase = tmsTestCaseService.getById(projectId, testCaseId);
+
+        // Create execution with orchestration
+        createExecution(projectId, testCase, launch);
+
+      } catch (Exception e) {
+        log.error("Error creating execution for test case: {} in launch: {}",
+            testCaseId, launch.getId(), e);
+        throw new ReportPortalException(
+            "Failed to create execution for test case: " + testCaseId);
+      }
     }
-
-    log.info("Created executions for {} test cases in launch: {}",
-        testCaseIds.size(), launch.getId());
   }
 
   @Override
@@ -168,40 +297,72 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   public void addTestCasesToLaunch(long projectId, Launch launch, List<Long> testCaseIds) {
     log.debug("Adding {} test cases to launch: {}", testCaseIds.size(), launch.getId());
 
-    if (CollectionUtils.isNotEmpty(testCaseIds)) {
+    if (CollectionUtils.isEmpty(testCaseIds)) {
       log.debug("No test cases to add to launch: {}", launch.getId());
       return;
     }
 
     createExecutions(projectId, testCaseIds, launch);
-    log.info("Successfully added {} test cases to launch: {}", testCaseIds.size(), launch.getId());
+    log.info("Successfully added {} test cases to launch: {}", testCaseIds.size(),
+        launch.getId());
   }
 
-  @Override
   @Transactional
-  public void removeTestCaseExecutionFromLaunch(Long testCaseExecutionId, Long launchId) {
-    log.debug("Removing test case execution {} from launch {}", testCaseExecutionId, launchId);
+  @Override
+  public void removeTestCaseExecutionFromLaunch(long projectId, Long launchId,
+      Long executionId) {
+    log.debug("Removing test case execution: {} from launch: {}", executionId, launchId);
 
-    // Find execution to get test item
-    var execution = tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(
-        testCaseExecutionId,
-        launchId);
+    var execution = tmsTestCaseExecutionRepository.findById(executionId)
+        .orElseThrow(
+            () -> new ReportPortalException(
+                "Test case execution not found: " + executionId)
+        );
 
-    if (execution.isPresent()) {
-      var testItem = execution.get().getTestItem();
+    var testItem = execution.getTestItem();
+    Long suiteItemId = null;
 
-      // Delete execution first
-      tmsTestCaseExecutionRepository.deleteByTestCaseIdAndLaunchId(testCaseExecutionId, launchId);
-
-      // Delete test item if exists
-      if (testItem != null) {
-        testItemService.deleteTestItem(testItem.getItemId());
+    // Get SUITE item ID before deletion (for cleanup check)
+    if (testItem.getParentId() != null) {
+      var parentItem = testItemRepository.findById(testItem.getParentId()).orElse(null);
+      if (parentItem != null && TestItemTypeEnum.SUITE == parentItem.getType()) {
+        suiteItemId = parentItem.getItemId();
       }
-
-      log.info("Removed test case execution {} from launch {}", testCaseExecutionId, launchId);
-    } else {
-      log.warn("Test case execution {} not found in launch {}", testCaseExecutionId, launchId);
     }
+
+    // Delete associated step executions
+    tmsStepExecutionService.deleteStepExecutionsByTestCaseExecution(executionId);
+    log.debug("Deleted step execution records for test case execution: {}", executionId);
+
+    // Delete the TEST item and all its nested steps (cascade)
+    testItemRepository.delete(testItem);
+    log.debug("Deleted TEST item: {} and its nested steps", testItem.getItemId());
+
+    // Delete the execution record
+    tmsTestCaseExecutionRepository.delete(execution);
+    log.debug("Deleted test case execution: {}", executionId);
+
+    // Check if SUITE item has any remaining TEST children
+    if (suiteItemId != null) {
+      var suiteItem = testItemRepository.findById(suiteItemId).orElse(null);
+      if (suiteItem != null) {
+        var testChildrenCount = testItemRepository.countByParentIdAndType(
+            suiteItemId, TestItemTypeEnum.TEST);
+
+        if (testChildrenCount == 0) {
+          log.debug("SUITE item: {} has no more TEST children, deleting it", suiteItemId);
+          testItemRepository.delete(suiteItem);
+
+          // Clean up folder-item link
+          testFolderItemService.removeFolderTestItemLink(suiteItemId);
+        } else {
+          log.debug("SUITE item: {} still has {} TEST children", suiteItemId, testChildrenCount);
+        }
+      }
+    }
+
+    log.info("Successfully removed test case execution: {} from launch: {}", executionId,
+        launchId);
   }
 
   @Override

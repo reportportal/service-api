@@ -17,6 +17,7 @@
 package com.epam.reportportal.infrastructure.persistence.dao;
 
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
@@ -558,4 +559,50 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   @Modifying
   @Query("DELETE FROM TestItem ti WHERE ti.launchId = :launchId")
   int deleteByLaunchId(@Param("launchId") Long launchId);
+
+  /**
+   * Finds SUITE (test folder) item in a specific launch by finding the junction.
+   *
+   * @param launchId launch ID
+   * @param testFolderId test folder ID
+   * @return Optional containing SUITE test item if exists
+   */
+  @Query("SELECT tft.testItem FROM TmsTestFolderTestItem tft " +
+      "WHERE tft.testFolderId = :testFolderId " +
+      "AND tft.testItem.launchId = :launchId " +
+      "AND tft.testItem.parentId IS NULL")
+  Optional<TestItem> findSuiteItemInLaunchForFolder(
+      @Param("launchId") Long launchId,
+      @Param("testFolderId") Long testFolderId);
+
+  /**
+   * Counts direct children of a parent item with specific type.
+   *
+   * @param parentId parent item ID
+   * @param type item type (TEST, STEP, etc.)
+   * @return count of children with specified type
+   */
+  @Query("SELECT COUNT(ti) FROM TestItem ti WHERE ti.parentId = :parentId AND ti.type = :type")
+  long countByParentIdAndType(
+      @Param("parentId") Long parentId,
+      @Param("type") TestItemTypeEnum type);
+
+  /**
+   * Finds all nested steps (hasStats=false) under a parent item.
+   *
+   * @param parentId parent item ID
+   * @return list of nested step items
+   */
+  @Query("SELECT ti FROM TestItem ti WHERE ti.parentId = :parentId AND ti.hasStats = false " +
+      "ORDER BY ti.itemId ASC")
+  List<TestItem> findNestedStepsByParentId(@Param("parentId") Long parentId);
+
+  /**
+   * Finds all direct children of a parent item.
+   *
+   * @param parentId parent item ID
+   * @return list of direct child items
+   */
+  @Query("SELECT ti FROM TestItem ti WHERE ti.parentId = :parentId ORDER BY ti.itemId ASC")
+  List<TestItem> findDirectChildrenByParentId(@Param("parentId") Long parentId);
 }

@@ -322,7 +322,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     }
 
     // Delegate to execution service
-    tmsTestCaseExecutionService.removeTestCaseExecutionFromLaunch(executionId, launchId);
+    tmsTestCaseExecutionService.removeTestCaseExecutionFromLaunch(projectId, launchId, executionId);
 
     log.info("Test case execution: {} deleted from launch: {} in project: {}",
         executionId, launchId, projectId);

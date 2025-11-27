@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface TmsTestCaseExecutionService {
 
@@ -41,21 +42,24 @@ public interface TmsTestCaseExecutionService {
   List<TmsTestCaseExecution> findByTestCaseIdAndTestPlanId(Long testCaseId, Long testPlanId);
 
   /**
-   * Creates execution for test case in launch.
-   *
-   * @param testCase test case entity
-   * @param launch   launch entity
-   */
-  void createExecution(TmsTestCaseRS testCase, Launch launch);
-
-  /**
    * Creates executions for multiple test cases in launch.
    *
-   * @param projectId
+   * @param projectId   project id
    * @param testCaseIds list of test case IDs
    * @param launch      launch entity
    */
   void createExecutions(long projectId, List<Long> testCaseIds, Launch launch);
+
+  /**
+   * Creates execution for a test case in launch.
+   *
+   * @param projectId   project id
+   * @param testCase test case entity
+   * @param launch   launch entity
+   */
+
+  void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch);
+
 
   /**
    * Adds test cases to launch (creates executions).
@@ -69,10 +73,11 @@ public interface TmsTestCaseExecutionService {
   /**
    * Removes test case execution from launch.
    *
-   * @param testCaseExecutionId test case execution ID
+   * @param executionId test case execution ID
    * @param launchId   launch ID
    */
-  void removeTestCaseExecutionFromLaunch(Long testCaseExecutionId, Long launchId);
+  void removeTestCaseExecutionFromLaunch(long projectId, Long launchId,
+      Long executionId);
 
   /**
    * Checks if test case is in launch.

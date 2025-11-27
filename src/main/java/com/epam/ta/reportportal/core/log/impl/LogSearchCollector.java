@@ -40,8 +40,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 /**
- * Collects logs recursively with page locations for search functionality. Implements early stopping
- * to avoid fetching more data than needed.
+ * Collects logs recursively with page locations for search functionality.
  */
 @Component
 @RequiredArgsConstructor
@@ -53,49 +52,30 @@ public class LogSearchCollector {
   private final TestItemRepository testItemRepository;
 
   /**
-   * Collects matching logs with their page locations, stopping early when enough results are found.
+   * Collects all matching logs with their page locations.
    *
    * @param parentId parent item ID
    * @param params log location parameters
    * @param filterWithMessage filter including message search criteria
    * @param filterNoMessage filter without message criteria (for correct page numbering)
-   * @param pageable pagination settings
-   * @return list of logs with page locations for the requested page
+   * @param pageable pagination settings (used for sorting and page size calculation)
+   * @return list of all matching logs with page locations
    */
   public List<PagedLogResource> collect(Long parentId, LogLocationParams params,
       Queryable filterWithMessage, Queryable filterNoMessage, Pageable pageable) {
 
-    int targetResultCount = (int) (pageable.getOffset() + pageable.getPageSize());
     List<PagedLogResource> allResults = new ArrayList<>();
 
     var context = new CollectionContext(params, filterWithMessage, filterNoMessage, pageable,
-        allResults, targetResultCount);
+        allResults);
 
     collectRecursively(parentId, Collections.emptyList(), context);
 
-    return allResults.stream()
-        .skip(pageable.getOffset())
-        .limit(pageable.getPageSize())
-        .toList();
-  }
-
-  /**
-   * Gets total count of matching logs (may be partial if early stopping occurred).
-   *
-   * @param pageable pagination settings
-   * @param pageResults already collected results for the current page
-   * @return total count (may be estimate if stopped early)
-   */
-  public int getTotalCount(Pageable pageable, List<PagedLogResource> pageResults) {
-    return (int) pageable.getOffset() + pageResults.size();
+    return allResults;
   }
 
   private void collectRecursively(Long parentId, List<Map.Entry<Long, Integer>> pagesLocation,
       CollectionContext context) {
-
-    if (hasEnoughResults(context)) {
-      return;
-    }
 
     TestItem parentItem = testItemRepository.findById(parentId).orElse(null);
     if (shouldSkipItem(parentItem, context.params())) {
@@ -107,13 +87,10 @@ public class LogSearchCollector {
       return;
     }
 
-    List<NestedItemPage> itemsWithPages = fetchItemsWithPageNumbers(parentId, context);
+    List<NestedItemPage> itemsWithPages = fetchItemsWithPageNumbers(parentId, pagesLocation,
+        context);
 
     processItems(itemsWithPages, matchingIds, pagesLocation, context);
-  }
-
-  private boolean hasEnoughResults(CollectionContext context) {
-    return context.results().size() >= context.targetResultCount();
   }
 
   private boolean shouldSkipItem(TestItem item, LogLocationParams params) {
@@ -132,18 +109,23 @@ public class LogSearchCollector {
         .collect(Collectors.toSet());
   }
 
-  private List<NestedItemPage> fetchItemsWithPageNumbers(Long parentId, CollectionContext context) {
+  private List<NestedItemPage> fetchItemsWithPageNumbers(Long parentId,
+      List<Map.Entry<Long, Integer>> pagesLocation, CollectionContext context) {
     boolean excludeLogs = shouldExcludePassedLogsForParent(parentId, context.params());
 
+    int pageSize = pagesLocation.isEmpty()
+        ? context.pageable().getPageSize()
+        : NESTED_STEP_MAX_PAGE_SIZE;
+    Pageable locationPageable = PageRequest.of(0, pageSize, context.pageable().getSort());
+
     return logRepository.findNestedItemsWithPage(parentId, context.params().excludeEmptySteps(),
-        excludeLogs, context.filterNoMessage(), context.pageable());
+        excludeLogs, context.filterNoMessage(), locationPageable);
   }
 
   private void processItems(List<NestedItemPage> items, Set<Long> matchingIds,
       List<Map.Entry<Long, Integer>> pagesLocation, CollectionContext context) {
 
     items.stream()
-        .takeWhile(item -> !hasEnoughResults(context))
         .filter(item -> matchingIds.contains(item.getId()))
         .forEach(item -> processMatchingItem(item, pagesLocation, context));
   }
@@ -194,8 +176,7 @@ public class LogSearchCollector {
 
   private record CollectionContext(LogLocationParams params, Queryable filterWithMessage,
                                    Queryable filterNoMessage, Pageable pageable,
-                                   List<PagedLogResource> results,
-                                   int targetResultCount) {
+                                   List<PagedLogResource> results) {
 
   }
 }

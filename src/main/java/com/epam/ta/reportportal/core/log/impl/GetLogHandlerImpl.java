@@ -270,14 +270,19 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
     LogLocationParams locationParams = extractLogLocationParams(params);
 
-    List<PagedLogResource> pageContent = logSearchCollector.collect(parentId, locationParams,
+    List<PagedLogResource> allResults = logSearchCollector.collect(parentId, locationParams,
         resolvedFilter, queryableWithoutMessage, pageable);
+
+    int totalCount = allResults.size();
+
+    List<PagedLogResource> pageContent = allResults.stream()
+        .skip(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .toList();
 
     if (!locationParams.excludeLogContent() && !pageContent.isEmpty()) {
       enrichLogsWithContent(pageContent, projectDetails.getProjectId());
     }
-
-    int totalCount = logSearchCollector.getTotalCount(pageable, pageContent);
 
     Page<PagedLogResource> page = new PageImpl<>(pageContent, pageable, totalCount);
     return PagedResourcesAssembler.<PagedLogResource>pageConverter().apply(page);
@@ -295,7 +300,6 @@ public class GetLogHandlerImpl implements GetLogHandler {
         params.excludePassedLogs(), queryable, pageable, inclusionFilter);
     return results;
   }
-
 
   private void processNestedItems(Long parentId, List<PagedLogResource> results,
       List<Map.Entry<Long, Integer>> pagesLocation, boolean excludeEmptySteps,

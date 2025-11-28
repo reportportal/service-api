@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.mapper;
 
+import com.epam.reportportal.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationError;
@@ -19,7 +20,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(config = CommonMapperConfig.class)
 public interface TmsManualLaunchMapper {
 
-  TmsManualLaunchRS convert(Launch launch);
+  @Mapping(target = "executionStatistic", source = "testCaseExecutionStatistic")
+  TmsManualLaunchRS convert(Launch launch,
+      TmsManualLaunchExecutionStatisticRS testCaseExecutionStatistic);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)

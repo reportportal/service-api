@@ -6,6 +6,7 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
+import com.epam.reportportal.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
@@ -26,6 +27,7 @@ import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.filterable.TmsManualLaunchFilterableRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -98,7 +101,10 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     log.info("Created manual launch with ID: {} for project: {}", launch.getId(), projectId);
 
-    return tmsManualLaunchMapper.convert(launch);
+    return tmsManualLaunchMapper.convert(launch, TmsManualLaunchExecutionStatisticRS.builder()
+        .total(request.getTestCaseIds().size())
+        .toRun(request.getTestCaseIds().size())
+        .build());
   }
 
   @Override
@@ -111,7 +117,10 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
 
-    return tmsManualLaunchMapper.convert(launch);
+    var testCaseExecutionStatistic = tmsTestCaseExecutionService.getTestCaseExecutionStatistic(
+        launchId);
+
+    return tmsManualLaunchMapper.convert(launch, testCaseExecutionStatistic);
   }
 
   @Override
@@ -124,10 +133,17 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
         projectId, filter, pageable
     );
 
+    var launchIds = launchesPage.getContent().stream().map(Launch::getId)
+        .collect(Collectors.toList());
+
+    var testCaseExecutionStatistics = tmsTestCaseExecutionService.getTestCaseExecutionStatistic(
+        launchIds);
+
     if (launchesPage.hasContent()) {
       var launchResponses = launchesPage.getContent()
           .stream()
-          .map(tmsManualLaunchMapper::convert)
+          .map(launch -> tmsManualLaunchMapper.convert(launch,
+              testCaseExecutionStatistics.get(launch.getId())))
           .toList();
 
       return PagedResourcesAssembler
@@ -202,7 +218,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     log.info("Patched manual launch: {} for project: {}", launchId, projectId);
 
-    return tmsManualLaunchMapper.convert(existingLaunch);
+    return tmsManualLaunchMapper.convert(existingLaunch,
+        tmsTestCaseExecutionService.getTestCaseExecutionStatistic(launchId));
   }
 
   @Override

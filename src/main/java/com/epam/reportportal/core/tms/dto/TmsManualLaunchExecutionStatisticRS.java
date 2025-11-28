@@ -15,22 +15,22 @@ import lombok.NoArgsConstructor;
 public class TmsManualLaunchExecutionStatisticRS {
 
   @Schema(description = "Total test cases count", example = "1231")
-  private Integer total;
+  private int total;
 
   @Schema(description = "Failed test cases count", example = "12")
-  private Integer failed;
+  private int failed;
 
   @Schema(description = "Passed test cases count", example = "45")
-  private Integer passed;
+  private int passed;
 
   @Schema(description = "To run test cases count", example = "332")
   @JsonProperty("toRun")
-  private Integer toRun;
+  private int toRun;
 
   @Schema(description = "In progress test cases count", example = "232")
   @JsonProperty("inProgress")
-  private Integer inProgress;
+  private int inProgress;
 
   @Schema(description = "Skipped test cases count", example = "123")
-  private Integer skipped;
+  private int skipped;
 }

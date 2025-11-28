@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.service;
 
+import com.epam.reportportal.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
@@ -205,4 +206,7 @@ public interface TmsTestCaseExecutionService {
 
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 
+  TmsManualLaunchExecutionStatisticRS getTestCaseExecutionStatistic(Long launchId);
+
+  Map<Long, TmsManualLaunchExecutionStatisticRS> getTestCaseExecutionStatistic(List<Long> launchIds);
 }

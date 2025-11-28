@@ -2,6 +2,7 @@ package com.epam.reportportal.core.tms.service;
 
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.tms.dto.NestedStepResult;
+import com.epam.reportportal.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioRS;
 import com.epam.reportportal.core.tms.dto.TmsStepRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
@@ -25,6 +26,7 @@ import com.epam.reportportal.infrastructure.rules.exception.ReportPortalExceptio
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -564,5 +566,96 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     tmsTestCaseExecutionCommentService.deleteTestCaseExecutionComment(
         projectId, launchId, executionId
     );
+  }
+
+  /**
+   * Builds execution statistics for a manual launch. Total is counted independently to include any
+   * possible statuses.
+   */
+  @Transactional(readOnly = true)
+  @Override
+  public TmsManualLaunchExecutionStatisticRS getTestCaseExecutionStatistic(Long launchId) {
+    // Aggregate per-status counts
+    var testCaseExecutionCountsByLaunchId =
+        tmsTestCaseExecutionRepository.findTestCaseExecutionCountsByLaunchId(launchId);
+
+    long total = testCaseExecutionCountsByLaunchId.size();
+
+    var failed = 0;
+    var passed = 0;
+    var toRun = 0;
+    var inProgress = 0;
+    var skipped = 0;
+
+    if (CollectionUtils.isNotEmpty(testCaseExecutionCountsByLaunchId)) {
+      for (var row : testCaseExecutionCountsByLaunchId) {
+        var status = row.getStatus() != null ? row.getStatus().toUpperCase() : "";
+        var count = row.getCount() != null ? row.getCount() : 0L;
+
+        switch (status) {
+          case "FAILED" -> failed += (int) count;
+          case "PASSED" -> passed += (int) count;
+          case "TO_RUN" -> toRun += (int) count;
+          case "IN_PROGRESS" -> inProgress += (int) count;
+          case "SKIPPED" -> skipped += (int) count;
+          default -> { /* ignore unknown statuses in the breakdown */ }
+        }
+      }
+    }
+
+    return TmsManualLaunchExecutionStatisticRS.builder()
+        .total((int) total)
+        .failed(failed)
+        .passed(passed)
+        .toRun(toRun)
+        .inProgress(inProgress)
+        .skipped(skipped)
+        .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Long, TmsManualLaunchExecutionStatisticRS> getTestCaseExecutionStatistic(
+      List<Long> launchIds) {
+    if (launchIds == null || launchIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    var testCaseExecutionCountsByLaunchIds = tmsTestCaseExecutionRepository.findTestCaseExecutionCountsByLaunchIds(
+        launchIds
+    );
+
+    // Temporary accumulator per launchId
+    final Map<Long, TmsManualLaunchExecutionStatisticRS> result = new HashMap<>();
+
+    for (var tmsTestCaseExecutionStatusCountByLaunch : testCaseExecutionCountsByLaunchIds) {
+      if (tmsTestCaseExecutionStatusCountByLaunch == null
+          || tmsTestCaseExecutionStatusCountByLaunch.getLaunchId() == null) {
+        continue;
+      }
+      var launchId = tmsTestCaseExecutionStatusCountByLaunch.getLaunchId();
+      var count = Math.toIntExact(tmsTestCaseExecutionStatusCountByLaunch.getCount() != null ?
+          tmsTestCaseExecutionStatusCountByLaunch.getCount() : 0);
+      var status = tmsTestCaseExecutionStatusCountByLaunch.getStatus() != null ?
+          tmsTestCaseExecutionStatusCountByLaunch.getStatus().toUpperCase() : "";
+
+      var statisticRS = result.computeIfAbsent(launchId,
+          k -> new TmsManualLaunchExecutionStatisticRS());
+      // Increase total for any status
+      statisticRS.setTotal(statisticRS.getTotal() + count);
+
+      // Route known statuses
+      switch (status) {
+        case "FAILED" -> statisticRS.setFailed(statisticRS.getFailed() + count);
+        case "PASSED" -> statisticRS.setPassed(statisticRS.getPassed() + count);
+        case "TO_RUN" -> statisticRS.setToRun(statisticRS.getToRun() + count);
+        case "IN_PROGRESS" -> statisticRS.setInProgress(statisticRS.getInProgress() + count);
+        case "SKIPPED" -> statisticRS.setSkipped(statisticRS.getSkipped() + count);
+        default -> {
+          // Unknown statuses are counted only in total
+        }
+      }
+    }
+    return result;
   }
 }

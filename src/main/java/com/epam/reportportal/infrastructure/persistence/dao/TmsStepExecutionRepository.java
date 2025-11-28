@@ -20,6 +20,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsStepExecut
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,7 +29,7 @@ import org.springframework.data.repository.query.Param;
  *
  * @author ReportPortal
  */
-public interface TmsStepExecutionRepository extends JpaRepository<TmsStepExecution, Long> {
+public interface TmsStepExecutionRepository extends ReportPortalRepository<TmsStepExecution, Long> {
 
   /**
    * Finds all step executions for a specific test case execution.
@@ -67,4 +68,8 @@ public interface TmsStepExecutionRepository extends JpaRepository<TmsStepExecuti
    * @param testCaseExecutionId test case execution ID
    */
   void deleteByTestCaseExecutionId(Long testCaseExecutionId);
+
+  @Modifying
+  @Query("DELETE FROM TmsStepExecution tse WHERE tse.launchId = :launchId")
+  void deleteByLaunchId(@Param("launchId") Long launchId);
 }

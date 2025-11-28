@@ -1,10 +1,12 @@
 package com.epam.reportportal.core.tms.service;
 
-import com.epam.reportportal.core.tms.dto.TmsManualLaunchAttributeRQ;
-import com.epam.reportportal.core.tms.mapper.TmsManualLaunchAttributeMapper;
+import static com.epam.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+
 import com.epam.reportportal.infrastructure.persistence.dao.ItemAttributeRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.reporting.ItemAttributesRQ;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,23 +22,26 @@ import org.springframework.util.CollectionUtils;
 public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttributeService {
 
   private final ItemAttributeRepository itemAttributeRepository;
-  private final TmsManualLaunchAttributeMapper tmsManualLaunchAttributeMapper;
-  private final TmsAttributeService tmsAttributeService;
 
   @Override
   @Transactional
-  public void createAttributes(Launch launch, Collection<TmsManualLaunchAttributeRQ> attributeRQS) {
+  public void createAttributes(Launch launch, Collection<ItemAttributesRQ> attributeRQS) {
     if (CollectionUtils.isEmpty(attributeRQS)) {
       log.debug("No attributeRQS to create for launch: {}", launch.getId());
       return;
     }
 
-    var tmsAttributes = tmsAttributeService.getAllByIds(
-        attributeRQS.stream().map(TmsManualLaunchAttributeRQ::getId).toList()
-    );
-    var launchAttributes = tmsManualLaunchAttributeMapper.convertToManualLaunchAttributes(
-        attributeRQS, tmsAttributes, launch);
+    var launchAttributes = attributeRQS
+        .stream()
+        .map(attribute -> {
+          var itemAttribute = FROM_RESOURCE.apply(attribute);
+          itemAttribute.setLaunch(launch);
+          return itemAttribute;
+        })
+        .collect(Collectors.toSet());
+
     itemAttributeRepository.saveAll(launchAttributes);
+
     launch.setAttributes(launchAttributes);
 
     log.info("Created {} attributeRQS for launch: {}", launchAttributes.size(), launch.getId());
@@ -45,7 +50,7 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
   @Override
   @Transactional
   public void updateAttributes(Launch existingLaunch,
-      Collection<TmsManualLaunchAttributeRQ> attributes) {
+      Collection<ItemAttributesRQ> attributes) {
     log.debug("Patching attributes for launch: {}", existingLaunch.getId());
 
     if (attributes == null) {

@@ -27,6 +27,14 @@ public interface TmsManualLaunchMapper {
   void patch(@MappingTarget Launch existingLaunch, TmsManualLaunchRQ request);
 
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "uuid",
+      expression = "java(java.util.Optional.ofNullable(request.getUuid()).orElse(java.util.UUID.randomUUID().toString()))")
+  @Mapping(target = "startTime",
+      expression = "java(request.getStartTime() == null ? java.time.Instant.now() : request.getStartTime())")
+  @Mapping(target = "mode",
+      expression = "java(request.getMode() == null ? "
+          + "com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum.DEFAULT : "
+          + "com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum.findByName(request.getMode().name()).orElseThrow())")
   Launch convertFromRQ(long projectId, TmsManualLaunchRQ request);
 
   default BatchTestCaseOperationResultRS convertBatchAddTestCaseOperationResultRS(
@@ -39,7 +47,7 @@ public interface TmsManualLaunchMapper {
         .successTestCaseIds(successTestCaseIds)
         .errors(errors)
         .build();
-  };
+  }
 
   default BatchManualLaunchOperationResultRS convertToBatchDeleteResponse(List<Long> launchIds,
       List<Long> successLaunchIds, List<BatchManualLaunchOperationError> errors) {

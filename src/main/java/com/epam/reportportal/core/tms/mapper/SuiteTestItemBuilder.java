@@ -65,7 +65,7 @@ public class SuiteTestItemBuilder {
     suiteItem.setHasStats(true);  // SUITE contributes to statistics
     suiteItem.setHasChildren(false);  // Will be set to true when first TEST child added
     suiteItem.setRetryOf(null);
-    suiteItem.setPath(String.valueOf(launch.getId()));
+    suiteItem.setPath(String.valueOf(launch.getId())); //TODO check if that is required
 
     // Create test item results with INFO status
     var suiteResults = new TestItemResults();

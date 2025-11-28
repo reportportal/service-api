@@ -4,6 +4,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -41,4 +42,8 @@ public interface TmsTestFolderTestItemRepository extends
   Page<TmsTestFolderTestItem> findByLaunchId(Long launchId, Pageable pageable);
 
   void deleteByTestItem_ItemId(Long testItemId);
+
+  @Modifying
+  @Query("DELETE FROM TmsTestFolderTestItem t WHERE t.launchId = :launchId")
+  void deleteByLaunchId(@Param("launchId") Long launchId);
 }

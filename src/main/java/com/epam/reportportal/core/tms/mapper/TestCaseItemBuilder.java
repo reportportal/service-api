@@ -16,6 +16,9 @@
 
 package com.epam.reportportal.core.tms.mapper;
 
+import com.epam.reportportal.core.item.identity.IdentityUtil;
+import com.epam.reportportal.core.item.identity.TestCaseHashGenerator;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
@@ -23,41 +26,44 @@ import com.epam.reportportal.infrastructure.persistence.entity.item.TestItemResu
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Builder for creating TEST test items (test case executions in manual launches).
- * Encapsulates TEST item creation logic with proper initialization.
+ * Builder for creating TEST test items (test case executions in manual launches). Encapsulates TEST
+ * item creation logic with proper initialization.
  *
  * @author ReportPortal
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class TestCaseItemBuilder {
 
+  private final TestCaseHashGenerator testCaseHashGenerator;
+
   /**
-   * Creates a TEST test item (test case execution) with given parameters.
-   * TEST items are direct children of SUITE items and represent executable test cases.
+   * Creates a TEST test item (test case execution) with given parameters. TEST items are direct
+   * children of SUITE items and represent executable test cases.
    *
-   * @param name test case name
-   * @param description test case description
+   * @param tmsTestCaseRS   test case data
    * @param parentSuiteItem parent SUITE item (test folder container)
-   * @param launch launch entity
-   * @return created TEST test item (not yet persisted)
+   * @param launch          launch entity
+   * @return created TEST item (not yet persisted)
    */
   public TestItem buildTestCaseItem(
-      String name,
-      String description,
+      TmsTestCaseRS tmsTestCaseRS,
       TestItem parentSuiteItem,
       Launch launch) {
 
-    log.debug("Building TEST item (test case) with name: {}", name);
+    log.debug("Building TEST item (test case) with name: {}", tmsTestCaseRS.getName());
 
     var testItem = new TestItem();
     testItem.setUuid(UUID.randomUUID().toString());
-    testItem.setName(name);
-    testItem.setDescription(description);
+    testItem.setTestCaseId(String.valueOf(tmsTestCaseRS.getId()));
+    testItem.setName(tmsTestCaseRS.getName());
+    testItem.setDescription(tmsTestCaseRS.getDescription());
     testItem.setType(TestItemTypeEnum.TEST);
     testItem.setStartTime(Instant.now());
     testItem.setLaunchId(launch.getId());
@@ -65,18 +71,6 @@ public class TestCaseItemBuilder {
     testItem.setHasChildren(false);  // Will be set to true when nested steps added
     testItem.setRetryOf(null);
     testItem.setParentId(parentSuiteItem.getItemId());
-    testItem.setPath(parentSuiteItem.getPath() + ".");  // Will be completed with itemId after persist
-
-    // Create test item results with TO_RUN status
-    var testResults = new TestItemResults();
-    testResults.setStatus(StatusEnum.TO_RUN);
-    testResults.setEndTime(null);
-    testResults.setDuration(null);
-
-    testItem.setItemResults(testResults);
-    testResults.setTestItem(testItem);
-
-    log.trace("Successfully built TEST item: {}", name);
     return testItem;
   }
 }

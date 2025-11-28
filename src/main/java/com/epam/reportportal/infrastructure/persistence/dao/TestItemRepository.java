@@ -569,8 +569,7 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
    */
   @Query("SELECT tft.testItem FROM TmsTestFolderTestItem tft " +
       "WHERE tft.testFolderId = :testFolderId " +
-      "AND tft.testItem.launchId = :launchId " +
-      "AND tft.testItem.parentId IS NULL")
+      "AND tft.launchId = :launchId")
   Optional<TestItem> findSuiteItemInLaunchForFolder(
       @Param("launchId") Long launchId,
       @Param("testFolderId") Long testFolderId);

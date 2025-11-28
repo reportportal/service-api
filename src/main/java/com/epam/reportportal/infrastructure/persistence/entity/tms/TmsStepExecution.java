@@ -69,9 +69,6 @@ public class TmsStepExecution implements Serializable {
   @Column(name = "launch_id")
   private Long launchId;
 
-  @Column(name = "project_id", nullable = false)
-  private Long projectId;
-
   /**
    * Optional reference to TmsStep ID from the original scenario.
    * Helps track correlation between execution step and source step definition.

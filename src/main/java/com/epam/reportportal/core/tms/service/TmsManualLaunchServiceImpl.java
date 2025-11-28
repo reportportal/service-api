@@ -25,6 +25,7 @@ import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.filterable.TmsManualLaunchFilterableRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchTypeEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
@@ -64,6 +65,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final TestItemService testItemService;
   private final DeleteLaunchHandler deleteLaunchHandler;
   private final TestFolderItemService testFolderItemService;
+  private final TmsStepExecutionService tmsStepExecutionService;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
@@ -81,6 +83,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     // Create Launch entity
     var launch = tmsManualLaunchMapper.convertFromRQ(projectId, request);
     launch.setLaunchType(LaunchTypeEnum.MANUAL);
+    launch.setStatus(StatusEnum.IN_PROGRESS);
     launch = launchRepository.save(launch);
 
     // Create attributes if present
@@ -148,8 +151,14 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
           NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId));
     }
 
+    // Delete tms step executions
+    tmsStepExecutionService.deleteByLaunchId(launchId);
+
     // Delete test case executions (includes launch-test case associations)
     tmsTestCaseExecutionService.deleteByLaunchId(launchId);
+
+    // Delete test folder item associations
+    testFolderItemService.deleteByLaunchId(launchId);
 
     // Delete test items
     testItemService.deleteByLaunchId(projectId,
@@ -333,7 +342,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     }
 
     // Delegate to execution service
-    tmsTestCaseExecutionService.removeTestCaseExecutionFromLaunch(projectId, launchId, executionId);
+    tmsTestCaseExecutionService.deleteTestCaseExecutionFromLaunch(projectId, launchId, executionId);
 
     log.info("Test case execution: {} deleted from launch: {} in project: {}",
         executionId, launchId, projectId);
@@ -423,6 +432,9 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
           ));
           continue;
         }
+
+        // Delete tms step executions
+        tmsStepExecutionService.deleteByLaunchId(launchId);
 
         // Delete test case executions (includes launch-test case associations)
         tmsTestCaseExecutionService.deleteByLaunchId(launchId);

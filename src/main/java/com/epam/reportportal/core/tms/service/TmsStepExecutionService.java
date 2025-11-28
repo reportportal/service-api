@@ -27,8 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for managing TmsStepExecution records.
- * Tracks executions of nested steps created from manual scenarios.
+ * Service for managing TmsStepExecution records. Tracks executions of nested steps created from
+ * manual scenarios.
  *
  * @author ReportPortal
  */
@@ -43,12 +43,13 @@ public class TmsStepExecutionService {
    * Creates TmsStepExecution records for all nested steps under a test item.
    *
    * @param testCaseExecutionId parent test case execution ID
-   * @param nestedSteps list of nested step test items
-   * @param launch launch entity
-   * @param tmsStepIds optional list of TMS step IDs (mapped 1:1 to nestedSteps if provided)
+   * @param nestedSteps         list of nested step test items
+   * @param launch              launch entity
+   * @param tmsStepIds          optional list of TMS step IDs (mapped 1:1 to nestedSteps if
+   *                            provided)
    */
   @Transactional
-  public void createStepExecutionRecords(
+  public void createTmsStepExecutions(
       Long testCaseExecutionId,
       List<TestItem> nestedSteps,
       Launch launch,
@@ -68,10 +69,9 @@ public class TmsStepExecutionService {
         var tmsStepId = (tmsStepIds != null && i < tmsStepIds.size()) ? tmsStepIds.get(i) : null;
 
         var stepExecution = TmsStepExecution.builder()
-            .testCaseExecutionId(testCaseExecutionId)
+            .testCaseExecutionId(testCaseExecutionId) //TODO move to mapper
             .testItem(nestedStep)
             .launchId(launch.getId())
-            .projectId(launch.getProjectId())
             .tmsStepId(tmsStepId)
             .build();
 
@@ -111,5 +111,10 @@ public class TmsStepExecutionService {
     log.debug("Deleting step execution records for test case execution: {}", testCaseExecutionId);
     tmsStepExecutionRepository.deleteByTestCaseExecutionId(testCaseExecutionId);
     log.trace("Deleted step execution records");
+  }
+
+  @Transactional
+  public void deleteByLaunchId(Long launchId) {
+    tmsStepExecutionRepository.deleteByLaunchId(launchId);
   }
 }

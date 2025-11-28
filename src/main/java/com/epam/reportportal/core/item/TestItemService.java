@@ -72,8 +72,7 @@ public class TestItemService {
     testItem.setUuid(UUID.randomUUID().toString());
     testItem.setName(testCase.getName());
     testItem.setDescription(testCase.getDescription());
-    testItem.setType(TestItemTypeEnum.STEP);
-    testItem.setStartTime(Instant.now());
+    testItem.setType(TestItemTypeEnum.TEST);
     testItem.setLaunchId(launch.getId());
     testItem.setHasStats(true);
     testItem.setHasChildren(false);
@@ -127,7 +126,7 @@ public class TestItemService {
     log.debug("Deleting all test items for launch: {}", launchId);
 
     // Verify launch exists
-    if (!launchRepository.existsByIdAndProjectId(projectId, launchId)) {
+    if (!launchRepository.existsByIdAndProjectId(launchId, projectId)) {
       throw new ReportPortalException(LAUNCH_NOT_FOUND, launchId);
     }
 

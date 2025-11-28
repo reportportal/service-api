@@ -16,16 +16,15 @@
 
 package com.epam.reportportal.core.tms.service;
 
-import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeRS;
-import com.epam.reportportal.core.tms.mapper.ItemAttributeMapper;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.mapper.TestCaseItemBuilder;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,82 +41,46 @@ public class TestCaseItemService {
 
   private final TestItemRepository testItemRepository;
   private final TestCaseItemBuilder testCaseItemBuilder;
-  private final ItemAttributeMapper itemAttributeMapper;
 
   /**
    * Creates a TEST item (test case execution) under a SUITE item.
    * Includes attributes from the test case.
    *
-   * @param testCaseName test case name
-   * @param testCaseDescription test case description
-   * @param attributes test case attributes
+   * @param testCase test case data
    * @param suiteItem parent SUITE item
    * @param launch launch entity
    * @return created TEST item (persisted)
    */
   @Transactional
   public TestItem createTestCaseItem(
-      String testCaseName,
-      String testCaseDescription,
-      Set<TmsTestCaseAttributeRS> attributes,
+      TmsTestCaseRS testCase,
       TestItem suiteItem,
       Launch launch) {
 
     log.debug("Creating TEST item for test case: {} under SUITE item: {}",
-        testCaseName, suiteItem.getItemId());
+        testCase.getName(), suiteItem.getItemId());
 
     // Build TEST item
     var testItem = testCaseItemBuilder.buildTestCaseItem(
-        testCaseName, testCaseDescription, suiteItem, launch
+        testCase, suiteItem, launch
     );
 
     // Persist TEST item
     testItem = testItemRepository.save(testItem);
+
     log.trace("Persisted TEST item with ID: {}", testItem.getItemId());
 
-    // Complete the path with the generated itemId
-    testItem.setPath(suiteItem.getPath() + "." + testItem.getItemId());
-    testItem = testItemRepository.save(testItem);
+    var testResults = new TestItemResults();
+    testResults.setStatus(StatusEnum.TO_RUN);
 
-    // Add attributes
-    addAttributesToTestItem(testItem, attributes, launch);
+    testResults.setTestItem(testItem);
+    testItem.setItemResults(testResults);
+    testItem.setPath(suiteItem.getPath() + "." + testItem.getItemId());
 
     log.info("Successfully created TEST item: {} for test case: {}",
-        testItem.getItemId(), testCaseName);
+        testItem.getItemId(), testCase.getName());
 
-    return testItem;
-  }
-
-  /**
-   * Adds attributes to a TEST item.
-   *
-   * @param testItem test item to add attributes to
-   * @param attributes test case attributes
-   * @param launch launch entity
-   */
-
-  private void addAttributesToTestItem(
-      TestItem testItem,
-      Set<TmsTestCaseAttributeRS> attributes,
-      Launch launch) {
-
-    log.debug("Adding attributes to TEST item: {}", testItem.getItemId());
-
-    // Convert TMS attributes to ItemAttribute entities
-    var itemAttributes = itemAttributeMapper.mapTestCaseAttributesToItemAttributes(
-        attributes, testItem, launch
-    );
-
-    if (itemAttributes.isEmpty()) {
-      log.debug("No attributes to add to TEST item: {}", testItem.getItemId());
-      return;
-    }
-
-    // Set attributes on test item
-    testItem.setAttributes(itemAttributes);
-    testItemRepository.save(testItem);
-
-    log.info("Added {} attributes to TEST item: {}", itemAttributes.size(), testItem.getItemId());
+    return testItemRepository.save(testItem);
   }
 
   /**

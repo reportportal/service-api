@@ -64,7 +64,8 @@ public class TestFolderItemService {
   /**
    * Creates SUITE item and sets parent SUITE relation if the folder has a parent folder.
    */
-  private TestItem createSuiteItem(Long projectId, Long testFolderId,
+  @Transactional
+  public TestItem createSuiteItem(Long projectId, Long testFolderId,
       Launch launch) {
     log.debug("Creating SUITE item for test folder: {}", testFolderId);
 
@@ -87,6 +88,7 @@ public class TestFolderItemService {
       var parentFolderId = testFolder.getParentTestFolder().getId();
       var parentSuite = findTestFolderItem(projectId, parentFolderId,
           launch); // recursion ensures parent exists
+      markAsHavingChildren(parentSuite);
 
       // Set parentId and complete path
       suiteItem.setParentId(parentSuite.getItemId());
@@ -150,7 +152,7 @@ public class TestFolderItemService {
    * Removes junction link between test folder and test item.
    */
   @Transactional
-  public void removeFolderTestItemLink(Long testItemId) {
+  public void deleteTestFolderTestItemByTestItemId(Long testItemId) {
     log.debug("Removing test folder-test item links for item: {}", testItemId);
     testFolderTestItemRepository.deleteByTestItem_ItemId(testItemId);
     log.trace("Removed links for item: {}", testItemId);
@@ -198,5 +200,10 @@ public class TestFolderItemService {
             pageable,
             suitePage.getTotalElements()
         ));
+  }
+
+  @Transactional
+  public void deleteByLaunchId(Long launchId) {
+    testFolderTestItemRepository.deleteByLaunchId(launchId);
   }
 }

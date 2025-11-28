@@ -1,8 +1,11 @@
 package com.epam.reportportal.core.tms.dto;
 
+import com.epam.reportportal.reporting.ItemAttributeResource;
+import com.epam.reportportal.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +43,9 @@ public class TmsManualLaunchRS {
   @Schema(description = "Launch number", example = "1")
   private Integer number;
 
+  @JsonProperty("mode")
+  private Mode mode;
+
   @Schema(description = "Launch status", example = "IN_PROGRESS")
   private String status;
 
@@ -52,5 +58,5 @@ public class TmsManualLaunchRS {
   private TmsManualLaunchExecutionStatisticRS executionStatistic;
 
   @Schema(description = "Launch attributes")
-  private List<TmsManualLaunchAttributeRS> attributes;
+  private Set<ItemAttributeResource> attributes;
 }

@@ -76,7 +76,7 @@ public interface TmsTestCaseExecutionService {
    * @param executionId test case execution ID
    * @param launchId    launch ID
    */
-  void removeTestCaseExecutionFromLaunch(long projectId, Long launchId,
+  void deleteTestCaseExecutionFromLaunch(long projectId, Long launchId,
       Long executionId);
 
   /**

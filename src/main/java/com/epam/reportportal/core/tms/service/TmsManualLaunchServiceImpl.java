@@ -67,7 +67,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final TmsManualLaunchAttributeService tmsManualLaunchAttributeService;
   private final TestItemService testItemService;
   private final DeleteLaunchHandler deleteLaunchHandler;
-  private final TestFolderItemService testFolderItemService;
+  private final TestFolderItemServiceImpl testFolderItemService;
   private final TmsStepExecutionService tmsStepExecutionService;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;

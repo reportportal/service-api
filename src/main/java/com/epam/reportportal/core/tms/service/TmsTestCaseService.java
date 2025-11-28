@@ -114,4 +114,6 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
    * @throws ReportPortalException if test case not found
    */
   TmsTestCase getEntityById(Long testCaseId);
+
+  List<TmsTestCaseRS> getByIds(long projectId, List<Long> testCaseIds);
 }

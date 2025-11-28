@@ -660,6 +660,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         );
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<TmsTestCaseRS> getByIds(long projectId, List<Long> testCaseIds) {
+    return tmsTestCaseRepository
+        .findByProjectIdAndIds(projectId, testCaseIds)
+        .stream()
+        .map(tmsTestCaseMapper::convert)
+        .toList();
+  }
+
   /**
    * Verifies that test case is added to the test plan.
    *

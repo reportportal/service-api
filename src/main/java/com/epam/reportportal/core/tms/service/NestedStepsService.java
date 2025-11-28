@@ -66,34 +66,24 @@ public class NestedStepsService {
       TestItem parentTestItem,
       Launch launch) {
 
-    log.debug("Creating nested steps from step-based scenario for parent item: {}",
-        parentTestItem.getItemId());
+    var stepsRS = stepsScenario.getSteps();
 
-    var createdSteps = new ArrayList<TestItem>();
+    List<TestItem> createdSteps = new ArrayList<>();
 
-    var steps = stepsScenario.getSteps();
-    if (steps == null || steps.isEmpty()) {
-      log.warn("Step scenario has no steps, skipping nested step creation");
-      return createdSteps;
+    // Build all items without paths
+    for (var i = 0; i < stepsRS.size(); i++) {
+      var nestedStep = createNestedStepFromStep(stepsRS.get(i), parentTestItem, launch, i);
+      createdSteps.add(nestedStep);
     }
 
-    log.debug("Processing {} steps from scenario", steps.size());
+    createdSteps = testItemRepository.saveAll(createdSteps);
 
-    var stepIndex = 1;
-    for (var step : steps) {
-      try {
-        var nestedStep = createNestedStepFromStep(step, parentTestItem, launch, stepIndex);
-        createdSteps.add(nestedStep);
-        stepIndex++;
-      } catch (Exception e) {
-        log.error("Error creating nested step {} for parent item: {}",
-            stepIndex, parentTestItem.getItemId(), e);
-        throw e;  // Re-throw to stop transaction
-      }
+    // Set paths after IDs are generated
+    for (var nestedStep : createdSteps) {
+      nestedStep.setPath(parentTestItem.getPath() + "." + nestedStep.getItemId());
     }
 
-    log.info("Successfully created {} nested steps for test item: {}",
-        createdSteps.size(), parentTestItem.getItemId());
+    createdSteps = testItemRepository.saveAll(createdSteps);
 
     return createdSteps;
   }
@@ -113,20 +103,9 @@ public class NestedStepsService {
     var description = step.getExpectedResult();
 
     // Build nested step item
-    var nestedStep = nestedStepItemBuilder.buildNestedStepItem(
+    return nestedStepItemBuilder.buildNestedStepItem(
         parentTestItem, stepName, description, launch
     );
-
-    // Persist nested step
-    nestedStep = testItemRepository.save(nestedStep);
-
-    // Set path after persistence (when itemId is generated)
-    nestedStep.setPath(parentTestItem.getPath() + "." + nestedStep.getItemId());
-    nestedStep = testItemRepository.save(nestedStep);
-
-    log.info("Created nested step item: {} with name: {}", nestedStep.getItemId(), stepName);
-
-    return nestedStep;
   }
 
   /**

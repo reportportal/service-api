@@ -145,7 +145,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
    */
   @Transactional
   @Override
-  public void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch) {
+  public void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch) { //TODO refactor this method
     log.debug("Creating execution for test case: {} in launch: {}",
         testCase.getId(), launch.getId());
 
@@ -271,24 +271,19 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   @Override
   @Transactional
   public void createExecutions(long projectId, List<Long> testCaseIds, Launch launch) {
-    log.debug("Creating {} executions in batch for launch: {}", testCaseIds.size(),
-        launch.getId());
+    var testCases = tmsTestCaseService.getByIds(projectId, testCaseIds);
+
+    var testCaseMap = testCases
+        .stream()
+        .collect(Collectors.toMap(TmsTestCaseRS::getId, Function.identity()));
 
     for (var testCaseId : testCaseIds) {
-      try {
-        // Load test case details
-        var testCase = tmsTestCaseService.getById(projectId, testCaseId);
-
-        // Create execution with orchestration
-        createExecution(projectId, testCase, launch);
-
-      } catch (Exception e) {
-        log.error("Error creating execution for test case: {} in launch: {}",
-            testCaseId, launch.getId(), e);
-        throw new ReportPortalException(
-            "Failed to create execution for test case: " + testCaseId + ", exception: "
-                + e.getMessage());
+      var testCase = testCaseMap.get(testCaseId);
+      if (testCase == null) {
+        log.warn("Test case not found: {}, skipping", testCaseId);
+        continue;
       }
+      createExecution(projectId, testCase, launch);
     }
   }
 
@@ -469,7 +464,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public TmsTestCaseExecutionRS patch(Long executionId, Long launchId,
       TmsTestCaseExecutionRQ request) {
     log.debug("Updating test case execution: {} in launch: {}", executionId,
@@ -579,7 +574,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     var testCaseExecutionCountsByLaunchId =
         tmsTestCaseExecutionRepository.findTestCaseExecutionCountsByLaunchId(launchId);
 
-    long total = testCaseExecutionCountsByLaunchId.size();
+    long total = tmsTestCaseExecutionRepository.countByLaunchId(launchId);
 
     var failed = 0;
     var passed = 0;

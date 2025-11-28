@@ -24,6 +24,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import jakarta.persistence.QueryHint;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.springframework.data.domain.Pageable;
@@ -604,4 +605,16 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
    */
   @Query("SELECT ti FROM TestItem ti WHERE ti.parentId = :parentId ORDER BY ti.itemId ASC")
   List<TestItem> findDirectChildrenByParentId(@Param("parentId") Long parentId);
+
+  @Query("""
+    SELECT ti.parentId, COUNT(ti.itemId)
+    FROM TestItem ti
+    WHERE ti.parentId IN :parentIds
+      AND ti.type = :type
+    GROUP BY ti.parentId
+    """)
+  Map<Long, Long> countChildrenByParentIdsAndType(
+      @Param("parentIds") List<Long> parentIds,
+      @Param("type") TestItemTypeEnum type
+  );
 }

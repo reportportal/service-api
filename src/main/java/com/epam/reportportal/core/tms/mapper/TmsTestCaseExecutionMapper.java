@@ -12,6 +12,8 @@ import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
@@ -112,7 +114,12 @@ public abstract class TmsTestCaseExecutionMapper {
     try {
       return objectMapper.writeValueAsString(testCase);
     } catch (JsonProcessingException e) {
-      return "{}";
+      log.error("Failed to create test case snapshot for test case: {}",
+          testCase.getId(), e);
+      throw new ReportPortalException(
+          ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+          "Failed to serialize test case snapshot: " + e.getMessage()
+      );
     }
   }
 

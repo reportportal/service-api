@@ -20,6 +20,7 @@ import com.epam.reportportal.infrastructure.persistence.dao.TmsStepExecutionRepo
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsStepExecution;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,38 +56,30 @@ public class TmsStepExecutionService {
       Launch launch,
       List<Long> tmsStepIds) {
 
-    log.debug("Creating {} step execution records for test case execution: {}",
-        nestedSteps.size(), testCaseExecutionId);
-
     if (nestedSteps.isEmpty()) {
-      log.debug("No nested steps to create execution records for");
       return;
     }
 
+    var stepExecutions = new ArrayList<TmsStepExecution>();
+
     for (var i = 0; i < nestedSteps.size(); i++) {
-      try {
-        var nestedStep = nestedSteps.get(i);
-        var tmsStepId = (tmsStepIds != null && i < tmsStepIds.size()) ? tmsStepIds.get(i) : null;
+      var nestedStep = nestedSteps.get(i);
+      var tmsStepId = (tmsStepIds != null && i < tmsStepIds.size())
+          ? tmsStepIds.get(i) : null;
 
-        var stepExecution = TmsStepExecution.builder()
-            .testCaseExecutionId(testCaseExecutionId) //TODO move to mapper
-            .testItem(nestedStep)
-            .launchId(launch.getId())
-            .tmsStepId(tmsStepId)
-            .build();
+      var stepExecution = TmsStepExecution.builder()
+          .testCaseExecutionId(testCaseExecutionId)
+          .testItem(nestedStep)
+          .launchId(launch.getId())
+          .tmsStepId(tmsStepId)
+          .build();
 
-        tmsStepExecutionRepository.save(stepExecution);
-        log.trace("Created step execution for nested item: {} with TMS step ID: {}",
-            nestedStep.getItemId(), tmsStepId);
-
-      } catch (Exception e) {
-        log.error("Error creating step execution record for nested step index: {}",
-            i, e);
-        throw e;  // Re-throw to stop transaction
-      }
+      stepExecutions.add(stepExecution);
     }
 
-    log.info("Successfully created {} step execution records", nestedSteps.size());
+    tmsStepExecutionRepository.saveAll(stepExecutions);
+
+    log.info("Successfully created {} step execution records", stepExecutions.size());
   }
 
   /**

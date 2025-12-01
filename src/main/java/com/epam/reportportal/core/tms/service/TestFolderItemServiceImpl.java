@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.service;
 
+import com.epam.reportportal.core.tms.dto.CountOfChildTestItemsByParentId;
 import com.epam.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.core.tms.mapper.SuiteTestItemBuilder;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
@@ -11,6 +12,9 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageImpl;
@@ -182,9 +186,12 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
         .map(s -> s.getTestItem().getItemId())
         .toList();
 
-    var testCasesCounts = testItemRepository.countChildrenByParentIdsAndType(
-        suiteItemIds, TestItemTypeEnum.TEST
-    );
+    var testCasesCounts = testItemRepository
+        .countChildrenByParentIdsAndType(suiteItemIds, TestItemTypeEnum.TEST)
+        .stream()
+        .collect(Collectors.toMap(
+            CountOfChildTestItemsByParentId::getParentId, Function.identity()
+        ));
 
     var result = testFolderTestItemRepository
         .findByLaunchId(launchId, pageable)
@@ -194,7 +201,10 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
           Long parentSuiteId = null;
 
           if (suiteItem != null) {
-            testCaseCount = testCasesCounts.getOrDefault(suiteItem.getItemId(), 0L);
+            testCaseCount = Optional
+                .ofNullable(testCasesCounts.get(suiteItem.getItemId()))
+                .map(CountOfChildTestItemsByParentId::getCount)
+                .orElse(0L);
             parentSuiteId = suiteItem.getParentId();
           }
 

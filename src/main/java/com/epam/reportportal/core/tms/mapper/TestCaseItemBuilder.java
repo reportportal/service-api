@@ -16,13 +16,9 @@
 
 package com.epam.reportportal.core.tms.mapper;
 
-import com.epam.reportportal.core.item.identity.IdentityUtil;
-import com.epam.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
-import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import java.time.Instant;
 import java.util.UUID;
@@ -40,8 +36,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TestCaseItemBuilder {
-
-  private final TestCaseHashGenerator testCaseHashGenerator;
 
   /**
    * Creates a TEST test item (test case execution) with given parameters. TEST items are direct

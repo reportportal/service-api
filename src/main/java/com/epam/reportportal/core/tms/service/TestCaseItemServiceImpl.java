@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.core.tms.service;
 
+import com.epam.reportportal.core.item.identity.IdentityUtil;
+import com.epam.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.mapper.TestCaseItemBuilder;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
@@ -41,6 +43,7 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
 
   private final TestItemRepository testItemRepository;
   private final TestCaseItemBuilder testCaseItemBuilder;
+  private final TestCaseHashGenerator testCaseHashGenerator;
 
   /**
    * Creates a TEST item (test case execution) under a SUITE item.
@@ -77,6 +80,13 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
     testResults.setTestItem(testItem);
     testItem.setItemResults(testResults);
     testItem.setPath(suiteItem.getPath() + "." + testItem.getItemId());
+    testItem.setTestCaseHash(
+        testCaseHashGenerator.generate(
+            testItem,
+            IdentityUtil.getParentIds(testItem),
+            launch.getProjectId()
+        )
+    );
 
     log.info("Successfully created TEST item: {} for test case: {}",
         testItem.getItemId(), testCase.getName());

@@ -169,7 +169,7 @@ public class TmsManualLaunchController {
   }
 
   @PostMapping("{launchId}/test-case/batch")
-  @Operation(summary = "Add multiple test cases to Manual Launch")
+  @Operation(summary = "Batch add multiple test cases to Manual Launch")
   public BatchTestCaseOperationResultRS addTestCasesToLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,

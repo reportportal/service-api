@@ -9,4 +9,8 @@ public interface TmsTestCaseExecutionCommentService {
   TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ);
 
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
+
+  void deleteByLaunchId(Long launchId);
+
+  void deleteTestCaseExecutionComment(long projectId, Long launchId, TmsTestCaseExecution execution);
 }

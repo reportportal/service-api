@@ -60,6 +60,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private static final String TEST_CASE_ALREADY_IN_LAUNCH = "Test case with id: %d already exists in launch: %d";
   private static final String TEST_CASE_EXECUTION_IN_LAUNCH =
       "Test Case execution: %d for Launch: %d";
+  private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test case with id: %d for project: %d";
 
   private final LaunchRepository launchRepository;
   private final TmsManualLaunchFilterableRepository tmsManualLaunchFilterableRepository;
@@ -69,6 +70,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final DeleteLaunchHandler deleteLaunchHandler;
   private final TestFolderItemServiceImpl testFolderItemService;
   private final TmsStepExecutionService tmsStepExecutionService;
+  private final TmsTestCaseService tmsTestCaseService;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
@@ -102,8 +104,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     log.info("Created manual launch with ID: {} for project: {}", launch.getId(), projectId);
 
     return tmsManualLaunchMapper.convert(launch, TmsManualLaunchExecutionStatisticRS.builder()
-        .total(request.getTestCaseIds().size())
-        .toRun(request.getTestCaseIds().size())
+        .total(CollectionUtils.isNotEmpty(request.getTestCaseIds()) ? request.getTestCaseIds().size() : 0)
+        .toRun(CollectionUtils.isNotEmpty(request.getTestCaseIds()) ? request.getTestCaseIds().size() : 0)
         .build());
   }
 
@@ -234,8 +236,12 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     var testCaseId = request.getTestCaseId();
 
-    // Check if test case already in launch
-    if (tmsTestCaseExecutionService.isTestCaseInLaunch(testCaseId, launchId)) {
+    if (!tmsTestCaseService.existsById(projectId, testCaseId)) { // Check if a test case exists
+      throw new ReportPortalException(
+          BAD_REQUEST_ERROR,
+          TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId)
+      );
+    } else if (tmsTestCaseExecutionService.isTestCaseInLaunch(testCaseId, launchId)) {  // Check if test case already in launch
       throw new ReportPortalException(
           BAD_REQUEST_ERROR,
           TEST_CASE_ALREADY_IN_LAUNCH.formatted(testCaseId, launchId)
@@ -268,7 +274,14 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     for (var testCaseId : testCaseIds) {
       try {
         // Check if already exists
-        if (tmsTestCaseExecutionService.isTestCaseInLaunch(testCaseId, launchId)) {
+        if (!tmsTestCaseService.existsById(projectId, testCaseId)) { // Check if a test case exists
+          log.warn("Test case {} for project {} does not exist", testCaseId, projectId);
+          errors.add(new BatchTestCaseOperationError(
+              testCaseId,
+              "Test case does not exist in the project"
+          ));
+          continue;
+        } else if (tmsTestCaseExecutionService.isTestCaseInLaunch(testCaseId, launchId)) {
           log.warn("Test case {} already exists in launch {}", testCaseId, launchId);
           errors.add(new BatchTestCaseOperationError(
               testCaseId,
@@ -278,7 +291,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
         }
 
         // Add a test case through execution service (creates execution and test item)
-        tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, List.of(testCaseId));
+        tmsTestCaseExecutionService.addTestCaseToLaunch(projectId, launch, testCaseId);
         successTestCaseIds.add(testCaseId);
 
       } catch (Exception e) {

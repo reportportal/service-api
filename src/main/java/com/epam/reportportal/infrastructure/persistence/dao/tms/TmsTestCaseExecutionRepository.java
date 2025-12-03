@@ -330,4 +330,6 @@ public interface TmsTestCaseExecutionRepository extends
       "WHERE e.launchId IN :launchIds " +
       "GROUP BY e.launchId, e.testItem.itemResults.status")
   List<TmsTestCaseExecutionStatusCountByLaunch> findTestCaseExecutionCountsByLaunchIds(@Param("launchIds") List<Long> launchIds);
+
+  List<TmsTestCaseExecution> findAllByLaunchIdAndTestCaseId(Long launchId, long testCaseId);
 }

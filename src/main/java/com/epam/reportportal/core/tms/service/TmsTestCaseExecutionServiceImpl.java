@@ -1,5 +1,7 @@
 package com.epam.reportportal.core.tms.service;
 
+import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
+
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.tms.dto.NestedStepResult;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
@@ -302,6 +304,16 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         launch.getId());
   }
 
+  @Override
+  @Transactional
+  public void addTestCaseToLaunch(long projectId, Launch launch, Long testCaseId) {
+    log.debug("Adding {} test case to launch: {}", testCaseId, launch.getId());
+
+    createExecution(projectId, tmsTestCaseService.getById(projectId, testCaseId), launch);
+
+    log.debug("Added {} test case to launch: {}", testCaseId, launch.getId());
+  }
+
   @Transactional
   @Override
   public void deleteTestCaseExecutionFromLaunch(long projectId, Long launchId,
@@ -313,6 +325,12 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             () -> new ReportPortalException(
                 "Test case execution not found: " + executionId)
         );
+
+    if (execution.getExecutionComment() != null) {
+      tmsTestCaseExecutionCommentService.deleteTestCaseExecutionComment(
+          projectId, launchId, execution
+      );
+    }
 
     var testItem = execution.getTestItem();
     var suiteItemId = testItem.getParentId();
@@ -361,6 +379,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   @Transactional
   public void deleteByLaunchId(Long launchId) {
     log.debug("Deleting all executions for launch: {}", launchId);
+    // Delete execution comments
+    tmsTestCaseExecutionCommentService.deleteByLaunchId(launchId);
     // Delete executions
     tmsTestCaseExecutionRepository.deleteByLaunchId(launchId);
   }
@@ -558,6 +578,13 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   @Override
   @Transactional
   public void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId) {
+    if (!existsByTestCaseExecutionIdAndLaunchId(executionId,
+        launchId)) {
+      throw new ReportPortalException(
+          NOT_FOUND,
+          TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
+      );
+    }
     tmsTestCaseExecutionCommentService.deleteTestCaseExecutionComment(
         projectId, launchId, executionId
     );

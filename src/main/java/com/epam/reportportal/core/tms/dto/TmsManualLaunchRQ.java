@@ -26,8 +26,7 @@ public class TmsManualLaunchRQ {
 
   private String uuid;
 
-  @JsonDeserialize(using = MultiFormatDateDeserializer.class)
-  private Instant startTime;
+  private String startTime;
 
   @JsonProperty("mode")
   private Mode mode;

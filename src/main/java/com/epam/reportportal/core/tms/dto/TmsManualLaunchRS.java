@@ -30,15 +30,15 @@ public class TmsManualLaunchRS {
 
   @Schema(description = "Launch start time", example = "2025-12-20T23:10:01")
   @JsonProperty("startTime")
-  private Instant startTime;
+  private String startTime;
 
   @Schema(description = "Launch end time")
   @JsonProperty("endTime")
-  private Instant endTime;
+  private String endTime;
 
   @Schema(description = "Launch created time", example = "2025-12-20T23:10:01")
   @JsonProperty("createdAt")
-  private Instant createdAt;
+  private String createdAt;
 
   @Schema(description = "Launch number", example = "1")
   private Integer number;

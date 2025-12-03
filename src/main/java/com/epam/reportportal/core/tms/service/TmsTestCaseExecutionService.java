@@ -72,6 +72,15 @@ public interface TmsTestCaseExecutionService {
   void addTestCasesToLaunch(long projectId, Launch launch, List<Long> testCaseIds);
 
   /**
+   * Adds a test case to launch (creates executions).
+   *
+   * @param projectId
+   * @param launch      launch entity
+   * @param testCaseId  test case ID
+   */
+  void addTestCaseToLaunch(long projectId, Launch launch, Long testCaseId);
+
+  /**
    * Removes test case execution from launch.
    *
    * @param executionId test case execution ID

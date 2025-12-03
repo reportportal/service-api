@@ -1,5 +1,7 @@
 package com.epam.reportportal.core.tms.service;
 
+import com.epam.reportportal.core.item.identity.IdentityUtil;
+import com.epam.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.core.tms.dto.CountOfChildTestItemsByParentId;
 import com.epam.reportportal.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.core.tms.mapper.SuiteTestItemBuilder;
@@ -35,6 +37,7 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
   private final TmsTestFolderTestItemRepository testFolderTestItemRepository;
   private final TmsTestFolderService tmsTestFolderService;
   private final SuiteTestItemBuilder suiteItemBuilder;
+  private final TestCaseHashGenerator testCaseHashGenerator;
 
   /**
    * Finds or creates a SUITE item for a test folder in a launch. If the folder has a parent folder,
@@ -86,6 +89,13 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
 
     // Create SUITE item without a parent reference
     var suiteItem = suiteItemBuilder.buildSuiteItem(testFolder, launch, testFolderId);
+    suiteItem.setTestCaseHash(
+        testCaseHashGenerator.generate(
+            suiteItem,
+            IdentityUtil.getParentIds(suiteItem),
+            launch.getProjectId()
+        )
+    );
     suiteItem = testItemRepository.save(suiteItem);
     log.trace("Persisted SUITE item with ID: {}", suiteItem.getItemId());
 

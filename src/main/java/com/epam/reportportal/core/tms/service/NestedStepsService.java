@@ -25,8 +25,8 @@ import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,18 +38,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class NestedStepsService {
 
   private final TestItemRepository testItemRepository;
   private final NestedStepItemBuilder nestedStepItemBuilder;
-
-  @Autowired
-  public NestedStepsService(
-      TestItemRepository testItemRepository,
-      NestedStepItemBuilder nestedStepItemBuilder) {
-    this.testItemRepository = testItemRepository;
-    this.nestedStepItemBuilder = nestedStepItemBuilder;
-  }
 
   /**
    * Creates nested steps from a steps-based manual scenario.
@@ -139,15 +132,10 @@ public class NestedStepsService {
         parentTestItem, name, description, launch
     );
 
-    // Persist nested step
     nestedStep = testItemRepository.save(nestedStep);
 
-    // Set path after persistence (when itemId is generated)
     nestedStep.setPath(parentTestItem.getPath() + "." + nestedStep.getItemId());
-    nestedStep = testItemRepository.save(nestedStep);
 
-    log.info("Created nested step item: {} from text scenario", nestedStep.getItemId());
-
-    return nestedStep;
+    return testItemRepository.save(nestedStep);
   }
 }

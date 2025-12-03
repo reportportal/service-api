@@ -69,11 +69,6 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
         testCase, suiteItem, launch
     );
 
-    // Persist TEST item
-    testItem = testItemRepository.save(testItem);
-
-    log.trace("Persisted TEST item with ID: {}", testItem.getItemId());
-
     var testResults = new TestItemResults();
     testResults.setStatus(StatusEnum.TO_RUN);
 
@@ -87,9 +82,6 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
             launch.getProjectId()
         )
     );
-
-    log.info("Successfully created TEST item: {} for test case: {}",
-        testItem.getItemId(), testCase.getName());
 
     return testItemRepository.save(testItem);
   }

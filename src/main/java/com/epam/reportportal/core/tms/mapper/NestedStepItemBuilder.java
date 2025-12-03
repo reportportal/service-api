@@ -65,15 +65,18 @@ public class NestedStepItemBuilder {
     nestedStep.setHasChildren(false);
     nestedStep.setRetryOf(null);
     nestedStep.setParentId(parentTestItem.getItemId());
+    nestedStep.setTestCaseId(parentTestItem.getTestCaseId());
 
-    // Create test item results with TO_RUN status
+    // Create test item results with INFO status
     var nestedResults = new TestItemResults();
-    nestedResults.setStatus(StatusEnum.TO_RUN);
+    nestedResults.setStatus(StatusEnum.INFO);
     nestedResults.setEndTime(null);
     nestedResults.setDuration(null);
 
     nestedStep.setItemResults(nestedResults);
     nestedResults.setTestItem(nestedStep);
+
+    nestedStep.setTestCaseHash(parentTestItem.getTestCaseHash()); //TODO check is it correct
 
     log.trace("Successfully built nested step item: {}", name);
     return nestedStep;

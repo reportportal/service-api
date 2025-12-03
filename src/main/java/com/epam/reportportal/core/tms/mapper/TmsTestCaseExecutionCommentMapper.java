@@ -11,14 +11,13 @@ import org.mapstruct.Mapping;
 @Mapper(config = CommonMapperConfig.class)
 public interface TmsTestCaseExecutionCommentMapper {
 
-  default TmsTestCaseExecutionComment createTestCaseExecutionComment(
-      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ) {
-    return TmsTestCaseExecutionComment.builder()
-        .execution(existingExecution)
-        .comment(executionCommentRQ.getComment())
-        .btsTicketId(executionCommentRQ.getBtsTicket().getId())
-        .build();
-  }
+  @Mapping(target = "execution", source = "existingExecution")
+  @Mapping(target = "comment", source = "executionCommentRQ.comment")
+  @Mapping(target = "btsTicketId", source = "executionCommentRQ.btsTicket.id")
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "attachments", ignore = true)
+  TmsTestCaseExecutionComment createTestCaseExecutionComment(
+      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ);
 
   @Mapping(target = "btsTicket.id", source = "btsTicketId")
   TmsTestCaseExecutionCommentRS toTmsTestCaseExecutionCommentRS(TmsTestCaseExecutionComment comment);

@@ -1,11 +1,14 @@
 package com.epam.reportportal.core.tms.service;
 
+import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
+
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.mapper.TmsTestCaseExecutionCommentMapper;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class TmsTestCaseExecutionCommentServiceImpl implements
     TmsTestCaseExecutionCommentService {
+
+  private static final String TEST_CASE_EXECUTION_COMMENT_IN_EXECUTION =
+      "Comment for Test Case execution: %d for Launch: %d";
 
   private final TmsTestCaseExecutionCommentRepository tmsTestCaseExecutionCommentRepository;
   private final TmsTestCaseExecutionCommentAttachmentService tmsTestCaseExecutionCommentAttachmentService;
@@ -48,7 +54,35 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
   @Override
   @Transactional
   public void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId) {
+    if (!tmsTestCaseExecutionCommentRepository.existsByExecutionId(executionId)) {
+      throw new ReportPortalException(
+          NOT_FOUND,
+          TEST_CASE_EXECUTION_COMMENT_IN_EXECUTION.formatted(executionId, launchId)
+      );
+    }
     tmsTestCaseExecutionCommentRepository.deleteByExecutionId(executionId);
+  }
+
+  @Override
+  @Transactional
+  public void deleteByLaunchId(Long launchId) {
+    tmsTestCaseExecutionCommentAttachmentService.deleteByLaunchId(launchId);
+    tmsTestCaseExecutionCommentRepository.deleteByLaunchId(launchId);
+  }
+
+  @Override
+  @Transactional
+  public void deleteTestCaseExecutionComment(long projectId, Long launchId,
+      TmsTestCaseExecution execution) {
+    var executionId = execution.getId();
+    if (execution.getExecutionComment() == null || !tmsTestCaseExecutionCommentRepository.existsByExecutionId(executionId)) {
+      throw new ReportPortalException(
+          NOT_FOUND,
+          TEST_CASE_EXECUTION_COMMENT_IN_EXECUTION.formatted(executionId, launchId)
+      );
+    }
+    tmsTestCaseExecutionCommentRepository.delete(execution.getExecutionComment());
+    execution.setExecutionComment(null);
   }
 
   /**

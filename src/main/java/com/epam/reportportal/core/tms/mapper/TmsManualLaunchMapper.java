@@ -33,7 +33,7 @@ public interface TmsManualLaunchMapper {
   @Mapping(target = "uuid",
       expression = "java(java.util.Optional.ofNullable(request.getUuid()).orElse(java.util.UUID.randomUUID().toString()))")
   @Mapping(target = "startTime",
-      expression = "java(request.getStartTime() == null ? java.time.Instant.now() : request.getStartTime())")
+      expression = "java(request.getStartTime() == null ? java.time.Instant.now() : java.time.Instant.parse(request.getStartTime()))")
   @Mapping(target = "mode",
       expression = "java(request.getMode() == null ? "
           + "com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum.DEFAULT : "

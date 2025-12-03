@@ -24,4 +24,6 @@ public interface TmsTestCaseExecutionCommentAttachmentService {
    * Deletes all attachment relationships by execution ID.
    */
   void deleteAllByExecutionId(Long executionId);
+
+  void deleteByLaunchId(Long launchId);
 }

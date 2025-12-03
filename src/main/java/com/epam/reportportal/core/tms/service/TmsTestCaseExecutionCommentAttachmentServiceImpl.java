@@ -4,6 +4,8 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecutionCommentAttachment;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +70,8 @@ public class TmsTestCaseExecutionCommentAttachmentServiceImpl implements
 
       log.info("Created {} attachment relationships for execution tmsTestCaseExecutionComment: {}",
           attachments.size(), tmsTestCaseExecutionComment.getId());
+    } else {
+      throw new ReportPortalException(ErrorType.NOT_FOUND, "No attachments found with such ids");
     }
   }
 
@@ -104,5 +108,11 @@ public class TmsTestCaseExecutionCommentAttachmentServiceImpl implements
     tmsTestCaseExecutionCommentAttachmentRepository.deleteByExecutionId(executionId);
     log.info("Deleted all execution comment attachment relationships for execution: {}",
         executionId);
+  }
+
+  @Override
+  @Transactional
+  public void deleteByLaunchId(Long launchId) {
+    tmsTestCaseExecutionCommentAttachmentRepository.deleteByLaunchId(launchId);
   }
 }

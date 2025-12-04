@@ -16,6 +16,13 @@
 
 package com.epam.reportportal.extension.event;
 
+/**
+ * @deprecated Use specific domain events instead:
+ * {@link com.epam.reportportal.core.events.domain.OrganizationCreatedEvent},
+ * {@link com.epam.reportportal.core.events.domain.OrganizationUpdatedEvent},
+ * {@link com.epam.reportportal.core.events.domain.OrganizationDeletedEvent}
+ */
+@Deprecated(forRemoval = true)
 public class OrganizationEvent extends EntityEvent<Long, String> {
 
   public static final String CREATE_KEY = "create";

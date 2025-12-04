@@ -24,8 +24,7 @@ import static com.epam.reportportal.ws.converter.converters.TestItemConverter.TO
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.core.bts.handler.CreateTicketHandler;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.TicketPostedEvent;
+import com.epam.reportportal.core.events.domain.TicketPostedEvent;
 import com.epam.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.core.plugin.PluginBox;
 import com.epam.reportportal.extension.bugtracking.BtsConstants;
@@ -43,7 +42,8 @@ import com.epam.reportportal.model.activity.TestItemActivityResource;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,21 +53,13 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
+@RequiredArgsConstructor
 public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
   private final TestItemRepository testItemRepository;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
   private final PluginBox pluginBox;
   private final GetIntegrationHandler getIntegrationHandler;
-
-  @Autowired
-  public CreateTicketHandlerImpl(TestItemRepository testItemRepository, PluginBox pluginBox,
-      MessageBus messageBus, GetIntegrationHandler getIntegrationHandler) {
-    this.testItemRepository = testItemRepository;
-    this.pluginBox = pluginBox;
-    this.messageBus = messageBus;
-    this.getIntegrationHandler = getIntegrationHandler;
-  }
 
   @Override
   public Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId,
@@ -77,7 +69,8 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
     List<TestItem> testItems = ofNullable(postTicketRQ.getBackLinks()).map(
         links -> testItemRepository.findAllById(links.keySet())).orElseGet(Collections::emptyList);
     List<TestItemActivityResource> before =
-        testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
+        testItems.stream()
+            .map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
             .collect(Collectors.toList());
 
     Integration integration =
@@ -96,8 +89,9 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
     Ticket ticket = btsExtension.submitTicket(postTicketRQ, integration);
 
-    before.forEach(it -> messageBus.publishActivity(
-        new TicketPostedEvent(ticket, user.getUserId(), user.getUsername(), it, membershipDetails.getOrgId())));
+    before.forEach(it -> eventPublisher.publishEvent(
+        new TicketPostedEvent(ticket, user.getUserId(), user.getUsername(), it,
+            membershipDetails.getOrgId())));
     return ticket;
   }
 

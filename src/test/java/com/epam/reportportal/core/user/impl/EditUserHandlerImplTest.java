@@ -25,7 +25,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.core.events.activity.ChangeUserTypeEvent;
+import com.epam.reportportal.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -119,7 +119,8 @@ class EditUserHandlerImplTest {
     when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.changePassword(getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L),
+        () -> handler.changePassword(
+            getRpUser("not_exist", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L),
             new ChangePasswordRQ()
         )
     );
@@ -134,7 +135,8 @@ class EditUserHandlerImplTest {
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.changePassword(getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L),
+        () -> handler.changePassword(
+            getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L),
             new ChangePasswordRQ()
         )
     );
@@ -155,7 +157,8 @@ class EditUserHandlerImplTest {
     changePasswordRQ.setOldPassword("wrongPass");
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.changePassword(getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L),
+        () -> handler.changePassword(
+            getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L),
             changePasswordRQ
         )
     );
@@ -186,7 +189,8 @@ class EditUserHandlerImplTest {
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.editUser("test", editUserRQ,
-            getRpUser("not_exist", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L)
+            getRpUser("not_exist", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,
+                ProjectRole.VIEWER, 1L)
         )
     );
     assertEquals(

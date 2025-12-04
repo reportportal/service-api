@@ -17,8 +17,7 @@
 package com.epam.reportportal.core.analyzer.pattern.handler.impl;
 
 import com.epam.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.PatternMatchedEvent;
+import com.epam.reportportal.core.events.domain.PatternMatchedEvent;
 import com.epam.reportportal.core.project.ProjectService;
 import com.epam.reportportal.infrastructure.persistence.dao.PatternTemplateRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
@@ -31,7 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -39,6 +40,7 @@ import org.springframework.util.CollectionUtils;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
+@RequiredArgsConstructor
 public class ItemsPatternAnalyzerImpl {
 
   private final PatternTemplateRepository patternTemplateRepository;
@@ -48,17 +50,7 @@ public class ItemsPatternAnalyzerImpl {
   private final TestItemRepository testItemRepository;
   private final ProjectService projectService;
 
-  private final MessageBus messageBus;
-
-  public ItemsPatternAnalyzerImpl(PatternTemplateRepository patternTemplateRepository,
-      Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
-      TestItemRepository testItemRepository, ProjectService projectService, MessageBus messageBus) {
-    this.patternTemplateRepository = patternTemplateRepository;
-    this.patternAnalysisSelectorMapping = patternAnalysisSelectorMapping;
-    this.testItemRepository = testItemRepository;
-    this.projectService = projectService;
-    this.messageBus = messageBus;
-  }
+  private final ApplicationEventPublisher eventPublisher;
 
   public void analyzeByPattern(PatternTemplate pattern, Long launchId, List<Long> itemIds) {
     List<Long> filtered = filterAlreadyMatched(pattern, itemIds);
@@ -107,7 +99,7 @@ public class ItemsPatternAnalyzerImpl {
           testItemId,
           patternTemplateActivityResource, project.getOrganizationId()
       );
-      messageBus.publishActivity(patternMatchedEvent);
+      eventPublisher.publishEvent(patternMatchedEvent);
     });
   }
 

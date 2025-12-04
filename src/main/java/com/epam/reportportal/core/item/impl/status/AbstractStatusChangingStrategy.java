@@ -28,8 +28,7 @@ import static com.epam.reportportal.ws.converter.converters.TestItemConverter.TO
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -53,6 +52,7 @@ import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -65,7 +65,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   private final ProjectRepository projectRepository;
   private final LaunchRepository launchRepository;
   private final IssueTypeHandler issueTypeHandler;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   protected final TestItemRepository testItemRepository;
   protected final IssueEntityRepository issueEntityRepository;
@@ -75,14 +75,14 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   protected AbstractStatusChangingStrategy(TestItemService testItemService,
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
-      MessageBus messageBus, IssueEntityRepository issueEntityRepository,
+      ApplicationEventPublisher eventPublisher, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
     this.issueTypeHandler = issueTypeHandler;
-    this.messageBus = messageBus;
+    this.eventPublisher = eventPublisher;
     this.issueEntityRepository = issueEntityRepository;
     this.logRepository = logRepository;
     this.logIndexer = logIndexer;
@@ -193,7 +193,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 
   private void publishUpdateActivity(TestItemActivityResource before,
       TestItemActivityResource after, ReportPortalUser user, Long orgId) {
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername(), orgId));
   }
 

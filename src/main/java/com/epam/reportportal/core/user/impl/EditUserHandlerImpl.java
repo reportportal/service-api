@@ -31,7 +31,7 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.USE
 import static com.epam.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.core.events.activity.ChangeUserTypeEvent;
+import com.epam.reportportal.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.core.user.EditUserHandler;
 import com.epam.reportportal.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.infrastructure.persistence.commons.Predicates;

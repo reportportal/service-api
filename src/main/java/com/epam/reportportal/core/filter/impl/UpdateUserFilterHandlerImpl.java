@@ -21,9 +21,8 @@ import static com.epam.reportportal.infrastructure.rules.commons.validation.Busi
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.USER_FILTER_NOT_FOUND;
 import static com.epam.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.FilterCreatedEvent;
-import com.epam.reportportal.core.events.activity.FilterUpdatedEvent;
+import com.epam.reportportal.core.events.domain.FilterCreatedEvent;
+import com.epam.reportportal.core.events.domain.FilterUpdatedEvent;
 import com.epam.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.reportportal.infrastructure.model.ValidationConstraints;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -50,11 +49,13 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
   private final static String KEY_AND_VALUE_DELIMITER = ":";
@@ -62,15 +63,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
   private final static String ATTRIBUTES_DELIMITER = ",";
   private final ProjectExtractor projectExtractor;
   private final UserFilterRepository userFilterRepository;
-  private final MessageBus messageBus;
-
-  @Autowired
-  public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor,
-      UserFilterRepository userFilterRepository, MessageBus messageBus) {
-    this.projectExtractor = projectExtractor;
-    this.userFilterRepository = userFilterRepository;
-    this.messageBus = messageBus;
-  }
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName,
@@ -92,7 +85,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
         .addProject(membershipDetails.getProjectId()).addOwner(user.getUsername()).get();
 
     userFilterRepository.save(filter);
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(),
             user.getUsername(), membershipDetails.getOrgId()
         ));
@@ -104,7 +97,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
   public EntryCreatedRS createFilterCopyOnDuplicate(UpdateUserFilterRQ createFilterRQ,
       String projectKey,
       ReportPortalUser user) {
-    MembershipDetails membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
+    MembershipDetails membershipDetails = projectExtractor.extractMembershipDetails(user,
+        projectKey);
 
     validateFilterRq(createFilterRQ);
     validateFilterName(createFilterRQ, membershipDetails.getProjectId());
@@ -113,7 +107,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
         .addProject(membershipDetails.getProjectId()).addOwner(user.getUsername()).get();
 
     userFilterRepository.save(filter);
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(),
             user.getUsername(), membershipDetails.getOrgId()
         ));
@@ -130,7 +124,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
                 userFilterId, membershipDetails.getProjectName()
             ));
     expect(
-        userFilter.getProject().getId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
+        userFilter.getProject().getId(),
+        Predicate.isEqual(membershipDetails.getProjectId())).verify(
         USER_FILTER_NOT_FOUND, userFilterId, membershipDetails.getProjectId(), user.getUserId());
 
     if (!userFilter.getName().equals(updateRQ.getName())) {
@@ -147,7 +142,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
     UserFilter updated = new UserFilterBuilder(userFilter).addFilterRq(updateRQ).get();
 
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new FilterUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(updated), user.getUserId(),
             user.getUsername(), membershipDetails.getOrgId()
         ));

@@ -18,7 +18,7 @@ package com.epam.reportportal.core.events.handler.launch;
 
 import static com.epam.reportportal.infrastructure.persistence.entity.enums.ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.reportportal.core.launch.cluster.config.ClusterEntityContext;
@@ -49,7 +49,7 @@ public class LaunchUniqueErrorAnalysisRunner implements
         projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()));
     if (enabled) {
       uniqueErrorAnalysisStarter.start(
-          ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.projectId()),
+          ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.getProjectId()),
           projectConfig
       );
     }

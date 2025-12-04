@@ -20,8 +20,7 @@ import static com.epam.reportportal.ws.converter.converters.DashboardConverter.T
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.core.dashboard.DeleteDashboardHandler;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.DashboardDeletedEvent;
+import com.epam.reportportal.core.events.domain.DashboardDeletedEvent;
 import com.epam.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.DashboardRepository;
@@ -39,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,25 +51,27 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
   private final DashboardWidgetRepository dashboardWidgetRepository;
   private final WidgetRepository widgetRepository;
   private final WidgetContentRemover widgetContentRemover;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Autowired
   public DeleteDashboardHandlerImpl(DashboardRepository dashboardRepository,
       DashboardWidgetRepository dashboardWidgetRepository,
       WidgetRepository widgetRepository,
       @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
-      MessageBus messageBus) {
+      ApplicationEventPublisher eventPublisher) {
     this.dashboardRepository = dashboardRepository;
     this.dashboardWidgetRepository = dashboardWidgetRepository;
     this.widgetRepository = widgetRepository;
     this.widgetContentRemover = widgetContentRemover;
-    this.messageBus = messageBus;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
-  public OperationCompletionRS deleteDashboard(Long dashboardId, MembershipDetails membershipDetails,
+  public OperationCompletionRS deleteDashboard(Long dashboardId,
+      MembershipDetails membershipDetails,
       ReportPortalUser user) {
-    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, membershipDetails.getProjectId())
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId,
+            membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
             membershipDetails.getProjectName()
@@ -81,15 +83,18 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
         .map(DashboardWidget::getWidget)
         .peek(widgetContentRemover::removeContent)
         .collect(Collectors.toList());
-    dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
+    dashboardWidgets.addAll(
+        widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
     dashboardWidgetRepository.deleteAll(dashboardWidgets);
     dashboardRepository.delete(dashboard);
     widgetRepository.deleteAll(widgets);
 
-    messageBus.publishActivity(
-        new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername(),
+    eventPublisher.publishEvent(
+        new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),
+            user.getUsername(),
             membershipDetails.getOrgId()));
-    return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
+    return new OperationCompletionRS(
+        "Dashboard with ID = '" + dashboardId + "' successfully deleted.");
   }
 }

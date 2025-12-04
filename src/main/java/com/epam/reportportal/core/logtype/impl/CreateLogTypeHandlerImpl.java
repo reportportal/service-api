@@ -18,7 +18,7 @@ package com.epam.reportportal.core.logtype.impl;
 
 import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.LogTypeResponse;
-import com.epam.reportportal.core.events.activity.LogTypeCreatedEvent;
+import com.epam.reportportal.core.events.domain.LogTypeCreatedEvent;
 import com.epam.reportportal.core.logtype.CreateLogTypeHandler;
 import com.epam.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -51,7 +51,8 @@ public class CreateLogTypeHandlerImpl implements CreateLogTypeHandler {
    * @param logType     The log type payload containing the details of the log type to be created.
    * @param user        The user performing the action.
    * @return The newly created log type as a DTO.
-   * @throws ReportPortalException if the project is not found, validation fails, or the log type cannot be created.
+   * @throws ReportPortalException if the project is not found, validation fails, or the log type
+   *                               cannot be created.
    */
   @Override
   @Transactional

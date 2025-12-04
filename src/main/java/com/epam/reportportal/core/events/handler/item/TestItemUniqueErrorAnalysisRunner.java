@@ -19,7 +19,7 @@ package com.epam.reportportal.core.events.handler.item;
 import static com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getUniqueErrorConfig;
 
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.core.launch.cluster.ClusterGenerator;
 import com.epam.reportportal.core.launch.cluster.config.ClusterEntityContext;
@@ -58,8 +58,8 @@ public class TestItemUniqueErrorAnalysisRunner
       clustersConfig.setAnalyzerConfig(analyzerConfig);
 
       final ClusterEntityContext entityContext =
-          ClusterEntityContext.of(event.launchId(), event.projectId(),
-              List.of(event.itemId())
+          ClusterEntityContext.of(event.getLaunchId(), event.getProjectId(),
+              List.of(event.getItemId())
           );
       clustersConfig.setEntityContext(entityContext);
 

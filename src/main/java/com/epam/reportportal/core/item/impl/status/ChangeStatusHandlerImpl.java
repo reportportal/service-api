@@ -24,8 +24,7 @@ import static com.epam.reportportal.infrastructure.persistence.entity.enums.Stat
 import static com.epam.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
@@ -40,35 +39,26 @@ import com.epam.reportportal.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
+@RequiredArgsConstructor
 public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 
   private final TestItemRepository testItemRepository;
   private final IssueEntityRepository issueEntityRepository;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
   private final LaunchRepository launchRepository;
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
-  @Autowired
-  public ChangeStatusHandlerImpl(TestItemRepository testItemRepository,
-      IssueEntityRepository issueEntityRepository, MessageBus messageBus,
-      LaunchRepository launchRepository,
-      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
-    this.testItemRepository = testItemRepository;
-    this.issueEntityRepository = issueEntityRepository;
-    this.messageBus = messageBus;
-    this.launchRepository = launchRepository;
-    this.statusChangingStrategyMapping = statusChangingStrategyMapping;
-  }
-
   @Override
-  public void changeParentStatus(TestItem childItem, MembershipDetails membershipDetails, ReportPortalUser user) {
+  public void changeParentStatus(TestItem childItem, MembershipDetails membershipDetails,
+      ReportPortalUser user) {
     Long projectId = membershipDetails.getProjectId();
     ofNullable(childItem.getParentId()).flatMap(testItemRepository::findById).ifPresent(parent -> {
       if (parent.isHasChildren()) {
@@ -80,7 +70,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
         if (parent.getItemResults().getStatus() != resolvedStatus) {
           TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
           changeStatus(parent, resolvedStatus, user);
-          messageBus.publishActivity(
+          eventPublisher.publishEvent(
               new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId),
                   user.getUserId(), user.getUsername(), membershipDetails.getOrgId()
               ));

@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.events.listener;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.events.subscriber.EventSubscriber;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import java.util.List;

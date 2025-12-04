@@ -16,31 +16,34 @@
 
 package com.epam.reportportal.extension.event;
 
+import com.epam.reportportal.core.events.domain.AbstractEvent;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
 
 /**
+ * System event for plugin lifecycle notifications (load/unload). This event is consumed by external
+ * plugins (e.g., billing plugin) for runtime lifecycle notifications. It is NOT used for activity
+ * tracking - use PluginUploadedEvent/PluginDeletedEvent for audit trail.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class PluginEvent extends EntityEvent<String, String> {
+@Getter
+public class PluginEvent extends AbstractEvent<Void> {
 
-  private final Map<String, Object> params;
+  private String pluginId;
+  private String type;
+  private Map<String, Object> params;
 
-  public PluginEvent(String pluginId, String type) {
-    super(pluginId, type);
+  public PluginEvent() {
     this.params = new HashMap<>();
   }
 
-  public PluginEvent(String pluginId, String type, Map<String, Object> params) {
-    super(pluginId, type);
-    this.params = params;
+  public PluginEvent(String pluginId, String type) {
+    super();
+    this.pluginId = pluginId;
+    this.type = type;
+    this.params = new HashMap<>();
   }
 
-  public String getPluginId() {
-    return getId();
-  }
-
-  public Map<String, Object> getParams() {
-    return params;
-  }
 }

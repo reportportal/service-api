@@ -18,8 +18,7 @@ package com.epam.reportportal.core.project.settings.notification;
 
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.NotificationRuleCreatedEvent;
+import com.epam.reportportal.core.events.domain.NotificationRuleCreatedEvent;
 import com.epam.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.SenderCaseRepository;
@@ -35,27 +34,21 @@ import com.epam.reportportal.ws.converter.converters.NotificationConfigConverter
 import com.epam.reportportal.ws.converter.converters.NotificationRuleConverter;
 import com.epam.reportportal.ws.converter.converters.ProjectConverter;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 @Service
+@RequiredArgsConstructor
 public class CreateProjectNotificationHandlerImpl implements CreateProjectNotificationHandler {
 
   private final SenderCaseRepository senderCaseRepository;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
   private final ProjectConverter projectConverter;
   private final ProjectNotificationValidator projectNotificationValidator;
-
-  public CreateProjectNotificationHandlerImpl(SenderCaseRepository senderCaseRepository,
-      MessageBus messageBus, ProjectConverter projectConverter,
-      ProjectNotificationValidator projectNotificationValidator) {
-    this.senderCaseRepository = senderCaseRepository;
-    this.messageBus = messageBus;
-    this.projectConverter = projectConverter;
-    this.projectNotificationValidator = projectNotificationValidator;
-  }
 
   @Override
   public EntryCreatedRS createNotification(Project project, SenderCaseDTO createNotificationRQ,
@@ -81,8 +74,9 @@ public class CreateProjectNotificationHandlerImpl implements CreateProjectNotifi
         projectResource.getConfiguration().getProjectConfig();
     projectNotificationConfigDTO.getSenderCases().add(createNotificationRQ);
 
-    messageBus.publishActivity(
-        new NotificationRuleCreatedEvent(NotificationRuleConverter.TO_ACTIVITY_RESOURCE.apply(senderCase),
+    eventPublisher.publishEvent(
+        new NotificationRuleCreatedEvent(
+            NotificationRuleConverter.TO_ACTIVITY_RESOURCE.apply(senderCase),
             user.getUserId(), user.getUsername(), project.getOrganizationId()));
 
     return new EntryCreatedRS(senderCase.getId());

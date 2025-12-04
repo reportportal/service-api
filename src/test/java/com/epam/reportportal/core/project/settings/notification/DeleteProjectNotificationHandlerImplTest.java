@@ -18,7 +18,6 @@
 
 package com.epam.reportportal.core.project.settings.notification;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,14 +26,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.core.events.ActivityEvent;
 import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.NotificationRuleDeletedEvent;
+import com.epam.reportportal.core.events.domain.NotificationRuleDeletedEvent;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.SenderCaseRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.email.SenderCase;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.project.ProjectConfiguration;
 import com.epam.reportportal.model.project.ProjectResource;
 import com.epam.reportportal.model.project.email.ProjectNotificationConfigDTO;
@@ -103,7 +102,8 @@ class DeleteProjectNotificationHandlerImplTest {
   @Test
   void deleteNotificationWhenRuleDeletedShouldPublishNotificationRuleDeletedEvent() {
     // given
-    DeleteProjectNotificationHandlerImpl serviceReal = new DeleteProjectNotificationHandlerImpl(senderCaseRepository,
+    DeleteProjectNotificationHandlerImpl serviceReal = new DeleteProjectNotificationHandlerImpl(
+        senderCaseRepository,
         messageBus, projectConverter);
 
     long ruleId = 55L;
@@ -125,8 +125,10 @@ class DeleteProjectNotificationHandlerImplTest {
     existing.setId(ruleId);
     existing.setProject(project);
     existing.setRuleName("rule-X");
-    existing.setAttributesOperator(com.epam.reportportal.infrastructure.persistence.entity.enums.LogicalOperator.AND);
-    existing.setSendCase(com.epam.reportportal.infrastructure.persistence.entity.enums.SendCase.ALWAYS);
+    existing.setAttributesOperator(
+        com.epam.reportportal.infrastructure.persistence.entity.enums.LogicalOperator.AND);
+    existing.setSendCase(
+        com.epam.reportportal.infrastructure.persistence.entity.enums.SendCase.ALWAYS);
 
     when(senderCaseRepository.findById(ruleId)).thenReturn(java.util.Optional.of(existing));
     ReportPortalUser user = mock(ReportPortalUser.class);

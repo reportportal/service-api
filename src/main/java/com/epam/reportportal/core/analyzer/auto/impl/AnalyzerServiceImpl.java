@@ -26,9 +26,8 @@ import com.epam.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
-import com.epam.reportportal.core.events.activity.LinkTicketEvent;
+import com.epam.reportportal.core.events.domain.ItemIssueTypeDefinedEvent;
+import com.epam.reportportal.core.events.domain.LinkTicketEvent;
 import com.epam.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.core.project.ProjectService;
 import com.epam.reportportal.infrastructure.model.analyzer.IndexLaunch;
@@ -57,6 +56,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,7 +84,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private final LaunchRepository launchRepository;
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   private final Integer itemsBatchSize;
 
@@ -97,7 +97,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
       AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
       TestItemRepository testItemRepository,
-      MessageBus messageBus, LaunchRepository launchRepository,
+      ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
       DefectUpdateStatisticsService defectUpdateStatisticsService, ProjectService projectService) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
@@ -105,7 +105,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     this.analyzerServicesClient = analyzerServicesClient;
     this.issueTypeHandler = issueTypeHandler;
     this.testItemRepository = testItemRepository;
-    this.messageBus = messageBus;
+    this.eventPublisher = eventPublisher;
     this.launchRepository = launchRepository;
     this.defectUpdateStatisticsService = defectUpdateStatisticsService;
     this.projectService = projectService;
@@ -197,11 +197,11 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
           testItemRepository.save(testItem);
           var project = projectService.findProjectById(projectId);
-          messageBus.publishActivity(
+          eventPublisher.publishEvent(
               new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo,
                   project.getOrganizationId()));
           ofNullable(after.getTickets()).ifPresent(
-              it -> messageBus.publishActivity(new LinkTicketEvent(before,
+              it -> eventPublisher.publishEvent(new LinkTicketEvent(before,
                   after,
                   analyzerInstance,
                   true, project.getOrganizationId()

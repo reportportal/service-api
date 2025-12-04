@@ -18,7 +18,7 @@ package com.epam.reportportal.core.integration.plugin.impl;
 
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 
-import com.epam.reportportal.core.events.activity.PluginDeletedEvent;
+import com.epam.reportportal.core.events.domain.PluginDeletedEvent;
 import com.epam.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;

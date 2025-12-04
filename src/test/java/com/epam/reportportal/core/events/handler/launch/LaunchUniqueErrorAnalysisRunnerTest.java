@@ -24,11 +24,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.core.launch.impl.LaunchTestUtil;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
@@ -55,7 +55,8 @@ class LaunchUniqueErrorAnalysisRunnerTest {
   void shouldStartWhenEnabled() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 
@@ -80,7 +81,8 @@ class LaunchUniqueErrorAnalysisRunnerTest {
   void shouldNotStartWhenDisabled() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 

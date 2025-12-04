@@ -18,12 +18,10 @@ package com.epam.reportportal.core.launch.impl;
 
 import static com.epam.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.LaunchStartedEvent;
+import com.epam.reportportal.core.events.domain.LaunchStartedEvent;
 import com.epam.reportportal.core.launch.StartLaunchHandler;
 import com.epam.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.reportportal.core.launch.rerun.RerunHandler;
-import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
@@ -50,24 +48,23 @@ public class StartLaunchHandlerImpl implements StartLaunchHandler {
 
   private final LaunchRepository launchRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final MessageBus messageBus;
   private final RerunHandler rerunHandler;
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
   @Autowired
   public StartLaunchHandlerImpl(LaunchRepository launchRepository,
-      ApplicationEventPublisher eventPublisher, MessageBus messageBus, RerunHandler rerunHandler,
+      ApplicationEventPublisher eventPublisher, RerunHandler rerunHandler,
       LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.launchRepository = launchRepository;
     this.eventPublisher = eventPublisher;
-    this.messageBus = messageBus;
     this.rerunHandler = rerunHandler;
     this.launchAttributeHandlerService = launchAttributeHandlerService;
   }
 
   @Override
   @Transactional
-  public StartLaunchRS startLaunch(ReportPortalUser user, MembershipDetails membershipDetails, StartLaunchRQ request) {
+  public StartLaunchRS startLaunch(ReportPortalUser user, MembershipDetails membershipDetails,
+      StartLaunchRQ request) {
 
     final Launch savedLaunch = Optional.of(request.isRerun()).filter(Boolean::booleanValue)
         .map(rerun -> rerunHandler.handleLaunch(request, membershipDetails.getProjectId(), user))
@@ -81,8 +78,7 @@ public class StartLaunchHandlerImpl implements StartLaunchHandler {
           return launch;
         });
 
-    eventPublisher.publishEvent(new StartLaunchEvent(savedLaunch.getId()));
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(savedLaunch), user.getUserId(),
             user.getUsername(), membershipDetails.getOrgId()
         ));

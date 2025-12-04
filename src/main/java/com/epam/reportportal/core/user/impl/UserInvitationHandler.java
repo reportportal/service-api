@@ -36,8 +36,8 @@ import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.auth.authenticator.UserAuthenticator;
-import com.epam.reportportal.core.events.activity.AssignUserEvent;
-import com.epam.reportportal.core.events.activity.UserCreatedEvent;
+import com.epam.reportportal.core.events.domain.AssignUserEvent;
+import com.epam.reportportal.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.core.launch.util.LinkGenerator;
 import com.epam.reportportal.core.organization.OrganizationUserService;
 import com.epam.reportportal.core.organization.PersonalOrganizationService;
@@ -250,10 +250,7 @@ public class UserInvitationHandler {
 
   private void publishUserCreatedEvent(User createdUser, UserCreationBid bid) {
     var userCreatedEvent = new UserCreatedEvent(
-        TO_ACTIVITY_RESOURCE.apply(createdUser, null),
-        bid.getInvitingUser().getId(),
-        bid.getInvitingUser().getLogin(),
-        true
+        TO_ACTIVITY_RESOURCE.apply(createdUser, null)
     );
     eventPublisher.publishEvent(userCreatedEvent);
   }
@@ -264,7 +261,6 @@ public class UserInvitationHandler {
         TO_ACTIVITY_RESOURCE.apply(assignedUser, null),
         invitingUser.getId(),
         invitingUser.getLogin(),
-        false,
         organizationId
     );
     eventPublisher.publishEvent(event);
@@ -277,7 +273,6 @@ public class UserInvitationHandler {
         userActivityResource,
         invitingUser.getId(),
         invitingUser.getLogin(),
-        false,
         project.getOrganizationId()
     );
     eventPublisher.publishEvent(event);

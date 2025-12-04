@@ -19,8 +19,7 @@ package com.epam.reportportal.core.project.settings.notification;
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.NotificationRuleDeletedEvent;
+import com.epam.reportportal.core.events.domain.NotificationRuleDeletedEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.SenderCaseRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
@@ -35,24 +34,20 @@ import com.epam.reportportal.ws.converter.converters.ProjectConverter;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 @Service
+@RequiredArgsConstructor
 public class DeleteProjectNotificationHandlerImpl implements DeleteProjectNotificationHandler {
 
   private final SenderCaseRepository senderCaseRepository;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
   private final ProjectConverter projectConverter;
-
-  public DeleteProjectNotificationHandlerImpl(SenderCaseRepository senderCaseRepository,
-      MessageBus messageBus, ProjectConverter projectConverter) {
-    this.senderCaseRepository = senderCaseRepository;
-    this.messageBus = messageBus;
-    this.projectConverter = projectConverter;
-  }
 
   @Override
   public OperationCompletionRS deleteNotification(Project project, Long notificationId,
@@ -74,8 +69,9 @@ public class DeleteProjectNotificationHandlerImpl implements DeleteProjectNotifi
 
     project.getSenderCases().removeIf(sc -> sc.getId().equals(notificationId));
 
-    senderCase.ifPresent(sc -> messageBus.publishActivity(
-        new NotificationRuleDeletedEvent(NotificationRuleConverter.TO_ACTIVITY_RESOURCE.apply(sc), user.getUserId(),
+    senderCase.ifPresent(sc -> eventPublisher.publishEvent(
+        new NotificationRuleDeletedEvent(NotificationRuleConverter.TO_ACTIVITY_RESOURCE.apply(sc),
+            user.getUserId(),
             user.getUsername(), project.getOrganizationId())));
 
     return new OperationCompletionRS("Notification rule was deleted successfully.");

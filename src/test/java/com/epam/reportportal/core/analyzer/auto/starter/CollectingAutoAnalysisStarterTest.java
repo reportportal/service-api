@@ -24,23 +24,23 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
 import com.epam.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
 import com.epam.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.launch.GetLaunchHandler;
 import com.epam.reportportal.core.launch.impl.LaunchTestUtil;
+import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +71,8 @@ class CollectingAutoAnalysisStarterTest {
   void shouldAnalyze() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 

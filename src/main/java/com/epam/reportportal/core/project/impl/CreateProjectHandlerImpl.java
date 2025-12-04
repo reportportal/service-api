@@ -22,9 +22,8 @@ import static com.epam.reportportal.infrastructure.persistence.commons.Predicate
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.not;
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 
-import com.epam.reportportal.core.events.activity.ProjectCreatedEvent;
+import com.epam.reportportal.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.core.project.CreateProjectHandler;
-import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.AttributeRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.IssueTypeRepository;
@@ -144,7 +143,6 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     projectRepository.save(project);
     projectUserRepository.save(projectUser);
 
-    applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
     publishProjectCreatedEvent(user.getUserId(), user.getUsername(), project);
 
     return new EntryCreatedRS(project.getId());

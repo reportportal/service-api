@@ -26,10 +26,9 @@ import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.ProjectBulkDeletedEvent;
-import com.epam.reportportal.core.events.activity.ProjectDeletedEvent;
-import com.epam.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.reportportal.core.events.domain.ProjectBulkDeletedEvent;
+import com.epam.reportportal.core.events.domain.ProjectDeletedEvent;
+import com.epam.reportportal.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.core.project.DeleteProjectHandler;
 import com.epam.reportportal.core.remover.ContentRemover;
 import com.epam.reportportal.infrastructure.persistence.binary.AttachmentBinaryDataService;
@@ -59,6 +58,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +79,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private final AnalyzerStatusCache analyzerStatusCache;
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   private final IssueTypeRepository issueTypeRepository;
 
@@ -95,7 +95,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
   public DeleteProjectHandlerImpl(ProjectRepository projectRepository,
       UserRepository userRepository, LogIndexer logIndexer,
       AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache,
-      MessageBus messageBus, AttachmentBinaryDataService attachmentBinaryDataService,
+      ApplicationEventPublisher applicationEventPublisher,
+      AttachmentBinaryDataService attachmentBinaryDataService,
       IssueTypeRepository issueTypeRepository, ContentRemover<Project> projectContentRemover,
       LogRepository logRepository, FeatureFlagHandler featureFlagHandler) {
     this.projectRepository = projectRepository;
@@ -103,7 +104,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     this.logIndexer = logIndexer;
     this.analyzerServiceClient = analyzerServiceClient;
     this.analyzerStatusCache = analyzerStatusCache;
-    this.messageBus = messageBus;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.issueTypeRepository = issueTypeRepository;
     this.projectContentRemover = projectContentRemover;
     this.logRepository = logRepository;
@@ -134,7 +135,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private void publishProjectDeletedEvent(Long userId, String userLogin, Long projectId,
       String projectName, Long organizationId) {
-    messageBus.publishActivity(
+    applicationEventPublisher.publishEvent(
         new ProjectDeletedEvent(userId, userLogin, projectId, projectName, organizationId));
   }
 
@@ -167,7 +168,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
   private void publishProjectBulkDeletedEvent(ReportPortalUser user, Collection<String> names) {
     ProjectBulkDeletedEvent bulkDeletedEvent =
         new ProjectBulkDeletedEvent(user.getUserId(), user.getUsername(), names);
-    messageBus.publishActivity(bulkDeletedEvent);
+    applicationEventPublisher.publishEvent(bulkDeletedEvent);
   }
 
   @Override
@@ -194,7 +195,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
         ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
     logIndexer.deleteIndex(project.getId());
-    messageBus.publishActivity(
+    applicationEventPublisher.publishEvent(
         new ProjectIndexEvent(user.getId(), user.getLogin(), project.getId(), project.getName(),
             false, project.getOrganizationId()
         ));

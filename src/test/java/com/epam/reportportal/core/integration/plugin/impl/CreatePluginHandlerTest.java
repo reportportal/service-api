@@ -26,13 +26,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.activity.PluginUploadedEvent;
+import com.epam.reportportal.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.reportportal.core.integration.plugin.PluginUploader;
 import com.epam.reportportal.core.integration.plugin.strategy.PluginUploaderFactory;
 import com.epam.reportportal.core.plugin.PluginInfo;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.model.EntryCreatedRS;
 import java.io.IOException;
 import java.io.InputStream;

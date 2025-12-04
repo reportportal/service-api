@@ -25,7 +25,7 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
-import com.epam.reportportal.core.events.activity.DefectTypeDeletedEvent;
+import com.epam.reportportal.core.events.domain.DefectTypeDeletedEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;

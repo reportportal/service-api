@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.reportportal.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LogicalOperator;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
@@ -107,7 +107,8 @@ class ProjectControllerTest extends BaseMvcTest {
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-    final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
+    final Optional<Project> createdProjectOptional = projectRepository.findByName(
+        "TestProject".toLowerCase());
     assertTrue(createdProjectOptional.isPresent());
     assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
     assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
@@ -194,7 +195,8 @@ class ProjectControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", containsString("New value for")))
-        .andExpect(jsonPath("$.message", containsString("should be less or equal to organization retention")));
+        .andExpect(jsonPath("$.message",
+            containsString("should be less or equal to organization retention")));
   }
 
   @Test

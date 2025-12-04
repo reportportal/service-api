@@ -20,7 +20,7 @@ import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
 import java.util.Map;

@@ -28,9 +28,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.persistence.binary.UserBinaryDataService;
-import com.epam.reportportal.core.events.activity.UserDeletedEvent;
+import com.epam.reportportal.core.events.domain.UserDeletedEvent;
 import com.epam.reportportal.core.remover.ContentRemover;
+import com.epam.reportportal.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -94,7 +94,8 @@ class DeleteUserHandlerImplTest {
     doNothing().when(applicationEventPublisher).publishEvent(isA(UserDeletedEvent.class));
 
     handler.deleteUser(
-        2L, getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L));
+        2L, getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L));
 
     verify(repository, times(1)).findById(2L);
     verify(dataStore, times(1)).deleteUserPhoto(any());
@@ -107,7 +108,7 @@ class DeleteUserHandlerImplTest {
 
     final ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.deleteUser(12345L,
-            getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L)
+            getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L)
         ));
     assertEquals("User '12345' not found.", exception.getMessage());
   }
@@ -121,9 +122,11 @@ class DeleteUserHandlerImplTest {
 
     final ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.deleteUser(1L,
-            getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L)
+            getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
+                1L)
         ));
-    assertEquals("You do not have enough permissions. You cannot delete own account", exception.getMessage());
+    assertEquals("You do not have enough permissions. You cannot delete own account",
+        exception.getMessage());
 
     verify(repository, times(1)).findById(1L);
     verify(repository, times(0)).delete(any(User.class));

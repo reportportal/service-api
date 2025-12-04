@@ -29,9 +29,8 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.ISS
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.DefectTypeDeletedEvent;
-import com.epam.reportportal.core.events.activity.PatternDeletedEvent;
+import com.epam.reportportal.core.events.domain.DefectTypeDeletedEvent;
+import com.epam.reportportal.core.events.domain.PatternDeletedEvent;
 import com.epam.reportportal.core.project.settings.DeleteProjectSettingsHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.IssueEntityRepository;
@@ -57,7 +56,7 @@ import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHandler {
 
   private final ProjectRepository projectRepository;
@@ -74,8 +74,6 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
   private final StatisticsFieldRepository statisticsFieldRepository;
 
   private final WidgetRepository widgetRepository;
-
-  private final MessageBus messageBus;
 
   private final IssueTypeRepository issueTypeRepository;
 
@@ -85,24 +83,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 
   private final ApplicationEventPublisher eventPublisher;
 
-  @Autowired
-  public DeleteProjectSettingsHandlerImpl(ProjectRepository projectRepository,
-      StatisticsFieldRepository statisticsFieldRepository,
-      WidgetRepository widgetRepository, MessageBus messageBus, IssueTypeRepository issueTypeRepository,
-      IssueEntityRepository issueEntityRepository, PatternTemplateRepository patternTemplateRepository,
-      ApplicationEventPublisher eventPublisher) {
-    this.projectRepository = projectRepository;
-    this.statisticsFieldRepository = statisticsFieldRepository;
-    this.widgetRepository = widgetRepository;
-    this.messageBus = messageBus;
-    this.issueTypeRepository = issueTypeRepository;
-    this.issueEntityRepository = issueEntityRepository;
-    this.patternTemplateRepository = patternTemplateRepository;
-    this.eventPublisher = eventPublisher;
-  }
-
   @Override
-  public OperationCompletionRS deleteProjectIssueSubType(String projectKey, ReportPortalUser user, Long id) {
+  public OperationCompletionRS deleteProjectIssueSubType(String projectKey, ReportPortalUser user,
+      Long id) {
     Project project = projectRepository.findByKey(projectKey)
         .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
 
@@ -124,7 +107,8 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
     String issueField =
         "statistics$defects$" + TestItemIssueGroup.fromValue(
                 type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue())
-            .orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, type.getIssueType().getIssueGroup()))
+            .orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND,
+                type.getIssueType().getIssueGroup()))
             .getValue()
             .toLowerCase() + "$" + type.getIssueType().getLocator();
     statisticsFieldRepository.deleteByName(issueField);
@@ -133,7 +117,8 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
             .getIssueGroup()
             .getTestItemIssueGroup()
             .getLocator())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, type.getIssueType()));
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, type.getIssueType()));
     List<IssueEntity> allByIssueTypeId = issueEntityRepository.findAllByIssueTypeId(id);
     allByIssueTypeId.forEach(issueEntity -> issueEntity.setIssueType(defaultGroupIssueType));
 
@@ -156,15 +141,16 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
   }
 
   /**
-   * Builds content field from the provided issue type and removes it from widgets that support issue type updates
-   * ({@link WidgetType#isSupportMultilevelStructure()})
+   * Builds content field from the provided issue type and removes it from widgets that support
+   * issue type updates ({@link WidgetType#isSupportMultilevelStructure()})
    *
    * @param project   {@link Project}
    * @param issueType {@link IssueType}
    */
   private void updateWidgets(Project project, IssueType issueType) {
     String contentField =
-        "statistics$defects$" + issueType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$"
+        "statistics$defects$" + issueType.getIssueGroup().getTestItemIssueGroup().getValue()
+            .toLowerCase() + "$"
             + issueType.getLocator();
     widgetRepository.findAllByProjectIdAndWidgetTypeInAndContentFieldsContains(project.getId(),
         Arrays.stream(WidgetType.values())
@@ -176,22 +162,28 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
   }
 
   @Override
-  public OperationCompletionRS deletePatternTemplate(String projectKey, ReportPortalUser user, Long id) {
+  public OperationCompletionRS deletePatternTemplate(String projectKey, ReportPortalUser user,
+      Long id) {
 
     Project project = projectRepository.findByKey(projectKey)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
-    PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id, project.getId())
+    PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id,
+            project.getId())
         .orElseThrow(
-            () -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getName()));
-    PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
+            () -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id,
+                project.getName()));
+    PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
+        patternTemplate);
 
     project.getPatternTemplates().removeIf(pt -> pt.getId().equals(id));
 
-    messageBus.publishActivity(
-        new PatternDeletedEvent(user.getUserId(), user.getUsername(), before, project.getOrganizationId()));
+    eventPublisher.publishEvent(
+        new PatternDeletedEvent(user.getUserId(), user.getUsername(), before,
+            project.getOrganizationId()));
     return new OperationCompletionRS(
-        Suppliers.formattedSupplier("Pattern template with id = '{}' has been successfully removed.", id)
+        Suppliers.formattedSupplier(
+                "Pattern template with id = '{}' has been successfully removed.", id)
             .get());
   }
 }

@@ -19,7 +19,7 @@ package com.epam.reportportal.demodata.service;
 import static com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum.PASSED;
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.reportportal.core.project.ProjectService;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;

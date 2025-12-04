@@ -49,21 +49,19 @@ import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.AssignUserEvent;
-import com.epam.reportportal.core.events.activity.ChangeRoleEvent;
-import com.epam.reportportal.core.events.activity.NotificationSettingsUpdatedEvent;
-import com.epam.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
-import com.epam.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
-import com.epam.reportportal.core.events.activity.ProjectIndexEvent;
-import com.epam.reportportal.core.events.activity.ProjectPatternAnalyzerUpdateEvent;
-import com.epam.reportportal.core.events.activity.ProjectUpdatedEvent;
-import com.epam.reportportal.core.events.activity.UnassignUserEvent;
 import com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil;
+import com.epam.reportportal.core.events.domain.AssignUserEvent;
+import com.epam.reportportal.core.events.domain.ChangeRoleEvent;
+import com.epam.reportportal.core.events.domain.NotificationSettingsUpdatedEvent;
+import com.epam.reportportal.core.events.domain.NotificationsConfigUpdatedEvent;
+import com.epam.reportportal.core.events.domain.ProjectAnalyzerConfigEvent;
+import com.epam.reportportal.core.events.domain.ProjectIndexEvent;
+import com.epam.reportportal.core.events.domain.ProjectPatternAnalyzerUpdateEvent;
+import com.epam.reportportal.core.events.domain.ProjectUpdatedEvent;
+import com.epam.reportportal.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.core.project.UpdateProjectHandler;
 import com.epam.reportportal.core.project.validator.attribute.OrganizationRetentionLimitValidator;
 import com.epam.reportportal.core.project.validator.attribute.ProjectAttributeValidator;
-import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.reportportal.infrastructure.model.ValidationConstraints;
 import com.epam.reportportal.infrastructure.persistence.commons.Preconditions;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -117,11 +115,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -130,9 +128,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
-
-  private static final String UPDATE_EVENT = "update";
 
   private final ProjectExtractor projectExtractor;
 
@@ -149,10 +146,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   private final UserPreferenceRepository preferenceRepository;
 
   private final ProjectUserRepository projectUserRepository;
-  private final OrganizationUserRepository organizationUserRepository;
-  private final OrganizationRepositoryCustom organizationRepositoryCustom;
 
-  private final MessageBus messageBus;
+  private final OrganizationUserRepository organizationUserRepository;
+
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -168,38 +165,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
   private final ProjectConverter projectConverter;
 
-  @Autowired
-  public UpdateProjectHandlerImpl(ProjectExtractor projectExtractor,
-      ProjectAttributeValidator projectAttributeValidator, ProjectRepository projectRepository,
-      UserRepository userRepository, UserPreferenceRepository preferenceRepository,
-      OrganizationUserRepository organizationUserRepository,
-      MessageBus messageBus, ProjectUserRepository projectUserRepository,
-      OrganizationRepositoryCustom organizationRepositoryCustom,
-      ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory,
-      AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
-      AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
-      ProjectConverter projectConverter, AttributeRepository attributeRepository,
-      OrganizationRetentionLimitValidator organizationRetentionLimitValidator) {
-    this.projectExtractor = projectExtractor;
-    this.projectAttributeValidator = projectAttributeValidator;
-    this.projectRepository = projectRepository;
-    this.userRepository = userRepository;
-    this.preferenceRepository = preferenceRepository;
-    this.organizationUserRepository = organizationUserRepository;
-    this.messageBus = messageBus;
-    this.projectUserRepository = projectUserRepository;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
-    this.applicationEventPublisher = applicationEventPublisher;
-    this.mailServiceFactory = mailServiceFactory;
-    this.analyzerStatusCache = analyzerStatusCache;
-    this.indexerStatusCache = indexerStatusCache;
-    this.analyzerServiceClient = analyzerServiceClient;
-    this.logIndexer = logIndexer;
-    this.projectConverter = projectConverter;
-    this.attributeRepository = attributeRepository;
-    this.organizationRetentionLimitValidator = organizationRetentionLimitValidator;
-  }
-
   @Override
   public OperationCompletionRS updateProject(String projectKey, UpdateProjectRQ updateProjectRQ,
       ReportPortalUser user) {
@@ -212,7 +177,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     projectRepository.save(project);
     ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
 
-    applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), UPDATE_EVENT));
     publishUpdatedAttributesActivities(before, after, user, updateProjectRQ.getConfiguration());
 
     return new OperationCompletionRS(
@@ -233,7 +197,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         .ifPresent(
             pa -> pa.setValue(String.valueOf(updateProjectNotificationConfigRQ.isEnabled())));
 
-    messageBus.publishActivity(
+    applicationEventPublisher.publishEvent(
         new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ,
             user.getUserId(), user.getUsername(), project.getOrganizationId()
         ));
@@ -338,7 +302,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
                 indexedCount
             ));
 
-    messageBus.publishActivity(
+    applicationEventPublisher.publishEvent(
         new ProjectIndexEvent(user.getUserId(), user.getUsername(), project.getId(),
             project.getName(), true, project.getOrganizationId()
         ));
@@ -452,7 +416,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     AssignUserEvent assignUserEvent =
         new AssignUserEvent(convertUserToResource(modifyingUser, projectUser),
-            authorizedUser.getUserId(), authorizedUser.getUsername(), false, project.getOrganizationId()
+            authorizedUser.getUserId(), authorizedUser.getUsername(), project.getOrganizationId()
         );
     applicationEventPublisher.publishEvent(assignUserEvent);
   }
@@ -631,10 +595,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       ProjectConfigurationUpdate updateConfiguration) {
 
     Project project = projectRepository.findById(before.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + before.getProjectId()));
+        .orElseThrow(
+            () -> new ReportPortalException(NOT_FOUND, "Project " + before.getProjectId()));
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.JOB)) {
       applicationEventPublisher.publishEvent(
-          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername(), project.getOrganizationId()));
+          new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername(),
+              project.getOrganizationId()));
     }
 
     if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.ANALYZER)) {
@@ -652,7 +618,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       }
     }
 
-    if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(), Prefix.NOTIFICATIONS)) {
+    if (ActivityDetailsUtil.configChanged(before.getConfig(), after.getConfig(),
+        Prefix.NOTIFICATIONS)) {
       applicationEventPublisher.publishEvent(
           new NotificationSettingsUpdatedEvent(before, after, user.getUserId(), user.getUsername(),
               project.getOrganizationId()));

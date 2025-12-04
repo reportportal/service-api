@@ -19,8 +19,7 @@ package com.epam.reportportal.core.dashboard.impl;
 import static com.epam.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.core.dashboard.CreateDashboardHandler;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.DashboardCreatedEvent;
+import com.epam.reportportal.core.events.domain.DashboardCreatedEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.DashboardRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.dashboard.Dashboard;
@@ -33,6 +32,7 @@ import com.epam.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.reportportal.ws.converter.builders.DashboardBuilder;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -44,14 +44,15 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
   private final static int DASHBOARD_LIMIT = 3000;
   private final DashboardRepository dashboardRepository;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public EntryCreatedRS createDashboard(MembershipDetails membershipDetails,
       CreateDashboardRQ rq, ReportPortalUser user) {
 
-    BusinessRule.expect(dashboardRepository.findAllByProjectId(membershipDetails.getProjectId()).size()
-            >= DASHBOARD_LIMIT, BooleanUtils::isFalse)
+    BusinessRule.expect(
+            dashboardRepository.findAllByProjectId(membershipDetails.getProjectId()).size()
+                >= DASHBOARD_LIMIT, BooleanUtils::isFalse)
         .verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
             "The limit of {} dashboards has been reached. To create a new one you need to delete at least one created previously.",
             DASHBOARD_LIMIT
@@ -66,7 +67,7 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
         new DashboardBuilder().addDashboardRq(rq).addProject(membershipDetails.getProjectId())
             .addOwner(user.getUsername()).get();
     dashboardRepository.save(dashboard);
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),
             user.getUsername(), membershipDetails.getOrgId()
         ));

@@ -23,9 +23,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
-import com.epam.reportportal.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;

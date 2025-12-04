@@ -18,7 +18,12 @@ package com.epam.reportportal.extension.event;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @deprecated Use specific domain events instead:
+ * {@link com.epam.reportportal.core.events.domain.ProjectCreatedEvent},
+ * {@link com.epam.reportportal.core.events.domain.ProjectUpdatedEvent},
+ * {@link com.epam.reportportal.core.events.domain.ProjectDeletedEvent}
  */
+@Deprecated(forRemoval = true)
 public class ProjectEvent extends EntityEvent<Long, String> {
 
   public ProjectEvent(Long id, String type) {

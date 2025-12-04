@@ -19,7 +19,7 @@ package com.epam.reportportal.core.events.handler.item;
 import com.epam.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.reportportal.core.events.activity.item.TestItemFinishedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemFinishedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.core.launch.GetLaunchHandler;
 import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
@@ -61,10 +61,10 @@ public class TestItemAutoAnalysisRunner implements
     if (analyzerService.hasAnalyzers() && isNeedToRunAA(testItemFinishedEvent.getTestItem())) {
       final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
       TestItem testItem = testItemFinishedEvent.getTestItem();
-      logIndex(testItem, testItemFinishedEvent.projectId(), analyzerConfig);
+      logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
       Launch launch = getLaunchHandler.get(testItem.getLaunchId());
       analyzerService.runAnalyzers(launch, List.of(testItem.getItemId()), analyzerConfig);
-      logIndex(testItem, testItemFinishedEvent.projectId(), analyzerConfig);
+      logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
     }
   }
 

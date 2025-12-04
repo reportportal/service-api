@@ -27,12 +27,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
@@ -47,6 +46,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.organization.Orga
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.reporting.FinishTestItemRQ;
 import com.epam.reportportal.reporting.OperationCompletionRS;
 import java.time.Instant;
@@ -97,7 +97,8 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishNotExistedTestItem() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
     when(repository.findByUuid("1")).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
@@ -111,7 +112,8 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishTestItemUnderNotExistedLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.IN_PROGRESS);
@@ -129,7 +131,8 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishTestItemByNotLaunchOwner() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER , 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     Launch launch = new Launch();
     launch.setId(1L);
@@ -160,7 +163,8 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void finishStepItemWithoutProvidedStatus() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
     item.setStartTime(Instant.now());
@@ -187,7 +191,8 @@ class FinishTestItemHandlerImplTest {
 
   @Test
   void updateFinishedItemTest() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
     TestItemResults results = new TestItemResults();

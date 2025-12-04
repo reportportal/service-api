@@ -10,13 +10,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
-import com.epam.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
+import com.epam.reportportal.core.events.domain.LaunchImportanceChangedEvent;
 import com.epam.reportportal.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
 import com.epam.reportportal.core.project.ProjectService;
 import com.epam.reportportal.core.settings.ServerSettingsService;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
@@ -25,21 +23,23 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 public class RetentionPolicyAttributeHandlerTest {
 
   RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
-  MessageBus messageBus;
+  ApplicationEventPublisher eventPublisher;
   ServerSettingsService serverSettingsService;
   ProjectService projectService;
 
 
   @BeforeEach
   public void setUp() {
-    messageBus = mock(MessageBus.class);
+    eventPublisher = mock(ApplicationEventPublisher.class);
     projectService = mock(ProjectService.class);
     serverSettingsService = mock(ServerSettingsService.class);
-    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(messageBus, projectService,
+    retentionPolicyAttributeHandler = new RetentionPolicyAttributeHandler(eventPublisher,
+        projectService,
         serverSettingsService);
   }
 
@@ -114,7 +114,7 @@ public class RetentionPolicyAttributeHandlerTest {
     assertEquals(1, launch.getAttributes().size());
     assertTrue(launch.getAttributes().iterator().next().isSystem());
 
-    verify(messageBus).publishActivity(any(UnmarkLaunchAsImportantEvent.class));
+    verify(eventPublisher).publishEvent(any(LaunchImportanceChangedEvent.class));
   }
 
   @Test
@@ -133,7 +133,7 @@ public class RetentionPolicyAttributeHandlerTest {
     assertEquals(1, launch.getAttributes().size());
     assertTrue(launch.getAttributes().iterator().next().isSystem());
 
-    verify(messageBus).publishActivity(any(MarkLaunchAsImportantEvent.class));
+    verify(eventPublisher).publishEvent(any(LaunchImportanceChangedEvent.class));
   }
 
   @Test
@@ -152,7 +152,7 @@ public class RetentionPolicyAttributeHandlerTest {
     assertEquals(1, launch.getAttributes().size());
     assertTrue(launch.getAttributes().iterator().next().isSystem());
 
-    verify(messageBus, never()).publishActivity(any());
+    verify(eventPublisher, never()).publishEvent(any());
   }
 
   @Test
@@ -170,7 +170,7 @@ public class RetentionPolicyAttributeHandlerTest {
 
     retentionPolicyAttributeHandler.handleLaunchUpdate(launch, user);
 
-    verifyNoInteractions(messageBus);
+    verifyNoInteractions(eventPublisher);
   }
 
   private ItemAttribute createSystemAttribute(String value) {

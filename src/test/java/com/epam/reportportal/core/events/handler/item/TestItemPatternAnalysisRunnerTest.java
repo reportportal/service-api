@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.epam.reportportal.core.analyzer.pattern.handler.proxy.ItemsPatternAnalyzeProducer;
-import com.epam.reportportal.core.events.activity.item.TestItemFinishedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemFinishedEvent;
 import com.epam.reportportal.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.google.common.collect.Lists;
@@ -37,7 +37,8 @@ import org.junit.jupiter.api.Test;
  */
 public class TestItemPatternAnalysisRunnerTest {
 
-  private final ItemsPatternAnalyzeProducer itemsPatternAnalyzer = mock(ItemsPatternAnalyzeProducer.class);
+  private final ItemsPatternAnalyzeProducer itemsPatternAnalyzer = mock(
+      ItemsPatternAnalyzeProducer.class);
   private final TestItemPatternAnalysisRunner runner = new TestItemPatternAnalysisRunner(
       itemsPatternAnalyzer);
 

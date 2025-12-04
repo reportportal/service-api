@@ -19,8 +19,7 @@ package com.epam.reportportal.core.widget.impl;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.WidgetUpdatedEvent;
+import com.epam.reportportal.core.events.domain.WidgetUpdatedEvent;
 import com.epam.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.reportportal.core.widget.content.updater.validator.WidgetValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -45,9 +44,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -55,29 +55,20 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
+@RequiredArgsConstructor
 public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
   private final WidgetRepository widgetRepository;
   private final UserFilterRepository filterRepository;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
   private final ObjectMapper objectMapper;
   private final WidgetValidator widgetContentFieldsValidator;
-
-  @Autowired
-  public UpdateWidgetHandlerImpl(WidgetRepository widgetRepository,
-      UserFilterRepository filterRepository, MessageBus messageBus, ObjectMapper objectMapper,
-      WidgetValidator widgetContentFieldsValidator) {
-    this.widgetRepository = widgetRepository;
-    this.filterRepository = filterRepository;
-    this.messageBus = messageBus;
-    this.objectMapper = objectMapper;
-    this.widgetContentFieldsValidator = widgetContentFieldsValidator;
-  }
 
   @Override
   public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ,
       MembershipDetails membershipDetails, ReportPortalUser user) {
-    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, membershipDetails.getProjectId())
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId,
+            membershipDetails.getProjectId())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, widgetId,
                 membershipDetails.getProjectName()
@@ -101,9 +92,10 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
     widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
     widgetRepository.save(widget);
 
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new WidgetUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(widget), widgetOptionsBefore,
-            parseWidgetOptions(widget), user.getUserId(), user.getUsername(), membershipDetails.getOrgId()
+            parseWidgetOptions(widget), user.getUserId(), user.getUsername(),
+            membershipDetails.getOrgId()
         ));
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId() + "' successfully updated.");

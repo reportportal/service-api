@@ -21,8 +21,7 @@ import static com.epam.reportportal.ws.converter.converters.ServerSettingsConver
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.SettingsUpdatedEvent;
+import com.epam.reportportal.core.events.domain.SettingsUpdatedEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.ServerSettings;
@@ -37,6 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,7 +52,7 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
 
   private final ServerSettingsRepository serverSettingsRepository;
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public Map<String, String> getServerSettings() {
@@ -68,7 +68,8 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
 
 
   @Override
-  public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource, ReportPortalUser user) {
+  public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource,
+      ReportPortalUser user) {
     String analyticsType = analyticsResource.getType();
     Map<String, ServerSettings> serverAnalyticsDetails = findServerSettings().entrySet().stream()
         .filter(entry -> entry.getKey().startsWith(ANALYTICS_CONFIG_PREFIX))
@@ -89,7 +90,7 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
 
     serverSettingsRepository.save(analyticsDetails);
 
-    messageBus.publishActivity(new SettingsUpdatedEvent(
+    eventPublisher.publishEvent(new SettingsUpdatedEvent(
         before,
         TO_RESOURCE.apply(analyticsDetails),
         user.getUserId(),
@@ -99,9 +100,11 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
   }
 
   @Override
-  public OperationCompletionRS updateServerSettings(UpdateSettingsRq request, ReportPortalUser user) {
+  public OperationCompletionRS updateServerSettings(UpdateSettingsRq request,
+      ReportPortalUser user) {
     ServerSettings serverSettings = serverSettingsRepository.findByKey(request.getKey().getName())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND, request.getKey().getName()));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND,
+            request.getKey().getName()));
     ServerSettingsResource before = TO_RESOURCE.apply(serverSettings);
     var settingHandler = settingsRegistry.getHandler(serverSettings.getKey());
     settingHandler.ifPresent(handler -> handler.validate(request.getValue()));
@@ -110,7 +113,7 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
     serverSettingsRepository.save(serverSettings);
 
     settingHandler.ifPresent(handler -> handler.handle(serverSettings.getValue()));
-    messageBus.publishActivity(new SettingsUpdatedEvent(
+    eventPublisher.publishEvent(new SettingsUpdatedEvent(
         before,
         TO_RESOURCE.apply(serverSettings),
         user.getUserId(),

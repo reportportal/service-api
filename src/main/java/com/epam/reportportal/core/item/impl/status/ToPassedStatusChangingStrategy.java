@@ -21,7 +21,6 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.INC
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.core.events.MessageBus;
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -41,6 +40,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,11 +53,11 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
   @Autowired
   protected ToPassedStatusChangingStrategy(TestItemService testItemService,
       ProjectRepository projectRepository, LaunchRepository launchRepository,
-      IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+      IssueTypeHandler issueTypeHandler, ApplicationEventPublisher eventPublisher,
       IssueEntityRepository issueEntityRepository, LogRepository logRepository,
       LogIndexer logIndexer, TestItemRepository testItemRepository) {
     super(testItemService, projectRepository, launchRepository, testItemRepository,
-        issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer
+        issueTypeHandler, eventPublisher, issueEntityRepository, logRepository, logIndexer
     );
   }
 

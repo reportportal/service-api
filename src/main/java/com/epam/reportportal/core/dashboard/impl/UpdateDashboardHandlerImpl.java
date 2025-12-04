@@ -19,9 +19,8 @@ package com.epam.reportportal.core.dashboard.impl;
 import static com.epam.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.core.dashboard.UpdateDashboardHandler;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.DashboardUpdatedEvent;
-import com.epam.reportportal.core.events.activity.WidgetDeletedEvent;
+import com.epam.reportportal.core.events.domain.DashboardUpdatedEvent;
+import com.epam.reportportal.core.events.domain.WidgetDeletedEvent;
 import com.epam.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.DashboardRepository;
@@ -47,6 +46,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -61,16 +61,16 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   private final DashboardRepository dashboardRepository;
   private final WidgetContentRemover widgetContentRemover;
   private final WidgetRepository widgetRepository;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Autowired
   public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository,
       @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
-      MessageBus messageBus,
+      ApplicationEventPublisher eventPublisher,
       DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
     this.dashboardRepository = dashboardRepository;
     this.widgetContentRemover = widgetContentRemover;
-    this.messageBus = messageBus;
+    this.eventPublisher = eventPublisher;
     this.dashboardWidgetRepository = dashboardWidgetRepository;
     this.widgetRepository = widgetRepository;
   }
@@ -97,7 +97,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
     dashboardRepository.save(dashboard);
 
-    messageBus.publishActivity(new DashboardUpdatedEvent(before,
+    eventPublisher.publishEvent(new DashboardUpdatedEvent(before,
         TO_ACTIVITY_RESOURCE.apply(dashboard),
         user.getUserId(),
         user.getUsername(), membershipDetails.getOrgId()
@@ -167,7 +167,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             dashboardId,
             membershipDetails.getProjectName()
         ));
-    Widget widget = widgetRepository.findByIdAndProjectId(widgetId, membershipDetails.getProjectId())
+    Widget widget = widgetRepository.findByIdAndProjectId(widgetId,
+            membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
             widgetId,
             membershipDetails.getProjectName()
@@ -175,7 +176,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
     if (shouldDelete(widget)) {
       OperationCompletionRS result = deleteWidget(widget);
-      messageBus.publishActivity(
+      eventPublisher.publishEvent(
           new WidgetDeletedEvent(WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget),
               user.getUserId(),
               user.getUsername(), membershipDetails.getOrgId()

@@ -20,8 +20,7 @@ import static com.epam.reportportal.infrastructure.rules.commons.validation.Busi
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.USER_FILTER_NOT_FOUND;
 import static com.epam.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.FilterDeletedEvent;
+import com.epam.reportportal.core.events.domain.FilterDeletedEvent;
 import com.epam.reportportal.core.filter.DeleteUserFilterHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.UserFilterRepository;
@@ -31,37 +30,37 @@ import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.reporting.OperationCompletionRS;
 import java.util.function.Predicate;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 
   private final UserFilterRepository userFilterRepository;
-  private final MessageBus messageBus;
-
-  @Autowired
-  public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
-    this.userFilterRepository = userFilterRepository;
-    this.messageBus = messageBus;
-  }
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
-  public OperationCompletionRS deleteFilter(Long id, MembershipDetails membershipDetails, ReportPortalUser user) {
-    UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, membershipDetails.getProjectId())
+  public OperationCompletionRS deleteFilter(Long id, MembershipDetails membershipDetails,
+      ReportPortalUser user) {
+    UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id,
+            membershipDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
             id,
             membershipDetails.getProjectName()
         ));
-    expect(userFilter.getProject().getId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
+    expect(userFilter.getProject().getId(),
+        Predicate.isEqual(membershipDetails.getProjectId())).verify(
         USER_FILTER_NOT_FOUND,
         id,
         membershipDetails.getProjectId(),
         user.getUserId()
     );
     userFilterRepository.delete(userFilter);
-    messageBus.publishActivity(
-        new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(), user.getUsername(),
+    eventPublisher.publishEvent(
+        new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(),
+            user.getUsername(),
             membershipDetails.getOrgId()));
     return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
   }

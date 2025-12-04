@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.item.impl.retry;
 
-import com.epam.reportportal.core.events.activity.item.ItemRetryEvent;
+import com.epam.reportportal.core.events.domain.item.ItemRetryEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;

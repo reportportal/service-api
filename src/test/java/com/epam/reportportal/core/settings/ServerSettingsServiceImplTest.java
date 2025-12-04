@@ -7,9 +7,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.SettingsUpdatedEvent;
+import com.epam.reportportal.core.events.domain.SettingsUpdatedEvent;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.ServerSettings;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
@@ -84,10 +84,12 @@ class ServerSettingsServiceImplTest {
     );
 
     when(serverSettingsRepository.selectServerSettings()).thenReturn(existingSettings);
-    when(serverSettingsRepository.save(any(ServerSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(serverSettingsRepository.save(any(ServerSettings.class))).thenAnswer(
+        invocation -> invocation.getArgument(0));
 
     // when
-    OperationCompletionRS result = serverSettingsService.saveAnalyticsSettings(analyticsResource, testUser);
+    OperationCompletionRS result = serverSettingsService.saveAnalyticsSettings(analyticsResource,
+        testUser);
 
     // then
     assertNotNull(result);
@@ -101,11 +103,11 @@ class ServerSettingsServiceImplTest {
     SettingsUpdatedEvent event = eventCaptor.getValue();
     assertEquals(testUser.getUserId(), event.getUserId());
     assertEquals(testUser.getUsername(), event.getUserLogin());
-    
+
     // Verify the before and after settings in the event
     ServerSettingsResource beforeSettings = event.getBefore();
     ServerSettingsResource afterSettings = event.getAfter();
-    
+
     assertNotNull(beforeSettings);
     assertNotNull(afterSettings);
     assertEquals(expectedKey, beforeSettings.getKey());

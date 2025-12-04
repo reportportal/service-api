@@ -18,7 +18,6 @@
 
 package com.epam.reportportal.core.project.settings.notification;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,24 +26,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.core.events.ActivityEvent;
 import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.NotificationRuleUpdatedEvent;
+import com.epam.reportportal.core.events.domain.NotificationRuleUpdatedEvent;
 import com.epam.reportportal.core.project.validator.notification.ProjectNotificationValidator;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.SenderCaseRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LogicalOperator;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.SendCase;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.email.LaunchAttributeRule;
 import com.epam.reportportal.infrastructure.persistence.entity.project.email.SenderCase;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.project.ProjectConfiguration;
 import com.epam.reportportal.model.project.ProjectResource;
 import com.epam.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.reportportal.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.reportportal.reporting.ItemAttributeResource;
+import com.epam.reportportal.ws.converter.converters.ProjectConverter;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
@@ -201,13 +200,15 @@ class UpdateProjectNotificationHandlerImplTest {
 
     assertTrue(assertThrows(ReportPortalException.class,
         () -> service.updateNotification(project, updateNotificationRQ, rpUser)
-    ).getMessage().contains("Project notification settings contain duplicate cases for this communication channel"));
+    ).getMessage().contains(
+        "Project notification settings contain duplicate cases for this communication channel"));
   }
 
   @Test
   void updateNotificationWhenRuleUpdatedShouldPublishNotificationRuleUpdatedEvent() {
     // given
-    UpdateProjectNotificationHandlerImpl serviceReal = new UpdateProjectNotificationHandlerImpl(senderCaseRepository,
+    UpdateProjectNotificationHandlerImpl serviceReal = new UpdateProjectNotificationHandlerImpl(
+        senderCaseRepository,
         messageBus, projectConverter,
         projectNotificationValidator);
 

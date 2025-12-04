@@ -30,9 +30,8 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.PRO
 import static com.epam.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.core.analyzer.pattern.service.CreatePatternTemplateHandler;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.DefectTypeCreatedEvent;
-import com.epam.reportportal.core.events.activity.PatternCreatedEvent;
+import com.epam.reportportal.core.events.domain.DefectTypeCreatedEvent;
+import com.epam.reportportal.core.events.domain.PatternCreatedEvent;
 import com.epam.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.reportportal.infrastructure.model.ValidationConstraints;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -67,6 +66,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,20 +92,20 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 
   private final Map<PatternTemplateType, CreatePatternTemplateHandler> createPatternTemplateMapping;
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Autowired
   public CreateProjectSettingsHandlerImpl(ProjectRepository projectRepository,
       WidgetRepository widgetRepository, IssueGroupRepository issueGroupRepository,
       IssueTypeRepository issueTypeRepository, @Qualifier("createPatternTemplateMapping")
       Map<PatternTemplateType, CreatePatternTemplateHandler> createPatternTemplateMapping,
-      MessageBus messageBus) {
+      ApplicationEventPublisher eventPublisher) {
     this.projectRepository = projectRepository;
     this.widgetRepository = widgetRepository;
     this.issueGroupRepository = issueGroupRepository;
     this.issueTypeRepository = issueTypeRepository;
     this.createPatternTemplateMapping = createPatternTemplateMapping;
-    this.messageBus = messageBus;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -143,7 +143,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 
     updateWidgets(project, subType);
 
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType), user.getUserId(),
             user.getUsername(), project.getId(), project.getOrganizationId()
         ));
@@ -186,8 +186,9 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
                 ).get()
             ))).createPatternTemplate(project.getId(), createPatternTemplateRQ);
 
-    messageBus.publishActivity(new PatternCreatedEvent(user.getUserId(), user.getUsername(),
-        PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate), project.getOrganizationId()
+    eventPublisher.publishEvent(new PatternCreatedEvent(user.getUserId(), user.getUsername(),
+        PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate),
+        project.getOrganizationId()
     ));
     return new EntryCreatedRS(patternTemplate.getId());
   }

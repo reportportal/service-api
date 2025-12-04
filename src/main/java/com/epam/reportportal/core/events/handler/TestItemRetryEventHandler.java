@@ -17,7 +17,7 @@
 package com.epam.reportportal.core.events.handler;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.core.events.activity.item.ItemRetryEvent;
+import com.epam.reportportal.core.events.domain.item.ItemRetryEvent;
 import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;

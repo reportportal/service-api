@@ -20,7 +20,7 @@ import static com.epam.reportportal.infrastructure.rules.commons.validation.Busi
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
-import com.epam.reportportal.core.events.activity.LogTypeDeletedEvent;
+import com.epam.reportportal.core.events.domain.LogTypeDeletedEvent;
 import com.epam.reportportal.core.logtype.DeleteLogTypeHandler;
 import com.epam.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -55,7 +55,8 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
    * @param projectName The name of the project.
    * @param logTypeId   The ID of the log type to delete.
    * @param user        The user performing the action.
-   * @throws ReportPortalException if the project or log type is not found, or if the log type is a system log type.
+   * @throws ReportPortalException if the project or log type is not found, or if the log type is a
+   *                               system log type.
    */
   @Override
   @Transactional

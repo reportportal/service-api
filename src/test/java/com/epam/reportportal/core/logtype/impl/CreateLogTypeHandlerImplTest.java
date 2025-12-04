@@ -13,16 +13,14 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.ReportPortalUserUtil;
 import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.ReportPortalUserUtil;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.activity.LogTypeCreatedEvent;
+import com.epam.reportportal.core.events.domain.LogTypeCreatedEvent;
 import com.epam.reportportal.core.logtype.validator.LogTypeValidator;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.LogTypeRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.log.ProjectLogType;
@@ -30,6 +28,8 @@ import com.epam.reportportal.infrastructure.persistence.entity.organization.Orga
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +67,8 @@ class CreateLogTypeHandlerImplTest {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     LogTypeRequest style = createDefaultLogTypeStyle();
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
@@ -97,7 +98,8 @@ class CreateLogTypeHandlerImplTest {
   @Test
   void createLogTypeWhenProjectMissingShouldThrowProjectNotFound() {
     // Given
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.empty());
 
@@ -114,7 +116,8 @@ class CreateLogTypeHandlerImplTest {
   void createLogTypeWhenDuplicateExistsShouldThrowResourceAlreadyExists() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     doThrow(new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS,
@@ -137,7 +140,8 @@ class CreateLogTypeHandlerImplTest {
   void createLogTypeWhenFilterableLimitExceededShouldThrowBadRequestError() {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     doNothing().when(logTypeValidator)

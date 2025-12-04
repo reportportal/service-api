@@ -19,8 +19,7 @@ package com.epam.reportportal.core.widget.impl;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.not;
 import static com.epam.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.WidgetCreatedEvent;
+import com.epam.reportportal.core.events.domain.WidgetCreatedEvent;
 import com.epam.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.reportportal.core.widget.CreateWidgetHandler;
 import com.epam.reportportal.core.widget.content.updater.WidgetPostProcessor;
@@ -38,41 +37,29 @@ import com.epam.reportportal.model.widget.WidgetRQ;
 import com.epam.reportportal.ws.converter.builders.WidgetBuilder;
 import java.util.Collections;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Pavel Bortnik
  */
 @Service
+@RequiredArgsConstructor
 public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
   private final WidgetRepository widgetRepository;
 
   private final UserFilterRepository filterRepository;
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   private final UpdateUserFilterHandler updateUserFilterHandler;
 
   private final List<WidgetPostProcessor> widgetPostProcessors;
 
   private final WidgetValidator widgetContentFieldsValidator;
-
-  @Autowired
-  public CreateWidgetHandlerImpl(WidgetRepository widgetRepository,
-      UserFilterRepository filterRepository, MessageBus messageBus,
-      UpdateUserFilterHandler updateUserFilterHandler,
-      List<WidgetPostProcessor> widgetPostProcessors,
-      WidgetValidator widgetContentFieldsValidator) {
-    this.widgetRepository = widgetRepository;
-    this.filterRepository = filterRepository;
-    this.messageBus = messageBus;
-    this.updateUserFilterHandler = updateUserFilterHandler;
-    this.widgetPostProcessors = widgetPostProcessors;
-    this.widgetContentFieldsValidator = widgetContentFieldsValidator;
-  }
 
   @Override
   public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ,
@@ -94,7 +81,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
     widgetRepository.save(widget);
 
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(),
             user.getUsername(), membershipDetails.getOrgId()
         ));

@@ -34,11 +34,10 @@ import com.epam.reportportal.api.model.ProjectBase;
 import com.epam.reportportal.api.model.ProjectInfo;
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.reportportal.core.events.activity.ProjectCreatedEvent;
-import com.epam.reportportal.core.events.activity.ProjectDeletedEvent;
+import com.epam.reportportal.core.events.domain.ProjectCreatedEvent;
+import com.epam.reportportal.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.core.project.OrganizationProjectHandler;
 import com.epam.reportportal.core.remover.ContentRemover;
-import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.reportportal.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Condition;
@@ -195,7 +194,6 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
     Project createdProject = projectRepository.save(projectToSave);
 
-    applicationEventPublisher.publishEvent(new ProjectEvent(createdProject.getId(), CREATE_KEY));
     publishProjectCreatedEvent(getPrincipal(), createdProject);
 
     return PROJECT_TO_ORG_PROJECT_INFO.apply(createdProject); // backward convert to ProjectInfo

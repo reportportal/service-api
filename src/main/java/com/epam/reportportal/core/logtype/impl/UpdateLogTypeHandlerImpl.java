@@ -20,7 +20,7 @@ import static com.epam.reportportal.infrastructure.rules.commons.validation.Busi
 
 import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
-import com.epam.reportportal.core.events.activity.LogTypeUpdatedEvent;
+import com.epam.reportportal.core.events.domain.LogTypeUpdatedEvent;
 import com.epam.reportportal.core.logtype.UpdateLogTypeHandler;
 import com.epam.reportportal.core.logtype.validator.LogTypeValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;

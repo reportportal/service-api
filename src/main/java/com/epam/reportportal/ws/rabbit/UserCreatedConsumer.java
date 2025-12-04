@@ -25,6 +25,7 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Consumer for user created messages.
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:reingold_shekhtel@epam.com">Shekhtel Reingold</a>
  */
 @Component
+@Transactional
 public class UserCreatedConsumer {
 
   private final PersonalOrganizationService personalOrganizationService;

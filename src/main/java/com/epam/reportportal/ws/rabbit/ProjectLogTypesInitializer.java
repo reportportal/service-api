@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * RabbitMQ listener that creates default log types when a new project is created. Listens to
- * ProjectCreatedEvent from the domain.events exchange.
+ * project creation Activity messages from the activity exchange.
  */
 @Slf4j
 @Component

@@ -42,7 +42,8 @@ VALUES
     (2, 'Hotfix Test Plan', 'Quick test plan for hotfix verification', 1, NOW(), NOW()),
     (3, 'Default Project Test Plan', 'Test plan for default project', 2, NOW(), NOW()),
     (4, 'Integration Test Plan', 'Test plan for integration tests', 1, NOW(), NOW()),
-    (5, 'Regression Test Plan', 'Test plan for regression tests', 1, NOW(), NOW());
+    (5, 'Regression Test Plan', 'Test plan for regression tests', 1, NOW(), NOW()),
+    (6, 'Empty Test Plan', 'Empty Test plan for regression tests', 1, NOW(), NOW());
 
 -- =====================================================
 -- TMS TEST CASES

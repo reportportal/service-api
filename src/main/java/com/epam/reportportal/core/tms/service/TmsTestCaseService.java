@@ -116,4 +116,6 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
   TmsTestCase getEntityById(Long testCaseId);
 
   List<TmsTestCaseRS> getByIds(long projectId, List<Long> testCaseIds);
+
+  List<Long> getTestCaseIdsInTestPlan(long projectId, Long testPlanId);
 }

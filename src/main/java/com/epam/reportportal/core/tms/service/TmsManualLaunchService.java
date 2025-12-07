@@ -1,6 +1,8 @@
 package com.epam.reportportal.core.tms.service;
 
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
+import com.epam.reportportal.core.tms.dto.CreateTmsManualLaunchRQ;
+import com.epam.reportportal.core.tms.dto.CreateTmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
@@ -33,7 +35,7 @@ public interface TmsManualLaunchService {
    * @param request   manual launch request
    * @return created manual launch response
    */
-  TmsManualLaunchRS create(long projectId, TmsManualLaunchRQ request);
+  CreateTmsManualLaunchRS create(long projectId, CreateTmsManualLaunchRQ request);
 
   /**
    * Gets manual launch by ID.

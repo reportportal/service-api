@@ -6,6 +6,7 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
@@ -43,15 +44,6 @@ public interface TmsTestCaseExecutionService {
   List<TmsTestCaseExecution> findByTestCaseIdAndTestPlanId(Long testCaseId, Long testPlanId);
 
   /**
-   * Creates executions for multiple test cases in launch.
-   *
-   * @param projectId   project id
-   * @param testCaseIds list of test case IDs
-   * @param launch      launch entity
-   */
-  void createExecutions(long projectId, List<Long> testCaseIds, Launch launch);
-
-  /**
    * Creates execution for a test case in launch.
    *
    * @param projectId project id
@@ -69,7 +61,7 @@ public interface TmsTestCaseExecutionService {
    * @param launch      launch entity
    * @param testCaseIds list of test case IDs
    */
-  void addTestCasesToLaunch(long projectId, Launch launch, List<Long> testCaseIds);
+  BatchTestCaseOperationResultRS addTestCasesToLaunch(long projectId, Launch launch, List<Long> testCaseIds);
 
   /**
    * Adds a test case to launch (creates executions).

@@ -85,6 +85,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .uuid("550e8400-e29b-41d4-a716-446655440999")
         .startTime("2024-01-20T10:00:00Z")
         .mode(Mode.DEFAULT)
+        .testPlanId(6L)
         .description("Full manual launch with all fields")
         .testCaseIds(List.of(4L, 5L))
         .attributes(List.of(
@@ -123,6 +124,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Minimal Manual Launch")
+        .testPlanId(6L)
         .build();
 
     // When
@@ -142,6 +144,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch with Test Cases")
+        .testPlanId(6L)
         .testCaseIds(List.of(4L, 5L, 6L))
         .build();
 
@@ -1013,6 +1016,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Full Workflow Test Launch")
         .description("Complete workflow from start to finish")
+        .testPlanId(6L)
         .mode(Mode.DEFAULT)
         .attributes(List.of(
             new ItemAttributesRQ("sprint", "Sprint-25")

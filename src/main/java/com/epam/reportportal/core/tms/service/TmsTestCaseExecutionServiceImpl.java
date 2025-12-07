@@ -12,6 +12,8 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.reportportal.core.tms.mapper.TmsTestCaseExecutionMapper;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
@@ -27,6 +29,7 @@ import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -147,7 +150,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
    */
   @Transactional
   @Override
-  public void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch) { //TODO refactor this method
+  public void createExecution(long projectId, TmsTestCaseRS testCase,
+      Launch launch) { //TODO refactor this method
     log.debug("Creating execution for test case: {} in launch: {}",
         testCase.getId(), launch.getId());
 
@@ -262,46 +266,72 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     return new NestedStepResult(List.of(), List.of());
   }
 
-  /**
-   * Internal method to create executions for multiple test cases. Handles batch creation with error
-   * handling and transaction management.
-   *
-   * @param projectId   project ID
-   * @param testCaseIds list of test case IDs to create executions for
-   * @param launch      launch entity
-   */
   @Override
   @Transactional
-  public void createExecutions(long projectId, List<Long> testCaseIds, Launch launch) {
-    var testCases = tmsTestCaseService.getByIds(projectId, testCaseIds);
-
-    var testCaseMap = testCases
-        .stream()
-        .collect(Collectors.toMap(TmsTestCaseRS::getId, Function.identity()));
-
-    for (var testCaseId : testCaseIds) {
-      var testCase = testCaseMap.get(testCaseId);
-      if (testCase == null) {
-        log.warn("Test case not found: {}, skipping", testCaseId);
-        continue;
-      }
-      createExecution(projectId, testCase, launch);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void addTestCasesToLaunch(long projectId, Launch launch, List<Long> testCaseIds) {
+  public BatchTestCaseOperationResultRS addTestCasesToLaunch(long projectId, Launch launch,
+      List<Long> testCaseIds) {
     log.debug("Adding {} test cases to launch: {}", testCaseIds.size(), launch.getId());
 
     if (CollectionUtils.isEmpty(testCaseIds)) {
       log.debug("No test cases to add to launch: {}", launch.getId());
-      return;
+      return BatchTestCaseOperationResultRS
+          .builder()
+          .totalCount(0)
+          .successCount(0)
+          .failureCount(0)
+          .successTestCaseIds(List.of())
+          .errors(List.of())
+          .build();
     }
 
-    createExecutions(projectId, testCaseIds, launch);
-    log.info("Successfully added {} test cases to launch: {}", testCaseIds.size(),
-        launch.getId());
+    var errors = new ArrayList<BatchTestCaseOperationError>();
+    var successfulIds = new ArrayList<Long>();
+
+    for (var testCaseId : testCaseIds) {
+      try {
+        // Check if execution already exists - prevent duplicates
+        if (tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(testCaseId,
+            launch.getId())) {
+          log.warn("Execution for test case: {} already exists in launch: {}, skipping", testCaseId,
+              launch.getId());
+          errors.add(new BatchTestCaseOperationError(testCaseId,
+              "Test case execution already exists in launch"));
+          continue;
+        }
+
+        // Get a test case
+        var testCase = tmsTestCaseService.getById(projectId, testCaseId);
+
+        // Create execution
+        createExecution(projectId, testCase, launch);
+        successfulIds.add(testCaseId);
+
+        log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
+
+      } catch (ReportPortalException e) {
+        log.warn("Failed to add test case {} to launch {}: {}", testCaseId, launch.getId(),
+            e.getMessage());
+        errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
+      } catch (Exception e) {
+        log.error("Unexpected error adding test case {} to launch {}: {}", testCaseId,
+            launch.getId(), e.getMessage(), e);
+        errors.add(new BatchTestCaseOperationError(testCaseId,
+            "Unexpected error: " + e.getMessage()));
+      }
+    }
+
+    var result = BatchTestCaseOperationResultRS.builder()
+        .totalCount(testCaseIds.size())
+        .successCount(successfulIds.size())
+        .failureCount(errors.size())
+        .successTestCaseIds(successfulIds)
+        .errors(errors)
+        .build();
+
+    log.info("Batch add test cases to launch {} completed. Total: {}, Success: {}, Failed: {}",
+        launch.getId(), result.getTotalCount(), result.getSuccessCount(), result.getFailureCount());
+
+    return result;
   }
 
   @Override

@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.dto;
 
+import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.reporting.ItemAttributeResource;
 import com.epam.reportportal.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -9,9 +10,6 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.Instant;
-import java.util.List;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -19,8 +17,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "TMS Manual Launch response")
-public class TmsManualLaunchRS {
+@Schema(description = "TMS Manual Launch creation response")
+public class CreateTmsManualLaunchRS {
 
   @Schema(description = "Launch ID", example = "1")
   private Long id;
@@ -31,7 +29,7 @@ public class TmsManualLaunchRS {
   @Schema(description = "Launch description", example = "test")
   private String description;
 
-  @Schema(description = "Launch owner")
+  @Schema(description = "Launch owner", example = "test@test.com")
   private TmsManualLaunchOwnerRS owner;
 
   @Schema(description = "Launch start time", example = "2025-12-20T23:10:01")
@@ -68,4 +66,7 @@ public class TmsManualLaunchRS {
 
   @Schema(description = "Launch attributes")
   private Set<ItemAttributeResource> attributes;
+
+  @Schema(description = "Launch attributes")
+  private BatchTestCaseOperationResultRS addTestCasesStatistic;
 }

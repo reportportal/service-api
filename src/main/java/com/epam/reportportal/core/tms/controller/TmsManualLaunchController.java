@@ -1,6 +1,8 @@
 package com.epam.reportportal.core.tms.controller;
 
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
+import com.epam.reportportal.core.tms.dto.CreateTmsManualLaunchRQ;
+import com.epam.reportportal.core.tms.dto.CreateTmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
@@ -53,10 +55,10 @@ public class TmsManualLaunchController {
 
   @PostMapping
   @Operation(summary = "Create a new TMS Manual Launch")
-  public TmsManualLaunchRS createManualLaunch(
+  public CreateTmsManualLaunchRS createManualLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
-      @Valid @RequestBody TmsManualLaunchRQ request,
+      @Valid @RequestBody CreateTmsManualLaunchRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsManualLaunchService.create(
         projectExtractor

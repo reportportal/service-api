@@ -390,4 +390,11 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .findByIdAndProjectId(testPlanId, projectId)
         .orElse(null);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Long> getTestCaseIdsAddedToPlan(long projectId, Long testPlanId) {
+    verifyTestPlanExists(projectId, testPlanId);
+    return tmsTestCaseService.getTestCaseIdsInTestPlan(projectId, testPlanId);
+  }
 }

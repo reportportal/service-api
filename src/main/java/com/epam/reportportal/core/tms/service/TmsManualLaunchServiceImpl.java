@@ -6,7 +6,8 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.reportportal.core.tms.dto.AddTestCaseToLaunchRQ;
-import com.epam.reportportal.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
+import com.epam.reportportal.core.tms.dto.CreateTmsManualLaunchRQ;
+import com.epam.reportportal.core.tms.dto.CreateTmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRQ;
@@ -86,11 +87,11 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public TmsManualLaunchRS create(long projectId, TmsManualLaunchRQ request) {
+  public CreateTmsManualLaunchRS create(long projectId, CreateTmsManualLaunchRQ request) {
     log.debug("Creating manual launch for project: {}", projectId);
 
     // Create Launch entity
-    var launch = tmsManualLaunchMapper.convertFromRQ(projectId, request);
+    var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, request);
     launch.setLaunchType(LaunchTypeEnum.MANUAL);
     launch.setStatus(StatusEnum.IN_PROGRESS);
     launch = launchRepository.save(launch);
@@ -101,16 +102,18 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     }
 
     // Add test cases to launch if present
-    if (CollectionUtils.isNotEmpty(request.getTestCaseIds())) {
-      tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, request.getTestCaseIds());
-    }
+    var addTestCasesResult = tmsTestCaseExecutionService
+        .addTestCasesToLaunch(
+            projectId,
+            launch,
+            CollectionUtils.isEmpty(request.getTestCaseIds()) ?
+                tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId, request.getTestPlanId()) :
+                request.getTestCaseIds()
+        );
 
     log.info("Created manual launch with ID: {} for project: {}", launch.getId(), projectId);
 
-    return tmsManualLaunchMapper.convert(launch, TmsManualLaunchExecutionStatisticRS.builder()
-        .total(CollectionUtils.isNotEmpty(request.getTestCaseIds()) ? request.getTestCaseIds().size() : 0)
-        .toRun(CollectionUtils.isNotEmpty(request.getTestCaseIds()) ? request.getTestCaseIds().size() : 0)
-        .build());
+    return tmsManualLaunchMapper.convertToCreateTmsManualLaunchRS(launch, addTestCasesResult);
   }
 
   @Override
@@ -124,7 +127,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
         );
 
     // Get execution statistic
-    var testCaseExecutionStatistic = tmsTestCaseExecutionService.getTestCaseExecutionStatistic(launchId);
+    var testCaseExecutionStatistic = tmsTestCaseExecutionService.getTestCaseExecutionStatistic(
+        launchId);
 
     // Get user and test plan maps
     var user = getUserHandler.getUserById(launch.getUserId());
@@ -135,7 +139,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsManualLaunchRS> getManualLaunches(long projectId, Filter filter, Pageable pageable) {
+  public Page<TmsManualLaunchRS> getManualLaunches(long projectId, Filter filter,
+      Pageable pageable) {
     log.debug("Getting manual launches for project: {}", projectId);
 
     var launchesPage = tmsManualLaunchFilterableRepository.findByProjectIdAndFilter(
@@ -271,7 +276,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
           BAD_REQUEST_ERROR,
           TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId)
       );
-    } else if (tmsTestCaseExecutionService.isTestCaseInLaunch(testCaseId, launchId)) {  // Check if test case already in launch
+    } else if (tmsTestCaseExecutionService.isTestCaseInLaunch(testCaseId,
+        launchId)) {  // Check if test case already in launch
       throw new ReportPortalException(
           BAD_REQUEST_ERROR,
           TEST_CASE_ALREADY_IN_LAUNCH.formatted(testCaseId, launchId)
@@ -279,7 +285,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     }
 
     // Add a test case through execution service (creates execution and test item)
-    tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, List.of(testCaseId));
+    tmsTestCaseExecutionService.addTestCaseToLaunch(projectId, launch, testCaseId);
 
     log.info("Added test case: {} to launch: {}", testCaseId, launchId);
   }

@@ -24,6 +24,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.Page;
+import com.epam.reportportal.util.PageableUtils;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -668,6 +669,21 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         .stream()
         .map(tmsTestCaseMapper::convert)
         .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Long> getTestCaseIdsInTestPlan(long projectId, Long testPlanId) {
+    return PageableUtils
+        .loadAll(
+          pageable -> tmsTestCaseRepository.findIdsByCriteria(
+              projectId,
+              null, // no search query
+              null, // no folder filter
+              testPlanId, // filter by test plan
+              pageable
+          )
+        );
   }
 
   /**

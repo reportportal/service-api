@@ -80,4 +80,6 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   Map<Long, TmsTestPlan> getTestPlanMap(List<Long> testPlanIds);
 
   TmsTestPlan getEntityById(Long projectId, Long testPlanId);
+
+  List<Long> getTestCaseIdsAddedToPlan(long projectId, Long testPlanId);
 }

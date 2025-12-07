@@ -386,9 +386,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional(readOnly = true)
   public TmsTestPlan getEntityById(Long projectId, Long testPlanId) {
-    return testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
-        .orElseThrow(() -> new ReportPortalException(
-            NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
-        );
+    return testPlanRepository
+        .findByIdAndProjectId(testPlanId, projectId)
+        .orElse(null);
   }
 }

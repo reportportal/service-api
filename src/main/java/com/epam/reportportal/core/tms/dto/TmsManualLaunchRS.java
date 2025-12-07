@@ -52,7 +52,7 @@ public class TmsManualLaunchRS {
   @JsonProperty("type")
   private String type;
 
-  @JsonProperty("type")
+  @JsonProperty("mode")
   private Mode mode;
 
   @Schema(description = "Launch status", example = "IN_PROGRESS")

@@ -5,6 +5,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -61,6 +62,22 @@ public class JTmsTestCaseExecutionCommentRecord extends UpdatableRecordImpl<JTms
         return (String) get(2);
     }
 
+    /**
+     * Setter for
+     * <code>public.tms_test_case_execution_comment.bts_ticket_id</code>.
+     */
+    public void setBtsTicketId(Long value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.tms_test_case_execution_comment.bts_ticket_id</code>.
+     */
+    public Long getBtsTicketId() {
+        return (Long) get(3);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -84,12 +101,13 @@ public class JTmsTestCaseExecutionCommentRecord extends UpdatableRecordImpl<JTms
     /**
      * Create a detached, initialised JTmsTestCaseExecutionCommentRecord
      */
-    public JTmsTestCaseExecutionCommentRecord(Long id, Long executionId, String comment) {
+    public JTmsTestCaseExecutionCommentRecord(Long id, Long executionId, String comment, Long btsTicketId) {
         super(JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT);
 
         setId(id);
         setExecutionId(executionId);
         setComment(comment);
+        setBtsTicketId(btsTicketId);
         resetChangedOnNotNull();
     }
 }

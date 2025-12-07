@@ -51,6 +51,9 @@ public class TmsTestCaseExecution implements Serializable {
   @Column(name = "test_case_version_id")
   private Long testCaseVersionId;
 
+  @Column(name = "priority")
+  private String priority;
+
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "test_case_snapshot", nullable = false, columnDefinition = "jsonb")
   private String testCaseSnapshot;

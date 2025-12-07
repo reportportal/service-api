@@ -50,6 +50,7 @@ public abstract class TmsTestCaseExecutionMapper {
     builder.id(execution.getId());
     builder.testCaseId(execution.getTestCaseId());
     builder.testCaseVersionId(execution.getTestCaseVersionId());
+    builder.testCasePriority(execution.getPriority());
     builder.testItemId(
         execution.getTestItem() != null ? execution.getTestItem().getItemId() : null);
 
@@ -81,7 +82,6 @@ public abstract class TmsTestCaseExecutionMapper {
     if (snapshot != null) {
       builder.testCaseName(snapshot.getName());
       builder.testCaseDescription(snapshot.getDescription());
-      builder.testCasePriority(snapshot.getPriority());
       builder.testFolder(snapshot.getTestFolder());
       builder.manualScenario(snapshot.getManualScenario());
       builder.attributes(snapshot.getAttributes());
@@ -132,6 +132,7 @@ public abstract class TmsTestCaseExecutionMapper {
     execution.setTestCaseId(testCase.getId());
     execution.setLaunchId(launch.getId());
     execution.setTestItem(testItem);
+    execution.setTestCaseSnapshot(testCase.getPriority());
     execution.setTestCaseVersionId(defaultVersionId);
     execution.setTestCaseSnapshot(snapshot);
 

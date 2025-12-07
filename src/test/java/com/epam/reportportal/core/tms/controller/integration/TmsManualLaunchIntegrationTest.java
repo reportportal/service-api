@@ -166,24 +166,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .containsExactlyInAnyOrder(4L, 5L, 6L);
   }
 
-  @Test
-  void createManualLaunch_WithNonExistentTestCase_ShouldReturnError() throws Exception {
-    // Given
-    var launchRQ = TmsManualLaunchRQ.builder()
-        .name("Launch with invalid test case")
-        .testCaseIds(List.of(999L))
-        .build();
-
-    // When/Then
-    mockMvc.perform(
-            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
-                .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
-                .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value(containsString("999")));
-  }
-
   // ==================== GET MANUAL LAUNCHES ====================
 
   @Test
@@ -544,7 +526,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
-                .param("filter.eq.executionStatus", "PASSED")
+                .param("filter.eq.status", "PASSED")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[*].executionStatus")

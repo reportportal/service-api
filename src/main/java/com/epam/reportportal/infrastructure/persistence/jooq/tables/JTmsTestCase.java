@@ -8,20 +8,20 @@ import com.epam.reportportal.infrastructure.persistence.dao.converters.JooqInsta
 import com.epam.reportportal.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
-import com.epam.reportportal.infrastructure.persistence.jooq.tables.JLaunch.JLaunchPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsDataset.JTmsDatasetPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute.JTmsTestCaseAttributePath;
-import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution.JTmsTestCaseExecutionPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion.JTmsTestCaseVersionPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestFolder.JTmsTestFolderPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase.JTmsTestPlanTestCasePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsTestCaseRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

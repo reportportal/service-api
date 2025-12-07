@@ -28,6 +28,12 @@ public class TmsManualLaunchRS {
   @Schema(description = "Launch name", example = "123")
   private String name;
 
+  @Schema(description = "Launch description", example = "test")
+  private String description;
+
+  @Schema(description = "Launch owner", example = "test@test.com")
+  private String owner;
+
   @Schema(description = "Launch start time", example = "2025-12-20T23:10:01")
   @JsonProperty("startTime")
   private String startTime;
@@ -43,7 +49,10 @@ public class TmsManualLaunchRS {
   @Schema(description = "Launch number", example = "1")
   private Integer number;
 
-  @JsonProperty("mode")
+  @JsonProperty("type")
+  private String type;
+
+  @JsonProperty("type")
   private Mode mode;
 
   @Schema(description = "Launch status", example = "IN_PROGRESS")

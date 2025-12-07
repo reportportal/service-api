@@ -3,13 +3,18 @@ package com.epam.reportportal.core.tms.mapper;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualLaunchRS;
+import com.epam.reportportal.core.tms.dto.TmsManualLaunchTestPlanRS;
+import com.epam.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
+import com.epam.reportportal.infrastructure.persistence.entity.user.User;
 import java.util.List;
+import java.util.Map;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -23,6 +28,29 @@ public interface TmsManualLaunchMapper {
   @Mapping(target = "executionStatistic", source = "testCaseExecutionStatistic")
   TmsManualLaunchRS convert(Launch launch,
       TmsManualLaunchExecutionStatisticRS testCaseExecutionStatistic);
+
+  /**
+   * Convert launch with user and test plan maps to response DTO
+   */
+  @Mapping(target = "id", source = "launch.id")
+  @Mapping(target = "name", source = "launch.name")
+  @Mapping(target = "description", source = "launch.description")
+  @Mapping(target = "owner", source = "user.email")
+  @Mapping(target = "type", expression = "java(launch.getLaunchType() != null ? launch.getLaunchType().name() : null)")
+  @Mapping(target = "startTime", source = "launch.startTime")
+  @Mapping(target = "endTime", source = "launch.endTime")
+  @Mapping(target = "createdAt", expression = "java(launch.getLastModified() != null ? launch.getLastModified().toString() : null)")
+  @Mapping(target = "number", source = "launch.number")
+  @Mapping(target = "mode", source = "launch.mode")
+  @Mapping(target = "status", source = "launch.status")
+  @Mapping(target = "testPlan.id", source = "testPlan.id")
+  @Mapping(target = "testPlan.name", source = "testPlan.name")
+  @Mapping(target = "attributes", source = "launch.attributes")
+  @Mapping(target = "executionStatistic", source = "testCaseExecutionStatistic")
+  TmsManualLaunchRS convert(Launch launch,
+      TmsManualLaunchExecutionStatisticRS testCaseExecutionStatistic,
+      User user,
+      TmsTestPlan testPlan);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)

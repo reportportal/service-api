@@ -7,10 +7,12 @@ import com.epam.reportportal.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.Page;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
 public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPlanRS, Long> {
@@ -69,4 +71,13 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
    * @return page of test folders from the test plan
    */
   Page<TmsTestFolderRS> getTestFoldersFromPlan(Long projectId, Long testPlanId, Pageable pageable);
+
+  /**
+   * Get test plans map by test plan IDs
+   * @param testPlanIds list of test plan IDs
+   * @return map where key is test plan ID and value is TmsTestPlan entity
+   */
+  Map<Long, TmsTestPlan> getTestPlanMap(List<Long> testPlanIds);
+
+  TmsTestPlan getEntityById(Long projectId, Long testPlanId);
 }

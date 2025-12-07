@@ -21,6 +21,7 @@ import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationResult
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.mapper.TmsManualLaunchMapper;
+import com.epam.reportportal.core.user.GetUserHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
@@ -37,6 +38,7 @@ import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +73,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final TestFolderItemServiceImpl testFolderItemService;
   private final TmsStepExecutionService tmsStepExecutionService;
   private final TmsTestCaseService tmsTestCaseService;
+  private final GetUserHandler getUserHandler;
+  private final TmsTestPlanService tmsTestPlanService;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
@@ -119,43 +123,69 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
 
-    var testCaseExecutionStatistic = tmsTestCaseExecutionService.getTestCaseExecutionStatistic(
-        launchId);
+    // Get execution statistic
+    var testCaseExecutionStatistic = tmsTestCaseExecutionService.getTestCaseExecutionStatistic(launchId);
 
-    return tmsManualLaunchMapper.convert(launch, testCaseExecutionStatistic);
+    // Get user and test plan maps
+    var user = getUserHandler.getUserById(launch.getUserId());
+    var testPlan = tmsTestPlanService.getEntityById(projectId, launch.getTestPlanId());
+
+    return tmsManualLaunchMapper.convert(launch, testCaseExecutionStatistic, user, testPlan);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsManualLaunchRS> getManualLaunches(
-      long projectId, Filter filter, Pageable pageable) {
+  public Page<TmsManualLaunchRS> getManualLaunches(long projectId, Filter filter, Pageable pageable) {
     log.debug("Getting manual launches for project: {}", projectId);
 
     var launchesPage = tmsManualLaunchFilterableRepository.findByProjectIdAndFilter(
         projectId, filter, pageable
     );
 
-    var launchIds = launchesPage.getContent().stream().map(Launch::getId)
-        .collect(Collectors.toList());
-
-    var testCaseExecutionStatistics = tmsTestCaseExecutionService.getTestCaseExecutionStatistic(
-        launchIds);
-
-    if (launchesPage.hasContent()) {
-      var launchResponses = launchesPage.getContent()
-          .stream()
-          .map(launch -> tmsManualLaunchMapper.convert(launch,
-              testCaseExecutionStatistics.get(launch.getId())))
-          .toList();
-
-      return PagedResourcesAssembler
-          .<TmsManualLaunchRS>pageConverter()
-          .apply(new PageImpl<>(launchResponses, pageable, launchesPage.getTotalElements()));
-    } else {
+    if (launchesPage.getContent().isEmpty()) {
       return PagedResourcesAssembler
           .<TmsManualLaunchRS>pageConverter()
           .apply(new PageImpl<>(Collections.emptyList(), pageable, 0));
     }
+
+    var launches = launchesPage.getContent();
+    var launchIds = launches
+        .stream()
+        .map(Launch::getId)
+        .collect(Collectors.toList());
+
+    // Collect unique user IDs and test plan IDs
+    var userIds = launches
+        .stream()
+        .map(Launch::getUserId)
+        .filter(Objects::nonNull)
+        .toList();
+
+    var testPlanIds = launches
+        .stream()
+        .map(Launch::getTestPlanId)
+        .filter(Objects::nonNull)
+        .toList();
+
+    // Get maps from services
+    var userMap = getUserHandler.getUserMap(userIds);
+    var testPlanMap = tmsTestPlanService.getTestPlanMap(testPlanIds);
+    var testCaseExecutionStatistics =
+        tmsTestCaseExecutionService.getTestCaseExecutionStatistic(launchIds);
+
+    // Convert to response DTOs
+    var launchResponses = launches.stream()
+        .map(launch -> tmsManualLaunchMapper.convert(
+            launch,
+            testCaseExecutionStatistics.get(launch.getId()),
+            userMap.get(launch.getUserId()),
+            testPlanMap.get(launch.getTestPlanId())
+        ))
+        .collect(Collectors.toList());
+
+    return PagedResourcesAssembler
+        .<TmsManualLaunchRS>pageConverter()
+        .apply(new PageImpl<>(launchResponses, pageable, launchesPage.getTotalElements()));
   }
 
   @Override

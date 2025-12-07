@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -366,5 +368,27 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     verifyTestPlanExists(projectId, testPlanId);
 
     return tmsTestFolderService.getFoldersByTestPlanId(projectId, testPlanId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Long, TmsTestPlan> getTestPlanMap(List<Long> testPlanIds) {
+    if (CollectionUtils.isEmpty(testPlanIds)) {
+      return Collections.emptyMap();
+    }
+
+    return testPlanRepository
+        .findByIds(testPlanIds)
+        .stream()
+        .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestPlan getEntityById(Long projectId, Long testPlanId) {
+    return testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
+        );
   }
 }

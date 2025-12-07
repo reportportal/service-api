@@ -262,4 +262,11 @@ public interface UserRepository extends ReportPortalRepository<User, Long>, User
   )
   void deleteAllById(Iterable<? extends Long> ids);
 
+  /**
+   * Find users by their IDs
+   * @param userIds list of user IDs
+   * @return list of users
+   */
+  @Query("SELECT u FROM User u WHERE u.id IN :userIds")
+  List<User> findByIds(@Param("userIds") List<Long> userIds);
 }

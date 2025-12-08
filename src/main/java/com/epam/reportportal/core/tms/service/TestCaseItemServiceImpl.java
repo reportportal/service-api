@@ -1,34 +1,24 @@
-/*
- * Copyright 2019 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.epam.reportportal.core.tms.service;
 
 import com.epam.reportportal.core.item.identity.IdentityUtil;
 import com.epam.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.mapper.TestCaseItemBuilder;
+import com.epam.reportportal.infrastructure.persistence.dao.ItemAttributeRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service for managing TEST test items (test case executions in manual launches).
@@ -42,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TestCaseItemServiceImpl implements TestCaseItemService {
 
   private final TestItemRepository testItemRepository;
+  private final ItemAttributeRepository itemAttributeRepository;
   private final TestCaseItemBuilder testCaseItemBuilder;
   private final TestCaseHashGenerator testCaseHashGenerator;
 
@@ -83,7 +74,43 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
         )
     );
 
-    return testItemRepository.save(testItem);
+    // Save test item first
+    var savedTestItem = testItemRepository.save(testItem);
+
+    // Process test case attributes if present
+    if (CollectionUtils.isNotEmpty(testCase.getAttributes())) {
+      log.debug("Creating {} item attributes for test case: {}",
+          testCase.getAttributes().size(), testCase.getId());
+
+      var itemAttributes = new ArrayList<ItemAttribute>();
+
+      for (var testCaseAttribute : testCase.getAttributes()) {
+        // Map according to requirements:
+        // TmsTestCaseAttributeRS.key -> ItemAttribute.value
+        // ItemAttribute.key = "tag"
+        var itemAttribute = new ItemAttribute();
+        itemAttribute.setKey("tag");
+        itemAttribute.setValue(testCaseAttribute.getKey()); // key from TmsTestCaseAttributeRS becomes value
+        itemAttribute.setSystem(false); // Test case attributes are non-system
+        itemAttribute.setTestItem(savedTestItem);
+
+        itemAttributes.add(itemAttribute);
+
+        log.trace("Mapped test case attribute - key: '{}' -> ItemAttribute(key='tag', value='{}')",
+            testCaseAttribute.getKey(), testCaseAttribute.getKey());
+      }
+
+      // Save all item attributes
+      itemAttributeRepository.saveAll(itemAttributes);
+
+      log.debug("Successfully saved {} item attributes for test case: {}",
+          itemAttributes.size(), testCase.getId());
+    }
+
+    log.debug("Successfully created TEST item: {} for test case: {}",
+        savedTestItem.getItemId(), testCase.getId());
+
+    return savedTestItem;
   }
 
   /**

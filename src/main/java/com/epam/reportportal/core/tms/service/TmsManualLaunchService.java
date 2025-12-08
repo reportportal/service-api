@@ -32,10 +32,11 @@ public interface TmsManualLaunchService {
    * Creates a new manual launch.
    *
    * @param projectId project ID
+   * @param user
    * @param request   manual launch request
    * @return created manual launch response
    */
-  CreateTmsManualLaunchRS create(long projectId, CreateTmsManualLaunchRQ request);
+  CreateTmsManualLaunchRS create(Long projectId, ReportPortalUser user, CreateTmsManualLaunchRQ request);
 
   /**
    * Gets manual launch by ID.

@@ -10,6 +10,7 @@ import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationResult
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
@@ -98,7 +99,9 @@ public interface TmsManualLaunchMapper {
           + "com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum.DEFAULT : "
           + "com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum.findByName(request.getMode().name()).orElseThrow())")
   @Mapping(target = "testPlanId", source = "request.testPlanId")
-  Launch convertFromCreateTmsManualLaunchRQ(long projectId, CreateTmsManualLaunchRQ request);
+  @Mapping(target = "userId", source = "user.userId")
+  Launch convertFromCreateTmsManualLaunchRQ(Long projectId, ReportPortalUser user,
+      CreateTmsManualLaunchRQ request);
 
   default BatchTestCaseOperationResultRS convertBatchAddTestCaseOperationResultRS(
       List<Long> testCaseIds, List<Long> successTestCaseIds,

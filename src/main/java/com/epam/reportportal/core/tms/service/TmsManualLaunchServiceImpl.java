@@ -87,11 +87,13 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public CreateTmsManualLaunchRS create(long projectId, CreateTmsManualLaunchRQ request) {
+  public CreateTmsManualLaunchRS create(Long projectId,
+      ReportPortalUser user,
+      CreateTmsManualLaunchRQ request) {
     log.debug("Creating manual launch for project: {}", projectId);
 
     // Create Launch entity
-    var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, request);
+    var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, request);
     launch.setLaunchType(LaunchTypeEnum.MANUAL);
     launch.setStatus(StatusEnum.IN_PROGRESS);
     launch = launchRepository.save(launch);

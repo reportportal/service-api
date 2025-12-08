@@ -33,7 +33,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -82,22 +81,19 @@ public class LogSearchCollector {
       return;
     }
 
-    Set<Long> matchingIds = findMatchingItemIds(parentId, context);
-    if (CollectionUtils.isEmpty(matchingIds)) {
-      return;
-    }
+    Set<Long> matchingLogIds = findMatchingLogIds(parentId, context);
 
     List<NestedItemPage> itemsWithPages = fetchItemsWithPageNumbers(parentId, pagesLocation,
         context);
 
-    processItems(itemsWithPages, matchingIds, pagesLocation, context);
+    processItems(itemsWithPages, matchingLogIds, pagesLocation, context);
   }
 
   private boolean shouldSkipItem(TestItem item, LogLocationParams params) {
     return Objects.isNull(item) || shouldExcludePassedLogs(item, params.excludePassedLogs());
   }
 
-  private Set<Long> findMatchingItemIds(Long parentId, CollectionContext context) {
+  private Set<Long> findMatchingLogIds(Long parentId, CollectionContext context) {
     boolean excludeLogs = shouldExcludePassedLogsForParent(parentId, context.params());
 
     Page<NestedItem> matchingItems = logRepository.findNestedItems(parentId,
@@ -105,6 +101,7 @@ public class LogSearchCollector {
         PageRequest.of(0, NESTED_STEP_MAX_PAGE_SIZE, context.pageable().getSort()));
 
     return matchingItems.getContent().stream()
+        .filter(item -> LogRepositoryConstants.LOG.equals(item.getType()))
         .map(NestedItem::getId)
         .collect(Collectors.toSet());
   }
@@ -122,15 +119,13 @@ public class LogSearchCollector {
         excludeLogs, context.filterNoMessage(), locationPageable);
   }
 
-  private void processItems(List<NestedItemPage> items, Set<Long> matchingIds,
+  private void processItems(List<NestedItemPage> items, Set<Long> matchingLogIds,
       List<Map.Entry<Long, Integer>> pagesLocation, CollectionContext context) {
 
-    items.stream()
-        .filter(item -> matchingIds.contains(item.getId()))
-        .forEach(item -> processMatchingItem(item, pagesLocation, context));
+    items.forEach(item -> processItem(item, matchingLogIds, pagesLocation, context));
   }
 
-  private void processMatchingItem(NestedItemPage item,
+  private void processItem(NestedItemPage item, Set<Long> matchingLogIds,
       List<Map.Entry<Long, Integer>> pagesLocation,
       CollectionContext context) {
 
@@ -139,7 +134,11 @@ public class LogSearchCollector {
     switch (item.getType()) {
       case LogRepositoryConstants.ITEM ->
           collectRecursively(item.getId(), updatedLocation, context);
-      case LogRepositoryConstants.LOG -> addLogResult(item, updatedLocation, context);
+      case LogRepositoryConstants.LOG -> {
+        if (matchingLogIds.contains(item.getId())) {
+          addLogResult(item, updatedLocation, context);
+        }
+      }
       default -> { /* ignore unknown types */ }
     }
   }

@@ -168,4 +168,6 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
 
   Optional<Launch> findLaunchByProjectIdAndNameAndNumberAndIdNotAndModeNot(Long projectId,
       String name, Long number, Long launchId, LaunchModeEnum mode);
+
+  Optional<Launch> findByIdAndProjectId(@Param("id") Long id, @Param("projectId") Long projectId);
 }

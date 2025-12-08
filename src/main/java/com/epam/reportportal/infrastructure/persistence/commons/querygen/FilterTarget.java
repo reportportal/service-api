@@ -59,7 +59,9 @@ import static com.epam.reportportal.infrastructure.persistence.commons.querygen.
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_NUMBER;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_TYPE;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_UUID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_TEST_PLAN_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LogCriteriaConstant.CRITERIA_LOG_BINARY_CONTENT;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.LogCriteriaConstant.CRITERIA_LOG_ID;
@@ -126,6 +128,34 @@ import static com.epam.reportportal.infrastructure.persistence.commons.querygen.
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER_CREATED_AT;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER_ORGANIZATION_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER_UPDATED_AT;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_KEY;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_SEARCH;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ATTRIBUTES;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_CREATED_AT;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_DESCRIPTION;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXTERNAL_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_FOLDER_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_NAME;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PLAN_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PRIORITY;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PROJECT_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_SEARCH;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_UPDATED_AT;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_DESCRIPTION;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_NAME;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_PARENT_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_PROJECT_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_CREATED_AT;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_DESCRIPTION;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_NAME;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_PROJECT_ID;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_SEARCH;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_UPDATED_AT;
 import static com.epam.reportportal.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.PROJECT_ID;
 import static com.epam.reportportal.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.USER_ID;
 import static com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationFilter.PROJECTS_QUANTITY;
@@ -163,6 +193,12 @@ import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.STATI
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TEST_ITEM;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TEST_ITEM_RESULTS;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TICKET;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_ATTRIBUTE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN_TEST_CASE;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.USERS;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.WIDGET;
 import static com.epam.reportportal.infrastructure.persistence.jooq.tables.JOwnedEntity.OWNED_ENTITY;
@@ -186,14 +222,20 @@ import com.epam.reportportal.infrastructure.persistence.entity.organization.Orga
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectInfo;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectProfile;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.infrastructure.persistence.jooq.enums.JIntegrationGroupEnum;
 import com.epam.reportportal.infrastructure.persistence.jooq.enums.JLaunchModeEnum;
+import com.epam.reportportal.infrastructure.persistence.jooq.enums.JLaunchTypeEnum;
 import com.epam.reportportal.infrastructure.persistence.jooq.enums.JStatusEnum;
 import com.epam.reportportal.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
 import com.google.common.collect.Lists;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -415,8 +457,7 @@ public enum FilterTarget {
           .withAggregateCriteria(DSL.arrayAgg(PROJECT.NAME).toString())
           .get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_KEY, PROJECT.KEY, String.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_USER_ORGANIZATION_ID, ORGANIZATION_USER.ORGANIZATION_ID,
-          Long.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_USER_ORGANIZATION_ID, ORGANIZATION_USER.ORGANIZATION_ID, Long.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_LAST_LOGIN,
           "(" + USERS.METADATA + "-> 'metadata' ->> 'last_login')::DOUBLE PRECISION ",
           Long.class
@@ -543,7 +584,11 @@ public enum FilterTarget {
           String.class,
           Lists.newArrayList(
               JoinEntity.of(USERS, JoinType.LEFT_OUTER_JOIN, LAUNCH.USER_ID.eq(USERS.ID)))
-      ).withAggregateCriteria(DSL.max(USERS.LOGIN).toString()).get()
+      ).withAggregateCriteria(DSL.max(USERS.LOGIN).toString()).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_LAUNCH_TYPE, LAUNCH.LAUNCH_TYPE,
+          JLaunchTypeEnum.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_TEST_PLAN_ID, LAUNCH.TEST_PLAN_ID,
+          Long.class).get()
   )) {
     @Override
     protected Collection<? extends SelectField> selectFields() {
@@ -1709,8 +1754,217 @@ public enum FilterTarget {
     protected Field<Long> idField() {
       return ORGANIZATION_USER.ORGANIZATION_ID;
     }
-  };
+  },
 
+  TMS_TEST_CASE_TARGET(TmsTestCase.class,
+      Arrays.asList(
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_ID, TMS_TEST_CASE.ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_NAME, TMS_TEST_CASE.NAME, String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_DESCRIPTION, TMS_TEST_CASE.DESCRIPTION, String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_PRIORITY, TMS_TEST_CASE.PRIORITY,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXTERNAL_ID, TMS_TEST_CASE.EXTERNAL_ID,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_CREATED_AT, TMS_TEST_CASE.CREATED_AT, Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_UPDATED_AT, TMS_TEST_CASE.UPDATED_AT, Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_FOLDER_ID, TMS_TEST_CASE.TEST_FOLDER_ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_PROJECT_ID, TMS_TEST_FOLDER.PROJECT_ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder()
+              .newBuilder(
+                  CRITERIA_TMS_TEST_CASE_PLAN_ID,
+                  TMS_TEST_PLAN_TEST_CASE.TEST_PLAN_ID,
+                  Long.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_PLAN_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_CASE.ID.eq(TMS_TEST_PLAN_TEST_CASE.TEST_CASE_ID))
+                  ))
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_CASE_SEARCH,
+              TMS_TEST_CASE.SEARCH_VECTOR,
+              String.class
+          ).get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_CASE_ATTRIBUTES,
+                  TMS_TEST_CASE_ATTRIBUTE.ATTRIBUTE_ID,
+                  Long.class
+              )
+              .withAggregateCriteria(
+                  DSL.arrayAggDistinct(TMS_TEST_CASE_ATTRIBUTE.ATTRIBUTE_ID).toString()
+              )
+              .get()
+      )
+  ) {
+
+    @Override
+    protected Collection<? extends SelectField> selectFields() {
+      return Lists.newArrayList(
+          TMS_TEST_CASE.ID,
+          TMS_TEST_CASE.NAME,
+          TMS_TEST_CASE.DESCRIPTION,
+          TMS_TEST_CASE.PRIORITY,
+          TMS_TEST_CASE.EXTERNAL_ID,
+          TMS_TEST_CASE.CREATED_AT,
+          TMS_TEST_CASE.UPDATED_AT,
+          TMS_TEST_CASE.TEST_FOLDER_ID
+      );
+    }
+
+    @Override
+    protected void addFrom(SelectQuery<? extends Record> query) {
+      query.addFrom(TMS_TEST_CASE);
+    }
+
+    @Override
+    protected void joinTables(QuerySupplier query) {
+      query.addJoin(TMS_TEST_FOLDER, JoinType.JOIN,
+          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID));
+      query.addJoin(TMS_TEST_CASE_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
+          TMS_TEST_CASE_ATTRIBUTE.TEST_CASE_ID.eq(TMS_TEST_CASE.ID));
+    }
+
+    @Override
+    protected Field<Long> idField() {
+      return TMS_TEST_CASE.ID;
+    }
+  },
+
+  TMS_TEST_PLAN_TARGET(TmsTestPlan.class,
+      Arrays.asList(
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_ID, TMS_TEST_PLAN.ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_NAME, TMS_TEST_PLAN.NAME,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_DESCRIPTION, TMS_TEST_PLAN.DESCRIPTION,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_CREATED_AT, TMS_TEST_CASE.CREATED_AT, Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_UPDATED_AT, TMS_TEST_CASE.UPDATED_AT, Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_PROJECT_ID, TMS_TEST_PLAN.PROJECT_ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_PLAN_SEARCH,
+              TMS_TEST_PLAN.SEARCH_VECTOR,
+              String.class
+          ).get()
+      )
+  ) {
+    @Override
+    protected Collection<? extends SelectField> selectFields() {
+      return Lists.newArrayList(
+          TMS_TEST_PLAN.ID,
+          TMS_TEST_PLAN.NAME,
+          TMS_TEST_PLAN.DESCRIPTION,
+          TMS_TEST_PLAN.PROJECT_ID
+      );
+    }
+
+    @Override
+    protected void addFrom(SelectQuery<? extends Record> query) {
+      query.addFrom(TMS_TEST_PLAN);
+    }
+
+    @Override
+    protected void joinTables(QuerySupplier query) {
+      // No joins needed for basic fields
+    }
+
+    @Override
+    protected Field<Long> idField() {
+      return TMS_TEST_PLAN.ID;
+    }
+  },
+
+  TMS_TEST_FOLDER_TARGET(TmsTestFolder.class,
+      Arrays.asList(
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_FOLDER_ID, TMS_TEST_FOLDER.ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_FOLDER_NAME, TMS_TEST_FOLDER.NAME,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_FOLDER_DESCRIPTION, TMS_TEST_FOLDER.DESCRIPTION,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_FOLDER_PARENT_ID, TMS_TEST_FOLDER.PARENT_ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_FOLDER_PROJECT_ID, TMS_TEST_FOLDER.PROJECT_ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder()
+              .newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID,
+                  TMS_TEST_PLAN_TEST_CASE.TEST_PLAN_ID,
+                  Long.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID)),
+                      JoinEntity.of(TMS_TEST_PLAN_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_CASE.ID.eq(TMS_TEST_PLAN_TEST_CASE.TEST_CASE_ID))
+                  ))
+              .get()
+      )
+  ) {
+    @Override
+    protected Collection<? extends SelectField> selectFields() {
+      return Lists.newArrayList(
+          TMS_TEST_FOLDER.ID,
+          TMS_TEST_FOLDER.NAME,
+          TMS_TEST_FOLDER.DESCRIPTION,
+          TMS_TEST_FOLDER.PARENT_ID,
+          TMS_TEST_FOLDER.PROJECT_ID
+      );
+    }
+
+    @Override
+    protected void addFrom(SelectQuery<? extends Record> query) {
+      query.addFrom(TMS_TEST_FOLDER);
+    }
+
+    @Override
+    protected void joinTables(QuerySupplier query) {
+    }
+
+    @Override
+    protected Field<Long> idField() {
+      return TMS_TEST_FOLDER.ID;
+    }
+  },
+
+  TMS_ATTRIBUTE_TARGET(TmsAttribute.class,
+      Arrays.asList(
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_ATTRIBUTE_ID, TMS_ATTRIBUTE.ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_ATTRIBUTE_KEY, TMS_ATTRIBUTE.KEY,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_ATTRIBUTE_SEARCH,
+              TMS_ATTRIBUTE.SEARCH_VECTOR,
+              String.class
+          ).get()
+      )
+  ) {
+    @Override
+    protected Collection<? extends SelectField> selectFields() {
+      return Lists.newArrayList(
+          TMS_ATTRIBUTE.ID,
+          TMS_ATTRIBUTE.KEY
+      );
+    }
+
+    @Override
+    protected void addFrom(SelectQuery<? extends Record> query) {
+      query.addFrom(TMS_ATTRIBUTE);
+    }
+
+    @Override
+    protected void joinTables(QuerySupplier query) {
+      // No joins needed for basic fields
+    }
+
+    @Override
+    protected Field<Long> idField() {
+      return TMS_ATTRIBUTE.ID;
+    }
+  };
 
   public static final String FILTERED_QUERY = "filtered";
   public static final String ATTRIBUTE_ALIAS = "attribute";

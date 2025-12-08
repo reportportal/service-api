@@ -1,0 +1,15 @@
+package com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms;
+
+public final class TmsTestFolderCriteriaConstant {
+
+  public static final String CRITERIA_TMS_TEST_FOLDER_ID = "id";
+  public static final String CRITERIA_TMS_TEST_FOLDER_NAME = "name";
+  public static final String CRITERIA_TMS_TEST_FOLDER_DESCRIPTION = "description";
+  public static final String CRITERIA_TMS_TEST_FOLDER_PARENT_ID = "parentId";
+  public static final String CRITERIA_TMS_TEST_FOLDER_PROJECT_ID = "projectId";
+  public static final String CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID = "testPlanId";
+
+  private TmsTestFolderCriteriaConstant() {
+    //static only
+  }
+}

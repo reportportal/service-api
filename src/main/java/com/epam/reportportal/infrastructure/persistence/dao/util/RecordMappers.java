@@ -43,6 +43,10 @@ import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.STATI
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TEST_ITEM;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TEST_ITEM_RESULTS;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TICKET;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.WIDGET;
 import static com.epam.reportportal.infrastructure.persistence.jooq.tables.JActivity.ACTIVITY;
 import static com.epam.reportportal.infrastructure.persistence.jooq.tables.JAttachment.ATTACHMENT;
@@ -94,6 +98,10 @@ import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.statistics.Statistics;
 import com.epam.reportportal.infrastructure.persistence.entity.statistics.StatisticsField;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUserId;
 import com.epam.reportportal.infrastructure.persistence.entity.user.ProjectUser;
@@ -721,5 +729,84 @@ public class RecordMappers {
     integration.setProject(project);
 
     return integration;
+  };
+
+  /**
+   * Maps record into {@link TmsTestCase} object
+   */
+  public static final RecordMapper<? super Record, TmsTestCase> TMS_TEST_CASE_MAPPER = r -> {
+    TmsTestCase testCase = new TmsTestCase();
+    testCase.setId(r.get(TMS_TEST_CASE.ID));
+    testCase.setName(r.get(TMS_TEST_CASE.NAME));
+    testCase.setDescription(r.get(TMS_TEST_CASE.DESCRIPTION));
+    testCase.setPriority(r.get(TMS_TEST_CASE.PRIORITY));
+
+    ofNullable(r.get(TMS_TEST_CASE.TEST_FOLDER_ID)).ifPresent(folderId -> {
+      TmsTestFolder testFolder = new TmsTestFolder();
+      testFolder.setId(folderId);
+
+      ofNullable(r.field("project_id")).flatMap(f -> ofNullable(r.get(f, Long.class)))
+          .ifPresent(projectId -> {
+            Project project = new Project();
+            project.setId(projectId);
+            testFolder.setProject(project);
+          });
+
+      testCase.setTestFolder(testFolder);
+    });
+
+    return testCase;
+  };
+
+  /**
+   * Maps record into {@link TmsTestPlan} object
+   */
+  public static final RecordMapper<? super Record, TmsTestPlan> TMS_TEST_PLAN_MAPPER = r -> {
+    TmsTestPlan testPlan = new TmsTestPlan();
+    testPlan.setId(r.get(TMS_TEST_PLAN.ID));
+    testPlan.setName(r.get(TMS_TEST_PLAN.NAME));
+    testPlan.setDescription(r.get(TMS_TEST_PLAN.DESCRIPTION));
+
+    ofNullable(r.get(TMS_TEST_PLAN.PROJECT_ID)).ifPresent(projectId -> {
+      Project project = new Project();
+      project.setId(projectId);
+      testPlan.setProject(project);
+    });
+
+    return testPlan;
+  };
+
+  /**
+   * Maps record into {@link TmsTestFolder} object
+   */
+  public static final RecordMapper<? super Record, TmsTestFolder> TMS_TEST_FOLDER_MAPPER = r -> {
+    TmsTestFolder testFolder = new TmsTestFolder();
+    testFolder.setId(r.get(TMS_TEST_FOLDER.ID));
+    testFolder.setName(r.get(TMS_TEST_FOLDER.NAME));
+    testFolder.setDescription(r.get(TMS_TEST_FOLDER.DESCRIPTION));
+
+    ofNullable(r.get(TMS_TEST_FOLDER.PROJECT_ID)).ifPresent(projectId -> {
+      Project project = new Project();
+      project.setId(projectId);
+      testFolder.setProject(project);
+    });
+
+    ofNullable(r.get(TMS_TEST_FOLDER.PARENT_ID)).ifPresent(parentId -> {
+      TmsTestFolder parentTestFolder = new TmsTestFolder();
+      parentTestFolder.setId(parentId);
+      testFolder.setParentTestFolder(parentTestFolder);
+    });
+
+    return testFolder;
+  };
+
+  /**
+   * Maps record into {@link TmsAttribute} object
+   */
+  public static final RecordMapper<? super Record, TmsAttribute> TMS_ATTRIBUTE_MAPPER = r -> {
+    TmsAttribute attribute = new TmsAttribute();
+    attribute.setId(r.get(TMS_ATTRIBUTE.ID));
+    attribute.setKey(r.get(TMS_ATTRIBUTE.KEY));
+    return attribute;
   };
 }

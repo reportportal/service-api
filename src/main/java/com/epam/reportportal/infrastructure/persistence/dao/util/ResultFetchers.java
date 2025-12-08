@@ -29,6 +29,10 @@ import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMa
 import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.PATTERN_TEMPLATE_NAME_RECORD_MAPPER;
 import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.PROJECT_USER_MAPPER;
 import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.TICKET_MAPPER;
+import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.TMS_ATTRIBUTE_MAPPER;
+import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_CASE_MAPPER;
+import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_MAPPER;
+import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_PLAN_MAPPER;
 import static com.epam.reportportal.infrastructure.persistence.dao.util.RecordMappers.USER_MAPPER;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.ACTIVITY;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.FILTER_SORT;
@@ -40,6 +44,10 @@ import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.ORGAN
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.OWNED_ENTITY;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.PARAMETER;
 import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.PROJECT_ATTRIBUTE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
+import static com.epam.reportportal.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
 import static com.epam.reportportal.infrastructure.persistence.jooq.tables.JProject.PROJECT;
 import static com.epam.reportportal.infrastructure.persistence.jooq.tables.JProjectUser.PROJECT_USER;
 import static com.epam.reportportal.infrastructure.persistence.jooq.tables.JTestItem.TEST_ITEM;
@@ -66,6 +74,10 @@ import com.epam.reportportal.infrastructure.persistence.entity.pattern.PatternTe
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectAttribute;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectProfile;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
@@ -494,4 +506,59 @@ public class ResultFetchers {
     return projectProfiles;
   };
 
+  /**
+   * Fetches records from db results into list of {@link TmsTestCase} objects.
+   */
+  public static final Function<Result<? extends Record>, List<TmsTestCase>> TMS_TEST_CASE_FETCHER = rows -> {
+    Map<Long, TmsTestCase> testCases = Maps.newLinkedHashMap();
+    rows.forEach(row -> {
+      Long id = row.get(TMS_TEST_CASE.ID);
+      if (!testCases.containsKey(id)) {
+        testCases.put(id, TMS_TEST_CASE_MAPPER.map(row));
+      }
+    });
+    return new ArrayList<>(testCases.values());
+  };
+
+  /**
+   * Fetches records from db results into list of {@link TmsTestPlan} objects.
+   */
+  public static final Function<Result<? extends Record>, List<TmsTestPlan>> TMS_TEST_PLAN_FETCHER = rows -> {
+    Map<Long, TmsTestPlan> testPlans = Maps.newLinkedHashMap();
+    rows.forEach(row -> {
+      Long id = row.get(TMS_TEST_PLAN.ID);
+      if (!testPlans.containsKey(id)) {
+        testPlans.put(id, TMS_TEST_PLAN_MAPPER.map(row));
+      }
+    });
+    return new ArrayList<>(testPlans.values());
+  };
+
+  /**
+   * Fetches records from db results into list of {@link TmsTestFolder} objects.
+   */
+  public static final Function<Result<? extends Record>, List<TmsTestFolder>> TMS_TEST_FOLDER_FETCHER = rows -> {
+    Map<Long, TmsTestFolder> testFolders = Maps.newLinkedHashMap();
+    rows.forEach(row -> {
+      Long id = row.get(TMS_TEST_FOLDER.ID);
+      if (!testFolders.containsKey(id)) {
+        testFolders.put(id, TMS_TEST_FOLDER_MAPPER.map(row));
+      }
+    });
+    return new ArrayList<>(testFolders.values());
+  };
+
+  /**
+   * Fetches records from db results into list of {@link TmsAttribute} objects.
+   */
+  public static final Function<Result<? extends Record>, List<TmsAttribute>> TMS_ATTRIBUTE_FETCHER = rows -> {
+    Map<Long, TmsAttribute> attributes = Maps.newLinkedHashMap();
+    rows.forEach(row -> {
+      Long id = row.get(TMS_ATTRIBUTE.ID);
+      if (!attributes.containsKey(id)) {
+        attributes.put(id, TMS_ATTRIBUTE_MAPPER.map(row));
+      }
+    });
+    return new ArrayList<>(attributes.values());
+  };
 }

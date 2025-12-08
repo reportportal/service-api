@@ -57,6 +57,8 @@ import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Validator;
@@ -147,7 +149,35 @@ public class LogController {
   }
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  @Operation(summary = "Create log (batching operation)")
+  @Operation(summary = "Create log (batching operation)",
+      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          content = @Content(
+              mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+              schema = @Schema(type = "object"),
+              schemaProperties = {
+                  @io.swagger.v3.oas.annotations.media.SchemaProperty(
+                      name = Constants.LOG_REQUEST_JSON_PART,
+                      schema = @Schema(
+                          example = """
+                            [
+                              {
+                                "message": "error message",
+                                "level": "info",
+                                "time": "2025-12-07T13:38:00.627Z",
+                                "itemUuid": "69683781-d41f-4cac-9dd3-09e5d391d812"
+                              }
+                            ]
+                            """
+                      )
+                  )
+              },
+              encoding = @io.swagger.v3.oas.annotations.media.Encoding(
+                  name = Constants.LOG_REQUEST_JSON_PART,
+                  contentType = MediaType.APPLICATION_JSON_VALUE
+              )
+          )
+      )
+  )
   // Specific handler should be added for springfox in case of similar POST
   // request mappings
   //	@Async

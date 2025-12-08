@@ -45,6 +45,7 @@ import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.LogRepositoryCustom;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.constant.LogRepositoryConstants;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -63,12 +64,10 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.google.common.collect.Lists;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -80,7 +79,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -98,7 +96,6 @@ public class GetLogHandlerImpl implements GetLogHandler {
   public static final String EXCLUDE_PASSED_LOGS = "excludePassedLogs";
   public static final String EXCLUDE_EMPTY_STEPS = "excludeEmptySteps";
   public static final String EXCLUDE_LOG_CONTENT = "excludeLogContent";
-  public static final String INCLUDE_SEARCH_FILTER = "includeSearchFilter";
 
   private static final int NESTED_STEP_MAX_PAGE_SIZE = 300;
 
@@ -248,8 +245,9 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
     LogLocationParams locationParams = extractLogLocationParams(params);
 
-    List<PagedLogResource> loadedLogs = loadLogsErrorsOnly(parentId, locationParams,
-        resolvedFilter, pageable);
+    List<PagedLogResource> loadedLogs = hasMessageFilter(resolvedFilter)
+        ? loadFilteredLogsWithDbPaging(parentId, resolvedFilter, pageable)
+        : loadLogsErrorsOnly(parentId, locationParams, resolvedFilter, pageable);
 
     if (!locationParams.excludeLogContent() && !loadedLogs.isEmpty()) {
       enrichLogsWithContent(loadedLogs, projectDetails.getProjectId());
@@ -288,56 +286,111 @@ public class GetLogHandlerImpl implements GetLogHandler {
     return PagedResourcesAssembler.<PagedLogResource>pageConverter().apply(page);
   }
 
+  private List<PagedLogResource> loadFilteredLogsWithDbPaging(Long parentId,
+      Queryable queryable, Pageable pageable) {
+
+    TestItem parentItem = getValidatedTestItem(parentId);
+    Launch launch = testItemService.getEffectiveLaunch(parentItem);
+
+    Filter filterWithPath = new Filter(queryable.getTarget().getClazz(),
+        new ArrayList<>(queryable.getFilterConditions()));
+    filterWithPath.getFilterConditions().add(getParentPathCondition(parentItem));
+    filterWithPath.getFilterConditions().add(getLaunchCondition(launch.getId()));
+
+    List<LogRepositoryCustom.LogPageEntry> pagedIds = logRepository
+        .findLogIdsWithPage(filterWithPath, pageable);
+
+    return pagedIds.stream()
+        .filter(entry -> entry.logLevel() >= LogLevel.ERROR_INT)
+        .map(entry -> buildPagedLogResource(entry.id(),
+            List.of(Map.entry(entry.id(), entry.pageNumber()))))
+        .toList();
+  }
+
   private List<PagedLogResource> loadLogsErrorsOnly(Long parentId,
       LogLocationParams params, Queryable queryable, Pageable pageable) {
 
     Predicate<NestedItemPage> inclusionFilter = item ->
-        item.getType().equals(LogRepositoryConstants.ITEM)
+        LogRepositoryConstants.ITEM.equals(item.getType())
             || item.getLogLevel() >= LogLevel.ERROR_INT;
 
+    NestedProcessContext context = new NestedProcessContext(inclusionFilter,
+        params.excludeEmptySteps(), params.excludePassedLogs(), queryable, pageable);
+
     List<PagedLogResource> results = new ArrayList<>();
-    processNestedItems(parentId, results, Collections.emptyList(), params.excludeEmptySteps(),
-        params.excludePassedLogs(), queryable, pageable, inclusionFilter);
+    processNestedItems(parentId, results, Collections.emptyList(), context);
     return results;
   }
 
   private void processNestedItems(Long parentId, List<PagedLogResource> results,
-      List<Map.Entry<Long, Integer>> pagesLocation, boolean excludeEmptySteps,
-      boolean excludePassedLogs, Queryable queryable, Pageable pageable,
-      Predicate<NestedItemPage> inclusionFilter) {
+      List<Map.Entry<Long, Integer>> pagesLocation, NestedProcessContext context) {
 
     final TestItem parentItem = getValidatedTestItem(parentId);
 
-    if (isLogsExclusionRequired(parentItem, excludePassedLogs)) {
+    if (isLogsExclusionRequired(parentItem, context.excludePassedLogs())) {
       return;
     }
 
-    logRepository.findNestedItemsWithPage(parentId, excludeEmptySteps,
-            isLogsExclusionRequired(parentItem, excludePassedLogs), queryable, pageable)
-        .stream()
-        .filter(inclusionFilter)
-        .forEach(nestedItem -> processNestedItem(nestedItem, results, pagesLocation,
-            excludeEmptySteps, excludePassedLogs, queryable, pageable, inclusionFilter));
+    logRepository.findNestedItemsWithPage(parentId, context.excludeEmptySteps(),
+            isLogsExclusionRequired(parentItem, context.excludePassedLogs()), context.queryable(),
+            context.pageable())
+        .forEach(nestedItem -> processNestedItem(nestedItem, results, pagesLocation, context));
   }
 
   private void processNestedItem(NestedItemPage nestedItem, List<PagedLogResource> results,
-      List<Map.Entry<Long, Integer>> pagesLocation, boolean excludeEmptySteps,
-      boolean excludePassedLogs, Queryable queryable, Pageable pageable,
-      Predicate<NestedItemPage> inclusionFilter) {
+      List<Map.Entry<Long, Integer>> pagesLocation, NestedProcessContext context) {
 
-    List<Map.Entry<Long, Integer>> itemLocation = new ArrayList<>(pagesLocation);
-    itemLocation.add(new AbstractMap.SimpleEntry<>(nestedItem.getId(), nestedItem.getPageNumber()));
-
-    if (nestedItem.getType().equals(LogRepositoryConstants.ITEM)) {
-      processNestedItems(nestedItem.getId(), results, itemLocation, excludeEmptySteps,
-          excludePassedLogs, queryable,
-          PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, pageable.getSort()), inclusionFilter);
-    } else {
-      PagedLogResource pagedLogResource = new PagedLogResource();
-      pagedLogResource.setId(nestedItem.getId());
-      pagedLogResource.setPagesLocation(itemLocation);
-      results.add(pagedLogResource);
+    if (!context.inclusionFilter().test(nestedItem)) {
+      return;
     }
+
+    if (LogRepositoryConstants.ITEM.equals(nestedItem.getType())) {
+      handleNestedStep(nestedItem, results, pagesLocation, context);
+      return;
+    }
+
+    handleLogItem(nestedItem, results, pagesLocation);
+  }
+
+  private void handleNestedStep(NestedItemPage nestedItem, List<PagedLogResource> results,
+      List<Map.Entry<Long, Integer>> pagesLocation, NestedProcessContext context) {
+
+    List<Map.Entry<Long, Integer>> updatedLocation = new ArrayList<>(pagesLocation);
+    updatedLocation.add(Map.entry(nestedItem.getId(), nestedItem.getPageNumber()));
+
+    NestedProcessContext childContext = context.withPageable(
+        PageRequest.of(1, NESTED_STEP_MAX_PAGE_SIZE, context.pageable().getSort()));
+
+    processNestedItems(nestedItem.getId(), results, updatedLocation, childContext);
+  }
+
+  private void handleLogItem(NestedItemPage nestedItem, List<PagedLogResource> results,
+      List<Map.Entry<Long, Integer>> pagesLocation) {
+
+    List<Map.Entry<Long, Integer>> updatedLocation = new ArrayList<>(pagesLocation);
+
+    updatedLocation.add(Map.entry(nestedItem.getId(), nestedItem.getPageNumber()));
+    results.add(buildPagedLogResource(nestedItem.getId(), updatedLocation));
+  }
+
+  private PagedLogResource buildPagedLogResource(Long logId,
+      List<Map.Entry<Long, Integer>> pagesLocation) {
+    PagedLogResource pagedLogResource = new PagedLogResource();
+    pagedLogResource.setId(logId);
+    pagedLogResource.setPagesLocation(pagesLocation);
+    return pagedLogResource;
+  }
+
+  private boolean hasMessageFilter(Queryable queryable) {
+    return queryable.getFilterConditions()
+        .stream()
+        .flatMap(condition -> condition.getAllConditions().stream())
+        .anyMatch(this::isMessageCondition);
+  }
+
+  private boolean isMessageCondition(ConvertibleCondition condition) {
+    return condition instanceof FilterCondition filterCondition
+        && CRITERIA_LOG_MESSAGE.equalsIgnoreCase(filterCondition.getSearchCriteria());
   }
 
   private Queryable removeMessageFilters(Queryable queryable) {
@@ -351,6 +404,23 @@ public class GetLogHandlerImpl implements GetLogHandler {
   private boolean shouldKeepCondition(ConvertibleCondition condition) {
     return !(condition instanceof FilterCondition filterCondition
         && CRITERIA_LOG_MESSAGE.equalsIgnoreCase(filterCondition.getSearchCriteria()));
+  }
+
+  private record NestedProcessContext(Predicate<NestedItemPage> inclusionFilter,
+                                      boolean excludeEmptySteps,
+                                      boolean excludePassedLogs,
+                                      Queryable queryable,
+                                      Pageable pageable) {
+
+    NestedProcessContext withPageable(Pageable newPageable) {
+      return new NestedProcessContext(
+          inclusionFilter,
+          excludeEmptySteps,
+          excludePassedLogs,
+          queryable,
+          newPageable
+      );
+    }
   }
 
   /**

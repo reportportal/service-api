@@ -31,6 +31,7 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * RabbitMQ listener that creates default log types when a new project is created. Listens to project creation Activity
@@ -39,10 +40,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class ProjectLogTypesInitializer {
 
   private static final String QUEUE_PROJECT_CREATED = "project.created";
-  private static final String ROUTING_KEY_PROJECT_CREATED = "activity.*.PROJECT.createProject";
+  private static final String ROUTING_KEY_PROJECT_CREATED = "activity.PROJECT.createProject";
 
   private final DefaultLogTypeProvider defaultLogTypeProvider;
   private final LogTypeRepository logTypeRepository;

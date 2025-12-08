@@ -411,7 +411,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
     User modifyingUser = userRepository.findByLogin(normalizeId(name))
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
-    expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+    
+    // Check if user is already assigned (case-insensitive comparison)
+    boolean isAlreadyAssigned = assignedUsernames.stream()
+        .anyMatch(assignedUser -> assignedUser.equalsIgnoreCase(name));
+    expect(isAlreadyAssigned, equalTo(false)).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
         formattedSupplier("User '{}' cannot be assigned to project twice.", name)
     );
 

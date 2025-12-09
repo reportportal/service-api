@@ -19,22 +19,30 @@ package com.epam.reportportal.core.integration.plugin.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.core.plugin.PluginInfo;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.infrastructure.persistence.filesystem.DataStore;
-import com.epam.reportportal.plugin.DetailPluginDescriptor;
 import com.epam.reportportal.infrastructure.persistence.util.FeatureFlagHandler;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.plugin.DetailPluginDescriptor;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginRuntimeException;
@@ -116,5 +124,54 @@ class PluginLoaderTest {
   @Test
   void retrieveIntegrationTypeTest() {
     pluginLoader.resolvePluginDetails(pluginInfo);
+  }
+
+  @Test
+  void shouldThrowReportPortalExceptionForRelativePathTraversal(@TempDir Path tempDir) {
+    // given
+    Path pluginPath = tempDir.resolve("mocked.jar");
+    Path resourcesTargetPath = tempDir.resolve("resources");
+    JarEntry maliciousEntry = mockJarEntry("resources/../../malicious.txt");
+
+    try (var ignored = Mockito.mockConstruction(JarFile.class, (mock, context) -> {
+      when(mock.stream()).thenReturn(Stream.of(maliciousEntry));
+    })) {
+
+      // when + then
+      ReportPortalException exception = assertThrows(ReportPortalException.class,
+          () -> pluginLoader.copyPluginResource(pluginPath, resourcesTargetPath)
+      );
+
+      assertEquals(ErrorType.PLUGIN_UPLOAD_ERROR, exception.getErrorType());
+      assertTrue(exception.getMessage().contains("Invalid archive entry"));
+    }
+  }
+
+  @Test
+  void shouldThrowReportPortalExceptionForAbsolutePathTraversal(@TempDir Path tempDir) {
+    // given
+    Path pluginPath = tempDir.resolve("mocked.jar");
+    Path resourcesTargetPath = tempDir.resolve("resources");
+    JarEntry maliciousEntry = mockJarEntry("resources//etc/passwd");
+
+    try (var ignored = Mockito.mockConstruction(JarFile.class, (mock, context) -> {
+      when(mock.stream()).thenReturn(Stream.of(maliciousEntry));
+    })) {
+
+      // when + then
+      ReportPortalException exception = assertThrows(ReportPortalException.class,
+          () -> pluginLoader.copyPluginResource(pluginPath, resourcesTargetPath)
+      );
+
+      assertEquals(ErrorType.PLUGIN_UPLOAD_ERROR, exception.getErrorType());
+      assertTrue(exception.getMessage().contains("Invalid archive entry"));
+    }
+  }
+
+  private JarEntry mockJarEntry(String name) {
+    JarEntry entry = mock(JarEntry.class);
+    when(entry.getName()).thenReturn(name);
+    when(entry.isDirectory()).thenReturn(false);
+    return entry;
   }
 }

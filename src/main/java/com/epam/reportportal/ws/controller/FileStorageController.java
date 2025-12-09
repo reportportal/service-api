@@ -155,8 +155,8 @@ public class FileStorageController {
     if (binaryData.getInputStream() != null) {
       response.setContentType(binaryData.getContentType());
       if (binaryData.getFileName() != null) {
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + binaryData.getFileName() + "\"");
+        response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + sanitizeFileName(binaryData.getFileName()) + "\"");
       }
       try (InputStream inputStream = binaryData.getInputStream()) {
         IOUtils.copy(inputStream, response.getOutputStream());
@@ -186,7 +186,7 @@ public class FileStorageController {
         .ifPresent(headers::setContentType);
 
     Optional.ofNullable(binaryData.getFileName())
-        .map(n -> ContentDisposition.builder("inline").filename(n).build())
+        .map(n -> ContentDisposition.builder("inline").filename(sanitizeFileName(n)).build())
         .ifPresent(headers::setContentDisposition);
 
     var fileLength = binaryData.getLength();
@@ -230,7 +230,8 @@ public class FileStorageController {
           .build();
     }
 
-    headers.set(HttpHeaders.CONTENT_RANGE, "bytes " + rangeStart + "-" + rangeEnd + "/" + fileLength);
+    headers.set(HttpHeaders.CONTENT_RANGE,
+        "bytes " + rangeStart + "-" + rangeEnd + "/" + fileLength);
     headers.setContentLength(rangeEnd - rangeStart + 1);
 
     StreamingResponseBody responseBody = outputStream -> {
@@ -254,4 +255,9 @@ public class FileStorageController {
       return null;
     }
   }
+
+  private String sanitizeFileName(String fileName) {
+    return fileName.replaceAll("[\n\r]+", " ");
+  }
+
 }

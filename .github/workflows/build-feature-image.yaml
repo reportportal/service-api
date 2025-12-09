@@ -49,4 +49,5 @@ jobs:
       branch: ${{ github.head_ref != '' && github.head_ref || github.ref_name }}
       date: ${{ needs.variables-setup.outputs.date }}
       runs-on: ubuntu-latest
+      drill-send-build-info: true
     secrets: inherit

@@ -66,14 +66,16 @@ dependencies {
         implementation 'com.github.reportportal:commons:a844127'
         implementation 'com.github.reportportal:commons-dao:f5b6a2'
         implementation('com.epam.reportportal:plugin-api:5.14.1') {
-            exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
+            exclude group: 'com.epam.reportportal', module: 'commons-dao'
+            exclude group: 'com.epam.reportportal', module: 'commons'
         }
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:a844127'
         implementation 'com.github.reportportal:commons-dao:f5b6a2'
         implementation('com.epam.reportportal:plugin-api:5.14.1') {
-            exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
+            exclude group: 'com.epam.reportportal', module: 'commons-dao'
+            exclude group: 'com.epam.reportportal', module: 'commons'
         }
     }
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'

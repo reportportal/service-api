@@ -71,7 +71,7 @@ dependencies {
     } else {
         println("Using snapshot dependencies")
         implementation 'com.github.reportportal:commons:2d72f91'
-        implementation 'com.github.reportportal:commons-dao:c564583'
+        implementation 'com.github.reportportal:commons-dao:9dfee22'
         implementation('com.github.reportportal:plugin-api:e029728') {
             exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
         }

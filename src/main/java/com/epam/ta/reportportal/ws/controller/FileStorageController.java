@@ -21,22 +21,22 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_
 import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 
 import com.epam.reportportal.model.ValidationConstraints;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.DeleteFilesHandler;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -133,26 +133,30 @@ public class FileStorageController {
     return deleteFilesHandler.removeFilesByCsv(file);
   }
 
-	/**
-	 * Copies data from provided {@link InputStream} to Response
-	 *
-	 * @param response   Response
-	 * @param binaryData Stored data
-	 */
-	private void toResponse(HttpServletResponse response, BinaryData binaryData) {
-		if (binaryData.getInputStream() != null) {
-			response.setContentType(binaryData.getContentType());
-			if (binaryData.getFileName() != null) {
-				response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-						"attachment; filename=\"" + binaryData.getFileName() + "\"");
-			}
-			try (InputStream inputStream = binaryData.getInputStream()) {
-				IOUtils.copy(inputStream, response.getOutputStream());
-			} catch (IOException e) {
-				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
-			}
-		} else {
-			response.setStatus(HttpStatus.NO_CONTENT.value());
-		}
-	}
+  /**
+   * Copies data from provided {@link InputStream} to Response
+   *
+   * @param response   Response
+   * @param binaryData Stored data
+   */
+  private void toResponse(HttpServletResponse response, BinaryData binaryData) {
+    if (binaryData.getInputStream() != null) {
+      response.setContentType(binaryData.getContentType());
+      if (binaryData.getFileName() != null) {
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + sanitizeFileName(binaryData.getFileName()) + "\"");
+      }
+      try (InputStream inputStream = binaryData.getInputStream()) {
+        IOUtils.copy(inputStream, response.getOutputStream());
+      } catch (IOException e) {
+        throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
+      }
+    } else {
+      response.setStatus(HttpStatus.NO_CONTENT.value());
+    }
+  }
+
+  private String sanitizeFileName(String fileName) {
+    return fileName.replaceAll("[\n\r]+", " ");
+  }
 }

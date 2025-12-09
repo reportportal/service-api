@@ -1,12 +1,10 @@
 package com.epam.reportportal.core.tms.controller.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -29,6 +27,7 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.infrastructure.persistence.dao.ItemAttributeRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
@@ -72,6 +71,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   private TestItemRepository testItemRepository;
   @Autowired
   private TmsAttachmentRepository attachmentRepository;
+  @Autowired
+  private ItemAttributeRepository itemAttributeRepository;
   @PersistenceContext
   private EntityManager entityManager;
 
@@ -102,6 +103,12 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Manual Launch Full"))
+        .andExpect(jsonPath("$.description").value("Full manual launch with all fields"))
+        .andExpect(jsonPath("$.owner").exists())
+        .andExpect(jsonPath("$.owner.id").exists())
+        .andExpect(jsonPath("$.type").exists())
+        .andExpect(jsonPath("$.testPlan").exists())
+        .andExpect(jsonPath("$.testPlan.id").value(6L))
         .andExpect(jsonPath("$.mode").value("DEFAULT"))
         .andExpect(jsonPath("$.status").exists())
         .andReturn();
@@ -116,7 +123,187 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     assertTrue(launch.isPresent());
     assertEquals(LaunchTypeEnum.MANUAL, launch.get().getLaunchType());
     assertEquals("Manual Launch Full", launch.get().getName());
+    assertEquals("Full manual launch with all fields", launch.get().getDescription());
     assertThat(launch.get().getAttributes()).hasSize(2);
+  }
+
+  @Test
+  void createManualLaunch_WithTestPlanBatchMode_ShouldAddAllTestCasesFromPlan() throws Exception {
+    // Given - test plan 1 has test cases: 4, 5, 6, 13, 14, 15, 16 (based on test data)
+    var launchRQ = TmsManualLaunchRQ.builder()
+        .name("Launch with Test Plan Batch")
+        .testPlanId(1L) // Test Plan 1 from test data
+        .build();
+
+    // When
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(launchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Launch with Test Plan Batch"))
+        .andExpect(jsonPath("$.testPlan.id").value(1L))
+        .andExpect(jsonPath("$.executionStatistic").exists())
+        .andExpect(jsonPath("$.executionStatistic.total").exists())
+        .andExpect(jsonPath("$.executionStatistic.toRun").exists())
+        .andReturn();
+
+    var response = mapper.readValue(
+        result.getResponse().getContentAsString(),
+        TmsManualLaunchRS.class
+    );
+
+    // Then - verify ALL test case executions from test plan were created in batch mode
+    entityManager.clear();
+    var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
+    assertThat(executions).hasSizeGreaterThan(3); // Test Plan 1 has multiple test cases
+
+    // Verify that all test cases from the test plan are included
+    var testCaseIds = executions.stream()
+        .map(exec -> exec.getTestCaseId())
+        .toList();
+
+    assertThat(testCaseIds).contains(4L, 5L, 6L, 13L, 14L, 15L, 16L);
+  }
+
+  @Test
+  void createManualLaunch_WithSpecificTestCasesBatchMode_ShouldAddOnlySpecifiedTestCases() throws Exception {
+    // Given - specify particular test cases along with test plan
+    var launchRQ = TmsManualLaunchRQ.builder()
+        .name("Launch with Specific Test Cases Batch")
+        .testPlanId(1L)
+        .testCaseIds(List.of(4L, 5L)) // Only these specific cases, not all from test plan
+        .build();
+
+    // When
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(launchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Launch with Specific Test Cases Batch"))
+        .andExpect(jsonPath("$.testPlan.id").value(1L))
+        .andExpect(jsonPath("$.executionStatistic").exists())
+        .andExpect(jsonPath("$.executionStatistic.total").value(2))
+        .andExpect(jsonPath("$.executionStatistic.toRun").value(2))
+        .andReturn();
+
+    var response = mapper.readValue(
+        result.getResponse().getContentAsString(),
+        TmsManualLaunchRS.class
+    );
+
+    // Then - verify ONLY specified test case executions were created
+    entityManager.clear();
+    var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
+    assertThat(executions).hasSize(2);
+    assertThat(executions).extracting("testCaseId")
+        .containsExactlyInAnyOrder(4L, 5L);
+  }
+
+  @Test
+  void createManualLaunch_WithTestCaseAttributes_ShouldMapToItemAttributes() throws Exception {
+    // Given - test case 4 has attribute with key="test4" (attribute_id=4, from test data)
+    var launchRQ = TmsManualLaunchRQ.builder()
+        .name("Launch for Attribute Mapping Test")
+        .testPlanId(6L)
+        .testCaseIds(List.of(4L)) // Test case 4 has attributes
+        .build();
+
+    // When
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(launchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var response = mapper.readValue(
+        result.getResponse().getContentAsString(),
+        TmsManualLaunchRS.class
+    );
+
+    // Then - verify test case attributes are mapped to item attributes
+    entityManager.clear();
+
+    // Get the test item created for this test case
+    var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
+    assertThat(executions).hasSize(1);
+
+    var testItem = executions.getFirst().getTestItem();
+    assertThat(testItem).isNotNull();
+
+    // Find item attributes for this test item
+    var itemAttributes = itemAttributeRepository.findAllByTestItem(testItem);
+
+    // Verify mapping: testCaseAttribute.key -> ItemAttribute(key="tag", value=testCaseAttribute.key)
+    assertThat(itemAttributes).isNotEmpty();
+
+    var tagAttributes = itemAttributes
+        .stream()
+        .filter(attr -> "tag".equals(attr.getKey()))
+        .toList();
+
+    assertThat(tagAttributes).isNotEmpty();
+
+    // Test case 4 has attribute with key "test4", so there should be ItemAttribute(key="tag", value="test4")
+    assertThat(tagAttributes)
+        .anySatisfy(attr -> {
+          assertEquals("tag", attr.getKey());
+          assertEquals("test4", attr.getValue());
+          assertEquals(false, attr.isSystem());
+        });
+  }
+
+  @Test
+  void createManualLaunch_WithMultipleTestCaseAttributes_ShouldMapAllAttributes() throws Exception {
+    // Given - test case 37 has multiple attributes (test1, test2 from test data)
+    var launchRQ = TmsManualLaunchRQ.builder()
+        .name("Launch for Multiple Attributes Test")
+        .testPlanId(6L)
+        .testCaseIds(List.of(37L)) // Test case 37 has multiple attributes
+        .build();
+
+    // When
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(launchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var response = mapper.readValue(
+        result.getResponse().getContentAsString(),
+        TmsManualLaunchRS.class
+    );
+
+    // Then - verify all test case attributes are mapped correctly
+    entityManager.clear();
+
+    var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
+    var testItem = executions.get(0).getTestItem();
+    var itemAttributes = itemAttributeRepository.findAllByTestItem(testItem);
+
+    var tagAttributes = itemAttributes.stream()
+        .filter(attr -> "tag".equals(attr.getKey()))
+        .toList();
+
+    // Test case 37 has attributes with keys "test1" and "test2"
+    assertThat(tagAttributes).hasSize(2);
+    assertThat(tagAttributes)
+        .extracting("value")
+        .containsExactlyInAnyOrder("test1", "test2");
+
+    // Verify all are non-system attributes
+    assertThat(tagAttributes)
+        .allSatisfy(attr -> {
+          assertEquals("tag", attr.getKey());
+          assertEquals(false, attr.isSystem());
+        });
   }
 
   @Test
@@ -173,18 +360,21 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getManualLaunches_ShouldReturnOnlyManualLaunches() throws Exception {
-    // When/Then
+    // When/Then - Updated to check all required fields
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content").isNotEmpty());
+        .andExpect(jsonPath("$.content").isNotEmpty())
+        .andExpect(jsonPath("$.content[0].description").exists())
+        .andExpect(jsonPath("$.content[0].owner").exists())
+        .andExpect(jsonPath("$.content[0].owner.email").exists());
   }
 
   @Test
   void getManualLaunches_WithPagination_ShouldReturnCorrectPage() throws Exception {
-    // When/Then
+    // When/Then - Updated to check all required fields
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .param("offset", "0")
@@ -192,7 +382,9 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.size").value(2))
-        .andExpect(jsonPath("$.page.number").value(1));
+        .andExpect(jsonPath("$.page.number").value(1))
+        .andExpect(jsonPath("$.content[*].description").exists())
+        .andExpect(jsonPath("$.content[*].owner").exists());
   }
 
   @Test
@@ -231,17 +423,71 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   // ==================== GET MANUAL LAUNCH BY ID ====================
 
   @Test
-  void getManualLaunchById_ShouldReturnLaunch() throws Exception {
-    // When/Then
+  void getManualLaunchById_ShouldReturnLaunchWithAllFields() throws Exception {
+    // When/Then - Updated to check all required fields including description, owner, type, testPlan
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(200))
         .andExpect(jsonPath("$.name").exists())
+        .andExpect(jsonPath("$.description").exists()) // UPDATED: Check description field
+        .andExpect(jsonPath("$.owner").exists()) // UPDATED: Check owner field
+        .andExpect(jsonPath("$.owner.id").exists())
+        .andExpect(jsonPath("$.owner.email").exists())
+        .andExpect(jsonPath("$.type").exists()) // UPDATED: Check type field
+        .andExpect(jsonPath("$.testPlan").exists()) // UPDATED: Check testPlan field
+        .andExpect(jsonPath("$.testPlan.id").exists())
+        .andExpect(jsonPath("$.testPlan.name").exists())
         .andExpect(jsonPath("$.startTime").exists())
         .andExpect(jsonPath("$.status").exists())
         .andExpect(jsonPath("$.executionStatistic").exists());
+  }
+
+  @Test
+  void getManualLaunchById_ShouldValidateDescriptionContent() throws Exception {
+    // When/Then - Verify that description field contains actual content
+    var result = mockMvc.perform(
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var response = mapper.readValue(
+        result.getResponse().getContentAsString(),
+        TmsManualLaunchRS.class
+    );
+
+    // Validate that required fields are not null and contain meaningful data
+    assertThat(response.getDescription()).isNotNull();
+    assertThat(response.getOwner()).isNotNull();
+    assertThat(response.getOwner().getEmail()).isNotNull();
+    assertThat(response.getType()).isNotNull();
+    assertThat(response.getTestPlan()).isNotNull();
+    assertThat(response.getTestPlan().getId()).isNotNull();
+  }
+
+  @Test
+  void getManualLaunchById_ShouldReturnCorrectOwnerInformation() throws Exception {
+    // When/Then - Specific test for owner field validation
+    mockMvc.perform(
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.owner.id").exists())
+        .andExpect(jsonPath("$.owner.email").isString())
+        .andExpect(jsonPath("$.owner.email").isNotEmpty());
+  }
+
+  @Test
+  void getManualLaunchById_ShouldReturnCorrectTestPlanInformation() throws Exception {
+    // When/Then - Specific test for testPlan field validation
+    mockMvc.perform(
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.testPlan.id").isNumber())
+        .andExpect(jsonPath("$.testPlan.name").isString());
   }
 
   @Test
@@ -346,7 +592,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isNotFound());
   }
 
-
   @Test
   void deleteManualLaunch_NonExistent_ShouldReturnNotFound() throws Exception {
     // When/Then
@@ -385,10 +630,10 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   void addTestCaseToLaunch_DuplicateTestCase_ShouldNotAllowMultipleExecutions() throws Exception {
     // Given
     var addTestCaseRQ = AddTestCaseToLaunchRQ.builder()
-        .testCaseId(4L) // Already exists in launch 200
+        .testCaseId(4L) // Test case 4 already exists in launch 200
         .build();
 
-    // When
+    // When/Then
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case")
                 .contentType(APPLICATION_JSON)
@@ -1208,3 +1453,4 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     );
   }
 }
+

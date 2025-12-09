@@ -17,6 +17,8 @@
 package com.epam.reportportal.infrastructure.persistence.dao;
 
 import com.epam.reportportal.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -33,4 +35,6 @@ public interface ItemAttributeRepository extends ReportPortalRepository<ItemAttr
   int deleteAllByKeyAndSystem(String key, boolean isSystem);
 
   int deleteAllByLaunchIdAndSystem(Long launchId, boolean isSystem);
+
+  List<ItemAttribute> findAllByTestItem(TestItem testItem);
 }

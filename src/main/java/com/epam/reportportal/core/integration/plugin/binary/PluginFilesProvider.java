@@ -25,7 +25,9 @@ import jakarta.activation.FileTypeMap;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -49,19 +51,53 @@ public class PluginFilesProvider {
     this.integrationTypeRepository = integrationTypeRepository;
   }
 
+  /**
+   * Loads a plugin's file as binary data by name and filename.
+   *
+   * @param pluginName the name of the plugin
+   * @param fileName   the name of the file to load
+   * @return BinaryData representation of the file
+   */
   public BinaryData load(String pluginName, String fileName) {
     final IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
-    final File file = Paths.get(baseDirectory, integrationType.getName(), folderQualifier, fileName)
-        .toFile();
+    validateFileName(fileName);
+
+    final Path basePath = Paths.get(baseDirectory, integrationType.getName(), folderQualifier)
+        .toAbsolutePath().normalize();
+    final File file = getFile(fileName, basePath);
+
+    return getBinaryData(file);
+  }
+
+  private File getFile(String fileName, Path basePath) {
+    final Path filePath = basePath.resolve(fileName).normalize();
+
+    if (!filePath.startsWith(basePath)) {
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
+          "Invalid file path: " + fileName);
+    }
+
+    final File file = filePath.toFile();
 
     if (!file.exists() || file.isDirectory()) {
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileName);
     }
+    return file;
+  }
 
-    return getBinaryData(file);
+  private void validateFileName(String fileName) {
+    if (Objects.isNull(fileName) || fileName.isBlank()) {
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
+          "File name cannot be null or blank");
+    }
 
+    if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")
+        || fileName.startsWith("/") || fileName.matches("^[a-zA-Z]:.*")) {
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
+          "Invalid or unsafe file name: " + fileName);
+    }
   }
 
   private BinaryData getBinaryData(File file) {

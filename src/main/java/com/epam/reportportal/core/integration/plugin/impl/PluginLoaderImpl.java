@@ -34,7 +34,6 @@ import com.epam.reportportal.infrastructure.rules.exception.ReportPortalExceptio
 import com.epam.reportportal.plugin.DetailPluginDescriptor;
 import com.epam.reportportal.ws.converter.builders.IntegrationTypeBuilder;
 import jakarta.validation.constraints.NotNull;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -182,12 +181,41 @@ public class PluginLoaderImpl implements PluginLoader {
 
   private void copyResources(JarFile jarFile, JarEntry entry, Path destination) throws IOException {
     String fileName = StringUtils.substringAfter(entry.getName(), "resources/");
+    validateZipEntry(fileName, destination);
+
+    Path targetPath = destination.resolve(fileName).normalize();
+    Path destinationPath = destination.toAbsolutePath().normalize();
+
+    if (!targetPath.startsWith(destinationPath)) {
+      throw new IOException(
+          "Zip Slip detected: Entry is outside of the target directory: " + fileName);
+    }
+
     if (!entry.isDirectory()) {
       try (InputStream entryInputStream = jarFile.getInputStream(entry)) {
-        FileUtils.copyToFile(entryInputStream, new File(destination.toFile(), fileName));
+        Files.createDirectories(targetPath.getParent());
+        FileUtils.copyToFile(entryInputStream, targetPath.toFile());
       }
     } else {
-      Files.createDirectories(Paths.get(destination.toString(), fileName));
+      Files.createDirectories(targetPath);
+    }
+  }
+
+  /**
+   * Validates a zip entry file name to prevent Zip Slip vulnerability. Ensures the resolved path
+   * stays within the destination directory.
+   *
+   * @param fileName    the file name from the zip entry
+   * @param destination the destination directory
+   * @throws IOException if the file name is invalid or attempts path traversal
+   */
+  private void validateZipEntry(String fileName, Path destination) throws IOException {
+    Path destinationPath = destination.toAbsolutePath().normalize();
+    Path targetPath = destinationPath.resolve(fileName).normalize();
+
+    if (!targetPath.startsWith(destinationPath)) {
+      throw new IOException(
+          "Invalid archive entry: Entry is outside of the target directory: " + fileName);
     }
   }
 

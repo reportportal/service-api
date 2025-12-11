@@ -1,6 +1,5 @@
 package com.epam.reportportal.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -50,12 +49,4 @@ public class TmsStep implements Serializable {
       inverseJoinColumns = @JoinColumn(name = "attachment_id"))
   @ToString.Exclude
   private Set<TmsAttachment> attachments;
-
-  @ManyToMany
-  @JoinTable(
-      name = "tms_step_execution",
-      joinColumns = @JoinColumn(name = "tms_step_id"),
-      inverseJoinColumns = @JoinColumn(name = "test_item_id"))
-  @ToString.Exclude
-  private Set<TestItem> testItems;
 }

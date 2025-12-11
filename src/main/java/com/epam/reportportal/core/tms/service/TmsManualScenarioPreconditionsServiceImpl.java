@@ -202,7 +202,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
 
     duplicatedScenario.setPreconditions(savedDuplicatedPreconditions);
 
-    log.info("Duplicated preconditions from manual scenario: {} to: {} with new ID: {}",
+    log.debug("Duplicated preconditions from manual scenario: {} to: {} with new ID: {}",
         originalScenario.getId(), duplicatedScenario.getId(),
         savedDuplicatedPreconditions.getId());
   }

@@ -267,13 +267,12 @@ public abstract class TmsTestFolderMapper {
    * @return The duplicated folder entity
    */
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "name", expression = "java(sourceFolder.getName() + \" copy\")")
+  @Mapping(target = "name", ignore = true)
   @Mapping(target = "description", source = "sourceFolder.description")
   @Mapping(target = "parentTestFolder", source = "targetParent")
   @Mapping(target = "project", source = "sourceFolder.project")
   @Mapping(target = "subFolders", ignore = true)
   @Mapping(target = "testCases", ignore = true)
-  @Mapping(target = "testItems", ignore = true)
   public abstract TmsTestFolder duplicateTestFolder(
       TmsTestFolder sourceFolder,
       TmsTestFolder targetParent

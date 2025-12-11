@@ -1,6 +1,5 @@
 package com.epam.reportportal.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,18 +7,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 @Entity
 @Table(name = "tms_test_folder", schema = "public")
@@ -52,12 +47,4 @@ public class TmsTestFolder implements Serializable {
 
   @OneToMany(mappedBy = "parentTestFolder")
   private List<TmsTestFolder> subFolders;
-
-  @ManyToMany
-  @JoinTable(
-      name = "tms_test_folder_test_item",
-      joinColumns = @JoinColumn(name = "test_folder_id"),
-      inverseJoinColumns = @JoinColumn(name = "test_item_id"))
-  @ToString.Exclude
-  private Set<TestItem> testItems;
 }

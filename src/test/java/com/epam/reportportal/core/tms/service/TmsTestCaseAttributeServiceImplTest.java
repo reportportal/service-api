@@ -7,13 +7,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
+import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseAttribute;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseAttributeId;
-import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
-import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
-import com.epam.reportportal.core.tms.mapper.TmsTestCaseAttributeMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -177,6 +177,7 @@ class TmsTestCaseAttributeServiceImplTest {
   @Test
   void updateTestCaseAttributes_ShouldDeleteOldAndCreateNewAttributes() {
     // Given
+    Set<TmsTestCaseAttribute> initialAttributes = new HashSet<>(existingAttributes);
     when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributeRQs)).thenReturn(
         testCaseAttributes);
 
@@ -184,40 +185,93 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.updateTestCaseAttributes(testCase, attributeRQs);
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCase.getId());
+    // Verify that deleteAll was called with the existing attributes
+    ArgumentCaptor<Collection<TmsTestCaseAttribute>> deleteCaptor = ArgumentCaptor.forClass(
+        Collection.class);
+    verify(tmsTestCaseAttributeRepository).deleteAll(deleteCaptor.capture());
+
+    Collection<TmsTestCaseAttribute> deletedAttributes = deleteCaptor.getValue();
+    assertEquals(initialAttributes.size(), deletedAttributes.size());
+    assertTrue(deletedAttributes.containsAll(initialAttributes));
+
+    // Verify that new attributes were created
     verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(attributeRQs);
     verify(tmsTestCaseAttributeRepository).saveAll(testCaseAttributes);
 
-    // Assert the final state
+    // Assert the final state - collection should be cleared and new attributes set
     assertEquals(testCaseAttributes, testCase.getAttributes());
   }
 
   @Test
   void updateTestCaseAttributes_WithNullAttributes_ShouldOnlyDeleteOldAttributes() {
+    // Given
+    Set<TmsTestCaseAttribute> initialAttributes = new HashSet<>(existingAttributes);
+
     // When
     sut.updateTestCaseAttributes(testCase, null);
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCase.getId());
+    // Verify that deleteAll was called with existing attributes
+    ArgumentCaptor<Collection<TmsTestCaseAttribute>> deleteCaptor = ArgumentCaptor.forClass(
+        Collection.class);
+    verify(tmsTestCaseAttributeRepository).deleteAll(deleteCaptor.capture());
+
+    Collection<TmsTestCaseAttribute> deletedAttributes = deleteCaptor.getValue();
+    assertEquals(initialAttributes.size(), deletedAttributes.size());
+    assertTrue(deletedAttributes.containsAll(initialAttributes));
+
+    // Verify that mapper was not called since attributes is null
     verifyNoInteractions(tmsTestCaseAttributeMapper);
 
-    // Assert that the test case's tags are unchanged from the initial state
-    // since createTestCaseAttributes with null will return early
-    assertEquals(existingAttributes, testCase.getAttributes());
+    // Assert that the test case's attributes collection is empty
+    assertTrue(testCase.getAttributes().isEmpty());
   }
 
   @Test
   void updateTestCaseAttributes_WithEmptyAttributes_ShouldOnlyDeleteOldAttributes() {
+    // Given
+    Set<TmsTestCaseAttribute> initialAttributes = new HashSet<>(existingAttributes);
+
     // When
     sut.updateTestCaseAttributes(testCase, Collections.emptyList());
 
     // Then
-    verify(tmsTestCaseAttributeRepository).deleteAllByTestCaseId(testCase.getId());
+    // Verify that deleteAll was called with existing attributes
+    ArgumentCaptor<Collection<TmsTestCaseAttribute>> deleteCaptor = ArgumentCaptor.forClass(
+        Collection.class);
+    verify(tmsTestCaseAttributeRepository).deleteAll(deleteCaptor.capture());
+
+    Collection<TmsTestCaseAttribute> deletedAttributes = deleteCaptor.getValue();
+    assertEquals(initialAttributes.size(), deletedAttributes.size());
+    assertTrue(deletedAttributes.containsAll(initialAttributes));
+
+    // Verify that mapper was not called since attributes list is empty
     verifyNoInteractions(tmsTestCaseAttributeMapper);
 
-    // Assert that the test case's tags are unchanged from the initial state
-    // since createTestCaseAttributes with empty list will return early
-    assertEquals(existingAttributes, testCase.getAttributes());
+    // Assert that the test case's attributes collection is empty
+    assertTrue(testCase.getAttributes().isEmpty());
+  }
+
+  @Test
+  void updateTestCaseAttributes_WithEmptyInitialAttributes_ShouldOnlyCreateNewAttributes() {
+    // Given
+    testCase.setAttributes(new HashSet<>()); // No existing attributes
+    when(tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(attributeRQs)).thenReturn(
+        testCaseAttributes);
+
+    // When
+    sut.updateTestCaseAttributes(testCase, attributeRQs);
+
+    // Then
+    // Verify that deleteAll was NOT called since there were no existing attributes
+    verify(tmsTestCaseAttributeRepository, times(0)).deleteAll(Collections.emptySet());
+
+    // Verify that new attributes were created
+    verify(tmsTestCaseAttributeMapper).convertToTmsTestCaseAttributes(attributeRQs);
+    verify(tmsTestCaseAttributeRepository).saveAll(testCaseAttributes);
+
+    // Assert the final state
+    assertEquals(testCaseAttributes, testCase.getAttributes());
   }
 
   @Test
@@ -663,7 +717,7 @@ class TmsTestCaseAttributeServiceImplTest {
     when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 10L)).thenReturn(attr1TestCase2);
     when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 20L)).thenReturn(attr2TestCase2);
 
-    // Порядок важен - соответствует flatMap логике
+    // Order matters - matches flatMap logic
     List<TmsTestCaseAttribute> expectedAttributes = Arrays.asList(
         attr1TestCase1, attr2TestCase1, attr1TestCase2, attr2TestCase2);
 
@@ -769,8 +823,7 @@ class TmsTestCaseAttributeServiceImplTest {
     verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
     verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 20L);
 
-    // Используем ArgumentCaptor для проверки содержимого списка,
-    // так как порядок в Set может быть разным
+    // Use ArgumentCaptor to verify the list contents since Set order may vary
     ArgumentCaptor<List<TmsTestCaseAttribute>> captor = ArgumentCaptor.forClass(List.class);
     verify(tmsTestCaseAttributeRepository).saveAll(captor.capture());
 
@@ -786,7 +839,7 @@ class TmsTestCaseAttributeServiceImplTest {
     List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
     Collection<Long> attributeIds = Arrays.asList(10L, 20L);
 
-    // Создаем все возможные комбинации
+    // Create all possible combinations
     TmsTestCaseAttribute attr10TestCase1 = new TmsTestCaseAttribute();
     TmsTestCaseAttribute attr20TestCase1 = new TmsTestCaseAttribute();
     TmsTestCaseAttribute attr10TestCase2 = new TmsTestCaseAttribute();
@@ -801,7 +854,7 @@ class TmsTestCaseAttributeServiceImplTest {
     when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 10L)).thenReturn(attr10TestCase3);
     when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 20L)).thenReturn(attr20TestCase3);
 
-    // Ожидаемый порядок согласно flatMap логике
+    // Expected order according to flatMap logic
     List<TmsTestCaseAttribute> expectedAttributes = Arrays.asList(
         attr10TestCase1, attr20TestCase1,
         attr10TestCase2, attr20TestCase2,

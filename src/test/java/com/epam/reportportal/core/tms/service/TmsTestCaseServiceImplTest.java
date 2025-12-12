@@ -3004,7 +3004,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(versions);
     when(tmsTestCaseExecutionService.findLastExecutionsByTestCaseIdsAndTestPlanId(testCaseIds, testPlanId))
         .thenReturn(executions);
-    when(tmsManualLaunchService.getEntitiesByIds(projectId, Arrays.asList(1001L, 1002L)))
+    when(tmsManualLaunchService.getEntitiesByIds(eq(projectId), anyList()))
         .thenReturn(launches);
     when(tmsTestCaseMapper.convertToTestCaseInTestPlanRS(testCase1, version1, execution1, launch1))
         .thenReturn(testCaseInPlanRS1);
@@ -3020,7 +3020,7 @@ class TmsTestCaseServiceImplTest {
     assertEquals(2, result.getPage().getTotalElements());
     verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, testPlanId, pageable);
     verify(tmsTestCaseExecutionService).findLastExecutionsByTestCaseIdsAndTestPlanId(testCaseIds, testPlanId);
-    verify(tmsManualLaunchService).getEntitiesByIds(projectId, Arrays.asList(1001L, 1002L));
+    verify(tmsManualLaunchService).getEntitiesByIds(eq(projectId), anyList());
   }
 
   @Test

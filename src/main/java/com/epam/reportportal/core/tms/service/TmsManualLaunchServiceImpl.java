@@ -39,8 +39,10 @@ import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,16 +75,22 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final DeleteLaunchHandler deleteLaunchHandler;
   private final TestFolderItemServiceImpl testFolderItemService;
   private final TmsStepExecutionService tmsStepExecutionService;
-  private final TmsTestCaseService tmsTestCaseService;
   private final GetUserHandler getUserHandler;
   private final TmsTestPlanService tmsTestPlanService;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
+  private TmsTestCaseService tmsTestCaseService;
 
   @Autowired
   public void setTmsTestCaseExecutionService(
       TmsTestCaseExecutionService tmsTestCaseExecutionService) {
     this.tmsTestCaseExecutionService = tmsTestCaseExecutionService;
+  }
+
+  @Autowired
+  public void setTmsTestCaseService(
+      TmsTestCaseService tmsTestCaseService) {
+    this.tmsTestCaseService = tmsTestCaseService;
   }
 
   @Override
@@ -562,6 +570,19 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     tmsTestCaseExecutionService.deleteTestCaseExecutionComment(projectId, launchId,
         executionId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Long, Launch> getEntitiesByIds(Long projectId, List<Long> launchIds) {
+    return launchRepository
+        .findAllById(launchIds)
+        .stream()
+        .collect(
+            Collectors.toMap(
+                Launch::getId, Function.identity()
+            )
+        );
   }
 
   /**

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
@@ -107,6 +108,9 @@ class TmsTestCaseServiceImplTest {
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
 
   @Mock
+  private TmsManualLaunchService tmsManualLaunchService;
+
+  @Mock
   private HttpServletResponse response;
 
   @InjectMocks
@@ -135,6 +139,8 @@ class TmsTestCaseServiceImplTest {
   private TmsTestCaseVersion version2;
   private TmsTestCaseExecution execution1;
   private TmsTestCaseExecution execution2;
+  private Launch launch1;
+  private Launch launch2;
   private TmsTestCaseInTestPlanRS testCaseInPlanRS1;
   private TmsTestCaseInTestPlanRS testCaseInPlanRS2;
   private Pageable pageable;
@@ -225,10 +231,20 @@ class TmsTestCaseServiceImplTest {
     execution1 = new TmsTestCaseExecution();
     execution1.setId(101L);
     execution1.setTestCaseId(testCaseId1);
+    execution1.setLaunchId(1001L);
 
     execution2 = new TmsTestCaseExecution();
     execution2.setId(102L);
     execution2.setTestCaseId(testCaseId2);
+    execution2.setLaunchId(1002L);
+
+    launch1 = new Launch();
+    launch1.setId(1001L);
+    launch1.setName("Launch 1");
+
+    launch2 = new Launch();
+    launch2.setId(1002L);
+    launch2.setName("Launch 2");
 
     testCaseInPlanRS1 = TmsTestCaseInTestPlanRS.builder()
         .id(testCaseId1)
@@ -242,6 +258,7 @@ class TmsTestCaseServiceImplTest {
 
     sut.setTmsTestFolderService(tmsTestFolderService);
     sut.setTmsTestCaseExecutionService(tmsTestCaseExecutionService);
+    sut.setTmsManualLaunchService(tmsManualLaunchService);
   }
 
   @Test
@@ -2977,6 +2994,7 @@ class TmsTestCaseServiceImplTest {
     var testCases = Arrays.asList(testCase1, testCase2);
     var versions = Map.of(testCaseId1, version1, testCaseId2, version2);
     var executions = Map.of(testCaseId1, execution1, testCaseId2, execution2);
+    var launches = Map.of(1001L, launch1, 1002L, launch2);
 
     when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, testPlanId, pageable))
         .thenReturn(testCaseIdsPage);
@@ -2986,9 +3004,11 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(versions);
     when(tmsTestCaseExecutionService.findLastExecutionsByTestCaseIdsAndTestPlanId(testCaseIds, testPlanId))
         .thenReturn(executions);
-    when(tmsTestCaseMapper.convertToTestCaseInTestPlanRS(testCase1, version1, execution1))
+    when(tmsManualLaunchService.getEntitiesByIds(projectId, Arrays.asList(1001L, 1002L)))
+        .thenReturn(launches);
+    when(tmsTestCaseMapper.convertToTestCaseInTestPlanRS(testCase1, version1, execution1, launch1))
         .thenReturn(testCaseInPlanRS1);
-    when(tmsTestCaseMapper.convertToTestCaseInTestPlanRS(testCase2, version2, execution2))
+    when(tmsTestCaseMapper.convertToTestCaseInTestPlanRS(testCase2, version2, execution2, launch2))
         .thenReturn(testCaseInPlanRS2);
 
     // When
@@ -3000,6 +3020,7 @@ class TmsTestCaseServiceImplTest {
     assertEquals(2, result.getPage().getTotalElements());
     verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, testPlanId, pageable);
     verify(tmsTestCaseExecutionService).findLastExecutionsByTestCaseIdsAndTestPlanId(testCaseIds, testPlanId);
+    verify(tmsManualLaunchService).getEntitiesByIds(projectId, Arrays.asList(1001L, 1002L));
   }
 
   @Test
@@ -3019,13 +3040,24 @@ class TmsTestCaseServiceImplTest {
     assertEquals(0, result.getPage().getTotalElements());
     verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, testPlanId, pageable);
     verifyNoInteractions(tmsTestCaseExecutionService);
+    verifyNoInteractions(tmsManualLaunchService);
   }
 
   @Test
   void getTestCaseInTestPlan_WithValidIds_ShouldReturnTestCaseWithAllExecutions() {
     // Given
-    var allExecutions = Arrays.asList(execution1, execution2);
+    var execution3 = new TmsTestCaseExecution();
+    execution3.setId(103L);
+    execution3.setTestCaseId(testCaseId1);
+    execution3.setLaunchId(1003L);
+
+    var launch3 = new Launch();
+    launch3.setId(1003L);
+    launch3.setName("Launch 3");
+
+    var allExecutions = Arrays.asList(execution1, execution2, execution3);
     var testCaseIdsInPlan = List.of(testCaseId1);
+    var launches = Map.of(1001L, launch1, 1002L, launch2, 1003L, launch3);
 
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId1))
         .thenReturn(Optional.of(testCase1));
@@ -3035,7 +3067,9 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(version1);
     when(tmsTestCaseExecutionService.findByTestCaseIdAndTestPlanId(testCaseId1, testPlanId))
         .thenReturn(allExecutions);
-    when(tmsTestCaseMapper.convertToTestCaseInTestPlanRS(testCase1, version1, execution1, allExecutions))
+    when(tmsManualLaunchService.getEntitiesByIds(projectId, Arrays.asList(1001L, 1002L, 1003L)))
+        .thenReturn(launches);
+    when(tmsTestCaseMapper.convertToTestCaseInTestPlanRS(testCase1, version1, execution1, allExecutions, launches))
         .thenReturn(testCaseInPlanRS1);
 
     // When
@@ -3046,7 +3080,8 @@ class TmsTestCaseServiceImplTest {
     assertEquals(testCaseInPlanRS1, result);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId1);
     verify(tmsTestCaseExecutionService).findByTestCaseIdAndTestPlanId(testCaseId1, testPlanId);
-    verify(tmsTestCaseMapper).convertToTestCaseInTestPlanRS(testCase1, version1, execution1, allExecutions);
+    verify(tmsManualLaunchService).getEntitiesByIds(projectId, Arrays.asList(1001L, 1002L, 1003L));
+    verify(tmsTestCaseMapper).convertToTestCaseInTestPlanRS(testCase1, version1, execution1, allExecutions, launches);
   }
 
   @Test

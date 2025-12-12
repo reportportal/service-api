@@ -23,6 +23,9 @@ import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUti
 import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.WIDGET_OPTIONS;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.WidgetCreatedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.WidgetDeletedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.WidgetUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -82,10 +85,10 @@ class WidgetEventsTest {
     final boolean shared = true;
     final String description = "description";
 
-    final Activity actual =
-        new WidgetCreatedEvent(getWidget(name, shared, description, 2, getBeforeContentFields()),
-            1L, "user", 1L
-        ).toActivity();
+    WidgetCreatedEvent event = new WidgetCreatedEvent(getWidget(name, shared, description, 2,
+        getBeforeContentFields()), 1L, "user", 1L);
+    WidgetCreatedEventConverter converter = new WidgetCreatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.CREATE, name);
     expected.setEventName("createWidget");
     checkActivity(expected, actual);
@@ -126,10 +129,10 @@ class WidgetEventsTest {
     final boolean shared = true;
     final String description = "description";
 
-    final Activity actual =
-        new WidgetDeletedEvent(getWidget(name, shared, description, 3, getBeforeContentFields()),
-            1L, "user", 1L
-        ).toActivity();
+    WidgetDeletedEvent event = new WidgetDeletedEvent(getWidget(name, shared, description, 3,
+        getBeforeContentFields()), 1L, "user", 1L);
+    WidgetDeletedEventConverter converter = new WidgetDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.DELETE, name);
     expected.setEventName("deleteWidget");
     checkActivity(expected, actual);
@@ -144,11 +147,12 @@ class WidgetEventsTest {
     final boolean newShared = true;
     final String newDescription = "newDescription";
 
-    final Activity actual = new WidgetUpdatedEvent(
+    WidgetUpdatedEvent event = new WidgetUpdatedEvent(
         getWidget(oldName, oldShared, oldDescription, 2, getBeforeContentFields()),
         getWidget(newName, newShared, newDescription, 4, getAfterContentFields()),
-        getBeforeOptions(), getAfterOptions(), 1L, "user", 1L
-    ).toActivity();
+        getBeforeOptions(), getAfterOptions(), 1L, "user", 1L);
+    WidgetUpdatedEventConverter converter = new WidgetUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
     expected.getDetails().setHistory(
         getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldShared, newShared),

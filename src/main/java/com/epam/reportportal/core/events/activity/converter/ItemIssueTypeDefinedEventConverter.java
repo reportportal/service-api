@@ -35,7 +35,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for ItemIssueTypeDefinedEvent to Activity.
+ * Converter for ItemIssueTypeDefinedEvent to Activity. System events are persisted with APPLICATION
+ * subject type.
  */
 @Component
 public class ItemIssueTypeDefinedEventConverter implements
@@ -43,11 +44,10 @@ public class ItemIssueTypeDefinedEventConverter implements
 
   @Override
   public Activity convert(ItemIssueTypeDefinedEvent event) {
-    boolean isAutoAnalyzed = event.isAutoAnalyzed();
     return new ActivityBuilder()
         .addCreatedNow()
         .addAction(EventAction.ANALYZE)
-        .addEventName(isAutoAnalyzed
+        .addEventName(event.isSystemEvent()
             ? ActivityAction.ANALYZE_ITEM.getValue()
             : ActivityAction.UPDATE_ITEM.getValue())
         .addPriority(EventPriority.LOW)
@@ -56,9 +56,9 @@ public class ItemIssueTypeDefinedEventConverter implements
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(event.getAfter().getProjectId())
         .addOrganizationId(event.getOrganizationId())
-        .addSubjectId(isAutoAnalyzed ? null : event.getUserId())
-        .addSubjectName(isAutoAnalyzed ? "analyzer" : event.getUserLogin())
-        .addSubjectType(isAutoAnalyzed ? EventSubject.APPLICATION : EventSubject.USER)
+        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectName(event.getUserLogin())
+        .addSubjectType(event.isSystemEvent() ? EventSubject.APPLICATION : EventSubject.USER)
         .addHistoryField(processIssueDescription(event.getBefore().getIssueDescription(),
             event.getAfter().getIssueDescription()))
         .addHistoryField(processIssueTypes(event.getBefore().getIssueTypeLongName(),

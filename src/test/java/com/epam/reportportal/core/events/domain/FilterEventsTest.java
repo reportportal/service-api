@@ -20,6 +20,9 @@ import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUti
 import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.FilterCreatedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.FilterDeletedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.FilterUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -60,9 +63,10 @@ class FilterEventsTest {
   @Test
   void created() {
     final String name = "name";
-    final Activity actual =
-        new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L, "user",
-            1L).toActivity();
+    FilterCreatedEvent event = new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L,
+        "user", 1L);
+    FilterCreatedEventConverter converter = new FilterCreatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.CREATE, name);
     checkActivity(expected, actual);
   }
@@ -70,9 +74,10 @@ class FilterEventsTest {
   @Test
   void deleted() {
     final String name = "name";
-    final Activity actual =
-        new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L, "user",
-            1L).toActivity();
+    FilterDeletedEvent event = new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L,
+        "user", 1L);
+    FilterDeletedEventConverter converter = new FilterDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.DELETE, name);
     checkActivity(expected, actual);
   }
@@ -95,10 +100,10 @@ class FilterEventsTest {
     final String newName = "newName";
     final boolean newShared = true;
     final String newDescription = "newDescription";
-    final Activity actual =
-        new FilterUpdatedEvent(getUserFilter(oldName, oldShared, oldDescription),
-            getUserFilter(newName, newShared, newDescription), 1L, "user", 1L
-        ).toActivity();
+    FilterUpdatedEvent event = new FilterUpdatedEvent(getUserFilter(oldName, oldShared,
+        oldDescription), getUserFilter(newName, newShared, newDescription), 1L, "user", 1L);
+    FilterUpdatedEventConverter converter = new FilterUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
     expected.getDetails().setHistory(
         getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldShared, newShared),

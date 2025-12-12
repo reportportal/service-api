@@ -21,8 +21,6 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,20 +29,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.core.analyzer.auto.client.model.SuggestInfo;
+import com.epam.reportportal.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.issue.DefineIssueRQ;
 import com.epam.reportportal.model.issue.IssueDefinition;
 import com.epam.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.reportportal.model.item.UnlinkExternalIssueRQ;
 import com.epam.reportportal.model.item.UpdateTestItemRQ;
-import com.epam.reportportal.ws.BaseMvcTest;
 import com.epam.reportportal.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.reporting.FinishTestItemRQ;
 import com.epam.reportportal.reporting.Issue;
@@ -52,6 +50,7 @@ import com.epam.reportportal.reporting.ItemAttributeResource;
 import com.epam.reportportal.reporting.ParameterResource;
 import com.epam.reportportal.reporting.StartTestItemRQ;
 import com.epam.reportportal.reporting.UpdateItemAttributeRQ;
+import com.epam.reportportal.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -63,8 +62,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
 
 /**
@@ -81,6 +80,9 @@ class TestItemControllerTest extends BaseMvcTest {
 
   @Autowired
   private LaunchRepository launchRepository;
+
+  @Autowired
+  private ApplicationEvents applicationEvents;
 
   @Test
   void startRootItemPositive() throws Exception {
@@ -671,7 +673,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
 
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(2, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-passed.sql")
@@ -701,7 +705,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
 
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(2, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-passed.sql")
@@ -727,7 +733,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
 
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(2, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-passed.sql")
@@ -790,7 +798,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.PASSED, launch.getStatus());
 
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(2, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-failed.sql")
@@ -820,7 +830,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
 
-    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(1, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-skipped.sql")
@@ -850,7 +862,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
 
-    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(1, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-skipped.sql")
@@ -876,7 +890,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.PASSED, launch.getStatus());
 
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(2, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-interrupted.sql")
@@ -902,7 +918,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.PASSED, launch.getStatus());
 
-    verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(2, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-interrupted.sql")
@@ -932,7 +950,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
 
-    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(1, events.size());
   }
 
   @Sql("/db/test-item/item-change-status-from-interrupted.sql")
@@ -962,7 +982,9 @@ class TestItemControllerTest extends BaseMvcTest {
     Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
     assertEquals(StatusEnum.FAILED, launch.getStatus());
 
-    verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
+    List<TestItemStatusChangedEvent> events = applicationEvents.stream(
+        TestItemStatusChangedEvent.class).toList();
+    assertEquals(1, events.size());
   }
 
   @Test

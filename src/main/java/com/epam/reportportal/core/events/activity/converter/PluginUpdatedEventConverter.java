@@ -31,28 +31,34 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSub
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for PluginUpdatedEvent to Activity.
+ * Converter for PluginUpdatedEvent to Activity. System events (plugin reload) are not persisted to
+ * activity log.
  */
 @Component
 public class PluginUpdatedEventConverter implements EventToActivityConverter<PluginUpdatedEvent> {
 
   @Override
   public Activity convert(PluginUpdatedEvent event) {
-    return new ActivityBuilder()
+    ActivityBuilder builder = new ActivityBuilder()
         .addCreatedNow()
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_PLUGIN.getValue())
         .addPriority(EventPriority.MEDIUM)
         .addObjectId(event.getAfter().getId())
         .addObjectName(event.getAfter().getName())
-        .addObjectType(EventObject.PLUGIN)
-        .addSubjectId(event.getUserId())
-        .addSubjectName(event.getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addHistoryField(processName(event.getBefore().getName(), event.getAfter().getName()))
-        .addHistoryField(
-            processBoolean(ENABLED, event.getBefore().isEnabled(), event.getAfter().isEnabled()))
-        .get();
+        .addObjectType(EventObject.PLUGIN);
+
+    if (event.isSystemEvent()) {
+      builder.notSavedEvent();
+    } else {
+      builder.addSubjectId(event.getUserId());
+      builder.addSubjectName(event.getUserLogin());
+      builder.addSubjectType(EventSubject.USER);
+      builder.addHistoryField(processName(event.getBefore().getName(), event.getAfter().getName()));
+      builder.addHistoryField(
+          processBoolean(ENABLED, event.getBefore().isEnabled(), event.getAfter().isEnabled()));
+    }
+    return builder.get();
   }
 
   @Override

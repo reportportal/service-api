@@ -20,6 +20,9 @@ import static com.epam.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.IntegrationCreatedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.IntegrationDeletedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.IntegrationUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -69,16 +72,20 @@ class IntegrationEventsTest {
 
   @Test
   void created() {
-    final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L, "user",
-        1L).toActivity();
+    IntegrationCreatedEvent event = new IntegrationCreatedEvent(getIntegration(), 1L, "user",
+        1L);
+    IntegrationCreatedEventConverter converter = new IntegrationCreatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.CREATE);
     checkActivity(expected, actual);
   }
 
   @Test
   void deleted() {
-    final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L, "user",
-        1L).toActivity();
+    IntegrationDeletedEvent event = new IntegrationDeletedEvent(getIntegration(), 1L, "user",
+        1L);
+    IntegrationDeletedEventConverter converter = new IntegrationDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.DELETE);
     checkActivity(expected, actual);
   }
@@ -95,8 +102,10 @@ class IntegrationEventsTest {
 
   @Test
   void updated() {
-    final Activity actual = new IntegrationUpdatedEvent(1L, "user", getIntegration(),
-        getIntegration(), 1L).toActivity();
+    IntegrationUpdatedEvent event = new IntegrationUpdatedEvent(1L, "user", getIntegration(),
+        getIntegration(), 1L);
+    IntegrationUpdatedEventConverter converter = new IntegrationUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE);
     checkActivity(expected, actual);
   }

@@ -18,6 +18,7 @@
 
 package com.epam.reportportal.core.project.settings.notification;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,8 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.core.events.ActivityEvent;
-import com.epam.reportportal.core.events.MessageBus;
+import com.epam.reportportal.core.events.activity.converter.NotificationRuleDeletedEventConverter;
 import com.epam.reportportal.core.events.domain.NotificationRuleDeletedEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.SenderCaseRepository;
@@ -45,6 +45,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
@@ -53,15 +54,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DeleteProjectNotificationHandlerImplTest {
 
   private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
-  private final MessageBus messageBus = mock(MessageBus.class);
+  private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
   private final ProjectConverter projectConverter = new ProjectConverter();
 
   private final DeleteProjectNotificationHandlerImpl service = new DeleteProjectNotificationHandlerImpl(
-      senderCaseRepository, messageBus,
+      senderCaseRepository, eventPublisher,
       projectConverter);
 
   @Captor
-  private ArgumentCaptor<ActivityEvent> activityCaptor;
+  private ArgumentCaptor<NotificationRuleDeletedEvent> activityCaptor;
 
   private Project project;
   private ReportPortalUser rpUser;
@@ -104,7 +105,7 @@ class DeleteProjectNotificationHandlerImplTest {
     // given
     DeleteProjectNotificationHandlerImpl serviceReal = new DeleteProjectNotificationHandlerImpl(
         senderCaseRepository,
-        messageBus, projectConverter);
+        eventPublisher, projectConverter);
 
     long ruleId = 55L;
     Project project = new Project();
@@ -139,10 +140,11 @@ class DeleteProjectNotificationHandlerImplTest {
     serviceReal.deleteNotification(project, ruleId, user);
 
     // then
-    verify(messageBus).publishActivity(activityCaptor.capture());
+    verify(eventPublisher).publishEvent(activityCaptor.capture());
     var activityCaptorValue = activityCaptor.getValue();
     assertInstanceOf(NotificationRuleDeletedEvent.class, activityCaptorValue);
-    var activity = activityCaptorValue.toActivity();
+    NotificationRuleDeletedEventConverter converter = new NotificationRuleDeletedEventConverter();
+    var activity = converter.convert((NotificationRuleDeletedEvent) activityCaptorValue);
     assertEquals("deleteNotificationRule", activity.getEventName());
     assertEquals(project.getId(), activity.getProjectId());
   }

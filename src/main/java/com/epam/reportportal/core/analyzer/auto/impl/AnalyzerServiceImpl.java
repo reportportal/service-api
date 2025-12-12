@@ -201,11 +201,9 @@ public class AnalyzerServiceImpl implements AnalyzerService {
               new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo,
                   project.getOrganizationId()));
           ofNullable(after.getTickets()).ifPresent(
-              it -> eventPublisher.publishEvent(new LinkTicketEvent(before,
-                  after,
-                  analyzerInstance,
-                  true, project.getOrganizationId()
-              )));
+              it -> eventPublisher.publishEvent(
+                  new LinkTicketEvent(before, after, analyzerInstance,
+                      project.getOrganizationId())));
         }
       });
       return toUpdate;

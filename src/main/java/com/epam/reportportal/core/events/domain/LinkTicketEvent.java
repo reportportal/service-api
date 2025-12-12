@@ -22,6 +22,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Event published when a ticket is linked to a test item issue. Use {@link #isSystemEvent()} to
+ * distinguish between user-initiated links and analyzer-initiated links.
+ *
  * @author Andrei Varabyeu
  */
 @Setter
@@ -29,23 +32,35 @@ import lombok.Setter;
 @NoArgsConstructor
 public class LinkTicketEvent extends AbstractEvent<TestItemActivityResource> {
 
-  private boolean isLinkedByAnalyzer;
-
+  /**
+   * Constructor for user-initiated ticket link.
+   *
+   * @param before         Test item state before linking
+   * @param after          Test item state after linking
+   * @param userId         User ID who linked the ticket
+   * @param userLogin      User login who linked the ticket
+   * @param organizationId Organization ID
+   */
   public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after,
-      Long userId, String userLogin,
-      boolean isLinkedByAnalyzer, Long organizationId) {
+      Long userId, String userLogin, Long organizationId) {
     super(userId, userLogin, before, after);
-    this.isLinkedByAnalyzer = isLinkedByAnalyzer;
     this.organizationId = organizationId;
   }
 
+  /**
+   * Constructor for analyzer-initiated ticket link.
+   *
+   * @param before         Test item state before linking
+   * @param after          Test item state after linking
+   * @param analyzerName   Name of the analyzer that linked the ticket (e.g., "auto-analyzer")
+   * @param organizationId Organization ID
+   */
   public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after,
-      String userLogin,
-      boolean isLinkedByAnalyzer, Long organizationId) {
+      String analyzerName, Long organizationId) {
     super();
+    this.userLogin = analyzerName;
     this.before = before;
     this.after = after;
-    this.isLinkedByAnalyzer = isLinkedByAnalyzer;
     this.organizationId = organizationId;
   }
 }

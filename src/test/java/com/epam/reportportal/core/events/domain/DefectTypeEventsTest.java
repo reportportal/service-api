@@ -18,6 +18,9 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.DefectTypeCreatedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.DefectTypeDeletedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.DefectTypeUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -53,16 +56,18 @@ class DefectTypeEventsTest {
 
   @Test
   void created() {
-    final Activity actual = new DefectTypeCreatedEvent(getIssueType(), 1L, "user", 3L,
-        1L).toActivity();
+    DefectTypeCreatedEvent event = new DefectTypeCreatedEvent(getIssueType(), 1L, "user", 3L, 1L);
+    DefectTypeCreatedEventConverter converter = new DefectTypeCreatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.CREATE, "test long name");
     checkActivity(expected, actual);
   }
 
   @Test
   void deleted() {
-    final Activity actual = new DefectTypeDeletedEvent(getIssueType(), 1L, "user", 3L,
-        1L).toActivity();
+    DefectTypeDeletedEvent event = new DefectTypeDeletedEvent(getIssueType(), 1L, "user", 3L, 1L);
+    DefectTypeDeletedEventConverter converter = new DefectTypeDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.DELETE, "test long name");
     expected.setPriority(EventPriority.MEDIUM);
     checkActivity(expected, actual);
@@ -77,8 +82,9 @@ class DefectTypeEventsTest {
 
   @Test
   void updated() {
-    final Activity actual = new DefectTypeUpdatedEvent(getIssueType(), 1L, "user", 3L,
-        1L).toActivity();
+    DefectTypeUpdatedEvent event = new DefectTypeUpdatedEvent(getIssueType(), 1L, "user", 3L, 1L);
+    DefectTypeUpdatedEventConverter converter = new DefectTypeUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE, "test long name");
     checkActivity(expected, actual);
   }

@@ -19,6 +19,7 @@ package com.epam.reportportal.core.events.domain;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.core.events.activity.converter.OrganizationUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -89,8 +90,10 @@ class OrganizationUpdatedEventTest {
 
   @Test
   void toActivity() {
-    final Activity actual = new OrganizationUpdatedEvent(1L, "user", 2L, "Updated Organization",
-        getBefore(), getAfter()).toActivity();
+    OrganizationUpdatedEvent event = new OrganizationUpdatedEvent(1L, "user", 2L,
+        "Updated Organization", getBefore(), getAfter());
+    OrganizationUpdatedEventConverter converter = new OrganizationUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
   }
@@ -102,9 +105,10 @@ class OrganizationUpdatedEventTest {
     after.setOrganizationName(before.getOrganizationName());
     after.setOrganizationSlug(before.getOrganizationSlug());
 
-    Activity actual = new OrganizationUpdatedEvent(1L, "user", 2L, before.getOrganizationName(),
-        before, after)
-        .toActivity();
+    OrganizationUpdatedEvent event = new OrganizationUpdatedEvent(1L, "user", 2L,
+        before.getOrganizationName(), before, after);
+    OrganizationUpdatedEventConverter converter = new OrganizationUpdatedEventConverter();
+    Activity actual = converter.convert(event);
 
     var history = actual.getDetails().getHistory();
     assertTrue(history.stream().noneMatch(h -> h.getField().equals("organizationName")));

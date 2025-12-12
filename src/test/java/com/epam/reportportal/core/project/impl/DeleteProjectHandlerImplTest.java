@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
-import com.epam.reportportal.core.events.MessageBus;
 import com.epam.reportportal.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.core.remover.ContentRemover;
 import com.epam.reportportal.infrastructure.persistence.binary.AttachmentBinaryDataService;
@@ -56,6 +55,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -79,7 +79,7 @@ class DeleteProjectHandlerImplTest {
   private AnalyzerStatusCache analyzerStatusCache;
 
   @Mock
-  private MessageBus messageBus;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @Mock
   private IssueTypeRepository issueTypeRepository;
@@ -202,7 +202,7 @@ class DeleteProjectHandlerImplTest {
     OperationCompletionRS response = handler.deleteProjectIndex(TEST_PROJECT_KEY, "user");
 
     verify(logIndexer, times(1)).deleteIndex(projectId);
-    verify(messageBus, times(1)).publishActivity(any(ProjectIndexEvent.class));
+    verify(applicationEventPublisher).publishEvent(any(ProjectIndexEvent.class));
 
     assertEquals(response.getResultMessage(),
         "Project index with key = '" + TEST_PROJECT_KEY + "' is successfully deleted.");

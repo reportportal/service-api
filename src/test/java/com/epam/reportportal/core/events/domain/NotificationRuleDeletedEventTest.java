@@ -4,8 +4,10 @@
 
 package com.epam.reportportal.core.events.domain;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.epam.reportportal.core.events.activity.converter.NotificationRuleDeletedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
@@ -24,7 +26,8 @@ class NotificationRuleDeletedEventTest {
     // when
     NotificationRuleDeletedEvent event = new NotificationRuleDeletedEvent(resource, 100L, "user",
         200L);
-    var activity = event.toActivity();
+    NotificationRuleDeletedEventConverter converter = new NotificationRuleDeletedEventConverter();
+    var activity = converter.convert(event);
     // then
     assertNotNull(activity);
     assertEquals(EventAction.DELETE, activity.getAction());

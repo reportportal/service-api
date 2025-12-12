@@ -24,6 +24,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -31,7 +32,6 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @Transactional
+@RequiredArgsConstructor
 public class ActivityConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ActivityConsumer.class);
@@ -52,15 +53,7 @@ public class ActivityConsumer {
   private static final String ROUTING_KEY_DOMAIN_ALL = "domain.#";
 
   private final ActivityRepository activityRepository;
-  private final Map<Class<? extends AbstractEvent<?>>, EventToActivityConverter<?>> converterMap;
-
-  @Autowired
-  public ActivityConsumer(
-      ActivityRepository activityRepository,
-      Map<Class<? extends AbstractEvent<?>>, EventToActivityConverter<?>> converterMap) {
-    this.activityRepository = activityRepository;
-    this.converterMap = converterMap;
-  }
+  private final Map<Class<? extends AbstractEvent<?>>, EventToActivityConverter<? extends AbstractEvent<?>>> converterMap;
 
   @RabbitListener(
       bindings = @QueueBinding(
@@ -74,7 +67,7 @@ public class ActivityConsumer {
   }
 
   private void processEvent(AbstractEvent<?> event) {
-    EventToActivityConverter<?> converter = converterMap.get(event.getClass());
+    var converter = converterMap.get(event.getClass());
 
     if (converter == null) {
       LOGGER.debug(
@@ -91,7 +84,7 @@ public class ActivityConsumer {
 
   @SuppressWarnings("unchecked")
   private <E extends AbstractEvent<?>> Activity convertEvent(E event,
-      EventToActivityConverter<?> converter) {
+      EventToActivityConverter<? extends AbstractEvent<?>> converter) {
     return ((EventToActivityConverter<E>) converter).convert(event);
   }
 

@@ -30,18 +30,18 @@ import com.google.common.base.Strings;
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for LinkTicketEvent to Activity.
+ * Converter for LinkTicketEvent to Activity. System events are persisted with APPLICATION subject
+ * type.
  */
 @Component
 public class LinkTicketEventConverter implements EventToActivityConverter<LinkTicketEvent> {
 
   @Override
   public Activity convert(LinkTicketEvent event) {
-    boolean isLinkedByAnalyzer = event.isLinkedByAnalyzer();
     ActivityBuilder builder = new ActivityBuilder()
         .addCreatedNow()
         .addAction(EventAction.LINK)
-        .addEventName(isLinkedByAnalyzer
+        .addEventName(event.isSystemEvent()
             ? ActivityAction.LINK_ISSUE_AA.getValue()
             : ActivityAction.LINK_ISSUE.getValue())
         .addPriority(EventPriority.LOW)
@@ -50,9 +50,9 @@ public class LinkTicketEventConverter implements EventToActivityConverter<LinkTi
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(event.getAfter().getProjectId())
         .addOrganizationId(event.getOrganizationId())
-        .addSubjectId(isLinkedByAnalyzer ? null : event.getUserId())
-        .addSubjectName(isLinkedByAnalyzer ? "analyzer" : event.getUserLogin())
-        .addSubjectType(isLinkedByAnalyzer ? EventSubject.APPLICATION : EventSubject.USER);
+        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectName(event.getUserLogin())
+        .addSubjectType(event.isSystemEvent() ? EventSubject.APPLICATION : EventSubject.USER);
 
     if (event.getAfter() != null) {
       String oldValue = event.getBefore().getTickets();

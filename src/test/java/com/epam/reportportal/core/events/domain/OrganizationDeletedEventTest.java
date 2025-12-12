@@ -18,6 +18,7 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.OrganizationDeletedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -52,8 +53,10 @@ class OrganizationDeletedEventTest {
 
   @Test
   void toActivity() {
-    final Activity actual = new OrganizationDeletedEvent(1L, "user", 2L,
-        "Test Organization").toActivity();
+    OrganizationDeletedEvent event = new OrganizationDeletedEvent(1L, "user", 2L,
+        "Test Organization");
+    OrganizationDeletedEventConverter converter = new OrganizationDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
   }

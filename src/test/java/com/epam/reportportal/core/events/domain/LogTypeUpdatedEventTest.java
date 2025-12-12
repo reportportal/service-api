@@ -16,8 +16,11 @@
 
 package com.epam.reportportal.core.events.domain;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.core.events.activity.converter.LogTypeUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
@@ -38,7 +41,8 @@ class LogTypeUpdatedEventTest {
     LogTypeUpdatedEvent event = new LogTypeUpdatedEvent(before, after, 100L, "user");
 
     // when
-    var activity = event.toActivity();
+    LogTypeUpdatedEventConverter converter = new LogTypeUpdatedEventConverter();
+    var activity = converter.convert(event);
 
     // then
     assertNotNull(activity);

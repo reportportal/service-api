@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.core.events.handler.item;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -58,9 +59,9 @@ class TestItemUniqueErrorAnalysisRunnerTest {
 
     final GenerateClustersConfig config = configArgumentCaptor.getValue();
 
-    assertEquals(event.launchId(), config.getEntityContext().getLaunchId());
-    assertEquals(event.projectId(), config.getEntityContext().getProjectId());
-    assertEquals(event.itemId(), config.getEntityContext().getItemIds().get(0));
+    assertEquals(event.getLaunchId(), config.getEntityContext().getLaunchId());
+    assertEquals(event.getProjectId(), config.getEntityContext().getProjectId());
+    assertEquals(event.getItemId(), config.getEntityContext().getItemIds().get(0));
     assertTrue(config.isForUpdate());
     assertTrue(config.isCleanNumbers());
   }

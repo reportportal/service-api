@@ -16,13 +16,13 @@
 
 package com.epam.reportportal.ws;
 
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.TestConfig;
 import com.epam.reportportal.auth.OAuthHelper;
 import com.epam.reportportal.core.events.MessageBus;
 import com.epam.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.util.BinaryDataResponseWriter;
 import com.epam.reportportal.util.email.EmailService;
@@ -38,9 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -58,6 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestExecutionListeners(listeners = {
     FlywayTestExecutionListener.class}, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @Transactional
+@RecordApplicationEvents
 public abstract class BaseMvcTest {
 
   protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
@@ -110,11 +113,16 @@ public abstract class BaseMvcTest {
 
   @BeforeEach
   void beforeEach() {
-    adminToken = oAuthHelper.createAccessToken("admin@example.com", "erebus", UserRole.ADMINISTRATOR);
-    managerToken = oAuthHelper.createAccessToken("user-manager@example.com", "erebus", UserRole.USER);
-    editorToken = oAuthHelper.createAccessToken("user-member-editor@example.com", "erebus", UserRole.USER);
-    viewerToken = oAuthHelper.createAccessToken("user-member-viewer@example.com", "erebus", UserRole.USER);
-    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user@example.com", "erebus", UserRole.USER);
+    adminToken = oAuthHelper.createAccessToken("admin@example.com", "erebus",
+        UserRole.ADMINISTRATOR);
+    managerToken = oAuthHelper.createAccessToken("user-manager@example.com", "erebus",
+        UserRole.USER);
+    editorToken = oAuthHelper.createAccessToken("user-member-editor@example.com", "erebus",
+        UserRole.USER);
+    viewerToken = oAuthHelper.createAccessToken("user-member-viewer@example.com", "erebus",
+        UserRole.USER);
+    noProjectsUser = oAuthHelper.createAccessToken("no-projects-user@example.com", "erebus",
+        UserRole.USER);
     noOrgUser = oAuthHelper.createAccessToken("no-orgs-user@example.com", "erebus", UserRole.USER);
   }
 

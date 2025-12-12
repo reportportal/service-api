@@ -4,8 +4,10 @@
 
 package com.epam.reportportal.core.events.domain;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.epam.reportportal.core.events.activity.converter.NotificationRuleCreatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
@@ -25,7 +27,8 @@ class NotificationRuleCreatedEventTest {
     NotificationRuleCreatedEvent event = new NotificationRuleCreatedEvent(resource, 100L, "user",
         200L);
 
-    var activity = event.toActivity();
+    NotificationRuleCreatedEventConverter converter = new NotificationRuleCreatedEventConverter();
+    var activity = converter.convert(event);
     // then
     assertNotNull(activity);
     assertEquals(EventAction.CREATE, activity.getAction());

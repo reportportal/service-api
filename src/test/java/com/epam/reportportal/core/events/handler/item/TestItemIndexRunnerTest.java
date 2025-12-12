@@ -49,12 +49,12 @@ class TestItemIndexRunnerTest {
         .put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "false")
         .build();
 
-    final List<Long> itemIds = List.of(event.itemId());
+    final List<Long> itemIds = List.of(event.getItemId());
 
     runner.handle(event, projectConfig);
 
-    verify(logIndexer, times(1)).indexItemsLogs(eq(event.projectId()),
-        eq(event.launchId()),
+    verify(logIndexer, times(1)).indexItemsLogs(eq(event.getProjectId()),
+        eq(event.getLaunchId()),
         eq(itemIds),
         any(AnalyzerConfig.class)
     );

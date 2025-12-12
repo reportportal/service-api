@@ -20,6 +20,9 @@ import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUti
 import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.PatternCreatedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.PatternDeletedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.PatternUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -79,8 +82,10 @@ public class PatternTemplateEventsTest {
   void created() {
     final String name = "name";
 
-    final Activity actual = new PatternCreatedEvent(1L, "user",
-        getTestPatternTemplate(name, false), 1L).toActivity();
+    PatternCreatedEvent event = new PatternCreatedEvent(1L, "user",
+        getTestPatternTemplate(name, false), 1L);
+    PatternCreatedEventConverter converter = new PatternCreatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedPatternTemplateActivity(EventAction.CREATE, name);
     checkActivity(actual, expected);
   }
@@ -89,8 +94,10 @@ public class PatternTemplateEventsTest {
   void deleted() {
     final String name = "name";
 
-    final Activity actual = new PatternDeletedEvent(1L, "user",
-        getTestPatternTemplate(name, false), 1L).toActivity();
+    PatternDeletedEvent event = new PatternDeletedEvent(1L, "user",
+        getTestPatternTemplate(name, false), 1L);
+    PatternDeletedEventConverter converter = new PatternDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedPatternTemplateActivity(EventAction.DELETE, name);
     checkActivity(actual, expected);
   }
@@ -102,11 +109,11 @@ public class PatternTemplateEventsTest {
     final String newName = "newName";
     final boolean newEnabled = false;
 
-    final Activity actual = new PatternUpdatedEvent(1L,
-        "user",
+    PatternUpdatedEvent event = new PatternUpdatedEvent(1L, "user",
         getTestPatternTemplate(oldName, oldEnabled),
-        getTestPatternTemplate(newName, newEnabled), 1L
-    ).toActivity();
+        getTestPatternTemplate(newName, newEnabled), 1L);
+    PatternUpdatedEventConverter converter = new PatternUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedPatternTemplateActivity(EventAction.UPDATE, newName);
     expected.getDetails()
         .setHistory(getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldEnabled, newEnabled)));

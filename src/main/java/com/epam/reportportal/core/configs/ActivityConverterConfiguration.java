@@ -39,8 +39,8 @@ public class ActivityConverterConfiguration {
    * @return Map of event class to converter
    */
   @Bean
-  public Map<Class<? extends AbstractEvent<?>>, EventToActivityConverter<?>> activityConverterMap(
-      List<EventToActivityConverter<?>> converters) {
+  public Map<Class<? extends AbstractEvent<?>>, EventToActivityConverter<? extends AbstractEvent<?>>> activityConverterMap(
+      List<EventToActivityConverter<? extends AbstractEvent<?>>> converters) {
     return converters.stream()
         .collect(Collectors.toMap(
             EventToActivityConverter::getEventClass,

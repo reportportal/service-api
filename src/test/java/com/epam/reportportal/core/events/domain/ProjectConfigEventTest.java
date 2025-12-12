@@ -19,6 +19,8 @@ package com.epam.reportportal.core.events.domain;
 import static com.epam.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.ProjectAnalyzerConfigEventConverter;
+import com.epam.reportportal.core.events.activity.converter.ProjectUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -70,7 +72,7 @@ class ProjectConfigEventTest {
 
   @Test
   void analyzerConfigUpdate() {
-    final Activity actual = new ProjectAnalyzerConfigEvent(getProjectAttributes(
+    ProjectAnalyzerConfigEvent event = new ProjectAnalyzerConfigEvent(getProjectAttributes(
         getAnalyzerConfig(ANALYZER_MODE.getLeft(), MIN_SHOULD_MATCH.getLeft(),
             NUMBER_OF_LOG_LINES.getLeft(), AUTO_ANALYZED_ENABLED.getLeft(),
             ALL_MESSAGES_SHOULD_MATCH.getLeft()
@@ -78,7 +80,9 @@ class ProjectConfigEventTest {
         getAnalyzerConfig(ANALYZER_MODE.getRight(), MIN_SHOULD_MATCH.getRight(),
             NUMBER_OF_LOG_LINES.getRight(), AUTO_ANALYZED_ENABLED.getRight(),
             ALL_MESSAGES_SHOULD_MATCH.getRight()
-        )), 1L, "user", 1L).toActivity();
+        )), 1L, "user", 1L);
+    ProjectAnalyzerConfigEventConverter converter = new ProjectAnalyzerConfigEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE);
     expected.getDetails().setHistory(
         getAnalyzerConfigHistory(ANALYZER_MODE, MIN_SHOULD_MATCH, NUMBER_OF_LOG_LINES,
@@ -121,12 +125,14 @@ class ProjectConfigEventTest {
 
   @Test
   void projectConfigUpdate() {
-    final Activity actual = new ProjectUpdatedEvent(getProjectAttributes(
+    ProjectUpdatedEvent event = new ProjectUpdatedEvent(getProjectAttributes(
         getProjectConfig(KEEP_LOGS.getLeft(), KEEP_SCREENSHOTS.getLeft(),
             INTERRUPT_JOB_TIME.getLeft()
         )), getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(),
         INTERRUPT_JOB_TIME.getRight()
-    )), 1L, "user", 1L).toActivity();
+    )), 1L, "user", 1L);
+    ProjectUpdatedEventConverter converter = new ProjectUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE);
     expected.setPriority(EventPriority.HIGH);
     expected.getDetails()

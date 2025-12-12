@@ -91,7 +91,7 @@ class LaunchNotificationRunnerTest {
     runner.handle(event, mapping);
 
     verify(getIntegrationHandler, times(0)).getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-        event.projectId(),
+        event.getProjectId(),
         IntegrationGroupEnum.NOTIFICATION
     );
 
@@ -119,7 +119,7 @@ class LaunchNotificationRunnerTest {
     when(emailIntegration.getName()).thenReturn("email server");
 
     when(
-        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.projectId(),
+        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.getProjectId(),
             IntegrationGroupEnum.NOTIFICATION
         )).thenReturn(Optional.ofNullable(emailIntegration));
 
@@ -128,7 +128,7 @@ class LaunchNotificationRunnerTest {
         Optional.ofNullable(emailService));
 
     when(getLaunchHandler.get(event.getId())).thenReturn(launch);
-    when(getProjectHandler.get(event.projectId())).thenReturn(project);
+    when(getProjectHandler.get(event.getProjectId())).thenReturn(project);
     when(getLaunchHandler.hasItemsWithIssues(launch)).thenReturn(Boolean.TRUE);
 
     runner.handle(event, mapping);

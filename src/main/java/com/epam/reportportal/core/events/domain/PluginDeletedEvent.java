@@ -21,14 +21,34 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Event published when a plugin is deleted.
+ * Event published when a plugin is deleted by a user or unloaded by the system. Use
+ * {@link #isSystemEvent()} to distinguish between user-initiated deletes (activity audit required)
+ * and system lifecycle unloads (shutdown, reload - no audit).
  */
 @Getter
 @NoArgsConstructor
 public class PluginDeletedEvent extends AbstractEvent<PluginActivityResource> {
 
+  /**
+   * Constructor for user-initiated plugin deletion.
+   *
+   * @param pluginActivityResource Plugin information
+   * @param userId                 User ID who deleted the plugin
+   * @param userLogin              User login who deleted the plugin
+   */
   public PluginDeletedEvent(PluginActivityResource pluginActivityResource, Long userId,
       String userLogin) {
     super(userId, userLogin, pluginActivityResource, null);
+  }
+
+  /**
+   * Constructor for system-initiated plugin unload.
+   *
+   * @param pluginActivityResource Plugin information
+   */
+  public PluginDeletedEvent(PluginActivityResource pluginActivityResource) {
+    super();
+    this.before = pluginActivityResource;
+    this.after = null;
   }
 }

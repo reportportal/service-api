@@ -27,7 +27,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.core.events.MessageBus;
 import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.reportportal.core.item.impl.status.StatusChangingStrategy;
@@ -85,9 +84,6 @@ class FinishTestItemHandlerImplTest {
 
   @Mock
   private IssueEntityRepository issueEntityRepository;
-
-  @Mock
-  private MessageBus messageBus;
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
@@ -232,9 +228,10 @@ class FinishTestItemHandlerImplTest {
             finishExecutionRQ
         );
 
+    assertEquals("TestItem with ID = '1' successfully finished.",
+        operationCompletionRS.getResultMessage());
     verify(statusChangingStrategy, times(1)).changeStatus(any(), any(), any(), eq(false));
     verify(issueEntityRepository, times(1)).save(any());
-    verify(messageBus, times(1)).publishActivity(any());
     verify(eventPublisher, times(1)).publishEvent(any(IssueResolvedEvent.class));
   }
 }

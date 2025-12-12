@@ -314,7 +314,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
     before.forEach(it -> eventPublisher.publishEvent(new LinkTicketEvent(it,
         after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
-        user.getUserId(), user.getUsername(), false, membershipDetails.getOrgId()
+        user.getUserId(), user.getUsername(), membershipDetails.getOrgId()
     )));
     return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE)
         .collect(toList());

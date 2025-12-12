@@ -27,25 +27,32 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSub
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for PluginDeletedEvent to Activity.
+ * Converter for PluginDeletedEvent to Activity. System events (plugin unload on shutdown/reload)
+ * are not persisted to activity log.
  */
 @Component
 public class PluginDeletedEventConverter implements EventToActivityConverter<PluginDeletedEvent> {
 
   @Override
   public Activity convert(PluginDeletedEvent event) {
-    return new ActivityBuilder()
+    ActivityBuilder builder = new ActivityBuilder()
         .addCreatedNow()
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_PLUGIN.getValue())
         .addObjectId(event.getBefore().getId())
         .addObjectName(event.getBefore().getName())
         .addObjectType(EventObject.PLUGIN)
-        .addSubjectId(event.getUserId())
-        .addSubjectName(event.getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addPriority(EventPriority.CRITICAL)
-        .get();
+        .addPriority(EventPriority.CRITICAL);
+
+    if (event.isSystemEvent()) {
+      builder.notSavedEvent();
+    } else {
+      builder.addSubjectId(event.getUserId());
+      builder.addSubjectName(event.getUserLogin());
+      builder.addSubjectType(EventSubject.USER);
+    }
+
+    return builder.get();
   }
 
   @Override

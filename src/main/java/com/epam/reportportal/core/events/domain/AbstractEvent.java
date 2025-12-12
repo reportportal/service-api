@@ -18,7 +18,7 @@ package com.epam.reportportal.core.events.domain;
 
 import java.time.Instant;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * Abstract base for all domain events, supporting optional state snapshots and user context. Events
@@ -29,8 +29,7 @@ import lombok.NoArgsConstructor;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Getter
-@NoArgsConstructor
-public abstract class AbstractEvent<T> {
+public abstract class AbstractEvent<T> extends ApplicationEvent {
 
   protected Long userId;
   protected String userLogin;
@@ -40,7 +39,12 @@ public abstract class AbstractEvent<T> {
   protected Long projectId;
   protected Instant occurredAt = Instant.now();
 
+  protected AbstractEvent() {
+    super(new Object());
+  }
+
   protected AbstractEvent(Long userId, String userLogin) {
+    super(new Object());
     this.userId = userId;
     this.userLogin = userLogin;
     this.before = null;
@@ -48,6 +52,7 @@ public abstract class AbstractEvent<T> {
   }
 
   protected AbstractEvent(Long userId, String userLogin, T before, T after) {
+    super(new Object());
     this.userId = userId;
     this.userLogin = userLogin;
     this.before = before;

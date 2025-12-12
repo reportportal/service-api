@@ -18,6 +18,9 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.LaunchDeletedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.LaunchFinishedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.LaunchStartedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -56,7 +59,9 @@ class LaunchEventsTest {
   @Test
   void started() {
     final String name = "name";
-    final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L, "user", 1L).toActivity();
+    LaunchStartedEvent event = new LaunchStartedEvent(getLaunch(name), 1L, "user", 1L);
+    LaunchStartedEventConverter converter = new LaunchStartedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.START, EventPriority.LOW);
     checkActivity(expected, actual);
   }
@@ -69,7 +74,9 @@ class LaunchEventsTest {
     launch.setName(name);
     launch.setProjectId(3L);
     launch.setMode(LaunchModeEnum.DEFAULT);
-    final Activity actual = new LaunchFinishedEvent(launch, 1L, "user", false, 1L).toActivity();
+    LaunchFinishedEvent event = new LaunchFinishedEvent(launch, 1L, "user", 1L);
+    LaunchFinishedEventConverter converter = new LaunchFinishedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.FINISH, EventPriority.LOW);
     checkActivity(expected, actual);
   }
@@ -85,7 +92,9 @@ class LaunchEventsTest {
   @Test
   void deleted() {
     final String name = "name";
-    final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L, "user", 1L).toActivity();
+    LaunchDeletedEvent event = new LaunchDeletedEvent(getLaunch(name), 1L, "user", 1L);
+    LaunchDeletedEventConverter converter = new LaunchDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.DELETE, EventPriority.MEDIUM);
     checkActivity(expected, actual);
   }

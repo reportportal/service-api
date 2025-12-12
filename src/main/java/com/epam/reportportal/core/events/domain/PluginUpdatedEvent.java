@@ -21,14 +21,36 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Event published when a plugin is updated.
+ * Event published when a plugin is updated by a user or reloaded by the system. Use
+ * {@link #isSystemEvent()} to distinguish between user-initiated updates (activity audit required)
+ * and system lifecycle reloads (no audit).
  */
 @Getter
 @NoArgsConstructor
 public class PluginUpdatedEvent extends AbstractEvent<PluginActivityResource> {
 
+  /**
+   * Constructor for user-initiated plugin update (activity audit required).
+   *
+   * @param userId    User ID who updated the plugin
+   * @param userLogin User login who updated the plugin
+   * @param before    Plugin state before update
+   * @param after     Plugin state after update
+   */
   public PluginUpdatedEvent(Long userId, String userLogin, PluginActivityResource before,
       PluginActivityResource after) {
     super(userId, userLogin, before, after);
+  }
+
+  /**
+   * Constructor for system-initiated plugin reload (no activity audit).
+   *
+   * @param before Plugin state before reload
+   * @param after  Plugin state after reload
+   */
+  public PluginUpdatedEvent(PluginActivityResource before, PluginActivityResource after) {
+    super();
+    this.before = before;
+    this.after = after;
   }
 }

@@ -19,6 +19,7 @@ package com.epam.reportportal.core.events.domain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.epam.reportportal.core.events.activity.converter.LogTypeCreatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
@@ -49,7 +50,8 @@ class LogTypeCreatedEventTest {
     var event = new LogTypeCreatedEvent(resource, 100L, "user");
 
     // when
-    Activity activity = event.toActivity();
+    LogTypeCreatedEventConverter converter = new LogTypeCreatedEventConverter();
+    Activity activity = converter.convert(event);
 
     // then
     assertNotNull(activity);

@@ -20,6 +20,8 @@ import static com.epam.reportportal.infrastructure.persistence.commons.Predicate
 import static com.epam.reportportal.infrastructure.persistence.entity.enums.PluginTypeEnum.EXTENSION;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.core.events.domain.PluginDeletedEvent;
+import com.epam.reportportal.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.core.plugin.Plugin;
@@ -27,7 +29,6 @@ import com.epam.reportportal.core.plugin.PluginInfo;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
-import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.PluginTypeEnum;
@@ -39,6 +40,7 @@ import com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRul
 import com.epam.reportportal.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.model.activity.PluginActivityResource;
 import com.epam.reportportal.ws.converter.builders.IntegrationTypeBuilder;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -67,16 +69,14 @@ import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * {@link Pf4jPluginManager#uploadingPlugins} Holder for the plugin cleaning job:
- * {@link com.epam.reportportal.job.CleanOutdatedPluginsJob} to prevent the removing of the plugins that are still being
- * processed within the database transaction with
- * {@link com.epam.reportportal.infrastructure.persistence.entity.integration.IntegrationType} in uncommitted state
+ * {@link com.epam.reportportal.job.CleanOutdatedPluginsJob} to prevent the removing of the plugins
+ * that are still being processed within the database transaction with
+ * {@link com.epam.reportportal.infrastructure.persistence.entity.integration.IntegrationType} in
+ * uncommitted state
  */
 public class Pf4jPluginManager implements Pf4jPluginBox {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(Pf4jPluginManager.class);
-
-  public static final String LOAD_KEY = "load";
-  public static final String UNLOAD_KEY = "unload";
 
   private static final long MAXIMUM_UPLOADED_PLUGINS = 50;
   private static final long PLUGIN_LIVE_TIME = 2;
@@ -213,7 +213,9 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
       return ofNullable(pluginManager.loadPlugin(pluginPath)).map(id -> {
         if (PluginState.STARTED == pluginManager.startPlugin(pluginId)) {
           initPlugin(pluginId);
-          applicationEventPublisher.publishEvent(new PluginEvent(pluginId, LOAD_KEY));
+          applicationEventPublisher.publishEvent(
+              new PluginUploadedEvent(createPluginActivityResource(pluginId))
+          );
           return true;
         } else {
           return false;
@@ -249,7 +251,9 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   @Override
   public boolean unloadPlugin(IntegrationType integrationType) {
-    applicationEventPublisher.publishEvent(new PluginEvent(integrationType.getName(), UNLOAD_KEY));
+    applicationEventPublisher.publishEvent(
+        new PluginDeletedEvent(createPluginActivityResource(integrationType))
+    );
     destroyDependency(integrationType.getName());
     return pluginManager.unloadPlugin(integrationType.getName());
   }
@@ -265,7 +269,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     return integrationTypeRepository.findByName(pluginWrapper.getPluginId()).map(this::deletePlugin)
         .orElseGet(() -> {
           applicationEventPublisher.publishEvent(
-              new PluginEvent(pluginWrapper.getPluginId(), UNLOAD_KEY));
+              new PluginDeletedEvent(createPluginActivityResource(pluginWrapper.getPluginId()))
+          );
           deletePluginResources(Paths.get(resourcesDir, pluginWrapper.getPluginId()).toString());
           destroyDependency(pluginWrapper.getPluginId());
           return pluginManager.deletePlugin(pluginWrapper.getPluginId());
@@ -276,8 +281,6 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     Optional<Map<String, Object>> pluginData = ofNullable(integrationType.getDetails()).map(
         IntegrationTypeDetails::getDetails);
     pluginData.ifPresent(this::deletePluginResources);
-
-    applicationEventPublisher.publishEvent(new PluginEvent(integrationType.getName(), UNLOAD_KEY));
 
     boolean pluginRemoved = ofNullable(pluginManager.getPlugin(integrationType.getName())).map(
         pluginWrapper -> {
@@ -355,8 +358,6 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
                   uploadedPluginName);
               try {
                 IntegrationType newIntegrationType = startUpPlugin(newPluginDetails);
-                applicationEventPublisher.publishEvent(
-                    new PluginEvent(newIntegrationType.getName(), LOAD_KEY));
                 previousPlugin.ifPresent(this::deletePreviousPlugin);
                 deleteTempPlugin(uploadedPluginName);
                 return newIntegrationType;
@@ -383,7 +384,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   }
 
   /**
-   * Uploads the plugin file to the temp directory and extracts it's info. Presence of the plugin version is mandatory
+   * Uploads the plugin file to the temp directory and extracts it's info. Presence of the plugin
+   * version is mandatory
    *
    * @param fileName   Plugin file name to upload
    * @param fileStream {@link InputStream} of the plugin file
@@ -500,8 +502,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   }
 
   /**
-   * Validates the new plugin in the temporary plugins' directory, uploads it to the root plugins' directory and to the
-   * {@link DataStore}
+   * Validates the new plugin in the temporary plugins' directory, uploads it to the root plugins'
+   * directory and to the {@link DataStore}
    *
    * @param newPluginInfo      Resolved {@link PluginInfo} of the new plugin
    * @param uploadedPluginName Original plugin file name
@@ -532,8 +534,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   }
 
   /**
-   * Validates plugin's extension class/classes and reloads the previous plugin if it is present and the validation
-   * failed
+   * Validates plugin's extension class/classes and reloads the previous plugin if it is present and
+   * the validation failed
    *
    * @param newPluginId       Id of the new plugin
    * @param newPluginFileName New plugin file name
@@ -708,7 +710,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
    *
    * @param previousPlugin   {@link PluginWrapper} with mandatory data for plugin loading:
    *                         {@link PluginWrapper#getPluginPath()}
-   * @param newPluginDetails {@link IntegrationTypeDetails} of the plugin which uploading ended up with an error
+   * @param newPluginDetails {@link IntegrationTypeDetails} of the plugin which uploading ended up
+   *                         with an error
    * @return {@link PluginState}
    */
   private PluginState loadPreviousPlugin(PluginWrapper previousPlugin,
@@ -775,5 +778,19 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
     return PluginState.STARTED;
 
+  }
+
+  private PluginActivityResource createPluginActivityResource(IntegrationType integrationType) {
+    PluginActivityResource resource = new PluginActivityResource();
+    resource.setId(integrationType.getId());
+    resource.setName(integrationType.getName());
+    resource.setEnabled(integrationType.isEnabled());
+    return resource;
+  }
+
+  private PluginActivityResource createPluginActivityResource(String pluginId) {
+    PluginActivityResource resource = new PluginActivityResource();
+    resource.setName(pluginId);
+    return resource;
   }
 }

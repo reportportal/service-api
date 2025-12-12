@@ -23,6 +23,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Event published when an issue type is defined for a test item. Use {@link #isSystemEvent()} to
+ * distinguish between user-initiated definitions and analyzer-initiated definitions.
+ *
  * @author Andrei Varabyeu
  */
 @Setter
@@ -32,23 +35,37 @@ public class ItemIssueTypeDefinedEvent extends AbstractEvent<TestItemActivityRes
 
   private RelevantItemInfo relevantItemInfo;
 
+  /**
+   * Constructor for user-initiated issue type definition.
+   *
+   * @param before    Test item state before issue type definition
+   * @param after     Test item state after issue type definition
+   * @param userId    User ID who defined the issue type
+   * @param userLogin User login who defined the issue type
+   * @param orgId     Organization ID
+   */
   public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);
     this.organizationId = orgId;
   }
 
+  /**
+   * Constructor for analyzer-initiated issue type definition.
+   *
+   * @param before           Test item state before issue type definition
+   * @param after            Test item state after issue type definition
+   * @param analyzerName     Name of the analyzer that defined the issue type (e.g., "auto-analyzer")
+   * @param relevantItemInfo Information about the relevant item used by analyzer
+   * @param orgId            Organization ID
+   */
   public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after,
-      String userLogin,
-      RelevantItemInfo relevantItemInfo, Long orgId) {
+      String analyzerName, RelevantItemInfo relevantItemInfo, Long orgId) {
     super();
+    this.userLogin = analyzerName;
     this.before = before;
     this.after = after;
     this.relevantItemInfo = relevantItemInfo;
     this.organizationId = orgId;
-  }
-
-  public boolean isAutoAnalyzed() {
-    return getAfter() != null && getAfter().isAutoAnalyzed();
   }
 }

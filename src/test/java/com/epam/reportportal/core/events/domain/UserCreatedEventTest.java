@@ -18,6 +18,7 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.UserCreatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -59,7 +60,9 @@ class UserCreatedEventTest {
 
   @Test
   void toActivity() {
-    final Activity actual = new UserCreatedEvent(getUser(), 1L, "user", false).toActivity();
+    UserCreatedEvent event = new UserCreatedEvent(getUser(), 1L, "user");
+    UserCreatedEventConverter converter = new UserCreatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
 

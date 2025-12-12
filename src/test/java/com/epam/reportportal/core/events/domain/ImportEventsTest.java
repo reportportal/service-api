@@ -18,6 +18,7 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.ImportFinishedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -53,7 +54,9 @@ class ImportEventsTest {
 
   @Test
   void finished() {
-    final Activity actual = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME, 1L).toActivity();
+    ImportFinishedEvent event = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME, 1L);
+    ImportFinishedEventConverter converter = new ImportFinishedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.FINISH);
     checkActivity(expected, actual);
   }

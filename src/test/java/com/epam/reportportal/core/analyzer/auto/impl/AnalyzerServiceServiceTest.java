@@ -31,7 +31,6 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import com.epam.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
-import com.epam.reportportal.core.events.MessageBus;
 import com.epam.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.core.project.ProjectService;
 import com.epam.reportportal.infrastructure.model.analyzer.IndexLaunch;
@@ -59,6 +58,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author Pavel Bortnik
@@ -73,9 +73,11 @@ class AnalyzerServiceServiceTest {
 
   private LaunchRepository launchRepository = mock(LaunchRepository.class);
 
-  private DefectUpdateStatisticsService defectUpdateStatisticsService = mock(DefectUpdateStatisticsService.class);
+  private DefectUpdateStatisticsService defectUpdateStatisticsService = mock(
+      DefectUpdateStatisticsService.class);
 
-  private MessageBus messageBus = mock(MessageBus.class);
+  private ApplicationEventPublisher applicationEventPublisher = mock(
+      ApplicationEventPublisher.class);
 
   private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
@@ -84,7 +86,8 @@ class AnalyzerServiceServiceTest {
 
   private AnalyzerServiceImpl issuesAnalyzer =
       new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
-          analyzerServiceClient, issueTypeHandler, testItemRepository, messageBus, launchRepository,
+          analyzerServiceClient, issueTypeHandler, testItemRepository, applicationEventPublisher,
+          launchRepository,
           defectUpdateStatisticsService, projectService);
 
   @Test
@@ -137,7 +140,7 @@ class AnalyzerServiceServiceTest {
 
     verify(analyzerServiceClient, times(1)).analyze(any());
     verify(testItemRepository, times(itemsCount)).save(any());
-    verify(messageBus, times(4)).publishActivity(any());
+    verify(applicationEventPublisher, times(4)).publishEvent(any());
   }
 
   private AnalyzerConfig analyzerConfig() {

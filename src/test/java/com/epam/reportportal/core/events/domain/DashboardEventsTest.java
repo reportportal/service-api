@@ -20,6 +20,9 @@ import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUti
 import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.DashboardCreatedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.DashboardDeletedEventConverter;
+import com.epam.reportportal.core.events.activity.converter.DashboardUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -61,8 +64,10 @@ class DashboardEventsTest {
   void created() {
     final String name = "name";
 
-    final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"),
-        1L, "user", 1L).toActivity();
+    DashboardCreatedEvent event = new DashboardCreatedEvent(getTestDashboard(name, false,
+        "description"), 1L, "user", 1L);
+    DashboardCreatedEventConverter converter = new DashboardCreatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedDashboardActivity(EventAction.CREATE, name);
     checkActivity(expected, actual);
   }
@@ -71,8 +76,10 @@ class DashboardEventsTest {
   void deleted() {
     final String name = "name";
 
-    final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"),
-        1L, "user", 1L).toActivity();
+    DashboardDeletedEvent event = new DashboardDeletedEvent(getTestDashboard(name, false,
+        "description"), 1L, "user", 1L);
+    DashboardDeletedEventConverter converter = new DashboardDeletedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedDashboardActivity(EventAction.DELETE, name);
     checkActivity(actual, expected);
   }
@@ -96,12 +103,13 @@ class DashboardEventsTest {
     final boolean newShared = false;
     final String newDescription = "newDescription";
 
-    final Activity actual = new DashboardUpdatedEvent(
+    DashboardUpdatedEvent event = new DashboardUpdatedEvent(
         getTestDashboard(oldName, oldShared, oldDescription),
         getTestDashboard(newName, newShared, newDescription),
         1L,
-        "user", 1L
-    ).toActivity();
+        "user", 1L);
+    DashboardUpdatedEventConverter converter = new DashboardUpdatedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedDashboardActivity(EventAction.UPDATE,
         newName);
     expected.getDetails()

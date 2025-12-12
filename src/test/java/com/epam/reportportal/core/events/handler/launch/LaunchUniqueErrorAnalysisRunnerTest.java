@@ -74,7 +74,7 @@ class LaunchUniqueErrorAnalysisRunnerTest {
     final ClusterEntityContext entityContext = entityContextCaptor.getValue();
 
     assertEquals(event.getId(), entityContext.getLaunchId());
-    assertEquals(event.projectId(), entityContext.getProjectId());
+    assertEquals(event.getProjectId(), entityContext.getProjectId());
   }
 
   @Test

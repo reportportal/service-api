@@ -16,14 +16,19 @@
 
 package com.epam.reportportal.ws.rabbit;
 
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.core.events.ActivityEvent;
+import com.epam.reportportal.core.events.activity.converter.EventToActivityConverter;
+import com.epam.reportportal.core.events.domain.AbstractEvent;
+import com.epam.reportportal.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ActivityRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,56 +44,86 @@ class ActivityConsumerTest {
   @Mock
   private ActivityRepository activityRepository;
 
+  @Mock
+  private Map<Class<? extends AbstractEvent<?>>, EventToActivityConverter<? extends AbstractEvent<?>>> converterMap;
+
   @InjectMocks
   private ActivityConsumer activityConsumer;
 
-  private static class EmptyActivity implements ActivityEvent {
-
-    @Override
-    public Activity toActivity() {
-      return null;
-    }
-
-  }
-
   @Test
   void nullTest() {
-    activityConsumer.onEvent(new EmptyActivity().toActivity());
+    activityConsumer.onEvent(null);
     verifyNoInteractions(activityRepository);
-  }
-
-  private static class NotEmptyActivity implements ActivityEvent {
-
-    private final Long userId;
-    private final Long projectId;
-    private final String username;
-    private final Long objectId;
-
-    NotEmptyActivity(Long userId, Long projectId, String username, Long objectId) {
-      this.userId = userId;
-      this.projectId = projectId;
-      this.username = username;
-      this.objectId = objectId;
-    }
-
-    @Override
-    public Activity toActivity() {
-      Activity activity = new Activity();
-      activity.setSubjectId(userId);
-      activity.setProjectId(projectId);
-      activity.setSubjectName(username);
-      activity.setObjectId(objectId);
-      return activity;
-    }
-
   }
 
   @Test
   void consume() {
-    NotEmptyActivity notEmptyActivity = new NotEmptyActivity(1L, 2L, "username", 3L);
+    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
+    @SuppressWarnings("unchecked")
+    EventToActivityConverter<ProjectCreatedEvent> converter = mock(EventToActivityConverter.class);
+    Activity activity = new Activity();
+    activity.setSubjectId(1L);
+    activity.setProjectId(2L);
+    activity.setSubjectName("username");
+    activity.setObjectId(3L);
+    activity.setSavedEvent(true);
 
-    activityConsumer.onEvent(notEmptyActivity.toActivity());
+    @SuppressWarnings("rawtypes")
+    EventToActivityConverter wildcardConverter = converter;
+    when(converterMap.get(event.getClass())).thenReturn(wildcardConverter);
+    when(converter.convert(event)).thenReturn(activity);
 
-    verify(activityRepository, times(1)).save(any());
+    activityConsumer.onEvent(event);
+
+    verify(activityRepository, times(1)).save(any(Activity.class));
+  }
+
+  @Test
+  void consumeWhenNoConverter() {
+    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
+
+    when(converterMap.get(event.getClass())).thenReturn(null);
+
+    activityConsumer.onEvent(event);
+
+    verifyNoInteractions(activityRepository);
+  }
+
+  @Test
+  void consumeWhenActivityIsNull() {
+    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
+    @SuppressWarnings("unchecked")
+    EventToActivityConverter<ProjectCreatedEvent> converter = mock(EventToActivityConverter.class);
+
+    @SuppressWarnings("rawtypes")
+    EventToActivityConverter wildcardConverter = converter;
+    when(converterMap.get(event.getClass())).thenReturn(wildcardConverter);
+    when(converter.convert(event)).thenReturn(null);
+
+    activityConsumer.onEvent(event);
+
+    verifyNoInteractions(activityRepository);
+  }
+
+  @Test
+  void consumeWhenActivityIsNotSavedEvent() {
+    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
+    @SuppressWarnings("unchecked")
+    EventToActivityConverter<ProjectCreatedEvent> converter = mock(EventToActivityConverter.class);
+    Activity activity = new Activity();
+    activity.setSubjectId(1L);
+    activity.setProjectId(2L);
+    activity.setSubjectName("username");
+    activity.setObjectId(3L);
+    activity.setSavedEvent(false);
+
+    @SuppressWarnings("rawtypes")
+    EventToActivityConverter wildcardConverter = converter;
+    when(converterMap.get(event.getClass())).thenReturn(wildcardConverter);
+    when(converter.convert(event)).thenReturn(activity);
+
+    activityConsumer.onEvent(event);
+
+    verifyNoInteractions(activityRepository);
   }
 }

@@ -22,7 +22,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Event published when a plugin is uploaded.
+ * Event published when a plugin is uploaded by a user or loaded by the system. Use
+ * {@link #isSystemEvent()} to distinguish between user-initiated uploads (activity audit required)
+ * and system lifecycle loads (startup, reload - no audit).
  */
 @Setter
 @Getter
@@ -31,9 +33,26 @@ public class PluginUploadedEvent extends AbstractEvent<Void> {
 
   private PluginActivityResource pluginActivityResource;
 
+  /**
+   * Constructor for user-initiated plugin upload (activity audit required).
+   *
+   * @param pluginActivityResource Plugin information
+   * @param userId                 User ID who uploaded the plugin
+   * @param userLogin              User login who uploaded the plugin
+   */
   public PluginUploadedEvent(PluginActivityResource pluginActivityResource, Long userId,
       String userLogin) {
     super(userId, userLogin);
+    this.pluginActivityResource = pluginActivityResource;
+  }
+
+  /**
+   * Constructor for system-initiated plugin load (startup, reload - no activity audit).
+   *
+   * @param pluginActivityResource Plugin information
+   */
+  public PluginUploadedEvent(PluginActivityResource pluginActivityResource) {
+    super();
     this.pluginActivityResource = pluginActivityResource;
   }
 }

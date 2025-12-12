@@ -21,6 +21,7 @@ import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUti
 import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.ISSUE_TYPE;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.ItemIssueTypeDefinedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
@@ -49,10 +50,11 @@ class ItemIssueTypeDefinedEventTest {
     final String newDescription = "newDescription";
     final String newName = "newName";
 
-    final Activity actual =
-        new ItemIssueTypeDefinedEvent(getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
-            getTestItem(newName, newDescription, newIgnoreAnalyzer), 1L, "user", 1L
-        ).toActivity();
+    ItemIssueTypeDefinedEvent event = new ItemIssueTypeDefinedEvent(
+        getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
+        getTestItem(newName, newDescription, newIgnoreAnalyzer), 1L, "user", 1L);
+    ItemIssueTypeDefinedEventConverter converter = new ItemIssueTypeDefinedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity();
     expected.getDetails().setHistory(
         getExpectedHistory(Pair.of(oldDescription, newDescription), Pair.of(oldName, newName),

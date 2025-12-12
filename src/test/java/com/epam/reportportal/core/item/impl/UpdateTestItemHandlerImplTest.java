@@ -35,15 +35,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.core.analyzer.auto.impl.LogIndexerService;
-import com.epam.reportportal.core.events.MessageBus;
 import com.epam.reportportal.core.item.ExternalTicketHandler;
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
@@ -60,6 +57,8 @@ import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.issue.DefineIssueRQ;
 import com.epam.reportportal.model.issue.IssueDefinition;
 import com.epam.reportportal.model.item.LinkExternalIssueRQ;
@@ -75,6 +74,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -97,7 +97,7 @@ class UpdateTestItemHandlerImplTest {
   private TestItemService testItemService;
 
   @Mock
-  private MessageBus messageBus;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @Mock
   private ExternalTicketHandler externalTicketHandler;
@@ -153,7 +153,8 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void updateTestItemUnderNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         1L);
 
     TestItem item = new TestItem();
@@ -180,7 +181,8 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void updateTestItemFromAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     Launch launch = new Launch();
     launch.setId(1L);
@@ -202,7 +204,8 @@ class UpdateTestItemHandlerImplTest {
 
   @Test
   void defineIssuesOnNotExistProject() {
-    ReportPortalUser rpUser = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
 
     when(projectRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -241,7 +244,8 @@ class UpdateTestItemHandlerImplTest {
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.updateTestItem(extractProjectDetails(user, TEST_PROJECT_KEY), itemId, rq, user)
+        () -> handler.updateTestItem(extractProjectDetails(user, TEST_PROJECT_KEY), itemId, rq,
+            user)
     );
     assertEquals("Incorrect Request. Unable to change status on test item with children",
         exception.getMessage()
@@ -270,7 +274,7 @@ class UpdateTestItemHandlerImplTest {
 
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-    doNothing().when(messageBus).publishActivity(any());
+    doNothing().when(applicationEventPublisher).publishEvent(any());
     when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
     doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
 
@@ -304,7 +308,7 @@ class UpdateTestItemHandlerImplTest {
 
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-    doNothing().when(messageBus).publishActivity(any());
+    doNothing().when(applicationEventPublisher).publishEvent(any());
     when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
     doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
 
@@ -354,7 +358,6 @@ class UpdateTestItemHandlerImplTest {
     rq.setStatus("PASSED");
 
     long itemId = 1L;
-    long userId = 5L;
     TestItem item = new TestItem();
     item.setItemId(itemId);
     item.setHasChildren(false);
@@ -368,7 +371,7 @@ class UpdateTestItemHandlerImplTest {
 
     when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-    doNothing().when(messageBus).publishActivity(any());
+    doNothing().when(applicationEventPublisher).publishEvent(any());
     when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
     doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
 
@@ -411,7 +414,7 @@ class UpdateTestItemHandlerImplTest {
 
     when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
     when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-    doNothing().when(messageBus).publishActivity(any());
+    doNothing().when(applicationEventPublisher).publishEvent(any());
     when(issueTypeHandler.defineIssueType(anyLong(), anyString())).thenReturn(issueType);
     doNothing().when(externalTicketHandler).updateLinking(any(), any(), any());
     doNothing().when(defectUpdateStatisticsService)
@@ -447,7 +450,7 @@ class UpdateTestItemHandlerImplTest {
     linkRequest.setIssues(Collections.emptyList());
 
     when(itemRepository.findAllById(anyList())).thenReturn(Collections.singletonList(item));
-    doNothing().when(messageBus).publishActivity(any());
+    doNothing().when(applicationEventPublisher).publishEvent(any());
 
     handler.processExternalIssues(linkRequest, extractProjectDetails(user, "test_project"), user);
 

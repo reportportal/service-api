@@ -28,8 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.core.events.ActivityEvent;
-import com.epam.reportportal.core.events.MessageBus;
+import com.epam.reportportal.core.events.activity.converter.NotificationRuleCreatedEventConverter;
 import com.epam.reportportal.core.events.domain.NotificationRuleCreatedEvent;
 import com.epam.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -55,6 +54,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
@@ -68,18 +68,19 @@ class CreateProjectNotificationHandlerImplTest {
   private static final String RULE_TYPE = "email";
 
   private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
-  private final MessageBus messageBus = mock(MessageBus.class);
+  private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
   private final ProjectConverter projectConverter = new ProjectConverter();
   private final ProjectNotificationValidator projectNotificationValidator =
       new ProjectNotificationValidator(senderCaseRepository);
 
   private final CreateProjectNotificationHandlerImpl service =
-      new CreateProjectNotificationHandlerImpl(senderCaseRepository, messageBus, projectConverter,
+      new CreateProjectNotificationHandlerImpl(senderCaseRepository, eventPublisher,
+          projectConverter,
           projectNotificationValidator
       );
 
   @Captor
-  private ArgumentCaptor<ActivityEvent> activityCaptor;
+  private ArgumentCaptor<NotificationRuleCreatedEvent> activityCaptor;
 
   private SenderCaseDTO createNotificationRQ;
   private Project project;
@@ -177,7 +178,7 @@ class CreateProjectNotificationHandlerImplTest {
   void createNotificationWhenRuleCreatedShouldPublishNotificationRuleCreatedEvent() {
     // given
     CreateProjectNotificationHandlerImpl serviceWithRealConverter = new CreateProjectNotificationHandlerImpl(
-        senderCaseRepository, messageBus, projectConverter, projectNotificationValidator);
+        senderCaseRepository, eventPublisher, projectConverter, projectNotificationValidator);
     project.setId(7L);
     project.setOrganizationId(77L);
 
@@ -209,10 +210,11 @@ class CreateProjectNotificationHandlerImplTest {
     // when
     serviceWithRealConverter.createNotification(project, createNotificationRQ, rpUser);
     // then
-    verify(messageBus).publishActivity(activityCaptor.capture());
+    verify(eventPublisher).publishEvent(activityCaptor.capture());
     var activityCaptorValue = activityCaptor.getValue();
     assertInstanceOf(NotificationRuleCreatedEvent.class, activityCaptorValue);
-    var activity = activityCaptorValue.toActivity();
+    NotificationRuleCreatedEventConverter converter = new NotificationRuleCreatedEventConverter();
+    var activity = converter.convert((NotificationRuleCreatedEvent) activityCaptorValue);
     assertEquals("createNotificationRule", activity.getEventName());
     assertEquals(7L, activity.getProjectId());
     assertEquals(77L, activity.getOrganizationId());

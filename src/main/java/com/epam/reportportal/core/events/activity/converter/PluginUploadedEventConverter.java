@@ -27,25 +27,32 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSub
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for PluginUploadedEvent to Activity.
+ * Converter for PluginUploadedEvent to Activity. System events (plugin load on startup/reload) are
+ * not persisted to activity.
  */
 @Component
 public class PluginUploadedEventConverter implements EventToActivityConverter<PluginUploadedEvent> {
 
   @Override
   public Activity convert(PluginUploadedEvent event) {
-    return new ActivityBuilder()
+    ActivityBuilder builder = new ActivityBuilder()
         .addCreatedNow()
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_PLUGIN.getValue())
         .addObjectId(event.getPluginActivityResource().getId())
         .addObjectName(event.getPluginActivityResource().getName())
         .addObjectType(EventObject.PLUGIN)
-        .addSubjectId(event.getUserId())
-        .addSubjectName(event.getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addPriority(EventPriority.CRITICAL)
-        .get();
+        .addPriority(EventPriority.CRITICAL);
+
+    if (event.isSystemEvent()) {
+      builder.notSavedEvent();
+    } else {
+      builder.addSubjectId(event.getUserId());
+      builder.addSubjectName(event.getUserLogin());
+      builder.addSubjectType(EventSubject.USER);
+    }
+
+    return builder.get();
   }
 
   @Override

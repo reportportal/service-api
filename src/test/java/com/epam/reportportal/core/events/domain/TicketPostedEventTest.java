@@ -18,6 +18,7 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
+import com.epam.reportportal.core.events.activity.converter.TicketPostedEventConverter;
 import com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.reportportal.infrastructure.model.externalsystem.Ticket;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
@@ -53,6 +54,7 @@ class TicketPostedEventTest {
     activity.setSubjectId(1L);
     activity.setSubjectName("user");
     activity.setSubjectType(EventSubject.USER);
+    activity.setOrganizationId(1L);
     activity.setProjectId(3L);
     activity.setObjectId(2L);
     activity.setCreatedAt(Instant.now());
@@ -88,8 +90,9 @@ class TicketPostedEventTest {
 
   @Test
   void toActivity() {
-    final Activity actual =
-        new TicketPostedEvent(getTicket(), 1L, "user", getTestItem(), 1L).toActivity();
+    TicketPostedEvent event = new TicketPostedEvent(getTicket(), 1L, "user", getTestItem(), 1L);
+    TicketPostedEventConverter converter = new TicketPostedEventConverter();
+    final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity();
     checkActivity(expected, actual);
   }

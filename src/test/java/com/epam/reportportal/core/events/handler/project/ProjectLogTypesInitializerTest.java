@@ -6,15 +6,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.core.logtype.DefaultLogTypeProvider;
 import com.epam.reportportal.infrastructure.persistence.dao.LogTypeRepository;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.EventObject;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.infrastructure.persistence.entity.log.ProjectLogType;
-import java.time.Instant;
+import com.epam.reportportal.ws.rabbit.ProjectLogTypesInitializer;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +39,7 @@ class ProjectLogTypesInitializerTest {
   void onProjectCreatedShouldInitializeLogTypesWhenEventIsValid() {
     // given
     Long projectId = 1L;
-    Activity activity = createProjectCreatedActivity(projectId, "Test Project");
+    ProjectCreatedEvent event = createProjectCreatedEvent(projectId, "Test Project");
     ProjectLogType warn = new ProjectLogType();
     warn.setLevel(30000);
     warn.setName("warn");
@@ -54,7 +50,7 @@ class ProjectLogTypesInitializerTest {
     when(defaultLogTypeProvider.provideDefaultLogTypes(projectId)).thenReturn(List.of(warn, info));
 
     // when
-    projectLogTypesInitializer.onProjectCreated(activity);
+    projectLogTypesInitializer.onProjectCreated(event);
 
     // then
     verify(defaultLogTypeProvider).provideDefaultLogTypes(projectId);
@@ -71,10 +67,10 @@ class ProjectLogTypesInitializerTest {
   @Test
   void onProjectCreated_ShouldLogWarning_WhenEventIsNullOrProjectIdIsNull() {
     // given
-    Activity activityWithNullId = createProjectCreatedActivity(null, "Test Project");
+    ProjectCreatedEvent eventWithNullId = createProjectCreatedEvent(null, "Test Project");
 
     // when
-    projectLogTypesInitializer.onProjectCreated(activityWithNullId);
+    projectLogTypesInitializer.onProjectCreated(eventWithNullId);
 
     // then
     verifyNoInteractions(defaultLogTypeProvider, logTypeRepository);
@@ -84,33 +80,21 @@ class ProjectLogTypesInitializerTest {
   void onProjectCreatedShouldRollbackAndLogErrorOnFailure() {
     // given
     Long projectId = 1L;
-    Activity activity = createProjectCreatedActivity(projectId, "Test Project");
+    ProjectCreatedEvent event = createProjectCreatedEvent(projectId, "Test Project");
 
     when(defaultLogTypeProvider.provideDefaultLogTypes(projectId))
         .thenThrow(new RuntimeException("Database error"));
 
     // when + then
     RuntimeException exception = assertThrows(RuntimeException.class,
-        () -> projectLogTypesInitializer.onProjectCreated(activity));
+        () -> projectLogTypesInitializer.onProjectCreated(event));
     assertEquals("Database error", exception.getMessage());
 
     verify(defaultLogTypeProvider).provideDefaultLogTypes(projectId);
     verifyNoInteractions(logTypeRepository);
   }
 
-  private Activity createProjectCreatedActivity(Long projectId, String projectName) {
-    Activity activity = new Activity();
-    activity.setAction(EventAction.CREATE);
-    activity.setEventName("create_project");
-    activity.setPriority(EventPriority.MEDIUM);
-    activity.setObjectId(projectId);
-    activity.setObjectName(projectName);
-    activity.setObjectType(EventObject.PROJECT);
-    activity.setProjectId(projectId);
-    activity.setSubjectId(10L);
-    activity.setSubjectName("testUser");
-    activity.setSubjectType(EventSubject.USER);
-    activity.setCreatedAt(Instant.now());
-    return activity;
+  private ProjectCreatedEvent createProjectCreatedEvent(Long projectId, String projectName) {
+    return new ProjectCreatedEvent(10L, "testUser", projectId, projectName, 1L);
   }
 }

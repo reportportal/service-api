@@ -16,10 +16,13 @@ import com.epam.reportportal.core.tms.dto.batch.BatchManualLaunchOperationResult
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.util.OffsetRequest;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 
@@ -184,4 +187,6 @@ public interface TmsManualLaunchService {
   TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId, Long executionId, @Valid TmsTestCaseExecutionCommentRQ request);
 
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
+
+  Map<Long, Launch> getEntitiesByIds(Long projectId, List<Long> launchIds);
 }

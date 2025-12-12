@@ -42,7 +42,10 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Transactional
   public void updateTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes) {
-    tmsTestCaseAttributeRepository.deleteAllByTestCaseId(tmsTestCase.getId());
+    if (CollectionUtils.isNotEmpty(tmsTestCase.getAttributes())) { //TODO refactor to the option with highest performance
+      tmsTestCaseAttributeRepository.deleteAll(tmsTestCase.getAttributes());
+      tmsTestCase.setAttributes(new HashSet<>());
+    }
     if (CollectionUtils.isNotEmpty(attributes)) {
       createTestCaseAttributes(tmsTestCase, attributes);
     }

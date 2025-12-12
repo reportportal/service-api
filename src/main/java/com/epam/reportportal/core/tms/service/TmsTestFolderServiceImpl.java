@@ -498,40 +498,50 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       Long parentTestFolderId,
       NewTestFolderRQ parentTestFolderRQ,
       TmsTestFolder existingTestFolder) {
-    if ((nonNull(parentTestFolderId)
-        && nonNull(parentTestFolderRQ)
-        && nonNull(parentTestFolderRQ.getName())) || (isNull(parentTestFolderId) && nonNull(
-        parentTestFolderRQ) && isNull(parentTestFolderRQ.getName()))) {
+
+    // Case 1: Check if we should move to root (empty object {})
+    if (nonNull(parentTestFolderRQ)
+        && isNull(parentTestFolderId)
+        && isNull(parentTestFolderRQ.getName())
+        && isNull(parentTestFolderRQ.getParentTestFolderId())) {
+      // Empty object {} means move to root (remove parent)
+      existingTestFolder.setParentTestFolder(null);
+      return;
+    }
+
+    // Validation: both parentTestFolderId and parentTestFolderRQ.name cannot be provided at the same time
+    if (nonNull(parentTestFolderId) && nonNull(parentTestFolderRQ) && nonNull(parentTestFolderRQ.getName())) {
       throw new ReportPortalException(BAD_REQUEST_ERROR,
           "Either parent folder id or parent folder name should be set");
-    } else if (nonNull(parentTestFolderId)) {
+    }
+
+    // Case 2: Set existing parent folder by ID
+    if (nonNull(parentTestFolderId)) {
       if (!existsById(projectId, parentTestFolderId)) {
         throw new ReportPortalException(
             NOT_FOUND,
-            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId,
-                projectId));
-      } else {
-        existingTestFolder.setParentTestFolder(
-            tmsTestFolderMapper.convertFromId(parentTestFolderId)
-        );
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId, projectId));
       }
-    } else if (nonNull(parentTestFolderRQ)) {
+      existingTestFolder.setParentTestFolder(
+          tmsTestFolderMapper.convertFromId(parentTestFolderId)
+      );
+    }
+    // Case 3: Create new parent folder and set it
+    else if (nonNull(parentTestFolderRQ) && nonNull(parentTestFolderRQ.getName())) {
       if (nonNull(parentTestFolderRQ.getParentTestFolderId())
           && !existsById(projectId, parentTestFolderRQ.getParentTestFolderId())) {
         throw new ReportPortalException(
             NOT_FOUND,
-            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderRQ.getParentTestFolderId(),
-                projectId));
-      } else {
-        var parentTestFolder = tmsTestFolderMapper.convertToTestFolder(projectId,
-            parentTestFolderRQ);
-        if (isNull(parentTestFolder.getSubFolders())) {
-          parentTestFolder.setSubFolders(new ArrayList<>());
-        }
-        parentTestFolder.getSubFolders().add(existingTestFolder);
-        existingTestFolder.setParentTestFolder(tmsTestFolderRepository.save(parentTestFolder));
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderRQ.getParentTestFolderId(), projectId));
       }
+      var parentTestFolder = tmsTestFolderMapper.convertToTestFolder(projectId, parentTestFolderRQ);
+      if (isNull(parentTestFolder.getSubFolders())) {
+        parentTestFolder.setSubFolders(new ArrayList<>());
+      }
+      parentTestFolder.getSubFolders().add(existingTestFolder);
+      existingTestFolder.setParentTestFolder(tmsTestFolderRepository.save(parentTestFolder));
     }
+    // Case 4: If parentTestFolderRQ is null, leave parent relationship unchanged (PATCH semantics)
   }
 
   /**

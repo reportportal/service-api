@@ -20,6 +20,7 @@ import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseRepos
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.filterable.TmsTestCaseFilterableRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
@@ -69,6 +70,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private TmsTestFolderService tmsTestFolderService;
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
+  private TmsManualLaunchService tmsManualLaunchService;
 
   @Autowired
   public void setTmsTestFolderService(
@@ -80,6 +82,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   public void setTmsTestCaseExecutionService(
       TmsTestCaseExecutionService tmsTestCaseExecutionService) {
     this.tmsTestCaseExecutionService = tmsTestCaseExecutionService;
+  }
+
+  @Autowired
+  public void setTmsManualLaunchService(
+      TmsManualLaunchService tmsManualLaunchService) {
+    this.tmsManualLaunchService = tmsManualLaunchService;
   }
 
   @Override
@@ -597,16 +605,32 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var lastExecutionsInTestPlan = tmsTestCaseExecutionService
         .findLastExecutionsByTestCaseIdsAndTestPlanId(testCaseIds, testPlanId);
 
+    var launches = tmsManualLaunchService.getEntitiesByIds(
+        projectId,
+        lastExecutionsInTestPlan
+            .values()
+            .stream()
+            .map(TmsTestCaseExecution::getLaunchId)
+            .toList()
+    );
+
     // Map to response DTOs maintaining order from pagination
     var orderedTestCaseResponses = testCaseIds
         .stream()
         .map(testCases::get)
         .filter(Objects::nonNull)
-        .map(tc -> tmsTestCaseMapper.convertToTestCaseInTestPlanRS(
-            tc,
-            defaultVersions.get(tc.getId()),
-            lastExecutionsInTestPlan.get(tc.getId())
-        ))
+        .map(tc -> {
+          var lastExecutionInTestPlan = lastExecutionsInTestPlan.get(tc.getId());
+
+          return tmsTestCaseMapper.convertToTestCaseInTestPlanRS(
+              tc,
+              defaultVersions.get(tc.getId()),
+              lastExecutionInTestPlan,
+              Objects.nonNull(lastExecutionInTestPlan) ?
+                  launches.get(lastExecutionInTestPlan.getLaunchId())
+                  : null
+          );
+        })
         .toList();
 
     return PagedResourcesAssembler
@@ -641,12 +665,21 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var lastExecution = CollectionUtils.isEmpty(allExecutionsInTestPlan) ?
         null : allExecutionsInTestPlan.getFirst();
 
+    var launches = tmsManualLaunchService.getEntitiesByIds(
+        projectId,
+        allExecutionsInTestPlan
+            .stream()
+            .map(TmsTestCaseExecution::getLaunchId)
+            .toList()
+    );
+
     // Convert to response DTO with both last execution and all executions
     return tmsTestCaseMapper.convertToTestCaseInTestPlanRS(
         testCase,
         defaultVersion,
         lastExecution,
-        allExecutionsInTestPlan
+        allExecutionsInTestPlan,
+        launches
     );
   }
 

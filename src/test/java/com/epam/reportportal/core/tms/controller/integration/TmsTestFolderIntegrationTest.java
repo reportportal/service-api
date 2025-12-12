@@ -1241,4 +1241,29 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
           "Subfolder name should contain '-copy': " + subfolder.getName());
     }
   }
+
+  @Test
+  void patchTestFolderMoveToRootIntegrationTest() throws Exception {
+    // Given - folder 4 initially has parent folder 1 (Smoke Tests - Login is subfolder of Smoke Tests)
+    var originalFolder = tmsTestFolderRepository.findById(22L);
+    assertTrue(originalFolder.isPresent());
+    assertNotNull(originalFolder.get().getParentTestFolder());
+    assertEquals(3L, originalFolder.get().getParentTestFolder().getId());
+
+    // Create request with empty parentTestFolder object to move to root
+    var request = TmsTestFolderRQ.builder()
+        .parentTestFolder(NewTestFolderRQ.builder().build()) // Empty object {} means move to root
+        .build();
+    var mapper = new ObjectMapper();
+    var jsonContent = mapper.writeValueAsString(request);
+
+    // When - patch folder to move it to root level
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/22")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(22L))
+        .andExpect(jsonPath("$.parentFolderId").doesNotExist()); // No parent folder ID
+  }
 }

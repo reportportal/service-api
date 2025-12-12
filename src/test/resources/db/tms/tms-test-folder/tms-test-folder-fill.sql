@@ -61,6 +61,9 @@ VALUES (19, 'Root Test Folder', 'Root test folder description', 1, NULL),
        (20, 'Sub Test Folder 1', 'Sub test folder 1 description', 1, 19),
        (21, 'Sub Test Folder 2', 'Sub test folder 2 description', 1, 19);
 
+INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
+VALUES (22, 1, 'new_description_subfolder_of_3', 'new_name_subfolder_of_4', 3);
+
 -- ==================== TEST ATTRIBUTES ====================
 INSERT INTO tms_attribute (id, "key")
 VALUES (10, 'test_key_10'),

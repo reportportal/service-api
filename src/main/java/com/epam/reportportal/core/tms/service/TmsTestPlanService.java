@@ -30,6 +30,8 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId,
       TmsTestPlanRQ duplicateTestPlanRQ);
 
+  DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId);
+
   /**
    * Retrieves test cases added to a test plan with pagination.
    * Returns test cases with last execution only (without full execution history).
@@ -82,4 +84,16 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   TmsTestPlan getEntityById(Long projectId, Long testPlanId);
 
   List<Long> getTestCaseIdsAddedToPlan(long projectId, Long testPlanId);
+
+  void removeTestPlanFromMilestone(Long projectId, Long milestoneId, Long testPlanId);
+
+  Map<Long, List<TmsTestPlanRS>> getByMilestoneIds(Long projectId, List<Long> milestoneIds);
+
+  List<TmsTestPlanRS> getByMilestoneId(Long projectId, Long milestoneId);
+
+  List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(Long projectId, Long milestoneId);
+
+  void addTestPlanMilestone(Long projectId, Long milestoneId, Long testPlanId);
+
+  void removeTestPlansFromMilestone(Long projectId, Long milestoneId);
 }

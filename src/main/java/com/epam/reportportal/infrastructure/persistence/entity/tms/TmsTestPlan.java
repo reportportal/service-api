@@ -65,25 +65,27 @@ public class TmsTestPlan {
   private Project project;
 
   @ManyToOne
-  @JoinColumn(name = "environment_id", nullable = false)
+  @JoinColumn(name = "environment_id")
   private TmsEnvironment environment;
 
   @ManyToOne
-  @JoinColumn(name = "product_version_id", nullable = false)
+  @JoinColumn(name = "product_version_id")
   private TmsProductVersion productVersion;
 
+  @ManyToOne
+  @JoinColumn(name = "milestone_id")
+  private TmsMilestone milestone;
+
   @OneToMany
-  @JoinColumn(name = "test_plan_id", referencedColumnName = "id", insertable = false, updatable = false)
+  @JoinColumn(name = "test_plan_id",
+      referencedColumnName = "id",
+      insertable = false, updatable = false)
   @ToString.Exclude
   private Set<Launch> launches;
 
   @OneToMany(mappedBy = "testPlan")
   @ToString.Exclude
   private Set<TmsTestPlanAttribute> attributes;
-
-  @OneToMany(mappedBy = "testPlan")
-  @ToString.Exclude
-  private Set<TmsMilestone> milestones;
 
   @ManyToMany
   @JoinTable(

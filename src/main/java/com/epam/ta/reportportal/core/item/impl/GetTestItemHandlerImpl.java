@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
@@ -324,6 +325,26 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
     }
     List<ResourceUpdater<TestItemResource>> resourceUpdaters =
         getResourceUpdaters(projectDetails.getProjectId(), items);
+    return items.stream().map(item -> {
+      TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+      resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+      return testItemResource;
+    }).collect(toList());
+  }
+
+  @Override
+  public List<TestItemResource> getTestItemsByIds(List<Long> ids,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+    List<TestItem> items = testItemRepository.findAllByItemIdInAndProjectId(ids,
+        projectDetails.getProjectId());
+
+    if (items.size() != ids.size()) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR, "Invalid list of ids");
+    }
+
+    List<ResourceUpdater<TestItemResource>> resourceUpdaters =
+        getResourceUpdaters(projectDetails.getProjectId(), items);
+
     return items.stream().map(item -> {
       TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));

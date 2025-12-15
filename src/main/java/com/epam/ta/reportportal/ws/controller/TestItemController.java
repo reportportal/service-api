@@ -51,6 +51,7 @@ import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParam
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
+import com.epam.ta.reportportal.model.BulkItemsRQ;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
@@ -246,9 +247,9 @@ public class TestItemController {
   @Schema(implementation = TestItemHistoryElement.class)
   public Page<TestItemResource> getTestItems(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
-      + CRITERIA_LAUNCH_ID, required = false)
-  Long launchId,
+      @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
+          + CRITERIA_LAUNCH_ID, required = false)
+      Long launchId,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
       boolean isLatest,
@@ -337,15 +338,15 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user, @FilterFor(TestItem.class) Filter filter,
       @FilterFor(TestItem.class) Queryable predefinedFilter,
       @SortFor(TestItem.class) Pageable pageable, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
-      + CRITERIA_PARENT_ID, required = false)
-  Long parentId, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
-      + CRITERIA_ID, required = false)
-  Long itemId, @Nullable
-  @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
-      + CRITERIA_LAUNCH_ID, required = false)
-  Long launchId,
+      @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
+          + CRITERIA_PARENT_ID, required = false)
+      Long parentId, @Nullable
+      @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
+          + CRITERIA_ID, required = false)
+      Long itemId, @Nullable
+      @Parameter(hidden = true) @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
+          + CRITERIA_LAUNCH_ID, required = false)
+      Long launchId,
       @Nullable @RequestParam(value = HISTORY_TYPE_PARAM, required = false) String type,
       @Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
       @RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false)
@@ -452,7 +453,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ + CRITERIA_NAME, required = false)
       String launchName, @RequestParam(value = DEFAULT_FILTER_PREFIX + EQ
-      + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
+          + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
       @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE)
       String value) {
     return ofNullable(launchName).filter(StringUtils::isNotBlank).map(
@@ -509,13 +510,26 @@ public class TestItemController {
     );
   }
 
+  @Deprecated
   @Transactional(readOnly = true)
   @GetMapping("/items")
   @ResponseStatus(OK)
-  @Operation(summary = "Get test items by specified ids")
+  @Operation(summary = "Get test items by specified ids", deprecated = true)
   public List<TestItemResource> getTestItems(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Long[] ids) {
     return getTestItemHandler.getTestItems(ids,
+        projectExtractor.extractProjectDetails(user, projectName), user
+    );
+  }
+
+  @Transactional(readOnly = true)
+  @PostMapping("/bulk")
+  @ResponseStatus(OK)
+  @Operation(summary = "Get test items by list of IDs (max 300)")
+  public List<TestItemResource> getTestItemsByIds(@PathVariable String projectName,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @RequestBody @Validated BulkItemsRQ request) {
+    return getTestItemHandler.getTestItemsByIds(request.getIds(),
         projectExtractor.extractProjectDetails(user, projectName), user
     );
   }

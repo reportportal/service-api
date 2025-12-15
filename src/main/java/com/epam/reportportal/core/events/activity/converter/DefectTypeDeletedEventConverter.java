@@ -36,7 +36,7 @@ public class DefectTypeDeletedEventConverter implements
   @Override
   public Activity convert(DefectTypeDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_DEFECT.getValue())
         .addPriority(EventPriority.MEDIUM)

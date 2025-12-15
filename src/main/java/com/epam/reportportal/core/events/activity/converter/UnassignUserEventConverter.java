@@ -38,7 +38,7 @@ public class UnassignUserEventConverter implements EventToActivityConverter<Unas
   @Override
   public Activity convert(UnassignUserEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UNASSIGN)
         .addEventName(UNASSIGN_USER.getValue())
         .addPriority(EventPriority.MEDIUM)

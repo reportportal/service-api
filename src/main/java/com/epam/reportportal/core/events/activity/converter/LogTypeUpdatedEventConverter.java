@@ -38,7 +38,7 @@ public class LogTypeUpdatedEventConverter implements EventToActivityConverter<Lo
   @Override
   public Activity convert(LogTypeUpdatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_LOG_TYPE.getValue())
         .addPriority(EventPriority.LOW)

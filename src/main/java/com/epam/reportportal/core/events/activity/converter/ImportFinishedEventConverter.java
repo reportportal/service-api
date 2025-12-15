@@ -35,7 +35,7 @@ public class ImportFinishedEventConverter implements EventToActivityConverter<Im
   @Override
   public Activity convert(ImportFinishedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.FINISH)
         .addEventName(ActivityAction.FINISH_IMPORT.getValue())
         .addPriority(EventPriority.LOW)

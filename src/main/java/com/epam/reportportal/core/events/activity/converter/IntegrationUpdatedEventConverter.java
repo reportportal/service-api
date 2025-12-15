@@ -49,7 +49,7 @@ public class IntegrationUpdatedEventConverter implements
     }
 
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_INTEGRATION.getValue())
         .addPriority(IntegrationActivityPriorityResolver.resolvePriority(event.getAfter()))

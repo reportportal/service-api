@@ -16,12 +16,11 @@
 
 package com.epam.reportportal.ws.rabbit;
 
-import com.epam.reportportal.core.events.activity.converter.EventToActivityConverter;
+import com.epam.reportportal.core.events.activity.converter.EventConverterRegistry;
 import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ActivityRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +52,7 @@ public class ActivityConsumer {
   private static final String ROUTING_KEY_DOMAIN_ALL = "domain.#";
 
   private final ActivityRepository activityRepository;
-  private final Map<Class<? extends AbstractEvent<?>>, EventToActivityConverter<? extends AbstractEvent<?>>> converterMap;
+  private final EventConverterRegistry converterRegistry;
 
   @RabbitListener(
       bindings = @QueueBinding(
@@ -63,29 +62,16 @@ public class ActivityConsumer {
       ), containerFactory = "rabbitListenerContainerFactory"
   )
   public void onEvent(@Payload AbstractEvent<?> event) {
-    Optional.ofNullable(event).ifPresent(this::processEvent);
+    Optional.ofNullable(event)
+        .ifPresent(this::processEvent);
   }
 
   private void processEvent(AbstractEvent<?> event) {
-    var converter = converterMap.get(event.getClass());
-
-    if (converter == null) {
-      LOGGER.debug(
-          "No converter found for event type: {}. Event will not be persisted as activity.",
-          event.getClass().getSimpleName());
-      return;
-    }
-
-    Activity activity = convertEvent(event, converter);
-    if (activity != null && activity.isSavedEvent()) {
-      processActivity(activity);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  private <E extends AbstractEvent<?>> Activity convertEvent(E event,
-      EventToActivityConverter<? extends AbstractEvent<?>> converter) {
-    return ((EventToActivityConverter<E>) converter).convert(event);
+    converterRegistry.convert(event)
+        .filter(Activity::isSavedEvent)
+        .ifPresentOrElse(this::processActivity, () -> LOGGER.debug(
+            "No converter found for event type: {}. Event will not be persisted as activity.",
+            event.getClass().getSimpleName()));
   }
 
   private void processActivity(Activity activity) {

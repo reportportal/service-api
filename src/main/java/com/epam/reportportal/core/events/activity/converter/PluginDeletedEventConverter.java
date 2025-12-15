@@ -36,7 +36,7 @@ public class PluginDeletedEventConverter implements EventToActivityConverter<Plu
   @Override
   public Activity convert(PluginDeletedEvent event) {
     ActivityBuilder builder = new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_PLUGIN.getValue())
         .addObjectId(event.getBefore().getId())

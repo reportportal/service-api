@@ -38,7 +38,7 @@ public class OrganizationDeletedEventConverter implements
   @Override
   public Activity convert(OrganizationDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_ORGANIZATION.getValue())
         .addPriority(EventPriority.CRITICAL)

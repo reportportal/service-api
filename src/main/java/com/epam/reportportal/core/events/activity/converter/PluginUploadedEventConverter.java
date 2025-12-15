@@ -36,7 +36,7 @@ public class PluginUploadedEventConverter implements EventToActivityConverter<Pl
   @Override
   public Activity convert(PluginUploadedEvent event) {
     ActivityBuilder builder = new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_PLUGIN.getValue())
         .addObjectId(event.getPluginActivityResource().getId())

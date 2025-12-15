@@ -38,7 +38,7 @@ public class CreateInvitationLinkEventConverter implements
   @Override
   public Activity convert(CreateInvitationLinkEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(EVENT_NAME)
         .addPriority(EventPriority.HIGH)

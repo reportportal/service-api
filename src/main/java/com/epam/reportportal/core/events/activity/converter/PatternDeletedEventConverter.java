@@ -35,7 +35,7 @@ public class PatternDeletedEventConverter implements EventToActivityConverter<Pa
   @Override
   public Activity convert(PatternDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_PATTERN.getValue())
         .addPriority(EventPriority.LOW)

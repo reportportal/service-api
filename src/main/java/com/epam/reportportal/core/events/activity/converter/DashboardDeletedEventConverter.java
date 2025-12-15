@@ -36,7 +36,7 @@ public class DashboardDeletedEventConverter implements
   @Override
   public Activity convert(DashboardDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_DASHBOARD.getValue())
         .addPriority(EventPriority.LOW)

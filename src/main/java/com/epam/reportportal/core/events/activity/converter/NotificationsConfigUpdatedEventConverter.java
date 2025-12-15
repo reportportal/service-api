@@ -54,7 +54,7 @@ public class NotificationsConfigUpdatedEventConverter implements
     processEmailConfiguration(details, before, event.getUpdateProjectNotificationConfigRQ());
 
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
         .addPriority(EventPriority.MEDIUM)

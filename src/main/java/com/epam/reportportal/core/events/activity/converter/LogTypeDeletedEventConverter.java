@@ -35,7 +35,7 @@ public class LogTypeDeletedEventConverter implements EventToActivityConverter<Lo
   @Override
   public Activity convert(LogTypeDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_LOG_TYPE.getValue())
         .addPriority(EventPriority.MEDIUM)

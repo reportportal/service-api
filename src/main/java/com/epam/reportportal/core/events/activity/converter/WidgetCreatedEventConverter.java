@@ -36,7 +36,7 @@ public class WidgetCreatedEventConverter implements EventToActivityConverter<Wid
   @Override
   public Activity convert(WidgetCreatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_WIDGET.getValue())
         .addPriority(EventPriority.LOW)

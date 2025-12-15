@@ -39,7 +39,7 @@ public class LinkTicketEventConverter implements EventToActivityConverter<LinkTi
   @Override
   public Activity convert(LinkTicketEvent event) {
     ActivityBuilder builder = new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.LINK)
         .addEventName(event.isSystemEvent()
             ? ActivityAction.LINK_ISSUE_AA.getValue()

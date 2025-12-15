@@ -37,7 +37,7 @@ public class ProjectCreatedEventConverter implements EventToActivityConverter<Pr
   @Override
   public Activity convert(ProjectCreatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_PROJECT.getValue())
         .addPriority(EventPriority.MEDIUM)

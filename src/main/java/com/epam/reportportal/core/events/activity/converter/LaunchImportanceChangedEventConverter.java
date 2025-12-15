@@ -37,7 +37,7 @@ public class LaunchImportanceChangedEventConverter implements
   @Override
   public Activity convert(LaunchImportanceChangedEvent event) {
     ActivityBuilder builder = new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(event.isImportant()
             ? ActivityAction.MARK_LAUNCH_AS_IMPORTANT.getValue()

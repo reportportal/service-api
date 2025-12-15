@@ -40,7 +40,7 @@ public class ProjectBulkDeletedEventConverter
   @Override
   public Activity convert(ProjectBulkDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.BULK_DELETE)
         .addEventName(ActivityAction.BULK_DELETE_PROJECT.getValue())
         .addPriority(EventPriority.CRITICAL)

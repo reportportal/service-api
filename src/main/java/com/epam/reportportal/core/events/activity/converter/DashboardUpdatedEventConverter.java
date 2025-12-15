@@ -39,7 +39,7 @@ public class DashboardUpdatedEventConverter implements
   @Override
   public Activity convert(DashboardUpdatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_DASHBOARD.getValue())
         .addPriority(EventPriority.LOW)

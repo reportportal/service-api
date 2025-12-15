@@ -38,7 +38,7 @@ public class TestItemStatusChangedEventConverter implements
   @Override
   public Activity convert(TestItemStatusChangedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_ITEM.getValue())
         .addPriority(EventPriority.LOW)

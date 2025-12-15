@@ -40,7 +40,7 @@ public class IntegrationDeletedEventConverter implements
   @Override
   public Activity convert(IntegrationDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_INTEGRATION.getValue())
         .addPriority(IntegrationActivityPriorityResolver.resolvePriority(

@@ -36,7 +36,7 @@ public class SettingsUpdatedEventConverter implements
   @Override
   public Activity convert(SettingsUpdatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_INSTANCE.getValue())
         .addPriority(EventPriority.HIGH)

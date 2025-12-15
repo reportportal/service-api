@@ -37,7 +37,7 @@ public class ProjectDeletedEventConverter implements EventToActivityConverter<Pr
   @Override
   public Activity convert(ProjectDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_PROJECT.getValue())
         .addPriority(EventPriority.CRITICAL)

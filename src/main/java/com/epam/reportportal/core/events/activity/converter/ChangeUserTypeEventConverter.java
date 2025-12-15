@@ -36,7 +36,7 @@ public class ChangeUserTypeEventConverter implements EventToActivityConverter<Ch
   @Override
   public Activity convert(ChangeUserTypeEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE_USER_ROLE)
         .addEventName(EventAction.UPDATE_USER_ROLE.getValue())
         .addPriority(UserRole.ADMINISTRATOR.equals(event.getNewType()) ? EventPriority.CRITICAL

@@ -36,7 +36,7 @@ public class DashboardCreatedEventConverter implements
   @Override
   public Activity convert(DashboardCreatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_DASHBOARD.getValue())
         .addPriority(EventPriority.LOW)

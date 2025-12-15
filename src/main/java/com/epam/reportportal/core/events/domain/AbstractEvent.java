@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.core.events.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.Instant;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
@@ -29,6 +30,7 @@ import org.springframework.context.ApplicationEvent;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Getter
+@JsonIgnoreProperties({"source"})
 public abstract class AbstractEvent<T> extends ApplicationEvent {
 
   protected Long userId;

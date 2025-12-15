@@ -36,7 +36,7 @@ public class NotificationRuleCreatedEventConverter implements
   @Override
   public Activity convert(NotificationRuleCreatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_NOTIFICATION_RULE.getValue())
         .addPriority(EventPriority.MEDIUM)

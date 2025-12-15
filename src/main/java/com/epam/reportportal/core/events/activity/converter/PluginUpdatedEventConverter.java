@@ -40,7 +40,7 @@ public class PluginUpdatedEventConverter implements EventToActivityConverter<Plu
   @Override
   public Activity convert(PluginUpdatedEvent event) {
     ActivityBuilder builder = new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_PLUGIN.getValue())
         .addPriority(EventPriority.MEDIUM)

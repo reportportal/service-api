@@ -43,7 +43,7 @@ public class PatternMatchedEventConverter implements EventToActivityConverter<Pa
     patternNameField.setNewValue(event.getPatternTemplateActivityResource().getName());
 
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.MATCH)
         .addEventName(ActivityAction.PATTERN_MATCHED.getValue())
         .addPriority(EventPriority.LOW)

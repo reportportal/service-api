@@ -44,7 +44,7 @@ public class NotificationSettingsUpdatedEventConverter
   @Override
   public Activity convert(NotificationSettingsUpdatedEvent event) {
     final ActivityBuilder activityBuilder = new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_NOTIFICATION_SETTINGS.getValue())
         .addPriority(EventPriority.MEDIUM)

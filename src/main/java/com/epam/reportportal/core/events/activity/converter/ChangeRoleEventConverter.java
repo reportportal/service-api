@@ -37,7 +37,7 @@ public class ChangeRoleEventConverter implements EventToActivityConverter<Change
   @Override
   public Activity convert(ChangeRoleEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CHANGE_ROLE)
         .addEventName(CHANGE_ROLE.getValue())
         .addPriority(EventPriority.HIGH)
@@ -58,4 +58,3 @@ public class ChangeRoleEventConverter implements EventToActivityConverter<Change
     return ChangeRoleEvent.class;
   }
 }
-

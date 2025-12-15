@@ -36,7 +36,7 @@ public class DefectTypeUpdatedEventConverter implements
   @Override
   public Activity convert(DefectTypeUpdatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_DEFECT.getValue())
         .addPriority(EventPriority.LOW)

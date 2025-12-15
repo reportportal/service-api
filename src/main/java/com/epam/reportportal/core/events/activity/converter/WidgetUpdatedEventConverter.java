@@ -45,7 +45,7 @@ public class WidgetUpdatedEventConverter implements EventToActivityConverter<Wid
   @Override
   public Activity convert(WidgetUpdatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_WIDGET.getValue())
         .addPriority(EventPriority.LOW)

@@ -45,7 +45,7 @@ public class ItemIssueTypeDefinedEventConverter implements
   @Override
   public Activity convert(ItemIssueTypeDefinedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.ANALYZE)
         .addEventName(event.isSystemEvent()
             ? ActivityAction.ANALYZE_ITEM.getValue()

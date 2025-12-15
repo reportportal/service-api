@@ -40,7 +40,7 @@ public class ProjectPatternAnalyzerUpdateEventConverter
   @Override
   public Activity convert(ProjectPatternAnalyzerUpdateEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_PATTERN_ANALYZER.getValue())
         .addPriority(EventPriority.LOW)

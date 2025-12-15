@@ -36,7 +36,7 @@ public class NotificationRuleDeletedEventConverter implements
   @Override
   public Activity convert(NotificationRuleDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_NOTIFICATION_RULE.getValue())
         .addPriority(EventPriority.MEDIUM)

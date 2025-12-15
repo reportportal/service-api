@@ -41,7 +41,7 @@ public class OrganizationUpdatedEventConverter implements
   @Override
   public Activity convert(OrganizationUpdatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_ORGANIZATION.getValue())
         .addPriority(EventPriority.HIGH)

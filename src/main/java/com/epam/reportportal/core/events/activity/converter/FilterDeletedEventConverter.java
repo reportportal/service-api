@@ -35,7 +35,7 @@ public class FilterDeletedEventConverter implements EventToActivityConverter<Fil
   @Override
   public Activity convert(FilterDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_FILTER.getValue())
         .addPriority(EventPriority.LOW)

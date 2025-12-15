@@ -57,7 +57,7 @@ public class NotificationRuleUpdatedEventConverter implements
   @Override
   public Activity convert(NotificationRuleUpdatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_NOTIFICATION_RULE.getValue())
         .addPriority(EventPriority.MEDIUM)

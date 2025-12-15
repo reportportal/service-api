@@ -35,7 +35,7 @@ public class PatternCreatedEventConverter implements EventToActivityConverter<Pa
   @Override
   public Activity convert(PatternCreatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_PATTERN.getValue())
         .addPriority(EventPriority.LOW)

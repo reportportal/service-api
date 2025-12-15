@@ -40,7 +40,7 @@ public class IntegrationCreatedEventConverter implements
   @Override
   public Activity convert(IntegrationCreatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_INTEGRATION.getValue())
         .addPriority(IntegrationActivityPriorityResolver.resolvePriority(

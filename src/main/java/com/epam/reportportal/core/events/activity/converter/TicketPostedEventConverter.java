@@ -39,7 +39,7 @@ public class TicketPostedEventConverter implements EventToActivityConverter<Tick
   @Override
   public Activity convert(TicketPostedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.POST)
         .addEventName(ActivityAction.POST_ISSUE.getValue())
         .addPriority(EventPriority.LOW)

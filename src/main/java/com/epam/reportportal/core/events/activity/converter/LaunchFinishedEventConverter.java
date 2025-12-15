@@ -38,7 +38,7 @@ public class LaunchFinishedEventConverter implements EventToActivityConverter<La
   @Override
   public Activity convert(LaunchFinishedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.FINISH)
         .addEventName(ActivityAction.FINISH_LAUNCH.getValue())
         .addPriority(EventPriority.LOW)

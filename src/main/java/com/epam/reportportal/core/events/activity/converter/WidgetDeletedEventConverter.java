@@ -36,7 +36,7 @@ public class WidgetDeletedEventConverter implements EventToActivityConverter<Wid
   @Override
   public Activity convert(WidgetDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_WIDGET.getValue())
         .addPriority(EventPriority.LOW)

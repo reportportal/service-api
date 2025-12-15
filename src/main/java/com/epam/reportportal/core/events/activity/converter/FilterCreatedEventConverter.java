@@ -35,7 +35,7 @@ public class FilterCreatedEventConverter implements EventToActivityConverter<Fil
   @Override
   public Activity convert(FilterCreatedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.CREATE)
         .addEventName(ActivityAction.CREATE_FILTER.getValue())
         .addPriority(EventPriority.LOW)

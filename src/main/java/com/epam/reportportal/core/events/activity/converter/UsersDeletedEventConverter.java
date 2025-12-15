@@ -36,7 +36,7 @@ public class UsersDeletedEventConverter implements EventToActivityConverter<User
   @Override
   public Activity convert(UsersDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.BULK_DELETE)
         .addEventName(ActivityAction.BULK_DELETE_USERS.getValue())
         .addObjectId(event.getBefore().getId())

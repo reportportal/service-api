@@ -36,7 +36,7 @@ public class LaunchDeletedEventConverter implements EventToActivityConverter<Lau
   @Override
   public Activity convert(LaunchDeletedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.DELETE)
         .addEventName(ActivityAction.DELETE_LAUNCH.getValue())
         .addPriority(EventPriority.MEDIUM)

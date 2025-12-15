@@ -36,7 +36,7 @@ public class ProjectIndexEventConverter implements EventToActivityConverter<Proj
   @Override
   public Activity convert(ProjectIndexEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(event.isIndexing() ? EventAction.GENERATE : EventAction.DELETE)
         .addEventName(event.isIndexing()
             ? ActivityAction.GENERATE_INDEX.getValue()

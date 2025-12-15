@@ -53,7 +53,7 @@ public class ProjectAnalyzerConfigEventConverter implements
     final Map<String, String> newConfig = event.getAfter().getConfig();
 
     final ActivityBuilder activityBuilder = new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_ANALYZER.getValue())
         .addPriority(EventPriority.LOW)

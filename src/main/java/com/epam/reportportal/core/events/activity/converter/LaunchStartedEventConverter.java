@@ -36,7 +36,7 @@ public class LaunchStartedEventConverter implements EventToActivityConverter<Lau
   @Override
   public Activity convert(LaunchStartedEvent event) {
     return new ActivityBuilder()
-        .addCreatedNow()
+        .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.START)
         .addEventName(ActivityAction.START_LAUNCH.getValue())
         .addPriority(EventPriority.LOW)

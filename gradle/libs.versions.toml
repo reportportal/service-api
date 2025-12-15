@@ -47,7 +47,8 @@ springdoc-openapi = "2.8.14"
 tika = "3.2.3"
 thumbnailator = "0.4.21"
 xerces = "2.12.2"
-
+mapstruct = "1.5.5.Final"
+apache-commons-csv = "1.10.0"
 
 [libraries]
 # Development libs
@@ -85,6 +86,7 @@ rabbitmq-http-client = { group = "com.rabbitmq", name = "http-client", version.r
 httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5", version.ref = "httpclient5" }
 jasperreports = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasperreports" }
 apache-poi = { group = "org.apache.poi", name = "poi", version.ref = "apache-poi" }
+apache-poi-ooxml = { group = "org.apache.poi", name = "poi-ooxml", version.ref = "apache-poi" }
 openpdf = { group = "com.github.librepdf", name = "openpdf", version.ref = "openpdf" }
 jakarta-inject-api = { group = "jakarta.inject", name = "jakarta.inject-api", version.ref = "jakarta-inject" }
 jakarta-mail = { group = "com.sun.mail", name = "jakarta.mail", version.ref = "jakarta-mail" }
@@ -123,10 +125,14 @@ spring-security-core = { group = "org.springframework.security", name = "spring-
 spring-data-commons = { group = "org.springframework.data", name = "spring-data-commons" }
 hibernate-core = { group = "org.hibernate.orm", name = "hibernate-core" }
 jakarta-validation = { group = "jakarta.validation", name = "jakarta.validation-api" }
-
+apache-commons-commonscsv = { group = "org.apache.commons", name = "commons-csv", version.ref = "apache-commons-csv" }
 
 # Lombok
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+
+# Mapstruct
+mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct" }
 
 # Test libraries
 spring-test = { group = "org.springframework", name = "spring-test" }

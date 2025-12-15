@@ -31,7 +31,8 @@ public enum StatusEnum {
   //RESETED("reseted"), //status for items with deleted descendants
   CANCELLED("cancelled", false), //soupUI specific status
   INFO("info", true),
-  WARN("warn", true);
+  WARN("warn", true),
+  TO_RUN("to_run", false); // New status for manual test execution
   //@formatter:on
 
   private final String executionCounterField;

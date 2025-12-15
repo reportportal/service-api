@@ -17,6 +17,7 @@
 package com.epam.reportportal.ws.controller;
 
 import static com.epam.reportportal.util.MultipartFileUtils.getMultipartFile;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -152,5 +153,43 @@ class FileStorageControllerTest extends BaseMvcTest {
             get("/users/999/avatar")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @Sql("/db/data-store/data-store-fill.sql")
+  void getFileShouldSanitizeFileNameWithLineFeed() throws Exception {
+    // given
+    AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder()
+        .withProjectId(1L)
+        .withCreationDate(Instant.now())
+        .withItemId(1L)
+        .withLaunchId(1L)
+        .withLogId(1L)
+        .withLogUuid("uuid")
+        .withLaunchUuid("uuid")
+        .withFileName("malicious\nfilename.txt")
+        .build();
+    Optional<BinaryDataMetaInfo> binaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(
+        metaInfo,
+        getMultipartFile("image/large_image.png")
+    );
+    assertTrue(binaryDataMetaInfo.isPresent());
+    attachmentBinaryDataService.attachToLog(binaryDataMetaInfo.get(), metaInfo);
+
+    Optional<Attachment> attachment = attachmentRepository.findByFileId(
+        binaryDataMetaInfo.get().getFileId());
+    assertTrue(attachment.isPresent());
+
+    // when + then
+    mockMvc.perform(get("/v1/data/superadmin_personal/" + attachment.get().getId()).with(
+            token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(result -> {
+          String contentDisposition = result.getResponse()
+              .getHeader("Content-Disposition");
+
+          assertFalse(contentDisposition.contains("\n"),
+              "Content-Disposition header should not contain LF");
+        });
   }
 }

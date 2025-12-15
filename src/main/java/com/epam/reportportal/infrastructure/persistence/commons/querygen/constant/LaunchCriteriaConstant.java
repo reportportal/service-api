@@ -27,6 +27,8 @@ public final class LaunchCriteriaConstant {
   public static final String CRITERIA_LAUNCH_MODE = "mode";
   public static final String CRITERIA_LAUNCH_STATUS = "status";
   public static final String CRITERIA_LAUNCH_NUMBER = "number";
+  public static final String CRITERIA_LAUNCH_TYPE = "launchType";
+  public static final String CRITERIA_TEST_PLAN_ID = "testPlanId";
 
   private LaunchCriteriaConstant() {
     //static only

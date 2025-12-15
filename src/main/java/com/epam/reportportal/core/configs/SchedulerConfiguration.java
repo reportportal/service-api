@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.core.configs;
 
+import com.epam.reportportal.core.tms.scheduled.TmsAttachmentCleanupJob;
 import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
 import com.epam.reportportal.job.CleanExpiredCreationBidsJob;
 import com.epam.reportportal.job.FlushingDataJob;
@@ -70,6 +71,9 @@ public class SchedulerConfiguration {
 
   @Autowired
   private ReportPortalResourceLoader resourceLoader;
+
+  @Autowired
+  private TmsAttachmentCleanupJob tmsAttachmentCleanupJob;
 
   @Bean
   @Primary
@@ -161,6 +165,18 @@ public class SchedulerConfiguration {
     factoryBean.setMisfireInstruction(
         SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT);
     return factoryBean;
+  }
+
+  @Bean
+  public SimpleTriggerFactoryBean tmsAttachmentCleanupTrigger(
+      @Named("tmsAttachmentCleanupJobBean") JobDetail jobDetail,
+      @Value("${rp.tms.attachment.cleanup.cleanup.cron}") String cleanupCron) {
+    return createTrigger(jobDetail, Duration.parse(cleanupCron).toMillis());
+  }
+
+  @Bean("tmsAttachmentCleanupJobBean")
+  public JobDetailFactoryBean tmsAttachmentCleanupJob() {
+    return createJobDetail(TmsAttachmentCleanupJob.class);
   }
 
   public SimpleTriggerFactoryBean createTriggerDelayed(JobDetail jobDetail, long pollFrequencyMs) {

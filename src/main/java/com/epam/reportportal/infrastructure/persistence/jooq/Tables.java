@@ -61,6 +61,32 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JStatisticsF
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTestItem;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTestItemResults;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTicket;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttachment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribute;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsDataset;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsDatasetData;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsEnvironment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsEnvironmentDataset;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenario;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioAttribute;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsMilestone;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsProductVersion;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStep;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepsManualScenario;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseLaunch;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestFolder;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlanAttribute;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTextManualScenario;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTextManualScenarioAttachment;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JUserCreationBid;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JUserPreference;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JUsers;
@@ -78,50 +104,50 @@ import org.jooq.Result;
 @SuppressWarnings({"all", "unchecked", "rawtypes", "this-escape"})
 public class Tables {
 
-  /**
-   * The table <code>public.activity</code>.
-   */
-  public static final JActivity ACTIVITY = JActivity.ACTIVITY;
+    /**
+     * The table <code>public.activity</code>.
+     */
+    public static final JActivity ACTIVITY = JActivity.ACTIVITY;
 
-  /**
-   * The table <code>public.analytics_data</code>.
-   */
-  public static final JAnalyticsData ANALYTICS_DATA = JAnalyticsData.ANALYTICS_DATA;
+    /**
+     * The table <code>public.analytics_data</code>.
+     */
+    public static final JAnalyticsData ANALYTICS_DATA = JAnalyticsData.ANALYTICS_DATA;
 
-  /**
-   * The table <code>public.api_keys</code>.
-   */
-  public static final JApiKeys API_KEYS = JApiKeys.API_KEYS;
+    /**
+     * The table <code>public.api_keys</code>.
+     */
+    public static final JApiKeys API_KEYS = JApiKeys.API_KEYS;
 
-  /**
-   * The table <code>public.attachment</code>.
-   */
-  public static final JAttachment ATTACHMENT = JAttachment.ATTACHMENT;
+    /**
+     * The table <code>public.attachment</code>.
+     */
+    public static final JAttachment ATTACHMENT = JAttachment.ATTACHMENT;
 
-  /**
-   * The table <code>public.attachment_deletion</code>.
-   */
-  public static final JAttachmentDeletion ATTACHMENT_DELETION = JAttachmentDeletion.ATTACHMENT_DELETION;
+    /**
+     * The table <code>public.attachment_deletion</code>.
+     */
+    public static final JAttachmentDeletion ATTACHMENT_DELETION = JAttachmentDeletion.ATTACHMENT_DELETION;
 
-  /**
-   * The table <code>public.attribute</code>.
-   */
-  public static final JAttribute ATTRIBUTE = JAttribute.ATTRIBUTE;
+    /**
+     * The table <code>public.attribute</code>.
+     */
+    public static final JAttribute ATTRIBUTE = JAttribute.ATTRIBUTE;
 
-  /**
-   * The table <code>public.clusters</code>.
-   */
-  public static final JClusters CLUSTERS = JClusters.CLUSTERS;
+    /**
+     * The table <code>public.clusters</code>.
+     */
+    public static final JClusters CLUSTERS = JClusters.CLUSTERS;
 
-  /**
-   * The table <code>public.clusters_test_item</code>.
-   */
-  public static final JClustersTestItem CLUSTERS_TEST_ITEM = JClustersTestItem.CLUSTERS_TEST_ITEM;
+    /**
+     * The table <code>public.clusters_test_item</code>.
+     */
+    public static final JClustersTestItem CLUSTERS_TEST_ITEM = JClustersTestItem.CLUSTERS_TEST_ITEM;
 
-  /**
-   * The table <code>public.content_field</code>.
-   */
-  public static final JContentField CONTENT_FIELD = JContentField.CONTENT_FIELD;
+    /**
+     * The table <code>public.content_field</code>.
+     */
+    public static final JContentField CONTENT_FIELD = JContentField.CONTENT_FIELD;
 
   /**
    * The table <code>public.counter_decrease</code>.
@@ -133,288 +159,418 @@ public class Tables {
    */
   public static final JDashboard DASHBOARD = JDashboard.DASHBOARD;
 
-  /**
-   * The table <code>public.dashboard_widget</code>.
-   */
-  public static final JDashboardWidget DASHBOARD_WIDGET = JDashboardWidget.DASHBOARD_WIDGET;
+    /**
+     * The table <code>public.dashboard_widget</code>.
+     */
+    public static final JDashboardWidget DASHBOARD_WIDGET = JDashboardWidget.DASHBOARD_WIDGET;
 
-  /**
-   * The table <code>public.filter</code>.
-   */
-  public static final JFilter FILTER = JFilter.FILTER;
+    /**
+     * The table <code>public.filter</code>.
+     */
+    public static final JFilter FILTER = JFilter.FILTER;
 
-  /**
-   * The table <code>public.filter_condition</code>.
-   */
-  public static final JFilterCondition FILTER_CONDITION = JFilterCondition.FILTER_CONDITION;
+    /**
+     * The table <code>public.filter_condition</code>.
+     */
+    public static final JFilterCondition FILTER_CONDITION = JFilterCondition.FILTER_CONDITION;
 
-  /**
-   * The table <code>public.filter_sort</code>.
-   */
-  public static final JFilterSort FILTER_SORT = JFilterSort.FILTER_SORT;
+    /**
+     * The table <code>public.filter_sort</code>.
+     */
+    public static final JFilterSort FILTER_SORT = JFilterSort.FILTER_SORT;
 
-  /**
-   * The table <code>public.groups</code>.
-   */
-  public static final JGroups GROUPS = JGroups.GROUPS;
+    /**
+     * The table <code>public.groups</code>.
+     */
+    public static final JGroups GROUPS = JGroups.GROUPS;
 
-  /**
-   * The table <code>public.groups_projects</code>.
-   */
-  public static final JGroupsProjects GROUPS_PROJECTS = JGroupsProjects.GROUPS_PROJECTS;
+    /**
+     * The table <code>public.groups_projects</code>.
+     */
+    public static final JGroupsProjects GROUPS_PROJECTS = JGroupsProjects.GROUPS_PROJECTS;
 
-  /**
-   * The table <code>public.groups_users</code>.
-   */
-  public static final JGroupsUsers GROUPS_USERS = JGroupsUsers.GROUPS_USERS;
+    /**
+     * The table <code>public.groups_users</code>.
+     */
+    public static final JGroupsUsers GROUPS_USERS = JGroupsUsers.GROUPS_USERS;
 
-  /**
-   * The table <code>public.integration</code>.
-   */
-  public static final JIntegration INTEGRATION = JIntegration.INTEGRATION;
+    /**
+     * The table <code>public.integration</code>.
+     */
+    public static final JIntegration INTEGRATION = JIntegration.INTEGRATION;
 
-  /**
-   * The table <code>public.integration_type</code>.
-   */
-  public static final JIntegrationType INTEGRATION_TYPE = JIntegrationType.INTEGRATION_TYPE;
+    /**
+     * The table <code>public.integration_type</code>.
+     */
+    public static final JIntegrationType INTEGRATION_TYPE = JIntegrationType.INTEGRATION_TYPE;
 
-  /**
-   * The table <code>public.issue</code>.
-   */
-  public static final JIssue ISSUE = JIssue.ISSUE;
+    /**
+     * The table <code>public.issue</code>.
+     */
+    public static final JIssue ISSUE = JIssue.ISSUE;
 
-  /**
-   * The table <code>public.issue_group</code>.
-   */
-  public static final JIssueGroup ISSUE_GROUP = JIssueGroup.ISSUE_GROUP;
+    /**
+     * The table <code>public.issue_group</code>.
+     */
+    public static final JIssueGroup ISSUE_GROUP = JIssueGroup.ISSUE_GROUP;
 
-  /**
-   * The table <code>public.issue_ticket</code>.
-   */
-  public static final JIssueTicket ISSUE_TICKET = JIssueTicket.ISSUE_TICKET;
+    /**
+     * The table <code>public.issue_ticket</code>.
+     */
+    public static final JIssueTicket ISSUE_TICKET = JIssueTicket.ISSUE_TICKET;
 
-  /**
-   * The table <code>public.issue_type</code>.
-   */
-  public static final JIssueType ISSUE_TYPE = JIssueType.ISSUE_TYPE;
+    /**
+     * The table <code>public.issue_type</code>.
+     */
+    public static final JIssueType ISSUE_TYPE = JIssueType.ISSUE_TYPE;
 
-  /**
-   * The table <code>public.issue_type_project</code>.
-   */
-  public static final JIssueTypeProject ISSUE_TYPE_PROJECT = JIssueTypeProject.ISSUE_TYPE_PROJECT;
+    /**
+     * The table <code>public.issue_type_project</code>.
+     */
+    public static final JIssueTypeProject ISSUE_TYPE_PROJECT = JIssueTypeProject.ISSUE_TYPE_PROJECT;
 
-  /**
-   * The table <code>public.item_attribute</code>.
-   */
-  public static final JItemAttribute ITEM_ATTRIBUTE = JItemAttribute.ITEM_ATTRIBUTE;
+    /**
+     * The table <code>public.item_attribute</code>.
+     */
+    public static final JItemAttribute ITEM_ATTRIBUTE = JItemAttribute.ITEM_ATTRIBUTE;
 
-  /**
-   * The table <code>public.launch</code>.
-   */
-  public static final JLaunch LAUNCH = JLaunch.LAUNCH;
+    /**
+     * The table <code>public.launch</code>.
+     */
+    public static final JLaunch LAUNCH = JLaunch.LAUNCH;
 
-  /**
-   * The table <code>public.launch_attribute_rules</code>.
-   */
-  public static final JLaunchAttributeRules LAUNCH_ATTRIBUTE_RULES = JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES;
+    /**
+     * The table <code>public.launch_attribute_rules</code>.
+     */
+    public static final JLaunchAttributeRules LAUNCH_ATTRIBUTE_RULES = JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES;
 
-  /**
-   * The table <code>public.launch_names</code>.
-   */
-  public static final JLaunchNames LAUNCH_NAMES = JLaunchNames.LAUNCH_NAMES;
+    /**
+     * The table <code>public.launch_names</code>.
+     */
+    public static final JLaunchNames LAUNCH_NAMES = JLaunchNames.LAUNCH_NAMES;
 
-  /**
-   * The table <code>public.launch_number</code>.
-   */
-  public static final JLaunchNumber LAUNCH_NUMBER = JLaunchNumber.LAUNCH_NUMBER;
+    /**
+     * The table <code>public.launch_number</code>.
+     */
+    public static final JLaunchNumber LAUNCH_NUMBER = JLaunchNumber.LAUNCH_NUMBER;
 
-  /**
-   * The table <code>public.log</code>.
-   */
-  public static final JLog LOG = JLog.LOG;
+    /**
+     * The table <code>public.log</code>.
+     */
+    public static final JLog LOG = JLog.LOG;
 
-  /**
-   * The table <code>public.oauth_registration</code>.
-   */
-  public static final JOauthRegistration OAUTH_REGISTRATION = JOauthRegistration.OAUTH_REGISTRATION;
+    /**
+     * The table <code>public.oauth_registration</code>.
+     */
+    public static final JOauthRegistration OAUTH_REGISTRATION = JOauthRegistration.OAUTH_REGISTRATION;
 
-  /**
-   * The table <code>public.oauth_registration_restriction</code>.
-   */
-  public static final JOauthRegistrationRestriction OAUTH_REGISTRATION_RESTRICTION = JOauthRegistrationRestriction.OAUTH_REGISTRATION_RESTRICTION;
+    /**
+     * The table <code>public.oauth_registration_restriction</code>.
+     */
+    public static final JOauthRegistrationRestriction OAUTH_REGISTRATION_RESTRICTION = JOauthRegistrationRestriction.OAUTH_REGISTRATION_RESTRICTION;
 
-  /**
-   * The table <code>public.oauth_registration_scope</code>.
-   */
-  public static final JOauthRegistrationScope OAUTH_REGISTRATION_SCOPE = JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE;
+    /**
+     * The table <code>public.oauth_registration_scope</code>.
+     */
+    public static final JOauthRegistrationScope OAUTH_REGISTRATION_SCOPE = JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE;
 
-  /**
-   * The table <code>public.organization</code>.
-   */
-  public static final JOrganization ORGANIZATION = JOrganization.ORGANIZATION;
+    /**
+     * The table <code>public.organization</code>.
+     */
+    public static final JOrganization ORGANIZATION = JOrganization.ORGANIZATION;
 
-  /**
-   * The table <code>public.organization_settings</code>.
-   */
-  public static final JOrganizationSettings ORGANIZATION_SETTINGS = JOrganizationSettings.ORGANIZATION_SETTINGS;
+    /**
+     * The table <code>public.organization_settings</code>.
+     */
+    public static final JOrganizationSettings ORGANIZATION_SETTINGS = JOrganizationSettings.ORGANIZATION_SETTINGS;
 
-  /**
-   * The table <code>public.organization_user</code>.
-   */
-  public static final JOrganizationUser ORGANIZATION_USER = JOrganizationUser.ORGANIZATION_USER;
+    /**
+     * The table <code>public.organization_user</code>.
+     */
+    public static final JOrganizationUser ORGANIZATION_USER = JOrganizationUser.ORGANIZATION_USER;
 
-  /**
-   * The table <code>public.owned_entity</code>.
-   */
-  public static final JOwnedEntity OWNED_ENTITY = JOwnedEntity.OWNED_ENTITY;
+    /**
+     * The table <code>public.owned_entity</code>.
+     */
+    public static final JOwnedEntity OWNED_ENTITY = JOwnedEntity.OWNED_ENTITY;
 
-  /**
-   * The table <code>public.parameter</code>.
-   */
-  public static final JParameter PARAMETER = JParameter.PARAMETER;
+    /**
+     * The table <code>public.parameter</code>.
+     */
+    public static final JParameter PARAMETER = JParameter.PARAMETER;
 
-  /**
-   * The table <code>public.pattern_template</code>.
-   */
-  public static final JPatternTemplate PATTERN_TEMPLATE = JPatternTemplate.PATTERN_TEMPLATE;
+    /**
+     * The table <code>public.pattern_template</code>.
+     */
+    public static final JPatternTemplate PATTERN_TEMPLATE = JPatternTemplate.PATTERN_TEMPLATE;
 
-  /**
-   * The table <code>public.pattern_template_test_item</code>.
-   */
-  public static final JPatternTemplateTestItem PATTERN_TEMPLATE_TEST_ITEM = JPatternTemplateTestItem.PATTERN_TEMPLATE_TEST_ITEM;
+    /**
+     * The table <code>public.pattern_template_test_item</code>.
+     */
+    public static final JPatternTemplateTestItem PATTERN_TEMPLATE_TEST_ITEM = JPatternTemplateTestItem.PATTERN_TEMPLATE_TEST_ITEM;
 
-  /**
-   * The table <code>public.pgp_armor_headers</code>.
-   */
-  public static final JPgpArmorHeaders PGP_ARMOR_HEADERS = JPgpArmorHeaders.PGP_ARMOR_HEADERS;
+    /**
+     * The table <code>public.pgp_armor_headers</code>.
+     */
+    public static final JPgpArmorHeaders PGP_ARMOR_HEADERS = JPgpArmorHeaders.PGP_ARMOR_HEADERS;
 
-  /**
-   * Call <code>public.pgp_armor_headers</code>.
-   */
-  public static Result<JPgpArmorHeadersRecord> PGP_ARMOR_HEADERS(
-      Configuration configuration
-      , String __1
-  ) {
-    return configuration.dsl().selectFrom(JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-        __1
-    )).fetch();
-  }
+    /**
+     * Call <code>public.pgp_armor_headers</code>.
+     */
+    public static Result<JPgpArmorHeadersRecord> PGP_ARMOR_HEADERS(
+          Configuration configuration
+        , String __1
+    ) {
+        return configuration.dsl().selectFrom(com.epam.reportportal.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+              __1
+        )).fetch();
+    }
 
-  /**
-   * Get <code>public.pgp_armor_headers</code> as a table.
-   */
-  public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
-      String __1
-  ) {
-    return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-        __1
-    );
-  }
+    /**
+     * Get <code>public.pgp_armor_headers</code> as a table.
+     */
+    public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
+          String __1
+    ) {
+        return com.epam.reportportal.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+            __1
+        );
+    }
 
-  /**
-   * Get <code>public.pgp_armor_headers</code> as a table.
-   */
-  public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
-      Field<String> __1
-  ) {
-    return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-        __1
-    );
-  }
+    /**
+     * Get <code>public.pgp_armor_headers</code> as a table.
+     */
+    public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
+          Field<String> __1
+    ) {
+        return com.epam.reportportal.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+            __1
+        );
+    }
 
-  /**
-   * The table <code>public.project</code>.
-   */
-  public static final JProject PROJECT = JProject.PROJECT;
+    /**
+     * The table <code>public.project</code>.
+     */
+    public static final JProject PROJECT = JProject.PROJECT;
 
-  /**
-   * The table <code>public.project_attribute</code>.
-   */
-  public static final JProjectAttribute PROJECT_ATTRIBUTE = JProjectAttribute.PROJECT_ATTRIBUTE;
+    /**
+     * The table <code>public.project_attribute</code>.
+     */
+    public static final JProjectAttribute PROJECT_ATTRIBUTE = JProjectAttribute.PROJECT_ATTRIBUTE;
 
-  /**
-   * The table <code>public.project_user</code>.
-   */
-  public static final JProjectUser PROJECT_USER = JProjectUser.PROJECT_USER;
+    /**
+     * The table <code>public.project_user</code>.
+     */
+    public static final JProjectUser PROJECT_USER = JProjectUser.PROJECT_USER;
 
-  /**
-   * The table <code>public.recipients</code>.
-   */
-  public static final JRecipients RECIPIENTS = JRecipients.RECIPIENTS;
+    /**
+     * The table <code>public.recipients</code>.
+     */
+    public static final JRecipients RECIPIENTS = JRecipients.RECIPIENTS;
 
-  /**
-   * The table <code>public.restore_password_bid</code>.
-   */
-  public static final JRestorePasswordBid RESTORE_PASSWORD_BID = JRestorePasswordBid.RESTORE_PASSWORD_BID;
+    /**
+     * The table <code>public.restore_password_bid</code>.
+     */
+    public static final JRestorePasswordBid RESTORE_PASSWORD_BID = JRestorePasswordBid.RESTORE_PASSWORD_BID;
 
-  /**
-   * The table <code>public.sender_case</code>.
-   */
-  public static final JSenderCase SENDER_CASE = JSenderCase.SENDER_CASE;
+    /**
+     * The table <code>public.sender_case</code>.
+     */
+    public static final JSenderCase SENDER_CASE = JSenderCase.SENDER_CASE;
 
-  /**
-   * The table <code>public.server_settings</code>.
-   */
-  public static final JServerSettings SERVER_SETTINGS = JServerSettings.SERVER_SETTINGS;
+    /**
+     * The table <code>public.server_settings</code>.
+     */
+    public static final JServerSettings SERVER_SETTINGS = JServerSettings.SERVER_SETTINGS;
 
-  /**
-   * The table <code>public.shedlock</code>.
-   */
-  public static final JShedlock SHEDLOCK = JShedlock.SHEDLOCK;
+    /**
+     * The table <code>public.shedlock</code>.
+     */
+    public static final JShedlock SHEDLOCK = JShedlock.SHEDLOCK;
 
-  /**
-   * The table <code>public.stale_materialized_view</code>.
-   */
-  public static final JStaleMaterializedView STALE_MATERIALIZED_VIEW = JStaleMaterializedView.STALE_MATERIALIZED_VIEW;
+    /**
+     * The table <code>public.stale_materialized_view</code>.
+     */
+    public static final JStaleMaterializedView STALE_MATERIALIZED_VIEW = JStaleMaterializedView.STALE_MATERIALIZED_VIEW;
 
-  /**
-   * The table <code>public.statistics</code>.
-   */
-  public static final JStatistics STATISTICS = JStatistics.STATISTICS;
+    /**
+     * The table <code>public.statistics</code>.
+     */
+    public static final JStatistics STATISTICS = JStatistics.STATISTICS;
 
-  /**
-   * The table <code>public.statistics_field</code>.
-   */
-  public static final JStatisticsField STATISTICS_FIELD = JStatisticsField.STATISTICS_FIELD;
+    /**
+     * The table <code>public.statistics_field</code>.
+     */
+    public static final JStatisticsField STATISTICS_FIELD = JStatisticsField.STATISTICS_FIELD;
 
-  /**
-   * The table <code>public.test_item</code>.
-   */
-  public static final JTestItem TEST_ITEM = JTestItem.TEST_ITEM;
+    /**
+     * The table <code>public.test_item</code>.
+     */
+    public static final JTestItem TEST_ITEM = JTestItem.TEST_ITEM;
 
-  /**
-   * The table <code>public.test_item_results</code>.
-   */
-  public static final JTestItemResults TEST_ITEM_RESULTS = JTestItemResults.TEST_ITEM_RESULTS;
+    /**
+     * The table <code>public.test_item_results</code>.
+     */
+    public static final JTestItemResults TEST_ITEM_RESULTS = JTestItemResults.TEST_ITEM_RESULTS;
 
-  /**
-   * The table <code>public.ticket</code>.
-   */
-  public static final JTicket TICKET = JTicket.TICKET;
+    /**
+     * The table <code>public.ticket</code>.
+     */
+    public static final JTicket TICKET = JTicket.TICKET;
 
-  /**
-   * The table <code>public.user_creation_bid</code>.
-   */
-  public static final JUserCreationBid USER_CREATION_BID = JUserCreationBid.USER_CREATION_BID;
+    /**
+     * The table <code>public.tms_attachment</code>.
+     */
+    public static final JTmsAttachment TMS_ATTACHMENT = JTmsAttachment.TMS_ATTACHMENT;
 
-  /**
-   * The table <code>public.user_preference</code>.
-   */
-  public static final JUserPreference USER_PREFERENCE = JUserPreference.USER_PREFERENCE;
+    /**
+     * The table <code>public.tms_attribute</code>.
+     */
+    public static final JTmsAttribute TMS_ATTRIBUTE = JTmsAttribute.TMS_ATTRIBUTE;
 
-  /**
-   * The table <code>public.users</code>.
-   */
-  public static final JUsers USERS = JUsers.USERS;
+    /**
+     * The table <code>public.tms_dataset</code>.
+     */
+    public static final JTmsDataset TMS_DATASET = JTmsDataset.TMS_DATASET;
 
-  /**
-   * The table <code>public.widget</code>.
-   */
-  public static final JWidget WIDGET = JWidget.WIDGET;
+    /**
+     * The table <code>public.tms_dataset_data</code>.
+     */
+    public static final JTmsDatasetData TMS_DATASET_DATA = JTmsDatasetData.TMS_DATASET_DATA;
 
+    /**
+     * The table <code>public.tms_environment</code>.
+     */
+    public static final JTmsEnvironment TMS_ENVIRONMENT = JTmsEnvironment.TMS_ENVIRONMENT;
 
-  /**
-   * The table <code>public.widget_filter</code>.
-   */
-  public static final JWidgetFilter WIDGET_FILTER = JWidgetFilter.WIDGET_FILTER;
+    /**
+     * The table <code>public.tms_environment_dataset</code>.
+     */
+    public static final JTmsEnvironmentDataset TMS_ENVIRONMENT_DATASET = JTmsEnvironmentDataset.TMS_ENVIRONMENT_DATASET;
+
+    /**
+     * The table <code>public.tms_manual_scenario</code>.
+     */
+    public static final JTmsManualScenario TMS_MANUAL_SCENARIO = JTmsManualScenario.TMS_MANUAL_SCENARIO;
+
+    /**
+     * The table <code>public.tms_manual_scenario_attribute</code>.
+     */
+    public static final JTmsManualScenarioAttribute TMS_MANUAL_SCENARIO_ATTRIBUTE = JTmsManualScenarioAttribute.TMS_MANUAL_SCENARIO_ATTRIBUTE;
+
+    /**
+     * The table <code>public.tms_manual_scenario_preconditions</code>.
+     */
+    public static final JTmsManualScenarioPreconditions TMS_MANUAL_SCENARIO_PRECONDITIONS = JTmsManualScenarioPreconditions.TMS_MANUAL_SCENARIO_PRECONDITIONS;
+
+    /**
+     * The table
+     * <code>public.tms_manual_scenario_preconditions_attachment</code>.
+     */
+    public static final JTmsManualScenarioPreconditionsAttachment TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT = JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT;
+
+    /**
+     * The table <code>public.tms_milestone</code>.
+     */
+    public static final JTmsMilestone TMS_MILESTONE = JTmsMilestone.TMS_MILESTONE;
+
+    /**
+     * The table <code>public.tms_product_version</code>.
+     */
+    public static final JTmsProductVersion TMS_PRODUCT_VERSION = JTmsProductVersion.TMS_PRODUCT_VERSION;
+
+    /**
+     * The table <code>public.tms_step</code>.
+     */
+    public static final JTmsStep TMS_STEP = JTmsStep.TMS_STEP;
+
+    /**
+     * The table <code>public.tms_step_attachment</code>.
+     */
+    public static final JTmsStepAttachment TMS_STEP_ATTACHMENT = JTmsStepAttachment.TMS_STEP_ATTACHMENT;
+
+    /**
+     * The table <code>public.tms_steps_manual_scenario</code>.
+     */
+    public static final JTmsStepsManualScenario TMS_STEPS_MANUAL_SCENARIO = JTmsStepsManualScenario.TMS_STEPS_MANUAL_SCENARIO;
+
+    /**
+     * The table <code>public.tms_test_case</code>.
+     */
+    public static final JTmsTestCase TMS_TEST_CASE = JTmsTestCase.TMS_TEST_CASE;
+
+    /**
+     * The table <code>public.tms_test_case_attribute</code>.
+     */
+    public static final JTmsTestCaseAttribute TMS_TEST_CASE_ATTRIBUTE = JTmsTestCaseAttribute.TMS_TEST_CASE_ATTRIBUTE;
+
+    /**
+     * The table <code>public.tms_test_case_execution</code>.
+     */
+    public static final JTmsTestCaseExecution TMS_TEST_CASE_EXECUTION = JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION;
+
+    /**
+     * The table <code>public.tms_test_case_launch</code>.
+     */
+    public static final JTmsTestCaseLaunch TMS_TEST_CASE_LAUNCH = JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH;
+
+    /**
+     * The table <code>public.tms_test_case_version</code>.
+     */
+    public static final JTmsTestCaseVersion TMS_TEST_CASE_VERSION = JTmsTestCaseVersion.TMS_TEST_CASE_VERSION;
+
+    /**
+     * The table <code>public.tms_test_folder</code>.
+     */
+    public static final JTmsTestFolder TMS_TEST_FOLDER = JTmsTestFolder.TMS_TEST_FOLDER;
+
+    /**
+     * The table <code>public.tms_test_plan</code>.
+     */
+    public static final JTmsTestPlan TMS_TEST_PLAN = JTmsTestPlan.TMS_TEST_PLAN;
+
+    /**
+     * The table <code>public.tms_test_plan_attribute</code>.
+     */
+    public static final JTmsTestPlanAttribute TMS_TEST_PLAN_ATTRIBUTE = JTmsTestPlanAttribute.TMS_TEST_PLAN_ATTRIBUTE;
+
+    /**
+     * The table <code>public.tms_test_plan_test_case</code>.
+     */
+    public static final JTmsTestPlanTestCase TMS_TEST_PLAN_TEST_CASE = JTmsTestPlanTestCase.TMS_TEST_PLAN_TEST_CASE;
+
+    /**
+     * The table <code>public.tms_text_manual_scenario</code>.
+     */
+    public static final JTmsTextManualScenario TMS_TEXT_MANUAL_SCENARIO = JTmsTextManualScenario.TMS_TEXT_MANUAL_SCENARIO;
+
+    /**
+     * The table <code>public.tms_text_manual_scenario_attachment</code>.
+     */
+    public static final JTmsTextManualScenarioAttachment TMS_TEXT_MANUAL_SCENARIO_ATTACHMENT = JTmsTextManualScenarioAttachment.TMS_TEXT_MANUAL_SCENARIO_ATTACHMENT;
+
+    /**
+     * The table <code>public.user_creation_bid</code>.
+     */
+    public static final JUserCreationBid USER_CREATION_BID = JUserCreationBid.USER_CREATION_BID;
+
+    /**
+     * The table <code>public.user_preference</code>.
+     */
+    public static final JUserPreference USER_PREFERENCE = JUserPreference.USER_PREFERENCE;
+
+    /**
+     * The table <code>public.users</code>.
+     */
+    public static final JUsers USERS = JUsers.USERS;
+
+    /**
+     * The table <code>public.widget</code>.
+     */
+    public static final JWidget WIDGET = JWidget.WIDGET;
+
+    /**
+     * The table <code>public.widget_filter</code>.
+     */
+    public static final JWidgetFilter WIDGET_FILTER = JWidgetFilter.WIDGET_FILTER;
 }

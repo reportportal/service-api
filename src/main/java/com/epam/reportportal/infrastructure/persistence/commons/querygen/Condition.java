@@ -603,6 +603,37 @@ public enum Condition {
         return castArray(criteriaHolder, value, errorType);
       }
     }
+  },
+
+  /**
+   * Full text search condition using PostgreSQL tsvector
+   */
+  FULL_TEXT_SEARCH("fts") {
+    @Override
+    public org.jooq.Condition toCondition(FilterCondition filter, CriteriaHolder criteriaHolder) {
+      this.validate(criteriaHolder, filter.getValue(), filter.isNegative(),
+          INCORRECT_FILTER_PARAMETERS);
+      return DSL.condition(
+          "{0} @@ plainto_tsquery('simple', {1})",
+          DSL.field(criteriaHolder.getAggregateCriteria()),
+          DSL.val(filter.getValue())
+      );
+    }
+
+    @Override
+    public void validate(CriteriaHolder criteriaHolder, String value, boolean isNegative,
+        ErrorType errorType) {
+      expect(criteriaHolder, filterForString()).verify(errorType, formattedSupplier(
+          "Full text search condition applicable only for search_vector fields. Type of field is '{}'",
+          criteriaHolder.getDataType().getSimpleName()
+      ));
+    }
+
+    @Override
+    public Object castValue(CriteriaHolder criteriaHolder, String value, ErrorType errorType) {
+      // value cast is not required for full text search
+      return value;
+    }
   };
 
   /*
@@ -612,6 +643,7 @@ public enum Condition {
   public static final String CNT = "cnt.";
   public static final String HAS_FILTER = "has.";
   public static final String UNDR = "under.";
+  public static final String FTS = "fts.";
 
   public static final String VALUES_SEPARATOR = ",";
   public static final String TIMESTAMP_SEPARATOR = ";";

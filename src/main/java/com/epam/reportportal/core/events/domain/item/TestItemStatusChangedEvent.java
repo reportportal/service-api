@@ -30,6 +30,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TestItemStatusChangedEvent extends AbstractEvent<TestItemActivityResource> {
 
+  /**
+   * Constructs a TestItemStatusChangedEvent.
+   *
+   * @param before The test item state before the status change
+   * @param after The test item state after the status change
+   * @param userId The ID of the user who changed the status
+   * @param userLogin The login of the user who changed the status
+   * @param organizationId The organization ID
+   */
   public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after,
       Long userId, String userLogin, Long organizationId) {
     super(userId, userLogin, before, after);

@@ -39,6 +39,12 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
   private ReportPortalUser user;
   private String baseUrl;
 
+  /**
+   * Constructs a LaunchFinishedEvent.
+   *
+   * @param launch The launch that finished
+   * @param orgId The organization ID
+   */
   public LaunchFinishedEvent(Launch launch, Long orgId) {
     super();
     this.id = launch.getId();
@@ -48,6 +54,14 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
     this.organizationId = orgId;
   }
 
+  /**
+   * Constructs a LaunchFinishedEvent.
+   *
+   * @param launch The launch that finished
+   * @param userId The ID of the user who finished the launch
+   * @param userLogin The login of the user who finished the launch
+   * @param orgId The organization ID
+   */
   public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);
     this.id = launch.getId();
@@ -57,12 +71,29 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
     this.organizationId = orgId;
   }
 
+  /**
+   * Constructs a LaunchFinishedEvent.
+   *
+   * @param launch The launch that finished
+   * @param userId The ID of the user who finished the launch
+   * @param userLogin The login of the user who finished the launch
+   * @param baseUrl The base URL
+   * @param orgId The organization ID
+   */
   public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl,
       Long orgId) {
     this(launch, userId, userLogin, orgId);
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Constructs a LaunchFinishedEvent.
+   *
+   * @param launch The launch that finished
+   * @param user The user who finished the launch
+   * @param baseUrl The base URL
+   * @param orgId The organization ID
+   */
   public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl, Long orgId) {
     this(launch, user.getUserId(), user.getUsername(), baseUrl, orgId);
     this.user = user;

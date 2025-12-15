@@ -22,6 +22,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Event published when a user filter is created.
+ *
  * @author pavel_bortnik
  */
 @Setter
@@ -31,6 +33,14 @@ public class FilterCreatedEvent extends AbstractEvent<Void> {
 
   private UserFilterActivityResource userFilterActivityResource;
 
+  /**
+   * Constructs a FilterCreatedEvent.
+   *
+   * @param userFilterActivityResource The user filter activity resource
+   * @param userId The ID of the user who created the filter
+   * @param userLogin The login of the user who created the filter
+   * @param orgId The organization ID
+   */
   public FilterCreatedEvent(UserFilterActivityResource userFilterActivityResource, Long userId,
       String userLogin, Long orgId) {
     super(userId, userLogin);

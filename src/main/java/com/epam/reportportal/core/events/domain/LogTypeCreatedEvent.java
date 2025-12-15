@@ -29,6 +29,13 @@ public class LogTypeCreatedEvent extends AbstractEvent<Void> {
 
   private LogTypeActivityResource logTypeActivityResource;
 
+  /**
+   * Constructs a LogTypeCreatedEvent.
+   *
+   * @param logTypeActivityResource The log type activity resource
+   * @param userId The ID of the user who created the log type
+   * @param userLogin The login of the user who created the log type
+   */
   public LogTypeCreatedEvent(LogTypeActivityResource logTypeActivityResource, Long userId,
       String userLogin) {
     super(userId, userLogin);

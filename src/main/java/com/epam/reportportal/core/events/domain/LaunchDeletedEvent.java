@@ -29,6 +29,14 @@ import lombok.Setter;
 @NoArgsConstructor
 public class LaunchDeletedEvent extends AbstractEvent<LaunchActivityResource> {
 
+  /**
+   * Constructs a LaunchDeletedEvent.
+   *
+   * @param before The launch state before deletion
+   * @param userId The ID of the user who deleted the launch
+   * @param userLogin The login of the user who deleted the launch
+   * @param orgId The organization ID
+   */
   public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin,
       Long orgId) {
     super(userId, userLogin);

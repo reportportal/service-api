@@ -21,12 +21,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
+ * Event published when a defect type is deleted.
+ *
  * @author Andrei Varabyeu
  */
 @Getter
 @NoArgsConstructor
 public class DefectTypeDeletedEvent extends AbstractEvent<IssueTypeActivityResource> {
 
+  /**
+   * Constructs a DefectTypeDeletedEvent.
+   *
+   * @param before The defect type state before deletion
+   * @param userId The ID of the user who deleted the defect type
+   * @param userLogin The login of the user who deleted the defect type
+   * @param projectId The project ID
+   * @param orgId The organization ID
+   */
   public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long userId, String userLogin,
       Long projectId, Long orgId) {
     super(userId, userLogin, before, null);

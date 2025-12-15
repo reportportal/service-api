@@ -29,6 +29,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class WidgetDeletedEvent extends AbstractEvent<WidgetActivityResource> {
 
+  /**
+   * Constructs a WidgetDeletedEvent.
+   *
+   * @param before The widget state before deletion
+   * @param userId The ID of the user who deleted the widget
+   * @param userLogin The login of the user who deleted the widget
+   * @param orgId The organization ID
+   */
   public WidgetDeletedEvent(WidgetActivityResource before, Long userId, String userLogin,
       Long orgId) {
     super(userId, userLogin, before, null);

@@ -41,10 +41,19 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
   protected Long projectId;
   protected Instant occurredAt = Instant.now();
 
+  /**
+   * Default constructor for system events (no user context).
+   */
   protected AbstractEvent() {
     super(new Object());
   }
 
+  /**
+   * Constructs an AbstractEvent with user context but no state snapshots.
+   *
+   * @param userId The ID of the user who triggered the event
+   * @param userLogin The login of the user who triggered the event
+   */
   protected AbstractEvent(Long userId, String userLogin) {
     super(new Object());
     this.userId = userId;
@@ -53,6 +62,14 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
     this.after = null;
   }
 
+  /**
+   * Constructs an AbstractEvent with user context and state snapshots.
+   *
+   * @param userId The ID of the user who triggered the event
+   * @param userLogin The login of the user who triggered the event
+   * @param before The state before the event (can be null for CREATE events)
+   * @param after The state after the event (can be null for DELETE events)
+   */
   protected AbstractEvent(Long userId, String userLogin, T before, T after) {
     super(new Object());
     this.userId = userId;

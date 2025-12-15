@@ -27,6 +27,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LogTypeDeletedEvent extends AbstractEvent<LogTypeActivityResource> {
 
+  /**
+   * Constructs a LogTypeDeletedEvent.
+   *
+   * @param before The log type state before deletion
+   * @param userId The ID of the user who deleted the log type
+   * @param userLogin The login of the user who deleted the log type
+   */
   public LogTypeDeletedEvent(LogTypeActivityResource before, Long userId, String userLogin) {
     super(userId, userLogin, before, null);
   }

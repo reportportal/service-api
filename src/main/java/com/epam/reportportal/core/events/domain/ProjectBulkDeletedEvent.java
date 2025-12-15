@@ -31,6 +31,13 @@ public class ProjectBulkDeletedEvent extends AbstractEvent<Void> {
 
   private Collection<String> projectNames;
 
+  /**
+   * Constructs a ProjectBulkDeletedEvent.
+   *
+   * @param userId The ID of the user who deleted the projects
+   * @param userLogin The login of the user who deleted the projects
+   * @param projectNames The names of the deleted projects
+   */
   public ProjectBulkDeletedEvent(Long userId, String userLogin, Collection<String> projectNames) {
     super(userId, userLogin);
     this.projectNames = projectNames;

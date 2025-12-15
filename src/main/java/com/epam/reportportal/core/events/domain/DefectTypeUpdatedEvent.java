@@ -22,6 +22,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Event published when a defect type is updated.
+ *
  * @author Andrei Varabyeu
  */
 @Setter
@@ -31,6 +33,15 @@ public class DefectTypeUpdatedEvent extends AbstractEvent<Void> {
 
   private IssueTypeActivityResource issueTypeActivityResource;
 
+  /**
+   * Constructs a DefectTypeUpdatedEvent.
+   *
+   * @param issueTypeActivityResource The issue type activity resource
+   * @param userId The ID of the user who updated the defect type
+   * @param userLogin The login of the user who updated the defect type
+   * @param projectId The project ID
+   * @param orgId The organization ID
+   */
   public DefectTypeUpdatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId,
       String userLogin, Long projectId, Long orgId) {
     super(userId, userLogin);

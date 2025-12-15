@@ -19,26 +19,36 @@ package com.epam.reportportal.core.events.domain;
 import com.epam.reportportal.model.project.ProjectResource;
 import com.epam.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Event published when project notification configuration is updated.
+ *
  * @author Andrei Varabyeu
  */
 @Setter
 @Getter
+@NoArgsConstructor
 public class NotificationsConfigUpdatedEvent extends AbstractEvent<ProjectResource> {
 
-  private ProjectNotificationConfigDTO updateProjectNotificationConfigRQ;
+  private ProjectNotificationConfigDTO updateProjectNotificationConfigRq;
 
-  public NotificationsConfigUpdatedEvent() {
-  }
-
+  /**
+   * Constructs a NotificationsConfigUpdatedEvent.
+   *
+   * @param before                            The project resource state before the update
+   * @param updateProjectNotificationConfigRq The updated notification configuration
+   * @param userId                            The ID of the user who updated the configuration
+   * @param userLogin                         The login of the user who updated the configuration
+   * @param orgId                             The organization ID
+   */
   public NotificationsConfigUpdatedEvent(ProjectResource before,
-      ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
+      ProjectNotificationConfigDTO updateProjectNotificationConfigRq,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);
     this.before = before;
-    this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
+    this.updateProjectNotificationConfigRq = updateProjectNotificationConfigRq;
     this.organizationId = orgId;
   }
 

@@ -65,7 +65,6 @@ class ActivityConsumerTest {
   @Test
   void onEventWhenConverterReturnsActivityWithNullDetailsThenCreatesDetailsAndSaves() {
     // given
-    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
     Activity activity = new Activity();
     activity.setSubjectId(1L);
     activity.setProjectId(2L);
@@ -74,6 +73,7 @@ class ActivityConsumerTest {
     activity.setSavedEvent(true);
     activity.setDetails(null);
 
+    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
     when(converterRegistry.convert(event)).thenReturn(Optional.of(activity));
 
     // when
@@ -89,7 +89,6 @@ class ActivityConsumerTest {
   @Test
   void onEventWhenConverterReturnsActivityWithExistingDetailsThenSavesWithExistingDetails() {
     // given
-    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
     Activity activity = new Activity();
     activity.setSubjectId(1L);
     activity.setProjectId(2L);
@@ -99,6 +98,7 @@ class ActivityConsumerTest {
     ActivityDetails existingDetails = new ActivityDetails();
     activity.setDetails(existingDetails);
 
+    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
     when(converterRegistry.convert(event)).thenReturn(Optional.of(activity));
 
     // when
@@ -127,7 +127,6 @@ class ActivityConsumerTest {
   @Test
   void onEventWhenActivityIsNotSavedEventThenNoProcessing() {
     // given
-    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
     Activity activity = new Activity();
     activity.setSubjectId(1L);
     activity.setProjectId(2L);
@@ -135,6 +134,7 @@ class ActivityConsumerTest {
     activity.setObjectId(3L);
     activity.setSavedEvent(false);
 
+    ProjectCreatedEvent event = new ProjectCreatedEvent(1L, "username", 2L, "Test Project", 1L);
     when(converterRegistry.convert(event)).thenReturn(Optional.of(activity));
 
     // when

@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
+ * Event published when a user's type/role is changed.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Getter
@@ -32,6 +34,16 @@ public class ChangeUserTypeEvent extends AbstractEvent<Void> {
   private UserRole oldType;
   private UserRole newType;
 
+  /**
+   * Constructs a ChangeUserTypeEvent.
+   *
+   * @param targetUserId The ID of the user whose type is being changed
+   * @param targetUserName The username of the user whose type is being changed
+   * @param oldRole The previous user role
+   * @param newRole The new user role
+   * @param editorId The ID of the user making the change
+   * @param editorUsername The username of the user making the change
+   */
   public ChangeUserTypeEvent(Long targetUserId, String targetUserName, UserRole oldRole,
       UserRole newRole, Long editorId, String editorUsername) {
     super(editorId, editorUsername);

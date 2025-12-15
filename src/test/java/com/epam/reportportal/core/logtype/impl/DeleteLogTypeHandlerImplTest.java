@@ -72,13 +72,14 @@ class DeleteLogTypeHandlerImplTest {
     // Given
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, PROJECT_ID, "custom", 9000, false);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
-        OrganizationRole.MEMBER,
-        ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
     doNothing().when(logTypeValidator).validateLogTypeBelongsToProject(logType, PROJECT_ID);
+
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, PROJECT_ID);
 
     // When
     handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user);

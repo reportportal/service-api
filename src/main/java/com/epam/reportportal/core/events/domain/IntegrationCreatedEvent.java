@@ -33,6 +33,14 @@ public class IntegrationCreatedEvent extends AbstractEvent<Void> {
 
   private IntegrationActivityResource integrationActivityResource;
 
+  /**
+   * Constructs an IntegrationCreatedEvent.
+   *
+   * @param integrationActivityResource The integration activity resource
+   * @param userId The ID of the user who created the integration
+   * @param userLogin The login of the user who created the integration
+   * @param orgId The organization ID
+   */
   public IntegrationCreatedEvent(IntegrationActivityResource integrationActivityResource,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);

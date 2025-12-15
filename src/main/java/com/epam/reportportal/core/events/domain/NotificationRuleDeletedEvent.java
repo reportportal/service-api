@@ -27,6 +27,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NotificationRuleDeletedEvent extends AbstractEvent<NotificationRuleActivityResource> {
 
+  /**
+   * Constructs a NotificationRuleDeletedEvent.
+   *
+   * @param before The notification rule state before deletion
+   * @param userId The ID of the user who deleted the rule
+   * @param userLogin The login of the user who deleted the rule
+   * @param orgId The organization ID
+   */
   public NotificationRuleDeletedEvent(NotificationRuleActivityResource before,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, null);

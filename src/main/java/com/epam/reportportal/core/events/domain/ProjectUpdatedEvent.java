@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Being triggered on after project update
+ * Event triggered after a project is updated.
  *
  * @author Andrei Varabyeu
  */
@@ -29,6 +29,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProjectUpdatedEvent extends AbstractEvent<ProjectAttributesActivityResource> {
 
+  /**
+   * Constructs a ProjectUpdatedEvent.
+   *
+   * @param before The project state before the update
+   * @param after The project state after the update
+   * @param userId The ID of the user who updated the project
+   * @param userLogin The login of the user who updated the project
+   * @param orgId The organization ID
+   */
   public ProjectUpdatedEvent(ProjectAttributesActivityResource before,
       ProjectAttributesActivityResource after, Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);

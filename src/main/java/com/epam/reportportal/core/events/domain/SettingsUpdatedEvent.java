@@ -29,6 +29,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SettingsUpdatedEvent extends AbstractEvent<ServerSettingsResource> {
 
+  /**
+   * Constructs a SettingsUpdatedEvent.
+   *
+   * @param before The server settings state before the update
+   * @param after The server settings state after the update
+   * @param userId The ID of the user who updated the settings
+   * @param userLogin The login of the user who updated the settings
+   */
   public SettingsUpdatedEvent(ServerSettingsResource before, ServerSettingsResource after,
       Long userId,
       String userLogin) {

@@ -29,6 +29,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DashboardDeletedEvent extends AbstractEvent<DashboardActivityResource> {
 
+  /**
+   * Constructs a DashboardDeletedEvent.
+   *
+   * @param before The dashboard state before deletion
+   * @param userId The ID of the user who deleted the dashboard
+   * @param userLogin The login of the user who deleted the dashboard
+   * @param orgId The organization ID
+   */
   public DashboardDeletedEvent(DashboardActivityResource before, Long userId, String userLogin,
       Long orgId) {
     super(userId, userLogin, before, null);

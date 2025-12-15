@@ -103,10 +103,6 @@ class DeleteProjectNotificationHandlerImplTest {
   @Test
   void deleteNotificationWhenRuleDeletedShouldPublishNotificationRuleDeletedEvent() {
     // given
-    DeleteProjectNotificationHandlerImpl serviceReal = new DeleteProjectNotificationHandlerImpl(
-        senderCaseRepository,
-        eventPublisher, projectConverter);
-
     long ruleId = 55L;
     Project project = new Project();
     project.setId(7L);
@@ -135,6 +131,10 @@ class DeleteProjectNotificationHandlerImplTest {
     ReportPortalUser user = mock(ReportPortalUser.class);
     when(user.getUserId()).thenReturn(5L);
     when(user.getUsername()).thenReturn("u1");
+
+    DeleteProjectNotificationHandlerImpl serviceReal = new DeleteProjectNotificationHandlerImpl(
+        senderCaseRepository,
+        eventPublisher, projectConverter);
 
     // when
     serviceReal.deleteNotification(project, ruleId, user);

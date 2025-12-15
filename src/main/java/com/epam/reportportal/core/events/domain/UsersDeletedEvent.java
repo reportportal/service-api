@@ -27,6 +27,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UsersDeletedEvent extends AbstractEvent<UserActivityResource> {
 
+  /**
+   * Constructs a UsersDeletedEvent.
+   *
+   * @param userActivityResource The user activity resource
+   * @param userId The ID of the user who deleted the users
+   * @param userName The name of the user who deleted the users
+   */
   public UsersDeletedEvent(UserActivityResource userActivityResource, Long userId,
       String userName) {
     super(userId, userName);

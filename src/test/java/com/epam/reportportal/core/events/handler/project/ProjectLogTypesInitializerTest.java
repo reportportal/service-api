@@ -39,7 +39,6 @@ class ProjectLogTypesInitializerTest {
   void onProjectCreatedShouldInitializeLogTypesWhenEventIsValid() {
     // given
     Long projectId = 1L;
-    ProjectCreatedEvent event = createProjectCreatedEvent(projectId, "Test Project");
     ProjectLogType warn = new ProjectLogType();
     warn.setLevel(30000);
     warn.setName("warn");
@@ -48,6 +47,8 @@ class ProjectLogTypesInitializerTest {
     info.setName("info");
 
     when(defaultLogTypeProvider.provideDefaultLogTypes(projectId)).thenReturn(List.of(warn, info));
+
+    ProjectCreatedEvent event = createProjectCreatedEvent(projectId, "Test Project");
 
     // when
     projectLogTypesInitializer.onProjectCreated(event);

@@ -30,6 +30,14 @@ public class OrganizationDeletedEvent extends AbstractEvent<Void> {
 
   private String organizationName;
 
+  /**
+   * Constructs an OrganizationDeletedEvent.
+   *
+   * @param userId The ID of the user who deleted the organization
+   * @param userLogin The login of the user who deleted the organization
+   * @param organizationId The ID of the deleted organization
+   * @param organizationName The name of the deleted organization
+   */
   public OrganizationDeletedEvent(Long userId, String userLogin, Long organizationId,
       String organizationName) {
     super(userId, userLogin);

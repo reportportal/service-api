@@ -29,6 +29,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DashboardUpdatedEvent extends AbstractEvent<DashboardActivityResource> {
 
+  /**
+   * Constructs a DashboardUpdatedEvent.
+   *
+   * @param before The dashboard state before the update
+   * @param after The dashboard state after the update
+   * @param userId The ID of the user who updated the dashboard
+   * @param userLogin The login of the user who updated the dashboard
+   * @param orgId The organization ID
+   */
   public DashboardUpdatedEvent(DashboardActivityResource before, DashboardActivityResource after,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);

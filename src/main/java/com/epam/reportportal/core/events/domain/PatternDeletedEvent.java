@@ -29,6 +29,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PatternDeletedEvent extends AbstractEvent<PatternTemplateActivityResource> {
 
+  /**
+   * Constructs a PatternDeletedEvent.
+   *
+   * @param userId The ID of the user who deleted the pattern
+   * @param userLogin The login of the user who deleted the pattern
+   * @param before The pattern state before deletion
+   * @param orgId The organization ID
+   */
   public PatternDeletedEvent(Long userId, String userLogin,
       PatternTemplateActivityResource before, Long orgId) {
     super(userId, userLogin, before, null);

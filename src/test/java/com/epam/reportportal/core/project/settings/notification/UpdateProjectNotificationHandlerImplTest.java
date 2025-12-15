@@ -209,11 +209,6 @@ class UpdateProjectNotificationHandlerImplTest {
   @Test
   void updateNotificationWhenRuleUpdatedShouldPublishNotificationRuleUpdatedEvent() {
     // given
-    UpdateProjectNotificationHandlerImpl serviceReal = new UpdateProjectNotificationHandlerImpl(
-        senderCaseRepository,
-        eventPublisher, projectConverter,
-        projectNotificationValidator);
-
     Project project = new Project();
     project.setId(7L);
     project.setOrganizationId(77L);
@@ -254,6 +249,11 @@ class UpdateProjectNotificationHandlerImplTest {
 
     when(rpUser.getUserId()).thenReturn(5L);
     when(rpUser.getUsername()).thenReturn("u1");
+
+    UpdateProjectNotificationHandlerImpl serviceReal = new UpdateProjectNotificationHandlerImpl(
+        senderCaseRepository,
+        eventPublisher, projectConverter,
+        projectNotificationValidator);
 
     // when
     serviceReal.updateNotification(project, rq, rpUser);

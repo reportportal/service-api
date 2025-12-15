@@ -32,6 +32,17 @@ public class WidgetUpdatedEvent extends AbstractEvent<WidgetActivityResource> {
   private String widgetOptionsBefore;
   private String widgetOptionsAfter;
 
+  /**
+   * Constructs a WidgetUpdatedEvent.
+   *
+   * @param before The widget state before the update
+   * @param after The widget state after the update
+   * @param widgetOptionsBefore The widget options before the update
+   * @param widgetOptionsAfter The widget options after the update
+   * @param userId The ID of the user who updated the widget
+   * @param userLogin The login of the user who updated the widget
+   * @param orgId The organization ID
+   */
   public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after,
       String widgetOptionsBefore, String widgetOptionsAfter, Long userId, String userLogin,
       Long orgId) {

@@ -29,6 +29,14 @@ public class NotificationRuleCreatedEvent extends AbstractEvent<Void> {
 
   private NotificationRuleActivityResource notificationRuleActivityResource;
 
+  /**
+   * Constructs a NotificationRuleCreatedEvent.
+   *
+   * @param notificationRuleActivityResource The notification rule activity resource
+   * @param userId The ID of the user who created the rule
+   * @param userLogin The login of the user who created the rule
+   * @param orgId The organization ID
+   */
   public NotificationRuleCreatedEvent(
       NotificationRuleActivityResource notificationRuleActivityResource,
       Long userId, String userLogin, Long orgId) {

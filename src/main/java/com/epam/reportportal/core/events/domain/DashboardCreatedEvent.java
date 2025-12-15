@@ -31,6 +31,14 @@ public class DashboardCreatedEvent extends AbstractEvent<Void> {
 
   private DashboardActivityResource dashboardActivityResource;
 
+  /**
+   * Constructs a DashboardCreatedEvent.
+   *
+   * @param dashboardActivityResource The dashboard activity resource
+   * @param userId The ID of the user who created the dashboard
+   * @param userLogin The login of the user who created the dashboard
+   * @param orgId The organization ID
+   */
   public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long userId,
       String userLogin,
       Long orgId) {

@@ -31,6 +31,14 @@ public class PatternCreatedEvent extends AbstractEvent<Void> {
 
   private PatternTemplateActivityResource patternTemplateActivityResource;
 
+  /**
+   * Constructs a PatternCreatedEvent.
+   *
+   * @param userId The ID of the user who created the pattern
+   * @param userLogin The login of the user who created the pattern
+   * @param patternTemplateActivityResource The pattern template activity resource
+   * @param orgId The organization ID
+   */
   public PatternCreatedEvent(Long userId, String userLogin,
       PatternTemplateActivityResource patternTemplateActivityResource, Long orgId) {
     super(userId, userLogin);

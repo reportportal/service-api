@@ -32,6 +32,14 @@ import lombok.Setter;
 @NoArgsConstructor
 public class LaunchStartedEvent extends AbstractEvent<LaunchActivityResource> {
 
+  /**
+   * Constructs a LaunchStartedEvent.
+   *
+   * @param launchActivityResource The launch activity resource
+   * @param userId The ID of the user who started the launch
+   * @param userLogin The login of the user who started the launch
+   * @param orgId The organization ID
+   */
   public LaunchStartedEvent(LaunchActivityResource launchActivityResource, Long userId,
       String userLogin, Long orgId) {
     super(userId, userLogin);

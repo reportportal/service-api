@@ -28,6 +28,15 @@ import lombok.NoArgsConstructor;
 public class NotificationSettingsUpdatedEvent extends
     AbstractEvent<ProjectAttributesActivityResource> {
 
+  /**
+   * Constructs a NotificationSettingsUpdatedEvent.
+   *
+   * @param before The notification settings state before the update
+   * @param after The notification settings state after the update
+   * @param userId The ID of the user who updated the settings
+   * @param userLogin The login of the user who updated the settings
+   * @param orgId The organization ID
+   */
   public NotificationSettingsUpdatedEvent(ProjectAttributesActivityResource before,
       ProjectAttributesActivityResource after,
       Long userId,

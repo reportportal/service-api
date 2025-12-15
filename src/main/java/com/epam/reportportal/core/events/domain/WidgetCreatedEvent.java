@@ -31,6 +31,14 @@ public class WidgetCreatedEvent extends AbstractEvent<Void> {
 
   private WidgetActivityResource widgetActivityResource;
 
+  /**
+   * Constructs a WidgetCreatedEvent.
+   *
+   * @param widgetActivityResource The widget activity resource
+   * @param userId The ID of the user who created the widget
+   * @param userLogin The login of the user who created the widget
+   * @param orgId The organization ID
+   */
   public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long userId,
       String userLogin, Long orgId) {
     super(userId, userLogin);

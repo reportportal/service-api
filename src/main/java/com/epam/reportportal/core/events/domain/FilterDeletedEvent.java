@@ -21,12 +21,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
+ * Event published when a user filter is deleted.
+ *
  * @author pavel_bortnik
  */
 @Getter
 @NoArgsConstructor
 public class FilterDeletedEvent extends AbstractEvent<UserFilterActivityResource> {
 
+  /**
+   * Constructs a FilterDeletedEvent.
+   *
+   * @param before The filter state before deletion
+   * @param userId The ID of the user who deleted the filter
+   * @param userLogin The login of the user who deleted the filter
+   * @param orgId The organization ID
+   */
   public FilterDeletedEvent(UserFilterActivityResource before, Long userId, String userLogin,
       Long orgId) {
     super(userId, userLogin, before, null);

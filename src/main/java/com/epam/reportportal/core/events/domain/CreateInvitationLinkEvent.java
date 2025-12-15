@@ -28,6 +28,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreateInvitationLinkEvent extends AbstractEvent<Void> {
 
+  /**
+   * Constructs a CreateInvitationLinkEvent.
+   *
+   * @param userId The ID of the user who created the invitation link
+   * @param userLogin The login of the user who created the invitation link
+   */
   public CreateInvitationLinkEvent(Long userId, String userLogin) {
     super(userId, userLogin);
   }

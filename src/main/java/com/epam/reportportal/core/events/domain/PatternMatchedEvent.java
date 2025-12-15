@@ -33,6 +33,14 @@ public class PatternMatchedEvent extends AbstractEvent<Void> {
   private Long itemId;
   private PatternTemplateActivityResource patternTemplateActivityResource;
 
+  /**
+   * Constructs a PatternMatchedEvent.
+   *
+   * @param itemName The name of the test item that matched the pattern
+   * @param itemId The ID of the test item that matched the pattern
+   * @param patternTemplateActivityResource The pattern template activity resource
+   * @param orgId The organization ID
+   */
   public PatternMatchedEvent(String itemName, Long itemId,
       PatternTemplateActivityResource patternTemplateActivityResource, Long orgId) {
     super();

@@ -51,7 +51,7 @@ public class NotificationsConfigUpdatedEventConverter implements
   public Activity convert(NotificationsConfigUpdatedEvent event) {
     ProjectResource before = event.getBefore();
     ActivityDetails details = new ActivityDetails();
-    processEmailConfiguration(details, before, event.getUpdateProjectNotificationConfigRQ());
+    processEmailConfiguration(details, before, event.getUpdateProjectNotificationConfigRq());
 
     return new ActivityBuilder()
         .addCreatedAt(event.getOccurredAt())

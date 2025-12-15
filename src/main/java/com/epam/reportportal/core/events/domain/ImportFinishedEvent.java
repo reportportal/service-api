@@ -30,6 +30,15 @@ public class ImportFinishedEvent extends AbstractEvent<Void> {
 
   private String fileName;
 
+  /**
+   * Constructs an ImportFinishedEvent.
+   *
+   * @param userId The ID of the user who finished the import
+   * @param userLogin The login of the user who finished the import
+   * @param projectId The project ID
+   * @param fileName The name of the imported file
+   * @param orgId The organization ID
+   */
   public ImportFinishedEvent(Long userId, String userLogin, Long projectId, String fileName,
       Long orgId) {
     super(userId, userLogin);

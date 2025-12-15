@@ -54,6 +54,11 @@ public class ActivityConsumer {
   private final ActivityRepository activityRepository;
   private final EventConverterRegistry converterRegistry;
 
+  /**
+   * Handles incoming domain events from RabbitMQ.
+   *
+   * @param event The domain event to process
+   */
   @RabbitListener(
       bindings = @QueueBinding(
           value = @Queue(value = QUEUE_ACTIVITY, durable = "true", autoDelete = "false"),

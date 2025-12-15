@@ -26,6 +26,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Test class for ActivityDetailsUtil.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class ActivityDetailsUtilTest {

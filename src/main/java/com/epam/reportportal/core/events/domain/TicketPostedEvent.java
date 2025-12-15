@@ -23,6 +23,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Event published when a ticket is posted to a test item.
+ *
  * @author Andrei Varabyeu
  */
 @Setter
@@ -33,6 +35,15 @@ public class TicketPostedEvent extends AbstractEvent<Void> {
   private Ticket ticket;
   private TestItemActivityResource testItemActivityResource;
 
+  /**
+   * Constructs a TicketPostedEvent.
+   *
+   * @param ticket The ticket that was posted
+   * @param userId The ID of the user who posted the ticket
+   * @param userLogin The login of the user who posted the ticket
+   * @param testItemActivityResource The test item activity resource
+   * @param orgId The organization ID
+   */
   public TicketPostedEvent(Ticket ticket, Long userId, String userLogin,
       TestItemActivityResource testItemActivityResource, Long orgId) {
     super(userId, userLogin);

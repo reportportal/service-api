@@ -32,11 +32,23 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserCreatedEvent extends AbstractEvent<UserActivityResource> {
 
+  /**
+   * Constructs a UserCreatedEvent.
+   *
+   * @param userActivityResource The user activity resource
+   */
   public UserCreatedEvent(UserActivityResource userActivityResource) {
     super();
     this.after = userActivityResource;
   }
 
+  /**
+   * Constructs a UserCreatedEvent.
+   *
+   * @param userActivityResource The user activity resource
+   * @param userId The ID of the user who created the user
+   * @param userLogin The login of the user who created the user
+   */
   public UserCreatedEvent(UserActivityResource userActivityResource, Long userId,
       String userLogin) {
     super(userId, userLogin);

@@ -27,6 +27,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LogTypeUpdatedEvent extends AbstractEvent<LogTypeActivityResource> {
 
+  /**
+   * Constructs a LogTypeUpdatedEvent.
+   *
+   * @param before The log type state before the update
+   * @param after The log type state after the update
+   * @param userId The ID of the user who updated the log type
+   * @param userLogin The login of the user who updated the log type
+   */
   public LogTypeUpdatedEvent(LogTypeActivityResource before, LogTypeActivityResource after,
       Long userId, String userLogin) {
     super(userId, userLogin, before, after);

@@ -39,6 +39,11 @@ public class EventConverterRegistry {
   private final Map<Class<? extends AbstractEvent<?>>,
       EventToActivityConverter<? extends AbstractEvent<?>>> converters;
 
+  /**
+   * Constructs an EventConverterRegistry with the provided list of converters.
+   *
+   * @param converterList List of event converters to register
+   */
   @Autowired
   public EventConverterRegistry(
       List<EventToActivityConverter<? extends AbstractEvent<?>>> converterList) {

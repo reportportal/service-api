@@ -33,6 +33,14 @@ public class IntegrationDeletedEvent extends AbstractEvent<Void> {
 
   private IntegrationActivityResource integrationActivityResource;
 
+  /**
+   * Constructs an IntegrationDeletedEvent.
+   *
+   * @param integrationActivityResource The integration activity resource
+   * @param userId The ID of the user who deleted the integration
+   * @param userLogin The login of the user who deleted the integration
+   * @param orgId The organization ID
+   */
   public IntegrationDeletedEvent(IntegrationActivityResource integrationActivityResource,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);

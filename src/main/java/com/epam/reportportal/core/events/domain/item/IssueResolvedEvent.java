@@ -31,6 +31,13 @@ public class IssueResolvedEvent extends AbstractEvent<Void> {
   private final Long itemId;
   private final Long launchId;
 
+  /**
+   * Constructs an IssueResolvedEvent.
+   *
+   * @param itemId The ID of the test item whose issue was resolved
+   * @param launchId The ID of the launch containing the test item
+   * @param projectId The project ID
+   */
   public IssueResolvedEvent(Long itemId, Long launchId, Long projectId) {
     super();
     this.itemId = itemId;

@@ -29,11 +29,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IntegrationUpdatedEvent extends AbstractEvent<IntegrationActivityResource> {
 
+  /**
+   * Constructs an IntegrationUpdatedEvent.
+   *
+   * @param userId The ID of the user who updated the integration
+   * @param userLogin The login of the user who updated the integration
+   * @param before The integration state before the update
+   * @param after The integration state after the update
+   */
   public IntegrationUpdatedEvent(Long userId, String userLogin, IntegrationActivityResource before,
       IntegrationActivityResource after) {
     super(userId, userLogin, before, after);
   }
 
+  /**
+   * Constructs an IntegrationUpdatedEvent.
+   *
+   * @param userId The ID of the user who updated the integration
+   * @param userLogin The login of the user who updated the integration
+   * @param before The integration state before the update
+   * @param after The integration state after the update
+   * @param orgId The organization ID
+   */
   public IntegrationUpdatedEvent(Long userId, String userLogin, IntegrationActivityResource before,
       IntegrationActivityResource after, Long orgId) {
     super(userId, userLogin, before, after);

@@ -30,6 +30,15 @@ public class ProjectCreatedEvent extends AbstractEvent<Void> {
 
   private String projectName;
 
+  /**
+   * Constructs a ProjectCreatedEvent.
+   *
+   * @param userId The ID of the user who created the project
+   * @param userLogin The login of the user who created the project
+   * @param projectId The ID of the created project
+   * @param projectName The name of the created project
+   * @param orgId The organization ID
+   */
   public ProjectCreatedEvent(Long userId, String userLogin, Long projectId, String projectName,
       Long orgId) {
     super(userId, userLogin);

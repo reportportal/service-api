@@ -20,6 +20,9 @@ import com.epam.reportportal.model.activity.UserActivityResource;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * Event published when a user's role is changed.
+ */
 @Getter
 @NoArgsConstructor
 public class ChangeRoleEvent extends AbstractEvent<Void> {
@@ -28,6 +31,16 @@ public class ChangeRoleEvent extends AbstractEvent<Void> {
   private String oldRole;
   private String newRole;
 
+  /**
+   * Constructs a ChangeRoleEvent.
+   *
+   * @param userActivityResource The user activity resource
+   * @param oldRole The previous role
+   * @param newRole The new role
+   * @param userId The ID of the user making the change
+   * @param userLogin The login of the user making the change
+   * @param orgId The organization ID
+   */
   public ChangeRoleEvent(UserActivityResource userActivityResource, String oldRole, String newRole,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin);

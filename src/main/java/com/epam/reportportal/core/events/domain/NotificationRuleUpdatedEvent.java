@@ -27,6 +27,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NotificationRuleUpdatedEvent extends AbstractEvent<NotificationRuleActivityResource> {
 
+  /**
+   * Constructs a NotificationRuleUpdatedEvent.
+   *
+   * @param before The notification rule state before the update
+   * @param after The notification rule state after the update
+   * @param userId The ID of the user who updated the rule
+   * @param userLogin The login of the user who updated the rule
+   * @param orgId The organization ID
+   */
   public NotificationRuleUpdatedEvent(NotificationRuleActivityResource before,
       NotificationRuleActivityResource after,
       Long userId,

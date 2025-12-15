@@ -29,6 +29,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PatternUpdatedEvent extends AbstractEvent<PatternTemplateActivityResource> {
 
+  /**
+   * Constructs a PatternUpdatedEvent.
+   *
+   * @param userId The ID of the user who updated the pattern
+   * @param userLogin The login of the user who updated the pattern
+   * @param before The pattern state before the update
+   * @param after The pattern state after the update
+   * @param orgId The organization ID
+   */
   public PatternUpdatedEvent(Long userId, String userLogin, PatternTemplateActivityResource before,
       PatternTemplateActivityResource after, Long orgId) {
     super(userId, userLogin, before, after);

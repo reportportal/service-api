@@ -28,6 +28,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UnassignUserEvent extends AbstractEvent<UserActivityResource> {
 
+  /**
+   * Constructs an UnassignUserEvent.
+   *
+   * @param userActivityResource The user activity resource
+   * @param userId The ID of the user who unassigned the user
+   * @param userLogin The login of the user who unassigned the user
+   * @param orgId The organization ID
+   */
   public UnassignUserEvent(UserActivityResource userActivityResource, Long userId,
       String userLogin, Long orgId) {
     super(userId, userLogin);
@@ -35,6 +43,11 @@ public class UnassignUserEvent extends AbstractEvent<UserActivityResource> {
     this.organizationId = orgId;
   }
 
+  /**
+   * Constructs an UnassignUserEvent.
+   *
+   * @param userActivityResource The user activity resource
+   */
   public UnassignUserEvent(UserActivityResource userActivityResource) {
     super();
     this.after = userActivityResource;

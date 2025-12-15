@@ -21,12 +21,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
+ * Event published when a user filter is updated.
+ *
  * @author Pavel Bortnik
  */
 @Getter
 @NoArgsConstructor
 public class FilterUpdatedEvent extends AbstractEvent<UserFilterActivityResource> {
 
+  /**
+   * Constructs a FilterUpdatedEvent.
+   *
+   * @param before The filter state before the update
+   * @param after The filter state after the update
+   * @param userId The ID of the user who updated the filter
+   * @param userLogin The login of the user who updated the filter
+   * @param orgId The organization ID
+   */
   public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after,
       Long userId, String userLogin, Long orgId) {
     super(userId, userLogin, before, after);

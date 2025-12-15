@@ -52,11 +52,12 @@ public class TicketPostedEventConverter implements EventToActivityConverter<Tick
         .addSubjectName(event.getUserLogin())
         .addSubjectType(EventSubject.USER)
         .addHistoryField(TICKET_ID,
-            Strings.isNullOrEmpty(event.getTestItemActivityResource().getTickets()) ? EMPTY_STRING :
-                event.getTestItemActivityResource().getTickets(),
-            Strings.isNullOrEmpty(event.getTestItemActivityResource().getTickets()) ?
-                event.getTicket().getId() + ":" + event.getTicket().getTicketUrl() :
-                event.getTestItemActivityResource().getTickets() + "," + event.getTicket().getId()
+            Strings.isNullOrEmpty(event.getTestItemActivityResource().getTickets())
+                ? EMPTY_STRING
+                : event.getTestItemActivityResource().getTickets(),
+            Strings.isNullOrEmpty(event.getTestItemActivityResource().getTickets())
+                ? event.getTicket().getId() + ":" + event.getTicket().getTicketUrl()
+                : event.getTestItemActivityResource().getTickets() + "," + event.getTicket().getId()
                     + ":"
                     + event.getTicket().getTicketUrl()
         )

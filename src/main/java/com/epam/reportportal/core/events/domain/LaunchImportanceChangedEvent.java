@@ -34,6 +34,15 @@ public class LaunchImportanceChangedEvent extends AbstractEvent<Void> {
   private LaunchActivityResource launchActivityResource;
   private boolean isImportant;
 
+  /**
+   * Constructs a LaunchImportanceChangedEvent.
+   *
+   * @param launchActivityResource The launch activity resource
+   * @param userId The ID of the user who changed the importance
+   * @param userLogin The login of the user who changed the importance
+   * @param orgId The organization ID
+   * @param isImportant Whether the launch is marked as important
+   */
   public LaunchImportanceChangedEvent(LaunchActivityResource launchActivityResource, Long userId,
       String userLogin, Long orgId, boolean isImportant) {
     super(userId, userLogin);

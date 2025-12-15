@@ -63,7 +63,7 @@ class FilterEventsTest {
   @Test
   void created() {
     final String name = "name";
-    FilterCreatedEvent event = new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L,
+    FilterCreatedEvent event = new FilterCreatedEvent(getUserFilter(name, "description"), 1L,
         "user", 1L);
     FilterCreatedEventConverter converter = new FilterCreatedEventConverter();
     final Activity actual = converter.convert(event);
@@ -74,7 +74,7 @@ class FilterEventsTest {
   @Test
   void deleted() {
     final String name = "name";
-    FilterDeletedEvent event = new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L,
+    FilterDeletedEvent event = new FilterDeletedEvent(getUserFilter(name, "description"), 1L,
         "user", 1L);
     FilterDeletedEventConverter converter = new FilterDeletedEventConverter();
     final Activity actual = converter.convert(event);
@@ -82,8 +82,7 @@ class FilterEventsTest {
     checkActivity(expected, actual);
   }
 
-  private static UserFilterActivityResource getUserFilter(String name, boolean shared,
-      String description) {
+  private static UserFilterActivityResource getUserFilter(String name, String description) {
     UserFilterActivityResource userFilter = new UserFilterActivityResource();
     userFilter.setId(2L);
     userFilter.setProjectId(3L);
@@ -95,25 +94,23 @@ class FilterEventsTest {
   @Test
   void updated() {
     final String oldName = "oldName";
-    final boolean oldShared = false;
     final String oldDescription = "oldDescription";
     final String newName = "newName";
-    final boolean newShared = true;
     final String newDescription = "newDescription";
-    FilterUpdatedEvent event = new FilterUpdatedEvent(getUserFilter(oldName, oldShared,
-        oldDescription), getUserFilter(newName, newShared, newDescription), 1L, "user", 1L);
+    FilterUpdatedEvent event = new FilterUpdatedEvent(getUserFilter(oldName,
+        oldDescription), getUserFilter(newName, newDescription), 1L, "user", 1L);
     FilterUpdatedEventConverter converter = new FilterUpdatedEventConverter();
     final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
     expected.getDetails().setHistory(
-        getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldShared, newShared),
+        getExpectedHistory(Pair.of(oldName, newName),
             Pair.of(oldDescription, newDescription)
         ));
     checkActivity(expected, actual);
   }
 
   private static List<HistoryField> getExpectedHistory(Pair<String, String> name,
-      Pair<Boolean, Boolean> shared, Pair<String, String> description) {
+      Pair<String, String> description) {
     return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
         HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
     );

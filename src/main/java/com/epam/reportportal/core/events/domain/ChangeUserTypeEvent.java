@@ -27,16 +27,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ChangeUserTypeEvent extends AbstractEvent<Void> {
 
-  private Long userId;
-  private String userName;
+  private Long targetUserId;
+  private String targetUserName;
   private UserRole oldType;
   private UserRole newType;
 
-  public ChangeUserTypeEvent(Long userId, String userName, UserRole oldRole, UserRole newRole,
-      Long editorId, String editorUsername) {
+  public ChangeUserTypeEvent(Long targetUserId, String targetUserName, UserRole oldRole,
+      UserRole newRole, Long editorId, String editorUsername) {
     super(editorId, editorUsername);
-    this.userId = userId;
-    this.userName = userName;
+    this.targetUserId = targetUserId;
+    this.targetUserName = targetUserName;
     this.oldType = oldRole;
     this.newType = newRole;
   }

@@ -64,7 +64,7 @@ class DashboardEventsTest {
   void created() {
     final String name = "name";
 
-    DashboardCreatedEvent event = new DashboardCreatedEvent(getTestDashboard(name, false,
+    DashboardCreatedEvent event = new DashboardCreatedEvent(getTestDashboard(name,
         "description"), 1L, "user", 1L);
     DashboardCreatedEventConverter converter = new DashboardCreatedEventConverter();
     final Activity actual = converter.convert(event);
@@ -76,7 +76,7 @@ class DashboardEventsTest {
   void deleted() {
     final String name = "name";
 
-    DashboardDeletedEvent event = new DashboardDeletedEvent(getTestDashboard(name, false,
+    DashboardDeletedEvent event = new DashboardDeletedEvent(getTestDashboard(name,
         "description"), 1L, "user", 1L);
     DashboardDeletedEventConverter converter = new DashboardDeletedEventConverter();
     final Activity actual = converter.convert(event);
@@ -84,8 +84,7 @@ class DashboardEventsTest {
     checkActivity(actual, expected);
   }
 
-  private static DashboardActivityResource getTestDashboard(String name, boolean shared,
-      String description) {
+  private static DashboardActivityResource getTestDashboard(String name, String description) {
     DashboardActivityResource dashboard = new DashboardActivityResource();
     dashboard.setDescription(description);
     dashboard.setProjectId(3L);
@@ -97,15 +96,13 @@ class DashboardEventsTest {
   @Test
   void updated() {
     final String oldName = "oldName";
-    final boolean oldShared = true;
     final String oldDescription = "oldDescription";
     final String newName = "newName";
-    final boolean newShared = false;
     final String newDescription = "newDescription";
 
     DashboardUpdatedEvent event = new DashboardUpdatedEvent(
-        getTestDashboard(oldName, oldShared, oldDescription),
-        getTestDashboard(newName, newShared, newDescription),
+        getTestDashboard(oldName, oldDescription),
+        getTestDashboard(newName, newDescription),
         1L,
         "user", 1L);
     DashboardUpdatedEventConverter converter = new DashboardUpdatedEventConverter();
@@ -114,14 +111,12 @@ class DashboardEventsTest {
         newName);
     expected.getDetails()
         .setHistory(getExpectedHistory(Pair.of(oldName, newName),
-            Pair.of(oldShared, newShared),
             Pair.of(oldDescription, newDescription)
         ));
     checkActivity(actual, expected);
   }
 
   private static List<HistoryField> getExpectedHistory(Pair<String, String> name,
-      Pair<Boolean, Boolean> shared,
       Pair<String, String> description) {
     return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
         HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())

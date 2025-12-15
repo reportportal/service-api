@@ -57,8 +57,7 @@ class IntegrationEventsTest {
     HistoryField historyField = new HistoryField();
     historyField.setField(NAME);
     switch (action) {
-      case CREATE:
-      case UPDATE:
+      case CREATE, UPDATE:
         historyField.setNewValue("name");
         break;
       case DELETE:

@@ -145,7 +145,7 @@ public class UserInvitationHandler {
             "Impossible to register user. UUID expired or already registered."));
 
     var createdUser = saveUser(invitationActivation, bid);
-    publishUserCreatedEvent(createdUser, bid);
+    publishUserCreatedEvent(createdUser);
 
     assignOrganizationsAndProjects(createdUser, bid.getMetadata(), bid.getInvitingUser());
     userCreationBidRepository.deleteByUuid(bid.getUuid());
@@ -248,7 +248,7 @@ public class UserInvitationHandler {
         });
   }
 
-  private void publishUserCreatedEvent(User createdUser, UserCreationBid bid) {
+  private void publishUserCreatedEvent(User createdUser) {
     var userCreatedEvent = new UserCreatedEvent(
         TO_ACTIVITY_RESOURCE.apply(createdUser, null)
     );

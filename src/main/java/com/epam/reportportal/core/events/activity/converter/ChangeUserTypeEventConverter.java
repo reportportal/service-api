@@ -41,8 +41,8 @@ public class ChangeUserTypeEventConverter implements EventToActivityConverter<Ch
         .addEventName(EventAction.UPDATE_USER_ROLE.getValue())
         .addPriority(UserRole.ADMINISTRATOR.equals(event.getNewType()) ? EventPriority.CRITICAL
             : EventPriority.HIGH)
-        .addObjectId(event.getUserId())
-        .addObjectName(event.getUserName())
+        .addObjectId(event.getTargetUserId())
+        .addObjectName(event.getTargetUserName())
         .addObjectType(EventObject.USER)
         .addSubjectId(event.getUserId())
         .addSubjectName(event.getUserLogin())

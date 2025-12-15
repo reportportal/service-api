@@ -66,9 +66,8 @@ class WidgetEventsTest {
   }
 
   private static List<HistoryField> getExpectedHistory(Pair<String, String> name,
-      Pair<Boolean, Boolean> shared, Pair<String, String> description,
-      Pair<Integer, Integer> itemsCount, Pair<Set<String>, Set<String>> contentFields,
-      Pair<String, String> options) {
+      Pair<String, String> description, Pair<Integer, Integer> itemsCount,
+      Pair<Set<String>, Set<String>> contentFields, Pair<String, String> options) {
     return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
         HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight()),
         HistoryField.of(ITEMS_COUNT, itemsCount.getLeft().toString(),
@@ -82,10 +81,9 @@ class WidgetEventsTest {
   @Test
   void created() {
     final String name = "name";
-    final boolean shared = true;
     final String description = "description";
 
-    WidgetCreatedEvent event = new WidgetCreatedEvent(getWidget(name, shared, description, 2,
+    WidgetCreatedEvent event = new WidgetCreatedEvent(getWidget(name, description, 2,
         getBeforeContentFields()), 1L, "user", 1L);
     WidgetCreatedEventConverter converter = new WidgetCreatedEventConverter();
     final Activity actual = converter.convert(event);
@@ -94,8 +92,8 @@ class WidgetEventsTest {
     checkActivity(expected, actual);
   }
 
-  private static WidgetActivityResource getWidget(String name, boolean shared, String description,
-      int itemsCount, Set<String> contentFields) {
+  private static WidgetActivityResource getWidget(String name, String description, int itemsCount,
+      Set<String> contentFields) {
     WidgetActivityResource widget = new WidgetActivityResource();
     widget.setName(name);
     widget.setId(2L);
@@ -119,17 +117,21 @@ class WidgetEventsTest {
   }
 
   private static String getAfterOptions() {
-    return "{\n" + "  \"option1\": \"content\",\n" + "  \"option5\": \"disabled\",\n"
-        + "  \"superOption\": \"superContent\"\n" + "}";
+    return """
+        {
+          "option1": "content",
+          "option5": "disabled",
+          "superOption": "superContent"
+        }
+        """;
   }
 
   @Test
   void deleted() {
     final String name = "name";
-    final boolean shared = true;
     final String description = "description";
 
-    WidgetDeletedEvent event = new WidgetDeletedEvent(getWidget(name, shared, description, 3,
+    WidgetDeletedEvent event = new WidgetDeletedEvent(getWidget(name, description, 3,
         getBeforeContentFields()), 1L, "user", 1L);
     WidgetDeletedEventConverter converter = new WidgetDeletedEventConverter();
     final Activity actual = converter.convert(event);
@@ -141,21 +143,19 @@ class WidgetEventsTest {
   @Test
   void update() {
     final String oldName = "oldName";
-    final boolean oldShared = false;
     final String oldDescription = "oldDescription";
     final String newName = "newName";
-    final boolean newShared = true;
     final String newDescription = "newDescription";
 
     WidgetUpdatedEvent event = new WidgetUpdatedEvent(
-        getWidget(oldName, oldShared, oldDescription, 2, getBeforeContentFields()),
-        getWidget(newName, newShared, newDescription, 4, getAfterContentFields()),
+        getWidget(oldName, oldDescription, 2, getBeforeContentFields()),
+        getWidget(newName, newDescription, 4, getAfterContentFields()),
         getBeforeOptions(), getAfterOptions(), 1L, "user", 1L);
     WidgetUpdatedEventConverter converter = new WidgetUpdatedEventConverter();
     final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity(EventAction.UPDATE, newName);
     expected.getDetails().setHistory(
-        getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldShared, newShared),
+        getExpectedHistory(Pair.of(oldName, newName),
             Pair.of(oldDescription, newDescription), Pair.of(2, 4),
             Pair.of(getBeforeContentFields(), getAfterContentFields()),
             Pair.of(getBeforeOptions(), getAfterOptions())

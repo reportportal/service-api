@@ -67,6 +67,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -75,6 +76,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserInvitationServiceImpl implements UserInvitationService {
 
   private final ApplicationEventPublisher eventPublisher;
@@ -90,33 +92,6 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   private final ProjectRepository projectRepository;
   private final ServerSettingsRepository settingsRepository;
   private final LinkGenerator linkGenerator;
-
-
-  public UserInvitationServiceImpl(HttpServletRequest httpServletRequest,
-      ThreadPoolTaskExecutor emailExecutorService,
-      MailServiceFactory emailServiceFactory, UserRepository userRepository,
-      UserCreationBidRepository userCreationBidRepository,
-      ApplicationEventPublisher eventPublisher, ProjectUserRepository projectUserRepository,
-      OrganizationUserRepository organizationUserRepository,
-      OrganizationUserService organizationUserService,
-      OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository, ServerSettingsRepository settingsRepository,
-      LinkGenerator linkGenerator,
-      LinkGenerator linkGenerator1) {
-    this.httpServletRequest = httpServletRequest;
-    this.emailExecutorService = emailExecutorService;
-    this.emailServiceFactory = emailServiceFactory;
-    this.userRepository = userRepository;
-    this.userCreationBidRepository = userCreationBidRepository;
-    this.eventPublisher = eventPublisher;
-    this.projectUserRepository = projectUserRepository;
-    this.organizationUserRepository = organizationUserRepository;
-    this.organizationUserService = organizationUserService;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
-    this.projectRepository = projectRepository;
-    this.settingsRepository = settingsRepository;
-    this.linkGenerator = linkGenerator1;
-  }
 
   @Override
   public Invitation sendInvitation(InvitationRequest invitationRq) {

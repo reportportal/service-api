@@ -332,13 +332,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private void publishChangeUserTypeEvent(User user, ReportPortalUser editor, UserRole newRole) {
     eventPublisher.publishEvent(
-        new ChangeUserTypeEvent(
-            user.getId(),
-            user.getLogin(),
-            user.getRole(),
-            newRole,
-            editor.getUserId(),
-            editor.getUsername()));
+        new ChangeUserTypeEvent(user.getId(), user.getLogin(), user.getRole(), newRole,
+            editor.getUserId(), editor.getUsername()));
   }
 
   private void checkPossibilityToEdit(ReportPortalUser editor, User user, String fieldName) {

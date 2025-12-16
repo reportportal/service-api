@@ -18,9 +18,9 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.core.events.activity.converter.LaunchDeletedEventConverter;
-import com.epam.reportportal.core.events.activity.converter.LaunchFinishedEventConverter;
-import com.epam.reportportal.core.events.activity.converter.LaunchStartedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.LaunchDeletedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.LaunchFinishedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.LaunchStartedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;

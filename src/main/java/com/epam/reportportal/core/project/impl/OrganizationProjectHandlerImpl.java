@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.project.impl;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.isPresent;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.not;

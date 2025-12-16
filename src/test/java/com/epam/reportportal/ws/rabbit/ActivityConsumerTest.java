@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.core.events.activity.converter.EventConverterRegistry;
+import com.epam.reportportal.ws.rabbit.activity.converter.EventConverterRegistry;
 import com.epam.reportportal.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.core.events.widget.GenerateWidgetViewEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ActivityRepository;

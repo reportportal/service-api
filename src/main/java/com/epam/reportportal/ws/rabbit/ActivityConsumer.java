@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.ws.rabbit;
 
-import com.epam.reportportal.core.events.activity.converter.EventConverterRegistry;
+import com.epam.reportportal.ws.rabbit.activity.converter.EventConverterRegistry;
 import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ActivityRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;

@@ -16,16 +16,16 @@
 
 package com.epam.reportportal.core.events.domain;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.CONTENT_FIELDS;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.DESCRIPTION;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.ITEMS_COUNT;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.WIDGET_OPTIONS;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.CONTENT_FIELDS;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.DESCRIPTION;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.ITEMS_COUNT;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.NAME;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.WIDGET_OPTIONS;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.core.events.activity.converter.WidgetCreatedEventConverter;
-import com.epam.reportportal.core.events.activity.converter.WidgetDeletedEventConverter;
-import com.epam.reportportal.core.events.activity.converter.WidgetUpdatedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.WidgetCreatedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.WidgetDeletedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.WidgetUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;

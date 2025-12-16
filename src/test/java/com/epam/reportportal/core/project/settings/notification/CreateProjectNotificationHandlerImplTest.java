@@ -28,7 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.core.events.activity.converter.NotificationRuleCreatedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.NotificationRuleCreatedEventConverter;
 import com.epam.reportportal.core.events.domain.NotificationRuleCreatedEvent;
 import com.epam.reportportal.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;

@@ -17,7 +17,7 @@
 package com.epam.reportportal.core.project.impl;
 
 import static com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;

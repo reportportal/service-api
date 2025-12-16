@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil;
+import com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.HistoryField;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

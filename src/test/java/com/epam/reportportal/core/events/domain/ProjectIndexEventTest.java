@@ -19,7 +19,7 @@ package com.epam.reportportal.core.events.domain;
 import static com.epam.reportportal.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.core.events.activity.converter.ProjectIndexEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.ProjectIndexEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;

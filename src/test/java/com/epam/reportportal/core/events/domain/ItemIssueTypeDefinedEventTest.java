@@ -16,12 +16,12 @@
 
 package com.epam.reportportal.core.events.domain;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.COMMENT;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.IGNORE_ANALYZER;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.ISSUE_TYPE;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.COMMENT;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.IGNORE_ANALYZER;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.ISSUE_TYPE;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.core.events.activity.converter.ItemIssueTypeDefinedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.ItemIssueTypeDefinedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;

@@ -16,13 +16,13 @@
 
 package com.epam.reportportal.core.events.domain;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.DESCRIPTION;
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.DESCRIPTION;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.core.events.activity.converter.FilterCreatedEventConverter;
-import com.epam.reportportal.core.events.activity.converter.FilterDeletedEventConverter;
-import com.epam.reportportal.core.events.activity.converter.FilterUpdatedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.FilterCreatedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.FilterDeletedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.FilterUpdatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;

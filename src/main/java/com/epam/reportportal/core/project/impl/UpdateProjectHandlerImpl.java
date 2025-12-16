@@ -20,7 +20,6 @@ import static com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.
 import static com.epam.reportportal.infrastructure.persistence.commons.EntityUtils.normalizeId;
 import static com.epam.reportportal.infrastructure.persistence.commons.Preconditions.contains;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.equalTo;
-import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.in;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.isNull;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.isPresent;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.not;
@@ -49,7 +48,7 @@ import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
-import com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil;
+import com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil;
 import com.epam.reportportal.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.core.events.domain.ChangeRoleEvent;
 import com.epam.reportportal.core.events.domain.NotificationSettingsUpdatedEvent;

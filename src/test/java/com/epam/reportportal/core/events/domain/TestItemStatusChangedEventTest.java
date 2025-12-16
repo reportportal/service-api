@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.core.events.domain;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.STATUS;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.STATUS;
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.core.events.activity.converter.TestItemStatusChangedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.TestItemStatusChangedEventConverter;
 import com.epam.reportportal.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;

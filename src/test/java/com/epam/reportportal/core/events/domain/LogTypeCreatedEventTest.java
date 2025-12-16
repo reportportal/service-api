@@ -19,7 +19,7 @@ package com.epam.reportportal.core.events.domain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.epam.reportportal.core.events.activity.converter.LogTypeCreatedEventConverter;
+import com.epam.reportportal.ws.rabbit.activity.converter.LogTypeCreatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;

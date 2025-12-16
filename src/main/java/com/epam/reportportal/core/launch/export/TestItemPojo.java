@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.launch.export;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static com.epam.reportportal.core.jasper.util.ExportUtils.COMMENT_PREFIX;
 import static com.epam.reportportal.core.jasper.util.ExportUtils.DESCRIPTION_PREFIX;
 import static com.epam.reportportal.core.jasper.util.ExportUtils.adjustName;

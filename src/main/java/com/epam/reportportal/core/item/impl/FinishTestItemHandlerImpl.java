@@ -41,10 +41,9 @@ import static com.epam.reportportal.ws.converter.converters.TestItemConverter.TO
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
-import com.epam.reportportal.core.events.activity.item.TestItemFinishedEvent;
-import com.epam.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemFinishedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.reportportal.core.item.ExternalTicketHandler;
 import com.epam.reportportal.core.item.FinishTestItemHandler;
@@ -125,8 +124,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private final ApplicationEventPublisher eventPublisher;
 
-  private final MessageBus messageBus;
-
   private final ExternalTicketHandler externalTicketHandler;
 
   @Autowired
@@ -137,7 +134,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
       @Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher, RetryHandler retryHandler,
-      MessageBus messageBus, ExternalTicketHandler externalTicketHandler) {
+      ExternalTicketHandler externalTicketHandler) {
     this.testItemRepository = testItemRepository;
     this.issueTypeHandler = issueTypeHandler;
     this.finishHierarchyHandler = finishHierarchyHandler;
@@ -149,7 +146,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     this.eventPublisher = eventPublisher;
     this.retrySearcher = retrySearcher;
     this.retryHandler = retryHandler;
-    this.messageBus = messageBus;
     this.externalTicketHandler = externalTicketHandler;
   }
 
@@ -199,8 +195,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   }
 
   /**
-   * If test item has descendants, it's status is resolved from statistics When status provided, no matter test item has
-   * or not descendants, test item status is resolved to provided
+   * If test item has descendants, it's status is resolved from statistics When status provided, no
+   * matter test item has or not descendants, test item status is resolved to provided
    *
    * @param testItem         {@link TestItem}
    * @param finishTestItemRQ {@link FinishTestItemRQ}
@@ -260,11 +256,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   private void validateRoles(ReportPortalUser user, MembershipDetails membershipDetails,
       Launch launch) {
     if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(ACCESS_DENIED);
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
+          ACCESS_DENIED);
 
       if (!launch.isRerun()
           // TODO revert equals to avoid nullpointers
-          && (membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole()
+          && (membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+          && membershipDetails.getProjectRole()
           .equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(
             FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
@@ -413,7 +411,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private void publishUpdateActivity(TestItemActivityResource before,
       TestItemActivityResource after, ReportPortalUser user, Long orgId) {
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername(), orgId));
   }
 

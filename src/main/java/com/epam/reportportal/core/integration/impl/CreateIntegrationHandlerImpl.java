@@ -19,8 +19,8 @@ package com.epam.reportportal.core.integration.impl;
 import static com.epam.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.core.events.activity.IntegrationCreatedEvent;
-import com.epam.reportportal.core.events.activity.IntegrationUpdatedEvent;
+import com.epam.reportportal.core.events.domain.IntegrationCreatedEvent;
+import com.epam.reportportal.core.events.domain.IntegrationUpdatedEvent;
 import com.epam.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.reportportal.core.integration.util.IntegrationService;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -230,9 +230,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       IntegrationType integrationType, Project project) {
     BusinessRule.expect(integrationName, StringUtils::isNotBlank)
         .verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
-    BusinessRule.expect(integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId(integrationName,
-        integrationType.getId(), project.getId()
-    ), BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+    BusinessRule.expect(
+        integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId(integrationName,
+            integrationType.getId(), project.getId()
+        ), BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
         Suppliers.formattedSupplier(
             "Project integration of type = '{}' with name = '{}' already exists on project = '{}'",
             integrationType.getName(), integrationName, project.getName()
@@ -249,7 +250,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
   }
 
   private void publishCreationActivity(Integration integration, ReportPortalUser user) {
-    var orgId = integration.getProject() != null ? integration.getProject().getOrganizationId() : null;
+    var orgId =
+        integration.getProject() != null ? integration.getProject().getOrganizationId() : null;
     eventPublisher.publishEvent(
         new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId(),
             user.getUsername(), orgId

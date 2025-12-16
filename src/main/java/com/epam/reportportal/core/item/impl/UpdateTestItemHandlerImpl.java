@@ -37,10 +37,9 @@ import static java.util.stream.Collectors.toList;
 import com.epam.reportportal.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.core.analyzer.auto.impl.LogIndexerService;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
-import com.epam.reportportal.core.events.activity.LinkTicketEvent;
-import com.epam.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
+import com.epam.reportportal.core.events.domain.ItemIssueTypeDefinedEvent;
+import com.epam.reportportal.core.events.domain.LinkTicketEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.core.item.ExternalTicketHandler;
 import com.epam.reportportal.core.item.TestItemService;
 import com.epam.reportportal.core.item.UpdateTestItemHandler;
@@ -93,6 +92,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -116,7 +116,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   private final IssueTypeHandler issueTypeHandler;
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   private final LogIndexerService logIndexerService;
 
@@ -132,7 +132,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   public UpdateTestItemHandlerImpl(TestItemService testItemService,
       ProjectRepository projectRepository, TestItemRepository testItemRepository,
       ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
-      MessageBus messageBus, LogIndexerService logIndexerService,
+      ApplicationEventPublisher eventPublisher, LogIndexerService logIndexerService,
       IssueEntityRepository issueEntityRepository,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
       DefectUpdateStatisticsService defectUpdateStatisticsService, ProjectService projectService) {
@@ -141,7 +141,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     this.testItemRepository = testItemRepository;
     this.externalTicketHandler = externalTicketHandler;
     this.issueTypeHandler = issueTypeHandler;
-    this.messageBus = messageBus;
+    this.eventPublisher = eventPublisher;
     this.logIndexerService = logIndexerService;
     this.issueEntityRepository = issueEntityRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
@@ -182,7 +182,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
         Issue issue = issueDefinition.getIssue();
         IssueType issueType =
-            issueTypeHandler.defineIssueType(membershipDetails.getProjectId(), issue.getIssueType());
+            issueTypeHandler.defineIssueType(membershipDetails.getProjectId(),
+                issue.getIssueType());
 
         IssueEntity issueEntity =
             new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
@@ -209,8 +210,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         TestItemActivityResource after =
             TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
 
-        events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
-            membershipDetails.getOrgId()));
+        events.add(
+            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
+                membershipDetails.getOrgId()));
       } catch (BusinessRuleViolationException e) {
         errors.add(e.getMessage());
       }
@@ -226,7 +228,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       logIndexerService.indexItemsRemoveAsync(project.getId(), itemsForIndexRemove);
     }
 
-    events.forEach(messageBus::publishActivity);
+    events.forEach(eventPublisher::publishEvent);
     return updated;
   }
 
@@ -258,7 +260,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
       strategy.changeStatus(testItem, providedStatus.get(), user, true);
       testItem.setAnalysisOwnerId(user.getUserId());
 
-      messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+      eventPublisher.publishEvent(new TestItemStatusChangedEvent(before,
           TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId()), user.getUserId(),
           user.getUsername(), membershipDetails.getOrgId()
       ));
@@ -288,7 +290,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
     List<TestItemActivityResource> before =
-        testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
+        testItems.stream()
+            .map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
             .collect(Collectors.toList());
 
     if (LinkExternalIssueRQ.class.equals(request.getClass())) {
@@ -309,9 +312,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
             .map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
             .toList();
 
-    before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
+    before.forEach(it -> eventPublisher.publishEvent(new LinkTicketEvent(it,
         after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
-        user.getUserId(), user.getUsername(), false, membershipDetails.getOrgId()
+        user.getUserId(), user.getUsername(), membershipDetails.getOrgId()
     )));
     return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE)
         .collect(toList());
@@ -365,7 +368,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         ItemIssueTypeDefinedEvent event =
             new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
                 project.getOrganizationId());
-        messageBus.publishActivity(event);
+        eventPublisher.publishEvent(event);
       }
     });
   }
@@ -439,7 +442,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   }
 
   /**
-   * Complex of domain verification for test item. Verifies that test item domain object could be processed correctly.
+   * Complex of domain verification for test item. Verifies that test item domain object could be
+   * processed correctly.
    *
    * @param id - test item id
    * @throws BusinessRuleViolationException when business rule violation

@@ -19,9 +19,7 @@ package com.epam.reportportal.core.launch.attribute.impl;
 import static com.epam.reportportal.core.settings.ImportantLaunchSettingHandler.IMPORTANT_SETTINGS_KEY;
 import static com.epam.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.MarkLaunchAsImportantEvent;
-import com.epam.reportportal.core.events.activity.UnmarkLaunchAsImportantEvent;
+import com.epam.reportportal.core.events.domain.LaunchImportanceChangedEvent;
 import com.epam.reportportal.core.launch.attribute.AttributeHandler;
 import com.epam.reportportal.core.project.ProjectService;
 import com.epam.reportportal.core.settings.ServerSettingsService;
@@ -33,6 +31,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,9 +41,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RetentionPolicyAttributeHandler implements AttributeHandler {
 
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
   private final ProjectService projectService;
-
   private final ServerSettingsService serverSettingsService;
 
   /**
@@ -57,7 +55,8 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
       return;
     }
 
-    if (serverSettingsService.checkServerSettingsState(IMPORTANT_SETTINGS_KEY, Boolean.FALSE.toString())) {
+    if (serverSettingsService.checkServerSettingsState(IMPORTANT_SETTINGS_KEY,
+        Boolean.FALSE.toString())) {
       launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
       return;
     }
@@ -96,7 +95,8 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
    */
   @Override
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
-    if (launch == null || launch.getAttributes() == null || serverSettingsService.checkServerSettingsState(
+    if (launch == null || launch.getAttributes() == null
+        || serverSettingsService.checkServerSettingsState(
         IMPORTANT_SETTINGS_KEY,
         Boolean.FALSE.toString())) {
       return;
@@ -127,15 +127,15 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
       Project project = projectService.findProjectById(launch.getProjectId());
       if ("important".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
         launch.setRetentionPolicy(RetentionPolicyEnum.IMPORTANT);
-        messageBus.publishActivity(
-            new MarkLaunchAsImportantEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
-                user.getUsername(), project.getOrganizationId()
+        eventPublisher.publishEvent(
+            new LaunchImportanceChangedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
+                user.getUsername(), project.getOrganizationId(), true
             ));
       } else if ("regular".equalsIgnoreCase(retentionPolicyNewAttribute.getValue())) {
         launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
-        messageBus.publishActivity(
-            new UnmarkLaunchAsImportantEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
-                user.getUsername(), project.getOrganizationId()
+        eventPublisher.publishEvent(
+            new LaunchImportanceChangedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
+                user.getUsername(), project.getOrganizationId(), false
             ));
       }
     }

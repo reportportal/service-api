@@ -20,7 +20,7 @@ import static com.epam.reportportal.infrastructure.persistence.commons.querygen.
 import static com.epam.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
@@ -45,7 +45,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Finds jobs witn duration more than defined and finishes them with interrupted {@link StatusEnum#INTERRUPTED} status
+ * Finds jobs witn duration more than defined and finishes them with interrupted
+ * {@link StatusEnum#INTERRUPTED} status
  *
  * @author Andrei Varabyeu
  */

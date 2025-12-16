@@ -23,9 +23,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
-import com.epam.reportportal.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;
@@ -49,12 +49,12 @@ class TestItemIndexRunnerTest {
         .put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "false")
         .build();
 
-    final List<Long> itemIds = List.of(event.itemId());
+    final List<Long> itemIds = List.of(event.getItemId());
 
     runner.handle(event, projectConfig);
 
-    verify(logIndexer, times(1)).indexItemsLogs(eq(event.projectId()),
-        eq(event.launchId()),
+    verify(logIndexer, times(1)).indexItemsLogs(eq(event.getProjectId()),
+        eq(event.getLaunchId()),
         eq(itemIds),
         any(AnalyzerConfig.class)
     );

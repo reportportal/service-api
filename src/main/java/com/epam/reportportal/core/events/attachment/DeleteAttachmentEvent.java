@@ -16,14 +16,21 @@
 
 package com.epam.reportportal.core.events.attachment;
 
+import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
+ * Event published when attachments are deleted.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class DeleteAttachmentEvent {
+@Getter
+@Setter
+public class DeleteAttachmentEvent extends AbstractEvent<Void> {
 
   @JsonProperty(value = "ids")
   private List<Long> ids;
@@ -32,32 +39,8 @@ public class DeleteAttachmentEvent {
   private List<String> paths;
 
   public DeleteAttachmentEvent() {
-    ids = Lists.newArrayList();
-    paths = Lists.newArrayList();
-  }
-
-  public DeleteAttachmentEvent(List<Long> ids) {
-    this.ids = ids;
-  }
-
-  public DeleteAttachmentEvent(List<Long> ids, List<String> paths) {
-    this.ids = ids;
-    this.paths = paths;
-  }
-
-  public List<Long> getIds() {
-    return ids;
-  }
-
-  public void setIds(List<Long> ids) {
-    this.ids = ids;
-  }
-
-  public List<String> getPaths() {
-    return paths;
-  }
-
-  public void setPaths(List<String> paths) {
-    this.paths = paths;
+    super();
+    this.ids = Lists.newArrayList();
+    this.paths = Lists.newArrayList();
   }
 }

@@ -7,9 +7,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.core.events.domain.SettingsUpdatedEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.SettingsUpdatedEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.ServerSettings;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
@@ -27,6 +26,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +39,7 @@ class ServerSettingsServiceImplTest {
   private ServerSettingsRepository serverSettingsRepository;
 
   @Mock
-  private MessageBus messageBus;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @InjectMocks
   private ServerSettingsServiceImpl serverSettingsService;
@@ -84,10 +84,12 @@ class ServerSettingsServiceImplTest {
     );
 
     when(serverSettingsRepository.selectServerSettings()).thenReturn(existingSettings);
-    when(serverSettingsRepository.save(any(ServerSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(serverSettingsRepository.save(any(ServerSettings.class))).thenAnswer(
+        invocation -> invocation.getArgument(0));
 
     // when
-    OperationCompletionRS result = serverSettingsService.saveAnalyticsSettings(analyticsResource, testUser);
+    OperationCompletionRS result = serverSettingsService.saveAnalyticsSettings(analyticsResource,
+        testUser);
 
     // then
     assertNotNull(result);
@@ -97,15 +99,15 @@ class ServerSettingsServiceImplTest {
     assertEquals(expectedKey, savedSettings.getKey());
     assertEquals("true", savedSettings.getValue());
 
-    verify(messageBus).publishActivity(eventCaptor.capture());
+    verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
     SettingsUpdatedEvent event = eventCaptor.getValue();
     assertEquals(testUser.getUserId(), event.getUserId());
     assertEquals(testUser.getUsername(), event.getUserLogin());
-    
+
     // Verify the before and after settings in the event
     ServerSettingsResource beforeSettings = event.getBefore();
     ServerSettingsResource afterSettings = event.getAfter();
-    
+
     assertNotNull(beforeSettings);
     assertNotNull(afterSettings);
     assertEquals(expectedKey, beforeSettings.getKey());

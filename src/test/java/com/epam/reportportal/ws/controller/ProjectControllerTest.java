@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.reportportal.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LogicalOperator;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
@@ -56,6 +56,7 @@ import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -63,11 +64,13 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -91,6 +94,12 @@ class ProjectControllerTest extends BaseMvcTest {
   @Qualifier("analyzerRabbitTemplate")
   private RabbitTemplate rabbitTemplate;
 
+  @Autowired
+  private ApplicationEvents applicationEvents;
+
+  @Captor
+  private ArgumentCaptor<ProjectIndexEvent> eventArgumentCaptor;
+
   @AfterEach
   void after() {
     Mockito.reset(rabbitClient, rabbitTemplate);
@@ -107,7 +116,8 @@ class ProjectControllerTest extends BaseMvcTest {
         .content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)
         .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-    final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
+    final Optional<Project> createdProjectOptional = projectRepository.findByName(
+        "TestProject".toLowerCase());
     assertTrue(createdProjectOptional.isPresent());
     assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
     assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
@@ -194,7 +204,8 @@ class ProjectControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", containsString("New value for")))
-        .andExpect(jsonPath("$.message", containsString("should be less or equal to organization retention")));
+        .andExpect(jsonPath("$.message",
+            containsString("should be less or equal to organization retention")));
   }
 
   @Test
@@ -679,12 +690,11 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   private void verifyProjectIndexEvent() {
-    final ArgumentCaptor<ProjectIndexEvent> eventArgumentCaptor = ArgumentCaptor.forClass(
-        ProjectIndexEvent.class);
-    verify(messageBus, times(1))
-        .publishActivity(eventArgumentCaptor.capture());
+    List<ProjectIndexEvent> events =
+        applicationEvents.stream(ProjectIndexEvent.class).toList();
 
-    final ProjectIndexEvent event = eventArgumentCaptor.getValue();
+    assertEquals(1, events.size());
+    final ProjectIndexEvent event = events.getFirst();
     assertEquals(2L, event.getProjectId().longValue());
     assertEquals("default_personal", event.getProjectName());
     assertEquals(2L, event.getUserId().longValue());

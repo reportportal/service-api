@@ -22,7 +22,7 @@ import static com.epam.reportportal.infrastructure.persistence.entity.enums.Stat
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.launch.StopLaunchHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
@@ -85,7 +85,8 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
     testItemRepository.interruptInProgressItems(launch.getId());
 
     eventPublisher.publishEvent(
-        new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), baseUrl, membershipDetails.getOrgId()));
+        new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), baseUrl,
+            membershipDetails.getOrgId()));
     return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
   }
 
@@ -93,7 +94,8 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
   public List<OperationCompletionRS> stopLaunch(BulkRQ<Long, FinishExecutionRQ> bulkRQ,
       MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     return bulkRQ.getEntities().entrySet().stream()
-        .map(entry -> stopLaunch(entry.getKey(), entry.getValue(), membershipDetails, user, baseUrl))
+        .map(
+            entry -> stopLaunch(entry.getKey(), entry.getValue(), membershipDetails, user, baseUrl))
         .collect(toList());
   }
 }

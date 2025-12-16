@@ -40,11 +40,4 @@ public interface MessageBus {
    */
   void publish(String route, Object o);
 
-  /**
-   * Sends activity
-   *
-   * @param o Payload
-   */
-  void publishActivity(ActivityEvent o);
-
 }

@@ -18,11 +18,13 @@ package com.epam.reportportal.model.project.config.pattern;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Data
+@NoArgsConstructor
 public class PatternTemplateResource {
 
   @JsonProperty(value = "id")
@@ -39,8 +41,4 @@ public class PatternTemplateResource {
 
   @JsonProperty(value = "enabled")
   private Boolean enabled;
-
-  public PatternTemplateResource() {
-  }
-
 }

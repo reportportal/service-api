@@ -28,7 +28,8 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
-import com.epam.reportportal.core.events.activity.DefectTypeDeletedEvent;
+import com.epam.reportportal.core.events.domain.DefectTypeDeletedEvent;
+import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.attribute.Attribute;
@@ -36,7 +37,6 @@ import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectAttribute;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.activity.IssueTypeActivityResource;
-import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
@@ -81,7 +81,8 @@ class DefectTypeDeletedHandlerTest {
 
     ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.handleDefectTypeDeleted(
-            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId, 1L)));
+            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId,
+                1L)));
 
     assertEquals("'Project 2' not found. Did you use correct ID?",
         exception.getMessage()
@@ -114,7 +115,8 @@ class DefectTypeDeletedHandlerTest {
 
     ReportPortalException exception =
         assertThrows(ReportPortalException.class, () -> handler.handleDefectTypeDeleted(
-            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId, 1L)));
+            new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId,
+                1L)));
     assertEquals("Forbidden operation. Index can not be removed until auto-analysis proceeds.",
         exception.getMessage()
     );

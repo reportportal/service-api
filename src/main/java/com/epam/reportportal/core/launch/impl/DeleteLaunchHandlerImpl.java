@@ -26,8 +26,7 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.LAU
 import static com.epam.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.LaunchDeletedEvent;
+import com.epam.reportportal.core.events.domain.LaunchDeletedEvent;
 import com.epam.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.reportportal.core.log.LogService;
 import com.epam.reportportal.core.remover.ContentRemover;
@@ -53,6 +52,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -67,15 +67,10 @@ import org.springframework.stereotype.Service;
 public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
   private final ContentRemover<Launch> launchContentRemover;
-
   private final LaunchRepository launchRepository;
-
-  private final MessageBus messageBus;
-
+  private final ApplicationEventPublisher eventPublisher;
   private final LogIndexer logIndexer;
-
   private final AttachmentRepository attachmentRepository;
-
   private final LogService logService;
 
   public OperationCompletionRS deleteLaunch(Long launchId,
@@ -89,7 +84,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     launchRepository.delete(launch);
     attachmentRepository.moveForDeletionByLaunchId(launchId);
 
-    messageBus.publishActivity(
+    eventPublisher.publishEvent(
         new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
             user.getUsername(), membershipDetails.getOrgId()
         ));
@@ -129,7 +124,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
     toDelete.forEach(launch -> {
       LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(launch);
-      messageBus.publishActivity(
+      eventPublisher.publishEvent(
           new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername(),
               membershipDetails.getOrgId()));
     });

@@ -45,7 +45,7 @@ public class InternalConfiguration {
    * Exchanges
    */
   public static final String EXCHANGE_EVENTS = "broadcast.events";
-  public static final String EXCHANGE_ACTIVITY = "activity";
+  public static final String EXCHANGE_DOMAIN_EVENTS = "domain.events";
   public static final String EXCHANGE_ATTACHMENT = "attachment";
   public static final String EXCHANGE_NOTIFICATION = "notification";
 
@@ -53,8 +53,6 @@ public class InternalConfiguration {
    * Queues
    */
   public static final String KEY_EVENTS = "broadcast.events";
-  public static final String QUEUE_ACTIVITY = "activity";
-  public static final String QUEUE_ACTIVITY_KEY = "activity.#";
   public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
   public static final String QUEUE_EMAIL = "notification.email";
 
@@ -74,8 +72,8 @@ public class InternalConfiguration {
   }
 
   @Bean
-  public TopicExchange activityExchange() {
-    return new TopicExchange(EXCHANGE_ACTIVITY, true, false);
+  public TopicExchange domainEventsExchange() {
+    return new TopicExchange(EXCHANGE_DOMAIN_EVENTS, true, false);
   }
 
   @Bean
@@ -93,11 +91,6 @@ public class InternalConfiguration {
   @Bean
   public Queue eventsQueue() {
     return new AnonymousQueue(new Base64UrlNamingStrategy(KEY_EVENTS + "."));
-  }
-
-  @Bean
-  public Queue activityQueue() {
-    return new Queue(QUEUE_ACTIVITY);
   }
 
   @Bean
@@ -123,11 +116,6 @@ public class InternalConfiguration {
   }
 
   @Bean
-  public Binding eventsActivityBinding() {
-    return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY_KEY);
-  }
-
-  @Bean
   public Binding attachmentDeleteBinding() {
     return BindingBuilder.bind(deleteAttachmentQueue()).to(attachmentExchange())
         .with(QUEUE_ATTACHMENT_DELETE);
@@ -135,6 +123,7 @@ public class InternalConfiguration {
 
   @Bean
   public Binding emailNotificationBinding() {
-    return BindingBuilder.bind(emailNotificationQueue()).to(notificationExchange()).with(QUEUE_EMAIL);
+    return BindingBuilder.bind(emailNotificationQueue()).to(notificationExchange())
+        .with(QUEUE_EMAIL);
   }
 }

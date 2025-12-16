@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.events.handler.launch;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.extension.event.LaunchAnalysisFinishEvent;
 import java.util.Map;

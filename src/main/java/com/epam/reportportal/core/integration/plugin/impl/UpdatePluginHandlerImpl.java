@@ -18,7 +18,7 @@ package com.epam.reportportal.core.integration.plugin.impl;
 
 import static com.epam.reportportal.infrastructure.persistence.entity.enums.PluginTypeEnum.EXTENSION;
 
-import com.epam.reportportal.core.events.activity.PluginUpdatedEvent;
+import com.epam.reportportal.core.events.domain.PluginUpdatedEvent;
 import com.epam.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;

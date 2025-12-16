@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.events.subscriber.impl.delegate;
 
-import com.epam.reportportal.core.events.ProjectIdAwareEvent;
+import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.core.events.subscriber.EventSubscriber;
 import com.epam.reportportal.core.project.config.ProjectConfigProvider;
@@ -26,12 +26,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Subscriber that delegates event handling to configured handlers with project-specific
+ * configuration. Events must override {@link AbstractEvent#getProjectId()} to provide the project
+ * ID.
+ *
+ * @param <T> Event type that has a projectId
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class ProjectConfigDelegatingSubscriber<T extends ProjectIdAwareEvent> implements
+public class ProjectConfigDelegatingSubscriber<T extends AbstractEvent<?>> implements
     EventSubscriber<T> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ProjectConfigDelegatingSubscriber.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      ProjectConfigDelegatingSubscriber.class);
 
   private final ProjectConfigProvider projectConfigProvider;
   private final List<ConfigurableEventHandler<T, Map<String, String>>> eventHandlers;
@@ -44,12 +50,12 @@ public class ProjectConfigDelegatingSubscriber<T extends ProjectIdAwareEvent> im
 
   @Override
   public void handleEvent(T event) {
-    final Map<String, String> projectConfig = projectConfigProvider.provide(event.projectId());
+    final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
     eventHandlers.forEach(h -> {
       try {
         h.handle(event, projectConfig);
       } catch (Exception e) {
-        LOGGER.debug("Error while processing event: " + e.getMessage());
+        LOGGER.debug("Error while processing event: {}", e.getMessage());
       }
     });
   }

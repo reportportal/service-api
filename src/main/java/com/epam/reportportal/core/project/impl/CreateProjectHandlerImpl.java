@@ -16,15 +16,14 @@
 
 package com.epam.reportportal.core.project.impl;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.isPresent;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.not;
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 
-import com.epam.reportportal.core.events.activity.ProjectCreatedEvent;
+import com.epam.reportportal.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.core.project.CreateProjectHandler;
-import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.AttributeRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.IssueTypeRepository;
@@ -144,7 +143,6 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     projectRepository.save(project);
     projectUserRepository.save(projectUser);
 
-    applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
     publishProjectCreatedEvent(user.getUserId(), user.getUsername(), project);
 
     return new EntryCreatedRS(project.getId());

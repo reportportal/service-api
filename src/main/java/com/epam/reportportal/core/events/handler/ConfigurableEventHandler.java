@@ -16,12 +16,12 @@
 
 package com.epam.reportportal.core.events.handler;
 
-import com.epam.reportportal.core.events.Event;
+import com.epam.reportportal.core.events.domain.AbstractEvent;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface ConfigurableEventHandler<T extends Event, C> {
+public interface ConfigurableEventHandler<T extends AbstractEvent<?>, C> {
 
   void handle(T event, C config);
 }

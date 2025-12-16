@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.events.listener;
 
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.core.events.subscriber.EventSubscriber;
 import java.util.List;
 import org.springframework.scheduling.annotation.Async;

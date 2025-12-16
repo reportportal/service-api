@@ -23,7 +23,7 @@ import static com.epam.reportportal.infrastructure.persistence.dao.constant.Widg
 import static com.epam.reportportal.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DEFECTS_TO_INVESTIGATE_TOTAL;
 import static com.epam.reportportal.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.core.launch.GetLaunchHandler;
@@ -109,12 +109,12 @@ public class LaunchNotificationRunner
 
     if (isNotificationsEnabled) {
       getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-              launchFinishedEvent.projectId(), IntegrationGroupEnum.NOTIFICATION)
+              launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
           .filter(integration -> EMAIL_INTEGRATION_NAME.equalsIgnoreCase(integration.getName()))
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
               () -> LOGGER.warn("Unable to find {} integration for project {}",
-                  IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.projectId()
+                  IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.getProjectId()
               )
           );
     }
@@ -287,14 +287,15 @@ public class LaunchNotificationRunner
   }
 
   private void sendNotificationEvent(LaunchFinishedEvent launchFinishedEvent) {
-    final Project project = getProjectHandler.get(launchFinishedEvent.projectId());
+    final Project project = getProjectHandler.get(launchFinishedEvent.getProjectId());
 
-    String launchLink = linkGenerator.generateLaunchLink(launchFinishedEvent.getBaseUrl(), project.getName(),
+    String launchLink = linkGenerator.generateLaunchLink(launchFinishedEvent.getBaseUrl(),
+        project.getName(),
         String.valueOf(launchFinishedEvent.getId())
     );
 
     eventPublisher.publishEvent(
         new LaunchFinishedPluginEvent(launchFinishedEvent.getId(),
-            launchFinishedEvent.projectId(), launchLink));
+            launchFinishedEvent.getProjectId(), launchLink));
   }
 }

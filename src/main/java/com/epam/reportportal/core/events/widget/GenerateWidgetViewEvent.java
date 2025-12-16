@@ -16,32 +16,33 @@
 
 package com.epam.reportportal.core.events.widget;
 
+import com.epam.reportportal.core.events.domain.AbstractEvent;
+import lombok.Getter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * System event for asynchronous widget view generation. This is an internal processing event with
+ * null user context.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class GenerateWidgetViewEvent {
+@Getter
+public class GenerateWidgetViewEvent extends AbstractEvent<Void> {
 
   private final Long widgetId;
   private final MultiValueMap<String, String> params;
 
   public GenerateWidgetViewEvent(Long widgetId, MultiValueMap<String, String> params) {
+    super();
     this.widgetId = widgetId;
     this.params = params;
   }
 
   public GenerateWidgetViewEvent(Long widgetId) {
+    super();
     this.widgetId = widgetId;
     this.params = new LinkedMultiValueMap<>();
   }
 
-  public Long getWidgetId() {
-    return widgetId;
-  }
-
-  public MultiValueMap<String, String> getParams() {
-    return params;
-  }
 }

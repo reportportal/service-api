@@ -24,8 +24,7 @@ import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.ImportFinishedEvent;
+import com.epam.reportportal.core.events.domain.ImportFinishedEvent;
 import com.epam.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.reportportal.core.integration.plugin.DeletePluginHandler;
@@ -46,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -79,7 +79,7 @@ public class PluginController {
   private final DeletePluginHandler deletePluginHandler;
   private final ExecuteIntegrationHandler executeIntegrationHandler;
   private final ProjectExtractor projectExtractor;
-  private final MessageBus messageBus;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -156,7 +156,7 @@ public class PluginController {
     var importResult = executeIntegrationHandler.executeCommand(
         membershipDetails, pluginName, "import",
         executionParams);
-    messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
+    eventPublisher.publishEvent(new ImportFinishedEvent(user.getUserId(),
         user.getUsername(),
         membershipDetails.getProjectId(),
         file.getOriginalFilename(),

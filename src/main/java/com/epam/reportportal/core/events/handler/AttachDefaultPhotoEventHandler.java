@@ -18,7 +18,7 @@ package com.epam.reportportal.core.events.handler;
 
 import static com.epam.reportportal.util.MultipartFileUtils.getMultipartFile;
 
-import com.epam.reportportal.core.events.activity.UserCreatedEvent;
+import com.epam.reportportal.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;

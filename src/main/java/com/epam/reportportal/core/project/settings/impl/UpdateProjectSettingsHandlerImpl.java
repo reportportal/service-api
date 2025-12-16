@@ -31,11 +31,9 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.PRO
 import static com.epam.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.DefectTypeUpdatedEvent;
-import com.epam.reportportal.core.events.activity.PatternUpdatedEvent;
+import com.epam.reportportal.core.events.domain.DefectTypeUpdatedEvent;
+import com.epam.reportportal.core.events.domain.PatternUpdatedEvent;
 import com.epam.reportportal.core.project.settings.UpdateProjectSettingsHandler;
-import com.epam.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.PatternTemplateRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
@@ -52,13 +50,15 @@ import com.epam.reportportal.model.activity.IssueTypeActivityResource;
 import com.epam.reportportal.model.activity.PatternTemplateActivityResource;
 import com.epam.reportportal.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.reportportal.model.project.config.UpdateOneIssueSubTypeRQ;
+import com.epam.reportportal.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.reportportal.reporting.OperationCompletionRS;
 import com.epam.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,21 +67,14 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHandler {
 
   private final ProjectRepository projectRepository;
 
   private final PatternTemplateRepository patternTemplateRepository;
 
-  private final MessageBus messageBus;
-
-  @Autowired
-  public UpdateProjectSettingsHandlerImpl(ProjectRepository projectRepository,
-      PatternTemplateRepository patternTemplateRepository, MessageBus messageBus) {
-    this.projectRepository = projectRepository;
-    this.patternTemplateRepository = patternTemplateRepository;
-    this.messageBus = messageBus;
-  }
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public OperationCompletionRS updateProjectIssueSubType(String projectKey, ReportPortalUser user,
@@ -101,7 +94,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
             ))).collect(Collectors.toList());
 
     projectRepository.save(project);
-    issueTypeActivityResources.forEach(it -> messageBus.publishActivity(
+    issueTypeActivityResources.forEach(it -> eventPublisher.publishEvent(
         new DefectTypeUpdatedEvent(it, user.getUserId(), user.getUsername(), project.getId(),
             project.getOrganizationId())));
     return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");
@@ -138,8 +131,9 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
     PatternTemplateActivityResource after =
         PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
-    messageBus.publishActivity(
-        new PatternUpdatedEvent(user.getUserId(), user.getUsername(), before, after, project.getOrganizationId()));
+    eventPublisher.publishEvent(
+        new PatternUpdatedEvent(user.getUserId(), user.getUsername(), before, after,
+            project.getOrganizationId()));
 
     return new OperationCompletionRS(
         Suppliers.formattedSupplier("Pattern template with ID = '{}' has been successfully updated",

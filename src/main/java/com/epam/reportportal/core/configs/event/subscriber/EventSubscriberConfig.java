@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.core.configs.event.subscriber;
 
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
-import com.epam.reportportal.core.events.activity.item.TestItemFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemFinishedEvent;
 import com.epam.reportportal.core.events.handler.item.TestItemAutoAnalysisRunner;
 import com.epam.reportportal.core.events.handler.item.TestItemIndexRunner;
 import com.epam.reportportal.core.events.handler.item.TestItemPatternAnalysisRunner;

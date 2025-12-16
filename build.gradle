@@ -119,7 +119,7 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.apache.jclouds.filesystem)
     implementation(libs.apache.commons.compress)
-    implementation(libs.apache.commons.lang3 )
+    implementation(libs.apache.commons.lang3)
     implementation(libs.hibernate.validator)
     implementation(libs.json.schema.validator)
 
@@ -227,7 +227,7 @@ checkCommitNeeded.dependsOn removeScripts
 drill {
     groupId = "report-portal"
     appId = "service-api"
-    packagePrefixes = ["com/epam/ta/reportportal"]
+    packagePrefixes = ["com/epam/reportportal"]
     enableTestAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
         version = "0.23.5"

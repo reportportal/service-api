@@ -18,7 +18,7 @@ package com.epam.reportportal.core.events.handler.item;
 
 import com.epam.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.infrastructure.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
@@ -48,9 +48,9 @@ public class TestItemIndexRunner implements
     final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
 
     logIndexer.indexItemsLogs(
-        event.projectId(),
-        event.launchId(),
-        Lists.newArrayList(event.itemId()),
+        event.getProjectId(),
+        event.getLaunchId(),
+        Lists.newArrayList(event.getItemId()),
         analyzerConfig
     );
   }

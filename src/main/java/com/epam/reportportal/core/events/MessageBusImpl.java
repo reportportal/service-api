@@ -16,10 +16,6 @@
 
 package com.epam.reportportal.core.events;
 
-import static com.epam.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ACTIVITY;
-
-import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
-import java.util.Objects;
 import org.springframework.amqp.core.AmqpTemplate;
 
 public class MessageBusImpl implements MessageBus {
@@ -38,25 +34,5 @@ public class MessageBusImpl implements MessageBus {
   @Override
   public void publish(String route, Object o) {
     amqpTemplate.convertAndSend(route, o);
-  }
-
-  /**
-   * Publishes activity to the queue with the following routing key
-   * <pre>{@code activity.<entity-type>.<action>}</pre>
-   *
-   * @param event Activity event to be converted to Activity object
-   */
-  @Override
-  public void publishActivity(ActivityEvent event) {
-    final Activity activity = event.toActivity();
-    if (Objects.nonNull(activity)) {
-      this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, generateKey(activity), activity);
-    }
-  }
-
-  private String generateKey(Activity activity) {
-    return String.format("activity.%s.%s",
-        activity.getObjectType(),
-        activity.getEventName());
   }
 }

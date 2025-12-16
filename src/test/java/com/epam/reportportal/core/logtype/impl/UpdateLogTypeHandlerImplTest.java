@@ -23,16 +23,14 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.ReportPortalUserUtil;
 import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.ReportPortalUserUtil;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.activity.LogTypeUpdatedEvent;
+import com.epam.reportportal.core.events.domain.LogTypeUpdatedEvent;
 import com.epam.reportportal.core.logtype.validator.LogTypeValidator;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.LogTypeRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.log.ProjectLogType;
@@ -40,6 +38,8 @@ import com.epam.reportportal.infrastructure.persistence.entity.organization.Orga
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,7 +78,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType(LOG_TYPE_NAME, LOG_TYPE_LEVEL, false);
     LogTypeRequest updateRequest = createUpdateRequest("updated-name", 9500);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
@@ -107,7 +108,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("error", 40000, true);
     LogTypeRequest updateRequest = createUpdateRequest("error upd", 40000);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
@@ -131,7 +133,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("error", 40000, true);
     LogTypeRequest updateRequest = createUpdateRequest("error", 50000);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
@@ -155,7 +158,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("custom", 42000, false);
     LogTypeRequest updateRequest = createUpdateRequest("custom new", 50000);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
@@ -178,7 +182,8 @@ class UpdateLogTypeHandlerImplTest {
     ProjectLogType existingLogType = createLogType("unknown", 10000, false);
     LogTypeRequest updateRequest = createUpdateRequest("unknown", 10000);
     updateRequest.setIsFilterable(true);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
@@ -201,7 +206,8 @@ class UpdateLogTypeHandlerImplTest {
     Project project = new Project(PROJECT_ID, PROJECT_NAME);
     ProjectLogType existingLogType = createLogType("custom error", 50002, false);
     LogTypeRequest updateRequest = createUpdateRequest("custom error updated", 50002);
-    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+    ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
+        OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
     when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));

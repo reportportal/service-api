@@ -18,9 +18,9 @@ package com.epam.reportportal.core.user.impl;
 
 import static com.epam.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 
-import com.epam.reportportal.core.events.activity.UnassignUserEvent;
-import com.epam.reportportal.core.events.activity.UserDeletedEvent;
-import com.epam.reportportal.core.events.activity.UsersDeletedEvent;
+import com.epam.reportportal.core.events.domain.UnassignUserEvent;
+import com.epam.reportportal.core.events.domain.UserDeletedEvent;
+import com.epam.reportportal.core.events.domain.UsersDeletedEvent;
 import com.epam.reportportal.core.project.DeleteProjectHandler;
 import com.epam.reportportal.core.project.settings.notification.ProjectRecipientHandler;
 import com.epam.reportportal.core.remover.ContentRemover;

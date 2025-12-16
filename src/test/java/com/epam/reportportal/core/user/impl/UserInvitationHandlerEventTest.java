@@ -26,8 +26,8 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.auth.authenticator.UserAuthenticator;
-import com.epam.reportportal.core.events.activity.AssignUserEvent;
-import com.epam.reportportal.core.events.activity.UserCreatedEvent;
+import com.epam.reportportal.core.events.domain.AssignUserEvent;
+import com.epam.reportportal.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.core.launch.util.LinkGenerator;
 import com.epam.reportportal.core.organization.OrganizationUserService;
 import com.epam.reportportal.core.organization.PersonalOrganizationService;
@@ -150,7 +150,8 @@ class UserInvitationHandlerEventTest {
     project.setName("Test Project");
     project.setOrganizationId(100L);
 
-    when(userCreationBidRepository.findByUuidAndType("baf08d9f-72ea-46f6-81ef-3950a34deae9", INTERNAL_BID_TYPE))
+    when(userCreationBidRepository.findByUuidAndType("baf08d9f-72ea-46f6-81ef-3950a34deae9",
+        INTERNAL_BID_TYPE))
         .thenReturn(Optional.of(bid));
     when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(createdUser);

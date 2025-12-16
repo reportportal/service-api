@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.core.jasper.impl;
 
-import static com.epam.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.core.jasper.JasperReportRender;

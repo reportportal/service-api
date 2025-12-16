@@ -17,7 +17,7 @@
 package com.epam.reportportal.core.events.handler.item;
 
 import com.epam.reportportal.core.analyzer.pattern.handler.ItemsPatternsAnalyzer;
-import com.epam.reportportal.core.events.activity.item.TestItemFinishedEvent;
+import com.epam.reportportal.core.events.domain.item.TestItemFinishedEvent;
 import com.epam.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.reportportal.infrastructure.persistence.entity.ItemAttribute;
 import java.util.Collections;
@@ -43,7 +43,7 @@ public class TestItemPatternAnalysisRunner implements
   @Override
   public void handle(TestItemFinishedEvent event, Map<String, String> config) {
     if (isImmediatePaProvided(event)) {
-      patternsAnalyzer.analyze(event.projectId(), event.getTestItem().getLaunchId(),
+      patternsAnalyzer.analyze(event.getProjectId(), event.getTestItem().getLaunchId(),
           Collections.singletonList(event.getTestItem().getItemId()));
     }
   }

@@ -16,8 +16,11 @@
 
 package com.epam.reportportal.ws.rabbit;
 
+import com.epam.reportportal.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.core.organization.PersonalOrganizationService;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -28,41 +31,37 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Consumer for user created messages.
+ * Consumer for user created events.
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Shekhtel Reingold</a>
  */
+@Slf4j
 @Component
 @Transactional
+@RequiredArgsConstructor
 public class UserCreatedConsumer {
 
   private final PersonalOrganizationService personalOrganizationService;
 
   /**
-   * Constructor for UserCreatedConsumer.
-   *
-   * @param personalOrganizationService The service to handle personal organization creation.
-   */
-  public UserCreatedConsumer(PersonalOrganizationService personalOrganizationService) {
-    this.personalOrganizationService = personalOrganizationService;
-  }
-
-  /**
    * Handles external user creation events.
    *
-   * @param activity The activity payload containing user information.
+   * @param event The UserCreatedEvent containing user information
    */
   @RabbitListener(
       bindings = @QueueBinding(
           value = @Queue(value = "user.created", durable = "true", autoDelete = "false"),
-          exchange = @Exchange(value = "activity", type = ExchangeTypes.TOPIC),
-          key = "activity.USER.createUser.external"
-      ),
-      containerFactory = "rabbitListenerContainerFactory"
+          exchange = @Exchange(value = "domain.events", type = ExchangeTypes.TOPIC),
+          key = "domain.UserCreatedEvent"
+      ), containerFactory = "rabbitListenerContainerFactory"
   )
-  public void onEvent(@Payload Activity activity) {
-    if (activity != null && activity.getObjectId() != null) {
-      personalOrganizationService.createPersonalOrganization(activity.getObjectId());
+  public void onEvent(@Payload UserCreatedEvent event) {
+    if (Objects.isNull(event) || Objects.isNull(event.getUserActivityResource()) || Objects.isNull(
+        event.getUserActivityResource().getId())) {
+      log.warn("UserCreatedEvent is missing userId. Personal org initialization.");
+      return;
     }
+
+    personalOrganizationService.createPersonalOrganization(event.getUserActivityResource().getId());
   }
 }

@@ -20,7 +20,7 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.INT
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.core.events.activity.IntegrationDeletedEvent;
+import com.epam.reportportal.core.events.domain.IntegrationDeletedEvent;
 import com.epam.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.IntegrationRepository;
@@ -132,7 +132,8 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
             + "' have been successfully deleted");
   }
 
-  private void publishActivities(List<Integration> integrations, ReportPortalUser user, Long orgId) {
+  private void publishActivities(List<Integration> integrations, ReportPortalUser user,
+      Long orgId) {
     integrations.stream()
         .map(TO_ACTIVITY_RESOURCE)
         .forEach(it -> eventPublisher.publishEvent(

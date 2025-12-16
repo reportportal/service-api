@@ -23,14 +23,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.core.events.handler.util.LaunchFinishedTestUtils;
 import com.epam.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.core.launch.GetLaunchHandler;
 import com.epam.reportportal.core.launch.impl.LaunchTestUtil;
 import com.epam.reportportal.core.launch.util.LinkGenerator;
 import com.epam.reportportal.core.project.GetProjectHandler;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LaunchModeEnum;
@@ -79,7 +79,8 @@ class LaunchNotificationRunnerTest {
   void shouldNotSendWhenNotificationsDisabled() {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 
@@ -90,7 +91,7 @@ class LaunchNotificationRunnerTest {
     runner.handle(event, mapping);
 
     verify(getIntegrationHandler, times(0)).getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-        event.projectId(),
+        event.getProjectId(),
         IntegrationGroupEnum.NOTIFICATION
     );
 
@@ -101,7 +102,8 @@ class LaunchNotificationRunnerTest {
 
     final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
     launch.setName("name1");
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         launch.getProjectId());
     final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
 
@@ -117,7 +119,7 @@ class LaunchNotificationRunnerTest {
     when(emailIntegration.getName()).thenReturn("email server");
 
     when(
-        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.projectId(),
+        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.getProjectId(),
             IntegrationGroupEnum.NOTIFICATION
         )).thenReturn(Optional.ofNullable(emailIntegration));
 
@@ -126,7 +128,7 @@ class LaunchNotificationRunnerTest {
         Optional.ofNullable(emailService));
 
     when(getLaunchHandler.get(event.getId())).thenReturn(launch);
-    when(getProjectHandler.get(event.projectId())).thenReturn(project);
+    when(getProjectHandler.get(event.getProjectId())).thenReturn(project);
     when(getLaunchHandler.hasItemsWithIssues(launch)).thenReturn(Boolean.TRUE);
 
     runner.handle(event, mapping);

@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.epam.reportportal.core.events.activity.item.IssueResolvedEvent;
+import com.epam.reportportal.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.core.launch.cluster.ClusterGenerator;
 import com.epam.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
@@ -59,9 +59,9 @@ class TestItemUniqueErrorAnalysisRunnerTest {
 
     final GenerateClustersConfig config = configArgumentCaptor.getValue();
 
-    assertEquals(event.launchId(), config.getEntityContext().getLaunchId());
-    assertEquals(event.projectId(), config.getEntityContext().getProjectId());
-    assertEquals(event.itemId(), config.getEntityContext().getItemIds().get(0));
+    assertEquals(event.getLaunchId(), config.getEntityContext().getLaunchId());
+    assertEquals(event.getProjectId(), config.getEntityContext().getProjectId());
+    assertEquals(event.getItemId(), config.getEntityContext().getItemIds().get(0));
     assertTrue(config.isForUpdate());
     assertTrue(config.isCleanNumbers());
   }

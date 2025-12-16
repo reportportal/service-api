@@ -25,7 +25,7 @@ import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicy;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyAttachments;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLaunches;
 import com.epam.reportportal.api.model.OrganizationSettingsRetentionPolicyLogs;
-import com.epam.reportportal.core.events.activity.OrganizationUpdatedEvent;
+import com.epam.reportportal.core.events.domain.OrganizationUpdatedEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationSettingsRepository;
@@ -66,7 +66,8 @@ public class OrganizationSettingsHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
     var organizationSettings = settingsRepository.findByOrganizationId(orgId);
     return OrganizationSettings.builder()
-        .retentionPolicy(organizationRetentionPolicyHandler.getRetentionPolicySettings(organizationSettings))
+        .retentionPolicy(
+            organizationRetentionPolicyHandler.getRetentionPolicySettings(organizationSettings))
         .build();
   }
 
@@ -76,11 +77,13 @@ public class OrganizationSettingsHandler {
 
     var currentSettings = settingsRepository.findByOrganizationId(orgId);
 
-    var currentLaunchesPeriod = organizationRetentionPolicyHandler.getRetentionValue(currentSettings,
+    var currentLaunchesPeriod = organizationRetentionPolicyHandler.getRetentionValue(
+        currentSettings,
         RETENTION_LAUNCHES);
     var currentLogsPeriod = organizationRetentionPolicyHandler.getRetentionValue(currentSettings,
         RETENTION_LOGS);
-    var currentAttachmentsPeriod = organizationRetentionPolicyHandler.getRetentionValue(currentSettings,
+    var currentAttachmentsPeriod = organizationRetentionPolicyHandler.getRetentionValue(
+        currentSettings,
         RETENTION_ATTACHMENTS);
 
     if (updateSettings.getRetentionPolicy() != null) {
@@ -96,35 +99,43 @@ public class OrganizationSettingsHandler {
           .map(OrganizationSettingsRetentionPolicyAttachments::getPeriod)
           .orElse(currentAttachmentsPeriod);
 
-      if (!organizationRetentionPolicyHandler.isRetentionOrderValid(updatedLaunchesPeriod, updatedLogsPeriod,
+      if (!organizationRetentionPolicyHandler.isRetentionOrderValid(updatedLaunchesPeriod,
+          updatedLogsPeriod,
           updatedAttachmentsPeriod)) {
         throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             "Retention periods must follow: launches >= logs >= attachments");
       }
 
-      updateRetentionSettingsValue(currentSettings, RETENTION_LAUNCHES, updatedLaunchesPeriod, orgId);
+      updateRetentionSettingsValue(currentSettings, RETENTION_LAUNCHES, updatedLaunchesPeriod,
+          orgId);
       updateRetentionSettingsValue(currentSettings, RETENTION_LOGS, updatedLogsPeriod, orgId);
-      updateRetentionSettingsValue(currentSettings, RETENTION_ATTACHMENTS, updatedAttachmentsPeriod, orgId);
+      updateRetentionSettingsValue(currentSettings, RETENTION_ATTACHMENTS, updatedAttachmentsPeriod,
+          orgId);
 
-      OrganizationSettingsRetentionPolicy currentPolicy = buildRetentionPolicy(currentLaunchesPeriod,
+      OrganizationSettingsRetentionPolicy currentPolicy = buildRetentionPolicy(
+          currentLaunchesPeriod,
           currentLogsPeriod, currentAttachmentsPeriod);
-      OrganizationSettingsRetentionPolicy updatedPolicy = buildRetentionPolicy(updatedLaunchesPeriod,
+      OrganizationSettingsRetentionPolicy updatedPolicy = buildRetentionPolicy(
+          updatedLaunchesPeriod,
           updatedLogsPeriod, updatedAttachmentsPeriod);
 
       if (!currentPolicy.equals(updatedPolicy)) {
-        publishOrganizationUpdatedEvent(orgId, organization.getName(), organization.getSlug(), currentPolicy,
+        publishOrganizationUpdatedEvent(orgId, organization.getName(), organization.getSlug(),
+            currentPolicy,
             updatedPolicy);
       }
     }
   }
 
   private void publishOrganizationUpdatedEvent(Long orgId, String orgName, String orgSlug,
-      OrganizationSettingsRetentionPolicy currentPolicy, OrganizationSettingsRetentionPolicy updatedPolicy) {
+      OrganizationSettingsRetentionPolicy currentPolicy,
+      OrganizationSettingsRetentionPolicy updatedPolicy) {
     var principal = SecurityContextUtils.getPrincipal();
     var before = OrganizationActivityConverter.toAttributes(orgId, orgName, orgSlug, currentPolicy);
     var after = OrganizationActivityConverter.toAttributes(orgId, orgName, orgSlug, updatedPolicy);
-    applicationEventPublisher.publishEvent(new OrganizationUpdatedEvent(principal.getUserId(), principal.getUsername(),
-        orgId, orgName, before, after));
+    applicationEventPublisher.publishEvent(
+        new OrganizationUpdatedEvent(principal.getUserId(), principal.getUsername(),
+            orgId, orgName, before, after));
   }
 
   private void updateRetentionSettingsValue(List<OrganizationSetting> settings,
@@ -134,15 +145,18 @@ public class OrganizationSettingsHandler {
     organizationSetting.setSettingValue(String.valueOf(updateValue));
     settingsRepository.save(organizationSetting);
     if (updateValue != 0) {
-      projectRepository.updateProjectAttributeValueIfGreater(updateValue, settingsEnum.getProjectFormatKey(), orgId);
+      projectRepository.updateProjectAttributeValueIfGreater(updateValue,
+          settingsEnum.getProjectFormatKey(), orgId);
     }
   }
 
-  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(long launches, long logs, long attachments) {
+  private OrganizationSettingsRetentionPolicy buildRetentionPolicy(long launches, long logs,
+      long attachments) {
     return OrganizationSettingsRetentionPolicy.builder()
         .launches(OrganizationSettingsRetentionPolicyLaunches.builder().period(launches).build())
         .logs(OrganizationSettingsRetentionPolicyLogs.builder().period(logs).build())
-        .attachments(OrganizationSettingsRetentionPolicyAttachments.builder().period(attachments).build())
+        .attachments(
+            OrganizationSettingsRetentionPolicyAttachments.builder().period(attachments).build())
         .build();
   }
 }

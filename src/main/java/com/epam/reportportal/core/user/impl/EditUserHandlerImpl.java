@@ -31,7 +31,7 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.USE
 import static com.epam.reportportal.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.core.events.activity.ChangeUserTypeEvent;
+import com.epam.reportportal.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.core.user.EditUserHandler;
 import com.epam.reportportal.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.infrastructure.persistence.commons.Predicates;
@@ -332,13 +332,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private void publishChangeUserTypeEvent(User user, ReportPortalUser editor, UserRole newRole) {
     eventPublisher.publishEvent(
-        new ChangeUserTypeEvent(
-            user.getId(),
-            user.getLogin(),
-            user.getRole(),
-            newRole,
-            editor.getUserId(),
-            editor.getUsername()));
+        new ChangeUserTypeEvent(user.getId(), user.getLogin(), user.getRole(), newRole,
+            editor.getUserId(), editor.getUsername()));
   }
 
   private void checkPossibilityToEdit(ReportPortalUser editor, User user, String fieldName) {

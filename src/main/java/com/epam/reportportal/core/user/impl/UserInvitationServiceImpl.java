@@ -37,8 +37,8 @@ import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationRequest;
 import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.api.model.UserProjectInfo;
-import com.epam.reportportal.core.events.activity.AssignUserEvent;
-import com.epam.reportportal.core.events.activity.CreateInvitationLinkEvent;
+import com.epam.reportportal.core.events.domain.AssignUserEvent;
+import com.epam.reportportal.core.events.domain.CreateInvitationLinkEvent;
 import com.epam.reportportal.core.launch.util.LinkGenerator;
 import com.epam.reportportal.core.organization.OrganizationUserService;
 import com.epam.reportportal.core.user.UserInvitationService;
@@ -67,6 +67,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -75,6 +76,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserInvitationServiceImpl implements UserInvitationService {
 
   private final ApplicationEventPublisher eventPublisher;
@@ -90,30 +92,6 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   private final ProjectRepository projectRepository;
   private final ServerSettingsRepository settingsRepository;
   private final LinkGenerator linkGenerator;
-
-
-  public UserInvitationServiceImpl(HttpServletRequest httpServletRequest, ThreadPoolTaskExecutor emailExecutorService,
-      MailServiceFactory emailServiceFactory, UserRepository userRepository,
-      UserCreationBidRepository userCreationBidRepository,
-      ApplicationEventPublisher eventPublisher, ProjectUserRepository projectUserRepository,
-      OrganizationUserRepository organizationUserRepository,
-      OrganizationUserService organizationUserService, OrganizationRepositoryCustom organizationRepositoryCustom,
-      ProjectRepository projectRepository, ServerSettingsRepository settingsRepository, LinkGenerator linkGenerator,
-      LinkGenerator linkGenerator1) {
-    this.httpServletRequest = httpServletRequest;
-    this.emailExecutorService = emailExecutorService;
-    this.emailServiceFactory = emailServiceFactory;
-    this.userRepository = userRepository;
-    this.userCreationBidRepository = userCreationBidRepository;
-    this.eventPublisher = eventPublisher;
-    this.projectUserRepository = projectUserRepository;
-    this.organizationUserRepository = organizationUserRepository;
-    this.organizationUserService = organizationUserService;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
-    this.projectRepository = projectRepository;
-    this.settingsRepository = settingsRepository;
-    this.linkGenerator = linkGenerator1;
-  }
 
   @Override
   public Invitation sendInvitation(InvitationRequest invitationRq) {
@@ -157,7 +135,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
         ));
 
     // TODO: Add org IDs to event publisher. Needs to refactor ActivityEvent.
-    eventPublisher.publishEvent(new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername()));
+    eventPublisher.publishEvent(
+        new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername()));
     return invitation;
   }
 
@@ -165,8 +144,10 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   public Invitation assignUser(InvitationRequest invitationRq, User userToAssign) {
     invitationRq.getOrganizations().forEach(orgInfo -> {
       var organization = organizationRepositoryCustom.findById(orgInfo.getId())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgInfo.getId()));
-      var orgUserOptional = organizationUserRepository.findByUserIdAndOrganization_Id(userToAssign.getId(),
+          .orElseThrow(
+              () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgInfo.getId()));
+      var orgUserOptional = organizationUserRepository.findByUserIdAndOrganization_Id(
+          userToAssign.getId(),
           organization.getId());
 
       orgUserOptional.ifPresent(ou -> {
@@ -200,7 +181,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
           .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + project.getId()));
       expect(projectEntity.getOrganizationId(), equalTo(orgId))
           .verify(BAD_REQUEST_ERROR,
-              formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId));
+              formattedSupplier("Project '{}' does not belong to organization {}", project.getId(),
+                  orgId));
 
       projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
           .ifPresent(pu -> {
@@ -210,7 +192,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
 
       projectUserRepository.save(new ProjectUser()
           .withProject(projectEntity)
-          .withProjectRole(resolveProjectRole(orgUser.getOrganizationRole(), project.getProjectRole().getValue()))
+          .withProjectRole(resolveProjectRole(orgUser.getOrganizationRole(),
+              project.getProjectRole().getValue()))
           .withUser(user));
 
       AssignUserEvent assignUserEvent = new AssignUserEvent(user, projectEntity);
@@ -219,7 +202,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
 
   }
 
-  private Metadata getUserCreationBidMetadata(List<InvitationRequestOrganizationsInner> organizations) {
+  private Metadata getUserCreationBidMetadata(
+      List<InvitationRequestOrganizationsInner> organizations) {
     final Map<String, Object> meta = Maps.newHashMapWithExpectedSize(1);
     meta.put(BID_TYPE, INTERNAL_BID_TYPE);
     meta.put("organizations", getOrganizationsMetadata(organizations));
@@ -259,7 +243,8 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   private ProjectRole resolveProjectRole(OrganizationRole orgRole, String projectRole) {
     return orgRole.equals(OrganizationRole.MANAGER)
         ? ProjectRole.EDITOR
-        : com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole.valueOf(projectRole);
+        : com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole.valueOf(
+            projectRole);
   }
 
 }

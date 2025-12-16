@@ -27,24 +27,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.core.events.ActivityEvent;
-import com.epam.reportportal.core.events.MessageBus;
-import com.epam.reportportal.core.events.activity.NotificationRuleUpdatedEvent;
+import com.epam.reportportal.ws.rabbit.activity.converter.NotificationRuleUpdatedEventConverter;
+import com.epam.reportportal.core.events.domain.NotificationRuleUpdatedEvent;
 import com.epam.reportportal.core.project.validator.notification.ProjectNotificationValidator;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.SenderCaseRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LogicalOperator;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.SendCase;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.email.LaunchAttributeRule;
 import com.epam.reportportal.infrastructure.persistence.entity.project.email.SenderCase;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.project.ProjectConfiguration;
 import com.epam.reportportal.model.project.ProjectResource;
 import com.epam.reportportal.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.reportportal.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.reportportal.reporting.ItemAttributeResource;
+import com.epam.reportportal.ws.converter.converters.ProjectConverter;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +54,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
@@ -66,18 +66,19 @@ class UpdateProjectNotificationHandlerImplTest {
   private static final String DEFAULT_RULE_NAME = "Rule1";
 
   private final SenderCaseRepository senderCaseRepository = mock(SenderCaseRepository.class);
-  private final MessageBus messageBus = mock(MessageBus.class);
+  private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
   private final ProjectConverter projectConverter = new ProjectConverter();
   private final ProjectNotificationValidator projectNotificationValidator =
       new ProjectNotificationValidator(senderCaseRepository);
 
   private final UpdateProjectNotificationHandlerImpl service =
-      new UpdateProjectNotificationHandlerImpl(senderCaseRepository, messageBus, projectConverter,
+      new UpdateProjectNotificationHandlerImpl(senderCaseRepository, eventPublisher,
+          projectConverter,
           projectNotificationValidator
       );
 
   @Captor
-  private ArgumentCaptor<ActivityEvent> activityCaptor;
+  private ArgumentCaptor<NotificationRuleUpdatedEvent> activityCaptor;
 
   private SenderCaseDTO updateNotificationRQ;
   private Project project;
@@ -201,16 +202,13 @@ class UpdateProjectNotificationHandlerImplTest {
 
     assertTrue(assertThrows(ReportPortalException.class,
         () -> service.updateNotification(project, updateNotificationRQ, rpUser)
-    ).getMessage().contains("Project notification settings contain duplicate cases for this communication channel"));
+    ).getMessage().contains(
+        "Project notification settings contain duplicate cases for this communication channel"));
   }
 
   @Test
   void updateNotificationWhenRuleUpdatedShouldPublishNotificationRuleUpdatedEvent() {
     // given
-    UpdateProjectNotificationHandlerImpl serviceReal = new UpdateProjectNotificationHandlerImpl(senderCaseRepository,
-        messageBus, projectConverter,
-        projectNotificationValidator);
-
     Project project = new Project();
     project.setId(7L);
     project.setOrganizationId(77L);
@@ -252,14 +250,20 @@ class UpdateProjectNotificationHandlerImplTest {
     when(rpUser.getUserId()).thenReturn(5L);
     when(rpUser.getUsername()).thenReturn("u1");
 
+    UpdateProjectNotificationHandlerImpl serviceReal = new UpdateProjectNotificationHandlerImpl(
+        senderCaseRepository,
+        eventPublisher, projectConverter,
+        projectNotificationValidator);
+
     // when
     serviceReal.updateNotification(project, rq, rpUser);
 
     // then
-    verify(messageBus).publishActivity(activityCaptor.capture());
+    verify(eventPublisher).publishEvent(activityCaptor.capture());
     var activityCaptorValue = activityCaptor.getValue();
     assertInstanceOf(NotificationRuleUpdatedEvent.class, activityCaptorValue);
-    var activity = activityCaptorValue.toActivity();
+    NotificationRuleUpdatedEventConverter converter = new NotificationRuleUpdatedEventConverter();
+    var activity = converter.convert((NotificationRuleUpdatedEvent) activityCaptorValue);
     assertEquals("updateNotificationRule", activity.getEventName());
     assertEquals(project.getId(), activity.getProjectId());
     assertEquals(77L, activity.getOrganizationId());

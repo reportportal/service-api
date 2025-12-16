@@ -18,7 +18,7 @@ package com.epam.reportportal.core.integration.plugin.impl;
 
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 
-import com.epam.reportportal.core.events.activity.PluginDeletedEvent;
+import com.epam.reportportal.core.events.domain.PluginDeletedEvent;
 import com.epam.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -74,15 +74,15 @@ public class DeletePluginHandlerImpl implements DeletePluginHandler {
     pluginActivityResource.setName(integrationType.getName());
     pluginActivityResource.setId(integrationType.getId());
 
+    applicationEventPublisher.publishEvent(
+        new PluginDeletedEvent(pluginActivityResource, user.getUserId(), user.getUsername()));
+
     if (!pluginBox.deletePlugin(integrationType.getName())) {
       throw new ReportPortalException(
           ErrorType.PLUGIN_REMOVE_ERROR, "Unable to remove from plugin manager.");
     }
 
     integrationTypeRepository.deleteById(integrationType.getId());
-
-    applicationEventPublisher.publishEvent(
-        new PluginDeletedEvent(pluginActivityResource, user.getUserId(), user.getUsername()));
 
     return new OperationCompletionRS(
         Suppliers.formattedSupplier("Plugin = '{}' has been successfully removed",

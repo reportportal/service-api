@@ -35,6 +35,7 @@ import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRS;
 import com.epam.reportportal.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
@@ -2171,8 +2172,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(2))
         .andReturn();
 
     // Then - Verify new test cases were created
@@ -2181,20 +2183,20 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertEquals(10L, batchDuplicateResponse.getTestFolderId());
+    assertEquals(2, batchDuplicateResponse.getTestCases().size());
 
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertFalse(duplicatedTestCases.isEmpty());
     assertEquals(2, duplicatedTestCases.size());
-    duplicatedTestCases
-        .forEach(testCase -> {
-          assertEquals(10L, testCase.getTestFolder().getId());
-        });
+    duplicatedTestCases.forEach(testCase -> {
+      assertEquals(10L, testCase.getTestFolder().getId());
+    });
   }
 
   @Test
@@ -2218,11 +2220,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
   }
 
   @Test
@@ -2243,24 +2246,26 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").value(duplicateRequest.getTestFolderId()))
-        .andExpect(jsonPath("$[0].manualScenario").exists())
-        .andExpect(jsonPath("$[0].manualScenario.manualScenarioType").value("TEXT"))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").value(duplicateRequest.getTestFolderId()))
+        .andExpect(jsonPath("$.testCases[0].manualScenario").exists())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.manualScenarioType").value("TEXT"))
         .andReturn();
 
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertEquals(10L, batchDuplicateResponse.getTestFolderId());
+    assertEquals(1, batchDuplicateResponse.getTestCases().size());
 
     // Then - Verify duplicated test case has manual scenario
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertEquals(1, duplicatedTestCases.size());
@@ -2294,23 +2299,25 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].manualScenario").exists())
-        .andExpect(jsonPath("$[0].manualScenario.manualScenarioType").value("STEPS"))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testFolderId").exists())
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].manualScenario").exists())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.manualScenarioType").value("STEPS"))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
         .andReturn();
 
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertNotNull(batchDuplicateResponse.getTestFolderId());
+    assertEquals(1, batchDuplicateResponse.getTestCases().size());
 
     // Then - Verify duplicated test case has manual scenario
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertEquals(1, duplicatedTestCases.size());
@@ -2435,8 +2442,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$.testFolderId").value(11L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
         .andReturn();
 
     entityManager.clear();
@@ -2444,17 +2452,18 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // Then - Verify duplicated test case has same tags
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertEquals(11L, batchDuplicateResponse.getTestFolderId());
+    assertEquals(1, batchDuplicateResponse.getTestCases().size());
 
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertEquals(1, duplicatedTestCases.size());
 
-    var duplicatedAttributes = duplicatesTestCasesResponse.getFirst().getAttributes();
+    var duplicatedAttributes = batchDuplicateResponse.getTestCases().getFirst().getAttributes();
 
     assertEquals(originalTags.size(), duplicatedAttributes.size());
   }
@@ -2476,11 +2485,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
+        .andExpect(jsonPath("$.testFolderId").value(11L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
   }
 
   @Test
@@ -2660,21 +2670,24 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(mapper.writeValueAsString(duplicateRequest))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].manualScenario.attachments").isArray())
-        .andExpect(jsonPath("$[0].manualScenario.attachments.length()").value(1))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].manualScenario.attachments").isArray())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.attachments.length()").value(1))
         .andReturn();
 
     entityManager.clear();
 
     // Then verify attachment was duplicated
     var duplicateResponse = mapper.readValue(duplicateResult.getResponse().getContentAsString(),
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+        BatchDuplicateTestCasesRS.class);
 
-    var textManualScenarioRS = (TmsTextManualScenarioRS) duplicateResponse.getFirst()
-        .getManualScenario();
+    assertEquals(10L, duplicateResponse.getTestFolderId());
+    assertEquals(1, duplicateResponse.getTestCases().size());
+
+    var textManualScenarioRS = (TmsTextManualScenarioRS) duplicateResponse.getTestCases()
+        .getFirst().getManualScenario();
 
     var duplicatedAttachmentId = Long.valueOf(
         textManualScenarioRS.getAttachments().getFirst().getId());
@@ -2948,18 +2961,21 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(mapper.writeValueAsString(duplicateRequest))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].manualScenario.preconditions.attachments").isArray())
-        .andExpect(jsonPath("$[0].manualScenario.preconditions.attachments.length()").value(1))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].manualScenario.preconditions.attachments").isArray())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.preconditions.attachments.length()").value(1))
         .andReturn();
 
     // Then verify preconditions attachment was duplicated
     var duplicateResponse = mapper.readValue(duplicateResult.getResponse().getContentAsString(),
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+        BatchDuplicateTestCasesRS.class);
 
-    var duplicatedAttachmentId = Long.valueOf(duplicateResponse.getFirst()
+    assertEquals(10L, duplicateResponse.getTestFolderId());
+    assertEquals(1, duplicateResponse.getTestCases().size());
+
+    var duplicatedAttachmentId = Long.valueOf(duplicateResponse.getTestCases().getFirst()
         .getManualScenario().getPreconditions().getAttachments().getFirst().getId());
 
     entityManager.clear();

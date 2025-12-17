@@ -8,6 +8,7 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
@@ -394,7 +395,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public List<TmsTestCaseRS> duplicate(long projectId, BatchDuplicateTestCasesRQ duplicateRequest) {
+  public BatchDuplicateTestCasesRS duplicate(long projectId, BatchDuplicateTestCasesRQ duplicateRequest) {
     validateTestCasesExist(projectId, duplicateRequest.getTestCaseIds());
 
     var targetFolderId = tmsTestFolderService.resolveTargetFolderId(
@@ -403,11 +404,15 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         duplicateRequest.getTestFolder()
     );
 
-    return duplicateRequest
+    var duplicatedTestCases = duplicateRequest
         .getTestCaseIds()
         .stream()
         .map(testCaseId -> duplicateTestCase(projectId, testCaseId, targetFolderId))
         .toList();
+    return BatchDuplicateTestCasesRS.builder()
+        .testFolderId(targetFolderId)
+        .testCases(duplicatedTestCases)
+        .build();
   }
 
   @Override

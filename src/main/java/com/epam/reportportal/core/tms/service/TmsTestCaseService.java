@@ -5,6 +5,7 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
@@ -77,7 +78,7 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
    * @param duplicateRequest Request containing test case IDs to duplicate.
    * @return A list of data transfer objects containing details of the duplicated test cases.
    */
-  List<TmsTestCaseRS> duplicate(long projectId, BatchDuplicateTestCasesRQ duplicateRequest);
+  BatchDuplicateTestCasesRS duplicate(long projectId, BatchDuplicateTestCasesRQ duplicateRequest);
 
   BatchTestCaseOperationResultRS duplicateTestCases(long projectId, List<Long> originalTestCaseIds);
 

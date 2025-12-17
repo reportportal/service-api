@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.controller;
 
+import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
@@ -402,7 +403,7 @@ public class TestCaseController {
       tags = {"Batch Operations"}
   )
   @ApiResponse(responseCode = "200", description = "Test cases duplicated successfully")
-  public List<TmsTestCaseRS> duplicateTestCases(@PathVariable("projectKey") String projectKey,
+  public BatchDuplicateTestCasesRS duplicateTestCases(@PathVariable("projectKey") String projectKey,
       @Valid @RequestBody BatchDuplicateTestCasesRQ duplicateRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.duplicate(

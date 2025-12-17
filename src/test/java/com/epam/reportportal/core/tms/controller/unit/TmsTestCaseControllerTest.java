@@ -30,6 +30,7 @@ import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
@@ -1054,16 +1055,21 @@ public class TmsTestCaseControllerTest {
   void duplicateTestCasesTest() throws Exception {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testFolderId = 5L;
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
         .build();
 
-    var duplicatedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(),
-        new TmsTestCaseRS());
+    var duplicatedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS());
+    var duplicateResponse = BatchDuplicateTestCasesRS.builder()
+        .testFolderId(testFolderId)
+        .testCases(duplicatedTestCases)
+        .build();
+
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
-        duplicatedTestCases);
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
 
     // When/Then
     mockMvc.perform(
@@ -1080,15 +1086,21 @@ public class TmsTestCaseControllerTest {
   void duplicateTestCasesWithSingleIdTest() throws Exception {
     // Given
     var testCaseIds = List.of(1L);
+    var testFolderId = 5L;
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
         .build();
 
     var duplicatedTestCases = List.of(new TmsTestCaseRS());
+    var duplicateResponse = BatchDuplicateTestCasesRS.builder()
+        .testFolderId(testFolderId)
+        .testCases(duplicatedTestCases)
+        .build();
+
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
-        duplicatedTestCases);
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
 
     // When/Then
     mockMvc.perform(
@@ -1105,18 +1117,59 @@ public class TmsTestCaseControllerTest {
   void duplicateTestCasesWithMultipleIdsTest() throws Exception {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L, 5L);
+    var testFolderId = 10L;
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
         .build();
 
     var duplicatedTestCases = List.of(
         new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS(),
         new TmsTestCaseRS(), new TmsTestCaseRS()
     );
+    var duplicateResponse = BatchDuplicateTestCasesRS.builder()
+        .testFolderId(testFolderId)
+        .testCases(duplicatedTestCases)
+        .build();
+
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
-        duplicatedTestCases);
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
+
+    // When/Then
+    mockMvc.perform(
+            post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).duplicate(projectId, duplicateRequest);
+  }
+
+  @Test
+  void duplicateTestCasesWithNewFolderTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Duplicate Folder")
+        .parentTestFolderId(3L)
+        .build();
+    var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    var duplicatedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
+    var createdFolderId = 15L;
+    var duplicateResponse = BatchDuplicateTestCasesRS.builder()
+        .testFolderId(createdFolderId)
+        .testCases(duplicatedTestCases)
+        .build();
+
+    var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
+
+    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
 
     // When/Then
     mockMvc.perform(
@@ -1137,11 +1190,7 @@ public class TmsTestCaseControllerTest {
         .testCaseIds(testCaseIds)
         .build();
 
-    var duplicatedTestCases = Collections.<TmsTestCaseRS>emptyList();
     var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
-
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(
-        duplicatedTestCases);
 
     // When/Then
     mockMvc.perform(
@@ -1149,6 +1198,7 @@ public class TmsTestCaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
         .andExpect(status().isBadRequest());
+
     verify(tmsTestCaseService, never()).duplicate(projectId, duplicateRequest);
   }
 }

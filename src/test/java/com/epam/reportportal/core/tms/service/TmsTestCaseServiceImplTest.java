@@ -1617,9 +1617,11 @@ class TmsTestCaseServiceImplTest {
 
     // Then
     assertNotNull(result);
-    assertEquals(2, result.size());
-    assertEquals(duplicatedTestCaseRS1.getId(), result.get(0).getId());
-    assertEquals(duplicatedTestCaseRS2.getId(), result.get(1).getId());
+    assertEquals(targetFolderId, result.getTestFolderId());
+    assertNotNull(result.getTestCases());
+    assertEquals(2, result.getTestCases().size());
+    assertEquals(duplicatedTestCaseRS1.getId(), result.getTestCases().get(0).getId());
+    assertEquals(duplicatedTestCaseRS2.getId(), result.getTestCases().get(1).getId());
 
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, targetFolderId, null);
@@ -1682,8 +1684,10 @@ class TmsTestCaseServiceImplTest {
 
     // Then
     assertNotNull(result);
-    assertEquals(1, result.size());
-    assertEquals(duplicatedTestCaseRS.getId(), result.get(0).getId());
+    assertEquals(targetFolderId, result.getTestFolderId());
+    assertNotNull(result.getTestCases());
+    assertEquals(1, result.getTestCases().size());
+    assertEquals(duplicatedTestCaseRS.getId(), result.getTestCases().get(0).getId());
 
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, null, testFolder);
@@ -1738,7 +1742,9 @@ class TmsTestCaseServiceImplTest {
 
     // Then
     assertNotNull(result);
-    assertEquals(1, result.size());
+    assertEquals(targetFolderId, result.getTestFolderId());
+    assertNotNull(result.getTestCases());
+    assertEquals(1, result.getTestCases().size());
 
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, targetFolderId, null);
@@ -1800,27 +1806,30 @@ class TmsTestCaseServiceImplTest {
   void duplicate_WithEmptyTestCaseIds_ShouldReturnEmptyList() {
     // Given
     var emptyTestCaseIds = Collections.<Long>emptyList();
+    var targetFolderId = 10L;
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
         .testCaseIds(emptyTestCaseIds)
-        .testFolderId(10L)
+        .testFolderId(targetFolderId)
         .build();
 
     var existingTestCaseIds = Collections.<Long>emptyList();
 
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, emptyTestCaseIds))
         .thenReturn(existingTestCaseIds);
-    when(tmsTestFolderService.resolveTargetFolderId(projectId, 10L, null))
-        .thenReturn(10L);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, targetFolderId, null))
+        .thenReturn(targetFolderId);
 
     // When
     var result = sut.duplicate(projectId, duplicateRequest);
 
     // Then
     assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertEquals(targetFolderId, result.getTestFolderId());
+    assertNotNull(result.getTestCases());
+    assertTrue(result.getTestCases().isEmpty());
 
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, emptyTestCaseIds);
-    verify(tmsTestFolderService).resolveTargetFolderId(projectId, 10L, null);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, targetFolderId, null);
     verify(tmsTestCaseRepository, never()).save(any());
   }
 

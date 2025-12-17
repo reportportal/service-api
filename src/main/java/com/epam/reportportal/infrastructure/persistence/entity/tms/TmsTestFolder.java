@@ -15,6 +15,8 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_test_folder", schema = "public")
@@ -39,6 +41,7 @@ public class TmsTestFolder implements Serializable {
   private Project project;
 
   @OneToMany(mappedBy = "testFolder")
+  @Fetch(FetchMode.SUBSELECT)
   private List<TmsTestCase> testCases;
 
   @ManyToOne
@@ -46,5 +49,6 @@ public class TmsTestFolder implements Serializable {
   private TmsTestFolder parentTestFolder;
 
   @OneToMany(mappedBy = "parentTestFolder")
+  @Fetch(FetchMode.SUBSELECT)
   private List<TmsTestFolder> subFolders;
 }

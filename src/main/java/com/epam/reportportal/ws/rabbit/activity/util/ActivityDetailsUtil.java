@@ -74,6 +74,15 @@ public class ActivityDetailsUtil {
   public static final String ATTRIBUTES_OPERATOR = "attributesOperator";
   public static final String RULE_DETAILS = "ruleDetails";
 
+  /**
+   * Builds a history field for a changed list value. Lists are normalized (nulls handled, strings
+   * converted) before comparison.
+   *
+   * @param fieldName field key to use in history field
+   * @param before    previous list value
+   * @param after     current list value
+   * @return optional history field present if normalized lists differ
+   */
   public static Optional<HistoryField> processList(String fieldName, List<String> before,
       List<String> after) {
     var left = normalizeList(before);

@@ -37,11 +37,10 @@ import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.stereotype.Component;
 
 /**
- * Type mapper that resolves event classes from RabbitMQ message headers.
- * <p>
- * Primary resolution uses fully qualified class name from {@code __TypeId__} header. Falls back to
- * simple class name matching when the class is not found locally, enabling seamless integration
- * with external services using different package structures.
+ * Type mapper that resolves event classes from RabbitMQ message headers. Primary resolution uses
+ * fully qualified class name from {@code __TypeId__} header. Falls back to simple class name
+ * matching when the class is not found locally, enabling seamless integration with external
+ * services using different package structures.
  */
 @Slf4j
 @Component
@@ -120,10 +119,9 @@ public class FallbackEventTypeMapper implements Jackson2JavaTypeMapper {
   }
 
   /**
-   * Returns the type precedence strategy.
-   * <p>
-   * Uses {@link TypePrecedence#TYPE_ID} to resolve types from {@code __TypeId__} header, consistent
-   * with {@link org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper}.
+   * Returns the type precedence strategy. Uses {@link TypePrecedence#TYPE_ID} to resolve types from
+   * {@code __TypeId__} header, consistent with
+   * {@link org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper}.
    *
    * @return TYPE_ID precedence
    */
@@ -133,10 +131,8 @@ public class FallbackEventTypeMapper implements Jackson2JavaTypeMapper {
   }
 
   /**
-   * Returns inferred type from message properties.
-   * <p>
-   * Not used when {@link TypePrecedence#TYPE_ID} is set. Defined by
-   * {@link org.springframework.amqp.support.converter.Jackson2JavaTypeMapper}.
+   * Returns inferred type from message properties. Not used when {@link TypePrecedence#TYPE_ID} is
+   * set. Defined by {@link org.springframework.amqp.support.converter.Jackson2JavaTypeMapper}.
    *
    * @param properties message properties
    * @return null (type inference not supported)

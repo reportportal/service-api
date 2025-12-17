@@ -17,7 +17,6 @@
 package com.epam.reportportal.core.project.impl;
 
 import static com.epam.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
@@ -125,18 +124,14 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     if (Objects.nonNull(user)) {
       Long userId = user.getUserId();
       String username = user.getUsername();
-      publishProjectDeletedEvent(userId, username, project.getId(), project.getName(),
-          project.getOrganizationId());
+      applicationEventPublisher.publishEvent(
+          new ProjectDeletedEvent(userId, username, project.getId(), project.getName(),
+              project.getOrganizationId()));
     } else {
-      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project",
-          project.getOrganizationId());
+      applicationEventPublisher.publishEvent(
+          new ProjectDeletedEvent(project.getId(), "personal_project",
+              project.getOrganizationId()));
     }
-  }
-
-  private void publishProjectDeletedEvent(Long userId, String userLogin, Long projectId,
-      String projectName, Long organizationId) {
-    applicationEventPublisher.publishEvent(
-        new ProjectDeletedEvent(userId, userLogin, projectId, projectName, organizationId));
   }
 
   private Project getProjectById(Long projectId) {

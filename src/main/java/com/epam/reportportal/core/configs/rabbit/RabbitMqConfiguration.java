@@ -52,8 +52,10 @@ public class RabbitMqConfiguration {
   private ObjectMapper objectMapper;
 
   @Bean
-  public MessageConverter jsonMessageConverter() {
-    return new Jackson2JsonMessageConverter(objectMapper);
+  public MessageConverter jsonMessageConverter(FallbackEventTypeMapper typeMapper) {
+    Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
+    converter.setJavaTypeMapper(typeMapper);
+    return converter;
   }
 
   @Bean
@@ -82,21 +84,23 @@ public class RabbitMqConfiguration {
 
   @Bean(name = "rabbitTemplate")
   public RabbitTemplate rabbitTemplate(
-      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory,
+      FallbackEventTypeMapper typeMapper) {
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-    rabbitTemplate.setMessageConverter(jsonMessageConverter());
+    rabbitTemplate.setMessageConverter(jsonMessageConverter(typeMapper));
     return rabbitTemplate;
   }
 
   @Bean
   public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
-      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory,
+      FallbackEventTypeMapper typeMapper) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
     factory.setConnectionFactory(connectionFactory);
     factory.setDefaultRequeueRejected(false);
     factory.setErrorHandler(new ConditionalRejectingErrorHandler());
     factory.setAutoStartup(true);
-    factory.setMessageConverter(jsonMessageConverter());
+    factory.setMessageConverter(jsonMessageConverter(typeMapper));
     return factory;
   }
 

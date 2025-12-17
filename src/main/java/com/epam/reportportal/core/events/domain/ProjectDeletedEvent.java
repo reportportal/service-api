@@ -33,15 +33,29 @@ public class ProjectDeletedEvent extends AbstractEvent<Void> {
   /**
    * Constructs a ProjectDeletedEvent.
    *
-   * @param userId The ID of the user who deleted the project
-   * @param userLogin The login of the user who deleted the project
-   * @param projectId The ID of the deleted project
-   * @param projectName The name of the deleted project
+   * @param userId         The ID of the user who deleted the project
+   * @param userLogin      The login of the user who deleted the project
+   * @param projectId      The ID of the deleted project
+   * @param projectName    The name of the deleted project
    * @param organizationId The organization ID
    */
   public ProjectDeletedEvent(Long userId, String userLogin, Long projectId, String projectName,
       Long organizationId) {
     super(userId, userLogin);
+    this.projectId = projectId;
+    this.projectName = projectName;
+    this.organizationId = organizationId;
+  }
+
+  /**
+   * Constructs a ProjectDeletedEvent as a system event (no user context).
+   *
+   * @param projectId      The ID of the deleted project
+   * @param projectName    The name of the deleted project
+   * @param organizationId The organization ID
+   */
+  public ProjectDeletedEvent(Long projectId, String projectName, Long organizationId) {
+    super();
     this.projectId = projectId;
     this.projectName = projectName;
     this.organizationId = organizationId;

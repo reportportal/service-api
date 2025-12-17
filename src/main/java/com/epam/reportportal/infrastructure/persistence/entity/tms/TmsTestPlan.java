@@ -23,6 +23,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -81,10 +83,12 @@ public class TmsTestPlan {
       referencedColumnName = "id",
       insertable = false, updatable = false)
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<Launch> launches;
 
   @OneToMany(mappedBy = "testPlan")
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsTestPlanAttribute> attributes;
 
   @ManyToMany

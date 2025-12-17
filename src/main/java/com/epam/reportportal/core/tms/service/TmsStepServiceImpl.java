@@ -6,6 +6,7 @@ import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsStepRepositor
 import com.epam.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.core.tms.mapper.TmsStepMapper;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,21 +35,25 @@ public class TmsStepServiceImpl implements TmsStepService {
     if (CollectionUtils.isEmpty(stepsRQs)) {
       return;
     }
-    stepsRQs.forEach(stepRQ -> {
+
+    var createdSteps = new HashSet<TmsStep>();
+    for (var i = 0; i < stepsRQs.size(); i++) {
+      var stepRQ = stepsRQs.get(i);
       var tmsStep = tmsStepMapper.convertToTmsStep(stepRQ);
 
+      tmsStep.setNumber(i);
       tmsStep.setStepsManualScenario(tmsManualScenario);
 
       tmsStepRepository.save(tmsStep);
-
-      if (tmsManualScenario.getSteps() == null) {
-        tmsManualScenario.setSteps(new HashSet<>());
-      }
-      tmsManualScenario.getSteps().add(tmsStep);
+      createdSteps.add(tmsStep);
 
       tmsStepAttachmentService.createAttachments(tmsStep, stepRQ);
+    }
 
-    });
+    if (tmsManualScenario.getSteps() == null) {
+      tmsManualScenario.setSteps(new HashSet<>());
+    }
+    tmsManualScenario.getSteps().addAll(createdSteps);
   }
 
   @Override
@@ -81,23 +86,31 @@ public class TmsStepServiceImpl implements TmsStepService {
     var existingSteps = tmsManualScenario.getSteps();
 
     if (existingSteps == null) {
-      existingSteps = new HashSet<>(stepsRQs.size());
+      existingSteps = new HashSet<>();
+      tmsManualScenario.setSteps(existingSteps);
     }
 
-    var newSteps = stepsRQs
+    // Find the maximum number in existing steps to continue numbering
+    var maxNumber = existingSteps
         .stream()
-        .map(stepRQ -> {
-          var tmsStep = tmsStepMapper.convertToTmsStep(stepRQ);
+        .map(TmsStep::getNumber)
+        .max(Integer::compareTo)
+        .orElse(-1);
 
-          tmsStepAttachmentService.createAttachments(tmsStep, stepRQ);
+    var newSteps = new HashSet<TmsStep>();
+    for (var i = 0; i < stepsRQs.size(); i++) {
+      var stepRQ = stepsRQs.get(i);
+      var tmsStep = tmsStepMapper.convertToTmsStep(stepRQ);
 
-          return tmsStep;
-        })
-        .collect(Collectors.toSet());
+      tmsStep.setNumber(maxNumber + 1 + i); // Continue numbering from max + 1
+      tmsStep.setStepsManualScenario(tmsManualScenario);
 
-    existingSteps.addAll(newSteps);
-    newSteps.forEach(step -> step.setStepsManualScenario(tmsManualScenario));
+      tmsStepAttachmentService.createAttachments(tmsStep, stepRQ);
+      newSteps.add(tmsStep);
+    }
+
     tmsStepRepository.saveAll(newSteps);
+    existingSteps.addAll(newSteps);
   }
 
   @Override
@@ -131,10 +144,19 @@ public class TmsStepServiceImpl implements TmsStepService {
       return;
     }
 
-    var duplicatedSteps = originalSteps
+    // Convert to list and sort by number to preserve order
+    var sortedOriginalSteps = originalSteps
+        .stream()
+        .sorted(Comparator.comparingInt(TmsStep::getNumber))
+        .toList();
+
+    var duplicatedSteps = sortedOriginalSteps
         .stream()
         .map(originalStep -> {
           var duplicatedStep = tmsStepMapper.duplicateStep(originalStep, newStepsScenario);
+
+          // Preserve the number from original step
+          duplicatedStep.setNumber(originalStep.getNumber());
 
           if (CollectionUtils.isNotEmpty(originalStep.getAttachments())) {
             tmsStepAttachmentService.duplicateAttachments(originalStep, duplicatedStep);

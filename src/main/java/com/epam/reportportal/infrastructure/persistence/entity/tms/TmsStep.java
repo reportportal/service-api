@@ -18,6 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_step", schema = "public")
@@ -38,6 +40,9 @@ public class TmsStep implements Serializable {
   @Column(name = "expected_result")
   private String expectedResult;
 
+  @Column(name = "number", nullable = false)
+  private Integer number = 0;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "steps_manual_scenario_id")
   private TmsStepsManualScenario stepsManualScenario;
@@ -48,5 +53,6 @@ public class TmsStep implements Serializable {
       joinColumns = @JoinColumn(name = "step_id"),
       inverseJoinColumns = @JoinColumn(name = "attachment_id"))
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsAttachment> attachments;
 }

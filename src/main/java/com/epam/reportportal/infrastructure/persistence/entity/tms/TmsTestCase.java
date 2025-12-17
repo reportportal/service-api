@@ -25,6 +25,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -69,10 +71,12 @@ public class TmsTestCase implements Serializable {
   private Instant updatedAt;
 
   @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTestCaseAttribute> attributes;
 
   @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTestCaseVersion> versions;
 
@@ -85,6 +89,7 @@ public class TmsTestCase implements Serializable {
   private TmsDataset dataset;
 
   @ManyToMany(mappedBy = "testCases")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTestPlan> testPlans;
 }

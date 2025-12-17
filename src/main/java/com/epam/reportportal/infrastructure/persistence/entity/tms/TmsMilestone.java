@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
@@ -65,6 +67,7 @@ public class TmsMilestone {
   private TmsProductVersion productVersion;
 
   @OneToMany(mappedBy = "milestone")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTestPlan> testPlans;
 }

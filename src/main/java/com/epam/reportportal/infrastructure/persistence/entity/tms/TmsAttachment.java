@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -60,18 +62,22 @@ public class TmsAttachment implements Serializable {
   private Instant createdAt;
 
   @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTextManualScenario> textManualScenarios;
 
   @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsStep> steps;
 
   @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsManualScenarioPreconditions> manualScenarioPreconditions;
 
   @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTestCaseExecutionComment> executionComments;
 

@@ -18,6 +18,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 /**
  * Entity representing a comment for test case execution.
@@ -52,5 +54,6 @@ public class TmsTestCaseExecutionComment implements Serializable {
       joinColumns = @JoinColumn(name = "execution_comment_id"),
       inverseJoinColumns = @JoinColumn(name = "attachment_id"))
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsAttachment> attachments;
 }

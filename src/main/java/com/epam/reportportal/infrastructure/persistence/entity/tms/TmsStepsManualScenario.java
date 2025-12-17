@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -38,5 +39,6 @@ public class TmsStepsManualScenario {
 
   @OneToMany(mappedBy = "stepsManualScenario")
   @Fetch(FetchMode.SUBSELECT)
+  @OrderBy("number ASC")
   private Set<TmsStep> steps;
 }

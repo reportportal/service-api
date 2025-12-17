@@ -19,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_manual_scenario_preconditions", schema = "public")
@@ -47,5 +49,6 @@ public class TmsManualScenarioPreconditions implements Serializable {
       joinColumns = @JoinColumn(name = "preconditions_id"),
       inverseJoinColumns = @JoinColumn(name = "attachment_id"))
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsAttachment> attachments;
 }

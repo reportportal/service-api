@@ -33,7 +33,7 @@ import lombok.Setter;
 public class UserCreatedEvent extends AbstractEvent<UserActivityResource> {
 
   /**
-   * Constructs a UserCreatedEvent.
+   * Constructs a UserCreatedEvent from service-api (default source).
    *
    * @param userActivityResource The user activity resource
    */
@@ -43,15 +43,41 @@ public class UserCreatedEvent extends AbstractEvent<UserActivityResource> {
   }
 
   /**
-   * Constructs a UserCreatedEvent.
+   * Constructs a UserCreatedEvent with explicit event source.
    *
    * @param userActivityResource The user activity resource
-   * @param userId The ID of the user who created the user
-   * @param userLogin The login of the user who created the user
+   * @param eventSource          The name of the service/component that generated this event
+   */
+  public UserCreatedEvent(UserActivityResource userActivityResource, String eventSource) {
+    super(eventSource);
+    this.after = userActivityResource;
+  }
+
+  /**
+   * Constructs a UserCreatedEvent with user context.
+   *
+   * @param userActivityResource The user activity resource
+   * @param userId               The ID of the user who created the user
+   * @param userLogin            The login of the user who created the user
    */
   public UserCreatedEvent(UserActivityResource userActivityResource, Long userId,
       String userLogin) {
     super(userId, userLogin);
+    this.after = userActivityResource;
+  }
+
+  /**
+   * Constructs a UserCreatedEvent with user context and explicit event source.
+   *
+   * @param userActivityResource The user activity resource
+   * @param userId               The ID of the user who created the user
+   * @param userLogin            The login of the user who created the user
+   * @param eventSource          The name of the service/component that generated this event
+   */
+  public UserCreatedEvent(UserActivityResource userActivityResource, Long userId,
+      String userLogin, String eventSource) {
+    super(userId, userLogin);
+    this.eventSource = eventSource;
     this.after = userActivityResource;
   }
 

@@ -33,17 +33,31 @@ public class ProjectCreatedEvent extends AbstractEvent<Void> {
   /**
    * Constructs a ProjectCreatedEvent.
    *
-   * @param userId The ID of the user who created the project
-   * @param userLogin The login of the user who created the project
-   * @param projectId The ID of the created project
+   * @param userId      The ID of the user who created the project
+   * @param userLogin   The login of the user who created the project
+   * @param projectId   The ID of the created project
    * @param projectName The name of the created project
-   * @param orgId The organization ID
+   * @param orgId       The organization ID
    */
   public ProjectCreatedEvent(Long userId, String userLogin, Long projectId, String projectName,
       Long orgId) {
     super(userId, userLogin);
-    setProjectId(projectId);
     this.projectName = projectName;
-    setOrganizationId(orgId);
+    this.projectId = projectId;
+    this.organizationId = orgId;
+  }
+
+  /**
+   * Constructs a ProjectCreatedEvent as a system event (no user context).
+   *
+   * @param projectId   The ID of the created project
+   * @param projectName The name of the created project
+   * @param orgId       The organization ID
+   */
+  public ProjectCreatedEvent(Long projectId, String projectName, Long orgId) {
+    super();
+    this.projectName = projectName;
+    this.projectId = projectId;
+    this.organizationId = orgId;
   }
 }

@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.core.project.impl;
 
-import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.isPresent;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.not;
@@ -260,19 +259,14 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     if (Objects.nonNull(user)) {
       Long userId = user.getUserId();
       String username = user.getUsername();
-      publishProjectDeletedEvent(userId, username, project.getId(), project.getName(),
-          project.getOrganizationId());
+      applicationEventPublisher.publishEvent(
+          new ProjectDeletedEvent(userId, username, project.getId(), project.getName(),
+              project.getOrganizationId()));
     } else {
-      publishProjectDeletedEvent(null, RP_SUBJECT_NAME, project.getId(), "personal_project",
-          project.getOrganizationId());
+      applicationEventPublisher.publishEvent(
+          new ProjectDeletedEvent(project.getId(), "personal_project",
+              project.getOrganizationId()));
     }
-  }
-
-  private void publishProjectDeletedEvent(Long userId, String userLogin, Long projectId,
-      String projectName, Long organizationId) {
-    ProjectDeletedEvent event = new ProjectDeletedEvent(userId, userLogin, projectId, projectName,
-        organizationId);
-    applicationEventPublisher.publishEvent(event);
   }
 
   private Project getProjectById(Long projectId) {

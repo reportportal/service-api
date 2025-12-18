@@ -40,6 +40,7 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
   protected Long organizationId;
   protected Long projectId;
   protected Instant occurredAt = Instant.now();
+  protected String eventSource = "ReportPortal";
 
   /**
    * Default constructor for system events (no user context).
@@ -49,9 +50,19 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
   }
 
   /**
+   * Constructs an AbstractEvent with explicit event source.
+   *
+   * @param eventSource The name of the service/component that generated this event
+   */
+  protected AbstractEvent(String eventSource) {
+    super(new Object());
+    this.eventSource = eventSource;
+  }
+
+  /**
    * Constructs an AbstractEvent with user context but no state snapshots.
    *
-   * @param userId The ID of the user who triggered the event
+   * @param userId    The ID of the user who triggered the event
    * @param userLogin The login of the user who triggered the event
    */
   protected AbstractEvent(Long userId, String userLogin) {
@@ -65,10 +76,10 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
   /**
    * Constructs an AbstractEvent with user context and state snapshots.
    *
-   * @param userId The ID of the user who triggered the event
+   * @param userId    The ID of the user who triggered the event
    * @param userLogin The login of the user who triggered the event
-   * @param before The state before the event (can be null for CREATE events)
-   * @param after The state after the event (can be null for DELETE events)
+   * @param before    The state before the event (can be null for CREATE events)
+   * @param after     The state after the event (can be null for DELETE events)
    */
   protected AbstractEvent(Long userId, String userLogin, T before, T after) {
     super(new Object());
@@ -86,26 +97,6 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
    */
   public boolean isSystemEvent() {
     return userId == null;
-  }
-
-  /**
-   * Sets the project ID for this event. Call this in constructor for events that have a project
-   * context.
-   *
-   * @param projectId the project ID, or null if not applicable
-   */
-  protected void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  /**
-   * Sets the organization ID for this event. Call this in constructor for events that have an
-   * organization context.
-   *
-   * @param organizationId the organization ID, or null if not applicable
-   */
-  protected void setOrganizationId(Long organizationId) {
-    this.organizationId = organizationId;
   }
 
 }

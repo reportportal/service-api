@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.core.project.impl;
 
-import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.isPresent;
 import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.not;
@@ -156,13 +155,21 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
     applicationEventPublisher.publishEvent(event);
   }
 
+  private void publishSystemProjectCreatedEvent(Project project) {
+    Long projectId = project.getId();
+    String projectName = project.getName();
+    ProjectCreatedEvent event = new ProjectCreatedEvent(projectId, projectName,
+        project.getOrganizationId());
+    applicationEventPublisher.publishEvent(event);
+  }
+
   @Override
   public Project createPersonal(User user) {
     //TODO refactor personal project generation to not add user inside method (cannot be done now, because DAO dependency may affect other services)
     final Project personalProject = personalProjectService.generatePersonalProject(user);
     personalProject.getUsers().clear();
     projectRepository.save(personalProject);
-    publishProjectCreatedEvent(null, RP_SUBJECT_NAME, personalProject);
+    publishSystemProjectCreatedEvent(personalProject);
     return personalProject;
   }
 

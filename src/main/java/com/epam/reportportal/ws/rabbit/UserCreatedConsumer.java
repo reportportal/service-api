@@ -62,6 +62,7 @@ public class UserCreatedConsumer {
       return;
     }
 
-    personalOrganizationService.createPersonalOrganization(event.getUserActivityResource().getId());
+//    todo will be rolled back once org plugin is migrated to the new events structure
+//    personalOrganizationService.createPersonalOrganization(event.getUserActivityResource().getId());
   }
 }

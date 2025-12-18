@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.ws.rabbit.activity.util;
 
+import com.epam.reportportal.core.events.domain.AbstractEvent;
+import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.HistoryField;
 import com.google.common.base.Strings;
 import java.util.List;
@@ -25,8 +27,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Utilities for building {@link com.epam.reportportal.infrastructure.persistence.entity.activity.HistoryField}
- * instances describing changes of entity attributes for activity logging.
+ * Utilities for building
+ * {@link com.epam.reportportal.infrastructure.persistence.entity.activity.HistoryField} instances
+ * describing changes of entity attributes for activity logging.
  *
  * <p>Provides helpers for string, boolean and parameter comparisons, as well as configuration
  * extraction and comparison utilities used across activity event creation.</p>
@@ -62,7 +65,6 @@ public class ActivityDetailsUtil {
   public static final String ITEM_IDS = "itemIds";
   public static final String LAUNCH_ID = "launchId";
   public static final String PATTERN_NAME = "patternName";
-  public static final String RP_SUBJECT_NAME = "ReportPortal";
 
   public static final String RECIPIENTS = "recipients";
   public static final String LAUNCH_NAMES = "launchNames";
@@ -72,12 +74,23 @@ public class ActivityDetailsUtil {
   public static final String ATTRIBUTES_OPERATOR = "attributesOperator";
   public static final String RULE_DETAILS = "ruleDetails";
 
-  public static Optional<HistoryField> processList(String fieldName, List<String> before, List<String> after) {
+  /**
+   * Builds a history field for a changed list value. Lists are normalized (nulls handled, strings
+   * converted) before comparison.
+   *
+   * @param fieldName field key to use in history field
+   * @param before    previous list value
+   * @param after     current list value
+   * @return optional history field present if normalized lists differ
+   */
+  public static Optional<HistoryField> processList(String fieldName, List<String> before,
+      List<String> after) {
     var left = normalizeList(before);
     var right = normalizeList(after);
     return left.equals(right)
         ? Optional.empty()
-        : Optional.of(HistoryField.of(fieldName, String.join(", ", left), String.join(", ", right)));
+        : Optional.of(
+            HistoryField.of(fieldName, String.join(", ", left), String.join(", ", right)));
   }
 
   public static Optional<HistoryField> processMap(String fieldName, Map<String, Object> before,
@@ -110,7 +123,8 @@ public class ActivityDetailsUtil {
    * @param newDescription current description
    * @return optional history field present if values differ
    */
-  public static Optional<HistoryField> processDescription(String oldDescription, String newDescription) {
+  public static Optional<HistoryField> processDescription(String oldDescription,
+      String newDescription) {
     oldDescription = Strings.nullToEmpty(oldDescription);
     newDescription = Strings.nullToEmpty(newDescription);
     if (!newDescription.equals(oldDescription)) {
@@ -120,15 +134,16 @@ public class ActivityDetailsUtil {
   }
 
   /**
-   * Generic string field comparator producing a history field if values differ. Nulls are transformed to empty strings
-   * before comparison.
+   * Generic string field comparator producing a history field if values differ. Nulls are
+   * transformed to empty strings before comparison.
    *
    * @param fieldName field key to use in history field
    * @param before    previous value
    * @param after     current value
    * @return optional history field present if values differ
    */
-  public static Optional<HistoryField> processString(String fieldName, String before, String after) {
+  public static Optional<HistoryField> processString(String fieldName, String before,
+      String after) {
     before = Strings.nullToEmpty(before);
     after = Strings.nullToEmpty(after);
     if (!after.equals(before)) {
@@ -145,7 +160,8 @@ public class ActivityDetailsUtil {
    * @param current  current boolean value
    * @return optional history field present if values differ
    */
-  public static Optional<HistoryField> processBoolean(String type, boolean previous, boolean current) {
+  public static Optional<HistoryField> processBoolean(String type, boolean previous,
+      boolean current) {
     if (previous != current) {
       return Optional.of(HistoryField.of(type, String.valueOf(previous), String.valueOf(current)));
     }
@@ -180,7 +196,8 @@ public class ActivityDetailsUtil {
    * @param prefix key prefix to filter by
    * @return true if filtered maps are equal
    */
-  public static boolean configEquals(Map<String, String> before, Map<String, String> after, String prefix) {
+  public static boolean configEquals(Map<String, String> before, Map<String, String> after,
+      String prefix) {
     Map<String, String> beforeJobConfig = extractConfigByPrefix(before, prefix);
     Map<String, String> afterJobConfig = extractConfigByPrefix(after, prefix);
     return beforeJobConfig.equals(afterJobConfig);
@@ -194,7 +211,8 @@ public class ActivityDetailsUtil {
    * @param prefix key prefix to filter by
    * @return true if filtered maps are not equal
    */
-  public static boolean configChanged(Map<String, String> before, Map<String, String> after, String prefix) {
+  public static boolean configChanged(Map<String, String> before, Map<String, String> after,
+      String prefix) {
     return !configEquals(before, after, prefix);
   }
 
@@ -205,7 +223,8 @@ public class ActivityDetailsUtil {
    * @param prefix key prefix to filter by
    * @return map containing only entries with keys starting with the prefix
    */
-  public static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
+  public static Map<String, String> extractConfigByPrefix(Map<String, String> config,
+      String prefix) {
     return config.entrySet()
         .stream()
         .filter(entry -> entry.getKey().startsWith(prefix))
@@ -227,5 +246,31 @@ public class ActivityDetailsUtil {
         .stream()
         .map(e -> e.getKey() + "=" + Objects.toString(e.getValue(), EMPTY_STRING))
         .collect(Collectors.joining(", ", "{", "}"));
+  }
+
+  /**
+   * Returns the appropriate subject name for an event based on whether it's a system event. For
+   * system events, uses the event source; for user events, uses the user login.
+   *
+   * @param event The domain event
+   * @return Subject name for activity logging
+   */
+  public static String getSubjectName(AbstractEvent<?> event) {
+    return event.isSystemEvent()
+        ? event.getEventSource()
+        : event.getUserLogin();
+  }
+
+  /**
+   * Returns the appropriate subject type for an event based on whether it's a system event. System
+   * events use APPLICATION subject type; user events use USER subject type.
+   *
+   * @param event The domain event
+   * @return Subject type for activity logging
+   */
+  public static EventSubject getSubjectType(AbstractEvent<?> event) {
+    return event.isSystemEvent()
+        ? EventSubject.APPLICATION
+        : EventSubject.USER;
   }
 }

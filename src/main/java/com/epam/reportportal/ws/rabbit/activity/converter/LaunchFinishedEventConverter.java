@@ -16,7 +16,8 @@
 
 package com.epam.reportportal.ws.rabbit.activity.converter;
 
-import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.RP_SUBJECT_NAME;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectName;
+import static com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectType;
 
 import com.epam.reportportal.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.infrastructure.persistence.builder.ActivityBuilder;
@@ -25,7 +26,6 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,8 +48,8 @@ public class LaunchFinishedEventConverter implements EventToActivityConverter<La
         .addProjectId(event.getProjectId())
         .addOrganizationId(event.getOrganizationId())
         .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
-        .addSubjectName(event.isSystemEvent() ? RP_SUBJECT_NAME : event.getUserLogin())
-        .addSubjectType(event.isSystemEvent() ? EventSubject.APPLICATION : EventSubject.USER)
+        .addSubjectName(getSubjectName(event))
+        .addSubjectType(getSubjectType(event))
         .get();
   }
 
@@ -58,4 +58,3 @@ public class LaunchFinishedEventConverter implements EventToActivityConverter<La
     return LaunchFinishedEvent.class;
   }
 }
-

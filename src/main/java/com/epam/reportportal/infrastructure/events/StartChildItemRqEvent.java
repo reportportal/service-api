@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,41 @@
 
 package com.epam.reportportal.infrastructure.events;
 
+import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.reporting.StartTestItemRQ;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import lombok.NoArgsConstructor;
 
 /**
+ * System event published when a child test item start request is received.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Getter
-public class StartChildItemRqEvent extends ApplicationEvent {
+@NoArgsConstructor
+public class StartChildItemRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
   private String parentUuid;
   private StartTestItemRQ startTestItemRQ;
 
-  public StartChildItemRqEvent(Object source, String projectName, String parentUuid,
+  /**
+   * Constructs a StartChildItemRqEvent.
+   *
+   * @param projectName     The name of the project
+   * @param parentUuid      The UUID of the parent item
+   * @param startTestItemRQ The start test item request
+   */
+  public StartChildItemRqEvent(String projectName, String parentUuid,
       StartTestItemRQ startTestItemRQ) {
-    super(source);
+    super();
     this.projectName = projectName;
     this.parentUuid = parentUuid;
     this.startTestItemRQ = startTestItemRQ;
+  }
+
+  @Override
+  public boolean shouldPublishToRabbitMQ() {
+    return false;
   }
 }

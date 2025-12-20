@@ -40,16 +40,19 @@ public class DomainEventPublisher {
 
   /**
    * Listens to domain events and publishes them to RabbitMQ after transaction commit. Routing key
-   * pattern: domain.{objectType}.{action}
+   * pattern: domain.{objectType}.{action} Local-only events (e.g., high-frequency reporting events)
+   * are skipped to avoid unnecessary RabbitMQ traffic.
    *
    * @param event The domain event to publish
    */
   @Async(value = "eventListenerExecutor")
   @TransactionalEventListener
   public void onDomainEvent(AbstractEvent<?> event) {
-    log.debug("Publishing domain event to exchange '{}', event:'{}'", DOMAIN_EVENTS_EXCHANGE,
-        event.toString());
-    messageBus.publish(DOMAIN_EVENTS_EXCHANGE, generateRoutingKey(event), event);
+    if (event.shouldPublishToRabbitMQ()) {
+      log.debug("Publishing domain event to exchange '{}', event:'{}'", DOMAIN_EVENTS_EXCHANGE,
+          event.toString());
+      messageBus.publish(DOMAIN_EVENTS_EXCHANGE, generateRoutingKey(event), event);
+    }
   }
 
   /**

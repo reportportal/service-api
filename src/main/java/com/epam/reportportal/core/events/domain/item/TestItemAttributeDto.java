@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.event;
+package com.epam.reportportal.core.events.domain.item;
 
-import java.util.Collection;
-import org.springframework.context.ApplicationEvent;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * DTO for test item attributes used in events. Contains only the data needed for event processing,
+ * avoiding Hibernate entity serialization issues.
+ *
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public abstract class EntityCollectionEvent<E> extends ApplicationEvent {
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class TestItemAttributeDto {
 
-  private final Collection<E> entities;
-
-  public EntityCollectionEvent(Collection<E> entities) {
-    super(entities);
-    this.entities = entities;
-  }
-
-  public Collection<E> getEntities() {
-    return entities;
-  }
-
+  private String key;
+  private String value;
+  private Boolean system;
 }

@@ -19,22 +19,32 @@ package com.epam.reportportal.core.events.domain.item;
 import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * System event triggered when a test item is finished. This is an internal processing event with
- * null user context.
- *
- * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ * System event triggered when a test item is finished. Contains only the data needed by consumers,
+ * avoiding Hibernate entity serialization issues.
  */
 @Getter
+@NoArgsConstructor
 public class TestItemFinishedEvent extends AbstractEvent<Void> {
 
-  private final TestItem testItem;
+  private TestItem testItem;
 
+  /**
+   * Creates a TestItemFinishedEvent.
+   *
+   * @param testItem  The test item
+   * @param projectId The project ID
+   */
   public TestItemFinishedEvent(TestItem testItem, Long projectId) {
     super();
     this.testItem = testItem;
     this.projectId = projectId;
   }
 
+  @Override
+  public boolean shouldPublishToRabbitMQ() {
+    return false;
+  }
 }

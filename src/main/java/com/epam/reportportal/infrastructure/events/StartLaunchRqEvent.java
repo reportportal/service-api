@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,37 @@
 
 package com.epam.reportportal.infrastructure.events;
 
+import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.reporting.StartLaunchRQ;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import lombok.NoArgsConstructor;
 
 /**
+ * System event published when a launch start request is received.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Getter
-public class StartLaunchRqEvent extends ApplicationEvent {
+@NoArgsConstructor
+public class StartLaunchRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
   private StartLaunchRQ startLaunchRQ;
 
-  public StartLaunchRqEvent(Object source, String projectName, StartLaunchRQ startLaunchRQ) {
-    super(source);
+  /**
+   * Constructs a StartLaunchRqEvent.
+   *
+   * @param projectName   The name of the project
+   * @param startLaunchRQ The start launch request
+   */
+  public StartLaunchRqEvent(String projectName, StartLaunchRQ startLaunchRQ) {
+    super();
     this.projectName = projectName;
     this.startLaunchRQ = startLaunchRQ;
+  }
+
+  @Override
+  public boolean shouldPublishToRabbitMQ() {
+    return false;
   }
 }

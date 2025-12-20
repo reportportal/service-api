@@ -46,11 +46,14 @@ import com.epam.ta.reportportal.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.model.log.SearchLogRq;
 import com.epam.ta.reportportal.model.log.SearchLogRs;
+import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -80,10 +83,11 @@ class SearchLogServiceImplTest {
 
   private CurrentLaunchCollector currentLaunchCollector = mock(CurrentLaunchCollector.class);
 
+  private LogConverter logConverter = mock(LogConverter.class);
+
   private final SearchLogServiceImpl searchLogService =
       new SearchLogServiceImpl(projectRepository, launchRepository, testItemRepository, logService,
-          analyzerServiceClient, searchCollectorFactory
-      );
+          analyzerServiceClient, searchCollectorFactory, logConverter);
 
   @Test
   void searchTest() {
@@ -132,7 +136,13 @@ class SearchLogServiceImplTest {
     log.setTestItem(testItem);
     log.setLogMessage("message");
     log.setLogLevel(40000);
+    log.setProjectId(1L);
     when(logService.findAllById(any())).thenReturn(Lists.newArrayList(log));
+    
+    SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
+    logEntry.setMessage("message");
+    logEntry.setLevel("error");
+    when(logConverter.toLogEntries(any(), any())).thenReturn(Lists.newArrayList(logEntry));
 
     SearchLogRq searchLogRq = new SearchLogRq();
     searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());

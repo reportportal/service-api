@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.model.log.LogResource;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -27,10 +28,13 @@ import org.springframework.stereotype.Service;
  * @author Andrei Varabyeu
  */
 @Service
+@RequiredArgsConstructor
 public class LogResourceAssembler extends PagedResourcesAssembler<LogFull, LogResource> {
+
+  private final LogConverter logConverter;
 
   @Override
   public LogResource toResource(LogFull log) {
-    return LogConverter.TO_RESOURCE.apply(log);
+    return logConverter.toResource(log);
   }
 }

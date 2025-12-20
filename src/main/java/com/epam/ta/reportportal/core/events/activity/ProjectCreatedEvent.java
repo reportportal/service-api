@@ -25,12 +25,14 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import java.util.Objects;
+import lombok.Getter;
 
 /**
  * Event publish when project is created.
  *
  * @author Ryhor_Kukharenka
  */
+@Getter
 public class ProjectCreatedEvent extends AbstractEvent implements ActivityEvent {
 
   private final Long projectId;

@@ -1,19 +1,30 @@
 package com.epam.ta.reportportal.ws.controller;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 
 import com.epam.reportportal.api.ProjectsApi;
 import com.epam.reportportal.api.model.AddProjectToGroupByIdRequest;
+import com.epam.reportportal.api.model.GetLogTypes200Response;
+import com.epam.reportportal.api.model.LogTypeRequest;
+import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.group.GroupExtensionPoint;
+import com.epam.ta.reportportal.core.logtype.CreateLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.DeleteLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.GetLogTypeHandler;
+import com.epam.ta.reportportal.core.logtype.UpdateLogTypeHandler;
+import lombok.RequiredArgsConstructor;
 import org.pf4j.PluginManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,19 +34,14 @@ import org.springframework.web.server.ResponseStatusException;
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
  **/
 @RestController
+@RequiredArgsConstructor
 public class GeneratedProjectController implements ProjectsApi {
 
   private final PluginManager pluginManager;
-
-  /**
-   * Constructor for the controller.
-   *
-   * @param pluginManager Plugin manager
-   */
-  @Autowired
-  public GeneratedProjectController(PluginManager pluginManager) {
-    this.pluginManager = pluginManager;
-  }
+  private final GetLogTypeHandler getLogTypeHandler;
+  private final CreateLogTypeHandler createLogTypeHandler;
+  private final UpdateLogTypeHandler updateLogTypeHandler;
+  private final DeleteLogTypeHandler deleteLogTypeHandler;
 
   @Override
   @PreAuthorize(NOT_CUSTOMER)
@@ -73,6 +79,42 @@ public class GeneratedProjectController implements ProjectsApi {
   public ResponseEntity<Void> deleteGroupFromProjectById(String projectName, Long groupId) {
     getGroupExtension().deleteGroupFromProject(projectName, groupId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @Override
+  @PreAuthorize(ASSIGNED_TO_PROJECT)
+  public ResponseEntity<GetLogTypes200Response> getLogTypes(String projectName) {
+    return ResponseEntity.ok(getLogTypeHandler.getLogTypes(normalizeId(projectName)));
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<LogTypeResponse> createLogType(String projectName, LogTypeRequest logType) {
+    return new ResponseEntity<>(
+        createLogTypeHandler.createLogType(projectName, logType, getPrincipal()),
+        HttpStatus.CREATED);
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<SuccessfulUpdate> updateLogTypeById(String projectName, Long logTypeId,
+      LogTypeRequest logType) {
+    return ResponseEntity.ok(
+        updateLogTypeHandler.updateLogType(normalizeId(projectName), logTypeId, logType,
+            getPrincipal()));
+  }
+
+  @Override
+  @PreAuthorize(PROJECT_MANAGER)
+  public ResponseEntity<Void> deleteLogTypeById(String projectName, Long logTypeId) {
+    deleteLogTypeHandler.deleteLogType(normalizeId(projectName), logTypeId, getPrincipal());
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  private ReportPortalUser getPrincipal() {
+    return (ReportPortalUser) SecurityContextHolder.getContext()
+        .getAuthentication()
+        .getPrincipal();
   }
 
   private GroupExtensionPoint getGroupExtension() {

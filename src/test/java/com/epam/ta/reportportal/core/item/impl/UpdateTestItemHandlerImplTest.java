@@ -23,14 +23,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analytics.DefectUpdateStatisticsService;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -38,16 +50,21 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
+import com.epam.ta.reportportal.model.issue.IssueDefinition;
+import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UpdateTestItemRQ;
-import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -78,6 +95,21 @@ class UpdateTestItemHandlerImplTest {
 
   @Mock
   private MessageBus messageBus;
+
+  @Mock
+  private ExternalTicketHandler externalTicketHandler;
+
+  @Mock
+  private IssueEntityRepository issueEntityRepository;
+
+  @Mock
+  private DefectUpdateStatisticsService defectUpdateStatisticsService;
+
+  @Mock
+  private IssueTypeHandler issueTypeHandler;
+
+  @Mock
+  private LogIndexerService logIndexerService;
 
   @InjectMocks
   private UpdateTestItemHandlerImpl handler;
@@ -310,5 +342,115 @@ class UpdateTestItemHandlerImplTest {
 
     assertEquals("TestItem with ID = '1' successfully updated.", response.getResultMessage());
     assertEquals(rq.getDescription(), item.getDescription());
+  }
+
+  @Test
+  void updateTestItemStatusShouldSetAnalysisOwner() {
+    ReportPortalUser user =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
+    UpdateTestItemRQ rq = new UpdateTestItemRQ();
+    rq.setStatus("PASSED");
+
+    long itemId = 1L;
+    long userId = 5L;
+    TestItem item = new TestItem();
+    item.setItemId(itemId);
+    item.setHasChildren(false);
+    item.setType(TestItemTypeEnum.STEP);
+    TestItemResults itemResults = new TestItemResults();
+    itemResults.setStatus(StatusEnum.FAILED);
+    item.setItemResults(itemResults);
+    Launch launch = new Launch();
+    launch.setId(2L);
+    item.setLaunchId(launch.getId());
+
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+    when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+    doNothing().when(messageBus).publishActivity(any());
+    when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
+    doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, true);
+
+    handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
+
+    assertEquals(user.getUserId(), item.getAnalysisOwnerId());
+  }
+
+  @Test
+  void defineIssuesShouldSetAnalysisOwner() {
+    ReportPortalUser user =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
+    long itemId = 1L;
+    TestItem item = new TestItem();
+    item.setItemId(itemId);
+    item.setType(TestItemTypeEnum.STEP);
+    TestItemResults itemResults = new TestItemResults();
+    itemResults.setStatus(StatusEnum.FAILED);
+    IssueEntity issueEntity = new IssueEntity();
+    IssueType issueType = new IssueType();
+    issueType.setId(1L);
+    issueEntity.setIssueType(issueType);
+    itemResults.setIssue(issueEntity);
+    item.setItemResults(itemResults);
+
+    Project project = new Project();
+    project.setId(1L);
+
+    Issue issue = new Issue();
+    issue.setIssueType("pb001");
+    issue.setComment("test comment");
+
+    IssueDefinition issueDefinition = new IssueDefinition();
+    issueDefinition.setId(itemId);
+    issueDefinition.setIssue(issue);
+
+    DefineIssueRQ defineIssueRQ = new DefineIssueRQ();
+    defineIssueRQ.setIssues(Collections.singletonList(issueDefinition));
+
+    when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+    when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+    doNothing().when(messageBus).publishActivity(any());
+    when(issueTypeHandler.defineIssueType(anyLong(), anyString())).thenReturn(issueType);
+    doNothing().when(externalTicketHandler).updateLinking(any(), any(), any());
+    doNothing().when(defectUpdateStatisticsService)
+        .saveUserAnalyzedDefectStatistics(anyInt(), anyLong());
+
+    handler.defineTestItemsIssues(extractProjectDetails(user, "test_project"), defineIssueRQ,
+        user
+    );
+
+    assertEquals(user.getUserId(), item.getAnalysisOwnerId());
+    verify(itemRepository, times(1)).save(item);
+  }
+
+  @Test
+  void linkExternalIssueShouldSetAnalysisOwner() {
+    ReportPortalUser user =
+        getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
+    long itemId = 1L;
+    TestItem item = new TestItem();
+    item.setItemId(itemId);
+    TestItemResults itemResults = new TestItemResults();
+    itemResults.setStatus(StatusEnum.FAILED);
+    IssueEntity issueEntity = new IssueEntity();
+    IssueType issueType = new IssueType();
+    issueType.setId(1L);
+    issueEntity.setIssueType(issueType);
+    itemResults.setIssue(issueEntity);
+    item.setItemResults(itemResults);
+
+    LinkExternalIssueRQ linkRequest = new LinkExternalIssueRQ();
+    linkRequest.setTestItemIds(Collections.singletonList(itemId));
+    linkRequest.setIssues(Collections.emptyList());
+
+    when(itemRepository.findAllById(anyList())).thenReturn(Collections.singletonList(item));
+    doNothing().when(messageBus).publishActivity(any());
+
+    handler.processExternalIssues(linkRequest, extractProjectDetails(user, "test_project"), user);
+
+    assertEquals(user.getUserId(), item.getAnalysisOwnerId());
+    verify(itemRepository, times(1)).saveAll(anyList());
   }
 }

@@ -16,10 +16,9 @@
 
 package com.epam.ta.reportportal.model.user;
 
-import static com.epam.reportportal.model.ValidationConstraints.USER_PASSWORD_REGEXP;
-
 import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.annotations.In;
+import com.epam.ta.reportportal.ws.validation.ValidPassword;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -60,10 +59,9 @@ public class CreateUserRQFull {
   @Schema(requiredMode = RequiredMode.REQUIRED, example = "string")
   private String login;
 
-  @Size(max = ValidationConstraints.MAX_PASSWORD_LENGTH)
   @JsonProperty(value = "password")
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
-  @Pattern(regexp = USER_PASSWORD_REGEXP)
+  @ValidPassword(allowNull = true)
   private String password;
 
   @NotBlank

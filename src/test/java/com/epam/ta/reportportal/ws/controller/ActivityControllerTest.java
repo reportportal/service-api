@@ -37,7 +37,7 @@ class ActivityControllerTest extends BaseMvcTest {
 
 	@Test
 	void getActivityByWrongProjectName() throws Exception {
-		mockMvc.perform(get("/v1/wrong_project/activity/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(403));
+		mockMvc.perform(get("/v1/wrong_project/activity/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(404));
 	}
 
 	@Test

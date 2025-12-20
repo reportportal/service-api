@@ -130,7 +130,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   @Autowired
   FinishTestItemHandlerImpl(TestItemRepository testItemRepository,
       IssueTypeHandler issueTypeHandler, @Qualifier("finishTestItemHierarchyHandler")
-  FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
+      FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
       IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
@@ -273,7 +273,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     TestItemResults testItemResults = testItem.getItemResults();
     Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
-    if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(),
+    if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getLaunchId(),
+        testItem.getPath(),
         IN_PROGRESS.name()
     )) {
       finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED),

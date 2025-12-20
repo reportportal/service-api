@@ -95,11 +95,13 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
         .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND,
             request.getKey()));
     ServerSettingsResource before = TO_RESOURCE.apply(serverSettings);
+    var settingHandler = settingsRegistry.getHandler(serverSettings.getKey());
+    settingHandler.ifPresent(handler -> handler.validate(request.getValue()));
 
     serverSettings.setValue(request.getValue());
     serverSettingsRepository.save(serverSettings);
-    settingsRegistry.getHandler(serverSettings.getKey())
-        .ifPresent(handler -> handler.handle(serverSettings.getValue()));
+
+    settingHandler.ifPresent(handler -> handler.handle(serverSettings.getValue()));
     messageBus.publishActivity(new SettingsUpdatedEvent(before, TO_RESOURCE.apply(serverSettings),
         user.getUserId(), user.getUsername()));
     return new OperationCompletionRS("Server Settings were successfully updated.");

@@ -37,9 +37,7 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
-//    if (!releaseMode) {
     maven { url 'https://jitpack.io' }
-//    }
 }
 
 java {
@@ -53,7 +51,7 @@ ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + '5.14.3' : 'com.epam.reportportal:commons-bom:5.14.3')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.0' : 'com.github.reportportal:commons-bom:dababe0')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
         mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
@@ -61,22 +59,19 @@ dependencyManagement {
 
 println("Release mode: $releaseMode")
 dependencies {
-    if (releaseMode) {
-        println("Using release dependencies")
-        implementation 'com.github.reportportal:commons:a844127'
-        implementation 'com.github.reportportal:commons-dao:71ef80c'
-        implementation('com.github.reportportal:plugin-api:a4324ce') {
-            exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
-        }
-    } else {
-        println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons:a844127'
-        implementation 'com.github.reportportal:commons-dao:71ef80c'
-        implementation('com.github.reportportal:plugin-api:a4324ce') {
-            exclude group: 'com.github.reportportal:commons-dao', module: 'commons-dao'
-        }
+    implementation 'com.github.reportportal:commons:5.15.0'
+    implementation 'com.github.reportportal:commons-dao:5.15.0'
+    implementation('com.github.reportportal:plugin-api:5.15.0') {
+        exclude group: 'com.github.reportportal', module: 'commons-dao'
+        exclude group: 'com.github.reportportal', module: 'commons'
     }
+
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+
+    implementation 'org.opensearch.client:opensearch-java:3.2.0'
+    implementation 'jakarta.json:jakarta.json-api:2.1.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
+
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
@@ -95,15 +90,14 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-resource-server'
     implementation 'org.springframework.security:spring-security-web'
     implementation 'org.springframework:spring-context-support'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
-    //Fix CVE-2025-24813
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.41'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:10.1.41'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.41'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.14'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.14'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.14'
 
-
-    implementation 'com.opencsv:opencsv:5.10'
+    implementation 'org.apache.commons:commons-lang3:3.20.0'
+    implementation 'com.opencsv:opencsv:5.12.0'
     implementation 'commons-beanutils:commons-beanutils:1.11.0'
     implementation "org.jooq:jooq:${jooqVersion}"
 
@@ -116,23 +110,23 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
     }
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
-    implementation 'org.apache.poi:poi:5.4.0'
-    implementation 'com.github.librepdf:openpdf:2.0.3'
+    implementation 'org.apache.poi:poi:5.5.0'
+    implementation 'com.github.librepdf:openpdf:2.4.0'
 
     implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
-    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    implementation 'com.sun.mail:jakarta.mail:2.0.2'
 
     implementation 'xerces:xercesImpl:2.12.2'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
-    implementation 'com.google.api-client:google-api-client:2.6.0'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.82'
+    implementation 'com.google.api-client:google-api-client:2.8.1'
 
-    implementation('commons-validator:commons-validator:1.9.0') {
+    implementation('commons-validator:commons-validator:1.10.0') {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
     }
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
     implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
-    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'org.apache.commons:commons-compress:1.28.0'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
     implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"

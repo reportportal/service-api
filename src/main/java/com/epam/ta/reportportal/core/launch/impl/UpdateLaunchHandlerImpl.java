@@ -24,7 +24,6 @@ import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static java.util.stream.Collectors.toList;
 
@@ -60,11 +59,11 @@ import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -118,7 +117,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     Project project = getProjectHandler.get(projectDetails);
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
-    validate(launch, user, projectDetails, rq.getMode());
+    validate(launch, user, projectDetails, rq);
 
     LaunchModeEnum previousMode = launch.getMode();
 
@@ -237,24 +236,40 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   }
 
   /**
-   * Valide {@link ReportPortalUser} credentials
+   * Validates access and edit permissions for launch update.
    *
-   * @param launch {@link Launch}
-   * @param user   {@link ReportPortalUser}
-   * @param mode   {@link Launch#mode}
+   * @param launch         {@link Launch}
+   * @param user           {@link ReportPortalUser}
+   * @param projectDetails project context
+   * @param rq             incoming update request
    */
-  //TODO *Validator refactoring
   private void validate(Launch launch, ReportPortalUser user,
-      ReportPortalUser.ProjectDetails projectDetails, Mode mode) {
-    if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {
-      expect(mode, equalTo(Mode.DEFAULT)).verify(ACCESS_DENIED);
+      ReportPortalUser.ProjectDetails projectDetails, UpdateLaunchRQ rq) {
+    if (user.getUserRole() == UserRole.ADMINISTRATOR) {
+      return;
     }
-    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-      expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-      if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
-        expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED);
-      }
+
+    expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
+
+    if (projectDetails.getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+      return;
     }
+
+    if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && !isOwner(user, launch)) {
+      expect(hasNonModeChanges(rq), Predicate.isEqual(false)).verify(ACCESS_DENIED,
+          "Customers may only update 'mode' for launches they do not own.");
+      return;
+    }
+
+    expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED);
+  }
+
+  private boolean isOwner(ReportPortalUser user, Launch launch) {
+    return Objects.equals(user.getUserId(), launch.getUserId());
+  }
+
+  private boolean hasNonModeChanges(UpdateLaunchRQ rq) {
+    return Objects.nonNull(rq.getDescription()) || Objects.nonNull(rq.getAttributes());
   }
 
 }

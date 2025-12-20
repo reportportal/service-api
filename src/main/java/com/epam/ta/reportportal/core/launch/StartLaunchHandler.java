@@ -16,15 +16,9 @@
 
 package com.epam.ta.reportportal.core.launch;
 
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
-import java.util.function.Predicate;
 
 /**
  * Start Launch operation handler
@@ -44,19 +38,4 @@ public interface StartLaunchHandler {
   StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
       StartLaunchRQ startLaunchRQ);
 
-  /**
-   * Validate {@link ReportPortalUser} credentials. User with a {@link ProjectRole#CUSTOMER} role
-   * can't report launches in a debug mode.
-   *
-   * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-   * @param startLaunchRQ  {@link StartLaunchRQ}
-   */
-  default void validateRoles(ReportPortalUser.ProjectDetails projectDetails,
-      StartLaunchRQ startLaunchRQ) {
-    expect(
-        Mode.DEBUG.equals(startLaunchRQ.getMode()) && ProjectRole.CUSTOMER.equals(
-            projectDetails.getProjectRole()),
-        Predicate.isEqual(false)
-    ).verify(ErrorType.FORBIDDEN_OPERATION);
-  }
 }

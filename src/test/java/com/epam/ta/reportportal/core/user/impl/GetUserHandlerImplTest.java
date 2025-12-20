@@ -22,16 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.model.YesNoRS;
 import com.epam.ta.reportportal.model.user.UserBidRS;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -90,38 +87,4 @@ class GetUserHandlerImplTest {
     assertNull(bidInformation.getUuid());
   }
 
-  @Test
-  void validateInfoByNotExistUsername() {
-    String username = "not_exist";
-    when(userRepository.findByLogin(username)).thenReturn(Optional.empty());
-
-    YesNoRS yesNoRS = handler.validateInfo(username, null);
-
-    assertFalse(yesNoRS.getIs());
-  }
-
-  @Test
-  void validateInfoByExistEmail() {
-    String email = "exist@domain.com";
-    when(userRepository.findByEmail(email)).thenReturn(Optional.of(new User()));
-
-    YesNoRS yesNoRS = handler.validateInfo(null, email);
-
-    assertTrue(yesNoRS.getIs());
-  }
-
-  @Test
-  void validateInfoByNotExistEmail() {
-    String email = "not_exist@domain.com";
-    when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-
-    YesNoRS yesNoRS = handler.validateInfo(null, email);
-
-    assertFalse(yesNoRS.getIs());
-  }
-
-  @Test
-  void validateInfoNullRequest() {
-    assertFalse(handler.validateInfo(null, null).getIs());
-  }
 }

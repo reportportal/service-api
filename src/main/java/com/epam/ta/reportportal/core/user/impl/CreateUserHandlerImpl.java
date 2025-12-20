@@ -103,6 +103,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   public static final String BID_TYPE = "type";
   public static final String INTERNAL_BID_TYPE = "internal";
+  public static final String EMAIL_HAS_BEEN_SENT = "Your request has been processed. The letter will be sent to the address if it is registered in the system.";
 
   private final ServerSettingsRepository settingsRepository;
 
@@ -241,14 +242,17 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     String email = normalizeId(rq.getEmail());
     expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
-    User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, email));
+    Optional<User> user = userRepository.findByEmail(email);
+    if (user.isEmpty()) {
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
+
     Optional<RestorePasswordBid> bidOptional =
         restorePasswordBidRepository.findByEmail(rq.getEmail());
 
     RestorePasswordBid bid;
     if (bidOptional.isEmpty()) {
-      expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
+      expect(user.get().getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
           "Unable to change password for external user");
       bid = RestorePasswordBidConverter.TO_BID.apply(rq);
       restorePasswordBidRepository.save(bid);
@@ -260,10 +264,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         .sendRestorePasswordEmail("Password recovery",
             new String[]{email},
             baseUrl + "#login?reset=" + bid.getUuid(),
-            user.getLogin()
+            user.get().getLogin()
         );
 
-    return new OperationCompletionRS("Email has been sent");
+    return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
   }
 
   @Override

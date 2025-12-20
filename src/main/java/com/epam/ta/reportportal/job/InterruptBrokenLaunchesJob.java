@@ -139,6 +139,7 @@ public class InterruptBrokenLaunchesJob implements Job {
               });
         })
     );
+    LOGGER.info("Interrupt broken launches job has been finished");
   }
 
   private void interruptLaunch(Long launchId) {

@@ -50,7 +50,7 @@ public class FinishLaunchRqEvent extends AbstractEvent<Void> {
   }
 
   @Override
-  public boolean shouldPublishToRabbitMQ() {
+  public boolean shouldPublishToRabbitMq() {
     return false;
   }
 }

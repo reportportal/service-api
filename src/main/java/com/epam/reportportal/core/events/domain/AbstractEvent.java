@@ -105,7 +105,7 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
    *
    * @return true if the event should be published to RabbitMQ
    */
-  public boolean shouldPublishToRabbitMQ() {
+  public boolean shouldPublishToRabbitMq() {
     return true;
   }
 

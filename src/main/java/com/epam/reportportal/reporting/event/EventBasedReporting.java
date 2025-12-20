@@ -67,7 +67,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractMembershipDetails(user,
         startLaunchRqEvent.getProjectName());
-    startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRQ());
+    startLaunchHandler.startLaunch(user, projectDetails, startLaunchRqEvent.getStartLaunchRq());
   }
 
   @EventListener
@@ -86,7 +86,7 @@ public class EventBasedReporting {
     var projectDetails = projectExtractor.extractMembershipDetails(user,
         startRootItemRqEvent.getProjectName());
     startTestItemHandler.startRootItem(user, projectDetails,
-        startRootItemRqEvent.getStartTestItemRQ());
+        startRootItemRqEvent.getStartTestItemRq());
   }
 
   @EventListener
@@ -95,7 +95,7 @@ public class EventBasedReporting {
     var projectDetails = projectExtractor.extractMembershipDetails(user,
         startChildItemRqEvent.getProjectName());
     startTestItemHandler.startChildItem(user, projectDetails,
-        startChildItemRqEvent.getStartTestItemRQ(), startChildItemRqEvent.getParentUuid());
+        startChildItemRqEvent.getStartTestItemRq(), startChildItemRqEvent.getParentUuid());
   }
 
   @EventListener
@@ -112,7 +112,7 @@ public class EventBasedReporting {
     var user = extractUserPrincipal();
     var projectDetails = projectExtractor.extractMembershipDetails(user,
         saveLogRqEvent.getProjectName());
-    createLogHandler.createLog(saveLogRqEvent.getSaveLogRQ(), saveLogRqEvent.getFile(),
+    createLogHandler.createLog(saveLogRqEvent.getSaveLogRq(), saveLogRqEvent.getFile(),
         projectDetails);
   }
 

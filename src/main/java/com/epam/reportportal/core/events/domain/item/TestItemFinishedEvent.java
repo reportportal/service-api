@@ -44,7 +44,7 @@ public class TestItemFinishedEvent extends AbstractEvent<Void> {
   }
 
   @Override
-  public boolean shouldPublishToRabbitMQ() {
+  public boolean shouldPublishToRabbitMq() {
     return false;
   }
 }

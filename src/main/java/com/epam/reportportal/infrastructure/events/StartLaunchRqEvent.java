@@ -31,22 +31,22 @@ import lombok.NoArgsConstructor;
 public class StartLaunchRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
-  private StartLaunchRQ startLaunchRQ;
+  private StartLaunchRQ startLaunchRq;
 
   /**
    * Constructs a StartLaunchRqEvent.
    *
    * @param projectName   The name of the project
-   * @param startLaunchRQ The start launch request
+   * @param startLaunchRq The start launch request
    */
-  public StartLaunchRqEvent(String projectName, StartLaunchRQ startLaunchRQ) {
+  public StartLaunchRqEvent(String projectName, StartLaunchRQ startLaunchRq) {
     super();
     this.projectName = projectName;
-    this.startLaunchRQ = startLaunchRQ;
+    this.startLaunchRq = startLaunchRq;
   }
 
   @Override
-  public boolean shouldPublishToRabbitMQ() {
+  public boolean shouldPublishToRabbitMq() {
     return false;
   }
 }

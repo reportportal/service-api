@@ -32,25 +32,25 @@ import org.springframework.web.multipart.MultipartFile;
 public class SaveLogRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
-  private SaveLogRQ saveLogRQ;
+  private SaveLogRQ saveLogRq;
   private MultipartFile file;
 
   /**
    * Constructs a SaveLogRqEvent.
    *
    * @param projectName The name of the project
-   * @param saveLogRQ   The save log request
+   * @param saveLogRq   The save log request
    * @param file        The multipart file (if any)
    */
-  public SaveLogRqEvent(String projectName, SaveLogRQ saveLogRQ, MultipartFile file) {
+  public SaveLogRqEvent(String projectName, SaveLogRQ saveLogRq, MultipartFile file) {
     super();
     this.projectName = projectName;
-    this.saveLogRQ = saveLogRQ;
+    this.saveLogRq = saveLogRq;
     this.file = file;
   }
 
   @Override
-  public boolean shouldPublishToRabbitMQ() {
+  public boolean shouldPublishToRabbitMq() {
     return false;
   }
 }

@@ -32,25 +32,25 @@ public class StartChildItemRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
   private String parentUuid;
-  private StartTestItemRQ startTestItemRQ;
+  private StartTestItemRQ startTestItemRq;
 
   /**
    * Constructs a StartChildItemRqEvent.
    *
    * @param projectName     The name of the project
    * @param parentUuid      The UUID of the parent item
-   * @param startTestItemRQ The start test item request
+   * @param startTestItemRq The start test item request
    */
   public StartChildItemRqEvent(String projectName, String parentUuid,
-      StartTestItemRQ startTestItemRQ) {
+      StartTestItemRQ startTestItemRq) {
     super();
     this.projectName = projectName;
     this.parentUuid = parentUuid;
-    this.startTestItemRQ = startTestItemRQ;
+    this.startTestItemRq = startTestItemRq;
   }
 
   @Override
-  public boolean shouldPublishToRabbitMQ() {
+  public boolean shouldPublishToRabbitMq() {
     return false;
   }
 }

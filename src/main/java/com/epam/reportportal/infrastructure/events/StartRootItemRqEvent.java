@@ -31,22 +31,22 @@ import lombok.NoArgsConstructor;
 public class StartRootItemRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
-  private StartTestItemRQ startTestItemRQ;
+  private StartTestItemRQ startTestItemRq;
 
   /**
    * Constructs a StartRootItemRqEvent.
    *
    * @param projectName     The name of the project
-   * @param startTestItemRQ The start test item request
+   * @param startTestItemRq The start test item request
    */
-  public StartRootItemRqEvent(String projectName, StartTestItemRQ startTestItemRQ) {
+  public StartRootItemRqEvent(String projectName, StartTestItemRQ startTestItemRq) {
     super();
     this.projectName = projectName;
-    this.startTestItemRQ = startTestItemRQ;
+    this.startTestItemRq = startTestItemRq;
   }
 
   @Override
-  public boolean shouldPublishToRabbitMQ() {
+  public boolean shouldPublishToRabbitMq() {
     return false;
   }
 }

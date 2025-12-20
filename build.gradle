@@ -37,9 +37,7 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
-//    if (!releaseMode) {
     maven { url 'https://jitpack.io' }
-//    }
 }
 
 java {
@@ -61,23 +59,13 @@ dependencyManagement {
 
 println("Release mode: $releaseMode")
 dependencies {
-    if (releaseMode) {
-        println("Using release dependencies")
-        implementation 'com.epam.reportportal:commons:5.15.0'
-        implementation 'com.epam.reportportal:commons-dao:5.15.0'
-        implementation('com.epam.reportportal:plugin-api:5.15.0') {
-            exclude group: 'com.epam.reportportal', module: 'commons-dao'
-            exclude group: 'com.epam.reportportal', module: 'commons'
-        }
-    } else {
-        println("Using snapshot dependencies")
-        implementation 'com.github.reportportal:commons:2d72f91'
-        implementation 'com.github.reportportal:commons-dao:0b0ab06'
-        implementation('com.github.reportportal:plugin-api:e029728') {
-            exclude group: 'com.github.reportportal', module: 'commons-dao'
-            exclude group: 'com.github.reportportal', module: 'commons'
-        }
+    implementation 'com.github.reportportal:commons:5.15.0'
+    implementation 'com.github.reportportal:commons-dao:5.15.0'
+    implementation('com.github.reportportal:plugin-api:5.15.0') {
+        exclude group: 'com.github.reportportal', module: 'commons-dao'
+        exclude group: 'com.github.reportportal', module: 'commons'
     }
+
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 
     implementation 'org.opensearch.client:opensearch-java:3.2.0'

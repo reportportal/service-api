@@ -7,6 +7,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables;
 import com.epam.reportportal.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioAttribute.JTmsManualScenarioAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
@@ -14,9 +15,11 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlanAttribute.JTmsTestPlanAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsAttributeRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -37,7 +40,6 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -74,9 +76,9 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
     public final TableField<JTmsAttributeRecord, String> KEY = createField(DSL.name("key"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
-     * The column <code>public.tms_attribute.search_vector</code>.
+     * The column <code>public.tms_attribute.project_id</code>.
      */
-    public final TableField<JTmsAttributeRecord, Object> SEARCH_VECTOR = createField(DSL.name("search_vector"), DefaultDataType.getDefaultDataType("\"pg_catalog\".\"tsvector\""), this, "");
+    public final TableField<JTmsAttributeRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     private JTmsAttribute(Name alias, Table<JTmsAttributeRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -147,7 +149,7 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_ATTRIBUTE_SEARCH_VECTOR);
+        return Arrays.asList(Indexes.IDX_TMS_ATTRIBUTE_KEY, Indexes.IDX_TMS_ATTRIBUTE_KEY_TRGM, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_ID, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_KEY);
     }
 
     @Override
@@ -162,7 +164,24 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
 
     @Override
     public List<UniqueKey<JTmsAttributeRecord>> getUniqueKeys() {
-        return Arrays.asList(Keys.TMS_ATTRIBUTE_KEY_KEY);
+        return Arrays.asList(Keys.TMS_ATTRIBUTE_KEY_PROJECT_UNIQUE);
+    }
+
+    @Override
+    public List<ForeignKey<JTmsAttributeRecord, ?>> getReferences() {
+        return Arrays.asList(Keys.TMS_ATTRIBUTE__TMS_ATTRIBUTE_FK_PROJECT);
+    }
+
+    private transient JProjectPath _project;
+
+    /**
+     * Get the implicit join path to the <code>public.project</code> table.
+     */
+    public JProjectPath project() {
+        if (_project == null)
+            _project = new JProjectPath(this, Keys.TMS_ATTRIBUTE__TMS_ATTRIBUTE_FK_PROJECT, null);
+
+        return _project;
     }
 
     private transient JTmsManualScenarioAttributePath _tmsManualScenarioAttribute;

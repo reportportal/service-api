@@ -110,16 +110,16 @@ VALUES
 -- TMS ATTRIBUTES
 -- =====================================================
 
-INSERT INTO tms_attribute (id, key)
+INSERT INTO tms_attribute (id, key, project_id)
 VALUES
-    (1, 'test1'),
-    (2, 'test2'),
-    (3, 'test3'),
-    (4, 'test4'),
-    (5, 'test5'),
-    (6, 'test6'),
-    (7, 'priority'),
-    (8, 'environment');
+    (1, 'test1', 1),
+    (2, 'test2', 1),
+    (3, 'test3', 1),
+    (4, 'test4', 1),
+    (5, 'test5', 1),
+    (6, 'test6', 1),
+    (7, 'priority', 1),
+    (8, 'environment', 1);
 
 -- =====================================================
 -- TMS TEST CASE ATTRIBUTES

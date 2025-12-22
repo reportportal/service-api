@@ -1,8 +1,10 @@
 package com.epam.reportportal.infrastructure.persistence.dao.tms.filterable;
 
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.reportportal.infrastructure.persistence.dao.util.ResultFetchers.TMS_ATTRIBUTE_FETCHER;
 
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.ConvertibleCondition;
+import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Queryable;
@@ -61,5 +63,14 @@ public class TmsAttributeFilterableRepository implements FilterableRepository<Tm
                 .build())),
         pageable,
         () -> dsl.fetchCount(QueryBuilder.newBuilder(filter, fields).build()));
+  }
+
+  public Page<TmsAttribute> findByProjectIdAndFilter(long projectId, Filter filter, Pageable pageable) {
+    var filterWithProject = filter.withCondition(
+        FilterCondition.builder()
+            .eq(CRITERIA_PROJECT_ID, String.valueOf(projectId))
+            .build()
+    );
+    return findByFilter(filterWithProject, pageable);
   }
 }

@@ -2,10 +2,18 @@ package com.epam.reportportal.infrastructure.persistence.dao.tms;
 
 import com.epam.reportportal.infrastructure.persistence.dao.ReportPortalRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttribute, Long> {
 
-  boolean existsByKey(String key);
+  boolean existsByKeyAndProject_Id(String key, Long projectId);
+
+  List<TmsAttribute> findAllByProject_Id(Long projectId);
+
+  Optional<TmsAttribute> findByKeyAndProject_Id(String key, Long projectId);
+
+  Optional<TmsAttribute> findByIdAndProject_Id(Long id, Long projectId);
 }

@@ -449,9 +449,10 @@ public class Keys {
   public static final UniqueKey<JTmsAttachmentRecord> TMS_ATTACHMENT_PK = Internal.createUniqueKey(
       JTmsAttachment.TMS_ATTACHMENT, DSL.name("tms_attachment_pk"),
       new TableField[]{JTmsAttachment.TMS_ATTACHMENT.ID}, true);
-  public static final UniqueKey<JTmsAttributeRecord> TMS_ATTRIBUTE_KEY_KEY = Internal.createUniqueKey(
-      JTmsAttribute.TMS_ATTRIBUTE, DSL.name("tms_attribute_key_key"),
-      new TableField[]{JTmsAttribute.TMS_ATTRIBUTE.KEY}, true);
+  public static final UniqueKey<JTmsAttributeRecord> TMS_ATTRIBUTE_KEY_PROJECT_UNIQUE = Internal.createUniqueKey(
+      JTmsAttribute.TMS_ATTRIBUTE, DSL.name("tms_attribute_key_project_unique"),
+      new TableField[]{JTmsAttribute.TMS_ATTRIBUTE.KEY, JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID},
+      true);
   public static final UniqueKey<JTmsAttributeRecord> TMS_ATTRIBUTE_PK = Internal.createUniqueKey(
       JTmsAttribute.TMS_ATTRIBUTE, DSL.name("tms_attribute_pk"),
       new TableField[]{JTmsAttribute.TMS_ATTRIBUTE.ID}, true);
@@ -851,6 +852,10 @@ public class Keys {
       JTmsAttachment.TMS_ATTACHMENT, DSL.name("tms_attachment_fk_environment"),
       new TableField[]{JTmsAttachment.TMS_ATTACHMENT.ENVIRONMENT_ID}, Keys.TMS_ENVIRONMENT_PK,
       new TableField[]{JTmsEnvironment.TMS_ENVIRONMENT.ID}, true);
+  public static final ForeignKey<JTmsAttributeRecord, JProjectRecord> TMS_ATTRIBUTE__TMS_ATTRIBUTE_FK_PROJECT = Internal.createForeignKey(
+      JTmsAttribute.TMS_ATTRIBUTE, DSL.name("tms_attribute_fk_project"),
+      new TableField[]{JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID}, Keys.PROJECT_PK,
+      new TableField[]{JProject.PROJECT.ID}, true);
   public static final ForeignKey<JTmsDatasetRecord, JProjectRecord> TMS_DATASET__TMS_DATASET_FK_PROJECT = Internal.createForeignKey(
       JTmsDataset.TMS_DATASET, DSL.name("tms_dataset_fk_project"),
       new TableField[]{JTmsDataset.TMS_DATASET.PROJECT_ID}, Keys.PROJECT_PK,
@@ -910,10 +915,10 @@ public class Keys {
       JTmsMilestone.TMS_MILESTONE, DSL.name("tms_milestone_fk_product_version"),
       new TableField[]{JTmsMilestone.TMS_MILESTONE.PRODUCT_VERSION_ID}, Keys.TMS_PRODUCT_VERSION_PK,
       new TableField[]{JTmsProductVersion.TMS_PRODUCT_VERSION.ID}, true);
-  public static final ForeignKey<JTmsMilestoneRecord, JTmsTestPlanRecord> TMS_MILESTONE__TMS_MILESTONE_FK_TEST_PLAN = Internal.createForeignKey(
-      JTmsMilestone.TMS_MILESTONE, DSL.name("tms_milestone_fk_test_plan"),
-      new TableField[]{JTmsMilestone.TMS_MILESTONE.TEST_PLAN_ID}, Keys.TMS_TEST_PLAN_PK,
-      new TableField[]{JTmsTestPlan.TMS_TEST_PLAN.ID}, true);
+  public static final ForeignKey<JTmsMilestoneRecord, JProjectRecord> TMS_MILESTONE__TMS_MILESTONE_FK_PROJECT = Internal.createForeignKey(
+      JTmsMilestone.TMS_MILESTONE, DSL.name("tms_milestone_fk_project"),
+      new TableField[]{JTmsMilestone.TMS_MILESTONE.PROJECT_ID}, Keys.PROJECT_PK,
+      new TableField[]{JProject.PROJECT.ID}, true);
   public static final ForeignKey<JTmsProductVersionRecord, JProjectRecord> TMS_PRODUCT_VERSION__TMS_PRODUCT_VERSION_FK_PROJECT = Internal.createForeignKey(
       JTmsProductVersion.TMS_PRODUCT_VERSION, DSL.name("tms_product_version_fk_project"),
       new TableField[]{JTmsProductVersion.TMS_PRODUCT_VERSION.PROJECT_ID}, Keys.PROJECT_PK,
@@ -959,7 +964,6 @@ public class Keys {
       DSL.name("tms_test_case_attribute_fk_test_case"),
       new TableField[]{JTmsTestCaseAttribute.TMS_TEST_CASE_ATTRIBUTE.TEST_CASE_ID},
       Keys.TMS_TEST_CASE_PK, new TableField[]{JTmsTestCase.TMS_TEST_CASE.ID}, true);
-
   public static final ForeignKey<JTmsTestCaseExecutionRecord, JTestItemRecord> TMS_TEST_CASE_EXECUTION__TMS_TEST_CASE_EXECUTION_FK_TEST_ITEM = Internal.createForeignKey(
       JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
       DSL.name("tms_test_case_execution_fk_test_item"),
@@ -1007,6 +1011,10 @@ public class Keys {
       JTmsTestPlan.TMS_TEST_PLAN, DSL.name("tms_test_plan_fk_launch"),
       new TableField[]{JTmsTestPlan.TMS_TEST_PLAN.LAUNCH_ID}, Keys.LAUNCH_PK,
       new TableField[]{JLaunch.LAUNCH.ID}, true);
+  public static final ForeignKey<JTmsTestPlanRecord, JTmsMilestoneRecord> TMS_TEST_PLAN__TMS_TEST_PLAN_FK_MILESTONE = Internal.createForeignKey(
+      JTmsTestPlan.TMS_TEST_PLAN, DSL.name("tms_test_plan_fk_milestone"),
+      new TableField[]{JTmsTestPlan.TMS_TEST_PLAN.MILESTONE_ID}, Keys.TMS_MILESTONE_PK,
+      new TableField[]{JTmsMilestone.TMS_MILESTONE.ID}, true);
   public static final ForeignKey<JTmsTestPlanRecord, JTmsProductVersionRecord> TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PRODUCT_VERSION = Internal.createForeignKey(
       JTmsTestPlan.TMS_TEST_PLAN, DSL.name("tms_test_plan_fk_product_version"),
       new TableField[]{JTmsTestPlan.TMS_TEST_PLAN.PRODUCT_VERSION_ID}, Keys.TMS_PRODUCT_VERSION_PK,

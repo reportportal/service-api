@@ -5,7 +5,9 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan;
+
 import java.time.Instant;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -158,6 +160,20 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
         return (Instant) get(9);
     }
 
+    /**
+     * Setter for <code>public.tms_test_plan.milestone_id</code>.
+     */
+    public void setMilestoneId(Long value) {
+        set(10, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_plan.milestone_id</code>.
+     */
+    public Long getMilestoneId() {
+        return (Long) get(10);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -181,7 +197,7 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
     /**
      * Create a detached, initialised JTmsTestPlanRecord
      */
-    public JTmsTestPlanRecord(Long id, String name, String description, Long projectId, Long environmentId, Long productVersionId, Object searchVector, Long launchId, Instant createdAt, Instant updatedAt) {
+    public JTmsTestPlanRecord(Long id, String name, String description, Long projectId, Long environmentId, Long productVersionId, Object searchVector, Long launchId, Instant createdAt, Instant updatedAt, Long milestoneId) {
         super(JTmsTestPlan.TMS_TEST_PLAN);
 
         setId(id);
@@ -194,6 +210,7 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
         setLaunchId(launchId);
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
+        setMilestoneId(milestoneId);
         resetChangedOnNotNull();
     }
 }

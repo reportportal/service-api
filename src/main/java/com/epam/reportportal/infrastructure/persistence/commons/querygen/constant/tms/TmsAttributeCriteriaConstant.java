@@ -20,7 +20,6 @@ public final class TmsAttributeCriteriaConstant {
 
   public static final String CRITERIA_TMS_ATTRIBUTE_ID = "id";
   public static final String CRITERIA_TMS_ATTRIBUTE_KEY = "key";
-  public static final String CRITERIA_TMS_ATTRIBUTE_SEARCH = "search";
 
   private TmsAttributeCriteriaConstant() {
     //static only

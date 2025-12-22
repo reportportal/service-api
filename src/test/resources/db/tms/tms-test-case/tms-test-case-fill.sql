@@ -192,29 +192,29 @@ insert into tms_test_plan_test_case (test_plan_id, test_case_id)
 values (2, 19), (3, 20); -- Folder 8 test cases in different plans
 
 -- Attributes
-insert into tms_attribute (id, "key")
-values (1, 'test1');
+insert into tms_attribute (id, "key", project_id)
+values (1, 'test1', 1);
 
-insert into tms_attribute (id, "key")
-values (2, 'test2');
+insert into tms_attribute (id, "key", project_id)
+values (2, 'test2', 1);
 
-insert into tms_attribute (id, "key")
-values (3, 'test3');
+insert into tms_attribute (id, "key", project_id)
+values (3, 'test3', 1);
 
-insert into tms_attribute (id, "key")
-values (4, 'test4');
+insert into tms_attribute (id, "key", project_id)
+values (4, 'test4', 1);
 
-insert into tms_attribute (id, "key")
-values (5, 'test5');
+insert into tms_attribute (id, "key", project_id)
+values (5, 'test5', 1);
 
-insert into tms_attribute (id, "key")
-values (6, 'test6');
+insert into tms_attribute (id, "key", project_id)
+values (6, 'test6', 1);
 
-insert into tms_attribute (id, "key")
-values (7, 'priority');
+insert into tms_attribute (id, "key", project_id)
+values (7, 'priority', 1);
 
-insert into tms_attribute (id, "key")
-values (8, 'environment');
+insert into tms_attribute (id, "key", project_id)
+values (8, 'environment', 1);
 
 -- Test case attributes
 insert into tms_test_case_attribute (test_case_id, attribute_id, value)

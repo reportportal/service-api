@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
-public class LaunchFinishedPluginEvent extends AbstractEvent<Void> {
+public class LaunchFinishedNotificationEvent extends AbstractEvent<Void> {
 
   private Long launchId;
   private String launchLink;
@@ -39,7 +39,7 @@ public class LaunchFinishedPluginEvent extends AbstractEvent<Void> {
    * @param projectId  The ID of the project
    * @param launchLink The link to the launch
    */
-  public LaunchFinishedPluginEvent(Long launchId, Long projectId, String launchLink) {
+  public LaunchFinishedNotificationEvent(Long launchId, Long projectId, String launchLink) {
     super();
     this.launchId = launchId;
     this.projectId = projectId;

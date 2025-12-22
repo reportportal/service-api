@@ -58,7 +58,7 @@ public class UserCreatedConsumer {
   public void onEvent(@Payload UserCreatedEvent event) {
     if (Objects.isNull(event) || Objects.isNull(event.getUserActivityResource()) || Objects.isNull(
         event.getUserActivityResource().getId())) {
-      log.warn("UserCreatedEvent is missing userId. Personal org initialization.");
+      log.warn("UserCreatedEvent is missing userId. Skipping personal organization creation.");
       return;
     }
 

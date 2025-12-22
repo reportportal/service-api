@@ -22,8 +22,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * System event triggered when a test item is finished. Contains only the data needed by consumers,
- * avoiding Hibernate entity serialization issues.
+ * System event triggered when a test item is finished. This is an internal processing event with
+ * null user context.
+ *
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Getter
 @NoArgsConstructor

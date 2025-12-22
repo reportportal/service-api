@@ -36,6 +36,8 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribut
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenario;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsMilestone;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStep;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepExecution;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase;
@@ -132,9 +134,19 @@ public class Indexes {
   public static final Index IDX_TMS_ATTACHMENT_PATH = Internal.createIndex(
       DSL.name("idx_tms_attachment_path"), JTmsAttachment.TMS_ATTACHMENT,
       new OrderField[]{JTmsAttachment.TMS_ATTACHMENT.PATH_TO_FILE}, false);
-  public static final Index IDX_TMS_ATTRIBUTE_SEARCH_VECTOR = Internal.createIndex(
-      DSL.name("idx_tms_attribute_search_vector"), JTmsAttribute.TMS_ATTRIBUTE,
-      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.SEARCH_VECTOR}, false);
+  public static final Index IDX_TMS_ATTRIBUTE_KEY = Internal.createIndex(
+      DSL.name("idx_tms_attribute_key"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.KEY}, false);
+  public static final Index IDX_TMS_ATTRIBUTE_KEY_TRGM = Internal.createIndex(
+      DSL.name("idx_tms_attribute_key_trgm"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.KEY}, false);
+  public static final Index IDX_TMS_ATTRIBUTE_PROJECT_ID = Internal.createIndex(
+      DSL.name("idx_tms_attribute_project_id"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID}, false);
+  public static final Index IDX_TMS_ATTRIBUTE_PROJECT_KEY = Internal.createIndex(
+      DSL.name("idx_tms_attribute_project_key"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID, JTmsAttribute.TMS_ATTRIBUTE.KEY},
+      false);
   public static final Index IDX_TMS_EXECUTION_COMMENT_ATTACHMENT_ATTACHMENT_ID = Internal.createIndex(
       DSL.name("idx_tms_execution_comment_attachment_attachment_id"),
       JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT,
@@ -155,6 +167,12 @@ public class Indexes {
   public static final Index IDX_TMS_MANUAL_SCENARIO_TYPE = Internal.createIndex(
       DSL.name("idx_tms_manual_scenario_type"), JTmsManualScenario.TMS_MANUAL_SCENARIO,
       new OrderField[]{JTmsManualScenario.TMS_MANUAL_SCENARIO.TYPE}, false);
+  public static final Index IDX_TMS_MILESTONE_PRODUCT_VERSION_ID = Internal.createIndex(
+      DSL.name("idx_tms_milestone_product_version_id"), JTmsMilestone.TMS_MILESTONE,
+      new OrderField[]{JTmsMilestone.TMS_MILESTONE.PRODUCT_VERSION_ID}, false);
+  public static final Index IDX_TMS_MILESTONE_PROJECT_ID = Internal.createIndex(
+      DSL.name("idx_tms_milestone_project_id"), JTmsMilestone.TMS_MILESTONE,
+      new OrderField[]{JTmsMilestone.TMS_MILESTONE.PROJECT_ID}, false);
   public static final Index IDX_TMS_STEP_ATTACHMENT_ATTACHMENT_ID = Internal.createIndex(
       DSL.name("idx_tms_step_attachment_attachment_id"), JTmsStepAttachment.TMS_STEP_ATTACHMENT,
       new OrderField[]{JTmsStepAttachment.TMS_STEP_ATTACHMENT.ATTACHMENT_ID}, false);
@@ -173,6 +191,10 @@ public class Indexes {
   public static final Index IDX_TMS_STEP_EXECUTION_TMS_STEP = Internal.createIndex(
       DSL.name("idx_tms_step_execution_tms_step"), JTmsStepExecution.TMS_STEP_EXECUTION,
       new OrderField[]{JTmsStepExecution.TMS_STEP_EXECUTION.TMS_STEP_ID}, false);
+  public static final Index IDX_TMS_STEP_SCENARIO_NUMBER = Internal.createIndex(
+      DSL.name("idx_tms_step_scenario_number"), JTmsStep.TMS_STEP,
+      new OrderField[]{JTmsStep.TMS_STEP.STEPS_MANUAL_SCENARIO_ID, JTmsStep.TMS_STEP.NUMBER},
+      false);
   public static final Index IDX_TMS_TEST_CASE_EXECUTION_COMMENT_EXECUTION_ID = Internal.createIndex(
       DSL.name("idx_tms_test_case_execution_comment_execution_id"),
       JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT,
@@ -192,6 +214,12 @@ public class Indexes {
       DSL.name("idx_tms_test_folder_test_item_test_item_id"),
       JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM,
       new OrderField[]{JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID}, false);
+  public static final Index IDX_TMS_TEST_PLAN_MILESTONE_ID = Internal.createIndex(
+      DSL.name("idx_tms_test_plan_milestone_id"), JTmsTestPlan.TMS_TEST_PLAN,
+      new OrderField[]{JTmsTestPlan.TMS_TEST_PLAN.MILESTONE_ID}, false);
+  public static final Index IDX_TMS_TEST_PLAN_PROJECT_ID = Internal.createIndex(
+      DSL.name("idx_tms_test_plan_project_id"), JTmsTestPlan.TMS_TEST_PLAN,
+      new OrderField[]{JTmsTestPlan.TMS_TEST_PLAN.PROJECT_ID}, false);
   public static final Index IDX_TMS_TEST_PLAN_SEARCH_VECTOR = Internal.createIndex(
       DSL.name("idx_tms_test_plan_search_vector"), JTmsTestPlan.TMS_TEST_PLAN,
       new OrderField[]{JTmsTestPlan.TMS_TEST_PLAN.SEARCH_VECTOR}, false);

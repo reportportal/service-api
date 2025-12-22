@@ -4,8 +4,8 @@ values (3, 'documentation3', 'version3', 1);
 insert into tms_environment (id, "name", project_id)
 values (3, 'name3', 1);
 
-insert into tms_attribute (id, "key")
-values (3, 'value3');
+insert into tms_attribute (id, "key", project_id)
+values (3, 'value3', 1);
 
 insert into tms_product_version (id, documentation, "version", project_id)
 values (4, 'documentation4', 'version4', 1);
@@ -13,8 +13,8 @@ values (4, 'documentation4', 'version4', 1);
 insert into tms_environment (id, "name", project_id)
 values (4, 'name4', 1);
 
-insert into tms_attribute (id, "key")
-values (4, 'value4');
+insert into tms_attribute (id, "key", project_id)
+values (4, 'value4', 1);
 
 insert into tms_test_plan (id, "name", description, project_id, environment_id, product_version_id)
 values (4, 'name4', 'description4', 1, 4, 4);
@@ -25,8 +25,8 @@ values (5, 'documentation5', 'version5', 1);
 insert into tms_environment (id, "name", project_id)
 values (5, 'name5', 1);
 
-insert into tms_attribute (id, "key")
-values (5, 'value5');
+insert into tms_attribute (id, "key", project_id)
+values (5, 'value5', 1);
 
 insert into tms_test_plan (id, "name", description, project_id, environment_id, product_version_id)
 values (5, 'name5', 'description5', 1, 5, 5);
@@ -37,8 +37,8 @@ values (6, 'documentation6', 'version6', 1);
 insert into tms_environment (id, "name", project_id)
 values (6, 'name6', 1);
 
-insert into tms_attribute (id, "key")
-values (6, 'value6');
+insert into tms_attribute (id, "key", project_id)
+values (6, 'value6', 1);
 
 insert into tms_test_plan (id, "name", description, project_id, environment_id, product_version_id)
 values (6, 'name6', 'description6', 1, 6, 6);
@@ -162,17 +162,17 @@ insert into tms_test_plan_test_case (test_plan_id, test_case_id)
 values (3, 10), (3, 11), (3, 12);
 
 -- Additional attributes for duplication tests
-insert into tms_attribute (id, "key")
-values (1, 'test1');
+insert into tms_attribute (id, "key", project_id)
+values (1, 'test1', 1);
 
-insert into tms_attribute (id, "key")
-values (2, 'test2');
+insert into tms_attribute (id, "key", project_id)
+values (2, 'test2', 1);
 
-insert into tms_attribute (id, "key")
-values (7, 'priority');
+insert into tms_attribute (id, "key", project_id)
+values (7, 'priority', 1);
 
-insert into tms_attribute (id, "key")
-values (8, 'environment');
+insert into tms_attribute (id, "key", project_id)
+values (8, 'environment', 1);
 
 -- Test plan attributes for duplication testing
 insert into tms_test_plan_attribute (test_plan_id, attribute_id, value)

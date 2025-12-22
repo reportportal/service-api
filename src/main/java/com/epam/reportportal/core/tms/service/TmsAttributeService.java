@@ -11,13 +11,13 @@ import org.springframework.data.domain.Pageable;
 
 public interface TmsAttributeService {
 
-  TmsAttributeRS create(TmsAttributeRQ request);
+  TmsAttributeRS create(Long projectId, TmsAttributeRQ request);
 
-  TmsAttributeRS patch(Long attributeId, TmsAttributeRQ request);
+  TmsAttributeRS patch(Long projectId, Long attributeId, TmsAttributeRQ request);
 
-  Page<TmsAttributeRS> getAll(Filter filter, Pageable pageable);
+  Page<TmsAttributeRS> getAll(Long projectId, Filter filter, Pageable pageable);
 
-  TmsAttributeRS getById(Long attributeId);
+  TmsAttributeRS getById(Long projectId, Long attributeId);
 
-  Map<Long, TmsAttribute> getAllByIds(List<Long> list);
+  Map<Long, TmsAttribute> getAllByIds(Long projectId, List<Long> list);
 }

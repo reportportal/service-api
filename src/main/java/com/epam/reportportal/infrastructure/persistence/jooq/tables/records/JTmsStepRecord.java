@@ -5,6 +5,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStep;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -73,6 +74,20 @@ public class JTmsStepRecord extends UpdatableRecordImpl<JTmsStepRecord> {
         return (Long) get(3);
     }
 
+    /**
+     * Setter for <code>public.tms_step.number</code>.
+     */
+    public void setNumber(Integer value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_step.number</code>.
+     */
+    public Integer getNumber() {
+        return (Integer) get(4);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -96,13 +111,14 @@ public class JTmsStepRecord extends UpdatableRecordImpl<JTmsStepRecord> {
     /**
      * Create a detached, initialised JTmsStepRecord
      */
-    public JTmsStepRecord(Long id, String instructions, String expectedResult, Long stepsManualScenarioId) {
+    public JTmsStepRecord(Long id, String instructions, String expectedResult, Long stepsManualScenarioId, Integer number) {
         super(JTmsStep.TMS_STEP);
 
         setId(id);
         setInstructions(instructions);
         setExpectedResult(expectedResult);
         setStepsManualScenarioId(stepsManualScenarioId);
+        setNumber(number);
         resetChangedOnNotNull();
     }
 }

@@ -163,13 +163,12 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
     /**
      * The column <code>public.test_item.test_case_hash</code>.
      */
-    public final TableField<JTestItemRecord, Integer> TEST_CASE_HASH = createField(DSL.name("test_case_hash"), SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<JTestItemRecord, Integer> TEST_CASE_HASH = createField(DSL.name("test_case_hash"), SQLDataType.INTEGER, this, "");
 
     /**
      * The column <code>public.test_item.analysis_owner_id</code>.
      */
-    public final TableField<JTestItemRecord, Long> ANALYSIS_OWNER_ID = createField(DSL.name("analysis_owner_id"),
-        SQLDataType.BIGINT, this, "");
+    public final TableField<JTestItemRecord, Long> ANALYSIS_OWNER_ID = createField(DSL.name("analysis_owner_id"), SQLDataType.BIGINT, this, "");
 
     private JTestItem(Name alias, Table<JTestItemRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -210,7 +209,6 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
     public static class JTestItemPath extends JTestItem implements Path<JTestItemRecord> {
 
         private static final long serialVersionUID = 1L;
-
         public <O extends Record> JTestItemPath(Table<O> path, ForeignKey<O, JTestItemRecord> childPath, InverseForeignKey<O, JTestItemRecord> parentPath) {
             super(path, childPath, parentPath);
         }

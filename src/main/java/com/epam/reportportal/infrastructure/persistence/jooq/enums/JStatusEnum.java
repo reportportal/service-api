@@ -35,7 +35,9 @@ public enum JStatusEnum implements EnumType {
 
   INFO("INFO"),
 
-  WARN("WARN");
+  WARN("WARN"),
+
+  TO_RUN("TO_RUN");
 
   private final String literal;
 

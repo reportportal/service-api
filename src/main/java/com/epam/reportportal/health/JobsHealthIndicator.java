@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 
-/**
- * Health Indicator for jobs service.
- *
- * @author Siarhei Hrabko
- */
-@Component
 public class JobsHealthIndicator extends AbstractHealthIndicator {
 
   private static Logger LOGGER = LoggerFactory.getLogger(JobsHealthIndicator.class);

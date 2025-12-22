@@ -4,8 +4,12 @@
 package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
+import com.epam.reportportal.infrastructure.persistence.jooq.enums.JTmsMilestoneStatus;
+import com.epam.reportportal.infrastructure.persistence.jooq.enums.JTmsMilestoneType;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsMilestone;
+
 import java.time.Instant;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -47,73 +51,87 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
     }
 
     /**
+     * Setter for <code>public.tms_milestone.project_id</code>.
+     */
+    public void setProjectId(Long value) {
+        set(2, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_milestone.project_id</code>.
+     */
+    public Long getProjectId() {
+        return (Long) get(2);
+    }
+
+    /**
      * Setter for <code>public.tms_milestone.start_date</code>.
      */
     public void setStartDate(Instant value) {
-        set(2, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.tms_milestone.start_date</code>.
      */
     public Instant getStartDate() {
-        return (Instant) get(2);
+        return (Instant) get(3);
     }
 
     /**
      * Setter for <code>public.tms_milestone.end_date</code>.
      */
     public void setEndDate(Instant value) {
-        set(3, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.tms_milestone.end_date</code>.
      */
     public Instant getEndDate() {
-        return (Instant) get(3);
+        return (Instant) get(4);
     }
 
     /**
      * Setter for <code>public.tms_milestone.type</code>.
      */
-    public void setType(String value) {
-        set(4, value);
+    public void setType(JTmsMilestoneType value) {
+        set(5, value);
     }
 
     /**
      * Getter for <code>public.tms_milestone.type</code>.
      */
-    public String getType() {
-        return (String) get(4);
+    public JTmsMilestoneType getType() {
+        return (JTmsMilestoneType) get(5);
+    }
+
+    /**
+     * Setter for <code>public.tms_milestone.status</code>.
+     */
+    public void setStatus(JTmsMilestoneStatus value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_milestone.status</code>.
+     */
+    public JTmsMilestoneStatus getStatus() {
+        return (JTmsMilestoneStatus) get(6);
     }
 
     /**
      * Setter for <code>public.tms_milestone.product_version_id</code>.
      */
     public void setProductVersionId(Long value) {
-        set(5, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>public.tms_milestone.product_version_id</code>.
      */
     public Long getProductVersionId() {
-        return (Long) get(5);
-    }
-
-    /**
-     * Setter for <code>public.tms_milestone.test_plan_id</code>.
-     */
-    public void setTestPlanId(Long value) {
-        set(6, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_milestone.test_plan_id</code>.
-     */
-    public Long getTestPlanId() {
-        return (Long) get(6);
+        return (Long) get(7);
     }
 
     // -------------------------------------------------------------------------
@@ -139,16 +157,17 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
     /**
      * Create a detached, initialised JTmsMilestoneRecord
      */
-    public JTmsMilestoneRecord(Long id, String name, Instant startDate, Instant endDate, String type, Long productVersionId, Long testPlanId) {
+    public JTmsMilestoneRecord(Long id, String name, Long projectId, Instant startDate, Instant endDate, JTmsMilestoneType type, JTmsMilestoneStatus status, Long productVersionId) {
         super(JTmsMilestone.TMS_MILESTONE);
 
         setId(id);
         setName(name);
+        setProjectId(projectId);
         setStartDate(startDate);
         setEndDate(endDate);
         setType(type);
+        setStatus(status);
         setProductVersionId(productVersionId);
-        setTestPlanId(testPlanId);
         resetChangedOnNotNull();
     }
 }

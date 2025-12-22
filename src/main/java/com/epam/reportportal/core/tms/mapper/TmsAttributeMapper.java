@@ -15,12 +15,14 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface TmsAttributeMapper {
 
   @Mapping(target = "id", ignore = true)
-  TmsAttribute convertToTmsAttribute(TmsAttributeRQ request);
+  @Mapping(target = "project.id", source = "projectId")
+  TmsAttribute convertToTmsAttribute(TmsAttributeRQ request, Long projectId);
 
   TmsAttributeRS convertToTmsAttributeRS(TmsAttribute entity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "project", ignore = true)
   void patch(@MappingTarget TmsAttribute entity, TmsAttributeRQ request);
 }

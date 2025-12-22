@@ -76,7 +76,7 @@ public class EventBasedReporting {
     var projectDetails = projectExtractor.extractMembershipDetails(user,
         finishLaunchRqEvent.getProjectName());
     finishLaunchHandler.finishLaunch(finishLaunchRqEvent.getLaunchUuid(),
-        finishLaunchRqEvent.getFinishExecutionRQ(), projectDetails, user,
+        finishLaunchRqEvent.getFinishExecutionRq(), projectDetails, user,
         extractCurrentHttpRequest().map(linkGenerator::composeBaseUrl).orElse(""));
   }
 

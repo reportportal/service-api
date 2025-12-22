@@ -32,21 +32,21 @@ public class FinishLaunchRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
   private String launchUuid;
-  private FinishExecutionRQ finishExecutionRQ;
+  private FinishExecutionRQ finishExecutionRq;
 
   /**
    * Constructs a FinishLaunchRqEvent.
    *
    * @param projectName       The name of the project
    * @param launchUuid        The UUID of the launch
-   * @param finishExecutionRQ The finish execution request
+   * @param finishExecutionRq The finish execution request
    */
   public FinishLaunchRqEvent(String projectName, String launchUuid,
-      FinishExecutionRQ finishExecutionRQ) {
+      FinishExecutionRQ finishExecutionRq) {
     super();
     this.projectName = projectName;
     this.launchUuid = launchUuid;
-    this.finishExecutionRQ = finishExecutionRQ;
+    this.finishExecutionRq = finishExecutionRq;
   }
 
   @Override

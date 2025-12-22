@@ -23,15 +23,18 @@ import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
-import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
+import com.epam.reportportal.ws.rabbit.activity.util.ActivityDetailsUtil;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for UsersDeletedEvent to Activity.
+ * Converter for UsersDeletedEvent to Activity. Handles both user-initiated and system events.
  *
  */
 @Component
 public class UsersDeletedEventConverter implements EventToActivityConverter<UsersDeletedEvent> {
+
+  public static final String JOBS_SERVICE = "Jobs Service";
 
   @Override
   public Activity convert(UsersDeletedEvent event) {
@@ -39,14 +42,28 @@ public class UsersDeletedEventConverter implements EventToActivityConverter<User
         .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.BULK_DELETE)
         .addEventName(ActivityAction.BULK_DELETE_USERS.getValue())
-        .addObjectId(event.getBefore().getId())
-        .addObjectName(event.getBefore().getFullName())
+        .addObjectName(formatObjectName(event.getCount()))
         .addObjectType(EventObject.USER)
-        .addSubjectId(event.getUserId())
-        .addSubjectName(event.getUserLogin())
-        .addSubjectType(EventSubject.USER)
-        .addPriority(EventPriority.CRITICAL)
+        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectName(ActivityDetailsUtil.getSubjectName(event))
+        .addSubjectType(ActivityDetailsUtil.getSubjectType(event))
+        .addPriority(determinePriority(event))
         .get();
+  }
+
+  private EventPriority determinePriority(UsersDeletedEvent event) {
+    String eventSource = event.getEventSource();
+    if (Objects.nonNull(eventSource) && eventSource.equals(JOBS_SERVICE)) {
+      return EventPriority.HIGH;
+    }
+    return EventPriority.CRITICAL;
+  }
+
+  private String formatObjectName(int count) {
+    return String.format("%d deleted %s",
+        count,
+        count == 1 ? "user" : "users"
+    );
   }
 
   @Override
@@ -54,4 +71,3 @@ public class UsersDeletedEventConverter implements EventToActivityConverter<User
     return UsersDeletedEvent.class;
   }
 }
-

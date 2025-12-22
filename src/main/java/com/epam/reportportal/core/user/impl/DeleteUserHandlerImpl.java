@@ -152,7 +152,9 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
         exceptions.add(rp);
       }
     });
-    publishUsersDeletedEvent(deleted.size(), currentUser);
+    if (!deleted.isEmpty()) {
+      publishUsersDeletedEvent(deleted.size(), currentUser);
+    }
     return new DeleteBulkRS(deleted, Collections.emptyList(),
         exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList())
     );
@@ -188,15 +190,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
   }
 
   private void publishUsersDeletedEvent(int deletedCount, ReportPortalUser loggedInUser) {
-    UserActivityResource userActivityResource = new UserActivityResource();
-    if (deletedCount == 1) {
-      userActivityResource.setFullName(deletedCount + " deleted user");
-    } else {
-      userActivityResource.setFullName(deletedCount + " deleted users");
-    }
-
     applicationEventPublisher.publishEvent(
-        new UsersDeletedEvent(userActivityResource, loggedInUser.getUserId(),
+        new UsersDeletedEvent(deletedCount, loggedInUser.getUserId(),
             loggedInUser.getUsername()
         ));
   }

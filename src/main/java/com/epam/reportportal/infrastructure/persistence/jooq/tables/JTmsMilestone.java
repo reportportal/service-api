@@ -5,19 +5,26 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables;
 
 
 import com.epam.reportportal.infrastructure.persistence.dao.converters.JooqInstantConverter;
+import com.epam.reportportal.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
+import com.epam.reportportal.infrastructure.persistence.jooq.enums.JTmsMilestoneStatus;
+import com.epam.reportportal.infrastructure.persistence.jooq.enums.JTmsMilestoneType;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsProductVersion.JTmsProductVersionPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsMilestoneRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.Name;
 import org.jooq.Path;
@@ -69,6 +76,11 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
     public final TableField<JTmsMilestoneRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(255), this, "");
 
     /**
+     * The column <code>public.tms_milestone.project_id</code>.
+     */
+    public final TableField<JTmsMilestoneRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
      * The column <code>public.tms_milestone.start_date</code>.
      */
     public final TableField<JTmsMilestoneRecord, Instant> START_DATE = createField(DSL.name("start_date"), SQLDataType.LOCALDATETIME(6), this, "", new JooqInstantConverter());
@@ -81,17 +93,17 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
     /**
      * The column <code>public.tms_milestone.type</code>.
      */
-    public final TableField<JTmsMilestoneRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsMilestoneRecord, JTmsMilestoneType> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR.nullable(false).asEnumDataType(JTmsMilestoneType.class), this, "");
+
+    /**
+     * The column <code>public.tms_milestone.status</code>.
+     */
+    public final TableField<JTmsMilestoneRecord, JTmsMilestoneStatus> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR.nullable(false).asEnumDataType(JTmsMilestoneStatus.class), this, "");
 
     /**
      * The column <code>public.tms_milestone.product_version_id</code>.
      */
-    public final TableField<JTmsMilestoneRecord, Long> PRODUCT_VERSION_ID = createField(DSL.name("product_version_id"), SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.tms_milestone.test_plan_id</code>.
-     */
-    public final TableField<JTmsMilestoneRecord, Long> TEST_PLAN_ID = createField(DSL.name("test_plan_id"), SQLDataType.BIGINT, this, "");
+    public final TableField<JTmsMilestoneRecord, Long> PRODUCT_VERSION_ID = createField(DSL.name("product_version_id"), SQLDataType.BIGINT, this, "");
 
     private JTmsMilestone(Name alias, Table<JTmsMilestoneRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -161,6 +173,11 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
     }
 
     @Override
+    public List<Index> getIndexes() {
+        return Arrays.asList(Indexes.IDX_TMS_MILESTONE_PRODUCT_VERSION_ID, Indexes.IDX_TMS_MILESTONE_PROJECT_ID);
+    }
+
+    @Override
     public Identity<JTmsMilestoneRecord, Long> getIdentity() {
         return (Identity<JTmsMilestoneRecord, Long>) super.getIdentity();
     }
@@ -172,7 +189,7 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
 
     @Override
     public List<ForeignKey<JTmsMilestoneRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.TMS_MILESTONE__TMS_MILESTONE_FK_PRODUCT_VERSION, Keys.TMS_MILESTONE__TMS_MILESTONE_FK_TEST_PLAN);
+        return Arrays.asList(Keys.TMS_MILESTONE__TMS_MILESTONE_FK_PRODUCT_VERSION, Keys.TMS_MILESTONE__TMS_MILESTONE_FK_PROJECT);
     }
 
     private transient JTmsProductVersionPath _tmsProductVersion;
@@ -188,15 +205,27 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
         return _tmsProductVersion;
     }
 
+    private transient JProjectPath _project;
+
+    /**
+     * Get the implicit join path to the <code>public.project</code> table.
+     */
+    public JProjectPath project() {
+        if (_project == null)
+            _project = new JProjectPath(this, Keys.TMS_MILESTONE__TMS_MILESTONE_FK_PROJECT, null);
+
+        return _project;
+    }
+
     private transient JTmsTestPlanPath _tmsTestPlan;
 
     /**
-     * Get the implicit join path to the <code>public.tms_test_plan</code>
-     * table.
+     * Get the implicit to-many join path to the
+     * <code>public.tms_test_plan</code> table
      */
     public JTmsTestPlanPath tmsTestPlan() {
         if (_tmsTestPlan == null)
-            _tmsTestPlan = new JTmsTestPlanPath(this, Keys.TMS_MILESTONE__TMS_MILESTONE_FK_TEST_PLAN, null);
+            _tmsTestPlan = new JTmsTestPlanPath(this, null, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_MILESTONE.getInverseKey());
 
         return _tmsTestPlan;
     }

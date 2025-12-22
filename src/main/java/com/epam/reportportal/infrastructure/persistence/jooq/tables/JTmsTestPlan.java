@@ -18,10 +18,12 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlanAttribute.JTmsTestPlanAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase.JTmsTestPlanTestCasePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsTestPlanRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -118,6 +120,11 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
      */
     public final TableField<JTmsTestPlanRecord, Instant> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
 
+    /**
+     * The column <code>public.tms_test_plan.milestone_id</code>.
+     */
+    public final TableField<JTmsTestPlanRecord, Long> MILESTONE_ID = createField(DSL.name("milestone_id"), SQLDataType.BIGINT, this, "");
+
     private JTmsTestPlan(Name alias, Table<JTmsTestPlanRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -187,7 +194,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_TEST_PLAN_SEARCH_VECTOR);
+        return Arrays.asList(Indexes.IDX_TMS_TEST_PLAN_MILESTONE_ID, Indexes.IDX_TMS_TEST_PLAN_PROJECT_ID, Indexes.IDX_TMS_TEST_PLAN_SEARCH_VECTOR);
     }
 
     @Override
@@ -207,7 +214,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
 
     @Override
     public List<ForeignKey<JTmsTestPlanRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_ENVIRONMENT, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_LAUNCH, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PRODUCT_VERSION, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PROJECT);
+        return Arrays.asList(Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_ENVIRONMENT, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_LAUNCH, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_MILESTONE, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PRODUCT_VERSION, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PROJECT);
     }
 
     private transient JTmsEnvironmentPath _tmsEnvironment;
@@ -235,6 +242,19 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
         return _launch;
     }
 
+    private transient JTmsMilestonePath _tmsMilestone;
+
+    /**
+     * Get the implicit join path to the <code>public.tms_milestone</code>
+     * table.
+     */
+    public JTmsMilestonePath tmsMilestone() {
+        if (_tmsMilestone == null)
+            _tmsMilestone = new JTmsMilestonePath(this, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_MILESTONE, null);
+
+        return _tmsMilestone;
+    }
+
     private transient JTmsProductVersionPath _tmsProductVersion;
 
     /**
@@ -258,19 +278,6 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
             _project = new JProjectPath(this, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PROJECT, null);
 
         return _project;
-    }
-
-    private transient JTmsMilestonePath _tmsMilestone;
-
-    /**
-     * Get the implicit to-many join path to the
-     * <code>public.tms_milestone</code> table
-     */
-    public JTmsMilestonePath tmsMilestone() {
-        if (_tmsMilestone == null)
-            _tmsMilestone = new JTmsMilestonePath(this, null, Keys.TMS_MILESTONE__TMS_MILESTONE_FK_TEST_PLAN.getInverseKey());
-
-        return _tmsMilestone;
     }
 
     private transient JTmsTestPlanAttributePath _tmsTestPlanAttribute;

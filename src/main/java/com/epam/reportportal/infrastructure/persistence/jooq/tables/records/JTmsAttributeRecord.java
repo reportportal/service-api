@@ -5,6 +5,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribute;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -46,17 +47,17 @@ public class JTmsAttributeRecord extends UpdatableRecordImpl<JTmsAttributeRecord
     }
 
     /**
-     * Setter for <code>public.tms_attribute.search_vector</code>.
+     * Setter for <code>public.tms_attribute.project_id</code>.
      */
-    public void setSearchVector(Object value) {
+    public void setProjectId(Long value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>public.tms_attribute.search_vector</code>.
+     * Getter for <code>public.tms_attribute.project_id</code>.
      */
-    public Object getSearchVector() {
-        return get(2);
+    public Long getProjectId() {
+        return (Long) get(2);
     }
 
     // -------------------------------------------------------------------------
@@ -82,12 +83,12 @@ public class JTmsAttributeRecord extends UpdatableRecordImpl<JTmsAttributeRecord
     /**
      * Create a detached, initialised JTmsAttributeRecord
      */
-    public JTmsAttributeRecord(Long id, String key, Object searchVector) {
+    public JTmsAttributeRecord(Long id, String key, Long projectId) {
         super(JTmsAttribute.TMS_ATTRIBUTE);
 
         setId(id);
         setKey(key);
-        setSearchVector(searchVector);
+        setProjectId(projectId);
         resetChangedOnNotNull();
     }
 }

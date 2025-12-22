@@ -65,13 +65,13 @@ INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
 VALUES (22, 1, 'new_description_subfolder_of_3', 'new_name_subfolder_of_4', 3);
 
 -- ==================== TEST ATTRIBUTES ====================
-INSERT INTO tms_attribute (id, "key")
-VALUES (10, 'test_key_10'),
-       (11, 'test_key_11'),
-       (12, 'test_key_12'),
-       (13, 'priority'),
-       (14, 'component'),
-       (15, 'environment');
+INSERT INTO tms_attribute (id, "key", project_id)
+VALUES (10, 'test_key_10', 1),
+       (11, 'test_key_11', 1),
+       (12, 'test_key_12', 1),
+       (13, 'priority', 1),
+       (14, 'component', 1),
+       (15, 'environment', 1);
 
 -- ==================== TEST PLANS ====================
 INSERT INTO tms_test_plan (id, "name", description, project_id, environment_id, product_version_id)

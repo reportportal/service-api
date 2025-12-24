@@ -1582,8 +1582,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.getEntityById(projectId, targetFolderId)).thenReturn(testFolder);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase1, testFolder))
         .thenReturn(duplicatedTestCase1);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(testFolderId)))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
         .thenReturn(duplicatedVersion1);
@@ -1671,8 +1669,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.getEntityById(projectId, targetFolderId)).thenReturn(this.testFolder);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, this.testFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(testFolderId)))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -1729,8 +1725,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.getEntityById(projectId, targetFolderId)).thenReturn(testFolder);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, testFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(testFolderId)))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -1854,8 +1848,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.getEntityById(projectId, testFolderId)).thenReturn(testFolder);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, testFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Test Case-copy", testFolderId))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -1867,7 +1859,6 @@ class TmsTestCaseServiceImplTest {
 
     // Then
     assertNotNull(result);
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Test Case-copy", testFolderId);
     verify(tmsTestCaseRepository).save(duplicatedTestCase);
   }
 
@@ -1891,10 +1882,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.getEntityById(projectId, testFolderId)).thenReturn(testFolder);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, testFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Test Case-copy", testFolderId))
-        .thenReturn(true);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Test Case-copy-1", testFolderId))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -1906,8 +1893,6 @@ class TmsTestCaseServiceImplTest {
 
     // Then
     assertNotNull(result);
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Test Case-copy", testFolderId);
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Test Case-copy-1", testFolderId);
     verify(tmsTestCaseRepository).save(duplicatedTestCase);
   }
 
@@ -1951,8 +1936,6 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(duplicatedTestCase1);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase2, testFolder))
         .thenReturn(duplicatedTestCase2);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(testFolderId)))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(any(TmsTestCase.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(tmsTestCaseVersionService.duplicateDefaultVersion(any(TmsTestCase.class), eq(originalVersion)))
@@ -1999,8 +1982,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase1, testFolder))
         .thenReturn(duplicatedTestCase1);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(testFolderId)))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2045,8 +2026,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, testFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(testFolderId)))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2245,9 +2224,6 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(duplicatedTestCase1);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase2, targetFolder))
         .thenReturn(duplicatedTestCase2);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
     when(tmsTestCaseRepository.save(duplicatedTestCase2)).thenReturn(duplicatedTestCase2);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
@@ -2315,9 +2291,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2367,9 +2340,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2459,9 +2429,6 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(duplicatedTestCase1);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase2, targetFolder))
         .thenReturn(duplicatedTestCase2);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
     when(tmsTestCaseRepository.save(duplicatedTestCase2)).thenReturn(duplicatedTestCase2);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
@@ -2519,12 +2486,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Existing Name-copy",
-        targetFolder.getId()))
-        .thenReturn(true);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Existing Name-copy-1",
-        targetFolder.getId()))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2538,10 +2499,6 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     assertEquals(1, result.getSuccessTestCaseIds().size());
 
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Existing Name-copy",
-        targetFolder.getId());
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Existing Name-copy-1",
-        targetFolder.getId());
     verify(tmsTestCaseRepository).save(duplicatedTestCase);
   }
 
@@ -2630,9 +2587,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase))
         .thenThrow(new RuntimeException("Database error"));
     when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
@@ -2678,9 +2632,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenThrow(new RuntimeException("Version duplication failed"));
@@ -2730,9 +2681,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2788,15 +2736,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Popular Name-copy",
-        targetFolder.getId()))
-        .thenReturn(true);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Popular Name-copy-1",
-        targetFolder.getId()))
-        .thenReturn(true);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(projectId, "Popular Name-copy-2",
-        targetFolder.getId()))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2809,13 +2748,6 @@ class TmsTestCaseServiceImplTest {
     // Then
     assertNotNull(result);
     assertEquals(1, result.getSuccessTestCaseIds().size());
-
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Popular Name-copy",
-        targetFolder.getId());
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Popular Name-copy-1",
-        targetFolder.getId());
-    verify(tmsTestCaseRepository).existsByNameAndTestFolder(projectId, "Popular Name-copy-2",
-        targetFolder.getId());
   }
 
   @Test
@@ -2847,9 +2779,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
@@ -2909,9 +2838,6 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(duplicatedTestCase1);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase2, targetFolder))
         .thenReturn(duplicatedTestCase2);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(any(TmsTestCase.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
@@ -2971,9 +2897,6 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder))
         .thenReturn(duplicatedTestCase);
-    when(tmsTestCaseRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
-        eq(targetFolder.getId())))
-        .thenReturn(false);
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);

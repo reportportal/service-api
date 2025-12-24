@@ -200,15 +200,4 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       "AND tc.testFolder.project.id = :projectId")
   List<Long> findExistingTestCaseIds(@Param("projectId") Long projectId,
       @Param("testCaseIds") List<Long> testCaseIds);
-
-  @Query("SELECT COUNT(tc) > 0 FROM TmsTestCase tc " +
-      "WHERE tc.name = :testCaseName " +
-      "AND tc.testFolder.id = :testFolderId " +
-      "AND tc.testFolder.project.id = :projectId"
-  )
-  boolean existsByNameAndTestFolder(
-      @Param("projectId") Long projectId,
-      @Param("testCaseName") String testCaseName,
-      @Param("testFolderId") Long testFolderId
-  );
 }

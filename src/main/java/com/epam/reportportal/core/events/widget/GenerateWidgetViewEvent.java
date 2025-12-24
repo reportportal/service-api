@@ -18,6 +18,7 @@ package com.epam.reportportal.core.events.widget;
 
 import com.epam.reportportal.core.events.domain.AbstractEvent;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -28,10 +29,11 @@ import org.springframework.util.MultiValueMap;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Getter
+@NoArgsConstructor
 public class GenerateWidgetViewEvent extends AbstractEvent<Void> {
 
-  private final Long widgetId;
-  private final MultiValueMap<String, String> params;
+  private Long widgetId;
+  private MultiValueMap<String, String> params;
 
   public GenerateWidgetViewEvent(Long widgetId, MultiValueMap<String, String> params) {
     super();

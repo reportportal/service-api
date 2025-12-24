@@ -18,18 +18,19 @@ package com.epam.reportportal.core.events.domain.item;
 
 import com.epam.reportportal.core.events.domain.AbstractEvent;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * System event triggered when a test item is retried. This is an internal processing event with
- * null user context.
+ * System event triggered when a test item is retried.
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Getter
+@NoArgsConstructor
 public class ItemRetryEvent extends AbstractEvent<Void> {
 
-  private final Long launchId;
-  private final Long itemId;
+  private Long launchId;
+  private Long itemId;
 
   private ItemRetryEvent(Long projectId, Long launchId, Long itemId) {
     super();

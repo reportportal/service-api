@@ -18,13 +18,13 @@ package com.epam.reportportal.core.events.domain;
 
 import static com.epam.reportportal.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.ws.rabbit.activity.converter.OrganizationCreatedEventConverter;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.EventSubject;
+import com.epam.reportportal.ws.rabbit.activity.converter.OrganizationCreatedEventConverter;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
@@ -55,7 +55,7 @@ class OrganizationCreatedEventTest {
   @Test
   void toActivity() {
     OrganizationCreatedEvent event = new OrganizationCreatedEvent(1L, "user", 2L,
-        "Test Organization");
+        "Test Organization", Instant.now());
     OrganizationCreatedEventConverter converter = new OrganizationCreatedEventConverter();
     final Activity actual = converter.convert(event);
     final Activity expected = getExpectedActivity();

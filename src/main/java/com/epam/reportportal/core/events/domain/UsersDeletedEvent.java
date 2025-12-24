@@ -16,27 +16,39 @@
 
 package com.epam.reportportal.core.events.domain;
 
-import com.epam.reportportal.model.activity.UserActivityResource;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
+ * Event published when multiple users are deleted.
+ *
  * @author Andrei Varabyeu
  */
 @Getter
 @NoArgsConstructor
-public class UsersDeletedEvent extends AbstractEvent<UserActivityResource> {
+public class UsersDeletedEvent extends AbstractEvent<Void> {
+
+  private int count;
 
   /**
-   * Constructs a UsersDeletedEvent.
+   * Constructs a UsersDeletedEvent for system events (no user context).
    *
-   * @param userActivityResource The user activity resource
+   * @param count The number of users deleted
+   */
+  public UsersDeletedEvent(int count) {
+    super();
+    this.count = count;
+  }
+
+  /**
+   * Constructs a UsersDeletedEvent with user context.
+   *
+   * @param count The number of users deleted
    * @param userId The ID of the user who deleted the users
    * @param userName The name of the user who deleted the users
    */
-  public UsersDeletedEvent(UserActivityResource userActivityResource, Long userId,
-      String userName) {
+  public UsersDeletedEvent(int count, Long userId, String userName) {
     super(userId, userName);
-    this.before = userActivityResource;
+    this.count = count;
   }
 }

@@ -18,24 +18,25 @@ package com.epam.reportportal.core.events.domain.item;
 
 import com.epam.reportportal.core.events.domain.AbstractEvent;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * System event triggered when an issue is resolved. This is an internal processing event with null
- * user context.
+ * System event triggered when an issue is resolved.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Getter
+@NoArgsConstructor
 public class IssueResolvedEvent extends AbstractEvent<Void> {
 
-  private final Long itemId;
-  private final Long launchId;
+  private Long itemId;
+  private Long launchId;
 
   /**
    * Constructs an IssueResolvedEvent.
    *
-   * @param itemId The ID of the test item whose issue was resolved
-   * @param launchId The ID of the launch containing the test item
+   * @param itemId    The ID of the test item whose issue was resolved
+   * @param launchId  The ID of the launch containing the test item
    * @param projectId The project ID
    */
   public IssueResolvedEvent(Long itemId, Long launchId, Long projectId) {

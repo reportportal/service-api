@@ -18,7 +18,7 @@ package com.epam.reportportal.core.events.domain;
 
 import com.epam.reportportal.model.activity.ProjectAttributesActivityResource;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -28,7 +28,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class ProjectAnalyzerConfigEvent extends AbstractEvent<ProjectAttributesActivityResource> {
 
   /**

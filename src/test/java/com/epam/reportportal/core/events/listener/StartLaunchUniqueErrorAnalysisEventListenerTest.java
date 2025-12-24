@@ -8,10 +8,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent;
 import com.epam.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.core.project.config.ProjectConfigProvider;
+import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent;
 import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class StartLaunchUniqueErrorAnalysisEventListenerTest {
 
     final ClusterEntityContext entityContext = contextArgumentCaptor.getValue();
 
-    assertEquals(event.getSource(), entityContext.getLaunchId());
+    assertEquals(event.getLaunchId(), entityContext.getLaunchId());
     assertEquals(event.getProjectId(), entityContext.getProjectId());
   }
 

@@ -58,11 +58,10 @@ public class UserCreatedConsumer {
   public void onEvent(@Payload UserCreatedEvent event) {
     if (Objects.isNull(event) || Objects.isNull(event.getUserActivityResource()) || Objects.isNull(
         event.getUserActivityResource().getId())) {
-      log.warn("UserCreatedEvent is missing userId. Personal org initialization.");
+      log.warn("UserCreatedEvent is missing userId. Skipping personal organization creation.");
       return;
     }
 
-//    todo will be rolled back once org plugin is migrated to the new events structure
-//    personalOrganizationService.createPersonalOrganization(event.getUserActivityResource().getId());
+    personalOrganizationService.createPersonalOrganization(event.getUserActivityResource().getId());
   }
 }

@@ -46,6 +46,6 @@ public class StartLaunchUniqueErrorAnalysisEventListener {
   public void onApplicationEvent(LaunchStartUniqueErrorAnalysisEvent event) {
     final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
     uniqueErrorAnalysisStarter.start(
-        ClusterEntityContext.of(event.getSource(), event.getProjectId()), projectConfig);
+        ClusterEntityContext.of(event.getLaunchId(), event.getProjectId()), projectConfig);
   }
 }

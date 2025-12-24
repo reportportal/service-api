@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,41 @@
 
 package com.epam.reportportal.infrastructure.events;
 
+import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.reporting.FinishTestItemRQ;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import lombok.NoArgsConstructor;
 
 /**
+ * System event published when a test item finish request is received.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Getter
-public class FinishItemRqEvent extends ApplicationEvent {
+@NoArgsConstructor
+public class FinishItemRqEvent extends AbstractEvent<Void> {
 
   private String projectName;
   private String itemUuid;
   private FinishTestItemRQ finishTestItemRQ;
 
-  public FinishItemRqEvent(Object source, String projectName, String itemUuid,
+  /**
+   * Constructs a FinishItemRqEvent.
+   *
+   * @param projectName      The name of the project
+   * @param itemUuid         The UUID of the test item
+   * @param finishTestItemRQ The finish test item request
+   */
+  public FinishItemRqEvent(String projectName, String itemUuid,
       FinishTestItemRQ finishTestItemRQ) {
-    super(source);
+    super();
     this.projectName = projectName;
     this.itemUuid = itemUuid;
     this.finishTestItemRQ = finishTestItemRQ;
+  }
+
+  @Override
+  public boolean shouldPublishToRabbitMq() {
+    return false;
   }
 }

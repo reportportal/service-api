@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.Optional;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,6 +27,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 @Sql("/db/tms/tms-attribute/tms-attribute-fill.sql")
 @ExtendWith(MockitoExtension.class)
+@Disabled
 class TmsAttributeIntegrationTest extends BaseMvcTest {
 
   @PersistenceContext

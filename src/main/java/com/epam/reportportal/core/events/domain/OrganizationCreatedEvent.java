@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.core.events.domain;
 
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,6 +30,7 @@ import lombok.NoArgsConstructor;
 public class OrganizationCreatedEvent extends AbstractEvent<Void> {
 
   private String organizationName;
+  private Instant createdAt;
 
   /**
    * Constructs a new OrganizationCreatedEvent.
@@ -37,12 +39,14 @@ public class OrganizationCreatedEvent extends AbstractEvent<Void> {
    * @param userLogin        The login of the user who created the organization.
    * @param organizationId   The ID of the created organization.
    * @param organizationName The name of the created organization.
+   * @param createdAt        The timestamp when the organization was created.
    */
   public OrganizationCreatedEvent(Long userId, String userLogin, Long organizationId,
-      String organizationName) {
+      String organizationName, Instant createdAt) {
     super(userId, userLogin);
     this.organizationId = organizationId;
     this.organizationName = organizationName;
+    this.createdAt = createdAt;
   }
 
   /**
@@ -50,11 +54,14 @@ public class OrganizationCreatedEvent extends AbstractEvent<Void> {
    *
    * @param organizationId   The ID of the created organization.
    * @param organizationName The name of the created organization.
+   * @param createdAt        The timestamp when the organization was created.
    */
-  public OrganizationCreatedEvent(Long organizationId, String organizationName) {
+  public OrganizationCreatedEvent(Long organizationId, String organizationName,
+      Instant createdAt) {
     super();
     this.organizationId = organizationId;
     this.organizationName = organizationName;
+    this.createdAt = createdAt;
   }
 
 }

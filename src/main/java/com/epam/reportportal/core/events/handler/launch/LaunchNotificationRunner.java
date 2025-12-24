@@ -29,7 +29,7 @@ import com.epam.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.core.launch.GetLaunchHandler;
 import com.epam.reportportal.core.launch.util.LinkGenerator;
 import com.epam.reportportal.core.project.GetProjectHandler;
-import com.epam.reportportal.extension.event.LaunchFinishedPluginEvent;
+import com.epam.reportportal.extension.event.LaunchFinishedNotificationEvent;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.LogicalOperator;
@@ -295,7 +295,7 @@ public class LaunchNotificationRunner
     );
 
     eventPublisher.publishEvent(
-        new LaunchFinishedPluginEvent(launchFinishedEvent.getId(),
+        new LaunchFinishedNotificationEvent(launchFinishedEvent.getId(),
             launchFinishedEvent.getProjectId(), launchLink));
   }
 }

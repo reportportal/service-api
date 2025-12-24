@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author Pavel Bortnik
@@ -51,8 +52,21 @@ public class RabbitMqConfiguration {
   @Autowired
   private ObjectMapper objectMapper;
 
+  /**
+   * Message converter for publishing messages.
+   */
   @Bean
-  public MessageConverter jsonMessageConverter(FallbackEventTypeMapper typeMapper) {
+  @Primary
+  public MessageConverter jsonMessageConverter() {
+    return new Jackson2JsonMessageConverter(objectMapper);
+  }
+
+  /**
+   * Message converter for consuming messages. Uses FallbackEventTypeMapper to handle events from
+   * external services that may use different package structures.
+   */
+  @Bean
+  public MessageConverter jsonMessageConverterWithFallback(FallbackEventTypeMapper typeMapper) {
     Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
     converter.setJavaTypeMapper(typeMapper);
     return converter;
@@ -84,10 +98,9 @@ public class RabbitMqConfiguration {
 
   @Bean(name = "rabbitTemplate")
   public RabbitTemplate rabbitTemplate(
-      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory,
-      FallbackEventTypeMapper typeMapper) {
+      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-    rabbitTemplate.setMessageConverter(jsonMessageConverter(typeMapper));
+    rabbitTemplate.setMessageConverter(jsonMessageConverter());
     return rabbitTemplate;
   }
 
@@ -100,7 +113,7 @@ public class RabbitMqConfiguration {
     factory.setDefaultRequeueRejected(false);
     factory.setErrorHandler(new ConditionalRejectingErrorHandler());
     factory.setAutoStartup(true);
-    factory.setMessageConverter(jsonMessageConverter(typeMapper));
+    factory.setMessageConverter(jsonMessageConverterWithFallback(typeMapper));
     return factory;
   }
 

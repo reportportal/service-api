@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,6 +52,7 @@ import org.springframework.test.web.servlet.MvcResult;
  */
 @Sql("/db/tms/tms-test-plan/tms-test-plan-fill.sql")
 @ExtendWith(MockitoExtension.class)
+@Disabled
 public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";

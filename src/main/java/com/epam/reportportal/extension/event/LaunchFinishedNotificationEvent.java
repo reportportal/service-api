@@ -17,33 +17,32 @@
 package com.epam.reportportal.extension.event;
 
 import com.epam.reportportal.core.events.domain.AbstractEvent;
-import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
- * System event published when launch analysis finishes.
+ * System event published when a launch finishes.
  *
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Getter
-@Setter
 @NoArgsConstructor
-public class LaunchAnalysisFinishEvent extends AbstractEvent<Void> {
+public class LaunchFinishedNotificationEvent extends AbstractEvent<Void> {
 
   private Long launchId;
-  private Map<String, String> projectConfigParams;
+  private String launchLink;
 
   /**
-   * Constructs a LaunchAnalysisFinishEvent.
+   * Constructs a LaunchFinishedPluginEvent.
    *
-   * @param launchId            The ID of the launch
-   * @param projectConfigParams The project configuration parameters
+   * @param launchId   The ID of the launch
+   * @param projectId  The ID of the project
+   * @param launchLink The link to the launch
    */
-  public LaunchAnalysisFinishEvent(Long launchId, Map<String, String> projectConfigParams) {
+  public LaunchFinishedNotificationEvent(Long launchId, Long projectId, String launchLink) {
     super();
     this.launchId = launchId;
-    this.projectConfigParams = projectConfigParams;
+    this.projectId = projectId;
+    this.launchLink = launchLink;
   }
 }

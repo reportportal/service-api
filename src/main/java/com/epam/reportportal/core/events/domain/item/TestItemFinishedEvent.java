@@ -19,6 +19,7 @@ package com.epam.reportportal.core.events.domain.item;
 import com.epam.reportportal.core.events.domain.AbstractEvent;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * System event triggered when a test item is finished. This is an internal processing event with
@@ -27,14 +28,25 @@ import lombok.Getter;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Getter
+@NoArgsConstructor
 public class TestItemFinishedEvent extends AbstractEvent<Void> {
 
-  private final TestItem testItem;
+  private TestItem testItem;
 
+  /**
+   * Creates a TestItemFinishedEvent.
+   *
+   * @param testItem  The test item
+   * @param projectId The project ID
+   */
   public TestItemFinishedEvent(TestItem testItem, Long projectId) {
     super();
     this.testItem = testItem;
     this.projectId = projectId;
   }
 
+  @Override
+  public boolean shouldPublishToRabbitMq() {
+    return false;
+  }
 }

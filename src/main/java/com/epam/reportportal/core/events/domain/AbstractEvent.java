@@ -99,4 +99,14 @@ public abstract class AbstractEvent<T> extends ApplicationEvent {
     return userId == null;
   }
 
+  /**
+   * Returns whether this event should be published to RabbitMQ. Default implementation returns true
+   * for backward compatibility. Override in subclasses to mark events as local-only.
+   *
+   * @return true if the event should be published to RabbitMQ
+   */
+  public boolean shouldPublishToRabbitMq() {
+    return true;
+  }
+
 }

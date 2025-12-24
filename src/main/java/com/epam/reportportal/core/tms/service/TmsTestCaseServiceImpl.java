@@ -435,12 +435,6 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             originalTestCase, originalTestCase.getTestFolder()
         );
 
-        duplicatedTestCase.setName(generateUniqueTestCaseName(
-            projectId,
-            originalTestCase.getName(),
-            originalTestCase.getTestFolder().getId())
-        );
-
         duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
 
         tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase,
@@ -480,12 +474,6 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
         var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(
             originalTestCase, targetFolder
-        );
-
-        duplicatedTestCase.setName(generateUniqueTestCaseName(
-            projectId,
-            originalTestCase.getName(),
-            targetFolder.getId())
         );
 
         duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
@@ -541,11 +529,6 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var targetFolder = tmsTestFolderService.getEntityById(projectId, targetFolderId);
 
     var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder);
-
-    duplicatedTestCase.setName(generateUniqueTestCaseName(
-        projectId, originalTestCase.getName(),
-        originalTestCase.getTestFolder().getId())
-    );
 
     duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
 
@@ -741,18 +724,5 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           TEST_CASE_NOT_FOUND_IN_TEST_PLAN.formatted(testCaseId, projectId, testPlanId)
       );
     }
-  }
-
-  private String generateUniqueTestCaseName(long projectId, String originalName, Long testFolderId) {
-    var baseName = originalName + "-copy";
-    var uniqueName = baseName;
-    var counter = 1;
-
-    while (tmsTestCaseRepository.existsByNameAndTestFolder(projectId, uniqueName, testFolderId)) {
-      uniqueName = baseName + "-" + counter;
-      counter++;
-    }
-
-    return uniqueName;
   }
 }

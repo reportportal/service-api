@@ -69,12 +69,12 @@ public class JTmsStep extends TableImpl<JTmsStepRecord> {
     /**
      * The column <code>public.tms_step.instructions</code>.
      */
-    public final TableField<JTmsStepRecord, String> INSTRUCTIONS = createField(DSL.name("instructions"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsStepRecord, String> INSTRUCTIONS = createField(DSL.name("instructions"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.tms_step.expected_result</code>.
      */
-    public final TableField<JTmsStepRecord, String> EXPECTED_RESULT = createField(DSL.name("expected_result"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsStepRecord, String> EXPECTED_RESULT = createField(DSL.name("expected_result"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.tms_step.steps_manual_scenario_id</code>.

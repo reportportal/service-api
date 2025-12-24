@@ -10,9 +10,11 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttachme
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTextManualScenarioAttachment.JTmsTextManualScenarioAttachmentPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsTextManualScenarioRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -65,12 +67,12 @@ public class JTmsTextManualScenario extends TableImpl<JTmsTextManualScenarioReco
     /**
      * The column <code>public.tms_text_manual_scenario.instructions</code>.
      */
-    public final TableField<JTmsTextManualScenarioRecord, String> INSTRUCTIONS = createField(DSL.name("instructions"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsTextManualScenarioRecord, String> INSTRUCTIONS = createField(DSL.name("instructions"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.tms_text_manual_scenario.expected_result</code>.
      */
-    public final TableField<JTmsTextManualScenarioRecord, String> EXPECTED_RESULT = createField(DSL.name("expected_result"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsTextManualScenarioRecord, String> EXPECTED_RESULT = createField(DSL.name("expected_result"), SQLDataType.CLOB, this, "");
 
     private JTmsTextManualScenario(Name alias, Table<JTmsTextManualScenarioRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

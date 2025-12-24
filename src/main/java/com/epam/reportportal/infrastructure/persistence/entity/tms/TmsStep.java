@@ -34,10 +34,10 @@ public class TmsStep implements Serializable {
   @Column(name = "id")
   private Long id;
 
-  @Column(name = "instructions")
+  @Column(name = "instructions", columnDefinition = "TEXT")
   private String instructions;
 
-  @Column(name = "expected_result")
+  @Column(name = "expected_result", columnDefinition = "TEXT")
   private String expectedResult;
 
   @Column(name = "number", nullable = false)

@@ -38,10 +38,10 @@ public class TmsTextManualScenario {
   @MapsId
   private TmsManualScenario manualScenario;
 
-  @Column(name = "instructions")
+  @Column(name = "instructions", columnDefinition = "TEXT")
   private String instructions;
 
-  @Column(name = "expected_result")
+  @Column(name = "expected_result", columnDefinition = "TEXT")
   private String expectedResult;
 
   @ManyToMany

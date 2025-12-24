@@ -534,12 +534,14 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
             NOT_FOUND,
             TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderRQ.getParentTestFolderId(), projectId));
       }
-      var parentTestFolder = tmsTestFolderMapper.convertToTestFolder(projectId, parentTestFolderRQ);
-      if (isNull(parentTestFolder.getSubFolders())) {
-        parentTestFolder.setSubFolders(new ArrayList<>());
+      var newParentTestFolder = tmsTestFolderRepository.save(
+          tmsTestFolderMapper.convertToTestFolder(projectId, parentTestFolderRQ)
+      );
+      if (isNull(newParentTestFolder.getSubFolders())) {
+        newParentTestFolder.setSubFolders(new ArrayList<>());
       }
-      parentTestFolder.getSubFolders().add(existingTestFolder);
-      existingTestFolder.setParentTestFolder(tmsTestFolderRepository.save(parentTestFolder));
+      newParentTestFolder.getSubFolders().add(existingTestFolder);
+      existingTestFolder.setParentTestFolder(newParentTestFolder);
     }
     // Case 4: If parentTestFolderRQ is null, leave parent relationship unchanged (PATCH semantics)
   }

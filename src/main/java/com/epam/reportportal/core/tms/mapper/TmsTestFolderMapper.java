@@ -20,6 +20,7 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.data.domain.Page;
@@ -178,14 +179,13 @@ public abstract class TmsTestFolderMapper {
    * Converts ParentTmsTestFolderRQ to TmsTestFolder entity.
    *
    * @param projectId          The ID of the project
-   * @param parentTestFolderRQ The parent folder request
+   * @param testFolderRQ       The folder request
    * @return The test folder entity
    */
   @Mapping(target = "project.id", source = "projectId")
-  @Mapping(target = "name", source = "parentTestFolderRQ.name")
-  @Mapping(target = "parentTestFolder.id", source = "parentTestFolderRQ.parentTestFolderId")
-  public abstract TmsTestFolder convertToTestFolder(Long projectId,
-      NewTestFolderRQ parentTestFolderRQ);
+  @Mapping(target = "name", source = "testFolderRQ.name")
+  @Mapping(target = "parentTestFolder", source = "testFolderRQ", qualifiedByName = "mapParentFolder")
+  public abstract TmsTestFolder convertToTestFolder(Long projectId, NewTestFolderRQ testFolderRQ);
 
   /**
    * Converts folder name to NewTestFolderRQ.
@@ -277,4 +277,21 @@ public abstract class TmsTestFolderMapper {
       TmsTestFolder sourceFolder,
       TmsTestFolder targetParent
   );
+
+  /**
+   * Maps parent folder ID to TmsTestFolder entity.
+   * Returns null if parentTestFolderId is null.
+   *
+   * @param testFolderRQ The folder request
+   * @return The parent folder entity with only an ID set, or null
+   */
+  @Named("mapParentFolder")
+  protected TmsTestFolder mapParentFolder(NewTestFolderRQ testFolderRQ) {
+    if (testFolderRQ == null || testFolderRQ.getParentTestFolderId() == null) {
+      return null;
+    }
+    var parent = new TmsTestFolder();
+    parent.setId(testFolderRQ.getParentTestFolderId());
+    return parent;
+  }
 }

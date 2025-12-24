@@ -849,7 +849,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
           .orElseThrow();
 
       assertNotEquals(original.getId(), duplicate.getId());
-      assertEquals(original.getName() + "-copy", duplicate.getName());
+      assertEquals(original.getName(), duplicate.getName());
       assertEquals(original.getDescription(), duplicate.getDescription());
       assertEquals(original.getPriority(), duplicate.getPriority());
     }

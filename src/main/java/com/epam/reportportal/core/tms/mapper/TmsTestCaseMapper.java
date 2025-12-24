@@ -133,7 +133,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "externalId", ignore = true) //externalId is unique
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "name", ignore = true) //unique name will be set later in service
+  @Mapping(target = "name", source = "originalTestCase.name")
   @Mapping(target = "priority", source = "originalTestCase.priority")
   @Mapping(target = "description", source = "originalTestCase.description")
   @Mapping(target = "testFolder", source = "targetFolder")

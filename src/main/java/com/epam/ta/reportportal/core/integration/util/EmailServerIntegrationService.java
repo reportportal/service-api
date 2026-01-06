@@ -22,8 +22,8 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.core.settings.ServerSettingsServiceImpl;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.core.settings.ServerSettingsServiceImpl;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
@@ -31,10 +31,9 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
-import com.mchange.lang.IntegerUtils;
+import jakarta.mail.MessagingException;
 import java.util.Map;
 import java.util.Optional;
-import jakarta.mail.MessagingException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -91,7 +90,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
     ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute()))
         .ifPresent(
             p -> {
-              int port = IntegerUtils.parseInt(String.valueOf(p), -1);
+              int port = parseInt(String.valueOf(p), -1);
               if ((port <= 0) || (port > 65535)) {
                 BusinessRule.fail()
                     .withError(
@@ -212,5 +211,21 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         }
       }
     });
+  }
+
+  /**
+   * Parses the string argument as an integer, returning a default value if parsing fails.
+   *
+   * @param s            the string to be parsed
+   * @param defaultValue the value to return if parsing fails
+   * @return the integer value represented by the string, or {@code defaultValue} if the string cannot be parsed as an
+   * integer
+   */
+  public static int parseInt(String s, int defaultValue) {
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      return defaultValue;
+    }
   }
 }

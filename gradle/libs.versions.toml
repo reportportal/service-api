@@ -2,7 +2,7 @@
 # Development versions
 
 # Platform versions
-spring-boot = "3.4.12"
+spring-boot = "3.5.9"
 zonky-postgres-bom = "17.6.0"
 
 # Plugin versions
@@ -24,7 +24,6 @@ google-api-client = "2.8.1"
 guava = "33.5.0-jre"
 hibernate-validator = "8.0.2.Final"
 httpclient5 = "5.5.1"
-jackson-databind = "2.19.4"
 jakarta-inject = "2.0.1"
 jakarta-mail = "2.0.2"
 jakarta-xml-bind-api = "3.0.1"
@@ -36,7 +35,6 @@ jdbc-driver-version = "42.7.8"
 jjwt = "0.12.5"
 jooq = "3.19.27"
 json-schema-validator = "1.5.6"
-jsr310 = "2.19.4"
 lombok = "1.18.42"
 opencsv = "5.12.0"
 openpdf = "2.4.0"
@@ -114,8 +112,8 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 jasypt = { group = "org.jasypt", name = "jasypt", version.ref = "jasypt" }
 pf4j = { group = "org.pf4j", name = "pf4j", version.ref = "pf4j" }
 embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version.ref = "embedded-postgres" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson-databind" }
-jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jsr310" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
+jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
 spring-context = { group = "org.springframework", name = "spring-context" }
 spring-jdbc = { group = "org.springframework", name = "spring-jdbc" }
 spring-web = { group = "org.springframework", name = "spring-web" }

@@ -368,9 +368,20 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
    * @return True if contains, false if not
    */
   @Query(value =
-      "SELECT EXISTS(SELECT 1 FROM test_item ti JOIN test_item_results tir ON ti.item_id = tir.result_id"
-          + " WHERE ti.path <@ CAST(:parentPath AS LTREE) AND ti.item_id != :parentId AND CAST(tir.status AS VARCHAR) IN (:statuses))", nativeQuery = true)
+      """
+           SELECT EXISTS
+           (
+                  SELECT 1
+                  FROM   test_item ti
+                  join   test_item_results tir
+                  ON     ti.item_id = tir.result_id
+                  WHERE  ti.launch_id = :launchId
+                  AND    ti.path <@ Cast(:parentPath AS LTREE)
+                  AND    ti.item_id != :parentId
+                  AND    Cast(tir.status AS VARCHAR) IN (:statuses))
+          """, nativeQuery = true)
   boolean hasItemsInStatusByParent(@Param("parentId") Long parentId,
+      @Param("launchId") Long launchId,
       @Param("parentPath") String parentPath,
       @Param("statuses") String... statuses);
 

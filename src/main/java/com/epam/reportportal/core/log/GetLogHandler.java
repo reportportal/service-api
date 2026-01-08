@@ -98,4 +98,19 @@ public interface GetLogHandler {
   List<PagedLogResource> getLogsWithLocation(Long parentId,
       MembershipDetails membershipDetails, Map<String, String> params,
       Queryable queryable, Pageable pageable);
+
+
+
+  /**
+   * Retrieves logs with their page locations filtered by search criteria.
+   *
+   * @param parentId parent item ID
+   * @param membershipDetails project details
+   * @param params additional parameters (excludeEmptySteps, excludePassedLogs, excludeLogContent)
+   * @param queryable filter with search criteria
+   * @param pageable pagination settings
+   * @return page of logs with their page locations
+   */
+  Page<PagedLogResource> getLogsWithLocationBySearch(Long parentId,
+      MembershipDetails membershipDetails, Map<String, String> params, Queryable queryable, Pageable pageable);
 }

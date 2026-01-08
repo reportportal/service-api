@@ -19,7 +19,9 @@ package com.epam.reportportal.infrastructure.persistence.dao;
 import com.epam.reportportal.infrastructure.persistence.entity.log.ProjectLogType;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -86,4 +88,179 @@ public interface LogTypeRepository extends ReportPortalRepository<ProjectLogType
       """)
   String findNameByProjectIdAndLevel(@Param("projectId") Long projectId,
       @Param("level") Integer level);
+
+  /**
+   * Saves log type entity and evicts all related cache entries for the project.
+   *
+   * @param logType Log type entity to save
+   * @return Saved log type entity
+   */
+  @Override
+  @Caching(evict = {
+      @CacheEvict(
+          value = "projectLogTypeCache",
+          key = "#logType.projectId",
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelNameCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      )
+  })
+  <S extends ProjectLogType> S save(S logType);
+
+  /**
+   * Deletes log type entity and evicts all related cache entries for the project.
+   *
+   * @param logType Log type entity to delete
+   */
+  @Override
+  @Caching(evict = {
+      @CacheEvict(
+          value = "projectLogTypeCache",
+          key = "#logType.projectId",
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelNameCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      )
+  })
+  void delete(ProjectLogType logType);
+
+  /**
+   * Deletes log type entity by ID and evicts all cache entries.
+   *
+   * @param id Log type ID
+   */
+  @Override
+  @Caching(evict = {
+      @CacheEvict(
+          value = "projectLogTypeCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelNameCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      )
+  })
+  void deleteById(Long id);
+
+  /**
+   * Saves all log type entities and evicts all cache entries.
+   *
+   * @param entities Log type entities to save
+   * @return Saved log type entities
+   */
+  @Override
+  @Caching(evict = {
+      @CacheEvict(
+          value = "projectLogTypeCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelNameCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      )
+  })
+  <S extends ProjectLogType> List<S> saveAll(Iterable<S> entities);
+
+  /**
+   * Deletes all log type entities and evicts all cache entries.
+   *
+   * @param entities Log type entities to delete
+   */
+  @Override
+  @Caching(evict = {
+      @CacheEvict(
+          value = "projectLogTypeCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelNameCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      )
+  })
+  void deleteAll(Iterable<? extends ProjectLogType> entities);
+
+  /**
+   * Deletes all log type entities and evicts all cache entries.
+   */
+  @Override
+  @Caching(evict = {
+      @CacheEvict(
+          value = "projectLogTypeCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelNameCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      )
+  })
+  void deleteAll();
+
+  /**
+   * Deletes all log types by IDs and evicts all cache entries.
+   *
+   * @param ids Log type IDs to delete
+   */
+  @Override
+  @Caching(evict = {
+      @CacheEvict(
+          value = "projectLogTypeCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelNameCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      ),
+      @CacheEvict(
+          value = "projectLogTypeWithLevelCache",
+          allEntries = true,
+          cacheManager = "caffeineCacheManager"
+      )
+  })
+  void deleteAllById(Iterable<? extends Long> ids);
 }

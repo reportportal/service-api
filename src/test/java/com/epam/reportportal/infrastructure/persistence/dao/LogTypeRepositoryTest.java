@@ -299,4 +299,77 @@ class LogTypeRepositoryTest extends BaseMvcTest {
     // then
     assertFalse(exists);
   }
+
+  @Test
+  void saveLogTypeShouldEvictAllRelatedCaches() {
+    // given
+    final long projectId = 1L;
+    logTypeRepository.findByProjectId(projectId);
+    logTypeRepository.findLevelByProjectIdAndNameIgnoreCase(projectId, "info");
+    logTypeRepository.findNameByProjectIdAndLevel(projectId, 20000);
+
+    Cache projectLogTypeCache = cacheManager.getCache("projectLogTypeCache");
+    Cache levelNameCache = cacheManager.getCache("projectLogTypeWithLevelNameCache");
+    Cache levelCache = cacheManager.getCache("projectLogTypeWithLevelCache");
+
+    assertNotNull(projectLogTypeCache.get(projectId));
+    assertNotNull(levelNameCache.get(projectId + "_info"));
+    assertNotNull(levelCache.get(projectId + "_20000"));
+
+    ProjectLogType logType = new ProjectLogType();
+    logType.setProjectId(projectId);
+    logType.setName("custom");
+    logType.setLevel(25000);
+    logType.setLabelColor("#FF0000");
+    logType.setBackgroundColor("#FFFFFF");
+    logType.setTextColor("#000000");
+    logType.setTextStyle("normal");
+    logType.setFilterable(false);
+    logType.setSystem(false);
+
+    // when
+    logTypeRepository.save(logType);
+
+    // then
+    assertNull(projectLogTypeCache.get(projectId));
+    assertNull(levelNameCache.get(projectId + "_info"));
+    assertNull(levelCache.get(projectId + "_20000"));
+  }
+
+  @Test
+  void deleteLogTypeShouldEvictAllRelatedCaches() {
+    // Given
+    final long projectId = 1L;
+    ProjectLogType logType = new ProjectLogType();
+    logType.setProjectId(projectId);
+    logType.setName("custom");
+    logType.setLevel(25000);
+    logType.setLabelColor("#FF0000");
+    logType.setBackgroundColor("#FFFFFF");
+    logType.setTextColor("#000000");
+    logType.setTextStyle("normal");
+    logType.setFilterable(false);
+    logType.setSystem(false);
+    ProjectLogType savedLogType = logTypeRepository.save(logType);
+
+    logTypeRepository.findByProjectId(projectId);
+    logTypeRepository.findLevelByProjectIdAndNameIgnoreCase(projectId, "info");
+    logTypeRepository.findNameByProjectIdAndLevel(projectId, 20000);
+
+    Cache projectLogTypeCache = cacheManager.getCache("projectLogTypeCache");
+    Cache levelNameCache = cacheManager.getCache("projectLogTypeWithLevelNameCache");
+    Cache levelCache = cacheManager.getCache("projectLogTypeWithLevelCache");
+
+    assertNotNull(projectLogTypeCache.get(projectId));
+    assertNotNull(levelNameCache.get(projectId + "_info"));
+    assertNotNull(levelCache.get(projectId + "_20000"));
+
+    // When
+    logTypeRepository.delete(savedLogType);
+
+    // Then
+    assertNull(projectLogTypeCache.get(projectId));
+    assertNull(levelNameCache.get(projectId + "_info"));
+    assertNull(levelCache.get(projectId + "_20000"));
+  }
 }

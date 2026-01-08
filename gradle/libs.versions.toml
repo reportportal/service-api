@@ -44,7 +44,7 @@ pf4j = "3.13.0"
 rabbitmq-http = "5.4.0"
 slugify = "3.0.7"
 springdoc-openapi = "2.8.14"
-tika = "3.2.5"
+tika = "3.2.3"
 thumbnailator = "0.4.21"
 xerces = "2.12.2"
 mapstruct = "1.5.5.Final"
@@ -94,7 +94,6 @@ xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
 bouncycastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
 google-api-client = { group = "com.google.api-client", name = "google-api-client", version.ref = "google-api-client" }
 commons-validator = { group = "commons-validator", name = "commons-validator", version.ref = "commons-validator" }
-apache-jclouds-filesystem = { group = "org.apache.jclouds.api", name = "filesystem", version.ref = "jclouds" }
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "apache-commons-compress" }
 apache-commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "apache-commons-lang3" }
 apache-commons-collections4 = { group = "org.apache.commons", name = "commons-collections4", version.ref = "apache-commons-collections4" }

@@ -48,6 +48,7 @@ import com.epam.reportportal.infrastructure.persistence.commons.querygen.Composi
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.model.BulkItemsRQ;
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.model.TestItemHistoryElement;
 import com.epam.reportportal.model.issue.DefineIssueRQ;
@@ -529,14 +530,27 @@ public class TestItemController {
     );
   }
 
+  @Deprecated
   @Transactional(readOnly = true)
   @GetMapping("/items")
   @ResponseStatus(OK)
-  @Operation(summary = "Get test items by specified ids")
+  @Operation(summary = "Get test items by specified ids", deprecated = true)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<TestItemResource> getTestItems(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user, @RequestParam(value = "ids") Long[] ids) {
     return getTestItemHandler.getTestItems(ids,
+        projectExtractor.extractMembershipDetails(user, projectKey), user
+    );
+  }
+
+  @Transactional(readOnly = true)
+  @PostMapping("/bulk")
+  @ResponseStatus(OK)
+  @Operation(summary = "Get test items by list of IDs (max 300)")
+  public List<TestItemResource> getTestItemsByIds(@PathVariable String projectKey,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @RequestBody @Validated BulkItemsRQ request) {
+    return getTestItemHandler.getTestItemsByIds(request.getIds(),
         projectExtractor.extractMembershipDetails(user, projectKey), user
     );
   }

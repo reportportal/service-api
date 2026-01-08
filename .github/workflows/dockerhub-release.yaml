@@ -12,8 +12,8 @@ jobs:
     with:
       aws-region: ${{ vars.AWS_REGION }}
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-      ecr-repository: service-authorization
+      ecr-repository: service-api
       target-registry: docker.io
-      target-repository: reportportal/service-authorization
+      target-repository: reportportal/service-api
       platforms: linux/amd64
       release-mode: rc

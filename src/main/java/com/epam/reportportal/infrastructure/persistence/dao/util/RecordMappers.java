@@ -74,6 +74,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.dashboard.Dashboa
 import com.epam.reportportal.infrastructure.persistence.entity.dashboard.DashboardWidgetId;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
+import com.epam.reportportal.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.TestItemTypeEnum;
@@ -405,6 +406,7 @@ public class RecordMappers {
     launch.setId(r.get(LAUNCH.ID));
     launch.setName(r.get(LAUNCH.NAME));
     launch.setUserId(r.get(LAUNCH.USER_ID));
+    launch.setRetentionPolicy(r.into(LAUNCH.RETENTION_POLICY).into(RetentionPolicyEnum.class));
     return launch;
   };
 

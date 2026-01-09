@@ -9,6 +9,7 @@ on:
 jobs:
   release:
     uses: reportportal/.github/.github/workflows/dockerhub-release.yaml@main
+    secrets: inherit
     with:
       aws-region: ${{ vars.AWS_REGION }}
       aws-role-arn: ${{ vars.AWS_ROLE_ARN }}

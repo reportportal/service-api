@@ -31,7 +31,6 @@ import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.model.integration.IntegrationRQ;
 import com.epam.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
-import com.mchange.lang.IntegerUtils;
 import jakarta.mail.MessagingException;
 import java.util.Map;
 import java.util.Optional;
@@ -91,7 +90,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
     ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute()))
         .ifPresent(
             p -> {
-              int port = IntegerUtils.parseInt(String.valueOf(p), -1);
+              int port = parseInt(String.valueOf(p), -1);
               if ((port <= 0) || (port > 65535)) {
                 BusinessRule.fail()
                     .withError(
@@ -212,5 +211,20 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         }
       }
     });
+  }
+
+  /**
+   * Parses the string argument as an integer, returning a default value if parsing fails.
+   *
+   * @param s            the string to be parsed
+   * @param defaultValue the value to return if parsing fails
+   * @return the integer value represented by the string, or defaultValue if the string cannot be parsed as an integer
+   */
+  private static int parseInt(String s, int defaultValue) {
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      return defaultValue;
+    }
   }
 }

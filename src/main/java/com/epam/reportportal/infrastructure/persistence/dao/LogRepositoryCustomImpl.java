@@ -79,6 +79,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.OrderField;
 import org.jooq.Record;
+import org.jooq.Record3;
 import org.jooq.Record4;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectHavingStep;
@@ -212,6 +213,39 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
     return dsl.select(fieldName(ID)).from(QueryBuilder.newBuilder(filter, fields).build())
         .fetchInto(Long.class);
   }
+
+  @Override
+  public List<LogPageEntry> findLogIdsWithPage(Queryable filter, Pageable pageable) {
+    Set<String> fields = QueryUtils.collectJoinFields(filter);
+    var baseSelect = QueryBuilder.newBuilder(filter, fields).build();
+
+    List<OrderField<?>> orderFields = buildLogOrderFields(pageable);
+    int pageSize = pageable.getPageSize();
+
+    Table<?> baseTable = baseSelect.asTable("base_logs");
+
+    Field<Integer> pageField = DSL.rowNumber()
+        .over(DSL.orderBy(orderFields))
+        .minus(1)
+        .div(pageSize)
+        .plus(1)
+        .as(PAGE_NUMBER);
+
+    List<Record3<Long, Integer, Integer>> rows = dsl
+        .select(fieldName(baseTable.getName(), ID).cast(Long.class),
+            pageField,
+            LOG.LOG_LEVEL)
+        .from(baseTable)
+        .join(LOG)
+        .on(fieldName(baseTable.getName(), ID).cast(Long.class).eq(LOG.ID))
+        .orderBy(orderFields)
+        .fetch();
+
+    return rows.stream()
+        .map(r -> new LogPageEntry(r.value1(), r.value2(), r.value3()))
+        .toList();
+  }
+
 
   @Override
   public List<Long> findIdsByTestItemId(Long testItemId) {
@@ -452,6 +486,24 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
   public int deleteByProjectId(Long projectId) {
     return dsl.deleteFrom(LOG).where(LOG.PROJECT_ID.eq(projectId)).execute();
   }
+
+
+  private List<OrderField<?>> buildLogOrderFields(Pageable pageable) {
+    Sort sort = pageable.getSort();
+
+    SortField<?> logTimeOrder = sort.stream()
+        .filter(order -> CRITERIA_LOG_TIME.equals(order.getProperty()))
+        .findFirst()
+        .filter(order -> !order.isAscending())
+        .map(order -> LOG.LOG_TIME.sort(SortOrder.DESC))
+        .orElse(LOG.LOG_TIME.sort(SortOrder.ASC));
+
+    return List.of(
+        logTimeOrder,
+        LOG.ID.sort(SortOrder.ASC)
+    );
+  }
+
 
   private SelectConditionStep<? extends Record> buildLogsUnderItemsQuery(Long launchId,
       List<Long> itemIds, boolean includeAttachments) {

@@ -86,7 +86,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
         && parent.getItemResults().getStatus() != PASSED
         && parent.getItemResults().getStatus() != FAILED
         && parent.getItemResults().getStatus() != SKIPPED
-        && !testItemRepository.hasItemsInStatusByParent(parent.getItemId(), parent.getPath(),
+        && !testItemRepository.hasItemsInStatusByParent(parent.getItemId(), parent.getLaunchId(), parent.getPath(),
         StatusEnum.IN_PROGRESS.name());
   }
 

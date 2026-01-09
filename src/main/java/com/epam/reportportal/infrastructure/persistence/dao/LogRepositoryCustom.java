@@ -205,6 +205,19 @@ public interface LogRepositoryCustom extends FilterableRepository<Log> {
   List<String> findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(Long launchId, Long itemId,
       String path, Integer level);
 
+
+  /**
+   * Returns log ids with page numbers calculated in DB using provided pageable (sort + size).
+   *
+   * @param filter   log filter
+   * @param pageable page + sort used for page number calculation
+   * @return list of entries (logId, pageNumber, logLevel)
+   */
+  List<LogPageEntry> findLogIdsWithPage(Queryable filter, Pageable pageable);
+
+  record LogPageEntry(Long id, Integer pageNumber, Integer logLevel) {
+  }
+
   /**
    * Retrieves log message id of specified test item with log level greater or equals than {@code level}
    *

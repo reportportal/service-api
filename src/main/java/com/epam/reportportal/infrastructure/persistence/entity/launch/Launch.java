@@ -119,7 +119,7 @@ public class Launch implements Serializable {
   @Column(name = "retention_policy", nullable = false)
   @Enumerated(EnumType.STRING)
   @JdbcType(PostgreSQLEnumJdbcType.class)
-  private RetentionPolicyEnum retentionPolicy;
+  private RetentionPolicyEnum retentionPolicy = RetentionPolicyEnum.REGULAR;
 
   @Column(name = "launch_type")
   @Enumerated(EnumType.STRING)

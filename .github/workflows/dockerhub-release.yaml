@@ -3,11 +3,13 @@ name: Retag RC Docker image
 on:
   pull_request_review:
     types: [submitted]
-  workflow_dispatch:
-
 
 jobs:
   release:
+    if: >
+      github.event.review.state == 'approved' &&
+      (github.base_ref == 'main' || github.base_ref == 'master')
+    # TODO: Pin reusable workflow to a version tag once v1 is released
     uses: reportportal/.github/.github/workflows/dockerhub-release.yaml@main
     secrets: inherit
     with:

@@ -15,10 +15,10 @@ apache-commons-collections4 = "4.5.0"
 apache-commons-compress = "1.28.0"
 apache-commons-lang3 = "3.20.0"
 apache-poi = "5.5.0"
-aws-sdk = "2.38.2"
+aws-sdk = "2.41.3"
 bouncycastle = "1.82"
 commons-validator = "1.10.0"
-embedded-postgres = "2.1.1"
+embedded-postgres = "2.2.0"
 flyway-spring-test = "10.0.0"
 google-api-client = "2.8.1"
 guava = "33.5.0-jre"
@@ -92,7 +92,6 @@ xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
 bouncycastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
 google-api-client = { group = "com.google.api-client", name = "google-api-client", version.ref = "google-api-client" }
 commons-validator = { group = "commons-validator", name = "commons-validator", version.ref = "commons-validator" }
-apache-jclouds-filesystem = { group = "org.apache.jclouds.api", name = "filesystem", version.ref = "jclouds" }
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "apache-commons-compress" }
 apache-commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "apache-commons-lang3" }
 apache-commons-collections4 = { group = "org.apache.commons", name = "commons-collections4", version.ref = "apache-commons-collections4" }

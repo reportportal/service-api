@@ -203,4 +203,16 @@ public interface GetTestItemHandler {
    */
   List<TestItemResource> getTestItems(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user);
+
+
+  /**
+   * Get {@link TestItem} instances by list of IDs filtered by project ID
+   *
+   * @param ids            List of {@link TestItem#itemId}
+   * @param membershipDetails {@link MembershipDetails}
+   * @param user           {@link ReportPortalUser}
+   * @return {@link List} of the {@link TestItemResource}
+   */
+  List<TestItemResource> getTestItemsByIds(List<Long> ids, MembershipDetails membershipDetails, ReportPortalUser user);
 }
+

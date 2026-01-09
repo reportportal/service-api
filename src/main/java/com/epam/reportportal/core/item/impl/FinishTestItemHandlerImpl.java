@@ -277,7 +277,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     TestItemResults testItemResults = testItem.getItemResults();
     Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
-    if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(),
+    if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getLaunchId(), testItem.getPath(),
         IN_PROGRESS.name()
     )) {
       finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED),

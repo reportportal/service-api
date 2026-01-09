@@ -18,6 +18,7 @@ package com.epam.reportportal.core.item.impl;
 
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -147,7 +148,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
         .orElseGet(() -> launchIdOptional.map(id -> {
           launchAccessValidator.validate(id, membershipDetails, user);
           return testItemRepository.findByFilter(filter, pageable);
-        }).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+        }).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             "Neither launch nor filter id specified."
         )));
 
@@ -169,7 +170,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
         .orElseThrow(() -> new ReportPortalException(
-            ErrorType.BAD_REQUEST_ERROR,
+            BAD_REQUEST_ERROR,
             "Test item data provider base is not specified. Allowed data provider {}",
             DataProviderType.values()
         ));
@@ -194,7 +195,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
       Map<String, String> params) {
     DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
         .orElseThrow(() -> new ReportPortalException(
-            ErrorType.BAD_REQUEST_ERROR,
+            BAD_REQUEST_ERROR,
             "Test item data provider base is not specified. Allowed data provider {}",
             DataProviderType.values()
         ));
@@ -327,6 +328,26 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
                 .build())
         .build();
     return filter;
+  }
+
+  @Override
+  public List<TestItemResource> getTestItemsByIds(List<Long> ids, MembershipDetails projectDetails,
+      ReportPortalUser user) {
+    List<TestItem> items = testItemRepository.findAllByItemIdInAndProjectId(ids,
+        projectDetails.getProjectId());
+
+    if (items.size() != ids.size()) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR, "Invalid list of ids");
+    }
+
+    List<ResourceUpdater<TestItemResource>> resourceUpdaters =
+        getResourceUpdaters(projectDetails.getProjectId(), items);
+
+    return items.stream().map(item -> {
+      TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+      resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+      return testItemResource;
+    }).collect(toList());
   }
 
 }

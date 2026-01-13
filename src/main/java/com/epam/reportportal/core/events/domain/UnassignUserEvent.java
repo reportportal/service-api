@@ -53,6 +53,12 @@ public class UnassignUserEvent extends AbstractEvent<UserActivityResource> {
     this.after = userActivityResource;
   }
 
+  public UnassignUserEvent(UserActivityResource userActivityResource, Long orgId) {
+    super();
+    this.after = userActivityResource;
+    this.organizationId = orgId;
+  }
+
   /**
    * Convenience method to get the unassigned user resource. Equivalent to {@code getAfter()}.
    */

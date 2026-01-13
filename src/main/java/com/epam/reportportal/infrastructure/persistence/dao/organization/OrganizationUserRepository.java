@@ -52,4 +52,12 @@ public interface OrganizationUserRepository extends
    */
   @Query(value = "SELECT ou.organization_id FROM organization_user ou WHERE ou.user_id = :userId", nativeQuery = true)
   List<Long> findOrganizationIdsByUserId(@Param("userId") Long userId);
+
+  @Query(value = """
+      SELECT ou.organization_id FROM organization_user ou
+      JOIN public.organization o ON o.id = ou.organization_id
+      WHERE ou.user_id = :userId
+      AND o.organization_type <> 'PERSONAL'
+      """, nativeQuery = true)
+  List<Long> findNonPersonalOrganizationIdsByUserId(@Param("userId") Long userId);
 }

@@ -33,6 +33,7 @@ import com.epam.reportportal.core.remover.ContentRemover;
 import com.epam.reportportal.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
@@ -75,6 +76,9 @@ class DeleteUserHandlerImplTest {
   private EmailNotificationStrategy emailNotificationStrategy;
 
   @Mock
+  private OrganizationUserRepository organizationUserRepository;
+
+  @Mock
   private ApplicationEventPublisher applicationEventPublisher;
 
   @InjectMocks
@@ -87,6 +91,7 @@ class DeleteUserHandlerImplTest {
     user.setLogin("test");
 
     doReturn(Optional.of(user)).when(repository).findById(2L);
+    when(organizationUserRepository.findNonPersonalOrganizationIdsByUserId(user.getId())).thenReturn(Lists.newArrayList());
     when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
     doNothing().when(dataStore).deleteUserPhoto(any());
     when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);

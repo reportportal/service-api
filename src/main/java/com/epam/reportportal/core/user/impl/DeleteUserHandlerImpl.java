@@ -108,7 +108,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
     List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
     userProjects.forEach(project -> {
       projectRecipientHandler.handle(Lists.newArrayList(user), project);
-      publishUserUnassignEvent(user, project.getId(), null);
+      publishUserUnassignEvent(user, project.getId(), project.getOrganizationId());
     });
 
     dataStore.deleteUserPhoto(user);

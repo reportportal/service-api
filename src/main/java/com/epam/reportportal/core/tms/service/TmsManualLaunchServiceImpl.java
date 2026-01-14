@@ -131,7 +131,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   public TmsManualLaunchRS getById(long projectId, Long launchId) {
     log.debug("Getting manual launch by ID: {} for project: {}", launchId, projectId);
 
-    var launch = launchRepository.findByIdAndProjectId(launchId, projectId)
+    var launch = launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId)
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
@@ -243,7 +243,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     log.debug("Patching manual launch: {} for project: {}", launchId, projectId);
 
     var existingLaunch = launchRepository
-        .findByIdAndProjectId(launchId, projectId)
+        .findManualLaunchByIdAndProjectId(launchId, projectId)
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
@@ -274,7 +274,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   public void addTestCaseToLaunch(Long projectId, Long launchId, AddTestCaseToLaunchRQ request) {
 
     // Verify launch exists and belongs to project
-    var launch = launchRepository.findByIdAndProjectId(launchId, projectId)
+    var launch = launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId)
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
@@ -306,7 +306,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
       BatchAddTestCasesToLaunchRQ request) {
 
     // Verify launch exists and belongs to project
-    var launch = launchRepository.findByIdAndProjectId(launchId, projectId)
+    var launch = launchRepository
+        .findManualLaunchByIdAndProjectId(launchId, projectId)
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );

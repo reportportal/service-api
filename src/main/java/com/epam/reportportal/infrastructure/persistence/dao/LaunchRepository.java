@@ -172,6 +172,9 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
 
   Optional<Launch> findByIdAndProjectId(@Param("id") Long id, @Param("projectId") Long projectId);
 
+  @Query(value = "SELECT l FROM Launch l WHERE l.id = :id AND l.projectId = :projectId AND l.launchType = 'MANUAL'")
+  Optional<Launch> findManualLaunchByIdAndProjectId(@Param("id") Long id, @Param("projectId") Long projectId);
+
   /**
    * Checks if launch exists by ID and project ID.
    *

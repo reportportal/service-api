@@ -52,6 +52,9 @@ public class LogResource {
     @JsonProperty(value = "contentType", required = true)
     private String contentType;
 
+    @JsonProperty(value = "fileName")
+    private String fileName;
+
   }
 
   @JsonProperty(value = "id", required = true)

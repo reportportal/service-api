@@ -10,6 +10,7 @@ import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.csv.TmsTestCaseImportRS;
 import com.epam.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.core.tms.validation.ValidTestFolderIdForPatchTestCase;
 import com.epam.reportportal.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
@@ -271,31 +272,35 @@ public class TestCaseController {
   }
 
   /**
-   * Imports test cases from a file into a project. Supports CSV and JSON file formats.
+   * Imports test cases from a CSV file into a project.
    *
    * @param projectKey The key of the project.
-   * @param file       The file containing test cases to import.
-   * @return A list of created test cases.
+   * @param file       The CSV file containing test cases to import.
+   * @param testFolderId The ID of the test folder to import test cases into.
+   * @param testFolderName The name of the test folder to import test cases into.
+   * @param rejectEmptySteps Whether to reject test cases with empty steps.
+   * @return An import result containing created test cases and any errors.
    */
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
-      summary = "Import test cases",
-      description = "Imports test cases from a file into a project. Supports CSV and JSON formats.",
-      tags = {"Import/Export"}
+      summary = "Import test cases from CSV file",
+      description = "Imports test cases from a CSV file into the project."
   )
   @ApiResponse(responseCode = "200", description = "Test cases imported successfully")
-  public List<TmsTestCaseRS> importTestCases(@PathVariable("projectKey") String projectKey,
+  public TmsTestCaseImportRS importTestCases(
+      @PathVariable("projectKey") String projectKey,
       @RequestPart("file") MultipartFile file,
       @RequestParam(value = "testFolderId", required = false) Long testFolderId,
       @RequestParam(value = "testFolderName", required = false) String testFolderName,
+      @RequestParam(value = "rejectEmptySteps", defaultValue = "true") boolean rejectEmptySteps,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return tmsTestCaseService.importFromFile(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+
+    return tmsTestCaseService.importFromCsvFile(
+        projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)).getProjectId(),
         testFolderId,
         testFolderName,
-        file);
+        file,
+        rejectEmptySteps);
   }
 
   /**

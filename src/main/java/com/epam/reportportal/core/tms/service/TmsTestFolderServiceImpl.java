@@ -19,6 +19,7 @@ import com.epam.reportportal.core.tms.validation.TestFolderIdValidator;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
@@ -26,11 +27,15 @@ import com.epam.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ValidationException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  * retrieving, and deleting folders. It also supports hierarchical folder structures with
  * parent-child relationships and exporting folder data in various formats.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TmsTestFolderServiceImpl implements TmsTestFolderService {
@@ -778,5 +784,87 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         .findAllByProjectIdAndTestPlanIdWithCountOfTestCases(projectId, testPlanId, pageable);
 
     return tmsTestFolderMapper.convert(foldersPage);
+  }
+
+  @Override
+  @Transactional
+  public Long resolveFolderPath(Long projectId, Long parentFolderId, List<String> pathHierarchy) {
+    if (CollectionUtils.isEmpty(pathHierarchy)) {
+      return parentFolderId;
+    }
+
+    Long currentParentId = parentFolderId;
+
+    for (String folderName : pathHierarchy) {
+      currentParentId = findOrCreateFolder(projectId, currentParentId, folderName);
+    }
+
+    return currentParentId;
+  }
+
+  @Override
+  @Transactional
+  public Map<String, Long> resolveFolderPathsBatch(Long projectId, Long parentFolderId,
+      List<List<String>> pathHierarchies) {
+    Map<String, Long> pathToFolderIdCache = new HashMap<>();
+
+    for (List<String> pathHierarchy : pathHierarchies) {
+      if (CollectionUtils.isEmpty(pathHierarchy)) {
+        continue;
+      }
+
+      String pathKey = String.join("/", pathHierarchy);
+      if (pathToFolderIdCache.containsKey(pathKey)) {
+        continue;
+      }
+
+      // Check if we already resolved a parent path
+      Long resolvedParentId = parentFolderId;
+      StringBuilder currentPathBuilder = new StringBuilder();
+
+      for (int i = 0; i < pathHierarchy.size(); i++) {
+        String folderName = pathHierarchy.get(i);
+        if (i > 0) {
+          currentPathBuilder.append("/");
+        }
+        currentPathBuilder.append(folderName);
+        String currentPath = currentPathBuilder.toString();
+
+        if (pathToFolderIdCache.containsKey(currentPath)) {
+          resolvedParentId = pathToFolderIdCache.get(currentPath);
+        } else {
+          resolvedParentId = findOrCreateFolder(projectId, resolvedParentId, folderName);
+          pathToFolderIdCache.put(currentPath, resolvedParentId);
+        }
+      }
+    }
+
+    return pathToFolderIdCache;
+  }
+
+  private Long findOrCreateFolder(Long projectId, Long parentId, String folderName) {
+    return tmsTestFolderRepository
+        .findByProjectIdAndParentIdAndName(projectId, parentId, folderName)
+        .map(TmsTestFolder::getId)
+        .orElseGet(() -> createFolderInternal(projectId, parentId, folderName));
+  }
+
+  private Long createFolderInternal(Long projectId, Long parentId, String folderName) {
+    TmsTestFolder folder = new TmsTestFolder();
+    folder.setName(folderName);
+
+    Project project = new Project();
+    project.setId(projectId);
+    folder.setProject(project);
+
+    if (parentId != null) {
+      TmsTestFolder parentFolder = new TmsTestFolder();
+      parentFolder.setId(parentId);
+      folder.setParentTestFolder(parentFolder);
+    }
+
+    TmsTestFolder savedFolder = tmsTestFolderRepository.save(folder);
+
+    return savedFolder.getId();
   }
 }

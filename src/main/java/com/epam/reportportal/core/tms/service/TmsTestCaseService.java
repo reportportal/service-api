@@ -8,6 +8,7 @@ import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.csv.TmsTestCaseImportRS;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.model.Page;
@@ -29,8 +30,22 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
 
   void patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
 
-  List<TmsTestCaseRS> importFromFile(long projectId, Long testFolderId, String testFolderName,
-      MultipartFile file);
+  /**
+   * Imports test cases from CSV file with detailed result.
+   *
+   * @param projectId        project ID
+   * @param testFolderId     optional parent folder ID
+   * @param testFolderName   optional parent folder name to create
+   * @param file             CSV file to import
+   * @param rejectEmptySteps whether to reject Steps template rows without steps
+   * @return import result with imported test cases and errors/warnings
+   */
+  TmsTestCaseImportRS importFromCsvFile(
+      long projectId,
+      Long testFolderId,
+      String testFolderName,
+      MultipartFile file,
+      boolean rejectEmptySteps);
 
   void exportToFile(Long projectId, List<Long> ids, String format, boolean includeAttachments,
       HttpServletResponse response);

@@ -20,7 +20,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.D
 
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.user.UserIdFullNameProjection;
+import com.epam.ta.reportportal.entity.user.UserIdDisplayNameProjection;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
@@ -34,8 +34,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
- * Service to provide a {@link ResourceUpdater} for test items that populates analysis owner
- * information. Performs batch fetching of user full names for optimal performance.
+ * Service to provide a {@link ResourceUpdater} for test items that populates analysis owner information. Performs batch
+ * fetching of user full names (or logins) for optimal performance.
  *
  */
 @Service
@@ -46,8 +46,8 @@ public class AnalysisOwnerUpdaterProvider
   private final UserRepository userRepository;
 
   /**
-   * Retrieves and constructs a {@code ResourceUpdater} for working with test items, mapping each
-   * item's ID to the analysis owner's full name.
+   * Retrieves and constructs a {@code ResourceUpdater} for working with test items, mapping each item's ID to the
+   * analysis owner's full name (or login if full name is null).
    *
    * @param updaterContent The content containing test items to update.
    * @return A {@code ResourceUpdater} tailored to handle analysis owner mappings.
@@ -77,10 +77,10 @@ public class AnalysisOwnerUpdaterProvider
   }
 
   private Map<Long, String> getUserNamesMap(List<Long> userIds) {
-    return userRepository.findFullNamesByIds(userIds).stream()
+    return userRepository.findDisplayNamesByIds(userIds).stream()
         .collect(Collectors.toMap(
-            UserIdFullNameProjection::id,
-            UserIdFullNameProjection::fullName
+            UserIdDisplayNameProjection::id,
+            UserIdDisplayNameProjection::displayName
         ));
   }
 }

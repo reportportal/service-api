@@ -1,6 +1,7 @@
 package com.epam.reportportal.core.tms.service;
 
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
+import static java.util.Objects.nonNull;
 
 import com.epam.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
@@ -232,14 +233,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   public void patch(long projectId,
       @Valid BatchPatchTestCasesRQ patchRequest) {
     var testCaseIds = patchRequest.getTestCaseIds();
-    var testFolderId = patchRequest.getTestFolderId();
-    if (Objects.nonNull(testFolderId) && !tmsTestFolderService.existsById(projectId,
-        testFolderId)) {
-      throw new ReportPortalException(
-          NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
+    Long testFolderId = null;
+    if (nonNull(patchRequest.getTestFolderId())
+        || (nonNull(patchRequest.getTestFolder())
+        && nonNull(patchRequest.getTestFolder().getName()))) {
+      testFolderId = tmsTestFolderService.resolveTargetFolderId(
+          projectId, patchRequest.getTestFolderId(), patchRequest.getTestFolder()
+      );
     }
-    if (Objects.nonNull(testFolderId)
-        || Objects.nonNull(patchRequest.getPriority())) {
+    if (nonNull(testFolderId)
+        || nonNull(patchRequest.getPriority())) {
       tmsTestCaseRepository.patch(projectId,
           testCaseIds,
           testFolderId,
@@ -502,7 +505,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     if (Objects.isNull(testFolderId) && Objects.isNull(testFolderRQ)) {
       return null;
     }
-    if (Objects.nonNull(testFolderId)) {
+    if (nonNull(testFolderId)) {
       if (tmsTestFolderService.existsById(projectId, testFolderId)) {
         return testFolderId;
       } else {
@@ -614,7 +617,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               tc,
               defaultVersions.get(tc.getId()),
               lastExecutionInTestPlan,
-              Objects.nonNull(lastExecutionInTestPlan) ?
+              nonNull(lastExecutionInTestPlan) ?
                   launches.get(lastExecutionInTestPlan.getLaunchId())
                   : null
           );

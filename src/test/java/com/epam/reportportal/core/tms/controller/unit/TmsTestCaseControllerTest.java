@@ -745,6 +745,129 @@ public class TmsTestCaseControllerTest {
   }
 
   @Test
+  void batchPatchTestCasesWithNewFolderTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Batch Folder")
+        .build();
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
+
+    // When/Then
+    mockMvc.perform(
+            patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).patch(projectId, patchRequest);
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderAndParentTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var parentFolderId = 10L;
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Nested Batch Folder")
+        .parentTestFolderId(parentFolderId)
+        .build();
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
+
+    // When/Then
+    mockMvc.perform(
+            patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).patch(projectId, patchRequest);
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderAndPriorityTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Folder With Priority")
+        .build();
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .priority("HIGH")
+        .build();
+
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
+
+    // When/Then
+    mockMvc.perform(
+            patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).patch(projectId, patchRequest);
+  }
+
+  @Test
+  void batchPatchTestCasesWithOnlyPriorityTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .priority("CRITICAL")
+        .build();
+
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
+
+    // When/Then
+    mockMvc.perform(
+            patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).patch(projectId, patchRequest);
+  }
+
+  @Test
+  void batchPatchTestCasesWithTestFolderIdAndPriorityTest() throws Exception {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(7L)
+        .priority("MEDIUM")
+        .build();
+
+    var jsonContent = objectMapper.writeValueAsString(patchRequest);
+
+    // When/Then
+    mockMvc.perform(
+            patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonContent))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).patch(projectId, patchRequest);
+  }
+
+  @Test
   void importTestCasesWithTestFolderIdTest() throws Exception {
     // Given
     var fileContent = "test,case,data";

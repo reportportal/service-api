@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.service;
 
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -33,8 +34,12 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
 
   BatchPatchTestCasesRS patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
 
-  List<TmsTestCaseRS> importFromFile(long projectId, Long testFolderId, String testFolderName,
-      MultipartFile file);
+  TmsTestCaseImportRS importFromFile(
+      long projectId,
+      Long testFolderId,
+      String testFolderName,
+      MultipartFile file
+  );
 
   void exportToFile(Long projectId, List<Long> ids, String format, boolean includeAttachments,
       HttpServletResponse response);

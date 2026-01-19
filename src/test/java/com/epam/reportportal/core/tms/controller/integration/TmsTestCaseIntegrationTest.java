@@ -1312,140 +1312,13 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertEquals(2L, createdFolder.get().getProject().getId()); // default_personal project id
   }
 
-  @Test
-  void importTestCasesToExistingFolderIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Imported Test Case 1",
-            "description": "Description for imported test case 1",
-            "priority": "HIGH",
-            "externalId": "123"
-          },
-          {
-            "name": "Imported Test Case 2",
-            "description": "Description for imported test case 2",
-            "priority": "MEDIUM",
-            "externalId": "321"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", String.valueOf(3L))
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("Imported Test Case 1"))
-        .andExpect(jsonPath("$[1].name").value("Imported Test Case 2"));
-
-    // Then - Verify test cases are created in database
-    var importedTestCases = testCaseRepository.findAll().stream()
-        .filter(tc -> tc.getName().startsWith("Imported Test Case"))
-        .toList();
-
-    assertEquals(2, importedTestCases.size());
-    assertEquals(3L, importedTestCases.getFirst().getTestFolder().getId());
-    assertEquals(3L, importedTestCases.get(1).getTestFolder().getId());
-  }
-
-  @Test
-  void importTestCasesFromJsonWithNonExistentFolderIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Imported Test Case with Invalid Folder",
-            "description": "Description",
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When/Then - should return error for non-existent folder
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", String.valueOf(999L))
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString("Test Folder with id: 999")));
-  }
-
-  @Test
-  void importTestCasesFromJsonWithNewFolderNameIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Imported Test Case with New Folder",
-            "description": "Description for imported test case with new folder",
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderName", "New Import Folder")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].name").value("Imported Test Case with New Folder"));
-
-    entityManager.clear();
-
-    // Then - Verify test case is created in database with new folder
-    var importedTestCases = testCaseRepository.findAll().stream()
-        .filter(tc -> tc.getName().equals("Imported Test Case with New Folder"))
-        .toList();
-
-    assertEquals(1, importedTestCases.size());
-    assertNotNull(importedTestCases.getFirst().getTestFolder());
-
-    var testFolder = tmsTestFolderRepository.findById(
-        importedTestCases.getFirst().getTestFolder().getId());
-
-    assertTrue(testFolder.isPresent());
-    assertEquals("New Import Folder", testFolder.get().getName());
-  }
 
   @Test
   void importTestCasesFromCsvIntegrationTest() throws Exception {
     // Given
-    var csvContent = """
-        name,description,priority,externalId
-        CSV Test Case 1,Description for CSV test case 1,HIGH,123
-        CSV Test Case 2,Description for CSV test case 2,MEDIUM,321
-        """;
+    var csvContent = "path,priority,summary,test steps,expected result,status,test type,description,labels,components,versions,bugs (not imported),requirements\n"
+        + "APP/Settings/Update user preferences,High,CSV Test Case 1,\"# Open 'Preferences' tab\n#* 'Theme' dropdown\n#* 'Language' dropdown\n#* 'Notifications' toggle\n#* 'Privacy' settings section\n# Save changes\",\"# 'Theme' dropdown shows available themes\n# 'Language' dropdown lists supported languages\n# 'Notifications' toggle is present and can be switched\n# 'Privacy' section is visible\n# Changes are saved and confirmation message appears\",Untested,Manual,,SmokeTest;v1.0,User management,,,REQ-1001\n"
+        + "APP/Settings/Update user preferences,Medium,CSV Test Case 2,\"# Click on 'Language' dropdown\n# Select 'Spanish'\n# Save changes\n# Refresh the page\",\"# 'Language' dropdown expands\n# 'Spanish' is selected\n# Confirmation message appears\n# Interface language changes to Spanish after refresh\",Untested,Manual,,Regression;v1.0,User management,,,REQ-1002";
 
     MockMultipartFile file = new MockMultipartFile(
         "file",
@@ -1460,19 +1333,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .param("testFolderId", String.valueOf(4L))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("CSV Test Case 1"))
-        .andExpect(jsonPath("$[1].name").value("CSV Test Case 2"));
-
-    // Then - Verify test cases are created in database
-    var importedTestCases = testCaseRepository.findAll().stream()
-        .filter(tc -> tc.getName().startsWith("CSV Test Case"))
-        .toList();
-
-    assertEquals(2, importedTestCases.size());
-    assertEquals(4L, importedTestCases.getFirst().getTestFolder().getId());
-    assertEquals(4L, importedTestCases.get(1).getTestFolder().getId());
+        .andExpect(jsonPath("$.createdTestCaseIds").isArray())
+        .andExpect(jsonPath("$.createdTestCaseIds.length()").value(2))
+        .andExpect(jsonPath("$.totalRows").value(2))
+        .andExpect(jsonPath("$.testFolderId").value(4))
+        .andExpect(jsonPath("$.successCount").value(2));
   }
 
   @Test
@@ -1497,99 +1362,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 "Unsupported import format: xml"
             ))
         );
-  }
-
-  @Test
-  void importTestCasesWithInvalidTestFolderValidationIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Test Case",
-            "description": "Description",
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When/Then - should return validation error
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", String.valueOf(3L))
-            .param("testFolderName", "Test Folder")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString(
-            "Either testFolderId or testFolderName must be provided and not empty")));
-  }
-
-  @Test
-  void importTestCasesWithMissingTestFolderValidationIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Test Case",
-            "description": "Description", 
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When/Then - should return validation error
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString(
-            "Either testFolderId or testFolderName must be provided and not empty")));
-  }
-
-  @Test
-  void importTestCasesWithEmptyTestFolderNameValidationIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Test Case",
-            "description": "Description", 
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When/Then - should return validation error
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", "")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString(
-            "Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test

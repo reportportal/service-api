@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.mapper;
 
+import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.reportportal.core.tms.dto.TmsAttributeRS;
@@ -25,4 +26,15 @@ public interface TmsAttributeMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "project", ignore = true)
   void patch(@MappingTarget TmsAttribute entity, TmsAttributeRQ request);
+
+  default TmsAttribute convertToTmsAttribute(Long projectId, String key) {
+    TmsAttribute attribute = new TmsAttribute();
+    attribute.setKey(key);
+
+    Project project = new Project();
+    project.setId(projectId);
+    attribute.setProject(project);
+
+    return attribute;
+  }
 }

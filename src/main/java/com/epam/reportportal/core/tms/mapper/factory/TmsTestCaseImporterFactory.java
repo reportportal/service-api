@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class TmsTestCaseImporterFactory {
@@ -22,14 +21,16 @@ public class TmsTestCaseImporterFactory {
         );
   }
 
-  public TmsTestCaseImporter getImporter(MultipartFile file) {
-    var format = TmsTestCaseImportFormat.fromFileName(file.getOriginalFilename());
+  public TmsTestCaseImporter getImporter(TmsTestCaseImportFormat format) {
     var importer = importers.get(format);
-
     if (importer == null) {
       throw new UnsupportedOperationException("Unsupported import format: " + format);
     }
-
     return importer;
+  }
+
+  public TmsTestCaseImporter getImporter(String fileName) {
+    var format = TmsTestCaseImportFormat.fromFileName(fileName);
+    return getImporter(format);
   }
 }

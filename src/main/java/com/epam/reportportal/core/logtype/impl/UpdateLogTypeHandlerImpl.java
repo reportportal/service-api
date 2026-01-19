@@ -34,7 +34,9 @@ import com.epam.reportportal.infrastructure.rules.exception.ReportPortalExceptio
 import com.epam.reportportal.model.activity.LogTypeActivityResource;
 import com.epam.reportportal.ws.converter.builders.LogTypeBuilder;
 import com.epam.reportportal.ws.converter.converters.LogTypeConverter;
+
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -56,19 +58,19 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
   /**
    * Updates a log type by ID in the specified project.
    *
-   * @param projectName The name of the project.
-   * @param logTypeId   The ID of the log type to update.
-   * @param updateRq    The log type data containing the updated fields.
-   * @param user        The user performing the action.
+   * @param projectKey The key of the project.
+   * @param logTypeId  The ID of the log type to update.
+   * @param updateRq   The log type data containing the updated fields.
+   * @param user       The user performing the action.
    * @return SuccessfulUpdate
    * @throws ReportPortalException if the project or log type is not found, or validation fails.
    */
   @Override
   @Transactional
-  public SuccessfulUpdate updateLogType(String projectName, Long logTypeId,
-      LogTypeRequest updateRq, ReportPortalUser user) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public SuccessfulUpdate updateLogType(String projectKey, Long logTypeId, LogTypeRequest updateRq,
+      ReportPortalUser user) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     ProjectLogType existingLogType = logTypeRepository.findById(logTypeId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Log type"));

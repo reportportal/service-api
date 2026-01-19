@@ -52,14 +52,14 @@ class GetLogTypeHandlerImplTest {
   void getLogTypesWhenProjectExistsShouldMapAndReturnSeveralItems() {
     // Given
     long projectId = 1L;
-    String projectName = "default_personal";
-    final Project project = new Project(projectId, projectName);
+    String projectKey = "default_personal";
+    final Project project = new Project(projectId, projectKey);
 
-    when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
     when(logTypeRepository.findByProjectId(projectId)).thenReturn(getBuildLogTypeModels());
 
     // When
-    GetLogTypes200Response response = handler.getLogTypes(projectName);
+    GetLogTypes200Response response = handler.getLogTypes(projectKey);
 
     // Then
     List<LogTypeResponse> items = response.getItems();
@@ -74,7 +74,7 @@ class GetLogTypeHandlerImplTest {
   void getLogTypesWhenProjectMissingShouldThrowProjectNotFound() {
     // Given
     String projectName = "unknown";
-    when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+    when(projectRepository.findByKey(projectName)).thenReturn(Optional.empty());
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,

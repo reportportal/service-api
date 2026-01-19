@@ -1091,7 +1091,7 @@ class TmsTestFolderServiceImplTest {
         sut.resolveTargetFolderId(projectId, null, null));
 
     assertTrue(exception.getMessage().contains(
-        "Either target folder id or target folder name must be provided for duplication"));
+        "Either target folder id or target folder name must be provided"));
   }
 
   @Test

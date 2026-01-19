@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -61,10 +62,84 @@ class BatchPatchTestCasesRQValidatorTest {
   }
 
   @Test
+  void shouldPassValidationWhenOnlyTestFolderIsProvided() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder().name("New Folder").build())
+        .priority(null)
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void shouldPassValidationWhenTestFolderAndPriorityAreProvided() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder().name("New Folder").build())
+        .priority("HIGH")
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void shouldPassValidationWhenTestFolderWithParentIsProvided() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder()
+            .name("Nested Folder")
+            .parentTestFolderId(5L)
+            .build())
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void shouldFailValidationWhenBothTestFolderIdAndTestFolderAreProvided() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolderId(1L)
+        .testFolder(NewTestFolderRQ.builder().name("New Folder").build())
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertFalse(violations.isEmpty());
+    assertEquals(1, violations.size());
+    assertTrue(violations.stream().anyMatch(v ->
+        v.getMessage().contains("Either testFolderId or testFolderName must be provided")));
+  }
+
+  @Test
+  void shouldFailValidationWhenBothTestFolderIdAndTestFolderWithPriorityAreProvided() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolderId(1L)
+        .testFolder(NewTestFolderRQ.builder().name("New Folder").build())
+        .priority("HIGH")
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertFalse(violations.isEmpty());
+    assertTrue(violations.stream().anyMatch(v ->
+        v.getMessage().contains("Either testFolderId or testFolderName must be provided")));
+  }
+
+  @Test
   void shouldFailValidationWhenAllFieldsAreNull() {
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
         .testFolderId(null)
+        .testFolder(null)
         .priority(null)
         .build();
 
@@ -80,6 +155,7 @@ class BatchPatchTestCasesRQValidatorTest {
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
         .testFolderId(null)
+        .testFolder(null)
         .priority("")
         .build();
 
@@ -95,6 +171,7 @@ class BatchPatchTestCasesRQValidatorTest {
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
         .testFolderId(null)
+        .testFolder(null)
         .priority("   ")
         .build();
 
@@ -106,11 +183,55 @@ class BatchPatchTestCasesRQValidatorTest {
   }
 
   @Test
+  void shouldFailValidationWhenTestFolderHasNullName() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder().name(null).build())
+        .priority(null)
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertFalse(violations.isEmpty());
+    assertTrue(violations.stream().anyMatch(v ->
+        v.getMessage().contains("Either folderId or priority must be provided and not empty")));
+  }
+
+  @Test
+  void shouldFailValidationWhenTestFolderHasNullNameButPriorityIsBlank() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder().name(null).build())
+        .priority("   ")
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertFalse(violations.isEmpty());
+    assertTrue(violations.stream().anyMatch(v ->
+        v.getMessage().contains("Either folderId or priority must be provided and not empty")));
+  }
+
+  @Test
+  void shouldPassValidationWhenTestFolderHasNullNameButPriorityIsValid() {
+    // testFolder with null name is ignored, but priority is valid
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder().name(null).build())
+        .priority("HIGH")
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
   void shouldPassValidationWhenObjectIsNull() {
     // Validator should return true for null objects (let @NotNull handle it)
-    var validator = new BatchPatchTestCasesRQValidator();
+    var validatorInstance = new BatchPatchTestCasesRQValidator();
 
-    boolean result = validator.isValid(null, null);
+    var result = validatorInstance.isValid(null, null);
 
     assertTrue(result);
   }
@@ -120,6 +241,7 @@ class BatchPatchTestCasesRQValidatorTest {
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
         .testFolderId(null)
+        .testFolder(null)
         .priority("")
         .build();
 
@@ -136,6 +258,7 @@ class BatchPatchTestCasesRQValidatorTest {
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
         .testFolderId(null)
+        .testFolder(null)
         .priority("   ")
         .build();
 
@@ -152,7 +275,49 @@ class BatchPatchTestCasesRQValidatorTest {
     var request = BatchPatchTestCasesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
         .testFolderId(null)
+        .testFolder(null)
         .priority("MEDIUM")
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void shouldPassValidationWhenTestFolderIdAndPriorityAreProvided() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolderId(1L)
+        .testFolder(null)
+        .priority("LOW")
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void shouldNotTriggerConflictWhenTestFolderIsNullButTestFolderIdExists() {
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolderId(1L)
+        .testFolder(null)
+        .build();
+
+    var violations = validator.validate(request);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void shouldNotTriggerConflictWhenTestFolderNameIsNullButTestFolderIdExists() {
+    // testFolder exists but name is null - should not trigger conflict
+    var request = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(List.of(1L, 2L))
+        .testFolderId(1L)
+        .testFolder(NewTestFolderRQ.builder().name(null).parentTestFolderId(5L).build())
         .build();
 
     var violations = validator.validate(request);

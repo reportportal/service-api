@@ -358,7 +358,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       return tmsTestFolderRepository.save(targetFolder).getId();
     } else {
       throw new ReportPortalException(BAD_REQUEST_ERROR,
-          "Either target folder id or target folder name must be provided for duplication");
+          "Either target folder id or target folder name must be provided");
     }
   }
 

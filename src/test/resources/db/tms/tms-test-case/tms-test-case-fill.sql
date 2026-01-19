@@ -150,6 +150,51 @@ insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (37, 'Test Case With Version 37', 'Test case with default version 37', 10, 'HIGH');
 
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (38, 'Batch Patch New Folder Test 38', 'Test case for batch patch with new folder', 3, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (39, 'Batch Patch New Folder Test 39', 'Test case for batch patch with new folder', 3, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (40, 'Batch Patch Nested Folder Test 40', 'Test case for batch patch with nested folder', 4, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (41, 'Batch Patch Nested Folder Test 41', 'Test case for batch patch with nested folder', 4, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (42, 'Batch Patch Folder Priority Test 42', 'Test case for batch patch with folder and priority', 5, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (43, 'Batch Patch Folder Priority Test 43', 'Test case for batch patch with folder and priority', 5, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (44, 'Batch Patch Validation Test 44', 'Test case for batch patch validation', 6, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (45, 'Batch Patch Validation Test 45', 'Test case for batch patch validation', 6, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (46, 'Batch Patch Non-Existent Parent Test 46', 'Test case for non-existent parent folder', 7, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (47, 'Batch Patch Non-Existent Parent Test 47', 'Test case for non-existent parent folder', 7, 'HIGH');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (48, 'Batch Patch Empty Name Test 48', 'Test case for empty folder name validation', 8, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (49, 'Batch Patch Empty Name Test 49', 'Test case for empty folder name validation', 8, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (50, 'Batch Patch Single TC Test 50', 'Test case for single test case batch patch', 3, 'MEDIUM');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (51, 'Default Project Batch Test 51', 'Test case for default project batch patch', 9, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
+values (52, 'Default Project Batch Test 52', 'Test case for default project batch patch', 9, 'LOW');
+
+insert into tms_test_case (id, "name", description, test_folder_id, priority)
 values (100, 'Test Case with Last Execution', 'Test case that has execution data', 3, 'HIGH');
 
 insert into tms_test_case (id, "name", description, test_folder_id, priority)
@@ -368,6 +413,52 @@ values (34, 36, 'Default Version 34', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
 values (35, 37, 'Default Version 36', true, false);
+
+-- Test case versions for new test cases
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (38, 38, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (39, 39, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (40, 40, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (41, 41, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (42, 42, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (43, 43, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (44, 44, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (45, 45, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (46, 46, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (47, 47, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (48, 48, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (49, 49, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (50, 50, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (51, 51, 'Default Version', true, false);
+
+insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
+values (52, 52, 'Default Version', true, false);
 
 insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draft)
 values (100, 100, 'Default Version 100', true, false);

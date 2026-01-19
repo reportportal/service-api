@@ -44,14 +44,14 @@ public class GetLogTypeHandlerImpl implements GetLogTypeHandler {
   /**
    * Retrieves log types for the specified project.
    *
-   * @param projectName The name of the project.
+   * @param projectKey The key of the project.
    * @return A response containing the log types for the project.
    * @throws ReportPortalException If the project is not found.
    */
   @Override
-  public GetLogTypes200Response getLogTypes(String projectName) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public GetLogTypes200Response getLogTypes(String projectKey) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     List<LogTypeResponse> items = logTypeRepository.findByProjectId(project.getId()).stream()
         .map(LogTypeConverter.TO_RESOURCE)

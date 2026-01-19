@@ -48,7 +48,7 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class DeleteLogTypeHandlerImplTest {
 
-  private static final String PROJECT_NAME = "default_personal";
+  private static final String PROJECT_KEY = "default_personal";
   private static final Long PROJECT_ID = 1L;
   private static final Long LOG_TYPE_ID = 10L;
 
@@ -70,10 +70,10 @@ class DeleteLogTypeHandlerImplTest {
   @Test
   void deleteLogTypeWhenValidShouldDeleteSuccessfully() {
     // Given
-    Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    Project project = new Project(PROJECT_ID, PROJECT_KEY);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, PROJECT_ID, "custom", 9000, false);
 
-    when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(PROJECT_KEY)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
     doNothing().when(logTypeValidator).validateLogTypeBelongsToProject(logType, PROJECT_ID);
 
@@ -82,7 +82,7 @@ class DeleteLogTypeHandlerImplTest {
         ProjectRole.EDITOR, PROJECT_ID);
 
     // When
-    handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user);
+    handler.deleteLogType(PROJECT_KEY, LOG_TYPE_ID, user);
 
     // Then
     verify(logTypeRepository).delete(logType);
@@ -94,11 +94,11 @@ class DeleteLogTypeHandlerImplTest {
     // Given
     ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
         OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
-    when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.empty());
+    when(projectRepository.findByKey(PROJECT_KEY)).thenReturn(Optional.empty());
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
+        () -> handler.deleteLogType(PROJECT_KEY, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.PROJECT_NOT_FOUND, ex.getErrorType());
@@ -107,16 +107,16 @@ class DeleteLogTypeHandlerImplTest {
   @Test
   void deleteLogTypeWhenLogTypeNotFoundShouldThrowNotFound() {
     // Given
-    Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    Project project = new Project(PROJECT_ID, PROJECT_KEY);
     ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
         OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
-    when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(PROJECT_KEY)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.empty());
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
+        () -> handler.deleteLogType(PROJECT_KEY, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.NOT_FOUND, ex.getErrorType());
@@ -125,13 +125,13 @@ class DeleteLogTypeHandlerImplTest {
   @Test
   void deleteLogTypeWhenLogTypeBelongsToDifferentProjectShouldThrowForbiddenOperation() {
     // Given
-    Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    Project project = new Project(PROJECT_ID, PROJECT_KEY);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, 2L, "custom", 9000, false);
     ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
         OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
-    when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(PROJECT_KEY)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
     doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED, LOG_TYPE_ID,
         "Log type '10' does not belong to the specified project"))
@@ -139,7 +139,7 @@ class DeleteLogTypeHandlerImplTest {
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
+        () -> handler.deleteLogType(PROJECT_KEY, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
@@ -148,19 +148,19 @@ class DeleteLogTypeHandlerImplTest {
   @Test
   void deleteLogTypeWhenLogTypeIsSystemShouldThrowAccessDenied() {
     // Given
-    Project project = new Project(PROJECT_ID, PROJECT_NAME);
+    Project project = new Project(PROJECT_ID, PROJECT_KEY);
     ProjectLogType logType = createLogType(LOG_TYPE_ID, PROJECT_ID, "error", 40000, true);
     ReportPortalUser user = ReportPortalUserUtil.getRpUser("user", UserRole.USER,
         OrganizationRole.MEMBER,
         ProjectRole.EDITOR, PROJECT_ID);
 
-    when(projectRepository.findByName(PROJECT_NAME)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(PROJECT_KEY)).thenReturn(Optional.of(project));
     when(logTypeRepository.findById(LOG_TYPE_ID)).thenReturn(Optional.of(logType));
     doNothing().when(logTypeValidator).validateLogTypeBelongsToProject(logType, PROJECT_ID);
 
     // When
     ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> handler.deleteLogType(PROJECT_NAME, LOG_TYPE_ID, user));
+        () -> handler.deleteLogType(PROJECT_KEY, LOG_TYPE_ID, user));
 
     // Then
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());

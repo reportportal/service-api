@@ -52,7 +52,7 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
   /**
    * Deletes a log type by ID from the specified project.
    *
-   * @param projectName The name of the project.
+   * @param projectKey  The key of the project.
    * @param logTypeId   The ID of the log type to delete.
    * @param user        The user performing the action.
    * @throws ReportPortalException if the project or log type is not found, or if the log type is a
@@ -60,9 +60,9 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
    */
   @Override
   @Transactional
-  public void deleteLogType(String projectName, Long logTypeId, ReportPortalUser user) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+  public void deleteLogType(String projectKey, Long logTypeId, ReportPortalUser user) {
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
     ProjectLogType logType = logTypeRepository.findById(logTypeId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Log type"));

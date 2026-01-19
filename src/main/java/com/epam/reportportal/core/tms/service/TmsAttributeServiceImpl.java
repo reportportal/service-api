@@ -16,12 +16,15 @@ import com.epam.reportportal.infrastructure.rules.exception.ReportPortalExceptio
 import com.epam.reportportal.model.Page;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.persistence.EntityExistsException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,13 +84,50 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Map<Long, TmsAttribute> getAllByIds(Long projectId, List<Long> ids) {
-    return tmsAttributeRepository
-        .findAllById(ids)
-        .stream()
-        .filter(attr -> attr.getProject().getId().equals(projectId))
-        .collect(Collectors.toMap(TmsAttribute::getId, Function.identity()));
+  @Transactional
+  public Map<String, Long> resolveAttributes(Long projectId, Set<String> allAttributeKeys) {
+    if (CollectionUtils.isEmpty(allAttributeKeys)) {
+      return Map.of();
+    }
+
+    var uniqueKeys = allAttributeKeys.stream()
+        .filter(key -> key != null && !key.isBlank())
+        .collect(Collectors.toSet());
+
+    if (uniqueKeys.isEmpty()) {
+      return Map.of();
+    }
+
+    Map<String, Long> result = new HashMap<>();
+
+    // Find existing attributes
+    var existingAttributes = tmsAttributeRepository
+        .findAllByProject_IdAndKeyIn(projectId, uniqueKeys);
+
+    existingAttributes.forEach(attr -> result.put(attr.getKey(), attr.getId()));
+
+    // Create missing attributes
+    var existingKeys = existingAttributes.stream()
+        .map(TmsAttribute::getKey)
+        .collect(Collectors.toSet());
+
+    var missingKeys = uniqueKeys.stream()
+        .filter(key -> !existingKeys.contains(key))
+        .collect(Collectors.toSet());
+
+    for (String key : missingKeys) {
+      var attributeId = createAttributeInternal(projectId, key);
+      result.put(key, attributeId);
+    }
+
+    return result;
+  }
+
+  private Long createAttributeInternal(Long projectId, String key) {
+    TmsAttribute attribute = tmsAttributeMapper.convertToTmsAttribute(projectId, key);
+
+    var savedAttribute = tmsAttributeRepository.save(attribute);
+    return savedAttribute.getId();
   }
 
   private TmsAttribute findAttributeByIdAndProjectId(Long projectId, Long attributeId) {

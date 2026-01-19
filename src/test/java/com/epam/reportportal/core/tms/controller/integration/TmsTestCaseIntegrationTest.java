@@ -71,7 +71,6 @@ import org.springframework.test.context.jdbc.Sql;
  */
 @Sql("/db/tms/tms-test-case/tms-test-case-fill.sql")
 @ExtendWith(MockitoExtension.class)
-@Disabled
 public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
@@ -597,7 +596,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(5)); // 5 test cases in folder 7
+        .andExpect(jsonPath("$.content.length()").value(7)); // 7 test cases in folder 7
   }
 
   @Test
@@ -617,7 +616,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(
-            1)); // 1 test case in folder 8 with priority == LOW
+            3)); // 3 test cases in folder 8 with priority == LOW
 
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("filter.eq.testFolderId", "8")
@@ -1032,6 +1031,285 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(status().isNotFound())
         .andExpect(content().string(
             containsString("'Test Folder with id: 999 for project: 1' not found")));
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(38L, 39L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Batch Patch Folder")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then - Verify new folder was created and test cases were moved
+    Optional<TmsTestCase> testCase38After = testCaseRepository.findById(38L);
+    Optional<TmsTestCase> testCase39After = testCaseRepository.findById(39L);
+
+    assertTrue(testCase38After.isPresent());
+    assertTrue(testCase39After.isPresent());
+
+    // Both test cases should be in the same new folder
+    assertEquals(testCase38After.get().getTestFolder().getId(),
+        testCase39After.get().getTestFolder().getId());
+
+    // Verify the new folder was created with correct name
+    var newFolderId = testCase38After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("New Batch Patch Folder", createdFolder.get().getName());
+    assertNull(createdFolder.get().getParentTestFolder()); // Root folder
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewNestedFolderIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(40L, 41L);
+    Long parentFolderId = 10L;
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Nested Batch Folder")
+        .parentTestFolderId(parentFolderId)
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then - Verify new nested folder was created and test cases were moved
+    Optional<TmsTestCase> testCase40After = testCaseRepository.findById(40L);
+    Optional<TmsTestCase> testCase41After = testCaseRepository.findById(41L);
+
+    assertTrue(testCase40After.isPresent());
+    assertTrue(testCase41After.isPresent());
+
+    // Both test cases should be in the same new folder
+    assertEquals(testCase40After.get().getTestFolder().getId(),
+        testCase41After.get().getTestFolder().getId());
+
+    // Verify the new folder was created with correct name and parent
+    var newFolderId = testCase40After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("New Nested Batch Folder", createdFolder.get().getName());
+    assertNotNull(createdFolder.get().getParentTestFolder());
+    assertEquals(parentFolderId, createdFolder.get().getParentTestFolder().getId());
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderAndPriorityIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(42L, 43L);
+    String newPriority = "CRITICAL";
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Folder With Priority Update")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .priority(newPriority)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then - Verify both folder and priority were updated
+    Optional<TmsTestCase> testCase42After = testCaseRepository.findById(42L);
+    Optional<TmsTestCase> testCase43After = testCaseRepository.findById(43L);
+
+    assertTrue(testCase42After.isPresent());
+    assertTrue(testCase43After.isPresent());
+
+    // Both test cases should be in the same new folder
+    assertEquals(testCase42After.get().getTestFolder().getId(),
+        testCase43After.get().getTestFolder().getId());
+
+    // Verify priority was updated
+    assertEquals(newPriority, testCase42After.get().getPriority());
+    assertEquals(newPriority, testCase43After.get().getPriority());
+
+    // Verify folder name
+    var newFolderId = testCase42After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("New Folder With Priority Update", createdFolder.get().getName());
+  }
+
+  @Test
+  void batchPatchTestCasesWithBothFolderIdAndNewFolderValidationIntegrationTest() throws Exception {
+    // Given - both testFolderId and testFolder provided (should fail validation)
+    List<Long> testCaseIds = List.of(44L, 45L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Conflicting New Folder")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(6L)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - should return validation error
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderNonExistentParentIntegrationTest() throws Exception {
+    // Given - new folder with non-existent parent
+    List<Long> testCaseIds = List.of(46L, 47L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Orphan Folder")
+        .parentTestFolderId(999L) // Non-existent parent
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - should return not found for non-existent parent folder
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string(containsString("Test Folder with id: 999")));
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderEmptyNameValidationIntegrationTest() throws Exception {
+    // Given - new folder with empty name
+    List<Long> testCaseIds = List.of(48L, 49L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - should return 200
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void batchPatchTestCasesWithSingleTestCaseAndNewFolderIntegrationTest() throws Exception {
+    // Given - single test case with new folder
+    List<Long> testCaseIds = List.of(50L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Single Test Case New Folder")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then
+    Optional<TmsTestCase> testCase50After = testCaseRepository.findById(50L);
+    assertTrue(testCase50After.isPresent());
+
+    var newFolderId = testCase50After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("Single Test Case New Folder", createdFolder.get().getName());
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderInDifferentProjectIntegrationTest() throws Exception {
+    // Given - test cases from default project with new folder
+    List<Long> testCaseIds = List.of(51L, 52L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Default Project New Folder")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + DEFAULT_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then - Verify new folder was created in correct project
+    Optional<TmsTestCase> testCase51After = testCaseRepository.findById(51L);
+    assertTrue(testCase51After.isPresent());
+
+    var newFolderId = testCase51After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("Default Project New Folder", createdFolder.get().getName());
+    assertEquals(2L, createdFolder.get().getProject().getId()); // default_personal project id
   }
 
   @Test

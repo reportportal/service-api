@@ -45,7 +45,6 @@ import org.springframework.test.context.jdbc.Sql;
  */
 @Sql("/db/tms/tms-test-folder/tms-test-folder-fill.sql")
 @ExtendWith(MockitoExtension.class)
-@Disabled
 class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";

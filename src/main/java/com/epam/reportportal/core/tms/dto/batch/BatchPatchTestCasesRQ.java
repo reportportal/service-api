@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.dto.batch;
 
+import com.epam.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.core.tms.validation.ValidBatchPatchTestCasesRQ;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotEmpty;
@@ -27,6 +28,8 @@ public class BatchPatchTestCasesRQ {
   private List<Long> testCaseIds;
 
   private Long testFolderId;
+
+  private NewTestFolderRQ testFolder;
 
   private String priority;
 }

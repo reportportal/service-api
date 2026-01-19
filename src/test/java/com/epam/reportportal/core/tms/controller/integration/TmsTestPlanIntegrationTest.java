@@ -52,7 +52,6 @@ import org.springframework.test.web.servlet.MvcResult;
  */
 @Sql("/db/tms/tms-test-plan/tms-test-plan-fill.sql")
 @ExtendWith(MockitoExtension.class)
-@Disabled
 public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";

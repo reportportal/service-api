@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.service;
 
+import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -70,6 +70,9 @@ import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class TmsTestCaseServiceImplTest {
+
+  private static final String TEST_FOLDER_NOT_FOUND_BY_ID =
+      "Test Folder with id: %d for project: %d";
 
   @Mock
   private TmsTestCaseMapper tmsTestCaseMapper;
@@ -773,13 +776,14 @@ class TmsTestCaseServiceImplTest {
         .priority(priority)
         .build();
 
-    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, testFolderId, null))
+        .thenReturn(testFolderId);
 
     // When
     sut.patch(projectId, patchRequest);
 
     // Then
-    verify(tmsTestFolderService).existsById(projectId, testFolderId);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
   }
 
@@ -795,7 +799,8 @@ class TmsTestCaseServiceImplTest {
         .priority(null)
         .build();
 
-    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, testFolderId, null))
+        .thenReturn(testFolderId);
 
     // When
     sut.patch(projectId, patchRequest);
@@ -803,7 +808,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseRepository, never()).findAllById(any());
     verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
-    verify(tmsTestFolderService).existsById(projectId, testFolderId);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, null);
   }
 
@@ -825,7 +830,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseRepository, never()).findAllById(any());
     verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
-    verify(tmsTestFolderService, never()).existsById(any(Long.class), any());
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, null, priority);
   }
 
@@ -846,7 +851,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseRepository, never()).findAllById(any());
     verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
-    verify(tmsTestFolderService, never()).existsById(any(Long.class), any());
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
     verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
   }
 
@@ -863,12 +868,14 @@ class TmsTestCaseServiceImplTest {
         .priority(priority)
         .build();
 
-    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(false);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, testFolderId, null))
+        .thenThrow(new ReportPortalException(NOT_FOUND,
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId)));
 
     // When/Then
     assertThrows(ReportPortalException.class, () -> sut.patch(projectId, patchRequest));
 
-    verify(tmsTestFolderService).existsById(projectId, testFolderId);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
     verify(tmsTestCaseRepository, never()).findAllById(any());
     verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
@@ -885,13 +892,133 @@ class TmsTestCaseServiceImplTest {
         .testFolderId(testFolderId)
         .build();
 
-    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(false);
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, testFolderId, null))
+        .thenThrow(new ReportPortalException(NOT_FOUND,
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId)));
 
     // When/Then
     assertThrows(ReportPortalException.class, () -> sut.patch(projectId, patchRequest));
 
-    verify(tmsTestFolderService).existsById(projectId, testFolderId);
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
+  }
+
+  @Test
+  void patch_WithTestFolder_ShouldCreateFolderAndCallRepositoryPatch() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var newFolderRQ = new NewTestFolderRQ();
+    newFolderRQ.setName("New Folder");
+    var resolvedFolderId = 10L;
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolderRQ)
+        .build();
+
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, null, newFolderRQ))
+        .thenReturn(resolvedFolderId);
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, null, newFolderRQ);
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, resolvedFolderId, null);
+  }
+
+  @Test
+  void patch_WithTestFolderAndPriority_ShouldCallRepositoryPatchWithBothValues() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var newFolderRQ = new NewTestFolderRQ();
+    newFolderRQ.setName("New Folder");
+    var resolvedFolderId = 10L;
+    var priority = "HIGH";
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolderRQ)
+        .priority(priority)
+        .build();
+
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, null, newFolderRQ))
+        .thenReturn(resolvedFolderId);
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, null, newFolderRQ);
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, resolvedFolderId, priority);
+  }
+
+  @Test
+  void patch_WithTestFolderIdAndTestFolder_ShouldUseResolvedFolderId() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testFolderId = 5L;
+    var newFolderRQ = new NewTestFolderRQ();
+    newFolderRQ.setName("New Folder");
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
+        .testFolder(newFolderRQ)
+        .build();
+
+    // resolveTargetFolderId should prioritize testFolderId over testFolder
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, testFolderId, newFolderRQ))
+        .thenReturn(testFolderId);
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, newFolderRQ);
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, null);
+  }
+
+  @Test
+  void patch_WithTestFolderWithNullName_ShouldNotResolveFolder() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var newFolderRQ = new NewTestFolderRQ();
+    // name is null
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolderRQ)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
+    verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
+  }
+
+  @Test
+  void patch_WithTestFolderWithNullNameAndPriority_ShouldOnlyPatchPriority() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var newFolderRQ = new NewTestFolderRQ();
+    // name is null
+    var priority = "HIGH";
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolderRQ)
+        .priority(priority)
+        .build();
+
+    // When
+    sut.patch(projectId, patchRequest);
+
+    // Then
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, null, priority);
   }
 
   @Test
@@ -1396,7 +1523,7 @@ class TmsTestCaseServiceImplTest {
     var exception = assertThrows(ReportPortalException.class,
         () -> sut.patchTestCaseAttributes(projectId, patchRequest));
 
-    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    assertEquals(NOT_FOUND, exception.getErrorType());
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
     verify(tmsTestCaseAttributeService, never()).addAttributesToTestCases(any(), any());
@@ -1456,7 +1583,7 @@ class TmsTestCaseServiceImplTest {
     var exception = assertThrows(ReportPortalException.class,
         () -> sut.validateTestCasesExist(projectId, testCaseIds));
 
-    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    assertEquals(NOT_FOUND, exception.getErrorType());
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
   }
 
@@ -1473,7 +1600,7 @@ class TmsTestCaseServiceImplTest {
     var exception = assertThrows(ReportPortalException.class,
         () -> sut.validateTestCasesExist(projectId, testCaseIds));
 
-    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    assertEquals(NOT_FOUND, exception.getErrorType());
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
   }
 
@@ -1505,7 +1632,7 @@ class TmsTestCaseServiceImplTest {
     var exception = assertThrows(ReportPortalException.class,
         () -> sut.validateTestCasesExist(projectId, testCaseIds));
 
-    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    assertEquals(NOT_FOUND, exception.getErrorType());
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
   }
 
@@ -1537,7 +1664,7 @@ class TmsTestCaseServiceImplTest {
     var exception = assertThrows(ReportPortalException.class,
         () -> sut.validateTestCasesExist(projectId, testCaseIds));
 
-    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    assertEquals(NOT_FOUND, exception.getErrorType());
     assertTrue(exception.getMessage().contains("1"));
     assertTrue(exception.getMessage().contains("3"));
     assertTrue(exception.getMessage().contains("5"));

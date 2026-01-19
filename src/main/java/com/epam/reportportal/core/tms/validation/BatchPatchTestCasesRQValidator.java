@@ -35,9 +35,20 @@ public class BatchPatchTestCasesRQValidator
     }
 
     var hasTestFolderId = Objects.nonNull(value.getTestFolderId());
+    var hasTestFolderCreatedFromName =
+        Objects.nonNull(value.getTestFolder()) && Objects.nonNull(value.getTestFolder().getName());
+
+    if (hasTestFolderId && hasTestFolderCreatedFromName) {
+      context.disableDefaultConstraintViolation();
+      context.buildConstraintViolationWithTemplate(
+              "Either testFolderId or testFolderName must be provided and not empty")
+          .addConstraintViolation();
+      return false;
+    }
+
     var hasPriority = StringUtils.isNotBlank(value.getPriority());
 
-    if (!hasTestFolderId && !hasPriority) {
+    if (!hasTestFolderId && !hasTestFolderCreatedFromName && !hasPriority) {
       context.disableDefaultConstraintViolation();
       context.buildConstraintViolationWithTemplate(
               "Either folderId or priority must be provided and not empty")

@@ -27,7 +27,6 @@ import org.springframework.test.context.jdbc.Sql;
 
 @Sql("/db/tms/tms-attribute/tms-attribute-fill.sql")
 @ExtendWith(MockitoExtension.class)
-@Disabled
 class TmsAttributeIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";

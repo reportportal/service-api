@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -18,6 +19,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeImportRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportParseResult;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
@@ -50,6 +54,8 @@ import com.epam.reportportal.core.tms.mapper.importer.TmsTestCaseImporter;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -112,6 +118,9 @@ class TmsTestCaseServiceImplTest {
 
   @Mock
   private TmsManualLaunchService tmsManualLaunchService;
+
+  @Mock
+  private TmsAttributeService tmsAttributeService;
 
   @Mock
   private HttpServletResponse response;
@@ -262,6 +271,7 @@ class TmsTestCaseServiceImplTest {
     sut.setTmsTestFolderService(tmsTestFolderService);
     sut.setTmsTestCaseExecutionService(tmsTestCaseExecutionService);
     sut.setTmsManualLaunchService(tmsManualLaunchService);
+    sut.setTmsAttributeService(tmsAttributeService);
   }
 
   @Test
@@ -1022,95 +1032,333 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void importFromFile_ShouldImportAndCreateTestCases() {
+  void importFromFile_WithValidData_ShouldReturnImportResult() {
     // Given
-    var file = new MockMultipartFile("test.csv", "test content".getBytes());
-    var importedTestCaseRQs = List.of(testCaseRQ);
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
 
-    when(importerFactory.getImporter(file)).thenReturn(importer);
-    when(importer.importFromFile(file)).thenReturn(importedTestCaseRQs);
-    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
-        testFolderRS);
-    when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
-        textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    var importRQ = new TmsTestCaseImportRQ();
+    importRQ.setName("Test Case 1");
+    importRQ.setFolderPath(null);
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ))
+        .totalRows(1)
+        .build();
+
+    var savedTestCase = new TmsTestCase();
+    savedTestCase.setId(100L);
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
+    when(tmsTestFolderService.resolveFolderPathsBatch(eq(projectId), eq(testFolderId), anyList()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsAttributeService.resolveAttributes(eq(projectId), anySet()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
+        .thenReturn(savedTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
     // When
     var result = sut.importFromFile(projectId, testFolderId, null, file);
 
     // Then
     assertNotNull(result);
-    assertEquals(1, result.size());
-    assertEquals(testCaseRS, result.getFirst());
-    verify(importerFactory).getImporter(file);
-    verify(importer).importFromFile(file);
-    verify(tmsTestFolderService).resolveTestFolderRQ(testCaseRQ, testFolderId, null);
-    verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    assertEquals(1, result.getCreatedTestCaseIds().size());
+    assertEquals(100L, result.getCreatedTestCaseIds().getFirst());
+    assertEquals(1, result.getTotalRows());
+
+    verify(importerFactory).getImporter("test.csv");
+    verify(importer).parse(any(InputStream.class));
+    verify(tmsTestCaseRepository).saveAll(anyList());
   }
 
   @Test
-  void importFromFile_WithTestFolderName_ShouldImportAndCreateTestCases() {
+  void importFromFile_WithEmptyFile_ShouldThrowException() {
     // Given
-    var file = new MockMultipartFile("test.json", "test content".getBytes());
-    var testFolderName = "Test Folder";
-    var importedTestCaseRQs = List.of(testCaseRQ);
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "".getBytes());
 
-    when(importerFactory.getImporter(file)).thenReturn(importer);
-    when(importer.importFromFile(file)).thenReturn(importedTestCaseRQs);
-    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class)))
-        .thenReturn(testFolderRS);
-    when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
-        textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(Collections.emptyList())
+        .totalRows(0)
+        .build();
 
-    // When
-    var result = sut.importFromFile(projectId, null, testFolderName, file);
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
 
-    // Then
-    assertNotNull(result);
-    assertEquals(1, result.size());
-    assertEquals(testCaseRS, result.getFirst());
-    verify(importerFactory).getImporter(file);
-    verify(importer).importFromFile(file);
-    verify(tmsTestFolderService).resolveTestFolderRQ(testCaseRQ, null, testFolderName);
-    verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.importFromFile(projectId, testFolderId, null, file));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
+    verify(tmsTestCaseRepository, never()).saveAll(any());
   }
 
   @Test
-  void importFromFile_WithBothFolderParameters_ShouldImportAndCreateTestCases() {
+  void importFromFile_WithFolderPath_ShouldResolveAndCreateTestCases() throws IOException {
     // Given
-    var file = new MockMultipartFile("test.json", "test content".getBytes());
-    var testFolderName = "Test Folder";
-    var importedTestCaseRQs = List.of(testCaseRQ);
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
 
-    when(importerFactory.getImporter(file)).thenReturn(importer);
-    when(importer.importFromFile(file)).thenReturn(importedTestCaseRQs);
-    when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
-        testFolderRS);
-    when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
-        textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    var importRQ = new TmsTestCaseImportRQ();
+    importRQ.setName("Test Case with Path");
+    importRQ.setFolderPath(List.of("Folder1", "Folder2"));
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ))
+        .totalRows(1)
+        .build();
+
+    var savedTestCase = new TmsTestCase();
+    savedTestCase.setId(100L);
+    var resolvedFolderId = 50L;
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+    when(tmsTestFolderService.resolveFolderPathsBatch(eq(projectId), eq(null), anyList()))
+        .thenReturn(Map.of("Folder1/Folder2", resolvedFolderId));
+    when(tmsAttributeService.resolveAttributes(eq(projectId), anySet()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(resolvedFolderId)))
+        .thenReturn(savedTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
     // When
-    var result = sut.importFromFile(projectId, testFolderId, testFolderName, file);
+    var result = sut.importFromFile(projectId, null, null, file);
 
     // Then
     assertNotNull(result);
-    assertEquals(1, result.size());
-    assertEquals(testCaseRS, result.getFirst());
-    verify(importerFactory).getImporter(file);
-    verify(importer).importFromFile(file);
-    verify(tmsTestFolderService).resolveTestFolderRQ(testCaseRQ, testFolderId, testFolderName);
-    verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    assertEquals(1, result.getCreatedTestCaseIds().size());
+    verify(tmsTestFolderService).resolveFolderPathsBatch(eq(projectId), eq(null), anyList());
+  }
+
+  @Test
+  void importFromFile_WithBaseFolderId_ShouldUseBaseFolderForTestCases() throws IOException {
+    // Given
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
+
+    var importRQ = new TmsTestCaseImportRQ();
+    importRQ.setName("Test Case");
+    importRQ.setFolderPath(null);
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ))
+        .totalRows(1)
+        .build();
+
+    var savedTestCase = new TmsTestCase();
+    savedTestCase.setId(100L);
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
+    when(tmsTestFolderService.resolveFolderPathsBatch(eq(projectId), eq(testFolderId), anyList()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsAttributeService.resolveAttributes(eq(projectId), anySet()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
+        .thenReturn(savedTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+
+    // When
+    var result = sut.importFromFile(projectId, testFolderId, null, file);
+
+    // Then
+    assertNotNull(result);
+    verify(tmsTestFolderService).existsById(projectId, testFolderId);
+    verify(tmsTestCaseMapper).convertFromImportRQ(projectId, importRQ, testFolderId);
+  }
+
+  @Test
+  void importFromFile_WithBaseFolderName_ShouldCreateFolderAndUseIt() {
+    // Given
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
+    var folderName = "New Import Folder";
+
+    var importRQ = new TmsTestCaseImportRQ();
+    importRQ.setName("Test Case");
+    importRQ.setFolderPath(null);
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ))
+        .totalRows(1)
+        .build();
+
+    var savedTestCase = new TmsTestCase();
+    savedTestCase.setId(100L);
+    var createdFolderId = 25L;
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+    when(tmsTestFolderService.resolveFolderPath(projectId, null, List.of(folderName)))
+        .thenReturn(createdFolderId);
+    when(tmsTestFolderService.resolveFolderPathsBatch(eq(projectId), eq(createdFolderId), anyList()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsAttributeService.resolveAttributes(eq(projectId), anySet()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(createdFolderId)))
+        .thenReturn(savedTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+
+    // When
+    var result = sut.importFromFile(projectId, null, folderName, file);
+
+    // Then
+    assertNotNull(result);
+    verify(tmsTestFolderService).resolveFolderPath(projectId, null, List.of(folderName));
+  }
+
+  @Test
+  void importFromFile_WithNonExistentFolderId_ShouldThrowException() {
+    // Given
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
+    var nonExistentFolderId = 999L;
+
+    var importRQ = new TmsTestCaseImportRQ();
+    importRQ.setName("Test Case");
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ))
+        .totalRows(1)
+        .build();
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+    when(tmsTestFolderService.existsById(projectId, nonExistentFolderId)).thenReturn(false);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.importFromFile(projectId, nonExistentFolderId, null, file));
+
+    assertEquals(NOT_FOUND, exception.getErrorType());
+    verify(tmsTestCaseRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void importFromFile_WithNoFolderAndNoPath_ShouldThrowException() {
+    // Given
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
+
+    var importRQ = new TmsTestCaseImportRQ();
+    importRQ.setName("Test Case without folder");
+    importRQ.setFolderPath(null);
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ))
+        .totalRows(1)
+        .build();
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.importFromFile(projectId, null, null, file));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
+    verify(tmsTestCaseRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void importFromFile_WithMultipleTestCases_ShouldImportAll() {
+    // Given
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
+
+    var importRQ1 = new TmsTestCaseImportRQ();
+    importRQ1.setName("Test Case 1");
+    importRQ1.setFolderPath(null);
+
+    var importRQ2 = new TmsTestCaseImportRQ();
+    importRQ2.setName("Test Case 2");
+    importRQ2.setFolderPath(null);
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ1, importRQ2))
+        .totalRows(2)
+        .build();
+
+    var savedTestCase1 = new TmsTestCase();
+    savedTestCase1.setId(100L);
+    var savedTestCase2 = new TmsTestCase();
+    savedTestCase2.setId(101L);
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
+    when(tmsTestFolderService.resolveFolderPathsBatch(eq(projectId), eq(testFolderId), anyList()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsAttributeService.resolveAttributes(eq(projectId), anySet()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ1), eq(testFolderId)))
+        .thenReturn(savedTestCase1);
+    when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ2), eq(testFolderId)))
+        .thenReturn(savedTestCase2);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase1, savedTestCase2));
+
+    // When
+    var result = sut.importFromFile(projectId, testFolderId, null, file);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(2, result.getCreatedTestCaseIds().size());
+    assertEquals(2, result.getTotalRows());
+  }
+
+  @Test
+  void importFromFile_WithIOException_ShouldThrowException() throws IOException {
+    // Given
+    var file = mock(MockMultipartFile.class);
+    when(file.getOriginalFilename()).thenReturn("test.csv");
+    when(file.getInputStream()).thenThrow(new IOException("File read error"));
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+
+    // When/Then
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.importFromFile(projectId, testFolderId, null, file));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
+    assertTrue(exception.getMessage().contains("Failed to read file"));
+  }
+
+  @Test
+  void importFromFile_WithAttributes_ShouldResolveAndCreateAttributes() {
+    // Given
+    var file = new MockMultipartFile("test.csv", "test.csv", "text/csv", "content".getBytes());
+
+    var attrImportRQ = new TmsTestCaseAttributeImportRQ();
+    attrImportRQ.setKey("priority:high");
+
+    var importRQ = new TmsTestCaseImportRQ();
+    importRQ.setName("Test Case with Attributes");
+    importRQ.setFolderPath(null);
+    importRQ.setAttributes(List.of(attrImportRQ));
+
+    var parseResult = TmsTestCaseImportParseResult.builder()
+        .testCases(List.of(importRQ))
+        .totalRows(1)
+        .build();
+
+    var savedTestCase = new TmsTestCase();
+    savedTestCase.setId(100L);
+
+    when(importerFactory.getImporter("test.csv")).thenReturn(importer);
+    when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
+    when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
+    when(tmsTestFolderService.resolveFolderPathsBatch(eq(projectId), eq(testFolderId), anyList()))
+        .thenReturn(Collections.emptyMap());
+    when(tmsAttributeService.resolveAttributes(eq(projectId), anySet()))
+        .thenReturn(Map.of("priority:high", 200L));
+    when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
+        .thenReturn(savedTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+
+    // When
+    var result = sut.importFromFile(projectId, testFolderId, null, file);
+
+    // Then
+    assertNotNull(result);
+    verify(tmsAttributeService).resolveAttributes(eq(projectId), anySet());
+    verify(tmsTestCaseAttributeService).createTestCaseAttributes(eq(savedTestCase), anyList());
   }
 
   @Test

@@ -24,6 +24,7 @@ import com.epam.reportportal.core.tms.dto.TmsStepRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
@@ -873,10 +874,10 @@ public class TmsTestCaseControllerTest {
     var fileContent = "test,case,data";
     var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
     var testFolderId = 3L;
-    var importedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
+    var importResult = TmsTestCaseImportRS.of(List.of(1L, 2L), 3L, 2);
 
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(null), eq(file)))
-        .willReturn(importedTestCases);
+        .willReturn(importResult);
 
     // When/Then
     mockMvc.perform(
@@ -894,13 +895,12 @@ public class TmsTestCaseControllerTest {
   void importTestCasesWithTestFolderNameTest() throws Exception {
     // Given
     var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.json", "application/json",
-        fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
     var testFolderName = "Test Folder";
-    var importedTestCases = List.of(new TmsTestCaseRS());
+    var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
 
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(testFolderName), eq(file)))
-        .willReturn(importedTestCases);
+        .willReturn(importResult);
 
     // When/Then
     mockMvc.perform(
@@ -911,20 +911,18 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(testFolderName),
-        eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(testFolderName), eq(file));
   }
 
   @Test
   void importTestCasesWithoutFolderParametersTest() throws Exception {
     // Given
     var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.json", "application/json",
-        fileContent.getBytes());
-    var importedTestCases = List.of(new TmsTestCaseRS());
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
+    var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
 
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(null), eq(file)))
-        .willReturn(importedTestCases);
+        .willReturn(importResult);
 
     // When/Then
     mockMvc.perform(
@@ -941,15 +939,13 @@ public class TmsTestCaseControllerTest {
   void importTestCasesWithBothFolderParametersTest() throws Exception {
     // Given
     var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.json", "application/json",
-        fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
     var testFolderId = 3L;
     var testFolderName = "Test Folder";
-    var importedTestCases = List.of(new TmsTestCaseRS());
+    var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
 
-    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName),
-        eq(file)))
-        .willReturn(importedTestCases);
+    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file)))
+        .willReturn(importResult);
 
     // When/Then
     mockMvc.perform(
@@ -961,8 +957,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName),
-        eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file));
   }
 
   @Test

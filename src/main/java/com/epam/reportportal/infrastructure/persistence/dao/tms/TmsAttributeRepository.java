@@ -4,6 +4,7 @@ import com.epam.reportportal.infrastructure.persistence.dao.ReportPortalReposito
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,4 +17,6 @@ public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttrib
   Optional<TmsAttribute> findByKeyAndProject_Id(String key, Long projectId);
 
   Optional<TmsAttribute> findByIdAndProject_Id(Long id, Long projectId);
+
+  List<TmsAttribute> findAllByProject_IdAndKeyIn(Long projectId, Set<String> keys);
 }

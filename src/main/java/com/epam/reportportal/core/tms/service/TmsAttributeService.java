@@ -7,6 +7,7 @@ import com.epam.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.reportportal.core.tms.dto.TmsAttributeRS;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 
 public interface TmsAttributeService {
@@ -19,5 +20,12 @@ public interface TmsAttributeService {
 
   TmsAttributeRS getById(Long projectId, Long attributeId);
 
-  Map<Long, TmsAttribute> getAllByIds(Long projectId, List<Long> list);
+  /**
+   * Resolves attribute keys for multiple test cases efficiently.
+   *
+   * @param projectId        the project ID
+   * @param allAttributeKeys all attribute keys from all rows (flattened)
+   * @return map of attribute key to attribute ID
+   */
+  Map<String, Long> resolveAttributes(Long projectId, Set<String> allAttributeKeys);
 }

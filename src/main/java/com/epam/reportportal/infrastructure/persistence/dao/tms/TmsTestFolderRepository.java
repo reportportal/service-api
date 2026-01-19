@@ -347,4 +347,25 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("launchId") Long launchId,
       Pageable pageable
   );
+
+  /**
+   * Finds a folder by project ID, parent folder ID and name.
+   * Used for resolving folder paths during import.
+   *
+   * @param projectId      the project ID
+   * @param parentFolderId the parent folder ID (null for root level folders)
+   * @param name           the folder name
+   * @return optional containing the folder if found
+   */
+  @Query("""
+      SELECT f FROM TmsTestFolder f
+      WHERE f.project.id = :projectId
+      AND f.name = :name
+      AND (:parentFolderId IS NULL AND f.parentTestFolder IS NULL
+           OR f.parentTestFolder.id = :parentFolderId)
+      """)
+  Optional<TmsTestFolder> findByProjectIdAndParentIdAndName(
+      @Param("projectId") Long projectId,
+      @Param("parentFolderId") Long parentFolderId,
+      @Param("name") String name);
 }

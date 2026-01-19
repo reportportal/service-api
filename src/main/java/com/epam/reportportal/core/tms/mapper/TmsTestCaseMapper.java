@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.mapper;
 
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionInTestPlanRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
@@ -16,7 +17,6 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
-import jakarta.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -251,6 +251,22 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   public abstract BatchPatchTestCasesRS toBatchPatchTestCasesRS(
       Long testFolderId, BatchPatchTestCasesRQ patchRequest
   );
+
+  public TmsTestCase convertFromImportRQ(long projectId, TmsTestCaseImportRQ importRQ, Long folderId) {
+    var testCase = new TmsTestCase();
+    testCase.setName(importRQ.getName());
+    testCase.setDescription(importRQ.getDescription());
+    testCase.setPriority(importRQ.getPriority());
+    testCase.setExternalId(importRQ.getExternalId());
+
+    if (folderId != null) {
+      var folder = new TmsTestFolder();
+      folder.setId(folderId);
+      testCase.setTestFolder(folder);
+    }
+
+    return testCase;
+  }
 
   /**
    * Converts Instant to milliseconds (epoch millis).

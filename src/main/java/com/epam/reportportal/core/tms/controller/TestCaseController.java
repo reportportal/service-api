@@ -10,6 +10,7 @@ import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.csv.TmsTestCaseImportRS;
 import com.epam.reportportal.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.core.tms.validation.ValidTestFolderIdForPatchTestCase;
 import com.epam.reportportal.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
@@ -275,7 +276,7 @@ public class TestCaseController {
    *
    * @param projectKey The key of the project.
    * @param file       The file containing test cases to import.
-   * @return A list of created test cases.
+   * @return A response object containing the import results.
    */
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
@@ -284,18 +285,20 @@ public class TestCaseController {
       tags = {"Import/Export"}
   )
   @ApiResponse(responseCode = "200", description = "Test cases imported successfully")
-  public List<TmsTestCaseRS> importTestCases(@PathVariable("projectKey") String projectKey,
+  public TmsTestCaseImportRS importTestCases(@PathVariable("projectKey") String projectKey,
       @RequestPart("file") MultipartFile file,
       @RequestParam(value = "testFolderId", required = false) Long testFolderId,
       @RequestParam(value = "testFolderName", required = false) String testFolderName,
+      @RequestParam(value = "rejectEmptySteps", defaultValue = "true") boolean rejectEmptySteps,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return tmsTestCaseService.importFromFile(
+    return tmsTestCaseService.importFromCsvFile(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testFolderId,
         testFolderName,
-        file);
+        file,
+        rejectEmptySteps);
   }
 
   /**

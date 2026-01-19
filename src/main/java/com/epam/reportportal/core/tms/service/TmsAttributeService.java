@@ -6,6 +6,10 @@ import com.epam.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.reportportal.core.tms.dto.TmsAttributeRS;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public interface TmsAttributeService {
 
   TmsAttributeRS create(TmsAttributeRQ request);
@@ -15,4 +19,22 @@ public interface TmsAttributeService {
   Page<TmsAttributeRS> getAll(Filter filter, Pageable pageable);
 
   TmsAttributeRS getById(Long attributeId);
+
+  /**
+   * Resolves attribute keys to attribute IDs, creating missing attributes as needed.
+   *
+   * @param projectId     the project ID
+   * @param attributeKeys list of attribute keys (label names)
+   * @return map of attribute key to attribute ID
+   */
+  Map<String, Long> resolveAttributes(Long projectId, List<String> attributeKeys);
+
+  /**
+   * Resolves attribute keys for multiple test cases efficiently.
+   *
+   * @param projectId        the project ID
+   * @param allAttributeKeys all attribute keys from all rows (flattened)
+   * @return map of attribute key to attribute ID
+   */
+  Map<String, Long> resolveAttributesBatch(Long projectId, Set<String> allAttributeKeys);
 }

@@ -324,4 +324,28 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("testCaseIds") List<Long> testCaseIds,
       @Param("folderId") Long folderId
   );
+
+  /**
+   * Finds a test folder by project ID, parent folder ID, and name.
+   *
+   * <p>This method searches for a folder with the specified name within a given parent folder
+   * (or at root level if parentFolderId is null) in the specified project.
+   * </p>
+   *
+   * @param projectId      the ID of the project
+   * @param parentFolderId the ID of the parent folder (null for root level folders)
+   * @param name           the name of the folder to find
+   * @return an optional containing the test folder if found, or empty if not found
+   */
+  @Query("""
+      SELECT f FROM TmsTestFolder f
+      WHERE f.project.id = :projectId
+      AND f.name = :name
+      AND (:parentFolderId IS NULL AND f.parentTestFolder IS NULL
+           OR f.parentTestFolder.id = :parentFolderId)
+      """)
+  Optional<TmsTestFolder> findByProjectIdAndParentIdAndName(
+      @Param("projectId") Long projectId,
+      @Param("parentFolderId") Long parentFolderId,
+      @Param("name") String name);
 }

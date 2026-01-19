@@ -10,6 +10,8 @@ import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -105,4 +107,28 @@ public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTe
    * @return page of test folders with count of test cases
    */
   Page<TmsTestFolderRS> getFoldersByTestPlanId(Long projectId, Long testPlanId, Pageable pageable);
+
+  /**
+   * Resolves folder path to folder ID, creating missing folders as needed.
+   * If parentFolderId is provided, the path hierarchy is created under that folder.
+   * If parentFolderId is null, the path hierarchy is created from the project root.
+   *
+   * @param projectId      the project ID
+   * @param parentFolderId optional parent folder ID (from API parameter)
+   * @param pathHierarchy  list of folder names from root to leaf
+   * @return the ID of the leaf folder (last in path), or parentFolderId if path is empty
+   */
+  Long resolveFolderPath(Long projectId, Long parentFolderId, List<String> pathHierarchy);
+
+  /**
+   * Resolves folder paths for multiple test cases efficiently with caching.
+   * Uses a cache to avoid duplicate folder creation and lookups within the same import batch.
+   *
+   * @param projectId       the project ID
+   * @param parentFolderId  optional parent folder ID (from API parameter)
+   * @param pathHierarchies list of path hierarchies to resolve
+   * @return map of path (joined with "/") to resolved folder ID
+   */
+  Map<String, Long> resolveFolderPathsBatch(Long projectId, Long parentFolderId,
+      List<List<String>> pathHierarchies);
 }

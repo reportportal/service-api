@@ -3,6 +3,7 @@ package com.epam.reportportal.core.tms.service;
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.core.tms.dto.NewTestFolderRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
@@ -12,9 +13,13 @@ import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.csv.TmsTestCaseCsvRow;
+import com.epam.reportportal.core.tms.dto.csv.TmsTestCaseImportResult;
+import com.epam.reportportal.core.tms.dto.csv.TmsTestCaseImportRowError;
+import com.epam.reportportal.core.tms.dto.csv.TmsTestCaseImportRS;
 import com.epam.reportportal.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.reportportal.core.tms.mapper.factory.TmsTestCaseExporterFactory;
-import com.epam.reportportal.core.tms.mapper.factory.TmsTestCaseImporterFactory;
+import com.epam.reportportal.core.tms.mapper.importer.TmsTestCaseCsvImporter;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
@@ -27,16 +32,21 @@ import com.epam.reportportal.model.Page;
 import com.epam.reportportal.ws.converter.PagedResourcesAssembler;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +57,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 @Valid
+@Slf4j
 public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   private static final String TEST_CASE_NOT_FOUND_BY_ID = "Test Case with id: %d for projectId: %d";
@@ -60,17 +71,24 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestCaseFilterableRepository tmsTestCaseFilterableRepository;
   private final TmsTestCaseAttributeService tmsTestCaseAttributeService;
   private final TmsTestCaseVersionService tmsTestCaseVersionService;
-  private final TmsTestCaseImporterFactory importerFactory;
   private final TmsTestCaseExporterFactory exporterFactory;
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
   private final TmsTestCaseExecutionService tmsTestCaseExecutionService;
+  private final TmsTestCaseCsvImporter tmsTestCaseCsvImporter;
 
   private TmsTestFolderService tmsTestFolderService;
+  private TmsAttributeService tmsAttributeService;
 
   @Autowired
   public void setTmsTestFolderService(
       TmsTestFolderService tmsTestFolderService) {
     this.tmsTestFolderService = tmsTestFolderService;
+  }
+
+  @Autowired
+  public void setTmsAttributeService(
+      TmsAttributeService tmsAttributeService) {
+    this.tmsAttributeService = tmsAttributeService;
   }
 
   @Override
@@ -231,19 +249,162 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public List<TmsTestCaseRS> importFromFile(long projectId,
+  public TmsTestCaseImportRS importFromCsvFile(
+      long projectId,
       Long testFolderId,
       String testFolderName,
-      MultipartFile file) {
-    var importer = importerFactory.getImporter(file);
-    var testCaseRequests = importer.importFromFile(file);
+      MultipartFile file,
+      boolean rejectEmptySteps) {
 
-    return testCaseRequests
-        .stream()
-        .peek(testCaseRequest -> tmsTestFolderService.resolveTestFolderRQ(
-            testCaseRequest, testFolderId, testFolderName))
-        .map(testCaseRQ -> create(projectId, testCaseRQ))
+    // 1. Parse CSV file
+    TmsTestCaseCsvImporter.CsvParseResult parseResult;
+    try (var inputStream = file.getInputStream()) {
+      parseResult = tmsTestCaseCsvImporter.parseFromStream(inputStream, rejectEmptySteps);
+    } catch (IOException e) {
+      log.error("Failed to read CSV file: {}", file.getOriginalFilename(), e);
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Failed to read CSV file: " + e.getMessage());
+    }
+
+    var result = TmsTestCaseImportResult.builder()
+        .totalRows(parseResult.totalRows())
+        .build();
+
+    // Add parsing errors to result
+    parseResult.errors().forEach(result::addError);
+
+    if (parseResult.rows().isEmpty()) {
+      return TmsTestCaseImportRS.from(result);
+    }
+
+    // 2. Resolve base folder (from API parameters)
+    Long baseFolderId = resolveBaseFolderId(projectId, testFolderId, testFolderName);
+
+    // 3. Collect all unique paths and labels for batch resolution
+    List<List<String>> allPaths = parseResult.rows().stream()
+        .map(tmsTestCaseCsvImporter::extractPathHierarchy)
+        .filter(path -> !path.isEmpty())
+        .distinct()
         .toList();
+
+    Set<String> allLabels = parseResult.rows().stream()
+        .flatMap(row -> tmsTestCaseCsvImporter.extractLabels(row).stream())
+        .collect(Collectors.toSet());
+
+    // 4. Batch resolve folders and attributes
+    Map<String, Long> pathToFolderId = tmsTestFolderService.resolveFolderPathsBatch(
+        projectId, baseFolderId, allPaths);
+    Map<String, Long> labelToAttributeId = tmsAttributeService.resolveAttributesBatch(
+        projectId, allLabels);
+
+    // 5. Create test cases
+    for (var row : parseResult.rows()) {
+      try {
+        var testCaseRQ = tmsTestCaseCsvImporter.convertToTestCaseRQ(row, rejectEmptySteps);
+        if (testCaseRQ == null) {
+          result.addError(TmsTestCaseImportRowError.of(
+              row.getRowNumber(),
+              row.getSummary(),
+              "Failed to convert row to test case"
+          ));
+          continue;
+        }
+
+        // Resolve folder for this row
+        Long folderId = resolveFolderIdForRow(row, baseFolderId, pathToFolderId);
+
+        // Folder is required for test case
+        if (folderId == null) {
+          result.addError(TmsTestCaseImportRowError.of(
+              row.getRowNumber(),
+              row.getSummary(),
+              "No target folder specified. Either provide testFolderId/testFolderName in API or path in CSV"
+          ));
+          continue;
+        }
+
+        testCaseRQ.setTestFolderId(folderId);
+
+        // Create test case
+        var testCase = createTestCaseForImport(projectId, testCaseRQ);
+
+        // Create attributes for labels
+        List<String> labels = tmsTestCaseCsvImporter.extractLabels(row);
+        if (!labels.isEmpty()) {
+          createAttributesForTestCase(testCase, labels, labelToAttributeId);
+        }
+
+        var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(
+            testCase, testCaseRQ.getManualScenario());
+
+        result.addImportedTestCase(tmsTestCaseMapper.convert(testCase, defaultVersion));
+
+        // Add warnings from parsing for this row
+        parseResult.warnings().stream()
+            .filter(w -> w.getRowNumber() == row.getRowNumber())
+            .forEach(result::addWarning);
+
+      } catch (Exception e) {
+        log.warn("Failed to import row {}: {}", row.getRowNumber(), e.getMessage(), e);
+        result.addError(TmsTestCaseImportRowError.of(
+            row.getRowNumber(),
+            row.getSummary(),
+            "Import failed: " + e.getMessage()
+        ));
+      }
+    }
+
+    return TmsTestCaseImportRS.from(result);
+  }
+
+  private Long resolveBaseFolderId(long projectId, Long testFolderId, String testFolderName) {
+    if (testFolderId != null) {
+      if (!tmsTestFolderService.existsById(projectId, testFolderId)) {
+        throw new ReportPortalException(NOT_FOUND,
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
+      }
+      return testFolderId;
+    }
+
+    if (StringUtils.isNotBlank(testFolderName)) {
+      return tmsTestFolderService.resolveFolderPath(projectId, null, List.of(testFolderName));
+    }
+
+    return null;
+  }
+
+  private Long resolveFolderIdForRow(TmsTestCaseCsvRow row, Long baseFolderId,
+      Map<String, Long> pathToFolderId) {
+    List<String> pathHierarchy = tmsTestCaseCsvImporter.extractPathHierarchy(row);
+
+    if (pathHierarchy.isEmpty()) {
+      return baseFolderId;
+    }
+
+    String pathKey = String.join("/", pathHierarchy);
+    return pathToFolderId.get(pathKey);
+  }
+
+  private TmsTestCase createTestCaseForImport(long projectId, TmsTestCaseRQ testCaseRQ) {
+    var testCase = tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ,
+        testCaseRQ.getTestFolderId());
+    return tmsTestCaseRepository.save(testCase);
+  }
+
+  private void createAttributesForTestCase(TmsTestCase testCase, List<String> labels,
+      Map<String, Long> labelToAttributeId) {
+    List<TmsTestCaseAttributeRQ> attributeRequests = labels.stream()
+        .filter(labelToAttributeId::containsKey)
+        .map(label -> {
+          var attrRQ = new TmsTestCaseAttributeRQ();
+          attrRQ.setAttributeId(labelToAttributeId.get(label));
+          return attrRQ;
+        })
+        .toList();
+
+    if (!attributeRequests.isEmpty()) {
+      tmsTestCaseAttributeService.createTestCaseAttributes(testCase, attributeRequests);
+    }
   }
 
   @Override

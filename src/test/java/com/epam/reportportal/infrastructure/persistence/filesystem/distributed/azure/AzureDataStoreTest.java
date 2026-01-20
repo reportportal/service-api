@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.infrastructure.persistence.filesystem.distributed.s3;
+package com.epam.reportportal.infrastructure.persistence.filesystem.distributed.azure;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.epam.reportportal.infrastructure.persistence.entity.enums.FeatureFlag;
+import com.epam.reportportal.infrastructure.persistence.filesystem.distributed.s3.S3DataStore;
 import com.epam.reportportal.infrastructure.persistence.util.FeatureFlagHandler;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -35,52 +38,59 @@ import org.apache.opendal.Operator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-/**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
- */
 @Testcontainers
-class S3DataStoreTest {
+class AzureDataStoreTest {
 
   private static final String FILE_NAME = "someFile";
   private static final String BUCKET_PREFIX = "prj-";
   private static final String BUCKET_POSTFIX = "-postfix";
   private static final String DEFAULT_BUCKET_NAME = "rp-bucket";
-  private static final String MINIO_USER = "minioadmin";
-  private static final String MINIO_PASSWORD = "minioadmin";
+  
+  // Azurite default credentials
+  private static final String AZURE_ACCOUNT_NAME = "devstoreaccount1";
+  private static final String AZURE_ACCOUNT_KEY = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
 
   @Container
-  private static final MinIOContainer minioContainer = new MinIOContainer(
-      "minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1")
-      .withEnv("MINIO_ROOT_USER", MINIO_USER)
-      .withEnv("MINIO_ROOT_PASSWORD", MINIO_PASSWORD)
-      .withCommand("server", "/data");
+  private static final GenericContainer<?> azuriteContainer = new GenericContainer<>(
+      DockerImageName.parse("mcr.microsoft.com/azure-storage/azurite:latest"))
+      .withExposedPorts(10000);
 
   private Operator operator;
   private S3DataStore s3DataStore;
 
   @BeforeEach
-  void setUp() throws IOException, InterruptedException {
-    // Create bucket via CLI
-    minioContainer.execInContainer("mkdir", "-p", "/data/" + DEFAULT_BUCKET_NAME);
+  void setUp() {
+    String host = azuriteContainer.getHost();
+    Integer port = azuriteContainer.getMappedPort(10000);
+    String endpoint = String.format("http://%s:%d/%s", host, port, AZURE_ACCOUNT_NAME);
+    
+    String connectionString = String.format(
+        "DefaultEndpointsProtocol=http;AccountName=%s;AccountKey=%s;BlobEndpoint=%s;",
+        AZURE_ACCOUNT_NAME, AZURE_ACCOUNT_KEY, endpoint
+    );
 
-    // Create OpenDAL operator for MinIO with a bucket in the config
+    // Create container (bucket) using Azure SDK
+    BlobServiceClient blobServiceClient = new BlobServiceClientBuilder()
+        .connectionString(connectionString)
+        .buildClient();
+    
+    if (!blobServiceClient.getBlobContainerClient(DEFAULT_BUCKET_NAME).exists()) {
+        blobServiceClient.createBlobContainer(DEFAULT_BUCKET_NAME);
+    }
+
+    // Configure OpenDAL operator for Azure Blob Storage
     Map<String, String> config = new HashMap<>();
-    config.put("access_key_id", MINIO_USER);
-    config.put("secret_access_key", MINIO_PASSWORD);
-    config.put("endpoint", minioContainer.getS3URL());
-    config.put("region", "auto");
-    config.put("bucket", DEFAULT_BUCKET_NAME);
-    // Explicitly disable virtual host style for MinIO
-    config.put("enable_virtual_host_style", "false");
-    // Disable loading from env/metadata to ensure isolation
-    config.put("disable_config_load", "true");
-    config.put("disable_ec2_metadata", "true");
+    config.put("account_name", AZURE_ACCOUNT_NAME);
+    config.put("account_key", AZURE_ACCOUNT_KEY);
+    config.put("endpoint", endpoint);
+    config.put("container", DEFAULT_BUCKET_NAME);
 
-    operator = Operator.of("s3", config);
+    operator = Operator.of("azblob", config);
 
     FeatureFlagHandler featureFlagHandler = mock(FeatureFlagHandler.class);
     // Use SINGLE_BUCKET mode for simpler testing

@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.infrastructure.persistence.filesystem.distributed.s3;
+package com.epam.reportportal.infrastructure.persistence.filesystem.distributed.gcp;
 
 import com.epam.reportportal.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.infrastructure.persistence.filesystem.DataStore;
+import com.epam.reportportal.infrastructure.persistence.filesystem.distributed.s3.StoredFile;
 import com.epam.reportportal.infrastructure.persistence.util.FeatureFlagHandler;
+
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,38 +34,25 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
-import org.apache.opendal.Operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementation of basic operations with blob storages using Apache OpenDAL.
- *
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * Implementation of DataStore for Google Cloud Storage.
  */
-public class S3DataStore implements DataStore {
+public class GcpDataStore implements DataStore {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(S3DataStore.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GcpDataStore.class);
 
-  private final Operator operator;
+  private final Storage storage;
   private final String bucketPrefix;
   private final String bucketPostfix;
   private final String defaultBucketName;
-
   private final FeatureFlagHandler featureFlagHandler;
 
-  /**
-   * Initialises {@link S3DataStore}.
-   *
-   * @param operator           {@link Operator} OpenDAL operator instance
-   * @param bucketPrefix       Prefix for bucket name
-   * @param bucketPostfix      Postfix for bucket name
-   * @param defaultBucketName  Name of default bucket to use
-   * @param featureFlagHandler {@link FeatureFlagHandler}
-   */
-  public S3DataStore(Operator operator, String bucketPrefix, String bucketPostfix,
+  public GcpDataStore(Storage storage, String bucketPrefix, String bucketPostfix,
       String defaultBucketName, FeatureFlagHandler featureFlagHandler) {
-    this.operator = operator;
+    this.storage = storage;
     this.bucketPrefix = bucketPrefix;
     this.bucketPostfix = Objects.requireNonNullElse(bucketPostfix, "");
     this.defaultBucketName = defaultBucketName;
@@ -73,9 +66,9 @@ public class S3DataStore implements DataStore {
     }
     StoredFile storedFile = getStoredFile(filePath);
     try {
-      byte[] data = inputStream.readAllBytes();
-      String fullPath = getFullPath(storedFile);
-      operator.write(fullPath, data);
+      BlobId blobId = BlobId.of(storedFile.getBucket(), storedFile.getFilePath());
+      BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+      storage.createFrom(blobInfo, inputStream);
       return Paths.get(filePath).toString();
     } catch (IOException e) {
       LOGGER.error("Unable to save file '{}'", filePath, e);
@@ -90,10 +83,13 @@ public class S3DataStore implements DataStore {
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
     }
     StoredFile storedFile = getStoredFile(filePath);
-    String fullPath = getFullPath(storedFile);
     try {
-      byte[] data = operator.read(fullPath);
-      return new ByteArrayInputStream(data);
+      BlobId blobId = BlobId.of(storedFile.getBucket(), storedFile.getFilePath());
+      Blob blob = storage.get(blobId);
+      if (blob == null) {
+          throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
+      }
+      return new ByteArrayInputStream(blob.getContent());
     } catch (Exception e) {
       LOGGER.error("Unable to find file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
@@ -106,10 +102,10 @@ public class S3DataStore implements DataStore {
       return false;
     }
     StoredFile storedFile = getStoredFile(filePath);
-    String fullPath = getFullPath(storedFile);
     try {
-      operator.stat(fullPath);
-      return true;
+      BlobId blobId = BlobId.of(storedFile.getBucket(), storedFile.getFilePath());
+      Blob blob = storage.get(blobId);
+      return blob != null && blob.exists();
     } catch (Exception e) {
       return false;
     }
@@ -121,9 +117,9 @@ public class S3DataStore implements DataStore {
       return;
     }
     StoredFile storedFile = getStoredFile(filePath);
-    String fullPath = getFullPath(storedFile);
     try {
-      operator.delete(fullPath);
+      BlobId blobId = BlobId.of(storedFile.getBucket(), storedFile.getFilePath());
+      storage.delete(blobId);
     } catch (Exception e) {
       LOGGER.error("Unable to delete file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete file");
@@ -138,10 +134,8 @@ public class S3DataStore implements DataStore {
 
     for (String filePath : filePaths) {
       try {
-        String fullPath = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-            ? filePath
-            : bucket + "/" + filePath;
-        operator.delete(fullPath);
+        BlobId blobId = BlobId.of(bucket, filePath);
+        storage.delete(blobId);
       } catch (Exception e) {
         LOGGER.error("Unable to delete file '{}' from bucket '{}'", filePath, bucket, e);
       }
@@ -155,10 +149,10 @@ public class S3DataStore implements DataStore {
         : bucketPrefix + bucketName + bucketPostfix;
 
     try {
-      String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-          ? "/"
-          : bucket + "/";
-      operator.removeAll(path);
+        Iterable<Blob> blobs = storage.list(bucket).iterateAll();
+        for (Blob blob : blobs) {
+            blob.delete();
+        }
     } catch (Exception e) {
       LOGGER.error("Unable to delete container '{}'", bucket, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete container");
@@ -179,13 +173,6 @@ public class S3DataStore implements DataStore {
       bucketName = defaultBucketName;
       return new StoredFile(bucketName, retrievePath(targetPath, 0, 1));
     }
-  }
-
-  private String getFullPath(StoredFile storedFile) {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      return storedFile.getFilePath();
-    }
-    return storedFile.getBucket() + "/" + storedFile.getFilePath();
   }
 
   private String retrievePath(Path path, int beginIndex, int endIndex) {

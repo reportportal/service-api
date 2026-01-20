@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.infrastructure.persistence.filesystem.distributed.s3;
+package com.epam.reportportal.infrastructure.persistence.filesystem.distributed.gcp;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,74 +26,73 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.infrastructure.persistence.util.FeatureFlagHandler;
+import com.google.cloud.NoCredentials;
+import com.google.cloud.storage.BucketInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.opendal.Operator;
-import org.junit.jupiter.api.AfterEach;
+import java.net.ServerSocket;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-/**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
- */
 @Testcontainers
-class S3DataStoreTest {
+class GcpDataStoreTest {
 
   private static final String FILE_NAME = "someFile";
   private static final String BUCKET_PREFIX = "prj-";
   private static final String BUCKET_POSTFIX = "-postfix";
   private static final String DEFAULT_BUCKET_NAME = "rp-bucket";
-  private static final String MINIO_USER = "minioadmin";
-  private static final String MINIO_PASSWORD = "minioadmin";
+
+  private static final int PORT = findFreePort();
 
   @Container
-  private static final MinIOContainer minioContainer = new MinIOContainer(
-      "minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1")
-      .withEnv("MINIO_ROOT_USER", MINIO_USER)
-      .withEnv("MINIO_ROOT_PASSWORD", MINIO_PASSWORD)
-      .withCommand("server", "/data");
+  private static final GenericContainer<?> gcsContainer = new GenericContainer<>(
+      DockerImageName.parse("fsouza/fake-gcs-server:latest"))
+      .withCommand("-scheme", "http", "-external-url", "http://localhost:" + PORT);
 
-  private Operator operator;
-  private S3DataStore s3DataStore;
-
-  @BeforeEach
-  void setUp() throws IOException, InterruptedException {
-    // Create bucket via CLI
-    minioContainer.execInContainer("mkdir", "-p", "/data/" + DEFAULT_BUCKET_NAME);
-
-    // Create OpenDAL operator for MinIO with a bucket in the config
-    Map<String, String> config = new HashMap<>();
-    config.put("access_key_id", MINIO_USER);
-    config.put("secret_access_key", MINIO_PASSWORD);
-    config.put("endpoint", minioContainer.getS3URL());
-    config.put("region", "auto");
-    config.put("bucket", DEFAULT_BUCKET_NAME);
-    // Explicitly disable virtual host style for MinIO
-    config.put("enable_virtual_host_style", "false");
-    // Disable loading from env/metadata to ensure isolation
-    config.put("disable_config_load", "true");
-    config.put("disable_ec2_metadata", "true");
-
-    operator = Operator.of("s3", config);
-
-    FeatureFlagHandler featureFlagHandler = mock(FeatureFlagHandler.class);
-    // Use SINGLE_BUCKET mode for simpler testing
-    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(true);
-
-    s3DataStore = new S3DataStore(operator, BUCKET_PREFIX, BUCKET_POSTFIX, DEFAULT_BUCKET_NAME, featureFlagHandler);
+  static {
+    gcsContainer.setPortBindings(Collections.singletonList(PORT + ":4443"));
   }
 
-  @AfterEach
-  void tearDown() {
-    if (operator != null) {
-      operator.close();
+  private Storage storage;
+  private GcpDataStore gcpDataStore;
+
+  private static int findFreePort() {
+    try (ServerSocket socket = new ServerSocket(0)) {
+      return socket.getLocalPort();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
+  }
+
+  @BeforeEach
+  void setUp() {
+    String endpoint = "http://localhost:" + PORT;
+
+    storage = StorageOptions.newBuilder()
+        .setHost(endpoint)
+        .setProjectId("test-project")
+        .setCredentials(NoCredentials.getInstance())
+        .build()
+        .getService();
+
+    // Create bucket if it doesn't exist
+    if (storage.get(DEFAULT_BUCKET_NAME) == null) {
+      storage.create(BucketInfo.of(DEFAULT_BUCKET_NAME));
+    }
+
+    FeatureFlagHandler featureFlagHandler = mock(FeatureFlagHandler.class);
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(true);
+
+    gcpDataStore = new GcpDataStore(storage, BUCKET_PREFIX, BUCKET_POSTFIX, DEFAULT_BUCKET_NAME,
+        featureFlagHandler);
   }
 
   @Test
@@ -102,12 +101,10 @@ class S3DataStoreTest {
     byte[] testData = "test content".getBytes();
     InputStream inputStream = new ByteArrayInputStream(testData);
 
-    String result = s3DataStore.save(filePath, inputStream);
+    String result = gcpDataStore.save(filePath, inputStream);
 
     assertEquals(filePath, result);
-
-    // Verify file was saved by reading it back
-    assertTrue(s3DataStore.exists(filePath));
+    assertTrue(gcpDataStore.exists(filePath));
   }
 
   @Test
@@ -116,11 +113,9 @@ class S3DataStoreTest {
     byte[] testData = "test content for load".getBytes();
     InputStream inputStream = new ByteArrayInputStream(testData);
 
-    // First save the file
-    s3DataStore.save(filePath, inputStream);
+    gcpDataStore.save(filePath, inputStream);
 
-    // Then load it
-    InputStream loaded = s3DataStore.load(filePath);
+    InputStream loaded = gcpDataStore.load(filePath);
 
     assertNotNull(loaded);
     byte[] loadedData = loaded.readAllBytes();
@@ -133,14 +128,11 @@ class S3DataStoreTest {
     byte[] testData = "test content for delete".getBytes();
     InputStream inputStream = new ByteArrayInputStream(testData);
 
-    // First save the file
-    s3DataStore.save(filePath, inputStream);
-    assertTrue(s3DataStore.exists(filePath));
+    gcpDataStore.save(filePath, inputStream);
+    assertTrue(gcpDataStore.exists(filePath));
 
-    // Then delete it
-    s3DataStore.delete(filePath);
+    gcpDataStore.delete(filePath);
 
-    // Verify it was deleted
-    assertFalse(s3DataStore.exists(filePath));
+    assertFalse(gcpDataStore.exists(filePath));
   }
 }

@@ -21,6 +21,8 @@ plugins {
     alias(libs.plugins.openapi.generator)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.jooq.codegen)
+    id "com.google.osdetector" version "1.7.3"
+
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -50,9 +52,9 @@ dependencies {
     api(libs.embedded.postgres)
 
     api(platform(libs.spring.boot.bom))
-    api(libs.jclouds.s3)
-    api(libs.jclouds.aw.s3)
-    api(libs.jclouds.filesystem)
+    // api(libs.jclouds.s3) // Replaced with Apache OpenDAL
+    // api(libs.jclouds.aw.s3) // Replaced with Apache OpenDAL
+    api(libs.jclouds.filesystem) // Still needed for LocalDataStore
     api(libs.guava)
     api(libs.jasypt)
     api(libs.pf4j)
@@ -95,6 +97,9 @@ dependencies {
     implementation 'org.flywaydb:flyway-core:10.15.2' // TODO get rid of
     implementation 'org.flywaydb:flyway-database-postgresql:10.20.0' // TODO get rid of
 
+    implementation "org.apache.opendal:opendal:0.48.2"
+    implementation "org.apache.opendal:opendal:0.48.2:$osdetector.classifier"
+
     // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)
 
@@ -113,6 +118,7 @@ dependencies {
     implementation(libs.xerces)
     implementation(libs.bouncycastle)
     implementation(libs.google.api.client)
+    implementation(libs.google.cloud.storage)
     implementation(libs.commons.validator) {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
     }

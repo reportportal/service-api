@@ -26,23 +26,15 @@ import com.epam.reportportal.infrastructure.persistence.filesystem.distributed.s
 import com.epam.reportportal.infrastructure.persistence.filesystem.tms.LocalTmsDataStore;
 import com.epam.reportportal.infrastructure.persistence.filesystem.tms.TmsDataStore;
 import com.epam.reportportal.infrastructure.persistence.util.FeatureFlagHandler;
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
-import com.google.common.cache.CacheLoader;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.inject.Module;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.opendal.Operator;
 import org.jclouds.ContextBuilder;
-import org.jclouds.aws.s3.config.AWSS3HttpApiModule;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.filesystem.reference.FilesystemConstants;
-import org.jclouds.rest.ConfiguresHttpApi;
-import org.jclouds.s3.S3Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,94 +42,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
  * @author Dzianis_Shybeka
  */
 @Configuration
 public class DataStoreConfiguration {
-
-  /**
-   * Amazon has a general work flow they publish that allows clients to always find the correct URL endpoint for a given
-   * bucket: 1) ask s3.amazonaws.com for the bucket location 2) use the url returned to make the container specific
-   * request (get/put, etc.) Jclouds cache the results from the first getBucketLocation call and use that
-   * region-specific URL, as needed. In this custom implementation of {@link AWSS3HttpApiModule} we are providing
-   * location from environment variable, so that we don't need to make getBucketLocation call
-   */
-  @ConfiguresHttpApi
-  private static class CustomBucketToRegionModule extends AWSS3HttpApiModule {
-
-    private final String region;
-
-    public CustomBucketToRegionModule(String region) {
-      this.region = region;
-    }
-
-    @Override
-    @SuppressWarnings("Guava")
-    protected CacheLoader<String, Optional<String>> bucketToRegion(
-        Supplier<Set<String>> regionSupplier, S3Client client) {
-      Set<String> regions = regionSupplier.get();
-      if (regions.isEmpty()) {
-        return new CacheLoader<>() {
-
-          @Override
-          @SuppressWarnings({"Guava", "NullableProblems"})
-          public Optional<String> load(String bucket) {
-            if (CustomBucketToRegionModule.this.region != null) {
-              return Optional.of(CustomBucketToRegionModule.this.region);
-            }
-            return Optional.absent();
-          }
-
-          @Override
-          public String toString() {
-            return "noRegions()";
-          }
-        };
-      } else if (regions.size() == 1) {
-        final String onlyRegion = Iterables.getOnlyElement(regions);
-        return new CacheLoader<>() {
-          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-          final Optional<String> onlyRegionOption = Optional.of(onlyRegion);
-
-          @Override
-          @SuppressWarnings("NullableProblems")
-          public Optional<String> load(String bucket) {
-            if (CustomBucketToRegionModule.this.region != null) {
-              return Optional.of(CustomBucketToRegionModule.this.region);
-            }
-            return onlyRegionOption;
-          }
-
-          @Override
-          public String toString() {
-            return "onlyRegion(" + onlyRegion + ")";
-          }
-        };
-      } else {
-        return new CacheLoader<>() {
-          @Override
-          @SuppressWarnings("NullableProblems")
-          public Optional<String> load(String bucket) {
-            if (CustomBucketToRegionModule.this.region != null) {
-              return Optional.of(CustomBucketToRegionModule.this.region);
-            }
-            try {
-              return Optional.fromNullable(client.getBucketLocation(bucket));
-            } catch (ContainerNotFoundException e) {
-              return Optional.absent();
-            }
-          }
-
-          @Override
-          public String toString() {
-            return "bucketToRegion()";
-          }
-        };
-      }
-    }
-  }
 
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "filesystem")
@@ -167,91 +79,134 @@ public class DataStoreConfiguration {
   }
 
   /**
-   * Creates BlobStore bean, that works with MinIO.
+   * Creates OpenDAL Operator for MinIO.
    *
    * @param accessKey accessKey to use
    * @param secretKey secretKey to use
    * @param endpoint  MinIO endpoint
-   * @return {@link BlobStore}
+   * @param region    Region to use
+   * @return {@link Operator}
    */
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "s3-compatible")
   @Primary
-  public BlobStore minioBlobStore(@Value("${datastore.accessKey}") String accessKey,
+  public Operator s3CompatibleOperator(@Value("${datastore.accessKey}") String accessKey,
       @Value("${datastore.secretKey}") String secretKey,
-      @Value("${datastore.endpoint}") String endpoint) {
+      @Value("${datastore.endpoint}") String endpoint,
+      @Value("${datastore.region:us-east-1}") String region) {
 
-    BlobStoreContext blobStoreContext =
-        ContextBuilder.newBuilder("s3").endpoint(endpoint).credentials(accessKey, secretKey)
-            .buildView(BlobStoreContext.class);
+    Map<String, String> config = new HashMap<>();
+    config.put("access_key_id", accessKey);
+    config.put("secret_access_key", secretKey);
+    config.put("endpoint", endpoint);
+    config.put("region", region);
 
-    return blobStoreContext.getBlobStore();
+    return Operator.of("s3", config);
   }
 
   /**
    * Creates DataStore bean to work with MinIO.
    *
-   * @param blobStore          {@link BlobStore} object
+   * @param operator           {@link Operator} object
    * @param bucketPrefix       Prefix for bucket name
+   * @param bucketPostfix      Postfix for bucket name
    * @param defaultBucketName  Name of default bucket to use
-   * @param region             Region to store
    * @param featureFlagHandler Instance of {@link FeatureFlagHandler} to check enabled features
    * @return {@link DataStore} object
    */
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "s3-compatible")
-  public DataStore minioDataStore(@Autowired BlobStore blobStore,
+  public DataStore s3CompatibleDataStore(@Autowired Operator operator,
       @Value("${datastore.bucketPrefix}") String bucketPrefix,
       @Value("${datastore.bucketPostfix}") String bucketPostfix,
       @Value("${datastore.defaultBucketName}") String defaultBucketName,
-      @Value("${datastore.region}") String region, FeatureFlagHandler featureFlagHandler) {
-    return new S3DataStore(
-        blobStore, bucketPrefix, bucketPostfix, defaultBucketName, region, featureFlagHandler);
+      FeatureFlagHandler featureFlagHandler) {
+    return new S3DataStore(operator, bucketPrefix, bucketPostfix, defaultBucketName, featureFlagHandler);
   }
 
   /**
-   * Creates BlobStore bean, that works with AWS S3.
+   * Creates OpenDAL Operator for AWS S3.
    *
-   * @param accessKey accessKey to use
-   * @param secretKey secretKey to use
+   * @param accessKey accessKey to use (optional, if not provided uses IAM credentials)
+   * @param secretKey secretKey to use (optional, if not provided uses IAM credentials)
    * @param region    AWS S3 region to use.
-   * @return {@link BlobStore}
+   * @return {@link Operator}
    */
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "aws-s3")
   @Primary
-  public BlobStore s3BlobStore(
+  public Operator awsS3Operator(
       @Value("${datastore.accessKey:}") String accessKey,
       @Value("${datastore.secretKey:}") String secretKey,
       @Value("${datastore.region}") String region) {
-    Iterable<Module> modules = ImmutableSet.of(new CustomBucketToRegionModule(region));
 
-    BlobStoreContext blobStoreContext;
+    Map<String, String> config = new HashMap<>();
+    config.put("region", region);
+
     if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
-      blobStoreContext = ContextBuilder.newBuilder("aws-s3")
-          .modules(modules)
-          .credentials(accessKey, secretKey)
-          .buildView(BlobStoreContext.class);
+      config.put("access_key_id", accessKey);
+      config.put("secret_access_key", secretKey);
     } else {
-      blobStoreContext = ContextBuilder.newBuilder("aws-s3")
-          .credentialsSupplier(new IAMCredentialSupplier())
-          .modules(modules)
-          .buildView(BlobStoreContext.class);
+      // Use IAM credentials from DefaultCredentialsProvider
+      DefaultCredentialsProvider credentialsProvider = DefaultCredentialsProvider.create();
+      AwsCredentials awsCredentials = credentialsProvider.resolveCredentials();
+      config.put("access_key_id", awsCredentials.accessKeyId());
+      config.put("secret_access_key", awsCredentials.secretAccessKey());
     }
 
-    return blobStoreContext.getBlobStore();
+    return Operator.of("s3", config);
   }
 
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "aws-s3")
-  public DataStore s3DataStore(@Autowired BlobStore blobStore,
+  public DataStore s3DataStore(@Autowired Operator operator,
       @Value("${datastore.bucketPrefix}") String bucketPrefix,
       @Value("${datastore.bucketPostfix}") String bucketPostfix,
       @Value("${datastore.defaultBucketName}") String defaultBucketName,
-      @Value("${datastore.region}") String region, FeatureFlagHandler featureFlagHandler) {
-    return new S3DataStore(blobStore, bucketPrefix, bucketPostfix, defaultBucketName, region,
-        featureFlagHandler
-    );
+      FeatureFlagHandler featureFlagHandler) {
+    return new S3DataStore(operator, bucketPrefix, bucketPostfix, defaultBucketName, featureFlagHandler);
+  }
+
+  /**
+   * Creates OpenDAL Operator for Azure Blob Storage.
+   *
+   * @param accountName   Azure account name
+   * @param accountKey    Azure account key
+   * @param endpoint      Azure endpoint (optional)
+   * @param container     Azure container (optional, but usually required for OpenDAL azblob)
+   * @return {@link Operator}
+   */
+  @Bean
+  @ConditionalOnProperty(name = "datastore.type", havingValue = "azure")
+  @Primary
+  public Operator azureBlobOperator(
+      @Value("${datastore.azure.accountName}") String accountName,
+      @Value("${datastore.azure.accountKey}") String accountKey,
+      @Value("${datastore.azure.endpoint:}") String endpoint,
+      @Value("${datastore.azure.container:}") String container) {
+
+    Map<String, String> config = new HashMap<>();
+    config.put("account_name", accountName);
+    config.put("account_key", accountKey);
+    if (StringUtils.isNotEmpty(endpoint)) {
+      config.put("endpoint", endpoint);
+    }
+    if (StringUtils.isNotEmpty(container)) {
+      config.put("container", container);
+    }
+
+    return Operator.of("azblob", config);
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "datastore.type", havingValue = "azure")
+  public DataStore azureDataStore(@Autowired Operator operator,
+      @Value("${datastore.bucketPrefix}") String bucketPrefix,
+      @Value("${datastore.bucketPostfix}") String bucketPostfix,
+      @Value("${datastore.defaultBucketName}") String defaultBucketName,
+      FeatureFlagHandler featureFlagHandler) {
+    // Reusing S3DataStore as it is generic enough for OpenDAL operations
+    return new S3DataStore(operator, bucketPrefix, bucketPostfix, defaultBucketName, featureFlagHandler);
   }
 
   @Bean

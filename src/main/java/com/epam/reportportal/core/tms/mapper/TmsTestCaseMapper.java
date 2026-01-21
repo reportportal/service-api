@@ -5,6 +5,8 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionLaunchRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -14,6 +16,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestFolder;
+import jakarta.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -235,6 +238,19 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "number", source = "number")
   public abstract TmsTestCaseExecutionLaunchRS testItemToLaunchRS(
       Launch launch);
+
+  @Mapping(target = "testFolderId", source = "testFolderId",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+      nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  @Mapping(target = "testCaseIds", source = "patchRequest.testCaseIds",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+      nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  @Mapping(target = "priority", source = "patchRequest.priority",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+      nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  public abstract BatchPatchTestCasesRS toBatchPatchTestCasesRS(
+      Long testFolderId, BatchPatchTestCasesRQ patchRequest
+  );
 
   /**
    * Converts Instant to milliseconds (epoch millis).

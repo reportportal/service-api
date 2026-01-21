@@ -8,6 +8,7 @@ import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
@@ -30,7 +31,7 @@ public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCa
 
   void delete(long projectId, @Valid BatchDeleteTestCasesRQ deleteRequest);
 
-  void patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
+  BatchPatchTestCasesRS patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
 
   List<TmsTestCaseRS> importFromFile(long projectId, Long testFolderId, String testFolderName,
       MultipartFile file);

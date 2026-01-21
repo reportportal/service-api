@@ -10,6 +10,7 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
+import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
@@ -230,7 +231,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public void patch(long projectId,
+  public BatchPatchTestCasesRS patch(long projectId,
       @Valid BatchPatchTestCasesRQ patchRequest) {
     var testCaseIds = patchRequest.getTestCaseIds();
     Long testFolderId = null;
@@ -248,6 +249,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           testFolderId,
           patchRequest.getPriority());
     }
+    return tmsTestCaseMapper.toBatchPatchTestCasesRS(
+        testFolderId, patchRequest
+    );
   }
 
   @Override

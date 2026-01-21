@@ -1,6 +1,7 @@
 package com.epam.reportportal.core.tms.controller;
 
 import com.epam.reportportal.core.tms.dto.batch.BatchDuplicateTestCasesRS;
+import com.epam.reportportal.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
@@ -260,10 +261,10 @@ public class TestCaseController {
       tags = {"Batch Operations"}
   )
   @ApiResponse(responseCode = "200", description = "Test cases updated successfully")
-  public void batchPatchTestCases(@PathVariable("projectKey") String projectKey,
+  public BatchPatchTestCasesRS batchPatchTestCases(@PathVariable("projectKey") String projectKey,
       @Valid @RequestBody BatchPatchTestCasesRQ patchRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
-    tmsTestCaseService.patch(
+    return tmsTestCaseService.patch(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),

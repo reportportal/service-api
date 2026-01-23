@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -84,6 +85,26 @@ class DashboardControllerTest extends BaseMvcTest {
     mockMvc.perform(
             get(DEFAULT_PROJECT_BASE_URL + "/dashboard?page.sort=creationDate,DESC").with(
                 token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void getAllDashboardsPositiveWithSortLocked() throws Exception {
+    mockMvc.perform(
+            get(DEFAULT_PROJECT_BASE_URL + "/dashboard?page.sort=locked,DESC&page.sort=name,DESC")
+                .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void lockDashboard() throws Exception {
+    String requestBody = """
+        { "locked": true }""";
+    mockMvc.perform(
+            patch(DEFAULT_PROJECT_BASE_URL + "/dashboard/17")
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(requestBody)
+                .contentType(APPLICATION_JSON))
         .andExpect(status().isOk());
   }
 

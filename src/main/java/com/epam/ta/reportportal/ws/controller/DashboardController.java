@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
+import com.epam.ta.reportportal.model.dashboard.PatchDashboardRQ;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -142,9 +143,10 @@ public class DashboardController {
   public OperationCompletionRS patchDashboard(
       @PathVariable String projectName,
       @PathVariable Long dashboardId,
-      @RequestBody @Validated Boolean locked,
+      @RequestBody @Validated PatchDashboardRQ patchRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    return updateDashboardHandler.toggleDashboardLock(projectExtractor.extractProjectDetails(user, projectName), dashboardId, locked, user);
+    return updateDashboardHandler.toggleDashboardLock(
+        projectExtractor.extractProjectDetails(user, projectName), dashboardId, patchRQ.getLocked(), user);
 
   }
 

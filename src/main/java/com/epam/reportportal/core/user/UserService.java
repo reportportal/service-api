@@ -20,8 +20,8 @@ import com.epam.reportportal.infrastructure.persistence.entity.user.User;
 
 /**
  * Service that provides user-related operations.
- * <p>
- * Implementations are responsible for retrieving and managing {@link User} entities used across the application.
+ *
+ * <p>Implementations are responsible for retrieving and managing {@link User} entities used across the application.
  * </p>
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
@@ -32,7 +32,7 @@ public interface UserService {
    * Find a user by its identifier.
    *
    * @param userId identifier of the user; must not be {@code null}
-   * @return the {@link User} with the given id, or {@code null} if not found
+   * @return the {@link User} with the given id
    */
   User findById(Long userId);
 }

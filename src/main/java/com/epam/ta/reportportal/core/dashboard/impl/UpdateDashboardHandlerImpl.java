@@ -23,6 +23,7 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
@@ -196,6 +197,18 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
         "Widget with ID = '" + widget.getId()
             + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
             + "'");
+  }
+
+  @Override
+  public OperationCompletionRS toggleDashboardLock(ProjectDetails projectDetails, Long dashboardId, Boolean isLocked,
+      ReportPortalUser user) {
+    dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+            dashboardId,
+            projectDetails.getProjectName()
+        ));
+    dashboardRepository.toggleDashboardLock(dashboardId, isLocked);
+    return new OperationCompletionRS("Dashboard has been updated successfully");
   }
 
   private boolean shouldDelete(Widget widget) {

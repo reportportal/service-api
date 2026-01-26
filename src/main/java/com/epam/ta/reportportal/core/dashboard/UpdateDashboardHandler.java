@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -63,6 +64,21 @@ public interface UpdateDashboardHandler {
    */
   OperationCompletionRS removeWidget(Long widgetId, Long dashboardId,
       ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user);
+
+  /**
+   * Toggle lock state for the specified dashboard.
+   *
+   * @param projectDetails Project details owning the dashboard
+   * @param dashboardId    Dashboard id
+   * @param isLocked       true to lock the dashboard, false to unlock
+   * @param user           Action performer
+   * @return OperationCompletionRS result of the operation
+   */
+  OperationCompletionRS toggleDashboardLock(
+      ProjectDetails projectDetails,
+      Long dashboardId,
+      Boolean isLocked,
       ReportPortalUser user);
 
 }

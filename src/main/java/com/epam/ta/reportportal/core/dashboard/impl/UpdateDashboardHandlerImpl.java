@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedStateEvent;
 import com.epam.ta.reportportal.core.events.activity.WidgetDeletedEvent;
 import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.dao.DashboardRepository;
@@ -202,12 +203,23 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   @Override
   public OperationCompletionRS toggleDashboardLock(ProjectDetails projectDetails, Long dashboardId, Boolean isLocked,
       ReportPortalUser user) {
-    dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+    var currentDashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
             projectDetails.getProjectName()
         ));
-    dashboardRepository.toggleDashboardLock(dashboardId, isLocked);
+
+    if (currentDashboard.getLocked() != isLocked) {
+      var currentDashboardActivity = TO_ACTIVITY_RESOURCE.apply(currentDashboard);
+      dashboardRepository.toggleDashboardLock(dashboardId, isLocked);
+
+      var newDashboardStateResource = new DashboardActivityResource();
+      newDashboardStateResource.setLocked(isLocked);
+      messageBus.publishActivity(
+          new DashboardUpdatedStateEvent(currentDashboardActivity, newDashboardStateResource, user.getUserId(),
+              user.getUsername()));
+    }
+
     return new OperationCompletionRS("Dashboard has been updated successfully");
   }
 

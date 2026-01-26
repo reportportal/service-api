@@ -129,6 +129,30 @@ class DashboardControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void lockDashboardBadRequest() throws Exception {
+    String requestBody = """
+        { "locked": null }""";
+    mockMvc.perform(
+            patch(DEFAULT_PROJECT_BASE_URL + "/dashboard/17")
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(requestBody)
+                .contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void lockDashboardInvalidValueBadRequest() throws Exception {
+    String requestBody = """
+        { "locked": "invalid string value" }""";
+    mockMvc.perform(
+            patch(DEFAULT_PROJECT_BASE_URL + "/dashboard/17")
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(requestBody)
+                .contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void getDashboardPositive() throws Exception {
     mockMvc.perform(
             get(DEFAULT_PROJECT_BASE_URL + "/dashboard/17").with(token(oAuthHelper.getDefaultToken())))

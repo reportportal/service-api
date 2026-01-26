@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.model.dashboard;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -27,6 +28,7 @@ import lombok.Data;
 @Data
 public class PatchDashboardRQ {
 
+  @NotNull
   @JsonProperty(value = "locked", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)
   private Boolean locked;

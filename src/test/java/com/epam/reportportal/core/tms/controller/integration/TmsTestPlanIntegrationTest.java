@@ -79,8 +79,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   @Test
   void createTestPlanIntegrationTest() throws Exception {
     TmsTestPlanAttributeRQ attribute = new TmsTestPlanAttributeRQ();
-    attribute.setValue("value3");
-    attribute.setId(3L);
+    attribute.setKey("testKey");
+    attribute.setValue("testValue");
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("name3");
@@ -180,8 +180,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   @Test
   void updateTestPlanIntegrationTest() throws Exception {
     TmsTestPlanAttributeRQ attribute = new TmsTestPlanAttributeRQ();
-    attribute.setValue("value5");
-    attribute.setId(5L);
+    attribute.setKey("updatedKey");
+    attribute.setValue("updatedValue");
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");
@@ -229,8 +229,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   @Test
   void patchTestPlanTest() throws Exception {
     TmsTestPlanAttributeRQ attributQ = new TmsTestPlanAttributeRQ();
-    attributQ.setValue("value6");
-    attributQ.setId(6L);
+    attributQ.setKey("patchKey");
+    attributQ.setValue("patchValue");
 
     TmsTestPlanRQ tmsTestPlan = new TmsTestPlanRQ();
     tmsTestPlan.setName("updated_name5");

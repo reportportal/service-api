@@ -37,4 +37,17 @@ public interface ItemAttributeRepository extends ReportPortalRepository<ItemAttr
   int deleteAllByLaunchIdAndSystem(Long launchId, boolean isSystem);
 
   List<ItemAttribute> findAllByTestItem(TestItem testItem);
+
+  /**
+   * Finds a standalone ItemAttribute by key, value and system flag
+   * where both item_id and launch_id are null.
+   * Used for finding reusable attributes for test plans.
+   *
+   * @param key attribute key
+   * @param value attribute value
+   * @param system system flag
+   * @return Optional containing the ItemAttribute if found
+   */
+  Optional<ItemAttribute> findByKeyAndValueAndSystemAndTestItemIsNullAndLaunchIsNull(
+      String key, String value, boolean system);
 }

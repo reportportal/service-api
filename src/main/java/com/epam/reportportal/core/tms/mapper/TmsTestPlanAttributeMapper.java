@@ -1,38 +1,104 @@
 package com.epam.reportportal.core.tms.mapper;
 
-import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
-import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlanAttribute;
 import com.epam.reportportal.core.tms.dto.TmsTestPlanAttributeRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestPlanAttributeRS;
-import com.epam.reportportal.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlan;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestPlanAttribute;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.stereotype.Component;
 
-@Mapper(config = CommonMapperConfig.class)
-public abstract class TmsTestPlanAttributeMapper {
+/**
+ * Mapper for converting between TMS Test Plan attribute DTOs and entities.
+ */
+@Component
+public class TmsTestPlanAttributeMapper {
 
-  public abstract Set<TmsTestPlanAttribute> convertToTmsTestPlanAttributes(
-      List<TmsTestPlanAttributeRQ> tmsTestPlanAttributeRQList);
+  /**
+   * Converts TmsTestPlanAttribute junction entity to response DTO.
+   *
+   * @param entity TmsTestPlanAttribute junction entity
+   * @return TmsTestPlanAttributeRS response DTO
+   */
+  public TmsTestPlanAttributeRS toResponse(TmsTestPlanAttribute entity) {
+    if (entity == null || entity.getItemAttribute() == null) {
+      return null;
+    }
 
-  @Mapping(target = "attribute.id", source = "tmsTestPlanAttributeRQ.id")
-  @Mapping(target = "id.attributeId", source = "tmsTestPlanAttributeRQ.id")
-  public abstract TmsTestPlanAttribute convertToTmsTestPlanAttribute(
-      TmsTestPlanAttributeRQ tmsTestPlanAttributeRQ);
+    var itemAttribute = entity.getItemAttribute();
+    return TmsTestPlanAttributeRS.builder()
+        .id(itemAttribute.getId())
+        .key(itemAttribute.getKey())
+        .value(itemAttribute.getValue())
+        .build();
+  }
 
-  @Mapping(target = "id", source = "tmsTestPlanAttribute.id.attributeId")
-  @Mapping(target = "key", source = "tmsTestPlanAttribute.attribute.key")
-  @Mapping(target = "value", source = "tmsTestPlanAttribute.value")
-  public abstract TmsTestPlanAttributeRS convertTmsPlanAttributeRS(
-      TmsTestPlanAttribute tmsTestPlanAttribute);
+  /**
+   * Converts collection of TmsTestPlanAttribute entities to list of response DTOs.
+   *
+   * @param entities collection of TmsTestPlanAttribute entities
+   * @return list of TmsTestPlanAttributeRS response DTOs
+   */
+  public List<TmsTestPlanAttributeRS> toResponseList(Collection<TmsTestPlanAttribute> entities) {
+    if (entities == null) {
+      return List.of();
+    }
 
-  @Mapping(target = "id.testPlanId", ignore = true)
-  @Mapping(target = "id.attributeId", source = "originalAttribute.id.attributeId")
-  @Mapping(target = "attribute", source = "originalAttribute.attribute")
-  @Mapping(target = "value", source = "originalAttribute.value")
-  @Mapping(target = "testPlan", source = "newTestPlan")
-  public abstract TmsTestPlanAttribute duplicateTestPlanAttribute(
-      TmsTestPlanAttribute originalAttribute, 
-      TmsTestPlan newTestPlan);
+    return entities.stream()
+        .map(this::toResponse)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Creates ItemAttribute entity from request DTO.
+   * ItemAttribute will have null testItem and launch (standalone attribute).
+   *
+   * @param request TmsTestPlanAttributeRQ request DTO
+   * @return ItemAttribute entity
+   */
+  public ItemAttribute toItemAttribute(TmsTestPlanAttributeRQ request) {
+    if (request == null) {
+      return null;
+    }
+
+    return new ItemAttribute(request.getKey(), request.getValue(), false);
+  }
+
+  /**
+   * Creates TmsTestPlanAttribute junction entity.
+   *
+   * @param testPlan the test plan
+   * @param itemAttribute the item attribute
+   * @return TmsTestPlanAttribute junction entity
+   */
+  public TmsTestPlanAttribute toTmsTestPlanAttribute(TmsTestPlan testPlan, ItemAttribute itemAttribute) {
+    return new TmsTestPlanAttribute(testPlan, itemAttribute);
+  }
+
+  public TmsTestPlanAttribute duplicateTestPlanAttribute(TmsTestPlanAttribute originalAttr,
+      TmsTestPlan newTestPlan) {
+    if (originalAttr == null || originalAttr.getItemAttribute() == null) {
+      return null;
+    }
+    var duplicatedItemAttribute = duplicateItemAttribute(originalAttr.getItemAttribute());
+    return toTmsTestPlanAttribute(newTestPlan, duplicatedItemAttribute);
+  }
+
+  private ItemAttribute duplicateItemAttribute(ItemAttribute itemAttribute) {
+    return new ItemAttribute(itemAttribute.getKey(), itemAttribute.getValue(), itemAttribute.isSystem());
+  }
+
+  public TmsTestPlanAttribute convertToTmsTestPlanAttribute(TmsTestPlan tmsTestPlan,
+      TmsTestPlanAttributeRQ attribute) {
+    if (attribute == null) {
+      return null;
+    }
+    var itemAttribute = toItemAttribute(attribute);
+    return toTmsTestPlanAttribute(tmsTestPlan, itemAttribute);
+  }
 }

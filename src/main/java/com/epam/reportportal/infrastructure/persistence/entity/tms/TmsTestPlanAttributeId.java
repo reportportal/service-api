@@ -9,6 +9,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Composite primary key for TmsTestPlanAttribute junction entity.
+ * Links TmsTestPlan with ItemAttribute.
+ */
 @Embeddable
 @Getter
 @Setter
@@ -24,12 +28,15 @@ public class TmsTestPlanAttributeId implements Serializable {
 
   @Override
   public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    TmsTestPlanAttributeId that = (TmsTestPlanAttributeId) o;
-    return Objects.equals(testPlanId, that.testPlanId) && Objects.equals(attributeId,
-        that.attributeId);
+    var that = (TmsTestPlanAttributeId) o;
+    return Objects.equals(testPlanId, that.testPlanId) 
+        && Objects.equals(attributeId, that.attributeId);
   }
 
   @Override

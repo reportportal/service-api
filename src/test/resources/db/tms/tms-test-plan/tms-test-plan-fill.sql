@@ -174,18 +174,17 @@ values (7, 'priority', 1);
 insert into tms_attribute (id, "key", project_id)
 values (8, 'environment', 1);
 
--- Test plan attributes for duplication testing
-insert into tms_test_plan_attribute (test_plan_id, attribute_id, value)
-values (4, 4, 'test plan attribute value 4');
+-- Insert standalone item attributes for test plan attributes
+INSERT INTO item_attribute (id, key, value, system) VALUES (1000, 'test_plan_key_4', 'test plan attribute value 4', false);
+INSERT INTO item_attribute (id, key, value, system) VALUES (1001, 'test_plan_key_5', 'test plan attribute value 5', false);
+INSERT INTO item_attribute (id, key, value, system) VALUES (1002, 'test_plan_key_1', 'original plan attribute 1', false);
+INSERT INTO item_attribute (id, key, value, system) VALUES (1003, 'test_plan_key_2', 'original plan attribute 2', false);
 
-insert into tms_test_plan_attribute (test_plan_id, attribute_id, value)
-values (5, 5, 'test plan attribute value 5');
-
-insert into tms_test_plan_attribute (test_plan_id, attribute_id, value)
-values (1, 1, 'original plan attribute 1');
-
-insert into tms_test_plan_attribute (test_plan_id, attribute_id, value)
-values (2, 2, 'original plan attribute 2');
+-- Test plan item attribute associations
+INSERT INTO tms_test_plan_attribute (test_plan_id, attribute_id) VALUES (4, 1000);
+INSERT INTO tms_test_plan_attribute (test_plan_id, attribute_id) VALUES (5, 1001);
+INSERT INTO tms_test_plan_attribute (test_plan_id, attribute_id) VALUES (1, 1002);
+INSERT INTO tms_test_plan_attribute (test_plan_id, attribute_id) VALUES (2, 1003);
 
 -- Test case attributes for duplication testing
 insert into tms_test_case_attribute (test_case_id, attribute_id, value)
@@ -733,3 +732,4 @@ SELECT setval('tms_step_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_step));
 SELECT setval('tms_attribute_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_attribute));
 SELECT setval('launch_id_seq', (SELECT COALESCE(MAX(id), 1) FROM launch));
 SELECT setval('test_item_item_id_seq', (SELECT COALESCE(MAX(item_id), 1) FROM test_item));
+SELECT setval('item_attribute_id_seq', (SELECT COALESCE(MAX(id), 1) FROM item_attribute));

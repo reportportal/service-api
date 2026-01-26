@@ -18,6 +18,9 @@ package com.epam.ta.reportportal.ws.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedStateEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.model.EntryCreatedRS;
@@ -106,6 +110,22 @@ class DashboardControllerTest extends BaseMvcTest {
                 .content(requestBody)
                 .contentType(APPLICATION_JSON))
         .andExpect(status().isOk());
+
+    verify(messageBus, times(1)).publishActivity(any(DashboardUpdatedStateEvent.class));
+  }
+
+  @Test
+  void unlockUnlockedDashboard() throws Exception {
+    String requestBody = """
+        { "locked": false }""";
+    mockMvc.perform(
+            patch(DEFAULT_PROJECT_BASE_URL + "/dashboard/17")
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(requestBody)
+                .contentType(APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(messageBus, times(0)).publishActivity(any(DashboardUpdatedStateEvent.class));
   }
 
   @Test

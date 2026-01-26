@@ -26,6 +26,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
+ * Default implementation of {@link UserService} that provides user retrieval operations by {@link UserRepository}.
+ * <p>
+ * When a user with the requested id cannot be found, methods of this implementation throw a
+ * {@link ReportPortalException} with the {@code USER_NOT_FOUND} error type.
+ * </p>
+ *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 @Service

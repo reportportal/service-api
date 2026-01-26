@@ -55,7 +55,7 @@ public class PatchUserHandler {
     patchOperations.forEach(operation -> {
       log.debug("Patch operation: {}", operation);
       validateOperation(user, operation);
-      patchUser(operation, user);
+      handlePatchOperation(operation, user);
     });
   }
 
@@ -88,7 +88,7 @@ public class PatchUserHandler {
   }
 
 
-  private void patchUser(PatchOperation operation, User user) {
+  private void handlePatchOperation(PatchOperation operation, User user) {
     String path = operation.getPath();
     switch (operation.getOp()) {
       case REPLACE -> {

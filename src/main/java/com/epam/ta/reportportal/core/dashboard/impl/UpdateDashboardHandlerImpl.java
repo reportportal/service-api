@@ -210,14 +210,13 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
         ));
 
     if (currentDashboard.getLocked() != isLocked) {
-      var currentDashboardActivity = TO_ACTIVITY_RESOURCE.apply(currentDashboard);
       dashboardRepository.toggleDashboardLock(dashboardId, isLocked);
+      var currentDashboardActivity = TO_ACTIVITY_RESOURCE.apply(currentDashboard);
 
       var newDashboardStateResource = new DashboardActivityResource();
       newDashboardStateResource.setLocked(isLocked);
-      messageBus.publishActivity(
-          new DashboardUpdatedStateEvent(currentDashboardActivity, newDashboardStateResource, user.getUserId(),
-              user.getUsername()));
+      messageBus.publishActivity(new DashboardUpdatedStateEvent(currentDashboardActivity, newDashboardStateResource,
+          user.getUserId(), user.getUsername()));
     }
 
     return new OperationCompletionRS("Dashboard has been updated successfully");

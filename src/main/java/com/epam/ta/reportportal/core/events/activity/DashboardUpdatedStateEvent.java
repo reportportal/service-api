@@ -26,12 +26,13 @@ import com.epam.ta.reportportal.entity.activity.EventObject;
 import com.epam.ta.reportportal.entity.activity.EventPriority;
 import com.epam.ta.reportportal.entity.activity.EventSubject;
 import com.epam.ta.reportportal.model.activity.DashboardActivityResource;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Andrei Varabyeu
  */
-public class DashboardUpdatedStateEvent extends AroundEvent<DashboardActivityResource> implements
-    ActivityEvent {
+@NoArgsConstructor
+public class DashboardUpdatedStateEvent extends AroundEvent<DashboardActivityResource> implements ActivityEvent {
 
   public DashboardUpdatedStateEvent(DashboardActivityResource before, DashboardActivityResource after, Long userId,
       String userLogin) {
@@ -46,9 +47,9 @@ public class DashboardUpdatedStateEvent extends AroundEvent<DashboardActivityRes
         .addPriority(EventPriority.MEDIUM)
         .addEventName(ActivityAction.UPDATE_DASHBOARD_STATE.getValue())
         .addObjectType(EventObject.DASHBOARD)
-        .addObjectId(getAfter().getId())
-        .addObjectName(getAfter().getName())
-        .addProjectId(getAfter().getProjectId())
+        .addObjectId(getBefore().getId())
+        .addObjectName(getBefore().getName())
+        .addProjectId(getBefore().getProjectId())
         .addSubjectId(getUserId())
         .addSubjectName(getUserLogin())
         .addSubjectType(EventSubject.USER)

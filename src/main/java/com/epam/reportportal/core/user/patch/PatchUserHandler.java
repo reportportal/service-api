@@ -39,7 +39,13 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor
 public class PatchUserHandler {
 
-  public static final String OPERATION_IS_NOT_SUPPORTED = "'%s' operation is not supported";
+  private static final String EMAIL_FIELD = "email";
+  private static final String FULL_NAME_FIELD = "full_name";
+  public static final String ROLE_FIELD = "role";
+  public static final String ACTIVE_FIELD = "active";
+  public static final String ACCOUNT_TYPE_FIELD = "account_type";
+  public static final String EXTERNAL_ID_FIELD = "external_id";
+  private static final String UNEXPECTED_PATH_MESSAGE = "Unexpected path: '%s'";
 
   private final UserService userService;
 
@@ -70,12 +76,12 @@ public class PatchUserHandler {
     // 2. Specific field-level restrictions for authorized users.
 
     // Rule: Email/full_name of UPSA users cannot be changed by anyone.
-    if (user.getUserType() == UserType.UPSA && (path.equals("email") || path.equals("full_name"))) {
+    if (user.getUserType() == UserType.UPSA && (path.equals(EMAIL_FIELD) || path.equals(FULL_NAME_FIELD))) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED, "Email and full name of UPSA users cannot be updated.");
     }
 
     // Rule: Profile owners (even if they are admins) can only update their own email and full_name.
-    if (isOwnProfile && !path.equals("email") && !path.equals("full_name")) {
+    if (isOwnProfile && !path.equals(EMAIL_FIELD) && !path.equals(FULL_NAME_FIELD)) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED,
           "You can only update your own email and full name. Other fields can only be changed by an administrator for you.");
     }
@@ -87,28 +93,28 @@ public class PatchUserHandler {
     switch (operation.getOp()) {
       case REPLACE -> {
         switch (path) {
-          case "email" -> user.setEmail((String) operation.getValue());
-          case "full_name" -> user.setFullName((String) operation.getValue());
-          case "role" -> user.setRole(UserRole.valueOf((String) operation.getValue()));
-          case "active" -> user.setActive((Boolean) operation.getValue());
-          case "account_type" -> user.setUserType(UserType.valueOf((String) operation.getValue()));
-          case "external_id" -> user.setExternalId((String) operation.getValue());
+          case EMAIL_FIELD -> user.setEmail((String) operation.getValue());
+          case FULL_NAME_FIELD -> user.setFullName((String) operation.getValue());
+          case ROLE_FIELD -> user.setRole(UserRole.valueOf((String) operation.getValue()));
+          case ACTIVE_FIELD -> user.setActive((Boolean) operation.getValue());
+          case ACCOUNT_TYPE_FIELD -> user.setUserType(UserType.valueOf((String) operation.getValue()));
+          case EXTERNAL_ID_FIELD -> user.setExternalId((String) operation.getValue());
           case null, default ->
-              throw new IllegalArgumentException("Unexpected path: '%s'".formatted(operation.getPath()));
+              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
         }
       }
       case ADD -> {
         switch (path) {
-          case "external_id" -> user.setExternalId((String) operation.getValue());
+          case EXTERNAL_ID_FIELD -> user.setExternalId((String) operation.getValue());
           case null, default ->
-              throw new IllegalArgumentException("Unexpected path: '%s'".formatted(operation.getPath()));
+              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
         }
       }
       case REMOVE -> {
         switch (path) {
-          case "external_id" -> user.setExternalId(null);
+          case EXTERNAL_ID_FIELD -> user.setExternalId(null);
           case null, default ->
-              throw new IllegalArgumentException("Unexpected path: '%s'".formatted(operation.getPath()));
+              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
         }
       }
       case null, default -> throw new IllegalArgumentException("Unexpected operation: " + operation.getOp());

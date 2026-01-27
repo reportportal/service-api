@@ -49,9 +49,9 @@ import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.impl.TestCaseSearchHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.model.BulkItemsRQ;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.TestItemHistoryElement;
-import com.epam.ta.reportportal.model.BulkItemsRQ;
 import com.epam.ta.reportportal.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.model.item.UnlinkExternalIssueRQ;
@@ -530,8 +530,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated BulkItemsRQ request) {
     return getTestItemHandler.getTestItemsByIds(request.getIds(),
-        projectExtractor.extractProjectDetails(user, projectName), user
-    );
+        projectExtractor.extractProjectDetails(user, projectName));
   }
 
   @Transactional(readOnly = true)

@@ -21,7 +21,6 @@ import static com.epam.reportportal.ws.converter.converters.ExceptionConverter.T
 import com.epam.reportportal.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.core.events.domain.UserDeletedEvent;
 import com.epam.reportportal.core.events.domain.UsersDeletedEvent;
-import com.epam.reportportal.core.project.DeleteProjectHandler;
 import com.epam.reportportal.core.project.settings.notification.ProjectRecipientHandler;
 import com.epam.reportportal.core.remover.ContentRemover;
 import com.epam.reportportal.core.user.DeleteUserHandler;
@@ -30,6 +29,7 @@ import com.epam.reportportal.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -61,19 +61,20 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
   private final UserBinaryDataService dataStore;
 
   private final UserRepository userRepository;
 
-  private final DeleteProjectHandler deleteProjectHandler;
-
   private final ContentRemover<User> userContentRemover;
 
   private final ProjectRecipientHandler projectRecipientHandler;
 
   private final ProjectRepository projectRepository;
+
+  private final OrganizationUserRepository organizationUserRepository;
 
   private final Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping;
 
@@ -83,23 +84,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
   @Value("${rp.environment.variable.allow-delete-account:false}")
   private boolean isAllowToDeleteAccount;
-
-  @Autowired
-  public DeleteUserHandlerImpl(UserRepository userRepository,
-      DeleteProjectHandler deleteProjectHandler, ContentRemover<User> userContentRemover,
-      UserBinaryDataService dataStore, ProjectRecipientHandler projectRecipientHandler,
-      ProjectRepository projectRepository,
-      Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping,
-      ApplicationEventPublisher applicationEventPublisher) {
-    this.userRepository = userRepository;
-    this.deleteProjectHandler = deleteProjectHandler;
-    this.dataStore = dataStore;
-    this.userContentRemover = userContentRemover;
-    this.projectRecipientHandler = projectRecipientHandler;
-    this.projectRepository = projectRepository;
-    this.emailNotificationStrategyMapping = emailNotificationStrategyMapping;
-    this.applicationEventPublisher = applicationEventPublisher;
-  }
 
   @Override
   @Transactional
@@ -118,10 +102,13 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
     userContentRemover.remove(user);
 
+    organizationUserRepository.findNonPersonalOrganizationIdsByUserId(user.getId())
+        .forEach(orgId -> publishUserUnassignEvent(user, null, orgId));
+
     List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
     userProjects.forEach(project -> {
       projectRecipientHandler.handle(Lists.newArrayList(user), project);
-      publishUserUnassignEvent(user, loggedInUser, project.getId());
+      publishUserUnassignEvent(user, project.getId(), project.getOrganizationId());
     });
 
     dataStore.deleteUserPhoto(user);
@@ -196,13 +183,12 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
         ));
   }
 
-  private void publishUserUnassignEvent(User deletedUser, ReportPortalUser authorizedUser,
-      Long projectId) {
+  private void publishUserUnassignEvent(User deletedUser, Long projectId, Long orgId) {
     UserActivityResource userActivityResource = new UserActivityResource();
     userActivityResource.setId(deletedUser.getId());
     userActivityResource.setFullName(DELETED_USER);
     userActivityResource.setDefaultProjectId(projectId);
 
-    applicationEventPublisher.publishEvent(new UnassignUserEvent(userActivityResource));
+    applicationEventPublisher.publishEvent(new UnassignUserEvent(userActivityResource, orgId));
   }
 }

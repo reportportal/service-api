@@ -47,7 +47,7 @@ public class CreateLogTypeHandlerImpl implements CreateLogTypeHandler {
   /**
    * Creates a new log type for a specific project after performing necessary validations.
    *
-   * @param projectName The name of the project where the log type should be created.
+   * @param projectKey  The key of the project where the log type should be created.
    * @param logType     The log type payload containing the details of the log type to be created.
    * @param user        The user performing the action.
    * @return The newly created log type as a DTO.
@@ -56,10 +56,10 @@ public class CreateLogTypeHandlerImpl implements CreateLogTypeHandler {
    */
   @Override
   @Transactional
-  public LogTypeResponse createLogType(String projectName, LogTypeRequest logType,
+  public LogTypeResponse createLogType(String projectKey, LogTypeRequest logType,
       ReportPortalUser user) {
-    Project project = projectRepository.findByName(projectName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+    Project project = projectRepository.findByKey(projectKey)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
     Long projectId = project.getId();
 
     validateLogType(projectId, logType);

@@ -78,6 +78,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 				.collect(Collectors.toList());
 		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
+    dashboardRepository.unlockDashboardFilters(dashboardId);
 		dashboardWidgetRepository.deleteAll(dashboardWidgets);
 		dashboardRepository.delete(dashboard);
 		widgetRepository.deleteAll(widgets);

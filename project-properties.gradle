@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : '5.14.0')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.15.0' : 'feature/upcoming')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.15.0' : 'EPMRPP-111517')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -78,7 +78,8 @@ project.ext {
             (migrationsUrl + '/migrations/97_add_groups_uuid.up.sql')                  : 'V097__add_groups_uuid.up.sql',
             (migrationsUrl + '/migrations/98_add_plugin_type.up.sql')                  : 'V098__add_plugin_type.up.sql',
             (migrationsUrl + '/migrations/106_create_log_type_table.up.sql')           : 'V106__create_log_type_table.sql',
-            (migrationsUrl + '/migrations/107_add_analysis_owner.up.sql')              : 'V107__add_analysis_owner.sql'
+            (migrationsUrl + '/migrations/107_add_analysis_owner.up.sql')              : 'V107__add_analysis_owner.sql',
+            (migrationsUrl + '/migrations/112_lock_dashboard.up.sql')                  : 'V112__lock_dashboard.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

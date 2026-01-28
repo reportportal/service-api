@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -36,6 +37,7 @@ import com.epam.ta.reportportal.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.model.dashboard.DashboardConfigResource;
 import com.epam.ta.reportportal.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.ta.reportportal.model.dashboard.DashboardResource;
+import com.epam.ta.reportportal.model.dashboard.PatchDashboardRQ;
 import com.epam.ta.reportportal.model.dashboard.UpdateDashboardRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -52,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -130,6 +133,21 @@ public class DashboardController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.updateDashboard(
         projectExtractor.extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
+  }
+
+  @Transactional
+  @PatchMapping(value = "/{dashboardId}")
+  @ResponseStatus(OK)
+  @Operation(summary = "Patch specified dashboard for specified project")
+  @PreAuthorize(PROJECT_MANAGER)
+  public OperationCompletionRS patchDashboard(
+      @PathVariable String projectName,
+      @PathVariable Long dashboardId,
+      @RequestBody @Validated PatchDashboardRQ patchRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return updateDashboardHandler.toggleDashboardLock(
+        projectExtractor.extractProjectDetails(user, projectName), dashboardId, patchRQ.getLocked(), user);
+
   }
 
   @Transactional

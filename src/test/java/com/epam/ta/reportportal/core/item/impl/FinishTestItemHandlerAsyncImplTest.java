@@ -20,7 +20,10 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+
+import org.springframework.amqp.core.MessagePostProcessor;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -34,7 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 /**
  * @author Konstantin Antipin
@@ -44,7 +47,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 class FinishTestItemHandlerAsyncImplTest {
 
   @Mock
-  AmqpTemplate amqpTemplate;
+  RabbitTemplate amqpTemplate;
 
   @InjectMocks
   ItemFinishProducer finishTestItemHandlerAsync;
@@ -58,7 +61,7 @@ class FinishTestItemHandlerAsyncImplTest {
 
     finishTestItemHandlerAsync.finishTestItem(user, user.getProjectDetails().get("test_project"),
         "123", request);
-    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(amqpTemplate).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class));
   }
 
   @Test

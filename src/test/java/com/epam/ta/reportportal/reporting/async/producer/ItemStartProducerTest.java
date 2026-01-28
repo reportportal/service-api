@@ -2,7 +2,10 @@ package com.epam.ta.reportportal.reporting.async.producer;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+
+import org.springframework.amqp.core.MessagePostProcessor;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -14,13 +17,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class ItemStartProducerTest {
 
   @Mock
-  AmqpTemplate amqpTemplate;
+  RabbitTemplate amqpTemplate;
 
   @InjectMocks
   ItemStartProducer itemStartProducer;
@@ -33,7 +36,7 @@ class ItemStartProducerTest {
 
     itemStartProducer.startRootItem(user, user.getProjectDetails().get("test_project"),
         request);
-    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(amqpTemplate).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class));
   }
 
   @Test
@@ -45,6 +48,6 @@ class ItemStartProducerTest {
 
     itemStartProducer.startChildItem(user, user.getProjectDetails().get("test_project"),
         request, "123");
-    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(amqpTemplate).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class));
   }
 }

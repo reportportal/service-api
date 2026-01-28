@@ -61,7 +61,7 @@ class FinishTestItemHandlerAsyncImplTest {
 
     finishTestItemHandlerAsync.finishTestItem(user, user.getProjectDetails().get("test_project"),
         "123", request);
-    verify(amqpTemplate).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class));
+    verify(amqpTemplate).invoke(any());
   }
 
   @Test

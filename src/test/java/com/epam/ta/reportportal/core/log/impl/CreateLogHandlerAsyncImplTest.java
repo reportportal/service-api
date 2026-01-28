@@ -20,11 +20,8 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import org.springframework.amqp.core.MessagePostProcessor;
 
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
@@ -33,8 +30,8 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
-import java.util.UUID;
 import jakarta.inject.Provider;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -99,7 +96,7 @@ class CreateLogHandlerAsyncImplTest {
     request.setLaunchUuid(UUID.randomUUID().toString());
 
     createLogHandlerAsync.sendMessage(request, binaryDataMetaInfo, 0L);
-    verify(amqpTemplate).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class));
+    verify(amqpTemplate).invoke(any());
   }
 
 

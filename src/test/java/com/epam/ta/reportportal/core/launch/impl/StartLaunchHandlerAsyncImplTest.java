@@ -18,10 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
-
-import org.springframework.amqp.core.MessagePostProcessor;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -56,6 +53,6 @@ class StartLaunchHandlerAsyncImplTest {
 
     startLaunchHandlerAsync.startLaunch(user, user.getProjectDetails().get("test_project"),
         request);
-    verify(amqpTemplate).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class));
+    verify(amqpTemplate).invoke(any());
   }
 }

@@ -18,12 +18,10 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 
-import org.springframework.amqp.core.MessagePostProcessor;
-
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.reporting.async.producer.LaunchFinishProducer;
@@ -34,7 +32,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 
 /**
  * @author Konstantin Antipin
@@ -60,6 +57,6 @@ class FinishLaunchHandlerAsyncImplTest {
 
     finishLaunchHandlerAsync.finishLaunch("0", request,
         user.getProjectDetails().get("test_project"), user, "http://base");
-    verify(amqpTemplate).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class));
+    verify(amqpTemplate).invoke(any());
   }
 }

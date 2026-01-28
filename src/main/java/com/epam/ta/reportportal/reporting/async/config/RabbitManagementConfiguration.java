@@ -28,6 +28,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitManagementConfiguration {
 
+  public static final Integer REPLY_TIMEOUT_MS = 10000;
+
   @Bean
   public Client managementClient(
       @Value("${rp.amqp.api-address}") String address) {

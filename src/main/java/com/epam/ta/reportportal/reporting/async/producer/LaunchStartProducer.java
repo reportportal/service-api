@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.producer;
 
+import static com.epam.ta.reportportal.reporting.async.config.RabbitManagementConfiguration.REPLY_TIMEOUT_MS;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
@@ -29,7 +30,7 @@ import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRS;
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -40,12 +41,12 @@ import org.springframework.util.StringUtils;
 @Service
 public class LaunchStartProducer implements StartLaunchHandler {
 
-  private final AmqpTemplate amqpTemplate;
+  private final RabbitTemplate rabbitTemplate;
   private final RerunHandler rerunHandler;
 
-  public LaunchStartProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate,
+  public LaunchStartProducer(@Qualifier(value = "rabbitTemplate") RabbitTemplate rabbitTemplate,
       RerunHandler rerunHandler) {
-    this.amqpTemplate = amqpTemplate;
+    this.rabbitTemplate = rabbitTemplate;
     this.rerunHandler = rerunHandler;
   }
 
@@ -59,15 +60,20 @@ public class LaunchStartProducer implements StartLaunchHandler {
       request.setUuid(UUID.randomUUID().toString());
     }
 
-    amqpTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY, request,
-        message -> {
-          Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, request.getUuid());
-          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
-          headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-          return message;
-        });
+    rabbitTemplate.invoke(operations -> {
+      rabbitTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
+          request,
+          message -> {
+            Map<String, Object> headers = message.getMessageProperties().getHeaders();
+            headers.put(MessageHeaders.HASH_ON, request.getUuid());
+            headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
+            headers.put(MessageHeaders.USERNAME, user.getUsername());
+            headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+            return message;
+          });
+      operations.waitForConfirms(REPLY_TIMEOUT_MS);
+      return null;
+    });
 
     StartLaunchRS response = new StartLaunchRS();
     response.setId(request.getUuid());

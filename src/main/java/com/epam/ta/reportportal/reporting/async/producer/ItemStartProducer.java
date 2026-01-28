@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.reporting.async.producer;
 
+import static com.epam.ta.reportportal.reporting.async.config.RabbitManagementConfiguration.REPLY_TIMEOUT_MS;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 import static java.util.Optional.ofNullable;
@@ -30,9 +31,8 @@ import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -43,10 +43,10 @@ import org.springframework.util.StringUtils;
 @Service
 public class ItemStartProducer implements StartTestItemHandler {
 
-  private final AmqpTemplate amqpTemplate;
+  private final RabbitTemplate rabbitTemplate;
 
-  public ItemStartProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
-    this.amqpTemplate = amqpTemplate;
+  public ItemStartProducer(@Qualifier(value = "rabbitTemplate") RabbitTemplate rabbitTemplate) {
+    this.rabbitTemplate = rabbitTemplate;
   }
 
   private static void provideItemUuid(StartTestItemRQ request) {
@@ -59,21 +59,26 @@ public class ItemStartProducer implements StartTestItemHandler {
   public ItemCreatedRS startRootItem(ReportPortalUser user, ProjectDetails projectDetails,
       StartTestItemRQ request) {
     provideItemUuid(request);
-    amqpTemplate.convertAndSend(REPORTING_EXCHANGE,
-        DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
-        request,
-        message -> {
-          Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON,
-              ofNullable(request.getLaunchUuid()).orElseThrow(() -> new ReportPortalException(
-                  ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty.")));
-          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
-          headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-          headers.put(MessageHeaders.PARENT_ITEM_ID, "");
-          return message;
-        }
-    );
+
+    rabbitTemplate.invoke(operations -> {
+      rabbitTemplate.convertAndSend(REPORTING_EXCHANGE,
+          DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
+          request,
+          message -> {
+            Map<String, Object> headers = message.getMessageProperties().getHeaders();
+            headers.put(MessageHeaders.HASH_ON,
+                ofNullable(request.getLaunchUuid()).orElseThrow(() -> new ReportPortalException(
+                    ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty.")));
+            headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
+            headers.put(MessageHeaders.USERNAME, user.getUsername());
+            headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+            headers.put(MessageHeaders.PARENT_ITEM_ID, "");
+            return message;
+          }
+      );
+      operations.waitForConfirms(REPLY_TIMEOUT_MS); // Ждем подтверждения
+      return null;
+    });
 
     ItemCreatedRS response = new ItemCreatedRS();
     response.setId(request.getUuid());
@@ -87,20 +92,25 @@ public class ItemStartProducer implements StartTestItemHandler {
         () -> new ReportPortalException(
             ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty."));
     provideItemUuid(request);
-    amqpTemplate.convertAndSend(
-        REPORTING_EXCHANGE,
-        DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
-        request,
-        message -> {
-          Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, launchUuid);
-          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
-          headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-          headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
-          return message;
-        }
-    );
+
+    rabbitTemplate.invoke(operations -> {
+      rabbitTemplate.convertAndSend(
+          REPORTING_EXCHANGE,
+          DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
+          request,
+          message -> {
+            Map<String, Object> headers = message.getMessageProperties().getHeaders();
+            headers.put(MessageHeaders.HASH_ON, launchUuid);
+            headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
+            headers.put(MessageHeaders.USERNAME, user.getUsername());
+            headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+            headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
+            return message;
+          }
+      );
+      operations.waitForConfirms(REPLY_TIMEOUT_MS);
+      return null;
+    });
 
     ItemCreatedRS response = new ItemCreatedRS();
     response.setId(request.getUuid());

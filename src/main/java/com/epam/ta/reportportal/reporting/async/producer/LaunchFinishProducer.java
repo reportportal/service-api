@@ -16,19 +16,20 @@
 
 package com.epam.ta.reportportal.reporting.async.producer;
 
-import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
+import static com.epam.ta.reportportal.reporting.async.config.RabbitManagementConfiguration.REPLY_TIMEOUT_MS;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.ta.reportportal.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.reporting.async.config.MessageHeaders;
 import com.epam.ta.reportportal.reporting.async.config.RequestType;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
 import java.util.Map;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -38,11 +39,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class LaunchFinishProducer implements FinishLaunchHandler {
 
-  private final AmqpTemplate amqpTemplate;
+  private final RabbitTemplate rabbitTemplate;
   private final LinkGenerator linkGenerator;
 
-  public LaunchFinishProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate, LinkGenerator linkGenerator) {
-    this.amqpTemplate = amqpTemplate;
+  public LaunchFinishProducer(@Qualifier(value = "rabbitTemplate") RabbitTemplate rabbitTemplate,
+      LinkGenerator linkGenerator) {
+    this.rabbitTemplate = rabbitTemplate;
     this.linkGenerator = linkGenerator;
   }
 
@@ -50,21 +52,27 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request,
       ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
 
-    amqpTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY, request,
-        message -> {
-          Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, launchId);
-          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
-          headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-          headers.put(MessageHeaders.LAUNCH_ID, launchId);
-          headers.put(MessageHeaders.BASE_URL, baseUrl);
-          return message;
-        });
+    rabbitTemplate.invoke(operations -> {
+      rabbitTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
+          request,
+          message -> {
+            Map<String, Object> headers = message.getMessageProperties().getHeaders();
+            headers.put(MessageHeaders.HASH_ON, launchId);
+            headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
+            headers.put(MessageHeaders.USERNAME, user.getUsername());
+            headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+            headers.put(MessageHeaders.LAUNCH_ID, launchId);
+            headers.put(MessageHeaders.BASE_URL, baseUrl);
+            return message;
+          });
+      operations.waitForConfirms(REPLY_TIMEOUT_MS);
+      return null;
+    });
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);
-    response.setLink(linkGenerator.generateLaunchLink(baseUrl, projectDetails.getProjectName(), launchId));
+    response.setLink(
+        linkGenerator.generateLaunchLink(baseUrl, projectDetails.getProjectName(), launchId));
     return response;
   }
 }

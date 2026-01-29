@@ -164,7 +164,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   private void assignUserToProject(User user, Organization org, Project project, ProjectRole newRole) {
     var principal = SecurityContextUtils.getPrincipal();
 
-    validateUserAssignment(user, org, project.getId());
+    validateUserAssignment(user, org);
 
     var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
         .orElseGet(() -> {

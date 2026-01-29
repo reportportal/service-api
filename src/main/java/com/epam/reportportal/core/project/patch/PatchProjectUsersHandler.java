@@ -17,8 +17,6 @@
 package com.epam.reportportal.core.project.patch;
 
 import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.fail;
-import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT;
 import static java.util.function.Predicate.isEqual;
 import static java.util.function.Predicate.not;
 

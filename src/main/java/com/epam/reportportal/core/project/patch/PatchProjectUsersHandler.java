@@ -32,6 +32,7 @@ import com.epam.reportportal.infrastructure.persistence.dao.organization.Organiz
 import com.epam.reportportal.infrastructure.persistence.entity.enums.OrganizationType;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.ProjectUser;
@@ -46,6 +47,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,21 +104,16 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
           valueToString(operation.getValue()),
           UserProjectInfo.class
       );
-      if (Objects.isNull(userPrjInfo.getId())) {
-        throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required");
-      }
     } catch (JsonProcessingException e) {
       log.error(e.getMessage());
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
     }
 
-    var principal = SecurityContextUtils.getPrincipal();
+    var userId = Optional.ofNullable(userPrjInfo.getId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
 
-    expect(userPrjInfo.getId(), not(isEqual(principal.getUserId())))
-        .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
-
-    var user = userRepository.findById(userPrjInfo.getId())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userPrjInfo.getId()));
+    var user = userRepository.findById(userId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
 
     var org = organizationRepository.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
@@ -124,9 +121,53 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     var project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
 
-    validateUserAssignment(user, org, projectId);
+    projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
+        .ifPresent(ignored -> {
+          throw new ReportPortalException(ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, user.getId());
+        });
 
-    var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userPrjInfo.getId(), orgId)
+    assignUserToProject(user, org, project, ProjectRole.valueOf(userPrjInfo.getProjectRole().getValue()));
+  }
+
+  @Override
+  public void replace(PatchOperation operation, Long orgId, Long projectId) {
+    List<UserProjectInfo> prjUsersInfo;
+    try {
+      prjUsersInfo = objectMapper.readValue(
+          valueToString(operation.getValue()),
+          new com.fasterxml.jackson.core.type.TypeReference<>() {
+          }
+      );
+    } catch (JsonProcessingException e) {
+      log.error(e.getMessage());
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
+    }
+
+    var org = organizationRepository.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+
+    var project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+
+    unassignAllUsersFromProject(project.getId());
+
+    prjUsersInfo.forEach(info -> {
+      var userId = Optional.ofNullable(info.getId())
+          .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
+
+      var user = userRepository.findById(userId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+
+      assignUserToProject(user, org, project, ProjectRole.valueOf(info.getProjectRole().getValue()));
+    });
+  }
+
+  private void assignUserToProject(User user, Organization org, Project project, ProjectRole newRole) {
+    var principal = SecurityContextUtils.getPrincipal();
+
+    validateUserAssignment(user, org, project.getId());
+
+    var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
         .orElseGet(() -> {
           OrganizationUser organizationUser = new OrganizationUser();
           organizationUser.setOrganization(org);
@@ -134,18 +175,18 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
           organizationUser.setOrganizationRole(OrganizationRole.MEMBER);
           organizationUserRepository.save(organizationUser);
           log.info("User with ID {} has been added to organization with ID {} with role MEMBER",
-              userPrjInfo.getId(), orgId);
+              user.getId(), org.getId());
           applicationEventPublisher.publishEvent(
               new AssignUserEvent(
                   UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
-                  principal.getUserId(), principal.getUsername(), orgId
+                  principal.getUserId(), principal.getUsername(), org.getId()
               ));
           return organizationUser;
         });
 
     var projectRole = orgUser.getOrganizationRole().equals(OrganizationRole.MANAGER)
         ? ProjectRole.EDITOR
-        : ProjectRole.valueOf(userPrjInfo.getProjectRole().getValue());
+        : newRole;
 
     var projectUser = new ProjectUser()
         .withUser(user)
@@ -155,46 +196,14 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     projectUserRepository.save(projectUser);
 
     log.info("User with ID {} has been assigned to project with ID {} with role {}",
-        userPrjInfo.getId(), projectId, projectRole);
+        user.getId(), project.getId(), projectRole);
 
     applicationEventPublisher.publishEvent(
         new AssignUserEvent(
-            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId),
-            principal.getUserId(), principal.getUsername(), orgId
+            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, project.getId()),
+            principal.getUserId(), principal.getUsername(), org.getId()
         )
     );
-  }
-
-  @Override
-  public void replace(PatchOperation operation, Long orgId, Long projectId) {
-    List<UserProjectInfo> operationValues;
-    try {
-      operationValues = objectMapper.readValue(
-          valueToString(operation.getValue()),
-          new com.fasterxml.jackson.core.type.TypeReference<>() {
-          }
-      );
-
-    } catch (JsonProcessingException e) {
-      log.error(e.getMessage());
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
-    }
-    operationValues.forEach(userPrjInfo -> replaceProjectUserRole(orgId, projectId, userPrjInfo));
-  }
-
-  private void replaceProjectUserRole(Long orgId, Long projectId, UserProjectInfo userPrjInfo) {
-    expect(userPrjInfo.getId(), not(isEqual(SecurityContextUtils.getPrincipal().getUserId())))
-        .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
-
-    var ou = organizationUserRepository.findByUserIdAndOrganization_Id(userPrjInfo.getId(), orgId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userPrjInfo.getId()));
-    ProjectRole newRole = ou.getOrganizationRole().equals(OrganizationRole.MANAGER) ? ProjectRole.EDITOR :
-        ProjectRole.valueOf(userPrjInfo.getProjectRole().getValue());
-
-    projectUserRepository.findProjectUserByUserIdAndProjectId(userPrjInfo.getId(), projectId)
-        .ifPresentOrElse(pru -> pru.setProjectRole(newRole), () -> {
-          throw new ReportPortalException(ErrorType.USER_NOT_FOUND, userPrjInfo.getId());
-        });
   }
 
   @Override
@@ -232,14 +241,13 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   }
 
   private void validateUserAssignment(User user, Organization org, Long prjId) {
+    expect(user.getId(), not(isEqual(SecurityContextUtils.getPrincipal().getUserId())))
+        .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
+
     if (OrganizationType.EXTERNAL.equals(org.getOrganizationType()) && UserType.UPSA.equals(user.getUserType())) {
       throw new ReportPortalException(ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
           "Cannot assign UPSA user to project under external organization"
       );
     }
-    projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), prjId)
-        .ifPresent(ignored -> {
-          throw new ReportPortalException(ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, user.getId());
-        });
   }
 }

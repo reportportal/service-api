@@ -46,7 +46,6 @@ import com.epam.reportportal.ws.converter.converters.UserConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -240,7 +239,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     log.info("All users have been removed from project with ID {}", projectId);
   }
 
-  private void validateUserAssignment(User user, Organization org, Long prjId) {
+  private void validateUserAssignment(User user, Organization org) {
     expect(user.getId(), not(isEqual(SecurityContextUtils.getPrincipal().getUserId())))
         .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
 

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
+import static com.epam.ta.reportportal.util.OwnedEntityUtils.validateOwnedEntityLocked;
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
@@ -80,12 +81,13 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails,
       UpdateDashboardRQ rq, Long dashboardId,
       ReportPortalUser user) {
-    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId,
-            projectDetails.getProjectId())
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
             projectDetails.getProjectName()
         ));
+    validateOwnedEntityLocked(dashboard, projectDetails, user);
+
     DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
     if (!dashboard.getName().equals(rq.getName())) {
@@ -117,6 +119,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             dashboardId,
             projectDetails.getProjectName()
         ));
+    validateOwnedEntityLocked(dashboard, projectDetails, user);
+
     Set<DashboardWidget> dashboardWidgets = dashboard.getWidgets();
 
     validateWidgetBeforeAddingToDashboard(rq, dashboard, dashboardWidgets);
@@ -168,6 +172,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             dashboardId,
             projectDetails.getProjectName()
         ));
+    validateOwnedEntityLocked(dashboard, projectDetails, user);
+
     Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
             widgetId,

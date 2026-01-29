@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_FILTER_NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
+import static com.epam.ta.reportportal.util.OwnedEntityUtils.validateOwnedEntityLocked;
 import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.model.ValidationConstraints;
@@ -49,7 +50,6 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -130,6 +130,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
             .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
                 userFilterId, projectDetails.getProjectName()
             ));
+    validateOwnedEntityLocked(userFilter, projectDetails, user);
     expect(
         userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(
         USER_FILTER_NOT_FOUND, userFilterId, projectDetails.getProjectId(), user.getUserId());

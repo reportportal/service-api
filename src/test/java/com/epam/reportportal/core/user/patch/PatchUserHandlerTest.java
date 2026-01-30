@@ -83,7 +83,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("email");
+    op.setPath("/email");
     op.setValue("new_email@example.com");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
@@ -99,7 +99,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("full_name");
+    op.setPath("/full_name");
     op.setValue("New Full Name");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
@@ -115,7 +115,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("role");
+    op.setPath("/instance_role");
     op.setValue(UserRole.ADMINISTRATOR.name());
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
@@ -134,7 +134,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("email");
+    op.setPath("/email");
     op.setValue("another@example.com");
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
@@ -154,7 +154,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("email");
+    op.setPath("/email");
     op.setValue("admin_changed@example.com");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
@@ -169,7 +169,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("role");
+    op.setPath("/instance_role");
     op.setValue(UserRole.ADMINISTRATOR.name());
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
@@ -185,7 +185,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("role");
+    op.setPath("/instance_role");
     op.setValue(UserRole.ADMINISTRATOR.name());
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
@@ -208,7 +208,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("email");
+    op.setPath("/email");
     op.setValue("upsa_new@example.com");
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
@@ -227,7 +227,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("email");
+    op.setPath("/email");
     op.setValue("admin_upsa_new@example.com");
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
@@ -246,7 +246,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("external_id");
+    op.setPath("/external_id");
     op.setValue("new_external_id");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
@@ -263,7 +263,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(ADD);
-    op.setPath("external_id");
+    op.setPath("/external_id");
     op.setValue("added_external_id");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
@@ -280,7 +280,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REMOVE);
-    op.setPath("external_id");
+    op.setPath("/external_id");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
     assertNull(targetUser.getExternalId());
@@ -297,7 +297,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(null); // Null operation type
-    op.setPath("email");
+    op.setPath("/email");
     op.setValue("test@example.com");
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
@@ -314,12 +314,12 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(ADD);
-    op.setPath("email");
+    op.setPath("/email");
     op.setValue("test@example.com");
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
-    assertEquals("Unexpected path: 'email'", exception.getMessage());
+    assertEquals("Unexpected path: '/email'", exception.getMessage());
   }
 
   @Test
@@ -331,11 +331,11 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REMOVE);
-    op.setPath("email");
+    op.setPath("/email");
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
-    assertEquals("Unexpected path: 'email'", exception.getMessage());
+    assertEquals("Unexpected path: '/email'", exception.getMessage());
   }
 
   @Test
@@ -347,7 +347,7 @@ class PatchUserHandlerTest {
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("unsupported_field");
+    op.setPath("unsupported_path");
     op.setValue("value");
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));

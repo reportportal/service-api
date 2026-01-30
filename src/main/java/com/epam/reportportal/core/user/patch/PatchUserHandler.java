@@ -52,12 +52,12 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor
 public class PatchUserHandler {
 
-  private static final String EMAIL_FIELD = "email";
-  private static final String FULL_NAME_FIELD = "full_name";
-  public static final String ROLE_FIELD = "role";
-  public static final String ACTIVE_FIELD = "active";
-  public static final String ACCOUNT_TYPE_FIELD = "account_type";
-  public static final String EXTERNAL_ID_FIELD = "external_id";
+  private static final String EMAIL_PATH = "/email";
+  private static final String FULL_NAME_PATH = "/full_name";
+  public static final String ROLE_PATH = "/instance_role";
+  public static final String ACTIVE_PATH = "/active";
+  public static final String ACCOUNT_TYPE_PATH = "/account_type";
+  public static final String EXTERNAL_ID_PATH = "/external_id";
   private static final String UNEXPECTED_PATH_MESSAGE = "Unexpected path: '%s'";
 
   private final UserService userService;
@@ -115,7 +115,7 @@ public class PatchUserHandler {
    * @throws ReportPortalException with ErrorType.ACCESS_DENIED if a non-permitted field is modified
    */
   private static void validateOwnerFieldAccess(boolean isOwnProfile, String path) {
-    if (isOwnProfile && !path.equals(EMAIL_FIELD) && !path.equals(FULL_NAME_FIELD)) {
+    if (isOwnProfile && !path.equals(EMAIL_PATH) && !path.equals(FULL_NAME_PATH)) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED,
           "You can only update your own email and full name. Other fields can only be changed by an administrator for you.");
     }
@@ -125,7 +125,7 @@ public class PatchUserHandler {
    * Validates that UPSA users' email and full name cannot be modified.
    *
    * <p>If the target {@code user} has type {@link UserType#UPSA} and the provided {@code path}
-   * points to either the {@value #EMAIL_FIELD} or {@value #FULL_NAME_FIELD}, a {@link ReportPortalException} with
+   * points to either the {@value #EMAIL_PATH} or {@value #FULL_NAME_PATH}, a {@link ReportPortalException} with
    * {@link ErrorType#ACCESS_DENIED} is thrown.
    *
    * @param user target user to validate
@@ -133,7 +133,7 @@ public class PatchUserHandler {
    * @throws ReportPortalException when attempting to modify email or full name of a UPSA user
    */
   private static void validateUpsaUserModification(User user, String path) {
-    if (user.getUserType() == UserType.UPSA && (path.equals(EMAIL_FIELD) || path.equals(FULL_NAME_FIELD))) {
+    if (user.getUserType() == UserType.UPSA && (path.equals(EMAIL_PATH) || path.equals(FULL_NAME_PATH))) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED, "Email and full name of UPSA users cannot be updated.");
     }
   }
@@ -172,26 +172,26 @@ public class PatchUserHandler {
     switch (operation.getOp()) {
       case REPLACE -> {
         switch (path) {
-          case EMAIL_FIELD -> user.setEmail((String) operation.getValue());
-          case FULL_NAME_FIELD -> user.setFullName((String) operation.getValue());
-          case ROLE_FIELD -> user.setRole(UserRole.valueOf((String) operation.getValue()));
-          case ACTIVE_FIELD -> user.setActive((Boolean) operation.getValue());
-          case ACCOUNT_TYPE_FIELD -> user.setUserType(UserType.valueOf((String) operation.getValue()));
-          case EXTERNAL_ID_FIELD -> user.setExternalId((String) operation.getValue());
+          case EMAIL_PATH -> user.setEmail((String) operation.getValue());
+          case FULL_NAME_PATH -> user.setFullName((String) operation.getValue());
+          case ROLE_PATH -> user.setRole(UserRole.valueOf((String) operation.getValue()));
+          case ACTIVE_PATH -> user.setActive((Boolean) operation.getValue());
+          case ACCOUNT_TYPE_PATH -> user.setUserType(UserType.valueOf((String) operation.getValue()));
+          case EXTERNAL_ID_PATH -> user.setExternalId((String) operation.getValue());
           case null, default ->
               throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
         }
       }
       case ADD -> {
         switch (path) {
-          case EXTERNAL_ID_FIELD -> user.setExternalId((String) operation.getValue());
+          case EXTERNAL_ID_PATH -> user.setExternalId((String) operation.getValue());
           case null, default ->
               throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
         }
       }
       case REMOVE -> {
         switch (path) {
-          case EXTERNAL_ID_FIELD -> user.setExternalId(null);
+          case EXTERNAL_ID_PATH -> user.setExternalId(null);
           case null, default ->
               throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
         }

@@ -200,7 +200,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     var projectId = 301L;
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("name")
+        .path("/name")
         .value("correct-value");
 
     mockMvc.perform(patch("/organizations/201/projects/" + projectId)
@@ -224,7 +224,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     var projectId = 301L;
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("name")
+        .path("/name")
         .value("correct-value");
 
     mockMvc.perform(patch("/organizations/201/projects/" + projectId)
@@ -238,7 +238,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchProjectName() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("name")
+        .path("/name")
         .value("correct-value");
 
     mockMvc.perform(patch("/organizations/1/projects/1")
@@ -265,7 +265,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchProjectSlug(String rawSlug) throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("slug")
+        .path("/slug")
         .value(rawSlug);
 
     mockMvc.perform(patch("/organizations/1/projects/1")
@@ -327,7 +327,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchInvalidName(String name) throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("name")
+        .path("/name")
         .value(name);
 
     mockMvc.perform(patch("/organizations/1/projects/1")
@@ -365,7 +365,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchWrongUrl() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("name")
+        .path("/name")
         .value("validValue");
 
     mockMvc.perform(patch("/organizations/1/projects/string")
@@ -379,7 +379,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchExistingNameSameOrg() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("name")
+        .path("/name")
         .value("superadmin_personal");
 
     mockMvc.perform(patch("/organizations/1/projects/2")
@@ -393,7 +393,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchTheSameName() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("name")
+        .path("/name")
         .value("superadmin_personal");
 
     mockMvc.perform(patch("/organizations/1/projects/1")
@@ -407,7 +407,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchExistingSlugSameOrg() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("slug")
+        .path("/slug")
         .value("superadmin_personal");
 
     mockMvc.perform(patch("/organizations/1/projects/2")
@@ -421,7 +421,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void patchRegenerateSlug() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("slug")
+        .path("/slug")
         .value("newslug");
 
     mockMvc.perform(patch("/organizations/1/projects/2")
@@ -456,7 +456,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     var values = List.of(userProjRole);
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("users")
+        .path("/users")
         .value(objectMapper.writeValueAsString(values));
 
     var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(105L, 301L).get();
@@ -481,7 +481,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     );
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
-        .path("users")
+        .path("/users")
         .value(objectMapper.writeValueAsString(values));
 
     mockMvc.perform(patch("/organizations/201/projects/301")
@@ -495,7 +495,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void removeUserFromProject() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
-        .path("users")
+        .path("/users")
         .value(objectMapper.writeValueAsString(List.of(new IdContainer(104L))));
 
     // Verify user exists in a project before removal
@@ -517,7 +517,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void removeUserFromProjectHimself() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
-        .path("users")
+        .path("/users")
         .value(objectMapper.writeValueAsString(List.of(new IdContainer(104L))));
 
     mockMvc.perform(patch("/organizations/201/projects/301")
@@ -531,7 +531,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void removeAllUserFromProject() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
-        .path("users");
+        .path("/users");
 
     mockMvc.perform(patch("/organizations/201/projects/301")
             .contentType(MediaType.APPLICATION_JSON)
@@ -545,7 +545,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void removeUsersInvalidValue() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
-        .path("users")
+        .path("/users")
         .value(List.of(new IdContainer()));
 
     mockMvc.perform(patch("/organizations/201/projects/301")
@@ -559,7 +559,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void removeUsersEmptyArray() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
-        .path("users")
+        .path("/users")
         .value("[]");
 
     mockMvc.perform(patch("/organizations/201/projects/301")
@@ -574,7 +574,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   void removeNonExistingUserFromProject() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)
-        .path("users")
+        .path("/users")
         .value(objectMapper.writeValueAsString(List.of(new IdContainer(999L))));
 
     mockMvc.perform(patch("/organizations/201/projects/301")

@@ -229,7 +229,13 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   }
 
   private void validateUserAssignment(User user, Organization org) {
-    expect(user.getId(), not(isEqual(SecurityContextUtils.getPrincipal().getUserId())))
+    var principal = SecurityContextUtils.getPrincipal();
+
+    if (principal.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+      return;
+    }
+
+    expect(user.getId(), not(isEqual(principal.getUserId())))
         .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
 
     if (OrganizationType.EXTERNAL.equals(org.getOrganizationType()) && UserType.UPSA.equals(user.getUserType())) {

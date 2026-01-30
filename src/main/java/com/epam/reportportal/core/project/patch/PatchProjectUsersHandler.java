@@ -24,6 +24,7 @@ import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.core.project.ProjectService;
+import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
@@ -32,7 +33,6 @@ import com.epam.reportportal.infrastructure.persistence.dao.organization.Organiz
 import com.epam.reportportal.infrastructure.persistence.entity.enums.OrganizationType;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.infrastructure.persistence.entity.organization.OrganizationRole;
-import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.ProjectUser;
@@ -102,6 +102,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
         new com.fasterxml.jackson.core.type.TypeReference<UserProjectInfo>() {
         });
 
+    var principal = SecurityContextUtils.getPrincipal();
+
     var userId = Optional.ofNullable(userPrjInfo.getId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
 
@@ -114,12 +116,25 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     var project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
 
+    validateUserAssignment(org, principal, user);
+
     projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
         .ifPresent(ignored -> {
           throw new ReportPortalException(ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, user.getId());
         });
 
-    assignUserToProject(user, org, project, ProjectRole.valueOf(userPrjInfo.getProjectRole().getValue()));
+    var orgUser = getOrganizationUser(org, principal, user);
+
+    var projectRole = evaluateProjectRole(orgUser, userPrjInfo);
+
+    var prjUser = new ProjectUser()
+        .withUser(user)
+        .withProject(project)
+        .withProjectRole(projectRole);
+
+    projectUserRepository.save(prjUser);
+
+    publishUserAssignEvent(principal, user, orgId, projectId, projectRole);
   }
 
   @Override
@@ -128,13 +143,25 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
         new com.fasterxml.jackson.core.type.TypeReference<List<UserProjectInfo>>() {
         });
 
+    var principal = SecurityContextUtils.getPrincipal();
+
+    var newUserIds = prjUsersInfo.stream()
+        .map(UserProjectInfo::getId)
+        .toList();
+
     var org = organizationRepository.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
 
-    unassignAllUsersFromProject(project.getId());
+    if (newUserIds.isEmpty()) {
+        unassignAllUsersFromProject(project.getId());
+        return;
+    } else {
+      projectUserRepository.deleteByProjectIdAndUserIdNotIn(project.getId(), newUserIds);
+      log.info("Users not in {} have been removed from project with ID {}", newUserIds, project.getId());
+    }
 
     prjUsersInfo.forEach(info -> {
       var userId = Optional.ofNullable(info.getId())
@@ -143,52 +170,24 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       var user = userRepository.findById(userId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
 
-      assignUserToProject(user, org, project, ProjectRole.valueOf(info.getProjectRole().getValue()));
+      validateUserAssignment(org, principal, user);
+
+      var orgUser = getOrganizationUser(org, principal, user);
+
+      var projectRole = orgUser.getOrganizationRole().equals(OrganizationRole.MANAGER)
+          ? ProjectRole.EDITOR
+          : ProjectRole.valueOf(info.getProjectRole().getValue());
+
+      var prjUser = projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
+          .orElseGet(() -> new ProjectUser()
+              .withUser(user)
+              .withProject(project)
+          );
+      prjUser.setProjectRole(projectRole);
+      projectUserRepository.save(prjUser);
+
+      publishUserAssignEvent(principal, user, orgId, projectId, projectRole);
     });
-  }
-
-  private void assignUserToProject(User user, Organization org, Project project, ProjectRole newRole) {
-    var principal = SecurityContextUtils.getPrincipal();
-
-    validateUserAssignment(user, org);
-
-    var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
-        .orElseGet(() -> {
-          OrganizationUser organizationUser = new OrganizationUser();
-          organizationUser.setOrganization(org);
-          organizationUser.setUser(user);
-          organizationUser.setOrganizationRole(OrganizationRole.MEMBER);
-          organizationUserRepository.save(organizationUser);
-          log.info("User with ID {} has been added to organization with ID {} with role MEMBER",
-              user.getId(), org.getId());
-          applicationEventPublisher.publishEvent(
-              new AssignUserEvent(
-                  UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
-                  principal.getUserId(), principal.getUsername(), org.getId()
-              ));
-          return organizationUser;
-        });
-
-    var projectRole = orgUser.getOrganizationRole().equals(OrganizationRole.MANAGER)
-        ? ProjectRole.EDITOR
-        : newRole;
-
-    var projectUser = new ProjectUser()
-        .withUser(user)
-        .withProject(project)
-        .withProjectRole(projectRole);
-
-    projectUserRepository.save(projectUser);
-
-    log.info("User with ID {} has been assigned to project with ID {} with role {}",
-        user.getId(), project.getId(), projectRole);
-
-    applicationEventPublisher.publishEvent(
-        new AssignUserEvent(
-            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, project.getId()),
-            principal.getUserId(), principal.getUsername(), org.getId()
-        )
-    );
   }
 
   @Override
@@ -228,9 +227,32 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     log.info("All users have been removed from project with ID {}", projectId);
   }
 
-  private void validateUserAssignment(User user, Organization org) {
-    var principal = SecurityContextUtils.getPrincipal();
+  private OrganizationUser getOrganizationUser(Organization org, ReportPortalUser principal, User user) {
+    return organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
+        .orElseGet(() -> {
+          OrganizationUser organizationUser = new OrganizationUser();
+          organizationUser.setOrganization(org);
+          organizationUser.setUser(user);
+          organizationUser.setOrganizationRole(OrganizationRole.MEMBER);
+          organizationUserRepository.save(organizationUser);
+          log.info("User with ID {} has been added to organization with ID {} with role MEMBER",
+              user.getId(), org.getId());
+          applicationEventPublisher.publishEvent(
+              new AssignUserEvent(
+                  UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
+                  principal.getUserId(), principal.getUsername(), org.getId()
+              ));
+          return organizationUser;
+        });
+  }
 
+  private ProjectRole evaluateProjectRole(OrganizationUser orgUser, UserProjectInfo info) {
+    return orgUser.getOrganizationRole().equals(OrganizationRole.MANAGER)
+        ? ProjectRole.EDITOR
+        : ProjectRole.valueOf(info.getProjectRole().getValue());
+  }
+
+  private void validateUserAssignment(Organization org, ReportPortalUser principal, User user) {
     if (principal.getUserRole().equals(UserRole.ADMINISTRATOR)) {
       return;
     }
@@ -243,5 +265,17 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
           "Cannot assign UPSA user to project under external organization"
       );
     }
+  }
+
+  private void publishUserAssignEvent(ReportPortalUser principal, User user, Long orgId, Long projectId, ProjectRole projectRole) {
+    log.info("User with ID {} has been assigned to project with ID {} with role {}",
+        user.getId(), projectId, projectRole);
+
+    applicationEventPublisher.publishEvent(
+        new AssignUserEvent(
+            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId),
+            principal.getUserId(), principal.getUsername(), orgId
+        )
+    );
   }
 }

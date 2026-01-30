@@ -116,6 +116,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     var project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
 
+    expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
+
     validateUserAssignment(org, principal, user);
 
     projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
@@ -154,6 +156,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
     var project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+
+    expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
 
     if (newUserIds.isEmpty()) {
         unassignAllUsersFromProject(project.getId());

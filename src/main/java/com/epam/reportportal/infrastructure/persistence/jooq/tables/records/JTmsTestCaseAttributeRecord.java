@@ -5,6 +5,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute;
+
 import org.jooq.Record2;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -45,20 +46,6 @@ public class JTmsTestCaseAttributeRecord extends UpdatableRecordImpl<JTmsTestCas
         return (Long) get(1);
     }
 
-    /**
-     * Setter for <code>public.tms_test_case_attribute.value</code>.
-     */
-    public void setValue(String value) {
-        set(2, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_case_attribute.value</code>.
-     */
-    public String getValue() {
-        return (String) get(2);
-    }
-
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -82,12 +69,11 @@ public class JTmsTestCaseAttributeRecord extends UpdatableRecordImpl<JTmsTestCas
     /**
      * Create a detached, initialised JTmsTestCaseAttributeRecord
      */
-    public JTmsTestCaseAttributeRecord(Long attributeId, Long testCaseId, String value) {
+    public JTmsTestCaseAttributeRecord(Long attributeId, Long testCaseId) {
         super(JTmsTestCaseAttribute.TMS_TEST_CASE_ATTRIBUTE);
 
         setAttributeId(attributeId);
         setTestCaseId(testCaseId);
-        setValue(value);
         resetChangedOnNotNull();
     }
 }

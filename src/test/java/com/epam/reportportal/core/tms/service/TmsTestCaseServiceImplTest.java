@@ -165,7 +165,6 @@ class TmsTestCaseServiceImplTest {
 
     attributes = new ArrayList<>();
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value");
     attribute.setId(3L);
     attributes.add(attribute);
 
@@ -331,7 +330,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
 
@@ -344,8 +343,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseRepository).save(testCase);
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
   }
 
@@ -362,7 +361,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseWithFolderIdRQ,
         testFolderId)).thenReturn(testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
 
@@ -375,8 +374,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseWithFolderIdRQ, testFolderId);
     verify(tmsTestCaseRepository).save(testCase);
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
   }
 
@@ -394,7 +393,7 @@ class TmsTestCaseServiceImplTest {
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseWithStepsRQ, testFolderId)).thenReturn(
         testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, testCase,
         stepsManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
 
@@ -407,8 +406,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseWithStepsRQ, testFolderId);
     verify(tmsTestCaseRepository).save(testCase);
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, stepsManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(projectId, testCase, stepsManualScenarioRQ);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
   }
 
@@ -433,7 +432,7 @@ class TmsTestCaseServiceImplTest {
         newFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQWithNewFolder,
         newFolderId)).thenReturn(testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
 
@@ -444,7 +443,7 @@ class TmsTestCaseServiceImplTest {
     assertNotNull(result);
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQWithNewFolder, newFolderId);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
   }
 
@@ -478,7 +477,7 @@ class TmsTestCaseServiceImplTest {
     when(
         tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQWithoutTags, testFolderId)).thenReturn(
         testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
 
@@ -488,8 +487,8 @@ class TmsTestCaseServiceImplTest {
     // Then
     assertNotNull(result);
     verify(tmsTestCaseRepository).save(testCase);
-    verify(tmsTestCaseAttributeService, never()).createTestCaseAttributes(any(), any());
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService, never()).createTestCaseAttributes(eq(projectId), any(), any());
+    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
   }
 
@@ -503,7 +502,7 @@ class TmsTestCaseServiceImplTest {
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(
         convertedTestCase);
-    when(tmsTestCaseVersionService.updateDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.updateDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId)).thenReturn(testCaseExecution);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution)).thenReturn(testCaseRS);
@@ -518,8 +517,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseMapper).update(testCase, convertedTestCase);
-    verify(tmsTestCaseAttributeService).updateTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).updateDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).updateTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).updateDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
   }
@@ -532,7 +531,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class))).thenReturn(
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(testCase);
-    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
 
@@ -546,8 +545,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseRepository).save(testCase);
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
   }
 
@@ -568,7 +567,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseWithFolderIdRQ,
         testFolderId)).thenReturn(convertedTestCase);
-    when(tmsTestCaseVersionService.updateDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.updateDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId)).thenReturn(testCaseExecution);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution)).thenReturn(testCaseRS);
@@ -583,8 +582,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseWithFolderIdRQ, testFolderId);
     verify(tmsTestCaseMapper).update(testCase, convertedTestCase);
-    verify(tmsTestCaseAttributeService).updateTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).updateDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).updateTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).updateDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
   }
@@ -619,7 +618,7 @@ class TmsTestCaseServiceImplTest {
         testFolderRS);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId)).thenReturn(
         convertedTestCase);
-    when(tmsTestCaseVersionService.patchDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.patchDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId)).thenReturn(testCaseExecution);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution)).thenReturn(testCaseRS);
@@ -634,8 +633,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseMapper).patch(testCase, convertedTestCase);
-    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
   }
@@ -657,7 +656,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
     when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseWithFolderIdRQ,
         testFolderId)).thenReturn(convertedTestCase);
-    when(tmsTestCaseVersionService.patchDefaultTestCaseVersion(testCase,
+    when(tmsTestCaseVersionService.patchDefaultTestCaseVersion(projectId, testCase,
         textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId)).thenReturn(testCaseExecution);
     when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution)).thenReturn(testCaseRS);
@@ -672,8 +671,8 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseWithFolderIdRQ, testFolderId);
     verify(tmsTestCaseMapper).patch(testCase, convertedTestCase);
-    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(testCase, attributes);
-    verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
   }
@@ -1358,7 +1357,7 @@ class TmsTestCaseServiceImplTest {
     // Then
     assertNotNull(result);
     verify(tmsAttributeService).resolveAttributes(eq(projectId), anySet());
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(eq(savedTestCase), anyList());
+    verify(tmsTestCaseAttributeService).createTestCaseAttributes(eq(projectId), eq(savedTestCase), anyList());
   }
 
   @Test

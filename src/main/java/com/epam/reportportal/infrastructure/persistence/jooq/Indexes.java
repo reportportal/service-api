@@ -147,6 +147,13 @@ public class Indexes {
       DSL.name("idx_tms_attribute_project_key"), JTmsAttribute.TMS_ATTRIBUTE,
       new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID, JTmsAttribute.TMS_ATTRIBUTE.KEY},
       false);
+  public static final Index IDX_TMS_ATTRIBUTE_PROJECT_VALUE = Internal.createIndex(
+      DSL.name("idx_tms_attribute_project_value"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID, JTmsAttribute.TMS_ATTRIBUTE.VALUE},
+      false);
+  public static final Index IDX_TMS_ATTRIBUTE_VALUE_TRGM = Internal.createIndex(
+      DSL.name("idx_tms_attribute_value_trgm"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.VALUE}, false);
   public static final Index IDX_TMS_EXECUTION_COMMENT_ATTACHMENT_ATTACHMENT_ID = Internal.createIndex(
       DSL.name("idx_tms_execution_comment_attachment_attachment_id"),
       JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT,
@@ -336,6 +343,14 @@ public class Indexes {
   public static final Index TICKET_SUBMITTER_IDX = Internal.createIndex(
       DSL.name("ticket_submitter_idx"), JTicket.TICKET, new OrderField[]{JTicket.TICKET.SUBMITTER},
       false);
+  public static final Index TMS_ATTRIBUTE_PROJECT_KEY_NULL_UNIQUE_IDX = Internal.createIndex(
+      DSL.name("tms_attribute_project_key_null_unique_idx"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID, JTmsAttribute.TMS_ATTRIBUTE.KEY},
+      true);
+  public static final Index TMS_ATTRIBUTE_PROJECT_KEY_VALUE_UNIQUE_IDX = Internal.createIndex(
+      DSL.name("tms_attribute_project_key_value_unique_idx"), JTmsAttribute.TMS_ATTRIBUTE,
+      new OrderField[]{JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID, JTmsAttribute.TMS_ATTRIBUTE.KEY,
+          JTmsAttribute.TMS_ATTRIBUTE.VALUE}, true);
   public static final Index UNIQUE_GLOBAL_INTEGRATION_NAME = Internal.createIndex(
       DSL.name("unique_global_integration_name"), JIntegration.INTEGRATION,
       new OrderField[]{JIntegration.INTEGRATION.NAME, JIntegration.INTEGRATION.TYPE}, true);

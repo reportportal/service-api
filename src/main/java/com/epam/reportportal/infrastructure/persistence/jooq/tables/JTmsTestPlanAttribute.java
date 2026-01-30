@@ -9,9 +9,11 @@ import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsTestPlanAttributeRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -64,11 +66,6 @@ public class JTmsTestPlanAttribute extends TableImpl<JTmsTestPlanAttributeRecord
      * The column <code>public.tms_test_plan_attribute.test_plan_id</code>.
      */
     public final TableField<JTmsTestPlanAttributeRecord, Long> TEST_PLAN_ID = createField(DSL.name("test_plan_id"), SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.tms_test_plan_attribute.value</code>.
-     */
-    public final TableField<JTmsTestPlanAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(255), this, "");
 
     private JTmsTestPlanAttribute(Name alias, Table<JTmsTestPlanAttributeRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

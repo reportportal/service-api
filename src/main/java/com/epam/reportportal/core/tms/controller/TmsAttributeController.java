@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.QueryParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,8 +29,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms/attribute")
@@ -100,5 +104,31 @@ public class TmsAttributeController {
         .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
         .getProjectId();
     return tmsAttributeService.getById(projectId, attributeId);
+  }
+
+  @GetMapping("/key")
+  @Operation(summary = "Get distinct TMS Attribute keys", description = "Retrieves distinct attribute keys filtered by user input for autocomplete")
+  @ApiResponse(responseCode = "200", description = "TMS Attribute keys retrieved successfully")
+  public List<String> getAllKeys(
+      @PathVariable String projectKey,
+      @RequestParam(value = "search", required = false) String search,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+    return tmsAttributeService.getKeysByCriteria(projectId, search);
+  }
+
+  @GetMapping("/value")
+  @Operation(summary = "Get distinct TMS Attribute values", description = "Retrieves distinct attribute values filtered by user input for autocomplete")
+  @ApiResponse(responseCode = "200", description = "TMS Attribute values retrieved successfully")
+  public List<String> getAllValues(
+      @PathVariable String projectKey,
+      @RequestParam(value = "search", required = false) String search,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+    return tmsAttributeService.getValuesByCriteria(projectId, search);
   }
 }

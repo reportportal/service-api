@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,6 +31,9 @@ public class TmsAttribute implements Serializable {
 
   @Column(name = "key", nullable = false)
   private String key;
+
+  @Column(name = "value")
+  private String value;
 
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)

@@ -9,9 +9,11 @@ import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioAttributeRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -67,11 +69,6 @@ public class JTmsManualScenarioAttribute extends TableImpl<JTmsManualScenarioAtt
      * <code>public.tms_manual_scenario_attribute.manual_scenario_id</code>.
      */
     public final TableField<JTmsManualScenarioAttributeRecord, Long> MANUAL_SCENARIO_ID = createField(DSL.name("manual_scenario_id"), SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.tms_manual_scenario_attribute.value</code>.
-     */
-    public final TableField<JTmsManualScenarioAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(255), this, "");
 
     private JTmsManualScenarioAttribute(Name alias, Table<JTmsManualScenarioAttributeRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

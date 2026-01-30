@@ -5,6 +5,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestPlanAttribute;
+
 import org.jooq.Record2;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -45,20 +46,6 @@ public class JTmsTestPlanAttributeRecord extends UpdatableRecordImpl<JTmsTestPla
         return (Long) get(1);
     }
 
-    /**
-     * Setter for <code>public.tms_test_plan_attribute.value</code>.
-     */
-    public void setValue(String value) {
-        set(2, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_plan_attribute.value</code>.
-     */
-    public String getValue() {
-        return (String) get(2);
-    }
-
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -82,12 +69,11 @@ public class JTmsTestPlanAttributeRecord extends UpdatableRecordImpl<JTmsTestPla
     /**
      * Create a detached, initialised JTmsTestPlanAttributeRecord
      */
-    public JTmsTestPlanAttributeRecord(Long attributeId, Long testPlanId, String value) {
+    public JTmsTestPlanAttributeRecord(Long attributeId, Long testPlanId) {
         super(JTmsTestPlanAttribute.TMS_TEST_PLAN_ATTRIBUTE);
 
         setAttributeId(attributeId);
         setTestPlanId(testPlanId);
-        setValue(value);
         resetChangedOnNotNull();
     }
 }

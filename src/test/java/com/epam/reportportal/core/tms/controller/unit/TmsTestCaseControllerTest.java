@@ -327,8 +327,8 @@ public class TmsTestCaseControllerTest {
         .externalId("EXT-001")
         .testFolderId(existingFolderId)
         .attributes(List.of(
-            TmsTestCaseAttributeRQ.builder().id(1L).value("critical").build(),
-            TmsTestCaseAttributeRQ.builder().id(1L).value("auth").build()
+            TmsTestCaseAttributeRQ.builder().id(1L).build(),
+            TmsTestCaseAttributeRQ.builder().id(1L).build()
         ))
         .manualScenario(textManualScenario)
         .build();
@@ -361,7 +361,7 @@ public class TmsTestCaseControllerTest {
         .testFolder(newTestFolder)
         .externalId("EXT-002")
         .attributes(List.of(
-            TmsTestCaseAttributeRQ.builder().id(1L).value("smoke").build()
+            TmsTestCaseAttributeRQ.builder().id(1L).build()
         ))
         .build();
 
@@ -415,8 +415,8 @@ public class TmsTestCaseControllerTest {
         .priority("HIGH")
         .testFolder(newTestFolder)
         .attributes(List.of(
-            TmsTestCaseAttributeRQ.builder().id(1L).value("ui").build(),
-            TmsTestCaseAttributeRQ.builder().id(1L).value("chrome").build()
+            TmsTestCaseAttributeRQ.builder().id(1L).build(),
+            TmsTestCaseAttributeRQ.builder().id(1L).build()
         ))
         .manualScenario(stepsManualScenario)
         .build();
@@ -479,7 +479,7 @@ public class TmsTestCaseControllerTest {
         .priority("MEDIUM")
         .testFolder(newTestFolder)
         .attributes(List.of(
-            TmsTestCaseAttributeRQ.builder().id(1L).value("true").build()
+            TmsTestCaseAttributeRQ.builder().id(1L).build()
         ))
         .build();
 
@@ -623,8 +623,8 @@ public class TmsTestCaseControllerTest {
     var testCaseId = 2L;
     var testCaseRequest = TmsTestCaseRQ.builder()
         .attributes(List.of(
-            TmsTestCaseAttributeRQ.builder().id(1L).value("yes").build(),
-            TmsTestCaseAttributeRQ.builder().id(1L).value("2.0").build()
+            TmsTestCaseAttributeRQ.builder().id(1L).build(),
+            TmsTestCaseAttributeRQ.builder().id(1L).build()
         ))
         .build();
 

@@ -3,15 +3,15 @@ package com.epam.reportportal.core.tms.service;
 import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static java.util.Objects.nonNull;
 
-import com.epam.reportportal.core.tms.dto.TmsTestCaseImportParseResult;
-import com.epam.reportportal.core.tms.dto.TmsTestCasePreparationForImportResult;
-import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRS;
-import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeImportRQ;
-import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.core.tms.dto.PreparedTestCase;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeImportRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportParseResult;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRQ;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseInTestPlanRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCasePreparationForImportResult;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.dto.batch.BatchDeleteTestCasesRQ;
@@ -146,11 +146,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     tmsTestCaseRepository.save(tmsTestCase);
 
     if (CollectionUtils.isNotEmpty(tmsTestCaseRQ.getAttributes())) {
-      tmsTestCaseAttributeService.createTestCaseAttributes(tmsTestCase,
+      tmsTestCaseAttributeService.createTestCaseAttributes(projectId, tmsTestCase,
           tmsTestCaseRQ.getAttributes());
     }
 
-    var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(tmsTestCase,
+    var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId,
+        tmsTestCase,
         tmsTestCaseRQ.getManualScenario());
 
     return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion);
@@ -167,10 +168,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
 
-          tmsTestCaseAttributeService.updateTestCaseAttributes(existingTestCase,
+          tmsTestCaseAttributeService.updateTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
 
           var defaultVersion = tmsTestCaseVersionService.updateDefaultTestCaseVersion(
+              projectId,
               existingTestCase,
               tmsTestCaseRQ.getManualScenario());
 
@@ -196,10 +198,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
 
-          tmsTestCaseAttributeService.patchTestCaseAttributes(existingTestCase,
+          tmsTestCaseAttributeService.patchTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
 
           var defaultVersion = tmsTestCaseVersionService.patchDefaultTestCaseVersion(
+              projectId,
               existingTestCase,
               tmsTestCaseRQ.getManualScenario());
 
@@ -300,7 +303,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     validateFolderAssignment(preparationResult.getPreparedTestCases());
 
     // 7. Batch create all test cases
-    var createdIds = importTestCases(projectId, preparationResult.getPreparedTestCases(), keyToAttributeId);
+    var createdIds = importTestCases(projectId, preparationResult.getPreparedTestCases(),
+        keyToAttributeId);
 
     return TmsTestCaseImportRS.of(createdIds, baseFolderId, parseResult.getTotalRows());
   }
@@ -400,10 +404,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       var importRQ = preparedTestCases.get(i).getTestCase();
 
       if (importRQ.getAttributes() != null) {
-        createAttributesFromImport(savedTestCase, importRQ.getAttributes(), keyToAttributeId);
+        createAttributesFromImport(projectId, savedTestCase, importRQ.getAttributes(), keyToAttributeId);
       }
 
-      tmsTestCaseVersionService.createDefaultTestCaseVersion(savedTestCase, importRQ.getManualScenario());
+      tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
+          importRQ.getManualScenario());
     }
 
     return savedTestCases
@@ -434,7 +439,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   }
 
   private void createAttributesFromImport(
-      TmsTestCase testCase,
+      long projectId, TmsTestCase testCase,
       List<TmsTestCaseAttributeImportRQ> importAttributes,
       Map<String, Long> keyToAttributeId) {
 
@@ -449,7 +454,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         .toList();
 
     if (!attributeRequests.isEmpty()) {
-      tmsTestCaseAttributeService.createTestCaseAttributes(testCase, attributeRequests);
+      tmsTestCaseAttributeService.createTestCaseAttributes(projectId, testCase, attributeRequests);
     }
   }
 

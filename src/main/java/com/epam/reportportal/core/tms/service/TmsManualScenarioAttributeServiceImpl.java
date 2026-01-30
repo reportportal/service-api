@@ -3,10 +3,11 @@ package com.epam.reportportal.core.tms.service;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsManualScenario;
-import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsManualScenarioAttributeRepository;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioAttributeRQ;
 import com.epam.reportportal.core.tms.mapper.TmsManualScenarioAttributeMapper;
+import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsManualScenarioAttributeRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsManualScenarioAttribute;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,47 +22,63 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
 
   private final TmsManualScenarioAttributeMapper tmsManualScenarioAttributeMapper;
   private final TmsManualScenarioAttributeRepository tmsManualScenarioAttributeRepository;
+  private final TmsAttributeService tmsAttributeService;
 
   @Override
   @Transactional
-  public void createAttributes(TmsManualScenario tmsManualScenario,
+  public void createAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
-    var tmsManualScenarioAttributes = tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(
-        attributes);
+
+    var tmsManualScenarioAttributes = attributes.stream()
+        .map(attributeRQ -> {
+          var attribute = attributeRQ.getId() != null
+              ? tmsAttributeService.getEntityById(projectId, attributeRQ.getId())
+              : tmsAttributeService.findOrCreateAttribute(projectId, attributeRQ.getKey(),
+                  attributeRQ.getValue());
+          var manualScenarioAttribute = new TmsManualScenarioAttribute();
+          manualScenarioAttribute.setAttribute(attribute);
+          manualScenarioAttribute.setManualScenario(tmsManualScenario);
+          return manualScenarioAttribute;
+        })
+        .collect(Collectors.toSet());
     tmsManualScenario.setAttributes(tmsManualScenarioAttributes);
-    tmsManualScenarioAttributes.forEach(
-        tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(
-            tmsManualScenario));
     tmsManualScenarioAttributeRepository.saveAll(tmsManualScenarioAttributes);
   }
 
   @Override
   @Transactional
-  public void updateAttributes(TmsManualScenario tmsManualScenario,
+  public void updateAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes) {
     if (isNotEmpty(tmsManualScenario.getAttributes())) {
       tmsManualScenarioAttributeRepository.deleteAll(tmsManualScenario.getAttributes());
       tmsManualScenario.setAttributes(new HashSet<>());
     }
-    createAttributes(tmsManualScenario, attributes);
+    createAttributes(projectId, tmsManualScenario, attributes);
   }
 
   @Override
   @Transactional
-  public void patchAttributes(TmsManualScenario tmsManualScenario,
+  public void patchAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
-    var tmsManualScenarioAttributes = tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(
-        attributes);
+    var tmsManualScenarioAttributes = attributes.stream()
+        .map(attributeRQ -> {
+          var attribute = attributeRQ.getId() != null
+              ? tmsAttributeService.getEntityById(projectId, attributeRQ.getId())
+              : tmsAttributeService.findOrCreateAttribute(projectId, attributeRQ.getKey(),
+                  attributeRQ.getValue());
+          var manualScenarioAttribute = new TmsManualScenarioAttribute();
+          manualScenarioAttribute.setAttribute(attribute);
+          manualScenarioAttribute.setManualScenario(tmsManualScenario);
+          return manualScenarioAttribute;
+        })
+        .collect(Collectors.toSet());
     tmsManualScenario.getAttributes().addAll(tmsManualScenarioAttributes);
-    tmsManualScenarioAttributes.forEach(
-        tmsManualScenarioAttribute -> tmsManualScenarioAttribute.setManualScenario(
-            tmsManualScenario));
     tmsManualScenarioAttributeRepository.saveAll(tmsManualScenarioAttributes);
   }
 

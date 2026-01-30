@@ -130,6 +130,7 @@ import static com.epam.reportportal.infrastructure.persistence.commons.querygen.
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER_UPDATED_AT;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_ID;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_KEY;
+import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_VALUE;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ATTRIBUTES;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_CREATED_AT;
 import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_DESCRIPTION;
@@ -1944,6 +1945,8 @@ public enum FilterTarget {
               Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_ATTRIBUTE_KEY, TMS_ATTRIBUTE.KEY,
               String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_ATTRIBUTE_VALUE, TMS_ATTRIBUTE.VALUE,
+              String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, TMS_ATTRIBUTE.PROJECT_ID,
               Long.class).get()
       )
@@ -1953,6 +1956,7 @@ public enum FilterTarget {
       return Lists.newArrayList(
           TMS_ATTRIBUTE.ID,
           TMS_ATTRIBUTE.KEY,
+          TMS_ATTRIBUTE.VALUE,
           TMS_ATTRIBUTE.PROJECT_ID
       );
     }

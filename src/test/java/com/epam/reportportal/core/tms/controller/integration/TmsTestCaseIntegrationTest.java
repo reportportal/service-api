@@ -118,7 +118,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void createTestCaseWithoutManualScenarioIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value3");
     attribute.setId(3L);
 
     var testCaseRQ = new TmsTestCaseRQ();
@@ -168,15 +167,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseTags = testCaseAttributeRepository.findAllById_TestCaseId(
         createdTestCase.get().getId());
     assertFalse(testCaseTags.isEmpty());
-    assertTrue(testCaseTags.stream().anyMatch(tag ->
-        tag.getValue().equals("value3") && tag.getId().getAttributeId().equals(3L)));
   }
 
   @Test
   void createTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value3");
     attribute.setId(3L);
 
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
@@ -644,7 +640,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void updateTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value4");
     attribute.setId(4L);
 
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
@@ -753,7 +748,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value6");
     attribute.setId(6L);
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case 6");
@@ -783,7 +777,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseWithNewFolderIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value6");
     attribute.setId(6L);
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case 6 with New Folder");

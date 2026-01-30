@@ -9,13 +9,13 @@ import java.util.List;
 
 public interface TmsTestCaseAttributeService {
 
-  void createTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
+  void createTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       @NotEmpty List<TmsTestCaseAttributeRQ> attributes);
 
-  void updateTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
+  void updateTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes);
 
-  void patchTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
+  void patchTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes);
 
   void patchTestCaseAttributes(@NotNull @NotEmpty List<TmsTestCase> testCaseIds,

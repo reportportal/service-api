@@ -60,6 +60,20 @@ public class JTmsAttributeRecord extends UpdatableRecordImpl<JTmsAttributeRecord
         return (Long) get(2);
     }
 
+    /**
+     * Setter for <code>public.tms_attribute.value</code>.
+     */
+    public void setValue(String value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_attribute.value</code>.
+     */
+    public String getValue() {
+        return (String) get(3);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -83,12 +97,13 @@ public class JTmsAttributeRecord extends UpdatableRecordImpl<JTmsAttributeRecord
     /**
      * Create a detached, initialised JTmsAttributeRecord
      */
-    public JTmsAttributeRecord(Long id, String key, Long projectId) {
+    public JTmsAttributeRecord(Long id, String key, Long projectId, String value) {
         super(JTmsAttribute.TMS_ATTRIBUTE);
 
         setId(id);
         setKey(key);
         setProjectId(projectId);
+        setValue(value);
         resetChangedOnNotNull();
     }
 }

@@ -492,6 +492,44 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void addUserToProject() throws Exception {
+    var userToAdd = new UserProjectInfo(106L, ProjectRole.VIEWER);
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.ADD)
+        .path("/users")
+        .value(objectMapper.writeValueAsString(userToAdd));
+
+    var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(106L, 301L);
+    assertTrue(projectUserBefore.isEmpty());
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isOk());
+
+    var projectUserAfter = projectUserRepository.findProjectUserByUserIdAndProjectId(106L, 301L);
+    assertTrue(projectUserAfter.isPresent());
+    assertEquals(com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRole.VIEWER,
+        projectUserAfter.get().getProjectRole());
+  }
+
+  @Test
+  void addUserToProjectAlreadyExists() throws Exception {
+    var userToAdd = new UserProjectInfo(105L, ProjectRole.VIEWER);
+    PatchOperation patchOperation = new PatchOperation()
+        .op(OperationType.ADD)
+        .path("/users")
+        .value(objectMapper.writeValueAsString(userToAdd));
+
+    mockMvc.perform(patch("/organizations/201/projects/301")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(adminToken))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
+        .andExpect(status().isUnprocessableEntity());
+  }
+
+  @Test
   void removeUserFromProject() throws Exception {
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REMOVE)

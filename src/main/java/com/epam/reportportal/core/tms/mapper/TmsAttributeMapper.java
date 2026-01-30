@@ -28,13 +28,19 @@ public interface TmsAttributeMapper {
   void patch(@MappingTarget TmsAttribute entity, TmsAttributeRQ request);
 
   default TmsAttribute convertToTmsAttribute(Long projectId, String key) {
-    TmsAttribute attribute = new TmsAttribute();
+    var attribute = new TmsAttribute();
     attribute.setKey(key);
 
-    Project project = new Project();
+    var project = new Project();
     project.setId(projectId);
     attribute.setProject(project);
 
+    return attribute;
+  }
+
+  default TmsAttribute convertToTmsAttribute(Long projectId, String key, String value) {
+    var attribute = convertToTmsAttribute(projectId, key);
+    attribute.setValue(value);
     return attribute;
   }
 }

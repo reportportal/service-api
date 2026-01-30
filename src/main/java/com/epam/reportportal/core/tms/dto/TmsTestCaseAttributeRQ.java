@@ -15,5 +15,5 @@ public class TmsTestCaseAttributeRQ {
 
   private Long id;
 
-  private String value;
+  private String key;
 }

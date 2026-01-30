@@ -3,6 +3,7 @@ package com.epam.reportportal.core.tms.service;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioRQ;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -16,31 +17,34 @@ public interface TmsTestCaseVersionService {
   /**
    * Creates default test case version.
    *
-   * @param tmsTestCase           test case entity
-   * @param tmsManualScenarioRQ   manual scenario request
+   * @param projectId
+   * @param tmsTestCase         test case entity
+   * @param tmsManualScenarioRQ manual scenario request
    * @return created test case version
    */
-  TmsTestCaseVersion createDefaultTestCaseVersion(TmsTestCase tmsTestCase,
+  TmsTestCaseVersion createDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ);
 
   /**
    * Updates default test case version.
    *
-   * @param tmsTestCase           test case entity
-   * @param tmsManualScenarioRQ   manual scenario request
+   * @param projectId
+   * @param tmsTestCase         test case entity
+   * @param tmsManualScenarioRQ manual scenario request
    * @return updated test case version
    */
-  TmsTestCaseVersion updateDefaultTestCaseVersion(TmsTestCase tmsTestCase,
+  TmsTestCaseVersion updateDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ);
 
   /**
    * Patches default test case version.
    *
-   * @param tmsTestCase           test case entity
-   * @param tmsManualScenarioRQ   manual scenario request
+   * @param projectId
+   * @param tmsTestCase         test case entity
+   * @param tmsManualScenarioRQ manual scenario request
    * @return patched test case version
    */
-  TmsTestCaseVersion patchDefaultTestCaseVersion(TmsTestCase tmsTestCase,
+  TmsTestCaseVersion patchDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ);
 
   /**

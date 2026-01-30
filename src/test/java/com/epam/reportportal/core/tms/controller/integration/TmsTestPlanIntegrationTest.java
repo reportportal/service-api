@@ -1262,8 +1262,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.lastExecution.id").value(202))
-        .andExpect(jsonPath("$.lastExecution.launch.id").value(300))
-        .andExpect(jsonPath("$.lastExecution.launch.name").value("Launch 300 for Test Cases"))
+        .andExpect(jsonPath("$.lastExecution.launch.id").value(302))
+        .andExpect(jsonPath("$.lastExecution.launch.name").value("Launch 302 for Test Cases"))
         .andExpect(jsonPath("$.lastExecution.launch.number").value(1))
         .andExpect(jsonPath("$.lastExecution.status").value("PASSED"));
   }

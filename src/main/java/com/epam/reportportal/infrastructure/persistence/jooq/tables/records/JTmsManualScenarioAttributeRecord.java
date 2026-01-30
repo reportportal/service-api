@@ -5,6 +5,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioAttribute;
+
 import org.jooq.Record2;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -49,20 +50,6 @@ public class JTmsManualScenarioAttributeRecord extends UpdatableRecordImpl<JTmsM
         return (Long) get(1);
     }
 
-    /**
-     * Setter for <code>public.tms_manual_scenario_attribute.value</code>.
-     */
-    public void setValue(String value) {
-        set(2, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_manual_scenario_attribute.value</code>.
-     */
-    public String getValue() {
-        return (String) get(2);
-    }
-
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -86,12 +73,11 @@ public class JTmsManualScenarioAttributeRecord extends UpdatableRecordImpl<JTmsM
     /**
      * Create a detached, initialised JTmsManualScenarioAttributeRecord
      */
-    public JTmsManualScenarioAttributeRecord(Long attributeId, Long manualScenarioId, String value) {
+    public JTmsManualScenarioAttributeRecord(Long attributeId, Long manualScenarioId) {
         super(JTmsManualScenarioAttribute.TMS_MANUAL_SCENARIO_ATTRIBUTE);
 
         setAttributeId(attributeId);
         setManualScenarioId(manualScenarioId);
-        setValue(value);
         resetChangedOnNotNull();
     }
 }

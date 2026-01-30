@@ -813,6 +813,7 @@ public class RecordMappers {
     TmsAttribute attribute = new TmsAttribute();
     attribute.setId(r.get(TMS_ATTRIBUTE.ID));
     attribute.setKey(r.get(TMS_ATTRIBUTE.KEY));
+    attribute.setValue(r.get(TMS_ATTRIBUTE.VALUE));
     return attribute;
   };
 

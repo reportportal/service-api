@@ -6,13 +6,13 @@ import java.util.List;
 
 public interface TmsManualScenarioAttributeService {
 
-  void createAttributes(TmsManualScenario tmsManualScenario,
+  void createAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes);
 
-  void updateAttributes(TmsManualScenario tmsManualScenario,
+  void updateAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes);
 
-  void patchAttributes(TmsManualScenario tmsManualScenario,
+  void patchAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes);
 
   void deleteAllByTestCaseId(Long testCaseId);

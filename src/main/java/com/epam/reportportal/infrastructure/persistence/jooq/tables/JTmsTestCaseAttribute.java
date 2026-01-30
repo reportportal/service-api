@@ -9,9 +9,11 @@ import com.epam.reportportal.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsTestCaseAttributeRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -64,11 +66,6 @@ public class JTmsTestCaseAttribute extends TableImpl<JTmsTestCaseAttributeRecord
      * The column <code>public.tms_test_case_attribute.test_case_id</code>.
      */
     public final TableField<JTmsTestCaseAttributeRecord, Long> TEST_CASE_ID = createField(DSL.name("test_case_id"), SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.tms_test_case_attribute.value</code>.
-     */
-    public final TableField<JTmsTestCaseAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(255), this, "");
 
     private JTmsTestCaseAttribute(Name alias, Table<JTmsTestCaseAttributeRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

@@ -72,7 +72,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
     testPlanRepository.save(tmsTestPlan);
 
-    tmsTestPlanAttributeService.createTestPlanAttributes(tmsTestPlan,
+    tmsTestPlanAttributeService.createTestPlanAttributes(projectId, tmsTestPlan,
         testPlanRQ.getAttributes());
 
     return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
@@ -91,7 +91,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           tmsTestPlanMapper.update(existingTestPlan,
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
-          tmsTestPlanAttributeService.updateTestPlanAttributes(existingTestPlan,
+          tmsTestPlanAttributeService.updateTestPlanAttributes(projectId, existingTestPlan,
               testPlanRQ.getAttributes());
 
           return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
@@ -109,7 +109,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           tmsTestPlanMapper.patch(existingTestPlan,
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
-          tmsTestPlanAttributeService.patchTestPlanAttributes(existingTestPlan,
+          tmsTestPlanAttributeService.patchTestPlanAttributes(projectId, existingTestPlan,
               testPlanRQ.getAttributes());
 
           return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
@@ -282,7 +282,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
     // Duplicate test plan attributes
     tmsTestPlanAttributeService.createTestPlanAttributes(
-        duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
+        projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
     );
 
     // Get test case IDs from the original plan

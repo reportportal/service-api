@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface TmsManualScenarioService {
 
-  TmsManualScenario createTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  TmsManualScenario createTmsManualScenario(long projectId, TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ);
 
-  TmsManualScenario updateTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  TmsManualScenario updateTmsManualScenario(long projectId, TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ);
 
-  TmsManualScenario patchTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  TmsManualScenario patchTmsManualScenario(long projectId, TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ);
 
   void deleteAllByTestCaseId(Long testCaseId);

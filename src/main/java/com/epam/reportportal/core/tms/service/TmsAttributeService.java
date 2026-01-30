@@ -28,4 +28,17 @@ public interface TmsAttributeService {
    * @return map of attribute key to attribute ID
    */
   Map<String, Long> resolveAttributes(Long projectId, Set<String> allAttributeKeys);
+
+  // Get entity by ID (for internal use in services)
+  TmsAttribute getEntityById(Long projectId, Long attributeId);
+  
+  // Find or create tag (value=NULL) for TestCase
+  TmsAttribute findOrCreateTag(Long projectId, String key);
+  
+  // Find or create attribute with value for TestPlan/ManualScenario
+  TmsAttribute findOrCreateAttribute(Long projectId, String key, String value);
+
+  List<String> getKeysByCriteria(Long projectId, String search);
+
+  List<String> getValuesByCriteria(Long projectId, String search);
 }

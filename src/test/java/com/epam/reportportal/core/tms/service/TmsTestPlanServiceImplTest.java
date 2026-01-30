@@ -156,7 +156,7 @@ class TmsTestPlanServiceImplTest {
     assertEquals(testPlanRS, result);
     verify(tmsTestPlanMapper).convertFromRQ(projectId, testPlanRQ);
     verify(testPlanRepository).save(testPlan);
-    verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
+    verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, testPlan,
         testPlanRQ.getAttributes());
     verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
   }
@@ -309,7 +309,7 @@ class TmsTestPlanServiceImplTest {
     assertEquals(testPlanRS, result);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(tmsTestPlanMapper).update(existingTestPlan, updatedTestPlan);
-    verify(tmsTestPlanAttributeService).updateTestPlanAttributes(existingTestPlan,
+    verify(tmsTestPlanAttributeService).updateTestPlanAttributes(projectId, existingTestPlan,
         testPlanRQ.getAttributes());
     verify(tmsTestPlanExecutionService).enrichWithStatistics(existingTestPlan);
     verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
@@ -334,7 +334,7 @@ class TmsTestPlanServiceImplTest {
     assertEquals(testPlanRS, result);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(testPlanRepository).save(testPlan);
-    verify(tmsTestPlanAttributeService).createTestPlanAttributes(testPlan,
+    verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, testPlan,
         testPlanRQ.getAttributes());
     verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
   }
@@ -361,7 +361,7 @@ class TmsTestPlanServiceImplTest {
     assertEquals(testPlanRS, result);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(tmsTestPlanMapper).patch(existingTestPlan, patchedTestPlan);
-    verify(tmsTestPlanAttributeService).patchTestPlanAttributes(existingTestPlan,
+    verify(tmsTestPlanAttributeService).patchTestPlanAttributes(projectId, existingTestPlan,
         testPlanRQ.getAttributes());
     verify(tmsTestPlanExecutionService).enrichWithStatistics(existingTestPlan);
     verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
@@ -733,7 +733,7 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ);
     verify(testPlanRepository).save(duplicatedTestPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(
-        duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
+        projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
     );
     verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
     verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
@@ -784,7 +784,7 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ);
     verify(testPlanRepository).save(duplicatedTestPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(
-        duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
+        projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
     );
     verify(tmsTestCaseService, never()).duplicateTestCases(anyLong(), anyList());
     verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult);

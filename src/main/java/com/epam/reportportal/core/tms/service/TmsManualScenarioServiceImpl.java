@@ -31,7 +31,8 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
   @Override
   @Transactional
-  public TmsManualScenario createTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  public TmsManualScenario createTmsManualScenario(long projectId,
+      TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var tmsManualScenario = tmsManualScenarioRepository.save(
         tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ)
@@ -41,7 +42,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
         tmsManualScenario, testCaseManualScenarioRQ.getPreconditions()
     );
 
-    tmsManualScenarioAttributeService.createAttributes(tmsManualScenario,
+    tmsManualScenarioAttributeService.createAttributes(projectId, tmsManualScenario,
         testCaseManualScenarioRQ.getAttributes());
 
     tmsManualScenarioImplServiceFactory
@@ -56,7 +57,8 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
   @Override
   @Transactional
-  public TmsManualScenario updateTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  public TmsManualScenario updateTmsManualScenario(long projectId,
+      TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var existingManualScenario = testCaseVersion.getManualScenario();
     if (Objects.nonNull(existingManualScenario)) {
@@ -67,7 +69,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
       );
 
-      tmsManualScenarioAttributeService.updateAttributes(existingManualScenario,
+      tmsManualScenarioAttributeService.updateAttributes(projectId, existingManualScenario,
           testCaseManualScenarioRQ.getAttributes());
 
       tmsManualScenarioImplServiceFactory
@@ -75,13 +77,14 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           .updateTmsManualScenarioImpl(existingManualScenario, testCaseManualScenarioRQ);
       return tmsManualScenarioRepository.save(existingManualScenario);
     } else {
-      return createTmsManualScenario(testCaseVersion, testCaseManualScenarioRQ);
+      return createTmsManualScenario(projectId, testCaseVersion, testCaseManualScenarioRQ);
     }
   }
 
   @Override
   @Transactional
-  public TmsManualScenario patchTmsManualScenario(TmsTestCaseVersion testCaseVersion,
+  public TmsManualScenario patchTmsManualScenario(long projectId,
+      TmsTestCaseVersion testCaseVersion,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var existingManualScenario = testCaseVersion.getManualScenario();
 
@@ -93,7 +96,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
       );
 
-      tmsManualScenarioAttributeService.patchAttributes(existingManualScenario,
+      tmsManualScenarioAttributeService.patchAttributes(projectId, existingManualScenario,
           testCaseManualScenarioRQ.getAttributes());
 
       tmsManualScenarioImplServiceFactory

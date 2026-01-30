@@ -33,6 +33,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TmsTestCaseVersionServiceImplTest {
 
+  private static final Long PROJECT_ID = 1L;
+
   @Mock
   private TmsTestCaseVersionMapper tmsTestCaseVersionMapper;
 
@@ -72,18 +74,20 @@ class TmsTestCaseVersionServiceImplTest {
   void shouldCreateDefaultTestCaseVersionWithTextScenario() {
     // Given
     when(tmsTestCaseVersionMapper.createDefaultTestCaseVersion()).thenReturn(testCaseVersion);
-    when(tmsManualScenarioService.createTmsManualScenario(testCaseVersion, textManualScenarioRQ))
+    when(tmsManualScenarioService.createTmsManualScenario(PROJECT_ID, testCaseVersion,
+        textManualScenarioRQ))
         .thenReturn(manualScenario);
     when(tmsTestCaseVersionRepository.save(testCaseVersion)).thenReturn(testCaseVersion);
 
     // When
-    var result = sut.createDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    var result = sut.createDefaultTestCaseVersion(PROJECT_ID, testCase, textManualScenarioRQ);
 
     // Then
     assertNotNull(result);
     assertEquals(testCaseVersion, result);
     verify(tmsTestCaseVersionMapper).createDefaultTestCaseVersion();
-    verify(tmsManualScenarioService).createTmsManualScenario(testCaseVersion, textManualScenarioRQ);
+    verify(tmsManualScenarioService).createTmsManualScenario(PROJECT_ID, testCaseVersion,
+        textManualScenarioRQ);
     verify(tmsTestCaseVersionRepository).save(testCaseVersion);
 
     assertThat(testCase.getVersions()).contains(testCaseVersion);
@@ -96,18 +100,20 @@ class TmsTestCaseVersionServiceImplTest {
   void shouldCreateDefaultTestCaseVersionWithStepsScenario() {
     // Given
     when(tmsTestCaseVersionMapper.createDefaultTestCaseVersion()).thenReturn(testCaseVersion);
-    when(tmsManualScenarioService.createTmsManualScenario(testCaseVersion, stepsManualScenarioRQ))
+    when(tmsManualScenarioService.createTmsManualScenario(PROJECT_ID, testCaseVersion,
+        stepsManualScenarioRQ))
         .thenReturn(manualScenario);
     when(tmsTestCaseVersionRepository.save(testCaseVersion)).thenReturn(testCaseVersion);
 
     // When
-    var result = sut.createDefaultTestCaseVersion(testCase, stepsManualScenarioRQ);
+    var result = sut.createDefaultTestCaseVersion(PROJECT_ID, testCase, stepsManualScenarioRQ);
 
     // Then
     assertNotNull(result);
     assertEquals(testCaseVersion, result);
     verify(tmsTestCaseVersionMapper).createDefaultTestCaseVersion();
-    verify(tmsManualScenarioService).createTmsManualScenario(testCaseVersion, stepsManualScenarioRQ);
+    verify(tmsManualScenarioService).createTmsManualScenario(PROJECT_ID, testCaseVersion,
+        stepsManualScenarioRQ);
     verify(tmsTestCaseVersionRepository).save(testCaseVersion);
 
     assertThat(testCase.getVersions()).contains(testCaseVersion);
@@ -123,13 +129,14 @@ class TmsTestCaseVersionServiceImplTest {
     when(tmsTestCaseVersionRepository.save(testCaseVersion)).thenReturn(testCaseVersion);
 
     // When
-    var result = sut.createDefaultTestCaseVersion(testCase, null);
+    var result = sut.createDefaultTestCaseVersion(PROJECT_ID, testCase, null);
 
     // Then
     assertNotNull(result);
     assertEquals(testCaseVersion, result);
     verify(tmsTestCaseVersionMapper).createDefaultTestCaseVersion();
-    verify(tmsManualScenarioService, never()).createTmsManualScenario(any(), any());
+    verify(tmsManualScenarioService, never()).createTmsManualScenario(any(Long.class), any(),
+        any());
     verify(tmsTestCaseVersionRepository).save(testCaseVersion);
 
     assertThat(testCase.getVersions()).contains(testCaseVersion);
@@ -143,18 +150,20 @@ class TmsTestCaseVersionServiceImplTest {
     var existingVersion = createExistingDefaultVersion();
     when(tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCase.getId()))
         .thenReturn(Optional.of(existingVersion));
-    when(tmsManualScenarioService.updateTmsManualScenario(existingVersion, textManualScenarioRQ))
+    when(tmsManualScenarioService.updateTmsManualScenario(PROJECT_ID, existingVersion,
+        textManualScenarioRQ))
         .thenReturn(manualScenario);
     when(tmsTestCaseVersionRepository.save(existingVersion)).thenReturn(existingVersion);
 
     // When
-    var result = sut.updateDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    var result = sut.updateDefaultTestCaseVersion(PROJECT_ID, testCase, textManualScenarioRQ);
 
     // Then
     assertNotNull(result);
     assertEquals(existingVersion, result);
     verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCase.getId());
-    verify(tmsManualScenarioService).updateTmsManualScenario(existingVersion, textManualScenarioRQ);
+    verify(tmsManualScenarioService).updateTmsManualScenario(PROJECT_ID, existingVersion,
+        textManualScenarioRQ);
     verify(tmsTestCaseVersionRepository).save(existingVersion);
 
     assertThat(existingVersion.getManualScenario()).isEqualTo(manualScenario);
@@ -168,13 +177,14 @@ class TmsTestCaseVersionServiceImplTest {
         .thenReturn(Optional.of(existingVersion));
 
     // When
-    var result = sut.updateDefaultTestCaseVersion(testCase, null);
+    var result = sut.updateDefaultTestCaseVersion(PROJECT_ID, testCase, null);
 
     // Then
     assertNotNull(result);
     assertEquals(existingVersion, result);
     verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCase.getId());
-    verify(tmsManualScenarioService, never()).updateTmsManualScenario(any(), any());
+    verify(tmsManualScenarioService, never()).updateTmsManualScenario(any(Long.class), any(),
+        any());
     verify(tmsTestCaseVersionRepository, never()).save(any());
   }
 
@@ -184,19 +194,21 @@ class TmsTestCaseVersionServiceImplTest {
     when(tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCase.getId()))
         .thenReturn(Optional.empty());
     when(tmsTestCaseVersionMapper.createDefaultTestCaseVersion()).thenReturn(testCaseVersion);
-    when(tmsManualScenarioService.createTmsManualScenario(testCaseVersion, textManualScenarioRQ))
+    when(tmsManualScenarioService.createTmsManualScenario(PROJECT_ID, testCaseVersion,
+        textManualScenarioRQ))
         .thenReturn(manualScenario);
     when(tmsTestCaseVersionRepository.save(testCaseVersion)).thenReturn(testCaseVersion);
 
     // When
-    var result = sut.updateDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    var result = sut.updateDefaultTestCaseVersion(PROJECT_ID, testCase, textManualScenarioRQ);
 
     // Then
     assertNotNull(result);
     assertEquals(testCaseVersion, result);
     verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCase.getId());
     verify(tmsTestCaseVersionMapper).createDefaultTestCaseVersion();
-    verify(tmsManualScenarioService).createTmsManualScenario(testCaseVersion, textManualScenarioRQ);
+    verify(tmsManualScenarioService).createTmsManualScenario(PROJECT_ID, testCaseVersion,
+        textManualScenarioRQ);
     verify(tmsTestCaseVersionRepository).save(testCaseVersion);
   }
 
@@ -206,18 +218,20 @@ class TmsTestCaseVersionServiceImplTest {
     var existingVersion = createExistingDefaultVersion();
     when(tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCase.getId()))
         .thenReturn(Optional.of(existingVersion));
-    when(tmsManualScenarioService.patchTmsManualScenario(existingVersion, textManualScenarioRQ))
+    when(tmsManualScenarioService.patchTmsManualScenario(PROJECT_ID, existingVersion,
+        textManualScenarioRQ))
         .thenReturn(manualScenario);
     when(tmsTestCaseVersionRepository.save(existingVersion)).thenReturn(existingVersion);
 
     // When
-    var result = sut.patchDefaultTestCaseVersion(testCase, textManualScenarioRQ);
+    var result = sut.patchDefaultTestCaseVersion(PROJECT_ID, testCase, textManualScenarioRQ);
 
     // Then
     assertNotNull(result);
     assertEquals(existingVersion, result);
     verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCase.getId());
-    verify(tmsManualScenarioService).patchTmsManualScenario(existingVersion, textManualScenarioRQ);
+    verify(tmsManualScenarioService).patchTmsManualScenario(PROJECT_ID, existingVersion,
+        textManualScenarioRQ);
     verify(tmsTestCaseVersionRepository).save(existingVersion);
 
     assertThat(existingVersion.getManualScenario()).isEqualTo(manualScenario);
@@ -231,13 +245,13 @@ class TmsTestCaseVersionServiceImplTest {
         .thenReturn(Optional.of(existingVersion));
 
     // When
-    var result = sut.patchDefaultTestCaseVersion(testCase, null);
+    var result = sut.patchDefaultTestCaseVersion(PROJECT_ID, testCase, null);
 
     // Then
     assertNotNull(result);
     assertEquals(existingVersion, result);
     verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCase.getId());
-    verify(tmsManualScenarioService, never()).patchTmsManualScenario(any(), any());
+    verify(tmsManualScenarioService, never()).patchTmsManualScenario(any(Long.class), any(), any());
     verify(tmsTestCaseVersionRepository, never()).save(any());
   }
 
@@ -249,7 +263,7 @@ class TmsTestCaseVersionServiceImplTest {
 
     // When & Then
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.patchDefaultTestCaseVersion(testCase, textManualScenarioRQ));
+        sut.patchDefaultTestCaseVersion(PROJECT_ID, testCase, textManualScenarioRQ));
 
     assertThat(exception.getMessage()).contains("Default test case version for test case");
     verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCase.getId());
@@ -455,6 +469,72 @@ class TmsTestCaseVersionServiceImplTest {
     assertThat(duplicatedVersion.getManualScenario()).isNull();
   }
 
+  @Test
+  void shouldFindDefaultByTestCaseId() {
+    // Given
+    var testCaseId = 123L;
+    var defaultVersion = createExistingDefaultVersion();
+    when(tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId))
+        .thenReturn(Optional.of(defaultVersion));
+
+    // When
+    var result = sut.findDefaultByTestCaseId(testCaseId);
+
+    // Then
+    assertThat(result).isPresent();
+    assertThat(result.get()).isEqualTo(defaultVersion);
+    verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCaseId);
+  }
+
+  @Test
+  void shouldReturnEmptyOptionalWhenDefaultVersionNotFoundByTestCaseId() {
+    // Given
+    var testCaseId = 123L;
+    when(tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId))
+        .thenReturn(Optional.empty());
+
+    // When
+    var result = sut.findDefaultByTestCaseId(testCaseId);
+
+    // Then
+    assertThat(result).isEmpty();
+    verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCaseId);
+  }
+
+  @Test
+  void shouldFindDefaultVersionIdByTestCaseId() {
+    // Given
+    var testCaseId = 123L;
+    var versionId = 456L;
+    var defaultVersion = createExistingDefaultVersion();
+    defaultVersion.setId(versionId);
+    when(tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId))
+        .thenReturn(Optional.of(defaultVersion));
+
+    // When
+    var result = sut.findDefaultVersionIdByTestCaseId(testCaseId);
+
+    // Then
+    assertThat(result).isPresent();
+    assertThat(result.get()).isEqualTo(versionId);
+    verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCaseId);
+  }
+
+  @Test
+  void shouldReturnEmptyOptionalWhenDefaultVersionIdNotFoundByTestCaseId() {
+    // Given
+    var testCaseId = 123L;
+    when(tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId))
+        .thenReturn(Optional.empty());
+
+    // When
+    var result = sut.findDefaultVersionIdByTestCaseId(testCaseId);
+
+    // Then
+    assertThat(result).isEmpty();
+    verify(tmsTestCaseVersionRepository).findDefaultVersionByTestCaseId(testCaseId);
+  }
+
   // Helper methods
   private TmsTestCase createTestCase() {
     var testCase = new TmsTestCase();
@@ -535,7 +615,8 @@ class TmsTestCaseVersionServiceImplTest {
     return scenario;
   }
 
-  private TmsTestCaseDefaultVersionTestCaseId createTestCaseDefaultVersionTestCaseId(Long testCaseId, TmsTestCaseVersion version) {
+  private TmsTestCaseDefaultVersionTestCaseId createTestCaseDefaultVersionTestCaseId(
+      Long testCaseId, TmsTestCaseVersion version) {
     var defaultVersionTestCaseId = new TmsTestCaseDefaultVersionTestCaseId();
     defaultVersionTestCaseId.setTestCaseId(testCaseId);
     defaultVersionTestCaseId.setTestCaseVersion(version);

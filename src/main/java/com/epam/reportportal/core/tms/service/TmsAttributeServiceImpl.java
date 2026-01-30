@@ -1,15 +1,11 @@
 package com.epam.reportportal.core.tms.service;
 
-import static com.epam.reportportal.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-
 import com.epam.reportportal.core.tms.dto.TmsAttributeRQ;
 import com.epam.reportportal.core.tms.dto.TmsAttributeRS;
 import com.epam.reportportal.core.tms.mapper.TmsAttributeMapper;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsAttributeRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.filterable.TmsAttributeFilterableRepository;
-import com.epam.reportportal.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
@@ -21,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,7 +35,7 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
   @Override
   @Transactional
   public TmsAttributeRS create(Long projectId, TmsAttributeRQ request) {
-    validateKeyUniquenessInProject(projectId, request.getKey());
+    validateUniqueness(projectId, request.getKey(), request.getValue());
 
     var entity = tmsAttributeMapper.convertToTmsAttribute(request, projectId);
 
@@ -54,9 +49,15 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
   public TmsAttributeRS patch(Long projectId, Long attributeId, TmsAttributeRQ request) {
     var existingAttribute = findAttributeByIdAndProjectId(projectId, attributeId);
 
-    if (Objects.nonNull(request.getKey())
-        && !request.getKey().equals(existingAttribute.getKey())) {
-      validateKeyUniquenessInProject(projectId, request.getKey());
+    var keyChanged = Objects.nonNull(request.getKey())
+        && !request.getKey().equals(existingAttribute.getKey());
+    var valueChanged = Objects.nonNull(request.getValue())
+        && !request.getValue().equals(existingAttribute.getValue());
+
+    if (keyChanged || valueChanged) {
+      var newKey = keyChanged ? request.getKey() : existingAttribute.getKey();
+      var newValue = valueChanged ? request.getValue() : existingAttribute.getValue();
+      validateUniqueness(projectId, newKey, newValue);
     }
 
     tmsAttributeMapper.patch(existingAttribute, request);
@@ -72,7 +73,8 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
       Pageable pageable) {
     return PagedResourcesAssembler
         .pageConverter(tmsAttributeMapper::convertToTmsAttributeRS)
-        .apply(tmsAttributeFilterableRepository.findByProjectIdAndFilter(projectId, filter, pageable));
+        .apply(
+            tmsAttributeFilterableRepository.findByProjectIdAndFilter(projectId, filter, pageable));
   }
 
   @Override
@@ -81,6 +83,43 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
     return tmsAttributeMapper.convertToTmsAttributeRS(
         findAttributeByIdAndProjectId(projectId, attributeId)
     );
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TmsAttribute getEntityById(Long projectId, Long attributeId) {
+    return findAttributeByIdAndProjectId(projectId, attributeId);
+  }
+
+  @Override
+  @Transactional
+  public TmsAttribute findOrCreateTag(Long projectId, String key) {
+    return tmsAttributeRepository
+        .findByProject_IdAndKeyAndValueIsNull(projectId, key)
+        .orElseGet(() -> tmsAttributeRepository.save(
+            tmsAttributeMapper.convertToTmsAttribute(projectId, key)
+        ));
+  }
+
+  @Override
+  @Transactional
+  public TmsAttribute findOrCreateAttribute(Long projectId, String key, String value) {
+    return tmsAttributeRepository.findByProjectIdAndKeyAndValue(projectId, key, value)
+        .orElseGet(() -> tmsAttributeRepository.save(
+            tmsAttributeMapper.convertToTmsAttribute(projectId, key, value)
+        ));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getKeysByCriteria(Long projectId, String search) {
+    return tmsAttributeRepository.findDistinctKeysByProjectIdAndKeyLike(projectId, search);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getValuesByCriteria(Long projectId, String search) {
+    return tmsAttributeRepository.findDistinctValuesByProjectIdAndValueLike(projectId, search);
   }
 
   @Override
@@ -138,10 +177,11 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
                 + "'"));
   }
 
-  private void validateKeyUniquenessInProject(Long projectId, String key) {
-    if (tmsAttributeRepository.existsByKeyAndProject_Id(key, projectId)) {
+  private void validateUniqueness(Long projectId, String key, String value) {
+    if (tmsAttributeRepository.existsByProjectIdAndKeyAndValue(projectId, key, value)) {
       throw new EntityExistsException(
-          "TMS Attribute with key '" + key + "' already exists in project '" + projectId + "'");
+          "TMS Attribute with key '" + key + "' and value '" + value
+              + "' already exists in project '" + projectId + "'");
     }
   }
 }

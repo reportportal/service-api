@@ -37,6 +37,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.project.ProjectRo
 import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
@@ -97,16 +98,9 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   @Override
   public void add(PatchOperation operation, Long orgId, Long projectId) {
-    UserProjectInfo userPrjInfo;
-    try {
-      userPrjInfo = objectMapper.readValue(
-          valueToString(operation.getValue()),
-          UserProjectInfo.class
-      );
-    } catch (JsonProcessingException e) {
-      log.error(e.getMessage());
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
-    }
+    var userPrjInfo = readOperationValue(operation,
+        new com.fasterxml.jackson.core.type.TypeReference<UserProjectInfo>() {
+        });
 
     var userId = Optional.ofNullable(userPrjInfo.getId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
@@ -130,17 +124,9 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   @Override
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
-    List<UserProjectInfo> prjUsersInfo;
-    try {
-      prjUsersInfo = objectMapper.readValue(
-          valueToString(operation.getValue()),
-          new com.fasterxml.jackson.core.type.TypeReference<>() {
-          }
-      );
-    } catch (JsonProcessingException e) {
-      log.error(e.getMessage());
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
-    }
+    var prjUsersInfo = readOperationValue(operation,
+        new com.fasterxml.jackson.core.type.TypeReference<List<UserProjectInfo>>() {
+        });
 
     var org = organizationRepository.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
@@ -211,16 +197,9 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       unassignAllUsersFromProject(projectId);
       return;
     }
-    List<IdContainer> ids;
-    try {
-      ids = objectMapper.readValue(
-          valueToString(operation.getValue()),
-          new com.fasterxml.jackson.core.type.TypeReference<>() {
-          });
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid field 'value'");
-    }
+    var ids = readOperationValue(operation,
+        new com.fasterxml.jackson.core.type.TypeReference<List<IdContainer>>() {
+        });
 
     if (CollectionUtils.isEmpty(ids)) {
       unassignAllUsersFromProject(projectId);
@@ -232,6 +211,16 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       projectUserRepository.deleteByUserIdAndProjectIds(idContainer.getId(), List.of(projectId));
       log.info("User with ID {} has been removed from project with ID {}", idContainer.getId(), projectId);
     });
+  }
+
+  private <T> T readOperationValue(PatchOperation operation, com.fasterxml.jackson.core.type.TypeReference<T> typeRef) {
+    try {
+      return objectMapper.readValue(valueToString(operation.getValue()), typeRef);
+    } catch (JsonProcessingException e) {
+      log.error(e.getMessage());
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+          "Invalid field 'value': " + (e.getCause() != null ? e.getCause().getMessage() : e.getOriginalMessage()));
+    }
   }
 
   private void unassignAllUsersFromProject(Long projectId) {

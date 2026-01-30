@@ -496,7 +496,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     var userToAdd = new UserProjectInfo(106L, ProjectRole.VIEWER);
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.ADD)
-        .path("/users")
+        .path("/users/-")
         .value(objectMapper.writeValueAsString(userToAdd));
 
     var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(106L, 301L);
@@ -519,7 +519,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
     var userToAdd = new UserProjectInfo(105L, ProjectRole.VIEWER);
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.ADD)
-        .path("/users")
+        .path("/users/-")
         .value(objectMapper.writeValueAsString(userToAdd));
 
     mockMvc.perform(patch("/organizations/201/projects/301")

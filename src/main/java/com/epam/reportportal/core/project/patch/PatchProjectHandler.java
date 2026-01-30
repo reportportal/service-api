@@ -55,6 +55,7 @@ public class PatchProjectHandler {
 
   private final PatchProjectNameHandler patchProjectNameHandler;
   private final PatchProjectUsersHandler patchProjectUsersHandler;
+  private final PatchProjectUserHandler patchProjectUserHandler;
   private final PatchProjectSlugHandler patchProjectSlugHandler;
   private final PatchProjectNoPathHandler patchProjectNoPathHandler;
   private final ProjectService projectService;
@@ -91,7 +92,8 @@ public class PatchProjectHandler {
    */
   public void patchProject(PatchOperation operation, Long orgId, Long projectId) {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
-      case "/users", "/users/-" -> this.patchProjectUsersHandler;
+      case "/users" -> this.patchProjectUsersHandler;
+      case "/users/-" -> this.patchProjectUserHandler;
       case "/name" -> this.patchProjectNameHandler;
       case "/slug" -> this.patchProjectSlugHandler;
       case null -> this.patchProjectNoPathHandler;

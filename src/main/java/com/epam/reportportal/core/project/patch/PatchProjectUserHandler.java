@@ -30,6 +30,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.util.SecurityContextUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -77,8 +78,7 @@ public class PatchProjectUserHandler extends BasePatchProjectHandler {
 
   @Override
   public void add(PatchOperation operation, Long orgId, Long projectId) {
-    var userPrjInfo = readOperationValue(operation,
-        new com.fasterxml.jackson.core.type.TypeReference<UserProjectInfo>() {
+    var userPrjInfo = readOperationValue(operation, new TypeReference<UserProjectInfo>() {
         });
 
     var principal = SecurityContextUtils.getPrincipal();

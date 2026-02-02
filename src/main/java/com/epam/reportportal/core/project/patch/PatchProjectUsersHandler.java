@@ -31,6 +31,7 @@ import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.model.IdContainer;
 import com.epam.reportportal.util.SecurityContextUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
@@ -89,9 +90,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   @Override
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
-    var prjUsersInfo = readOperationValue(operation,
-        new com.fasterxml.jackson.core.type.TypeReference<List<UserProjectInfo>>() {
-        });
+    var prjUsersInfo = readOperationValue(operation, new TypeReference<List<UserProjectInfo>>() {
+    });
 
     var principal = SecurityContextUtils.getPrincipal();
 
@@ -146,9 +146,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       unassignAllUsersFromProject(projectId);
       return;
     }
-    var ids = readOperationValue(operation,
-        new com.fasterxml.jackson.core.type.TypeReference<List<IdContainer>>() {
-        });
+    var ids = readOperationValue(operation, new TypeReference<List<IdContainer>>() {
+    });
 
     if (CollectionUtils.isEmpty(ids)) {
       unassignAllUsersFromProject(projectId);

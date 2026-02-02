@@ -22,7 +22,9 @@ import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.NOT
 
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.core.project.ProjectService;
+
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,6 +55,7 @@ public class PatchProjectHandler {
 
   private final PatchProjectNameHandler patchProjectNameHandler;
   private final PatchProjectUsersHandler patchProjectUsersHandler;
+  private final PatchProjectUserHandler patchProjectUserHandler;
   private final PatchProjectSlugHandler patchProjectSlugHandler;
   private final PatchProjectNoPathHandler patchProjectNoPathHandler;
   private final ProjectService projectService;
@@ -67,8 +70,7 @@ public class PatchProjectHandler {
    * @throws com.epam.reportportal.infrastructure.rules.exception.ReportPortalException if a project is not found in the
    *                                                                                    organization
    */
-  public void patchOrganizationProject(List<PatchOperation> patchOperations, Long orgId,
-      Long projectId) {
+  public void patchOrganizationProject(List<PatchOperation> patchOperations, Long orgId, Long projectId) {
     expect(projectService.existsByProjectIdAndOrgId(projectId, orgId), equalTo(true))
         .verify(NOT_FOUND, "Project " + projectId);
 
@@ -90,9 +92,10 @@ public class PatchProjectHandler {
    */
   public void patchProject(PatchOperation operation, Long orgId, Long projectId) {
     BasePatchProjectHandler patchOperationHandler = switch (operation.getPath()) {
-      case "users" -> this.patchProjectUsersHandler;
-      case "name" -> this.patchProjectNameHandler;
-      case "slug" -> this.patchProjectSlugHandler;
+      case "/users" -> this.patchProjectUsersHandler;
+      case "/users/-" -> this.patchProjectUserHandler;
+      case "/name" -> this.patchProjectNameHandler;
+      case "/slug" -> this.patchProjectSlugHandler;
       case null -> this.patchProjectNoPathHandler;
       default -> throw new IllegalArgumentException("Unexpected path: '%s'".formatted(operation.getPath()));
     };
@@ -105,6 +108,4 @@ public class PatchProjectHandler {
     }
 
   }
-
-
 }

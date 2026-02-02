@@ -99,6 +99,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
     dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
     dashboardRepository.save(dashboard);
+    dashboardRepository.toggleDashboardLock(dashboardId, dashboard.getLocked());
 
     messageBus.publishActivity(new DashboardUpdatedEvent(before,
         TO_ACTIVITY_RESOURCE.apply(dashboard),

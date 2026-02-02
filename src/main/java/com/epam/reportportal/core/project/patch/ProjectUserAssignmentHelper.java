@@ -38,6 +38,7 @@ import com.epam.reportportal.ws.converter.converters.UserConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -57,19 +58,27 @@ public class ProjectUserAssignmentHelper {
   public OrganizationUser getOrganizationUser(Organization org, ReportPortalUser principal, User user) {
     return organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
         .orElseGet(() -> {
-          OrganizationUser organizationUser = new OrganizationUser();
-          organizationUser.setOrganization(org);
-          organizationUser.setUser(user);
-          organizationUser.setOrganizationRole(OrganizationRole.MEMBER);
-          organizationUserRepository.save(organizationUser);
-          log.info("User with ID {} has been added to organization with ID {} with role MEMBER",
-              user.getId(), org.getId());
-          applicationEventPublisher.publishEvent(
-              new AssignUserEvent(
-                  UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
-                  principal.getUserId(), principal.getUsername(), org.getId()
-              ));
-          return organizationUser;
+          try {
+            OrganizationUser organizationUser = new OrganizationUser();
+            organizationUser.setOrganization(org);
+            organizationUser.setUser(user);
+            organizationUser.setOrganizationRole(OrganizationRole.MEMBER);
+            organizationUserRepository.save(organizationUser);
+            log.info("User with ID {} has been added to organization with ID {} with role MEMBER",
+                user.getId(), org.getId());
+            applicationEventPublisher.publishEvent(
+                new AssignUserEvent(
+                    UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
+                    principal.getUserId(), principal.getUsername(), org.getId()
+                ));
+            return organizationUser;
+          } catch (DataIntegrityViolationException e) {
+            log.debug("Race condition occurred while adding user with ID {} to organization with ID {}",
+                user.getId(), org.getId(), e);
+            return organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
+                .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
+                    "User with ID '{}' not found in organization with ID '{}'", user.getId(), org.getId()));
+          }
         });
   }
 

@@ -25,14 +25,29 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Repository for managing ProjectUser entities.
+ *
  * @author Pavel Bortnik
  */
-public interface ProjectUserRepository extends ReportPortalRepository<ProjectUser, ProjectUserId>,
-    ProjectUserRepositoryCustom {
+public interface ProjectUserRepository
+    extends ReportPortalRepository<ProjectUser, ProjectUserId>, ProjectUserRepositoryCustom {
 
+  /**
+   * Finds project IDs associated with the specified user ID.
+   *
+   * @param userId The user ID
+   * @return List of project IDs
+   */
   @Query(value = "SELECT pu.project_id FROM project_user pu WHERE pu.user_id = :userId", nativeQuery = true)
   List<Long> findProjectIdsByUserId(@Param("userId") Long userId);
 
+  /**
+   * Finds a ProjectUser by user ID and project ID.
+   *
+   * @param userId    The user ID
+   * @param projectId The project ID
+   * @return An Optional containing the ProjectUser if found, or empty if not found
+   */
   Optional<ProjectUser> findProjectUserByUserIdAndProjectId(Long userId, Long projectId);
 
 
@@ -43,10 +58,11 @@ public interface ProjectUserRepository extends ReportPortalRepository<ProjectUse
    * @param userId The user ID
    */
   @Modifying
-  @Query(value = """
-      DELETE FROM project_user pu WHERE pu.user_id = :userId AND pu.project_id IN (SELECT id FROM project WHERE organization_id = :orgId)
-      """,
-      nativeQuery = true)
+  @Query(value =
+      """
+            DELETE FROM project_user pu
+            WHERE pu.user_id = :userId AND pu.project_id IN (SELECT id FROM project WHERE organization_id = :orgId)
+          """, nativeQuery = true)
   void deleteProjectUserByProjectOrganizationId(@Param("orgId") Long orgId, @Param("userId") Long userId);
 
   /**
@@ -56,14 +72,24 @@ public interface ProjectUserRepository extends ReportPortalRepository<ProjectUse
    * @param projectIds List of Project ids
    */
   @Modifying
-  @Query(value = """
-      DELETE FROM project_user WHERE user_id = :userId AND project_id IN :projectIds
-      """,
-      nativeQuery = true)
+  @Query(value =
+      """
+            DELETE FROM project_user WHERE user_id = :userId AND project_id IN :projectIds
+          """, nativeQuery = true)
   void deleteByUserIdAndProjectIds(@Param("userId") Long userId, @Param("projectIds") List<Long> projectIds);
 
+  /**
+   * Deletes all entries from the project_user table for the specified project ID,
+   * except for those with user IDs in the provided list.
+   *
+   * @param projectId The ID of the project whose user associations should be deleted.
+   * @param userIds   The list of user IDs to retain.
+   */
   @Modifying
-  @Query(value = "DELETE FROM project_user WHERE project_id = :projectId AND user_id NOT IN :userIds", nativeQuery = true)
+  @Query(value =
+      """
+            DELETE FROM project_user WHERE project_id = :projectId AND user_id NOT IN :userIds
+          """, nativeQuery = true)
   void deleteByProjectIdAndUserIdNotIn(@Param("projectId") Long projectId, @Param("userIds") List<Long> userIds);
 
 

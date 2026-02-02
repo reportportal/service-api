@@ -103,7 +103,13 @@ public class ProjectUserAssignmentHelper {
   /**
    * Publishes user assignment event and logs the action.
    */
-  public void publishUserAssignEvent(ReportPortalUser principal, User user, Long orgId, Long projectId, ProjectRole projectRole) {
+  public void publishUserAssignEvent(
+      ReportPortalUser principal,
+      User user,
+      Long orgId,
+      Long projectId,
+      ProjectRole projectRole
+  ) {
     log.info("User with ID {} has been assigned to project with ID {} with role {}",
         user.getId(), projectId, projectRole);
 

@@ -4,6 +4,7 @@ import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentAttachmentR
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentBtsTicketRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionRS;
+import com.epam.reportportal.core.tms.dto.TmsTestCaseExecutionTestFolderRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseSnapshotDTO;
 import com.epam.reportportal.core.tms.mapper.config.CommonMapperConfig;
@@ -82,7 +83,14 @@ public abstract class TmsTestCaseExecutionMapper {
     if (snapshot != null) {
       builder.testCaseName(snapshot.getName());
       builder.testCaseDescription(snapshot.getDescription());
-      builder.testFolder(snapshot.getTestFolder());
+      if (snapshot.getTestFolder() != null) {
+        builder.testFolder(
+            TmsTestCaseExecutionTestFolderRS.builder()
+                .id(snapshot.getTestFolder().getId())
+                .testItemId(execution.getTestItem().getParentId())
+                .build()
+        );
+      }
       builder.manualScenario(snapshot.getManualScenario());
       builder.attributes(snapshot.getAttributes());
     }

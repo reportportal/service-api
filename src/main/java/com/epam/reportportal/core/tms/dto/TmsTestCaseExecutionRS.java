@@ -38,7 +38,7 @@ public class TmsTestCaseExecutionRS {
 
   private String testCasePriority;
 
-  private TmsTestCaseTestFolderRS testFolder;
+  private TmsTestCaseExecutionTestFolderRS testFolder;
 
   private TmsManualScenarioRS manualScenario;
 

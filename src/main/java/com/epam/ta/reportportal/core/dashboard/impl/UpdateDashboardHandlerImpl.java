@@ -135,10 +135,18 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(),
         dashboard, widget, isCreatedOnDashboard);
     dashboardWidgetRepository.save(dashboardWidget);
+    lockDashboardChildEntities(widget.getId(), dashboard.getLocked());
+
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId()
             + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");
 
+  }
+
+  private void lockDashboardChildEntities(Long dashboardId, Boolean locked) {
+    if (locked) {
+      dashboardRepository.toggleDashboardLock(dashboardId, true);
+    }
   }
 
   private void validateWidgetBeforeAddingToDashboard(AddWidgetRq rq, Dashboard dashboard,
@@ -198,12 +206,17 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId,
                 dashboardId));
 
+    unlockWidgetFilters(dashboardId);
     dashboardWidgetRepository.delete(toRemove);
 
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId()
             + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
             + "'");
+  }
+
+  private void unlockWidgetFilters(Long widgetId) {
+    widgetRepository.unlockWidgetFilters(widgetId);
   }
 
   @Override

@@ -95,12 +95,16 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
     WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
-    List<UserFilter> userFilter =
-        getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId());
+    List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId());
+
     String widgetOptionsBefore = parseWidgetOptions(widget);
 
-    widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
+    widget = new WidgetBuilder(widget)
+        .addWidgetRq(updateRQ)
+        .addFilters(userFilter)
+        .get();
     widgetRepository.save(widget);
+    syncFiltersLockedStatus(widget);
 
     messageBus.publishActivity(
         new WidgetUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(widget), widgetOptionsBefore,
@@ -127,6 +131,14 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
     } catch (JsonProcessingException e) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, Suppliers.formattedSupplier(
           "Error during parsing new widget options of widget with id = ", widget.getId()));
+    }
+  }
+
+  private void syncFiltersLockedStatus(Widget widget) {
+    if (widget.getLocked()) {
+      widgetRepository.lockWidgetFilters(widget.getId());
+    } else {
+      widgetRepository.unlockWidgetFilters(widget.getId());
     }
   }
 }

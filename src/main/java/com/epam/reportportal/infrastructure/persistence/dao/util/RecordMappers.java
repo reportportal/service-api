@@ -838,6 +838,8 @@ public class RecordMappers {
           .ifPresent(testItem::setStartTime);
       ofNullable(r.field(TEST_ITEM.NAME)).flatMap(f -> ofNullable(r.get(f, String.class)))
           .ifPresent(testItem::setName);
+      ofNullable(r.field(TEST_ITEM.PARENT_ID)).flatMap(f -> ofNullable(r.get(f, Long.class)))
+          .ifPresent(testItem::setParentId);
 
       // Get TestItemResults
       ofNullable(r.field(TEST_ITEM_RESULTS.RESULT_ID))

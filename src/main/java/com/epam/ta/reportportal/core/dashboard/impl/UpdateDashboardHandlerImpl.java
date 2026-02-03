@@ -99,7 +99,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
     dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
     dashboardRepository.save(dashboard);
-    dashboardRepository.toggleDashboardLock(dashboardId, dashboard.getLocked());
+    this.toggleDashboardLock(dashboardId, dashboard.getLocked());
 
     messageBus.publishActivity(new DashboardUpdatedEvent(before,
         TO_ACTIVITY_RESOURCE.apply(dashboard),
@@ -136,7 +136,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(),
         dashboard, widget, isCreatedOnDashboard);
     dashboardWidgetRepository.save(dashboardWidget);
-    lockDashboardChildEntities(widget.getId(), dashboard.getLocked());
+    lockDashboardChildEntities(dashboard.getId(), dashboard.getLocked());
 
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId()
@@ -146,7 +146,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
   private void lockDashboardChildEntities(Long dashboardId, Boolean locked) {
     if (locked) {
-      dashboardRepository.toggleDashboardLock(dashboardId, true);
+      dashboardRepository.lockDashboard(dashboardId);
     }
   }
 
@@ -226,7 +226,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
         ));
 
     if (currentDashboard.getLocked() != isLocked) {
-      dashboardRepository.toggleDashboardLock(dashboardId, isLocked);
+      this.toggleDashboardLock(dashboardId, isLocked);
       var currentDashboardActivity = TO_ACTIVITY_RESOURCE.apply(currentDashboard);
 
       var newDashboardStateResource = new DashboardActivityResource();
@@ -255,6 +255,14 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     widgetRepository.delete(widget);
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
+  }
+
+  private void toggleDashboardLock(Long dashboardId, Boolean locked) {
+    if (locked) {
+      dashboardRepository.lockDashboard(dashboardId);
+    } else {
+      dashboardRepository.unlockDashboard(dashboardId);
+    }
   }
 
 }

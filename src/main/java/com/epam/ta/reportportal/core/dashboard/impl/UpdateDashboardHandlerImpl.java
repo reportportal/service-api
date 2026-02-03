@@ -136,7 +136,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(),
         dashboard, widget, isCreatedOnDashboard);
     dashboardWidgetRepository.save(dashboardWidget);
-    lockDashboardChildEntities(widget.getId(), dashboard.getLocked());
+    lockDashboardChildEntities(dashboard.getId(), dashboard.getLocked());
 
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId()

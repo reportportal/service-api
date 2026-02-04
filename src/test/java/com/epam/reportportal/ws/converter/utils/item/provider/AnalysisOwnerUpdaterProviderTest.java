@@ -27,10 +27,10 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.infrastructure.persistence.entity.user.UserIdFullNameProjection;
+import com.epam.reportportal.infrastructure.persistence.entity.user.UserIdDisplayNameProjection;
+import com.epam.reportportal.reporting.TestItemResource;
 import com.epam.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
-import com.epam.reportportal.reporting.TestItemResource;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +61,7 @@ class AnalysisOwnerUpdaterProviderTest {
     ResourceUpdater<TestItemResource> updater = provider.retrieve(content);
 
     assertNotNull(updater);
-    verify(userRepository, never()).findFullNamesByIds(anyList());
+    verify(userRepository, never()).findDisplayNamesByIds(anyList());
   }
 
   @Test
@@ -70,18 +70,18 @@ class AnalysisOwnerUpdaterProviderTest {
     TestItem item2 = createTestItem(2L, 200L);
     TestItemUpdaterContent content = createUpdaterContent(Arrays.asList(item1, item2));
 
-    List<UserIdFullNameProjection> userFullNameProjections = Arrays.asList(
-        new UserIdFullNameProjection(100L, "John Doe"),
-        new UserIdFullNameProjection(200L, "Jane Smith")
+    List<UserIdDisplayNameProjection> userProjections = Arrays.asList(
+        new UserIdDisplayNameProjection(100L, "John Doe"),
+        new UserIdDisplayNameProjection(200L, "Jane Smith")
     );
 
-    when(userRepository.findFullNamesByIds(Arrays.asList(100L, 200L)))
-        .thenReturn(userFullNameProjections);
+    when(userRepository.findDisplayNamesByIds(Arrays.asList(100L, 200L)))
+        .thenReturn(userProjections);
 
     ResourceUpdater<TestItemResource> updater = provider.retrieve(content);
 
     assertNotNull(updater);
-    verify(userRepository, times(1)).findFullNamesByIds(Arrays.asList(100L, 200L));
+    verify(userRepository, times(1)).findDisplayNamesByIds(Arrays.asList(100L, 200L));
 
     TestItemResource resource1 = createTestItemResource(1L);
     TestItemResource resource2 = createTestItemResource(2L);
@@ -99,18 +99,18 @@ class AnalysisOwnerUpdaterProviderTest {
     TestItem item3 = createTestItem(3L, 200L);
     TestItemUpdaterContent content = createUpdaterContent(Arrays.asList(item1, item2, item3));
 
-    List<UserIdFullNameProjection> userFullNameProjections = Arrays.asList(
-        new UserIdFullNameProjection(100L, "John Doe"),
-        new UserIdFullNameProjection(200L, "Jane Smith")
+    List<UserIdDisplayNameProjection> userProjections = Arrays.asList(
+        new UserIdDisplayNameProjection(100L, "John Doe"),
+        new UserIdDisplayNameProjection(200L, "Jane Smith")
     );
 
-    when(userRepository.findFullNamesByIds(Arrays.asList(100L, 200L)))
-        .thenReturn(userFullNameProjections);
+    when(userRepository.findDisplayNamesByIds(Arrays.asList(100L, 200L)))
+        .thenReturn(userProjections);
 
     ResourceUpdater<TestItemResource> updater = provider.retrieve(content);
 
     assertNotNull(updater);
-    verify(userRepository, times(1)).findFullNamesByIds(Arrays.asList(100L, 200L));
+    verify(userRepository, times(1)).findDisplayNamesByIds(Arrays.asList(100L, 200L));
 
     TestItemResource resource1 = createTestItemResource(1L);
     TestItemResource resource2 = createTestItemResource(2L);
@@ -130,16 +130,16 @@ class AnalysisOwnerUpdaterProviderTest {
     TestItem item2 = createTestItem(2L, 999L);
     TestItemUpdaterContent content = createUpdaterContent(Arrays.asList(item1, item2));
 
-    List<UserIdFullNameProjection> userFullNameProjections = List.of(
-        new UserIdFullNameProjection(100L, "John Doe")
+    List<UserIdDisplayNameProjection> userProjections = List.of(
+        new UserIdDisplayNameProjection(100L, "John Doe")
     );
-    when(userRepository.findFullNamesByIds(Arrays.asList(100L, 999L)))
-        .thenReturn(userFullNameProjections);
+    when(userRepository.findDisplayNamesByIds(Arrays.asList(100L, 999L)))
+        .thenReturn(userProjections);
 
     ResourceUpdater<TestItemResource> updater = provider.retrieve(content);
 
     assertNotNull(updater);
-    verify(userRepository, times(1)).findFullNamesByIds(Arrays.asList(100L, 999L));
+    verify(userRepository, times(1)).findDisplayNamesByIds(Arrays.asList(100L, 999L));
 
     TestItemResource resource1 = createTestItemResource(1L);
     TestItemResource resource2 = createTestItemResource(2L);
@@ -157,7 +157,7 @@ class AnalysisOwnerUpdaterProviderTest {
     ResourceUpdater<TestItemResource> updater = provider.retrieve(content);
 
     assertNotNull(updater);
-    verify(userRepository, never()).findFullNamesByIds(anyList());
+    verify(userRepository, never()).findDisplayNamesByIds(anyList());
   }
 
   private TestItem createTestItem(Long itemId, Long analysisOwnerId) {

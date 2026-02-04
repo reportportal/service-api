@@ -3,7 +3,7 @@ rootProject.name = 'service-api'
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven { url "https://jitpack.io" }
+        maven { url = "https://jitpack.io" }
     }
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 }

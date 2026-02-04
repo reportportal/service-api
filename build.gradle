@@ -37,9 +37,9 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ?
         println('No sealights session')
 
 java {
-    targetCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_25
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -166,8 +166,8 @@ tasks.register('updateApiSubmodule', Exec) {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
     options.encoding = "UTF-8"
     options.compilerArgs << "-parameters"
     options.debug = true
@@ -198,7 +198,7 @@ bootJar {
     duplicatesStrategy = duplicatesStrategy.EXCLUDE
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
 }
-jar.enabled(true)
+jar.enabled = true
 jar.archiveClassifier.set('')
 
 test {

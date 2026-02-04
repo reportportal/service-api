@@ -45,7 +45,7 @@ springdoc-openapi = "2.8.14"
 tika = "3.2.3"
 thumbnailator = "0.4.21"
 xerces = "2.12.2"
-mapstruct = "1.5.5.Final"
+mapstruct = "1.6.3"
 apache-commons-csv = "1.10.0"
 
 [libraries]

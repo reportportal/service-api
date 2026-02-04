@@ -1,0 +1,145 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.core.analyzer.auto.impl.preparer;
+
+import static com.epam.reportportal.base.util.Predicates.LAUNCH_CAN_BE_INDEXED;
+
+import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
+import com.epam.reportportal.base.infrastructure.model.analyzer.IndexTestItem;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ClusterRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.stereotype.Service;
+
+/**
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ */
+@Service
+public class LaunchPreparerServiceImpl implements LaunchPreparerService {
+
+  private final LaunchRepository launchRepository;
+  private final ClusterRepository clusterRepository;
+
+  private final CompositeTestItemPreparerService compositeTestItemPreparerService;
+
+  public LaunchPreparerServiceImpl(LaunchRepository launchRepository,
+      ClusterRepository clusterRepository,
+      CompositeTestItemPreparerService compositeTestItemPreparerService) {
+    this.launchRepository = launchRepository;
+    this.clusterRepository = clusterRepository;
+    this.compositeTestItemPreparerService = compositeTestItemPreparerService;
+  }
+
+  @Override
+  public Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems,
+      AnalyzerConfig analyzerConfig) {
+    if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
+      final List<IndexTestItem> preparedItems = compositeTestItemPreparerService.prepare(
+          launch.getId(), testItems, analyzerConfig);
+      if (CollectionUtils.isNotEmpty(preparedItems)) {
+        return Optional.of(createIndexLaunch(launch.getProjectId(),
+            launch.getId(),
+            launch.getName(),
+            launch.getStartTime(),
+            analyzerConfig,
+            preparedItems,
+            launch.getNumber()
+        ));
+      }
+    }
+    return Optional.empty();
+  }
+
+  private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name,
+      Instant startLaunchTime, AnalyzerConfig analyzerConfig,
+      List<IndexTestItem> rqTestItems, Long launchNumber) {
+    IndexLaunch rqLaunch = new IndexLaunch();
+    rqLaunch.setLaunchId(launchId);
+    rqLaunch.setLaunchName(name);
+    rqLaunch.setLaunchStartTime(LocalDateTime.ofInstant(startLaunchTime, ZoneId.systemDefault()));
+    rqLaunch.setProjectId(projectId);
+    rqLaunch.setAnalyzerConfig(analyzerConfig);
+    rqLaunch.setTestItems(rqTestItems);
+    rqLaunch.setLaunchNumber(launchNumber);
+    setClusters(rqLaunch);
+    return rqLaunch;
+  }
+
+  @Override
+  public Optional<IndexLaunch> prepare(Long id, AnalyzerConfig analyzerConfig) {
+    return prepare(List.of(id), analyzerConfig).stream().findFirst();
+  }
+
+  @Override
+  public List<IndexLaunch> prepare(List<Long> ids, AnalyzerConfig analyzerConfig) {
+    return launchRepository.findIndexLaunchByIds(ids)
+        .stream()
+        .peek(this::fill)
+        .filter(l -> CollectionUtils.isNotEmpty(l.getTestItems()))
+        .peek(l -> l.setAnalyzerConfig(analyzerConfig))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Update prepared launch with items for indexing
+   *
+   * @param indexLaunch - Launch to be updated
+   */
+  private void fill(IndexLaunch indexLaunch) {
+    final List<IndexTestItem> preparedItems = compositeTestItemPreparerService.prepare(
+        indexLaunch.getLaunchId());
+    if (!preparedItems.isEmpty()) {
+      indexLaunch.setTestItems(preparedItems);
+      setClusters(indexLaunch);
+    }
+  }
+
+  @Override
+  public List<IndexLaunch> prepare(AnalyzerConfig analyzerConfig, List<TestItem> testItems) {
+    return testItems.stream().collect(Collectors.groupingBy(TestItem::getLaunchId)).entrySet()
+        .stream().flatMap(entry -> {
+          Launch launch = launchRepository.findById(entry.getKey())
+              .orElseThrow(
+                  () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, entry.getKey()));
+          return prepare(launch, entry.getValue(), analyzerConfig).stream();
+        }).collect(Collectors.toList());
+  }
+
+  private void setClusters(IndexLaunch indexLaunch) {
+    final Map<Long, String> clusters = clusterRepository.findAllByLaunchId(
+            indexLaunch.getLaunchId())
+        .stream()
+        .collect(Collectors.toMap(Cluster::getIndexId, Cluster::getMessage));
+    if (!clusters.isEmpty()) {
+      indexLaunch.setClusters(clusters);
+    }
+  }
+
+}

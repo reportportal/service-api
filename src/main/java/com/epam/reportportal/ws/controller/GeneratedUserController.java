@@ -28,7 +28,9 @@ import com.epam.reportportal.api.model.InstanceRole;
 import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.core.file.GetFileHandler;
 import com.epam.reportportal.core.filter.SearchCriteriaService;
 import com.epam.reportportal.core.jasper.GetJasperReportHandler;
@@ -37,6 +39,7 @@ import com.epam.reportportal.core.launch.util.LinkGenerator;
 import com.epam.reportportal.core.user.CreateUserHandler;
 import com.epam.reportportal.core.user.EditUserHandler;
 import com.epam.reportportal.core.user.GetUserHandler;
+import com.epam.reportportal.core.user.patch.PatchUserHandler;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.infrastructure.persistence.entity.user.User;
@@ -49,6 +52,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +81,7 @@ public class GeneratedUserController extends BaseController implements UsersApi 
   private final GetFileHandler getFileHandler;
   private final EditUserHandler editUserHandler;
   private final GetUserHandler getUserHandler;
+  private final PatchUserHandler patchUserHandler;
   private final HttpServletRequest httpServletRequest;
   private final SearchCriteriaService searchCriteriaService;
   private final GetJasperReportHandler<User> jasperReportHandler;
@@ -179,5 +184,14 @@ public class GeneratedUserController extends BaseController implements UsersApi 
   public ResponseEntity<Void> deleteUsersUserIdAvatar(Long userId) {
     editUserHandler.deletePhoto(userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @Override
+  @Transactional
+  @PreAuthorize(ALLOWED_TO_OWNER)
+  public ResponseEntity<SuccessfulUpdate> patchUsersUserId(Long userId, List<PatchOperation> patchOperation) {
+    patchUserHandler.patchUser(userId, patchOperation);
+    return ResponseEntity.ok(
+        new SuccessfulUpdate().message("User with id = " + userId + " has been successfully updated."));
   }
 }

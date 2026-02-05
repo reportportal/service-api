@@ -20,11 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.LogTypeUpdatedEventConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.base.model.activity.LogTypeActivityResource;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.LogTypeUpdatedEventConverter;
 import org.junit.jupiter.api.Test;
 
 /**

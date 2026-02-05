@@ -22,9 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.LogTypeRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.ProjectLogType;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

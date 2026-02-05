@@ -29,10 +29,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.ReportPortalUserUtil;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.core.integration.DeleteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.impl.util.IntegrationTestUtil;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -40,6 +39,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import java.util.Optional;
@@ -51,129 +51,135 @@ import org.springframework.context.ApplicationEventPublisher;
  */
 public class DeleteIntegrationHandlerTest {
 
-	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
-	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
-	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
-	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+  private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
+  private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+  private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+  private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-	private final DeleteIntegrationHandler deleteIntegrationHandler = new DeleteIntegrationHandlerImpl(integrationRepository,
-			projectRepository,
-			integrationTypeRepository,
-			eventPublisher
-	);
+  private final DeleteIntegrationHandler deleteIntegrationHandler = new DeleteIntegrationHandlerImpl(
+      integrationRepository,
+      projectRepository,
+      integrationTypeRepository,
+      eventPublisher
+  );
 
-	@Test
-	void deleteGlobalIntegration() {
+  @Test
+  void deleteGlobalIntegration() {
 
     final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
         UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
-		final long emailIntegrationId = 1L;
+    final long emailIntegrationId = 1L;
 
-		when(integrationRepository.findGlobalById(emailIntegrationId)).thenReturn(Optional.of(IntegrationTestUtil.getGlobalEmailIntegration(
-				emailIntegrationId)));
+    when(integrationRepository.findGlobalById(emailIntegrationId)).thenReturn(
+        Optional.of(IntegrationTestUtil.getGlobalEmailIntegration(
+            emailIntegrationId)));
 
-		doNothing().when(integrationRepository).deleteById(emailIntegrationId);
+    doNothing().when(integrationRepository).deleteById(emailIntegrationId);
 
-		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteGlobalIntegration(emailIntegrationId, user);
+    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteGlobalIntegration(emailIntegrationId,
+        user);
 
-		assertNotNull(operationCompletionRS);
-		assertEquals(
-				Suppliers.formattedSupplier("Global integration with id = {} has been successfully removed", emailIntegrationId).get(),
-				operationCompletionRS.getResultMessage()
-		);
+    assertNotNull(operationCompletionRS);
+    assertEquals(
+        Suppliers.formattedSupplier("Global integration with id = {} has been successfully removed", emailIntegrationId)
+            .get(),
+        operationCompletionRS.getResultMessage()
+    );
 
-	}
+  }
 
-	@Test
-	void deleteAllIntegrations() {
+  @Test
+  void deleteAllIntegrations() {
 
-		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
+        UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
-		when(integrationTypeRepository.findByName(anyString())).thenReturn(
-				Optional.of(IntegrationTestUtil.getEmailIntegrationType()));
+    when(integrationTypeRepository.findByName(anyString())).thenReturn(
+        Optional.of(IntegrationTestUtil.getEmailIntegrationType()));
 
-		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteGlobalIntegrationsByType(
-				"EMAIL", user);
-		verify(integrationRepository, times(1)).deleteAllGlobalByIntegrationTypeId(anyLong());
+    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteGlobalIntegrationsByType(
+        "EMAIL", user);
+    verify(integrationRepository, times(1)).deleteAllGlobalByIntegrationTypeId(anyLong());
 
-		assertNotNull(operationCompletionRS);
-		assertEquals(
-				"All global integrations with type ='EMAIL' integrations have been successfully removed.",
-				operationCompletionRS.getResultMessage()
-		);
-	}
+    assertNotNull(operationCompletionRS);
+    assertEquals(
+        "All global integrations with type ='EMAIL' integrations have been successfully removed.",
+        operationCompletionRS.getResultMessage()
+    );
+  }
 
-	@Test
-	void deleteProjectIntegration() {
+  @Test
+  void deleteProjectIntegration() {
 
-		final long emailIntegrationId = 1L;
-		final long projectId = 1L;
+    final long emailIntegrationId = 1L;
+    final long projectId = 1L;
 
-		Project project = new Project();
-		project.setId(projectId);
-		project.setName(TEST_PROJECT_NAME);
-		project.setKey(TEST_PROJECT_KEY);
+    Project project = new Project();
+    project.setId(projectId);
+    project.setName(TEST_PROJECT_NAME);
+    project.setKey(TEST_PROJECT_KEY);
 
-		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
-				projectId
-		);
+    final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
+        UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
+        projectId
+    );
 
-		when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 
-		when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
-				projectId
-		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
+    when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
+        projectId
+    )).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
 
-		doNothing().when(integrationRepository).deleteById(emailIntegrationId);
+    doNothing().when(integrationRepository).deleteById(emailIntegrationId);
 
-		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegration(emailIntegrationId,
+    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegration(emailIntegrationId,
         TEST_PROJECT_KEY,
-				user
-		);
+        user
+    );
 
-		assertNotNull(operationCompletionRS);
-		assertEquals("Integration with ID = '" + emailIntegrationId + "' has been successfully deleted.",
-				operationCompletionRS.getResultMessage()
-		);
-	}
+    assertNotNull(operationCompletionRS);
+    assertEquals("Integration with ID = '" + emailIntegrationId + "' has been successfully deleted.",
+        operationCompletionRS.getResultMessage()
+    );
+  }
 
-	@Test
-	void deleteProjectIntegrations() {
+  @Test
+  void deleteProjectIntegrations() {
 
-		final long emailIntegrationId = 1L;
-		final long projectId = 1L;
+    final long emailIntegrationId = 1L;
+    final long projectId = 1L;
 
-		Project project = new Project();
-		project.setId(projectId);
-		project.setName(TEST_PROJECT_NAME);
-		project.setKey(TEST_PROJECT_KEY);
+    Project project = new Project();
+    project.setId(projectId);
+    project.setName(TEST_PROJECT_NAME);
+    project.setKey(TEST_PROJECT_KEY);
 
-		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, projectId);
+    final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
+        UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, projectId);
 
-		when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
+    when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(project));
 
-		when(integrationRepository.findAllByProjectIdOrderByCreationDateDesc(projectId)).thenReturn(Lists.newArrayList(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId,
-				projectId
-		)));
+    when(integrationRepository.findAllByProjectIdOrderByCreationDateDesc(projectId)).thenReturn(
+        Lists.newArrayList(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId,
+            projectId
+        )));
 
-		when(integrationTypeRepository.findByName(anyString())).thenReturn(Optional.ofNullable(IntegrationTestUtil.getEmailIntegrationType()));
+    when(integrationTypeRepository.findByName(anyString())).thenReturn(
+        Optional.ofNullable(IntegrationTestUtil.getEmailIntegrationType()));
 
-		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegrationsByType("EMAIL",
+    OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteProjectIntegrationsByType("EMAIL",
         TEST_PROJECT_KEY,
-				user
-		);
-		verify(integrationRepository, times(1)).deleteAllByProjectIdAndIntegrationTypeId(anyLong(), anyLong());
+        user
+    );
+    verify(integrationRepository, times(1)).deleteAllByProjectIdAndIntegrationTypeId(anyLong(), anyLong());
 
-		assertNotNull(operationCompletionRS);
-		assertEquals(
-				"All integrations with type ='EMAIL' for project with name ='project Name' have been successfully deleted",
-				operationCompletionRS.getResultMessage()
-		);
+    assertNotNull(operationCompletionRS);
+    assertEquals(
+        "All integrations with type ='EMAIL' for project with name ='project Name' have been successfully deleted",
+        operationCompletionRS.getResultMessage()
+    );
 
-	}
+  }
 
 }

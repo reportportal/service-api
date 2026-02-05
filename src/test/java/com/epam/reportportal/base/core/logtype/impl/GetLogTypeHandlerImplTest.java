@@ -22,12 +22,12 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.GetLogTypes200Response;
 import com.epam.reportportal.api.model.LogTypeResponse;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.ProjectLogType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

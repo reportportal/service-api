@@ -45,8 +45,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 /**
- * Integration tests for TMS Test Plan Controller. Tests cover CRUD operations, batch operations,
- * and test plan duplication functionality.
+ * Integration tests for TMS Test Plan Controller. Tests cover CRUD operations, batch operations, and test plan
+ * duplication functionality.
  *
  * @author <a href="mailto:konstantin_shaplyko@epam.com">Konstantin Shaplyko</a>
  */

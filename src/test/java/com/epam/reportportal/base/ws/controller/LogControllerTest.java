@@ -25,8 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.log.SearchLogRq;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.reporting.SaveLogRQ;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.UUID;

@@ -333,11 +333,11 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void managerChangesOwnRoleToMember() throws Exception {
     Long orgId = ORG_ID_1; // Organization 201 where user 104 is a manager
     Long userId = 104L; // Manager user ID from test data
-    
+
     OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
         .orgRole(OrgRole.MEMBER)
         .projects(new ArrayList<>());
-    
+
     performUpdateUserFailed(orgId, userId, updateRequest, managerToken, status().isForbidden());
   }
 
@@ -346,11 +346,11 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void managerChangesOtherUserRole() throws Exception {
     Long orgId = ORG_ID_1; // Organization 201 where user 104 is a manager
     Long userId = 107L; // Different user ID (member in this org)
-    
+
     OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
         .orgRole(OrgRole.MEMBER)
         .projects(new ArrayList<>());
-    
+
     performUpdateUserSuccess(orgId, userId, updateRequest, managerToken);
   }
 
@@ -359,11 +359,11 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   void adminChangesManagerRole() throws Exception {
     Long orgId = ORG_ID_1; // Organization 201
     Long userId = 104L; // Manager user ID
-    
+
     OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
         .orgRole(OrgRole.MEMBER)
         .projects(new ArrayList<>());
-    
+
     performUpdateUserSuccess(orgId, userId, updateRequest, adminToken);
   }
 

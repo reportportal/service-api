@@ -26,13 +26,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
@@ -188,10 +187,10 @@ class ProjectRepositoryTest extends BaseMvcTest {
   void findAllByOrganizationId_WhenOrganizationExists_ShouldReturnAllProjectsForOrganization() {
     // Given
     Long organizationId = 1L;
-    
+
     // When
     List<Project> projects = projectRepository.findAllByOrganizationId(organizationId);
-    
+
     // Then
     assertEquals(2, projects.size());
     assertEquals("superadmin_personal", projects.get(0).getName());
@@ -204,10 +203,10 @@ class ProjectRepositoryTest extends BaseMvcTest {
   void findAllByOrganizationId_WhenOrganizationDoesNotExist_ShouldReturnEmptyList() {
     // Given
     Long nonExistentOrganizationId = 999L;
-    
+
     // When
     List<Project> projects = projectRepository.findAllByOrganizationId(nonExistentOrganizationId);
-    
+
     // Then
     assertTrue(projects.isEmpty());
   }

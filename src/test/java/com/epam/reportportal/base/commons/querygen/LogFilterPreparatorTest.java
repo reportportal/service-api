@@ -30,7 +30,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.commons.querygen.LogFilterPreparator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.CompositeFilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;

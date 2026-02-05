@@ -10,13 +10,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.core.events.widget.GenerateWidgetViewEvent;
 import com.epam.reportportal.base.core.widget.content.BuildFilterStrategy;
 import com.epam.reportportal.base.core.widget.content.loader.materialized.generator.HealthCheckTableGenerator;
 import com.epam.reportportal.base.core.widget.content.loader.materialized.generator.ViewGenerator;
 import com.epam.reportportal.base.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetType;

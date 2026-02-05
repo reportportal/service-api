@@ -2,10 +2,9 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.AnalyticsDataRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.analytics.AnalyticsData;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;

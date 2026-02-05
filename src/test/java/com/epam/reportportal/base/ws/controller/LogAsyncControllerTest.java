@@ -27,15 +27,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.log.CreateLogHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.reporting.SaveLogRQ;
 import com.epam.reportportal.base.reporting.async.controller.LogAsyncController;
 import com.epam.reportportal.base.util.ProjectExtractor;
-import com.epam.reportportal.base.reporting.SaveLogRQ;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Assertions;

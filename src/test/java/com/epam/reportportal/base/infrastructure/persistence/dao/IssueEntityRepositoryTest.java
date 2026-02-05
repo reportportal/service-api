@@ -18,11 +18,10 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntityPojo;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;

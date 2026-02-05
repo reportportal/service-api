@@ -7,13 +7,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseAttributeMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttributeId;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
-import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseAttributeMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

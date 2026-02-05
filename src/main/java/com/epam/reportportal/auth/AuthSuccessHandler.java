@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.auth;
 
-import com.epam.reportportal.base.auth.event.UiUserSignedInEvent;
+import com.epam.reportportal.auth.event.UiUserSignedInEvent;
 import jakarta.inject.Provider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

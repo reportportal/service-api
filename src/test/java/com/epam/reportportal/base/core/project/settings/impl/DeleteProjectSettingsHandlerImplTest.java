@@ -68,7 +68,7 @@ class DeleteProjectSettingsHandlerImplTest {
   @Test
   void deleteNotExistSubtype() {
     long projectId = 1L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
     when(projectRepository.findByKey(TEST_PROJECT_KEY)).thenReturn(Optional.of(new Project()));

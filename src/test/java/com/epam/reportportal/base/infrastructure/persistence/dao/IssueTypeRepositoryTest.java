@@ -20,10 +20,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.List;
 import java.util.Optional;
 import org.hamcrest.Matchers;

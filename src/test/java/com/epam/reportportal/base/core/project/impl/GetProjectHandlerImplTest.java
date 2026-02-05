@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
@@ -37,6 +36,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.user.UserResource;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -105,7 +105,7 @@ class GetProjectHandlerImplTest {
     String projectKey = "not_exist";
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, projectId);
 
     when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
@@ -122,7 +122,7 @@ class GetProjectHandlerImplTest {
   void getUserNamesByIncorrectTerm() {
     long projectId = 1L;
     ReportPortalUser user =
-        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  projectId);
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, projectId);
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.getUserNames(extractProjectDetails(user, TEST_PROJECT_KEY), "")

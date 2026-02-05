@@ -16,10 +16,9 @@
 
 package com.epam.reportportal.base.core.events.domain;
 
-import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.STATUS;
 import static com.epam.reportportal.base.core.events.domain.ActivityTestHelper.checkActivity;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.STATUS;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.TestItemStatusChangedEventConverter;
 import com.epam.reportportal.base.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
@@ -29,6 +28,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.HistoryField;
 import com.epam.reportportal.base.model.activity.TestItemActivityResource;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.TestItemStatusChangedEventConverter;
 import com.google.common.collect.Lists;
 import java.time.Instant;
 import java.util.List;

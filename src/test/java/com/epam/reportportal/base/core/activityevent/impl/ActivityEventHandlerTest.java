@@ -65,7 +65,7 @@ class ActivityEventHandlerTest {
 
     var pagedResponse = activityEventHandler.getActivityEventsHistory(filter, pageable);
 
-    assertEquals(activityPage.getPageable().getOffset(), (long)pagedResponse.getOffset());
+    assertEquals(activityPage.getPageable().getOffset(), (long) pagedResponse.getOffset());
     assertEquals(activityPage.getSize(), pagedResponse.getLimit());
     assertEquals(activityPage.getNumber(), pagedResponse.getOffset() / pagedResponse.getLimit());
     assertEquals(activityPage.getTotalElements(), (long) pagedResponse.getTotalCount());

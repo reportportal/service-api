@@ -8,19 +8,19 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
+import com.epam.reportportal.base.core.tms.service.factory.TmsManualScenarioImplServiceFactory;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioAttributeId;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioRepository;
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
-import com.epam.reportportal.base.core.tms.service.factory.TmsManualScenarioImplServiceFactory;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.List;
@@ -590,7 +590,8 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(11L);
     scenario.setExecutionEstimationTime(50);
     scenario.setLinkToRequirements("http://original-requirements-with-preconditions.com");
-    scenario.setType(com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.STEPS);
+    scenario.setType(
+        com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.STEPS);
 
     var preconditions = new TmsManualScenarioPreconditions();
     preconditions.setId(2L);
@@ -606,7 +607,8 @@ class TmsManualScenarioServiceImplTest {
     scenario.setId(11L);
     scenario.setExecutionEstimationTime(50);
     scenario.setLinkToRequirements("http://original-requirements-no-attr.com");
-    scenario.setType(com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.STEPS);
+    scenario.setType(
+        com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.STEPS);
     scenario.setPreconditions(null);
     scenario.setAttributes(null);
     return scenario;

@@ -248,7 +248,8 @@ class InvitationControllerTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andReturn().getResponse().getContentAsString(), Invitation.class);
     var pu = projectUserRepository.findProjectUserByUserIdAndProjectId(response.getUserId(), 1L).get();
-    assertEquals(com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole.EDITOR, pu.getProjectRole() );
+    assertEquals(com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole.EDITOR,
+        pu.getProjectRole());
 
   }
 

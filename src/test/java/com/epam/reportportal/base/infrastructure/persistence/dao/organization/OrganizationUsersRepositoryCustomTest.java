@@ -5,13 +5,12 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUsersRepositoryCustom;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserAccount;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserFilter;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

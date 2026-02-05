@@ -460,7 +460,8 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
         .value(objectMapper.writeValueAsString(values));
 
     var projectUserBefore = projectUserRepository.findProjectUserByUserIdAndProjectId(105L, 301L).get();
-    assertEquals(com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole.EDITOR, projectUserBefore.getProjectRole());
+    assertEquals(com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole.EDITOR,
+        projectUserBefore.getProjectRole());
 
     mockMvc.perform(patch("/organizations/201/projects/301")
             .contentType(MediaType.APPLICATION_JSON)

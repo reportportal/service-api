@@ -7,12 +7,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.extension.CommonPluginCommand;
-import com.epam.reportportal.base.extension.ReportPortalExtensionPoint;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
+import com.epam.reportportal.base.extension.CommonPluginCommand;
+import com.epam.reportportal.base.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;

@@ -1,9 +1,9 @@
 package com.epam.reportportal.base.core.user.patch;
 
-import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static com.epam.reportportal.api.model.OperationType.ADD;
 import static com.epam.reportportal.api.model.OperationType.REMOVE;
 import static com.epam.reportportal.api.model.OperationType.REPLACE;
+import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;

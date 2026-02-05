@@ -16,14 +16,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
+import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
 import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
-import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
-import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.ByteArrayInputStream;
@@ -135,7 +135,8 @@ class TmsAttachmentServiceImplTest {
         () -> sut.uploadAttachment(emptyFile));
 
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
-    assertEquals("Error in handled Request. Please, check specified parameters: 'File cannot be empty'", exception.getMessage());
+    assertEquals("Error in handled Request. Please, check specified parameters: 'File cannot be empty'",
+        exception.getMessage());
 
     verifyNoInteractions(tmsAttachmentDataStoreService, tmsAttachmentMapper, tmsAttachmentRepository);
   }

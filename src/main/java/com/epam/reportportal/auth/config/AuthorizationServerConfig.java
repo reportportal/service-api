@@ -20,7 +20,6 @@ import com.epam.reportportal.auth.OAuthSuccessHandler;
 import com.epam.reportportal.auth.ReportPortalClient;
 import com.epam.reportportal.auth.TokenServicesFacade;
 import com.epam.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
-import com.epam.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.reportportal.auth.config.password.CustomCodeGrantAuthenticationConverter;
 import com.epam.reportportal.auth.config.password.OAuth2ErrorResponseHandler;
 import com.epam.reportportal.auth.config.utils.JwtReportPortalUserConverter;
@@ -32,12 +31,14 @@ import com.epam.reportportal.auth.integration.ldap.LdapUserReplicator;
 import com.epam.reportportal.auth.integration.parameter.ParameterUtils;
 import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
+import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
+import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import java.util.List;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -121,6 +123,10 @@ public class AuthorizationServerConfig {
   private final AuthenticationFailureHandler authenticationFailureHandler;
 
   private final List<OAuthProvider> authProviders;
+
+  private final FeatureFlagHandler featureFlagHandler;
+
+  private final BasicTextEncryptor encryptor;
 
   @Bean
   public RegisteredClientRepository registeredClientRepository() {
@@ -224,7 +230,7 @@ public class AuthorizationServerConfig {
   @Bean
   public AuthenticationProvider ldapAuthProvider() {
     return new LdapAuthProvider(authConfigRepository, eventPublisher, ldapDetailsContextMapper(),
-        new TokenServicesFacade(jwtEncoder(), jwtIssuer));
+        new TokenServicesFacade(jwtEncoder(), jwtIssuer), featureFlagHandler, encryptor);
   }
 
   @Bean("ldapDetailsContextMapper")
@@ -336,7 +342,7 @@ public class AuthorizationServerConfig {
   @Bean
   @Primary
   protected UserDetailsService userDetailsService() {
-    return new DatabaseUserDetailsService();
+    return new DefaultUserDetailsService();
   }
 
   private Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oauth2ResourceServerCustomizer() {

@@ -48,9 +48,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.model.ActivityResource;
-import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetContentRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -77,6 +74,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableInitParams;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.LevelEntry;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;

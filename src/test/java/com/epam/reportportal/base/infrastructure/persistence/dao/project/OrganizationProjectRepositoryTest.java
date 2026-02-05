@@ -5,12 +5,11 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.project.OrganizationProjectRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectProfile;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -43,7 +42,8 @@ class OrganizationProjectRepositoryTest extends BaseMvcTest {
         .withCondition(new FilterCondition(Condition.findByMarker(op).get(), false, value, field));
     Pageable pageable = PageRequest.of(0, 1, Sort.by("name"));
 
-    Page<ProjectProfile> projectsListPage = organizationProjectRepository.getProjectProfileListByFilter(filter, pageable);
+    Page<ProjectProfile> projectsListPage = organizationProjectRepository.getProjectProfileListByFilter(filter,
+        pageable);
 
     assertTrue(isNotEmpty(projectsListPage.toList()));
   }
@@ -61,7 +61,8 @@ class OrganizationProjectRepositoryTest extends BaseMvcTest {
             new FilterCondition(Condition.EQUALS, false, userId.toString(), CRITERIA_USER_ID));
     Pageable pageable = PageRequest.of(0, 10, Sort.by("name"));
 
-    Page<ProjectProfile> projectsListPage = organizationProjectRepository.getProjectProfileListByFilter(filter, pageable);
+    Page<ProjectProfile> projectsListPage = organizationProjectRepository.getProjectProfileListByFilter(filter,
+        pageable);
     assertTrue(isNotEmpty(projectsListPage.toList()));
   }
 }

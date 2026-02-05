@@ -8,11 +8,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsEnvironmentDataset;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsEnvironmentDatasetRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsEnvironmentDatasetRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsEnvironmentDatasetMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsEnvironmentDatasetRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsEnvironmentDataset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

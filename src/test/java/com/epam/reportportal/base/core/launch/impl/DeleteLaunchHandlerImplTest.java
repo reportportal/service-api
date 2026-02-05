@@ -55,7 +55,8 @@ class DeleteLaunchHandlerImplTest {
 
   @Test
   void deleteNotOwnLaunch() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER , 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+        1L);
     rpUser.setUserId(2L);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
@@ -83,7 +84,8 @@ class DeleteLaunchHandlerImplTest {
   @Test
   void deleteLaunchInProgressStatus() {
 
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
     when(launchRepository.findById(1L)).thenReturn(
         getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 

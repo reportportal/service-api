@@ -28,8 +28,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
@@ -37,6 +35,7 @@ import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerSe
 import com.epam.reportportal.base.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.reportportal.base.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
@@ -48,6 +47,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.launch.UpdateLaunchRQ;
 import com.epam.reportportal.base.model.launch.cluster.CreateClustersRQ;
 import java.util.Map;

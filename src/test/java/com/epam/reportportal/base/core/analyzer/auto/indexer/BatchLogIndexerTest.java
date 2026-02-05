@@ -12,13 +12,13 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
+import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
+import com.epam.reportportal.base.infrastructure.model.analyzer.IndexTestItem;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
-import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
-import com.epam.reportportal.base.infrastructure.model.analyzer.IndexTestItem;
-import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;

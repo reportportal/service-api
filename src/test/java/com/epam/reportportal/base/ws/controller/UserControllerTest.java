@@ -194,8 +194,8 @@ class UserControllerTest extends BaseMvcTest {
     editUserRQ.setEmail("user1uniquemail@epam.com");
     editUserRQ.setFullName("randName");
     mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
-        .contentType(APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(editUserRQ)))
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(editUserRQ)))
         .andExpect(status().isForbidden());
   }
 

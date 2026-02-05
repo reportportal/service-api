@@ -25,20 +25,20 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.launch.FinishLaunchHandler;
 import com.epam.reportportal.base.core.launch.MergeLaunchHandler;
 import com.epam.reportportal.base.core.launch.StartLaunchHandler;
+import com.epam.reportportal.base.core.launch.util.LinkGenerator;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
-import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.reporting.async.controller.LaunchAsyncController;
-import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
+import com.epam.reportportal.base.reporting.async.controller.LaunchAsyncController;
+import com.epam.reportportal.base.util.ProjectExtractor;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -123,7 +123,7 @@ class LaunchAsyncControllerTest {
     when(linkGenerator.composeBaseUrl(any()))
         .thenReturn("http://localhost:8080/api");
 
-    launchAsyncController.finishLaunch(TEST_PROJECT_KEY, launchId, finishExecutionRQ, user,null);
+    launchAsyncController.finishLaunch(TEST_PROJECT_KEY, launchId, finishExecutionRQ, user, null);
     verify(finishLaunchHandler).finishLaunch(launchIdArgumentCaptor.capture(),
         requestArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture(),
         userArgumentCaptor.capture(), urlArgumentCaptor.capture()

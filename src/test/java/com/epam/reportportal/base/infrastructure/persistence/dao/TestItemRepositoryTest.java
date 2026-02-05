@@ -50,11 +50,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexTestItem;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepositoryCustomImpl;
-import com.epam.reportportal.base.infrastructure.persistence.dao.TicketRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -79,6 +74,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusE
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.google.common.collect.Comparators;
 import java.time.Duration;
 import java.time.Instant;

@@ -91,7 +91,8 @@ class DeleteUserHandlerImplTest {
     user.setLogin("test");
 
     doReturn(Optional.of(user)).when(repository).findById(2L);
-    when(organizationUserRepository.findNonPersonalOrganizationIdsByUserId(user.getId())).thenReturn(Lists.newArrayList());
+    when(organizationUserRepository.findNonPersonalOrganizationIdsByUserId(user.getId())).thenReturn(
+        Lists.newArrayList());
     when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
     doNothing().when(dataStore).deleteUserPhoto(any());
     when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);

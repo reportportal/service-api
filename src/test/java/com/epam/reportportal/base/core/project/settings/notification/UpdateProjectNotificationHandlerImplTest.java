@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.NotificationRuleUpdatedEventConverter;
 import com.epam.reportportal.base.core.events.domain.NotificationRuleUpdatedEvent;
 import com.epam.reportportal.base.core.project.validator.notification.ProjectNotificationValidator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -44,6 +43,7 @@ import com.epam.reportportal.base.model.project.email.ProjectNotificationConfigD
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
 import com.epam.reportportal.base.reporting.ItemAttributeResource;
 import com.epam.reportportal.base.ws.converter.converters.ProjectConverter;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.NotificationRuleUpdatedEventConverter;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;

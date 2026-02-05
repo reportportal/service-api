@@ -27,11 +27,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Projec
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.email.SenderCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;

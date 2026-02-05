@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
-import com.epam.reportportal.base.infrastructure.persistence.filesystem.LocalDataStore;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import java.io.InputStream;
 import org.jclouds.blobstore.BlobStore;

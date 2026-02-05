@@ -19,6 +19,7 @@ package com.epam.reportportal.base.ws.converter.converters;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.epam.reportportal.base.infrastructure.model.ActivityResource;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
@@ -26,7 +27,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.HistoryField;
-import com.epam.reportportal.base.infrastructure.model.ActivityResource;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;

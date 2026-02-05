@@ -7,10 +7,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.mapper.TmsMilestoneMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
-import com.epam.reportportal.base.core.tms.mapper.TmsMilestoneMapper;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;

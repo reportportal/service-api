@@ -16,12 +16,6 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.CompositeFilterCondition;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.google.common.collect.Lists;
 import java.util.List;

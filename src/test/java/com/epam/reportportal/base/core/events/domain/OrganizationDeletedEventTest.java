@@ -18,13 +18,13 @@ package com.epam.reportportal.base.core.events.domain;
 
 import static com.epam.reportportal.base.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.OrganizationDeletedEventConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.OrganizationDeletedEventConverter;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 

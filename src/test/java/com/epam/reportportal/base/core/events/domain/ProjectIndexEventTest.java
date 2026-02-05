@@ -19,13 +19,13 @@ package com.epam.reportportal.base.core.events.domain;
 import static com.epam.reportportal.base.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.reportportal.base.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.ProjectIndexEventConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.ProjectIndexEventConverter;
 import java.time.Instant;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;

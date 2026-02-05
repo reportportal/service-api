@@ -16,52 +16,52 @@
 
 package com.epam.reportportal.base.core.widget.content.updater.validator;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Andrei Piankouski
  */
 public class TopTestCasesContentValidatorTest {
-    private WidgetValidatorStrategy topTestCasesContentValidator;
 
-    @BeforeEach
-    public void setUp() {
-        topTestCasesContentValidator = new TopTestCasesContentValidator();
-    }
+  private WidgetValidatorStrategy topTestCasesContentValidator;
 
-    @Test
-    public void testValidateWithNullContentField() {
-        Exception exception = assertThrows(ReportPortalException.class,
-                () -> topTestCasesContentValidator.validate(null, new HashMap<>(), new WidgetOptions(), 5)
-        );
+  @BeforeEach
+  public void setUp() {
+    topTestCasesContentValidator = new TopTestCasesContentValidator();
+  }
 
-        String expectedMessage = "Error in handled Request. Please, check specified parameters: 'Content fields should not be empty'";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
+  @Test
+  public void testValidateWithNullContentField() {
+    Exception exception = assertThrows(ReportPortalException.class,
+        () -> topTestCasesContentValidator.validate(null, new HashMap<>(), new WidgetOptions(), 5)
+    );
 
-    @Test
-    public void testValidateWithLimitExceed() {
-        List<String> contentFields = new ArrayList<>();
-        contentFields.add("contentField");
+    String expectedMessage = "Error in handled Request. Please, check specified parameters: 'Content fields should not be empty'";
+    String actualMessage = exception.getMessage();
+    assertTrue(actualMessage.contains(expectedMessage));
+  }
 
-        Exception exception = assertThrows(ReportPortalException.class,
-                () -> topTestCasesContentValidator.validate(contentFields, new HashMap<>(), null, 101)
-        );
+  @Test
+  public void testValidateWithLimitExceed() {
+    List<String> contentFields = new ArrayList<>();
+    contentFields.add("contentField");
 
-        String expectedMessage = "Unable to load widget content. Widget properties contain errors: Items count should have value from 2 to 100.";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
+    Exception exception = assertThrows(ReportPortalException.class,
+        () -> topTestCasesContentValidator.validate(contentFields, new HashMap<>(), null, 101)
+    );
+
+    String expectedMessage = "Unable to load widget content. Widget properties contain errors: Items count should have value from 2 to 100.";
+    String actualMessage = exception.getMessage();
+    assertTrue(actualMessage.contains(expectedMessage));
+  }
 
 }

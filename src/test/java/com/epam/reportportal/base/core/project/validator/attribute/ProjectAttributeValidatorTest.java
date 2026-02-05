@@ -7,9 +7,9 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.entity.AnalyzeMode;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ class ProjectAttributeValidatorTest {
   void testVerifyValidBooleanAttributes() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true");
     newAttributes.put(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute(), "false");
     newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true");
@@ -54,7 +54,7 @@ class ProjectAttributeValidatorTest {
   void testVerifyBooleanAttributesCaseInsensitive() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "TRUE");
     newAttributes.put(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute(), "False");
     newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "True");
@@ -66,10 +66,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyInvalidBooleanAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "invalid");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -77,10 +77,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyNumericBooleanAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "1");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -88,10 +88,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyEmptyBooleanAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.INDEXING_RUNNING.getAttribute(), "");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -99,10 +99,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyNullBooleanAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED.getAttribute(), null);
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -110,7 +110,7 @@ class ProjectAttributeValidatorTest {
   void testVerifyAllBooleanAttributesValid() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     // Test all boolean attributes
     newAttributes.put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true");
     newAttributes.put(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute(), "false");
@@ -129,8 +129,8 @@ class ProjectAttributeValidatorTest {
   void testVerifyValidAnalyzerMode() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
-    newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(), 
+
+    newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(),
         AnalyzeMode.CURRENT_AND_THE_SAME_NAME.getValue());
 
     assertDoesNotThrow(() -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
@@ -140,10 +140,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyInvalidAnalyzerModeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(), "INVALID_MODE");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -151,7 +151,7 @@ class ProjectAttributeValidatorTest {
   void testVerifyValidPercentageAttribute() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute(), "80");
 
     assertDoesNotThrow(() -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
@@ -161,10 +161,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyInvalidPercentageAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute(), "150");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -172,12 +172,12 @@ class ProjectAttributeValidatorTest {
   void testVerifyValidDelayAttributes() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute(), "86400"); // 1 day in seconds
     newAttributes.put(ProjectAttributeEnum.KEEP_LOGS.getAttribute(), "604800"); // 1 week in seconds
 
     assertDoesNotThrow(() -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
-    
+
     verify(delayBoundValidator).validate(any(), any());
   }
 
@@ -185,11 +185,11 @@ class ProjectAttributeValidatorTest {
   void testVerifyForeverAliasDelayAttribute() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute(), "0"); // Forever alias
 
     assertDoesNotThrow(() -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
-    
+
     verify(delayBoundValidator).validate(any(), any());
   }
 
@@ -197,10 +197,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyInvalidDelayAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute(), "-1");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -208,10 +208,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyNonNumericDelayAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute(), "invalid");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -219,10 +219,10 @@ class ProjectAttributeValidatorTest {
   void testVerifyIncompatibleAttributeThrowsException() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     newAttributes.put("invalid.attribute", "value");
 
-    assertThrows(ReportPortalException.class, 
+    assertThrows(ReportPortalException.class,
         () -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
   }
 
@@ -230,7 +230,7 @@ class ProjectAttributeValidatorTest {
   void testVerifyNotificationAttributePattern() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     // Should pass - matches notification pattern
     newAttributes.put("notifications.slack.enabled", "true");
     newAttributes.put("notifications.webhook.enabled", "false");
@@ -242,17 +242,17 @@ class ProjectAttributeValidatorTest {
   void testVerifyMixedValidAttributes() {
     Map<String, String> currentAttributes = new HashMap<>();
     Map<String, String> newAttributes = new HashMap<>();
-    
+
     // Mix of valid boolean, analyzer mode, percentage, and delay attributes
     newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true");
-    newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(), 
+    newAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(),
         AnalyzeMode.CURRENT_AND_THE_SAME_NAME.getValue());
     newAttributes.put(ProjectAttributeEnum.SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute(), "95");
     newAttributes.put(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute(), "7776000"); // 90 days
     newAttributes.put("notifications.email.enabled", "false");
 
     assertDoesNotThrow(() -> validator.verifyProjectAttributes(currentAttributes, newAttributes));
-    
+
     verify(delayBoundValidator).validate(any(), any());
   }
 }

@@ -518,7 +518,7 @@ public enum ErrorType {
   /**
    * If specified attribute not found.
    */
-  ATTRIBUTE_NOT_FOUND(40035, "Attribute '{}' not found."),
+  ATTRIBUTE_NOT_FOUND(40043, "Attribute '{}' not found."),
 
   /**
    * Use it If there are no any other exceptions. There should by no such exception

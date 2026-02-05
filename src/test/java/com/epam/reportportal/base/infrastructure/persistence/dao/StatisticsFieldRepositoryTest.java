@@ -19,9 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.StatisticsFieldRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

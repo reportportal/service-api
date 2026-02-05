@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.plugin;
+package com.epam.reportportal.base.plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,16 +24,15 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.reportportal.base.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.base.core.plugin.Plugin;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
+import com.epam.reportportal.base.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.plugin.Pf4jPluginManager;
 import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.IOException;
@@ -45,8 +44,8 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginManager;
+import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -235,7 +234,7 @@ class Pf4jPluginManagerTest {
     );
     assertEquals("Error during plugin uploading: 'Plugin version should be specified.'",
         exception.getMessage()
-  );
+    );
   }
 
   @Test

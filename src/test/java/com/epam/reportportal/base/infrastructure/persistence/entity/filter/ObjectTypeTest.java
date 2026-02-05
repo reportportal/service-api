@@ -19,7 +19,6 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.filter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.filter.ObjectType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Arrays;
 import java.util.Collections;

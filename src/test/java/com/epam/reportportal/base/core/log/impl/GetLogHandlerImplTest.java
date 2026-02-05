@@ -10,15 +10,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.commons.querygen.LogFilterPreparator;
+import com.epam.reportportal.base.core.item.TestItemService;
+import com.epam.reportportal.base.core.log.GetLogHandler;
+import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
-import com.epam.reportportal.base.core.item.TestItemService;
-import com.epam.reportportal.base.core.log.GetLogHandler;
-import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;

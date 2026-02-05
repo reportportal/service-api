@@ -87,7 +87,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Configuration
-@ComponentScan(basePackages = {"com.epam.reportportal.base.ws.controller", "com.epam.reportportal.auth.endpoint"})
+@ComponentScan(basePackages = {"com.epam.reportportal.base.ws.controller"})
 public class SpringDocConfiguration {
 
   private final Map<String, PropertyHandler> propertyHandlerStrategy;

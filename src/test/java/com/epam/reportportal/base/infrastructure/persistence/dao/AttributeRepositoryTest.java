@@ -20,10 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.AttributeRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attribute.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;

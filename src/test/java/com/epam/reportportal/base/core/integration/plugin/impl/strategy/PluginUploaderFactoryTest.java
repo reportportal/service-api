@@ -20,12 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.core.integration.plugin.PluginUploader;
 import com.epam.reportportal.base.core.integration.plugin.strategy.JarPluginUploader;
 import com.epam.reportportal.base.core.integration.plugin.strategy.JsonPluginUploader;
 import com.epam.reportportal.base.core.integration.plugin.strategy.PluginUploaderFactory;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

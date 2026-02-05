@@ -1034,7 +1034,7 @@ public class TmsTestPlanControllerTest {
             .param("sort", "name,asc")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content" ).isArray())
+        .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(2))
         .andExpect(jsonPath("$.content[0].name").value("A Folder"))
         .andExpect(jsonPath("$.content[1].name").value("B Folder"));

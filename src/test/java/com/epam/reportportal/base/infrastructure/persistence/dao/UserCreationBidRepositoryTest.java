@@ -19,9 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.UserCreationBidRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserCreationBid;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -55,14 +54,14 @@ class UserCreationBidRepositoryTest extends BaseMvcTest {
     assertEquals("superadminemail@domain.com", userBid.get().getEmail(), "Incorrect email");
   }
 
-	@Test
-	void shouldNotFindByUuidAndTypeWhenTypeNotMatched() {
-		final String adminUuid = "0647cf8f-02e3-4acd-ba3e-f74ec9d2c5cb";
+  @Test
+  void shouldNotFindByUuidAndTypeWhenTypeNotMatched() {
+    final String adminUuid = "0647cf8f-02e3-4acd-ba3e-f74ec9d2c5cb";
 
-		final Optional<UserCreationBid> userBid = repository.findByUuidAndType(adminUuid, UNKNOWN_TYPE);
+    final Optional<UserCreationBid> userBid = repository.findByUuidAndType(adminUuid, UNKNOWN_TYPE);
 
-		assertTrue(userBid.isEmpty(), "User bid should not exists");
-	}
+    assertTrue(userBid.isEmpty(), "User bid should not exists");
+  }
 
   @Test
   void expireBidsOlderThan() {

@@ -18,9 +18,6 @@ package com.epam.reportportal.base.core.events.domain;
 
 import static com.epam.reportportal.base.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.LaunchDeletedEventConverter;
-import com.epam.reportportal.base.ws.rabbit.activity.converter.LaunchFinishedEventConverter;
-import com.epam.reportportal.base.ws.rabbit.activity.converter.LaunchStartedEventConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
@@ -30,6 +27,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.model.activity.LaunchActivityResource;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.LaunchDeletedEventConverter;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.LaunchFinishedEventConverter;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.LaunchStartedEventConverter;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 

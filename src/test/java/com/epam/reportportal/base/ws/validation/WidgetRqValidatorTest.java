@@ -8,11 +8,11 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widge
 import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.MaterializedWidgetType;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
-import java.util.Collections;
-import java.util.Set;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import java.util.Collections;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

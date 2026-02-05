@@ -25,8 +25,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -40,6 +38,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.time.Instant;
 import java.util.HashMap;
@@ -115,7 +115,7 @@ class OrganizationUsersHandlerImplTest {
         new HashMap<>()
     );
     orgDetails.put(ORG_ID.toString(), orgDetail);
-    
+
     reportPortalUser = ReportPortalUser.userBuilder()
         .withUserName(USER_LOGIN)
         .withPassword("test")
@@ -134,14 +134,17 @@ class OrganizationUsersHandlerImplTest {
     when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID))
         .thenReturn(Optional.of(organizationUser));
 
-    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(SecurityContextUtils.class)) {
+    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
+        SecurityContextUtils.class)) {
       mockedSecurityContext.when(SecurityContextUtils::getPrincipal).thenReturn(reportPortalUser);
 
       // When & Then
-      ReportPortalException exception = assertThrows(ReportPortalException.class, () -> organizationUsersHandler.unassignUser(ORG_ID, USER_ID));
+      ReportPortalException exception = assertThrows(ReportPortalException.class,
+          () -> organizationUsersHandler.unassignUser(ORG_ID, USER_ID));
 
       assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-      assertEquals("You do not have enough permissions. User 100 cannot be unassigned from personal organization", exception.getMessage());
+      assertEquals("You do not have enough permissions. User 100 cannot be unassigned from personal organization",
+          exception.getMessage());
 
       verify(projectUserRepository, never()).deleteProjectUserByProjectOrganizationId(anyLong(), anyLong());
       verify(organizationUserRepository, never()).delete(any(OrganizationUser.class));
@@ -160,7 +163,8 @@ class OrganizationUsersHandlerImplTest {
     doNothing().when(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, USER_ID);
     doNothing().when(organizationUserRepository).delete(organizationUser);
 
-    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(SecurityContextUtils.class)) {
+    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
+        SecurityContextUtils.class)) {
       mockedSecurityContext.when(SecurityContextUtils::getPrincipal).thenReturn(reportPortalUser);
 
       // When
@@ -195,7 +199,7 @@ class OrganizationUsersHandlerImplTest {
         new HashMap<>()
     );
     orgDetails.put(ORG_ID.toString(), orgDetail);
-    
+
     ReportPortalUser managerUser = ReportPortalUser.userBuilder()
         .withUserName(USER_LOGIN)
         .withPassword("test")
@@ -211,7 +215,8 @@ class OrganizationUsersHandlerImplTest {
     doNothing().when(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, differentUserId);
     doNothing().when(organizationUserRepository).delete(differentOrgUser);
 
-    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(SecurityContextUtils.class)) {
+    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
+        SecurityContextUtils.class)) {
       mockedSecurityContext.when(SecurityContextUtils::getPrincipal).thenReturn(managerUser);
 
       // When
@@ -234,7 +239,8 @@ class OrganizationUsersHandlerImplTest {
     doNothing().when(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, USER_ID);
     doNothing().when(organizationUserRepository).delete(organizationUser);
 
-    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(SecurityContextUtils.class)) {
+    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
+        SecurityContextUtils.class)) {
       mockedSecurityContext.when(SecurityContextUtils::getPrincipal).thenReturn(reportPortalUser);
 
       // When

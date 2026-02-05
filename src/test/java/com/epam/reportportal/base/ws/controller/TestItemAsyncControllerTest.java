@@ -25,17 +25,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.item.FinishTestItemHandler;
 import com.epam.reportportal.base.core.item.StartTestItemHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.reporting.async.controller.TestItemAsyncController;
-import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
+import com.epam.reportportal.base.reporting.async.controller.TestItemAsyncController;
+import com.epam.reportportal.base.util.ProjectExtractor;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,7 +93,6 @@ class TestItemAsyncControllerTest {
   void startChildItem() {
     ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR,
         1L);
-
 
     StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
     String parentItem = "parent";

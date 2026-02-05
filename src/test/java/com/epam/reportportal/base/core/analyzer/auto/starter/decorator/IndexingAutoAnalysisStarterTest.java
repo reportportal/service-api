@@ -22,20 +22,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.impl.LaunchTestUtil;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 

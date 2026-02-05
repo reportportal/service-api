@@ -19,7 +19,6 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.enums.conve
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.AnalyzeMode;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.converter.AnalyzerModeConverter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;

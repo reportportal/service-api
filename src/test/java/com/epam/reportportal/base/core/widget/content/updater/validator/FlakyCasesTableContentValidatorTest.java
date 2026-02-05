@@ -1,53 +1,54 @@
 package com.epam.reportportal.base.core.widget.content.updater.validator;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 public class FlakyCasesTableContentValidatorTest {
-    private WidgetValidatorStrategy flakyCasesTableContentValidator;
 
-    @BeforeEach
-    public void setUp() {
-        flakyCasesTableContentValidator = new FlakyCasesTableContentValidator();
-    }
+  private WidgetValidatorStrategy flakyCasesTableContentValidator;
 
-    @Test
-    public void testValidateWithException() {
-        Exception exception = assertThrows(
-                ReportPortalException.class,
-                () -> flakyCasesTableContentValidator.validate(null, new HashMap<>(), new WidgetOptions(), 5)
-        );
+  @BeforeEach
+  public void setUp() {
+    flakyCasesTableContentValidator = new FlakyCasesTableContentValidator();
+  }
 
-        String expectedMessage =
-				"Unable to load widget content. Widget properties contain errors: launchNameFilter should be specified for widget.";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
+  @Test
+  public void testValidateWithException() {
+    Exception exception = assertThrows(
+        ReportPortalException.class,
+        () -> flakyCasesTableContentValidator.validate(null, new HashMap<>(), new WidgetOptions(), 5)
+    );
 
-    @Test
-    public void testValidateWithLimitExceed() {
-        WidgetOptions widgetOption = new WidgetOptions();
-        Map<String, Object> option = new HashMap<>();
-        option.put(LAUNCH_NAME_FIELD, "launchName");
-        widgetOption.setOptions(option);
+    String expectedMessage =
+        "Unable to load widget content. Widget properties contain errors: launchNameFilter should be specified for widget.";
+    String actualMessage = exception.getMessage();
+    assertTrue(actualMessage.contains(expectedMessage));
+  }
 
-        Exception exception = assertThrows(
-                ReportPortalException.class,
-                () -> flakyCasesTableContentValidator.validate(null, new HashMap<>(), widgetOption, 101)
-        );
+  @Test
+  public void testValidateWithLimitExceed() {
+    WidgetOptions widgetOption = new WidgetOptions();
+    Map<String, Object> option = new HashMap<>();
+    option.put(LAUNCH_NAME_FIELD, "launchName");
+    widgetOption.setOptions(option);
 
-        String expectedMessage =
-				"Unable to load widget content. Widget properties contain errors: Items count should have value from 2 to 100.";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
+    Exception exception = assertThrows(
+        ReportPortalException.class,
+        () -> flakyCasesTableContentValidator.validate(null, new HashMap<>(), widgetOption, 101)
+    );
+
+    String expectedMessage =
+        "Unable to load widget content. Widget properties contain errors: Items count should have value from 2 to 100.";
+    String actualMessage = exception.getMessage();
+    assertTrue(actualMessage.contains(expectedMessage));
+  }
 
 }

@@ -19,7 +19,6 @@ package com.epam.reportportal.base.infrastructure.persistence.filesystem;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentMetaInfo;
-import com.epam.reportportal.base.infrastructure.persistence.filesystem.FilePathGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.util.DateTimeProvider;
 import java.io.File;
 import java.time.LocalDateTime;

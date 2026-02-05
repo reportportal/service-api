@@ -18,7 +18,7 @@ package com.epam.reportportal.auth;
 
 import com.epam.reportportal.auth.config.password.ClientToken;
 import com.epam.reportportal.auth.config.utils.ConvertToOauthToken;
-import com.epam.reportportal.base.auth.event.UiUserSignedInEvent;
+import com.epam.reportportal.auth.event.UiUserSignedInEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationProvider;

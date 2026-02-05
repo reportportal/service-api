@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.core.organization.settings.OrganizationRetentionPolicyHandler;
 import com.epam.reportportal.base.core.organization.settings.OrganizationSettingsEnum;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationSetting;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;

@@ -58,20 +58,20 @@ public class TmsAttributeControllerTest {
     // Configure MockMvc with a custom argument resolver for Pageable
     mockMvc = standaloneSetup(tmsAttributeController)
         .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
-          @Override
-          public boolean supportsParameter(MethodParameter parameter) {
-            return parameter.getParameterType().equals(Pageable.class);
-          }
+                                      @Override
+                                      public boolean supportsParameter(MethodParameter parameter) {
+                                        return parameter.getParameterType().equals(Pageable.class);
+                                      }
 
-          @Override
-          public Object resolveArgument(MethodParameter parameter,
-              ModelAndViewContainer mavContainer,
-              NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-            return Pageable.unpaged();
-          }
-        },
-        new OffsetArgumentResolver(),
-        new FilterCriteriaResolver())
+                                      @Override
+                                      public Object resolveArgument(MethodParameter parameter,
+                                          ModelAndViewContainer mavContainer,
+                                          NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                                        return Pageable.unpaged();
+                                      }
+                                    },
+            new OffsetArgumentResolver(),
+            new FilterCriteriaResolver())
         .build();
   }
 

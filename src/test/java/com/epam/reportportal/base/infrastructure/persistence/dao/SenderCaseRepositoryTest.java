@@ -1,9 +1,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.SenderCaseRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.email.LaunchAttributeRule;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.email.SenderCase;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +28,7 @@ public class SenderCaseRepositoryTest extends BaseMvcTest {
   @Test
   void findAllByProjectIdAndRuleNameIgnoreCase() {
     final Optional<SenderCase> senderCases = senderCaseRepository.findByProjectIdAndTypeAndRuleNameIgnoreCase(
-        1L, "email","rule1");
+        1L, "email", "rule1");
     Assertions.assertTrue(senderCases.isPresent());
   }
 
@@ -46,7 +45,7 @@ public class SenderCaseRepositoryTest extends BaseMvcTest {
   @Test
   void saveAttributeRules() {
     final Optional<SenderCase> senderCases = senderCaseRepository.findByProjectIdAndTypeAndRuleNameIgnoreCase(
-        1L, "email","rule1");
+        1L, "email", "rule1");
     Assertions.assertTrue(senderCases.isPresent());
 
     final SenderCase senderCaseDb = senderCases.get();

@@ -19,7 +19,6 @@ package com.epam.reportportal.base.infrastructure.persistence.commons;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.Preconditions;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;

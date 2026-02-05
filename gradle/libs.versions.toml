@@ -37,6 +37,7 @@ jjwt = "0.12.5"
 jooq = "3.19.27"
 json-schema-validator = "1.5.6"
 lombok = "1.18.42"
+nimbus-oauth2-oidc-sdk = "10.15.1"
 opencsv = "5.12.0"
 openpdf = "2.4.0"
 pf4j = "3.13.0"
@@ -80,6 +81,8 @@ spring-modulith-starter-test = { group = "org.springframework.modulith", name = 
 
 # Spring Security
 spring-security-acl = { group = "org.springframework.security", name = "spring-security-acl" }
+spring-security-ldap = { group = "org.springframework.security", name = "spring-security-ldap" }
+spring-security-saml2-service-provider = { group = "org.springframework.security", name = "spring-security-saml2-service-provider" }
 spring-security-oauth2-resource-server = { group = "org.springframework.security", name = "spring-security-oauth2-resource-server" }
 spring-security-oauth2-authorization-server = { group = "org.springframework.security", name = "spring-security-oauth2-authorization-server" }
 spring-security-oauth2-jose = { group = "org.springframework.security", name = "spring-security-oauth2-jose" }
@@ -139,6 +142,7 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", versio
 json = { group = "org.json", name = "json", version.ref = "json" }
 flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
 flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway-postgres" }
+nimbus-oauth2-oidc-sdk = { group = "com.nimbusds", name = "oauth2-oidc-sdk", version.ref = "nimbus-oauth2-oidc-sdk" }
 
 # Spring Modulith
 spring-modulith-starter-core = { group = "org.springframework.modulith", name = "spring-modulith-starter-core", version.ref = "spring-modulith" }
@@ -147,6 +151,7 @@ spring-modulith-events-api = { group = "org.springframework.modulith", name = "s
 spring-modulith-actuator = { group = "org.springframework.modulith", name = "spring-modulith-actuator", version.ref = "spring-modulith" }
 spring-modulith-observability = { group = "org.springframework.modulith", name = "spring-modulith-observability", version.ref = "spring-modulith" }
 spring-modulith-docs = { group = "org.springframework.modulith", name = "spring-modulith-docs", version.ref = "spring-modulith"}
+spring-modulith-junit = { group = "org.springframework.modulith", name = "spring-modulith-junit", version.ref = "spring-modulith" }
 
 # Lombok
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }

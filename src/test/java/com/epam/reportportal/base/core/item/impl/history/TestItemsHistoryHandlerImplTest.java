@@ -21,10 +21,10 @@ import static com.epam.reportportal.base.infrastructure.persistence.util.Members
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.epam.reportportal.base.ReportPortalUserUtil;
+import com.epam.reportportal.base.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
-import com.epam.reportportal.base.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;

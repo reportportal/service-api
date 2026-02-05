@@ -35,12 +35,12 @@ import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPrepare
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.base.core.launch.cluster.config.GenerateClustersConfig;
+import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
-import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

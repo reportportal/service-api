@@ -19,7 +19,6 @@ package com.epam.reportportal.auth.event;
 import com.epam.reportportal.auth.integration.github.RPOAuth2User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.auth.event.UiUserSignedInEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.util.PersonalProjectService;

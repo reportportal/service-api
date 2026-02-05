@@ -30,6 +30,8 @@ import com.epam.reportportal.base.core.analyzer.auto.client.IndexerServiceClient
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.reportportal.base.core.analyzer.auto.indexer.BatchLogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.indexer.IndexerStatusCache;
+import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -45,8 +47,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
 import com.epam.reportportal.base.model.analyzer.IndexRs;
 import com.epam.reportportal.base.model.analyzer.IndexRsIndex;
 import com.epam.reportportal.base.model.analyzer.IndexRsItem;
-import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
-import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

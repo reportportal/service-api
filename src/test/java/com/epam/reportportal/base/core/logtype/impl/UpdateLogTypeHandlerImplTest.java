@@ -23,11 +23,11 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.ReportPortalUserUtil;
 import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.base.ReportPortalUserUtil;
 import com.epam.reportportal.base.core.events.domain.LogTypeUpdatedEvent;
 import com.epam.reportportal.base.core.logtype.validator.LogTypeValidator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;

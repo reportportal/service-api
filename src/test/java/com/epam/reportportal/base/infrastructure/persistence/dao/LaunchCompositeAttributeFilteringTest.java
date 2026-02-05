@@ -3,12 +3,11 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;

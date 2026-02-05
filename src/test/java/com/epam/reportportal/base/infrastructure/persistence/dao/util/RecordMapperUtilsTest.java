@@ -20,7 +20,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMapperUtils;
 import org.junit.jupiter.api.Test;
 
 /**

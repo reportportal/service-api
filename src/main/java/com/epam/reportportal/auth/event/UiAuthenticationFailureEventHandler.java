@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.auth.event;
+package com.epam.reportportal.auth.event;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

@@ -19,14 +19,13 @@ package com.epam.reportportal.base.infrastructure.persistence.dao.organization;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationProfile;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

@@ -33,18 +33,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.BulkRQ;
 import com.epam.reportportal.base.model.DeleteBulkRQ;
 import com.epam.reportportal.base.model.launch.AnalyzeLaunchRQ;
 import com.epam.reportportal.base.model.launch.UpdateLaunchRQ;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import com.epam.reportportal.base.reporting.ItemAttributeResource;
@@ -52,6 +51,7 @@ import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

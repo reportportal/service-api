@@ -19,24 +19,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
-import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
-import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.reportportal.base.core.tms.mapper.exporter.TmsTestFolderExporter;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestFolderExporterFactory;
+import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
+import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.validation.TestFolderIdValidator;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,8 +57,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Unit tests for TmsTestFolderServiceImpl.
- * Tests CRUD operations, hierarchy management, duplication, and export functionality.
+ * Unit tests for TmsTestFolderServiceImpl. Tests CRUD operations, hierarchy management, duplication, and export
+ * functionality.
  */
 @ExtendWith(MockitoExtension.class)
 class TmsTestFolderServiceImplTest {
@@ -297,7 +297,8 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQWithNestedParentFolder);
     verify(tmsTestFolderRepository).existsByIdAndProjectId(5L, projectId);
-    verify(tmsTestFolderMapper).convertToTestFolder(projectId, testFolderRQWithNestedParentFolder.getParentTestFolder());
+    verify(tmsTestFolderMapper).convertToTestFolder(projectId,
+        testFolderRQWithNestedParentFolder.getParentTestFolder());
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
@@ -469,7 +470,8 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findByIdAndProjectId(testFolderId, projectId);
     verify(tmsTestFolderRepository).existsByIdAndProjectId(5L, projectId);
     verify(tmsTestFolderMapper).update(eq(testFolder), any(TmsTestFolder.class));
-    verify(tmsTestFolderMapper).convertToTestFolder(projectId, testFolderRQWithNestedParentFolder.getParentTestFolder());
+    verify(tmsTestFolderMapper).convertToTestFolder(projectId,
+        testFolderRQWithNestedParentFolder.getParentTestFolder());
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }

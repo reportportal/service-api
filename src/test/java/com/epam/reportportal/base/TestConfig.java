@@ -44,13 +44,16 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Configuration
 @EnableAutoConfiguration(exclude = {QuartzAutoConfiguration.class, RabbitAutoConfiguration.class})
-@ComponentScan(value = {"com.epam.reportportal"}, excludeFilters = {
+@ComponentScan(value = {"com.epam.reportportal.base"}, excludeFilters = {
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.reportportal.auth.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.reportportal.base.ws.rabbit.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.reportportal.base.reporting.async.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.reportportal.base.job.*"}),
@@ -101,5 +104,10 @@ public class TestConfig {
     om.registerModule(new JavaTimeModule());
 
     return om;
+  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 }

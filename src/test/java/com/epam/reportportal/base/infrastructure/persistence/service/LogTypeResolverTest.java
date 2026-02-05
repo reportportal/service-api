@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.ProjectLogType;
-import com.epam.reportportal.base.infrastructure.persistence.service.LogTypeResolver;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

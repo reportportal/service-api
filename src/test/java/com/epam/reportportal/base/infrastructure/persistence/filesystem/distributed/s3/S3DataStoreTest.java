@@ -23,7 +23,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
-import com.epam.reportportal.base.infrastructure.persistence.filesystem.distributed.s3.S3DataStore;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import java.io.InputStream;
 import org.jclouds.blobstore.BlobStore;

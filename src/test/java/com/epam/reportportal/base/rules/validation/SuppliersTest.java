@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.rules.validation;
+package com.epam.reportportal.base.rules.validation;
 
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers.trimMessage;
 import static org.hamcrest.MatcherAssert.assertThat;

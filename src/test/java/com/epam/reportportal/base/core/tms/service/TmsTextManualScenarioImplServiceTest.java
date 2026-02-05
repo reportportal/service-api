@@ -7,13 +7,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsTextManualScenarioMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.List;

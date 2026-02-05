@@ -29,8 +29,8 @@ import com.epam.reportportal.base.core.analyzer.auto.client.model.cluster.Cluste
 import com.epam.reportportal.base.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.reportportal.base.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 

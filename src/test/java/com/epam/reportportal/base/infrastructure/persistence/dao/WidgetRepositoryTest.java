@@ -22,13 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetType;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
@@ -47,134 +46,135 @@ import org.springframework.test.context.jdbc.Sql;
 @Sql("/db/fill/shareable/shareable-fill.sql")
 public class WidgetRepositoryTest extends BaseMvcTest {
 
-	@Autowired
-	private WidgetRepository repository;
+  @Autowired
+  private WidgetRepository repository;
 
-	@Test
-	void findAllByProjectId() {
-		final long superadminProjectId = 1L;
+  @Test
+  void findAllByProjectId() {
+    final long superadminProjectId = 1L;
 
-		final List<Widget> widgets = repository.findAllByProjectId(superadminProjectId);
+    final List<Widget> widgets = repository.findAllByProjectId(superadminProjectId);
 
-		assertNotNull(widgets, "Widgets not found");
-		assertEquals(5, widgets.size(), "Unexpected widgets size");
-		widgets.forEach(it -> assertEquals(superadminProjectId, (long) it.getProject().getId(), "Widget has incorrect project id"));
-	}
+    assertNotNull(widgets, "Widgets not found");
+    assertEquals(5, widgets.size(), "Unexpected widgets size");
+    widgets.forEach(
+        it -> assertEquals(superadminProjectId, (long) it.getProject().getId(), "Widget has incorrect project id"));
+  }
 
-	@Test
-	public void shouldFindByIdAndProjectIdWhenExists() {
-		Optional<Widget> widget = repository.findByIdAndProjectId(5L, 1L);
+  @Test
+  public void shouldFindByIdAndProjectIdWhenExists() {
+    Optional<Widget> widget = repository.findByIdAndProjectId(5L, 1L);
 
-		assertTrue(widget.isPresent());
-	}
+    assertTrue(widget.isPresent());
+  }
 
-	@Test
-	public void shouldNotFindByIdAndProjectIdWhenIdNotExists() {
-		Optional<Widget> widget = repository.findByIdAndProjectId(55L, 1L);
+  @Test
+  public void shouldNotFindByIdAndProjectIdWhenIdNotExists() {
+    Optional<Widget> widget = repository.findByIdAndProjectId(55L, 1L);
 
-		assertFalse(widget.isPresent());
-	}
+    assertFalse(widget.isPresent());
+  }
 
-	@Test
-	public void shouldNotFindByIdAndProjectIdWhenProjectIdNotExists() {
-		Optional<Widget> widget = repository.findByIdAndProjectId(5L, 11L);
+  @Test
+  public void shouldNotFindByIdAndProjectIdWhenProjectIdNotExists() {
+    Optional<Widget> widget = repository.findByIdAndProjectId(5L, 11L);
 
-		assertFalse(widget.isPresent());
-	}
+    assertFalse(widget.isPresent());
+  }
 
-	@Test
-	public void shouldNotFindByIdAndProjectIdWhenIdAndProjectIdNotExist() {
-		Optional<Widget> widget = repository.findByIdAndProjectId(55L, 11L);
+  @Test
+  public void shouldNotFindByIdAndProjectIdWhenIdAndProjectIdNotExist() {
+    Optional<Widget> widget = repository.findByIdAndProjectId(55L, 11L);
 
-		assertFalse(widget.isPresent());
-	}
+    assertFalse(widget.isPresent());
+  }
 
-	@Test
-	void existsByNameAndOwnerAndProjectId() {
-		assertTrue(repository.existsByNameAndOwnerAndProjectId("INVESTIGATED PERCENTAGE OF LAUNCHES", "superadmin", 1L));
-		assertFalse(repository.existsByNameAndOwnerAndProjectId("not exist name", "default", 2L));
-	}
+  @Test
+  void existsByNameAndOwnerAndProjectId() {
+    assertTrue(repository.existsByNameAndOwnerAndProjectId("INVESTIGATED PERCENTAGE OF LAUNCHES", "superadmin", 1L));
+    assertFalse(repository.existsByNameAndOwnerAndProjectId("not exist name", "default", 2L));
+  }
 
-	@Test
-	void deleteRelationByFilterIdAndNotOwnerTest() {
+  @Test
+  void deleteRelationByFilterIdAndNotOwnerTest() {
 
-		int removedCount = repository.deleteRelationByFilterIdAndNotOwner(2L, "superadmin");
+    int removedCount = repository.deleteRelationByFilterIdAndNotOwner(2L, "superadmin");
 
-		Assertions.assertEquals(1, removedCount);
-	}
+    Assertions.assertEquals(1, removedCount);
+  }
 
-	@Test
-	void findAllByProjectIdAndWidgetTypeInTest() {
-		List<Widget> widgets = repository.findAllByProjectIdAndWidgetTypeIn(1L,
-				Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.CASES_TREND)
-						.stream()
-						.map(WidgetType::getType)
-						.collect(Collectors.toList())
-		);
+  @Test
+  void findAllByProjectIdAndWidgetTypeInTest() {
+    List<Widget> widgets = repository.findAllByProjectIdAndWidgetTypeIn(1L,
+        Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.CASES_TREND)
+            .stream()
+            .map(WidgetType::getType)
+            .collect(Collectors.toList())
+    );
 
-		assertFalse(widgets.isEmpty());
-		assertEquals(2, widgets.size());
+    assertFalse(widgets.isEmpty());
+    assertEquals(2, widgets.size());
 
-		List<Widget> moreWidgets = repository.findAllByProjectIdAndWidgetTypeIn(1L,
-				Collections.singletonList(WidgetType.CASES_TREND.getType())
-		);
+    List<Widget> moreWidgets = repository.findAllByProjectIdAndWidgetTypeIn(1L,
+        Collections.singletonList(WidgetType.CASES_TREND.getType())
+    );
 
-		assertFalse(moreWidgets.isEmpty());
-		assertEquals(1, moreWidgets.size());
-	}
+    assertFalse(moreWidgets.isEmpty());
+    assertEquals(1, moreWidgets.size());
+  }
 
-	@Test
-	void findAllByOwnerAndWidgetTypeInTest() {
-		List<Widget> widgets = repository.findAllByOwnerAndWidgetTypeIn("superadmin",
-				Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.ACTIVITY)
-						.stream()
-						.map(WidgetType::getType)
-						.collect(Collectors.toList())
-		);
+  @Test
+  void findAllByOwnerAndWidgetTypeInTest() {
+    List<Widget> widgets = repository.findAllByOwnerAndWidgetTypeIn("superadmin",
+        Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.ACTIVITY)
+            .stream()
+            .map(WidgetType::getType)
+            .collect(Collectors.toList())
+    );
 
-		assertFalse(widgets.isEmpty());
-		assertEquals(2, widgets.size());
+    assertFalse(widgets.isEmpty());
+    assertEquals(2, widgets.size());
 
-		List<Widget> moreWidgets = repository.findAllByOwnerAndWidgetTypeIn("superadmin",
-				Collections.singletonList(WidgetType.LAUNCH_STATISTICS.getType())
-		);
+    List<Widget> moreWidgets = repository.findAllByOwnerAndWidgetTypeIn("superadmin",
+        Collections.singletonList(WidgetType.LAUNCH_STATISTICS.getType())
+    );
 
-		assertFalse(moreWidgets.isEmpty());
-		assertEquals(1, moreWidgets.size());
-	}
+    assertFalse(moreWidgets.isEmpty());
+    assertEquals(1, moreWidgets.size());
+  }
 
-	@Test
-	void findAllByWidgetTypeInAndContentFieldsContainsTest() {
-		List<Widget> widgets = repository.findAllByProjectIdAndWidgetTypeInAndContentFieldsContains(1L,
-				Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.LAUNCHES_TABLE)
-						.stream()
-						.map(WidgetType::getType)
-						.collect(Collectors.toList()),
-				"statistics$product_bug$pb001"
-		);
+  @Test
+  void findAllByWidgetTypeInAndContentFieldsContainsTest() {
+    List<Widget> widgets = repository.findAllByProjectIdAndWidgetTypeInAndContentFieldsContains(1L,
+        Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.LAUNCHES_TABLE)
+            .stream()
+            .map(WidgetType::getType)
+            .collect(Collectors.toList()),
+        "statistics$product_bug$pb001"
+    );
 
-		assertFalse(widgets.isEmpty());
-		assertEquals(1, widgets.size());
-	}
+    assertFalse(widgets.isEmpty());
+    assertEquals(1, widgets.size());
+  }
 
-	@Test
-	void findAllByProjectIdWidgetTypeInAndContentFieldContainingTest() {
-		List<Widget> widgets = repository.findAllByProjectIdAndWidgetTypeInAndContentFieldContaining(1L,
-				Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.LAUNCHES_TABLE)
-						.stream()
-						.map(WidgetType::getType)
-						.collect(Collectors.toList()),
-				"statistics$product_bug"
-		);
+  @Test
+  void findAllByProjectIdWidgetTypeInAndContentFieldContainingTest() {
+    List<Widget> widgets = repository.findAllByProjectIdAndWidgetTypeInAndContentFieldContaining(1L,
+        Lists.newArrayList(WidgetType.LAUNCH_STATISTICS, WidgetType.LAUNCHES_TABLE)
+            .stream()
+            .map(WidgetType::getType)
+            .collect(Collectors.toList()),
+        "statistics$product_bug"
+    );
 
-		assertFalse(widgets.isEmpty());
-		assertEquals(1, widgets.size());
-	}
+    assertFalse(widgets.isEmpty());
+    assertEquals(1, widgets.size());
+  }
 
-	private Filter buildDefaultFilter() {
-		return Filter.builder()
-				.withTarget(Widget.class)
-				.withCondition(new FilterCondition(Condition.LOWER_THAN, false, "100", CRITERIA_ID))
-				.build();
-	}
+  private Filter buildDefaultFilter() {
+    return Filter.builder()
+        .withTarget(Widget.class)
+        .withCondition(new FilterCondition(Condition.LOWER_THAN, false, "100", CRITERIA_ID))
+        .build();
+  }
 }

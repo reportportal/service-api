@@ -18,9 +18,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.PatternTemplateRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.persistence.PersistenceException;
 import java.util.List;
 import java.util.Optional;

@@ -22,9 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
-import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetState;

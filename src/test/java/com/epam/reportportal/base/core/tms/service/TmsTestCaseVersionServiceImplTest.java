@@ -9,15 +9,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseVersionMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseVersionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseDefaultVersionTestCaseId;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseVersionRepository;
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
-import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseVersionMapper;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -535,7 +535,8 @@ class TmsTestCaseVersionServiceImplTest {
     return scenario;
   }
 
-  private TmsTestCaseDefaultVersionTestCaseId createTestCaseDefaultVersionTestCaseId(Long testCaseId, TmsTestCaseVersion version) {
+  private TmsTestCaseDefaultVersionTestCaseId createTestCaseDefaultVersionTestCaseId(Long testCaseId,
+      TmsTestCaseVersion version) {
     var defaultVersionTestCaseId = new TmsTestCaseDefaultVersionTestCaseId();
     defaultVersionTestCaseId.setTestCaseId(testCaseId);
     defaultVersionTestCaseId.setTestCaseVersion(version);

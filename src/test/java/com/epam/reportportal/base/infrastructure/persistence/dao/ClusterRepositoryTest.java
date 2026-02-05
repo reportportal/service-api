@@ -22,9 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.model.launch.cluster.ClusterInfoResource;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ClusterRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

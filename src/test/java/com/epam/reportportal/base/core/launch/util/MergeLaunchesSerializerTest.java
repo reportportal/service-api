@@ -18,10 +18,10 @@ package com.epam.reportportal.base.core.launch.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.reporting.ItemAttributeResource;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.Mode;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class MergeLaunchesSerializerTest extends BaseMvcTest {
   public void testSerializer() throws JsonProcessingException {
     MergeLaunchesRQ rq = getMergeLaunches();
     String json = objectMapper.writeValueAsString(rq);
-    assertEquals(json, EXPECTED_JSON, "Incorrect serialization result");
+    assertEquals(EXPECTED_JSON, json, "Incorrect serialization result");
   }
 
   @Test

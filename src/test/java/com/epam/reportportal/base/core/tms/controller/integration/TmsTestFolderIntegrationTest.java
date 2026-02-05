@@ -40,8 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
 /**
- * Integration tests for TmsTestFolderController. Tests the full flow of test folder operations
- * including database interactions.
+ * Integration tests for TmsTestFolderController. Tests the full flow of test folder operations including database
+ * interactions.
  */
 @Sql("/db/tms/tms-test-folder/tms-test-folder-fill.sql")
 @ExtendWith(MockitoExtension.class)

@@ -63,7 +63,7 @@ class CreateProjectHandlerImplTest {
   @Test
   void createProjectByNotExistUser() {
     ReportPortalUser rpUser =
-        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,ProjectRole.EDITOR, 1L);
+        getRpUser("user", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
 
     CreateProjectRQ createProjectRQ = new CreateProjectRQ();
     createProjectRQ.setProjectName(TEST_PROJECT_NAME);

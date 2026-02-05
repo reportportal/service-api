@@ -16,6 +16,9 @@
 
 package com.epam.reportportal.base.ws;
 
+import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
+import com.epam.reportportal.auth.integration.handler.DeleteAuthIntegrationHandler;
+import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationHandler;
 import com.epam.reportportal.base.TestConfig;
 import com.epam.reportportal.base.auth.OAuthHelper;
 import com.epam.reportportal.base.core.events.MessageBus;
@@ -24,6 +27,10 @@ import com.epam.reportportal.base.core.integration.plugin.binary.PluginFilesProv
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.reporting.async.producer.ItemFinishProducer;
+import com.epam.reportportal.base.reporting.async.producer.ItemStartProducer;
+import com.epam.reportportal.base.reporting.async.producer.LaunchFinishProducer;
+import com.epam.reportportal.base.reporting.async.producer.LogProducer;
 import com.epam.reportportal.base.util.BinaryDataResponseWriter;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
@@ -36,8 +43,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -52,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@ApplicationModuleTest(module = "base")
 @AutoConfigureMockMvc
 @ActiveProfiles("unittest")
 @ContextConfiguration(classes = TestConfig.class)
@@ -98,6 +105,27 @@ public abstract class BaseMvcTest {
 
   @MockBean
   protected ExecuteIntegrationHandler executeIntegrationHandler;
+
+  @MockBean
+  protected LaunchFinishProducer launchFinishProducer;
+
+  @MockBean
+  protected ItemStartProducer itemStartProducer;
+
+  @MockBean
+  protected ItemFinishProducer itemFinishProducer;
+
+  @MockBean
+  protected LogProducer logProducer;
+
+  @MockBean
+  protected CreateAuthIntegrationHandler createAuthIntegrationHandler;
+
+  @MockBean
+  protected DeleteAuthIntegrationHandler deleteAuthIntegrationHandler;
+
+  @MockBean
+  protected GetAuthIntegrationHandler getAuthIntegrationHandler;
 
   @Mock
   protected BtsExtension extension;

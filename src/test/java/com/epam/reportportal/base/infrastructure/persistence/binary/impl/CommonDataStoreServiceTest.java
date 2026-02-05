@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.binary.DataStoreService;
 import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataEncoder;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

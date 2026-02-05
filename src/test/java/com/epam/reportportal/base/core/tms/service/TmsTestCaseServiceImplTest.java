@@ -18,35 +18,35 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestCaseFilterableRepository;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.reportportal.base.core.tms.mapper.exporter.TmsTestCaseExporter;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseImporterFactory;
 import com.epam.reportportal.base.core.tms.mapper.importer.TmsTestCaseImporter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestCaseFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -2374,7 +2374,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
         .thenReturn(BatchTestCaseOperationResultRS.builder()
             .successTestCaseIds(Collections.emptyList())
-            .errors(List.of(new BatchTestCaseOperationError(999L, "Failed to duplicate test case: Test Case with id: 999 for project: 1")))
+            .errors(List.of(new BatchTestCaseOperationError(999L,
+                "Failed to duplicate test case: Test Case with id: 999 for project: 1")))
             .build());
 
     // When
@@ -2446,7 +2447,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.toBatchOperationResult(eq(Arrays.asList(11L, 12L)), anyList()))
         .thenReturn(BatchTestCaseOperationResultRS.builder()
             .successTestCaseIds(Arrays.asList(11L, 12L))
-            .errors(List.of(new BatchTestCaseOperationError(999L, "Failed to duplicate test case: Test Case with id: 999 for project: 1")))
+            .errors(List.of(new BatchTestCaseOperationError(999L,
+                "Failed to duplicate test case: Test Case with id: 999 for project: 1")))
             .build());
 
     // When
@@ -2563,8 +2565,10 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(BatchTestCaseOperationResultRS.builder()
             .successTestCaseIds(Collections.emptyList())
             .errors(Arrays.asList(
-                new BatchTestCaseOperationError(998L, "Failed to duplicate test case: Test Case with id: 998 for project: 1"),
-                new BatchTestCaseOperationError(999L, "Failed to duplicate test case: Test Case with id: 999 for project: 1")
+                new BatchTestCaseOperationError(998L,
+                    "Failed to duplicate test case: Test Case with id: 998 for project: 1"),
+                new BatchTestCaseOperationError(999L,
+                    "Failed to duplicate test case: Test Case with id: 999 for project: 1")
             ))
             .build());
 
@@ -2662,7 +2666,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
         .thenReturn(BatchTestCaseOperationResultRS.builder()
             .successTestCaseIds(Collections.emptyList())
-            .errors(List.of(new BatchTestCaseOperationError(1L, "Failed to duplicate test case: Version duplication failed")))
+            .errors(List.of(
+                new BatchTestCaseOperationError(1L, "Failed to duplicate test case: Version duplication failed")))
             .build());
 
     // When
@@ -2717,7 +2722,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
         .thenReturn(BatchTestCaseOperationResultRS.builder()
             .successTestCaseIds(Collections.emptyList())
-            .errors(List.of(new BatchTestCaseOperationError(1L, "Failed to duplicate test case: Attribute duplication failed")))
+            .errors(List.of(
+                new BatchTestCaseOperationError(1L, "Failed to duplicate test case: Attribute duplication failed")))
             .build());
 
     // When
@@ -2897,8 +2903,10 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(BatchTestCaseOperationResultRS.builder()
             .successTestCaseIds(Arrays.asList(11L, 12L))
             .errors(Arrays.asList(
-                new BatchTestCaseOperationError(999L, "Failed to duplicate test case: Test Case with id: 999 for project: 1"),
-                new BatchTestCaseOperationError(998L, "Failed to duplicate test case: Test Case with id: 998 for project: 1")
+                new BatchTestCaseOperationError(999L,
+                    "Failed to duplicate test case: Test Case with id: 999 for project: 1"),
+                new BatchTestCaseOperationError(998L,
+                    "Failed to duplicate test case: Test Case with id: 998 for project: 1")
             ))
             .build());
 

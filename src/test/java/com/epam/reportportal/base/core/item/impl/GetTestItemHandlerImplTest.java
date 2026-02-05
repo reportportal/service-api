@@ -30,13 +30,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
-import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserFilterRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
@@ -48,9 +46,11 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.reporting.TestItemResource;
 import com.epam.reportportal.base.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.reportportal.base.ws.converter.utils.item.content.TestItemUpdaterContent;
-import com.epam.reportportal.base.reporting.TestItemResource;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

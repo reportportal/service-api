@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.auth.event;
+package com.epam.reportportal.auth.event;
 
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;

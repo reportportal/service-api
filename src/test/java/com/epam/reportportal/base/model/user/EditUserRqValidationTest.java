@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.user;
+package com.epam.reportportal.base.model.user;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

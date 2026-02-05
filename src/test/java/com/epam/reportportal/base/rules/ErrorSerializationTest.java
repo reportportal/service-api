@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.rules;
+package com.epam.reportportal.base.rules;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

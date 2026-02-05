@@ -46,7 +46,7 @@ public enum UserRole {
   }
 
   public String getAuthority() {
-    return "ROLE_" + this.name();
+    return ROLE_PREFIX + this.name();
   }
 
 }

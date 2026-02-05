@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

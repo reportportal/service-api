@@ -35,10 +35,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import jakarta.mail.MessagingException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import jakarta.mail.MessagingException;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

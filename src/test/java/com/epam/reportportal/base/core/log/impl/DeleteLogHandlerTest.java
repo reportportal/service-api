@@ -27,10 +27,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -100,7 +100,7 @@ class DeleteLogHandlerTest {
   void deleteNotExistLog() {
     long projectId = 1L;
     long logId = 2L;
-    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
     when(projectRepository.existsById(projectId)).thenReturn(true);

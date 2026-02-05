@@ -19,9 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.GroupRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.group.Group;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;

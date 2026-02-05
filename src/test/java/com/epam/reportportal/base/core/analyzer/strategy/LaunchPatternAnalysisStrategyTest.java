@@ -22,9 +22,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.core.analyzer.pattern.service.LaunchPatternAnalyzer;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attribute.Attribute;
@@ -72,7 +72,7 @@ class LaunchPatternAnalysisStrategyTest {
 
     when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
 
-    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,  1L);
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
     MembershipDetails membershipDetails = MembershipDetails.builder()
         .withOrgId(1L)
         .withOrgName("org Name")

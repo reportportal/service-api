@@ -20,11 +20,11 @@ import static com.epam.reportportal.base.infrastructure.persistence.binary.impl.
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.epam.reportportal.base.infrastructure.commons.Thumbnailator;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;

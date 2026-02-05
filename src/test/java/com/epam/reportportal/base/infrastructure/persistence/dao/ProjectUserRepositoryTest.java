@@ -2,10 +2,9 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;

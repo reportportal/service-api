@@ -28,15 +28,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.base.core.item.identity.UniqueIdGenerator;
 import com.epam.reportportal.base.core.item.impl.rerun.RerunSearcher;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.validator.parent.ParentItemValidator;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
@@ -47,6 +45,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.ItemCreatedRS;
 import com.epam.reportportal.base.reporting.Mode;
@@ -126,7 +126,7 @@ class RerunHandlerImplTest {
     request.setRerun(true);
     request.setRerunOf(uuid);
     request.setName(launchName);
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
     when(launchRepository.findByUuid(uuid)).thenReturn(Optional.empty());
@@ -147,7 +147,7 @@ class RerunHandlerImplTest {
     request.setMode(Mode.DEFAULT);
     request.setDescription("desc");
     request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("test", "test")));
-    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
     when(launchRepository.findLatestByNameAndProjectId("launch", projectId)).thenReturn(

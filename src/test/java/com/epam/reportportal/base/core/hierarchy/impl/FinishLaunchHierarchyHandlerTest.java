@@ -13,10 +13,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -86,7 +86,7 @@ class FinishLaunchHierarchyHandlerTest {
         anyLong()
     )).thenReturn(idsWithoutChildren);
 
-    Instant endTime  = LocalDate.of(2020, Month.OCTOBER, 30)
+    Instant endTime = LocalDate.of(2020, Month.OCTOBER, 30)
         .atStartOfDay(ZoneId.systemDefault())
         .toInstant();
     ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);

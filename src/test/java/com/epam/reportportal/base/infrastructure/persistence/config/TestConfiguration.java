@@ -20,19 +20,14 @@ import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataEnco
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @EnableConfigurationProperties
-@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
-@ComponentScan(basePackages = "com.epam.reportportal")
-@PropertySource({"classpath:application-unittest.yaml"})
+@PropertySource({ "classpath:application-unittest.yaml" })
 public class TestConfiguration {
 
   @Bean
@@ -45,6 +40,5 @@ public class TestConfiguration {
   public DataEncoder dataEncoder() {
     return new DataEncoder();
   }
-
 
 }

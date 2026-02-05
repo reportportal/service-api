@@ -23,12 +23,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.EventConverterRegistry;
 import com.epam.reportportal.base.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.base.core.events.widget.GenerateWidgetViewEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ActivityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.EventConverterRegistry;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

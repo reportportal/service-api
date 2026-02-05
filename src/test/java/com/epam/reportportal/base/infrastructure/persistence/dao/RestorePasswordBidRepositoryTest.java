@@ -19,9 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.RestorePasswordBidRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.RestorePasswordBid;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

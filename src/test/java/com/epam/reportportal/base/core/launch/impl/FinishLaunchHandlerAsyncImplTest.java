@@ -21,19 +21,19 @@ import static com.epam.reportportal.base.infrastructure.persistence.util.Members
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
+import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.reporting.async.producer.LaunchFinishProducer;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
+import com.epam.reportportal.base.reporting.async.producer.LaunchFinishProducer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.AmqpTemplate;
-import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 
 /**
  * @author Konstantin Antipin

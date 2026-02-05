@@ -27,11 +27,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.hierarchy.FinishHierarchyHandler;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
@@ -40,6 +39,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.BulkRQ;
 import com.epam.reportportal.base.model.launch.FinishLaunchRS;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
@@ -213,7 +213,8 @@ class FinishLaunchHandlerImplTest {
     FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
     finishExecutionRQ.setEndTime(Instant.now());
 
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,  1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+        1L);
     rpUser.setUserId(2L);
 
     when(launchRepository.findByUuid("1")).thenReturn(

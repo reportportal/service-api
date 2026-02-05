@@ -19,7 +19,6 @@ package com.epam.reportportal.base.infrastructure.persistence.builder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.epam.reportportal.base.infrastructure.persistence.builder.ActivityBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;

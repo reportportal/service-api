@@ -25,18 +25,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.base.model.project.config.CreateIssueSubTypeRQ;
-import com.epam.reportportal.base.model.project.config.ProjectSettingsResource;
-import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
-import com.epam.reportportal.base.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.SenderCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogicalOperator;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.SendCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.email.SenderCase;
+import com.epam.reportportal.base.model.project.config.CreateIssueSubTypeRQ;
+import com.epam.reportportal.base.model.project.config.ProjectSettingsResource;
 import com.epam.reportportal.base.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.reportportal.base.model.project.config.UpdateOneIssueSubTypeRQ;
+import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.reportportal.base.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.core.type.TypeReference;

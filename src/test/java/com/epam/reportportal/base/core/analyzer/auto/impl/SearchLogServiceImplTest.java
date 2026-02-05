@@ -144,7 +144,7 @@ class SearchLogServiceImplTest {
     log.setLogLevel(40000);
     log.setProjectId(1L);
     when(logService.findAllById(any())).thenReturn(Lists.newArrayList(log));
-    
+
     SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
     logEntry.setMessage("message");
     logEntry.setLevel("error");

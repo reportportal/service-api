@@ -20,9 +20,9 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import java.time.Instant;
@@ -48,10 +48,10 @@ class LaunchValidatorTest {
 
     assertEquals(
         Suppliers.formattedSupplier(FINISH_TIME_EARLIER_THAN_START_TIME.getDescription(),
-        finishExecutionRQ.getEndTime(),
-        launch.getStartTime(),
-        launch.getId()
-    ).get(), reportPortalException.getMessage());
+            finishExecutionRQ.getEndTime(),
+            launch.getStartTime(),
+            launch.getId()
+        ).get(), reportPortalException.getMessage());
   }
 
 }

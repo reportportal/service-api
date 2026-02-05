@@ -19,11 +19,11 @@ package com.epam.reportportal.base.core.events.domain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.LogTypeDeletedEventConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.base.model.activity.LogTypeActivityResource;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.LogTypeDeletedEventConverter;
 import org.junit.jupiter.api.Test;
 
 /**

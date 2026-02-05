@@ -18,7 +18,6 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.enums.conve
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.converter.UserTypeConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import java.util.Arrays;
 import java.util.stream.Collectors;

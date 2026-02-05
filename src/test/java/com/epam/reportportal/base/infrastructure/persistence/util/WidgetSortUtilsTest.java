@@ -24,7 +24,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
-import com.epam.reportportal.base.infrastructure.persistence.util.WidgetSortUtils;
 import java.util.List;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;

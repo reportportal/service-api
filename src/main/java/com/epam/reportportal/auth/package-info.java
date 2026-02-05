@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@ApplicationModule(type = Type.CLOSED)
+@ApplicationModule(id = "auth", type = Type.OPEN) // TODO: close module later
 package com.epam.reportportal.auth;
 
 import org.springframework.modulith.ApplicationModule;

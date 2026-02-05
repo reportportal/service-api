@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.AnalyzeMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ class AnalyzeModeTest {
   private List<String> disallowed;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     allowed = Arrays.stream(AnalyzeMode.values())
         .collect(Collectors.toMap(it -> it,
             it -> Arrays.asList(it.getValue(), it.getValue().toUpperCase(),

@@ -30,9 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLog;
-import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
-import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.CompositeFilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -42,6 +39,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLev
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
+import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.google.common.collect.Lists;
 import java.time.Duration;
 import java.util.Arrays;

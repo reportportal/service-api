@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.spring.modulith.events.api)
     testImplementation(libs.spring.modulith.docs)
     testImplementation(libs.spring.modulith.starter.test)
+    testImplementation(libs.spring.modulith.junit)
 
     api(libs.jclouds.s3)
     api(libs.jclouds.aw.s3)
@@ -75,11 +76,11 @@ dependencies {
     api(libs.spring.web)
     api(libs.spring.data.jpa)
     api(libs.spring.security.core)
-    implementation 'org.springframework.security:spring-security-ldap'
-    implementation 'org.springframework.security:spring-security-saml2-service-provider'
-    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.5.5'
+    implementation(libs.spring.security.ldap)
+    implementation(libs.spring.security.saml2.service.provider)
+    implementation(libs.spring.security.oauth2.authorization.server)
 
-    runtimeOnly 'com.nimbusds:oauth2-oidc-sdk:10.15.1'
+    runtimeOnly(libs.nimbus.oauth2.oidc.sdk)
 
     api(libs.spring.data.commons)
     api(libs.hibernate.core)
@@ -88,8 +89,6 @@ dependencies {
     api(libs.pf4j.update) // TODO get rid of and rewrite with the latest version of pf4j
     implementation(libs.bundles.spring.boot.starters)
     implementation(libs.bundles.spring.security)
-
-    runtimeOnly 'com.nimbusds:oauth2-oidc-sdk:10.15.1'
 
     // MultipartFileUtils requires org.springframework.mock.web.MockMultipartFile
     // TODO: implement own MultipartFile class

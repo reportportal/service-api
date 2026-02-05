@@ -23,8 +23,8 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRuleViolationException;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -11,13 +11,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.TmsTestPlanAttributeRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanAttributeMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanAttributeId;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanAttributeRepository;
-import com.epam.reportportal.base.core.tms.dto.TmsTestPlanAttributeRQ;
-import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanAttributeMapper;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;

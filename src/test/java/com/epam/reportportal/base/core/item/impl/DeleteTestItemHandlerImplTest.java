@@ -27,10 +27,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.remover.ContentRemover;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -166,7 +166,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteNotOwnTestItem() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER , 1L);
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+        1L);
     rpUser.setUserId(2L);
 
     Launch launch = new Launch();
@@ -187,7 +188,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemWithParent() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+        1L);
 
     TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, "owner");
     item.setItemId(123123L);
@@ -218,7 +220,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteItemPositive() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+        1L);
     TestItem item = getTestItem(StatusEnum.FAILED, StatusEnum.FAILED, 1L, "owner");
 
     Launch launch = new Launch();

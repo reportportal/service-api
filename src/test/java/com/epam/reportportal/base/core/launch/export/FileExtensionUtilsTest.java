@@ -52,9 +52,9 @@ class FileExtensionUtilsTest {
       "gzipfile, application/gzip, gzipfile.gz",
       "harfile, application/har+json, harfile.har"
   })
-  void getFileNameWithExtension_ShouldAddExtension_WhenFileNameHasNoExtension(String fileName, 
-                                                                             String contentType, 
-                                                                             String expectedResult) {
+  void getFileNameWithExtension_ShouldAddExtension_WhenFileNameHasNoExtension(String fileName,
+      String contentType,
+      String expectedResult) {
     String result = FileExtensionUtils.getFileNameWithExtension(fileName, contentType);
     assertEquals(expectedResult, result);
   }
@@ -81,9 +81,9 @@ class FileExtensionUtilsTest {
       "gzipfile.gz, application/gzip, gzipfile.gz",
       "harfile.har, application/har+json, harfile.har"
   })
-  void getFileNameWithExtension_ShouldReturnOriginalFileName_WhenFileNameAlreadyHasExtension(String fileName, 
-                                                                                           String contentType, 
-                                                                                           String expectedResult) {
+  void getFileNameWithExtension_ShouldReturnOriginalFileName_WhenFileNameAlreadyHasExtension(String fileName,
+      String contentType,
+      String expectedResult) {
     String result = FileExtensionUtils.getFileNameWithExtension(fileName, contentType);
     assertEquals(expectedResult, result);
   }
@@ -94,9 +94,9 @@ class FileExtensionUtilsTest {
       "document, application/unknown, document",
       "data, image/unknown, data"
   })
-  void getFileNameWithExtension_ShouldReturnOriginalFileName_WhenContentTypeIsNotSupported(String fileName, 
-                                                                                          String contentType, 
-                                                                                          String expectedResult) {
+  void getFileNameWithExtension_ShouldReturnOriginalFileName_WhenContentTypeIsNotSupported(String fileName,
+      String contentType,
+      String expectedResult) {
     String result = FileExtensionUtils.getFileNameWithExtension(fileName, contentType);
     assertEquals(expectedResult, result);
   }
@@ -159,9 +159,9 @@ class FileExtensionUtilsTest {
       "gzipfile.compressed.gz, application/gzip, gzipfile.compressed.gz",
       "harfile.network.har, application/har+json, harfile.network.har"
   })
-  void getFileNameWithExtension_ShouldReturnOriginalFileName_WhenFileNameHasMultipleDots(String fileName, 
-                                                                                        String contentType, 
-                                                                                        String expectedResult) {
+  void getFileNameWithExtension_ShouldReturnOriginalFileName_WhenFileNameHasMultipleDots(String fileName,
+      String contentType,
+      String expectedResult) {
     String result = FileExtensionUtils.getFileNameWithExtension(fileName, contentType);
     assertEquals(expectedResult, result);
   }

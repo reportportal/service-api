@@ -16,16 +16,13 @@
 
 package com.epam.reportportal.base.core.events.domain;
 
+import static com.epam.reportportal.base.core.events.domain.ActivityTestHelper.checkActivity;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.CONTENT_FIELDS;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.DESCRIPTION;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.ITEMS_COUNT;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.WIDGET_OPTIONS;
-import static com.epam.reportportal.base.core.events.domain.ActivityTestHelper.checkActivity;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.WidgetCreatedEventConverter;
-import com.epam.reportportal.base.ws.rabbit.activity.converter.WidgetDeletedEventConverter;
-import com.epam.reportportal.base.ws.rabbit.activity.converter.WidgetUpdatedEventConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
@@ -34,6 +31,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.HistoryField;
 import com.epam.reportportal.base.model.activity.WidgetActivityResource;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.WidgetCreatedEventConverter;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.WidgetDeletedEventConverter;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.WidgetUpdatedEventConverter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.time.Instant;

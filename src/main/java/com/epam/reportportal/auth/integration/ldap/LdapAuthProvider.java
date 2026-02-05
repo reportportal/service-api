@@ -30,7 +30,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import java.util.Collections;
 import org.jasypt.util.text.BasicTextEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -51,18 +50,17 @@ public class LdapAuthProvider extends EnableableAuthProvider {
   //millis
   public static final String LDAP_TIMEOUT = "3000";
   private final DetailsContextMapper detailsContextMapper;
-
-  @Autowired
-  private FeatureFlagHandler featureFlagHandler;
-
-  @Autowired
-  private BasicTextEncryptor encryptor;
+  private final FeatureFlagHandler featureFlagHandler;
+  private final BasicTextEncryptor encryptor;
 
   public LdapAuthProvider(IntegrationRepository integrationRepository,
       ApplicationEventPublisher eventPublisher,
-      DetailsContextMapper detailsContextMapper, TokenServicesFacade tokenService) {
+      DetailsContextMapper detailsContextMapper, TokenServicesFacade tokenService,
+      FeatureFlagHandler featureFlagHandler, BasicTextEncryptor encryptor) {
     super(integrationRepository, eventPublisher, tokenService);
     this.detailsContextMapper = detailsContextMapper;
+    this.featureFlagHandler = featureFlagHandler;
+    this.encryptor = encryptor;
   }
 
   @Override

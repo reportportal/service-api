@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.configs.JsonSchemaValidatorConfig;
-import com.epam.reportportal.base.util.JsonSchemaValidator;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.util.Set;

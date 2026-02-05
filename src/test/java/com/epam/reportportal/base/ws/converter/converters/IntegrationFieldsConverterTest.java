@@ -19,10 +19,10 @@ package com.epam.reportportal.base.ws.converter.converters;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.bts.DefectFieldAllowedValue;
-import com.epam.reportportal.base.infrastructure.persistence.entity.bts.DefectFormField;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.AllowedValue;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.persistence.entity.bts.DefectFieldAllowedValue;
+import com.epam.reportportal.base.infrastructure.persistence.entity.bts.DefectFormField;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;

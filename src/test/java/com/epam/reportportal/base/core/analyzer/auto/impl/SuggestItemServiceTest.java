@@ -9,8 +9,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.reportportal.base.core.analyzer.auto.client.model.SuggestRq;
@@ -20,6 +18,7 @@ import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.cluster.GetClusterHandler;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -31,8 +30,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.ws.converter.converters.LogConverter;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
+import com.epam.reportportal.base.ws.converter.converters.LogConverter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -234,9 +234,9 @@ class SuggestItemServiceTest {
     final List<SuggestedItem> suggestedItems =
         suggestItemService.suggestClusterItems(1L, MembershipDetails.builder()
                 .withProjectId(1L)
-            .withProjectRole(ProjectRole.VIEWER).build(),
-        rpUser
-    );
+                .withProjectRole(ProjectRole.VIEWER).build(),
+            rpUser
+        );
 
     Assertions.assertEquals(1, suggestedItems.size());
 

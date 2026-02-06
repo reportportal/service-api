@@ -81,7 +81,7 @@ dependencies {
 
     implementation(libs.springdoc.openapi)
     implementation(libs.micrometer)
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.0")
     implementation(libs.opencsv)
     implementation(libs.slugify)
     implementation(libs.postgresql)

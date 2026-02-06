@@ -35,9 +35,9 @@ import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.epam.reportportal.base.ws.converter.builders.LaunchBuilder;
 import com.google.common.collect.Sets;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class DemoDataLaunchService {
     rq.setStartTime(Instant.now());
     rq.setUuid(UUID.randomUUID().toString());
     Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
-        platformValues[new Random().nextInt(platformValues.length)]
+        platformValues[new SecureRandom().nextInt(platformValues.length)]
     ), new ItemAttributesRQ(null, "demo"), new ItemAttributesRQ("build",
         "3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "."
             + now.getSecond()

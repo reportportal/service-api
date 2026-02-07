@@ -344,9 +344,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(Long projectId, Long testPlanId,
-      Pageable pageable) {
+      Long testFolderId, Pageable pageable) {
     verifyTestPlanExists(projectId, testPlanId);
-    return tmsTestCaseService.getTestCasesInTestPlan(projectId, testPlanId, pageable);
+    return tmsTestCaseService.getTestCasesInTestPlan(projectId, testPlanId, testFolderId, pageable);
   }
 
   @Override

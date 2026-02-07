@@ -1157,6 +1157,7 @@ class TmsTestPlanServiceImplTest {
 
   @Test
   void getTestCasesAddedToPlan_WhenTestPlanExists_ShouldReturnTestCases() {
+    var testFolderId = 1L;
     // Given
     var tmsTestCaseInTestPlan = new TmsTestCaseInTestPlanRS();
     tmsTestCaseInTestPlan.setId(testCaseId);
@@ -1171,29 +1172,30 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId))
         .thenReturn(true);
-    when(tmsTestCaseService.getTestCasesInTestPlan(projectId, testPlanId, pageable))
+    when(tmsTestCaseService.getTestCasesInTestPlan(projectId, testPlanId, testFolderId, pageable))
         .thenReturn(testCasePage);
 
     // When
-    var result = sut.getTestCasesAddedToPlan(projectId, testPlanId, pageable);
+    var result = sut.getTestCasesAddedToPlan(projectId, testPlanId, testFolderId, pageable);
 
     // Then
     assertNotNull(result);
     assertEquals(1, result.getContent().size());
     assertEquals(testCaseId, result.getContent().stream().findFirst().orElseThrow().getId());
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
-    verify(tmsTestCaseService).getTestCasesInTestPlan(projectId, testPlanId, pageable);
+    verify(tmsTestCaseService).getTestCasesInTestPlan(projectId, testPlanId, testFolderId, pageable);
   }
 
   @Test
   void getTestCasesAddedToPlan_WhenTestPlanNotFound_ShouldThrowException() {
+    var testFolderId = 1L;
     // Given
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId))
         .thenReturn(false);
 
     // When/Then
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.getTestCasesAddedToPlan(projectId, testPlanId, pageable));
+        () -> sut.getTestCasesAddedToPlan(projectId, testPlanId, testFolderId, pageable));
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);

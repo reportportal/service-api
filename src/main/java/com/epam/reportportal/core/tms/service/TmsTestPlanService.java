@@ -33,16 +33,17 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId);
 
   /**
-   * Retrieves test cases added to a test plan with pagination.
-   * Returns test cases with last execution only (without full execution history).
+   * Retrieves test cases added to a test plan with pagination. Returns test cases with last
+   * execution only (without full execution history).
    *
-   * @param projectId  the project ID
-   * @param testPlanId the test plan ID
-   * @param pageable   pagination parameters
+   * @param projectId    the project ID
+   * @param testPlanId   the test plan ID
+   * @param testFolderId test folder ID
+   * @param pageable     pagination parameters
    * @return page of test cases added to the test plan
    */
   Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(Long projectId, Long testPlanId,
-      Pageable pageable);
+      Long testFolderId, Pageable pageable);
 
   /**
    * Retrieves a single test case in test plan with full execution history.

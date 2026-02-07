@@ -3302,7 +3302,7 @@ class TmsTestCaseServiceImplTest {
     var executions = Map.of(testCaseId1, execution1, testCaseId2, execution2);
     var launches = Map.of(1001L, launch1, 1002L, launch2);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, testPlanId, pageable))
+    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, testFolderId, testPlanId, pageable))
         .thenReturn(testCaseIdsPage);
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(testCases);
@@ -3318,13 +3318,13 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(testCaseInPlanRS2);
 
     // When
-    var result = sut.getTestCasesInTestPlan(projectId, testPlanId, pageable);
+    var result = sut.getTestCasesInTestPlan(projectId, testPlanId, testFolderId, pageable);
 
     // Then
     assertNotNull(result);
     assertEquals(2, result.getContent().size());
     assertEquals(2, result.getPage().getTotalElements());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, testPlanId, pageable);
+    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, testFolderId, testPlanId, pageable);
     verify(tmsTestCaseExecutionService).findLastExecutionsByTestCaseIdsAndTestPlanId(testCaseIds, testPlanId);
     verify(tmsManualLaunchService).getEntitiesByIds(eq(projectId), anyList());
   }
@@ -3334,17 +3334,17 @@ class TmsTestCaseServiceImplTest {
     // Given
     var emptyPage = new PageImpl<Long>(Collections.emptyList(), pageable, 0);
 
-    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, null, testPlanId, pageable))
+    when(tmsTestCaseRepository.findIdsByCriteria(projectId, null, testFolderId, testPlanId, pageable))
         .thenReturn(emptyPage);
 
     // When
-    var result = sut.getTestCasesInTestPlan(projectId, testPlanId, pageable);
+    var result = sut.getTestCasesInTestPlan(projectId, testPlanId, testFolderId, pageable);
 
     // Then
     assertNotNull(result);
     assertTrue(result.getContent().isEmpty());
     assertEquals(0, result.getPage().getTotalElements());
-    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, null, testPlanId, pageable);
+    verify(tmsTestCaseRepository).findIdsByCriteria(projectId, null, testFolderId, testPlanId, pageable);
     verifyNoInteractions(tmsTestCaseExecutionService);
     verifyNoInteractions(tmsManualLaunchService);
   }

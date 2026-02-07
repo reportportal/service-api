@@ -778,13 +778,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestCaseInTestPlanRS> getTestCasesInTestPlan(Long projectId, Long testPlanId,
-      Pageable pageable) {
+      Long testFolderId, Pageable pageable) {
 
     // Get test case IDs that belong to this test plan with pagination
     var testCaseIdsPage = tmsTestCaseRepository.findIdsByCriteria(
         projectId,
         null, // no search query
-        null, // no folder filter
+        testFolderId, // filter by test folder
         testPlanId, // filter by test plan
         pageable
     );

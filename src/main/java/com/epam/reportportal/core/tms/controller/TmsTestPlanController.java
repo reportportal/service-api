@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -241,6 +242,7 @@ public class TmsTestPlanController {
   public Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(
       @PathVariable String projectKey,
       @PathVariable("testPlanId") Long testPlanId,
+      @RequestParam(value = "testFolderId", required = false) Long testFolderId,
       @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getTestCasesAddedToPlan(
@@ -248,6 +250,7 @@ public class TmsTestPlanController {
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
+        testFolderId,
         offsetRequest
     );
   }

@@ -148,16 +148,27 @@ values (4, 11),  -- Test Case 4 -> type='smoke'
        (12, 19); -- Test Case 12 -> owner='team_c'
 
 -- Manual scenarios
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (104, 4, 30, 'REQ-004', 'TEXT'),
-       (105, 5, 25, 'REQ-005', 'TEXT'),
-       (106, 6, 20, 'REQ-006', 'STEPS'),
-       (107, 7, 35, 'REQ-007', 'TEXT'),
-       (108, 8, 40, 'REQ-008', 'TEXT'),
-       (109, 9, 45, 'REQ-009', 'STEPS'),
-       (110, 10, 50, 'REQ-010', 'TEXT'),
-       (111, 11, 55, 'REQ-011', 'TEXT'),
-       (112, 12, 60, 'REQ-012', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (104, 4, 30, 'TEXT'),
+       (105, 5, 25, 'TEXT'),
+       (106, 6, 20, 'STEPS'),
+       (107, 7, 35, 'TEXT'),
+       (108, 8, 40, 'TEXT'),
+       (109, 9, 45, 'STEPS'),
+       (110, 10, 50, 'TEXT'),
+       (111, 11, 55, 'TEXT'),
+       (112, 12, 60, 'STEPS');
+
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id)
+values ('REQ-004', 'Requirement for TC4', 104),
+       ('REQ-005', 'Requirement for TC5', 105),
+       ('REQ-006', 'Requirement for TC6', 106),
+       ('REQ-007', 'Requirement for TC7', 107),
+       ('REQ-008', 'Requirement for TC8', 108),
+       ('REQ-009', 'Requirement for TC9', 109),
+       ('REQ-010', 'Requirement for TC10', 110),
+       ('REQ-011', 'Requirement for TC11', 111),
+       ('REQ-012', 'Requirement for TC12', 112);
 
 -- Text manual scenarios
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
@@ -247,12 +258,19 @@ values (200, 200, 'Default Version 200', true, false),
        (203, 203, 'Default Version 203', true, false),
        (204, 204, 'Default Version 204', true, false);
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (200, 200, 30, 'REQ-200', 'TEXT'),
-       (201, 201, 25, 'REQ-201', 'TEXT'),
-       (202, 202, 20, 'REQ-202', 'TEXT'),
-       (203, 203, 15, 'REQ-203', 'TEXT'),
-       (204, 204, 10, 'REQ-204', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (200, 200, 30, 'TEXT'),
+       (201, 201, 25, 'TEXT'),
+       (202, 202, 20, 'TEXT'),
+       (203, 203, 15, 'TEXT'),
+       (204, 204, 10, 'TEXT');
+
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id)
+values ('REQ-200', 'Requirement for TC200', 200),
+       ('REQ-201', 'Requirement for TC201', 201),
+       ('REQ-202', 'Requirement for TC202', 202),
+       ('REQ-203', 'Requirement for TC203', 203),
+       ('REQ-204', 'Requirement for TC204', 204);
 
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
 values (200, 'Execute test case 200', 'System should respond correctly for TC200'),
@@ -368,28 +386,51 @@ values (300, 300, 'Default Version 300', true, false),
        (319, 319, 'Default Version 319', true, false),
        (320, 320, 'Default Version 320', true, false);
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (300, 300, 30, 'REQ-300', 'TEXT'),
-       (301, 301, 25, 'REQ-301', 'TEXT'),
-       (302, 302, 20, 'REQ-302', 'TEXT'),
-       (303, 303, 15, 'REQ-303', 'TEXT'),
-       (304, 304, 30, 'REQ-304', 'TEXT'),
-       (305, 305, 25, 'REQ-305', 'TEXT'),
-       (306, 306, 20, 'REQ-306', 'TEXT'),
-       (307, 307, 15, 'REQ-307', 'TEXT'),
-       (308, 308, 30, 'REQ-308', 'TEXT'),
-       (309, 309, 25, 'REQ-309', 'TEXT'),
-       (310, 310, 20, 'REQ-310', 'TEXT'),
-       (311, 311, 15, 'REQ-311', 'TEXT'),
-       (312, 312, 30, 'REQ-312', 'TEXT'),
-       (313, 313, 25, 'REQ-313', 'TEXT'),
-       (314, 314, 20, 'REQ-314', 'TEXT'),
-       (315, 315, 15, 'REQ-315', 'TEXT'),
-       (316, 316, 30, 'REQ-316', 'TEXT'),
-       (317, 317, 25, 'REQ-317', 'TEXT'),
-       (318, 318, 20, 'REQ-318', 'TEXT'),
-       (319, 319, 15, 'REQ-319', 'TEXT'),
-       (320, 320, 30, 'REQ-320', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (300, 300, 30, 'TEXT'),
+       (301, 301, 25, 'TEXT'),
+       (302, 302, 20, 'TEXT'),
+       (303, 303, 15, 'TEXT'),
+       (304, 304, 30, 'TEXT'),
+       (305, 305, 25, 'TEXT'),
+       (306, 306, 20, 'TEXT'),
+       (307, 307, 15, 'TEXT'),
+       (308, 308, 30, 'TEXT'),
+       (309, 309, 25, 'TEXT'),
+       (310, 310, 20, 'TEXT'),
+       (311, 311, 15, 'TEXT'),
+       (312, 312, 30, 'TEXT'),
+       (313, 313, 25, 'TEXT'),
+       (314, 314, 20, 'TEXT'),
+       (315, 315, 15, 'TEXT'),
+       (316, 316, 30, 'TEXT'),
+       (317, 317, 25, 'TEXT'),
+       (318, 318, 20, 'TEXT'),
+       (319, 319, 15, 'TEXT'),
+       (320, 320, 30, 'TEXT');
+
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id)
+values ('REQ-300', 'Requirement for TC300', 300),
+       ('REQ-301', 'Requirement for TC301', 301),
+       ('REQ-302', 'Requirement for TC302', 302),
+       ('REQ-303', 'Requirement for TC303', 303),
+       ('REQ-304', 'Requirement for TC304', 304),
+       ('REQ-305', 'Requirement for TC305', 305),
+       ('REQ-306', 'Requirement for TC306', 306),
+       ('REQ-307', 'Requirement for TC307', 307),
+       ('REQ-308', 'Requirement for TC308', 308),
+       ('REQ-309', 'Requirement for TC309', 309),
+       ('REQ-310', 'Requirement for TC310', 310),
+       ('REQ-311', 'Requirement for TC311', 311),
+       ('REQ-312', 'Requirement for TC312', 312),
+       ('REQ-313', 'Requirement for TC313', 313),
+       ('REQ-314', 'Requirement for TC314', 314),
+       ('REQ-315', 'Requirement for TC315', 315),
+       ('REQ-316', 'Requirement for TC316', 316),
+       ('REQ-317', 'Requirement for TC317', 317),
+       ('REQ-318', 'Requirement for TC318', 318),
+       ('REQ-319', 'Requirement for TC319', 319),
+       ('REQ-320', 'Requirement for TC320', 320);
 
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
 values (300, 'Execute test case 300', 'System should respond correctly for TC300'),

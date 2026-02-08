@@ -1,3 +1,4 @@
+
 -- =====================================================
 -- STATISTICS FIELDS
 -- =====================================================
@@ -218,40 +219,79 @@ VALUES
 -- TMS MANUAL SCENARIOS
 -- =====================================================
 
-INSERT INTO tms_manual_scenario (id, test_case_version_id, type, execution_estimation_time, link_to_requirements)
+INSERT INTO tms_manual_scenario (id, test_case_version_id, type, execution_estimation_time)
 VALUES
-    (1, 1, 'TEXT', 300, 'REQ-004'),
-    (2, 2, 'TEXT', 180, 'REQ-005'),
-    (3, 3, 'TEXT', 420, 'REQ-006'),
-    (4, 4, 'TEXT', 240, 'REQ-007'),
-    (5, 5, 'TEXT', 180, 'REQ-008'),
-    (6, 6, 'STEPS', 300, 'REQ-009'),
-    (7, 7, 'STEPS', 360, 'REQ-010'),
-    (8, 8, 'TEXT', 240, 'REQ-011'),
-    (9, 9, 'TEXT', 25, 'REQ-012'),
-    (10, 10, 'TEXT', 50, 'REQ-013'),
-    (11, 11, 'TEXT', 35, 'REQ-014'),
-    (12, 12, 'STEPS', 40, 'REQ-015'),
-    (13, 13, 'TEXT', 30, 'REQ-016'),
-    (14, 14, 'TEXT', 45, 'REQ-017'),
-    (15, 15, 'STEPS', 60, 'REQ-018'),
-    (16, 16, 'TEXT', 35, 'REQ-019'),
-    (17, 17, 'TEXT', 20, 'REQ-020'),
-    (18, 18, 'TEXT', 25, 'REQ-021'),
-    (19, 19, 'TEXT', 30, 'REQ-022'),
-    (20, 20, 'TEXT', 15, 'REQ-023'),
-    (21, 21, 'TEXT', 20, 'REQ-024'),
-    (22, 22, 'TEXT', 25, 'REQ-025'),
-    (23, 23, 'TEXT', 30, 'REQ-026'),
-    (24, 24, 'TEXT', 20, 'REQ-027'),
-    (25, 25, 'TEXT', 25, 'REQ-028'),
-    (26, 26, 'TEXT', 35, 'REQ-029'),
-    (27, 27, 'TEXT', 40, 'REQ-030'),
-    (28, 28, 'STEPS', 45, 'REQ-031'),
-    (29, 29, 'TEXT', 30, 'REQ-032'),
-    (30, 30, 'TEXT', 25, 'REQ-033'),
-    (31, 31, 'TEXT', 30, 'REQ-034'),
-    (32, 32, 'STEPS', 35, 'REQ-035');
+    (1, 1, 'TEXT', 300),
+    (2, 2, 'TEXT', 180),
+    (3, 3, 'TEXT', 420),
+    (4, 4, 'TEXT', 240),
+    (5, 5, 'TEXT', 180),
+    (6, 6, 'STEPS', 300),
+    (7, 7, 'STEPS', 360),
+    (8, 8, 'TEXT', 240),
+    (9, 9, 'TEXT', 25),
+    (10, 10, 'TEXT', 50),
+    (11, 11, 'TEXT', 35),
+    (12, 12, 'STEPS', 40),
+    (13, 13, 'TEXT', 30),
+    (14, 14, 'TEXT', 45),
+    (15, 15, 'STEPS', 60),
+    (16, 16, 'TEXT', 35),
+    (17, 17, 'TEXT', 20),
+    (18, 18, 'TEXT', 25),
+    (19, 19, 'TEXT', 30),
+    (20, 20, 'TEXT', 15),
+    (21, 21, 'TEXT', 20),
+    (22, 22, 'TEXT', 25),
+    (23, 23, 'TEXT', 30),
+    (24, 24, 'TEXT', 20),
+    (25, 25, 'TEXT', 25),
+    (26, 26, 'TEXT', 35),
+    (27, 27, 'TEXT', 40),
+    (28, 28, 'STEPS', 45),
+    (29, 29, 'TEXT', 30),
+    (30, 30, 'TEXT', 25),
+    (31, 31, 'TEXT', 30),
+    (32, 32, 'STEPS', 35);
+
+-- =====================================================
+-- TMS MANUAL SCENARIO REQUIREMENTS
+-- =====================================================
+
+INSERT INTO tms_manual_scenario_requirement (id, value, manual_scenario_id)
+VALUES
+    ('REQ-004', 'Requirement for TC4', 1),
+    ('REQ-005', 'Requirement for TC5', 2),
+    ('REQ-006', 'Requirement for TC6', 3),
+    ('REQ-007', 'Requirement for TC7', 4),
+    ('REQ-008', 'Requirement for TC8', 5),
+    ('REQ-009', 'Requirement for TC9', 6),
+    ('REQ-010', 'Requirement for TC10', 7),
+    ('REQ-011', 'Requirement for TC11', 8),
+    ('REQ-012', 'Requirement for TC12', 9),
+    ('REQ-013', 'Requirement for TC13', 10),
+    ('REQ-014', 'Requirement for TC14', 11),
+    ('REQ-015', 'Requirement for TC15', 12),
+    ('REQ-016', 'Requirement for TC16', 13),
+    ('REQ-017', 'Requirement for TC17', 14),
+    ('REQ-018', 'Requirement for TC18', 15),
+    ('REQ-019', 'Requirement for TC19', 16),
+    ('REQ-020', 'Requirement for TC20', 17),
+    ('REQ-021', 'Requirement for TC21', 18),
+    ('REQ-022', 'Requirement for TC22', 19),
+    ('REQ-023', 'Requirement for TC23', 20),
+    ('REQ-024', 'Requirement for TC24', 21),
+    ('REQ-025', 'Requirement for TC25', 22),
+    ('REQ-026', 'Requirement for TC26', 23),
+    ('REQ-027', 'Requirement for TC27', 24),
+    ('REQ-028', 'Requirement for TC28', 25),
+    ('REQ-029', 'Requirement for TC29', 26),
+    ('REQ-030', 'Requirement for TC30', 27),
+    ('REQ-031', 'Requirement for TC31', 28),
+    ('REQ-032', 'Requirement for TC32', 29),
+    ('REQ-033', 'Requirement for TC33', 30),
+    ('REQ-034', 'Requirement for TC34', 31),
+    ('REQ-035', 'Requirement for TC35', 32);
 
 -- =====================================================
 -- TMS MANUAL SCENARIO PRECONDITIONS

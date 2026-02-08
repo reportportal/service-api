@@ -15,6 +15,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseDe
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTestCaseVersionRepository;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.core.tms.mapper.TmsTestCaseVersionMapper;
@@ -556,7 +557,7 @@ class TmsTestCaseVersionServiceImplTest {
     return TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
         .executionEstimationTime(30)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder().id("req-1").value("http://requirements.com").build()))
         .instructions("Test instructions")
         .expectedResult("Expected result")
         .build();
@@ -566,7 +567,7 @@ class TmsTestCaseVersionServiceImplTest {
     return TmsStepsManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.STEPS)
         .executionEstimationTime(45)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder().id("req-1").value("http://requirements.com").build()))
         .steps(Collections.emptyList())
         .build();
   }

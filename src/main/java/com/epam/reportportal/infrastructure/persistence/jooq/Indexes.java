@@ -36,6 +36,7 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribut
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenario;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioRequirement;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsMilestone;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStep;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
@@ -171,6 +172,10 @@ public class Indexes {
       JTmsManualScenarioPreconditions.TMS_MANUAL_SCENARIO_PRECONDITIONS, new OrderField[]{
           JTmsManualScenarioPreconditions.TMS_MANUAL_SCENARIO_PRECONDITIONS.MANUAL_SCENARIO_ID},
       true);
+  public static final Index IDX_TMS_MANUAL_SCENARIO_REQUIREMENT_SCENARIO_ID = Internal.createIndex(
+      DSL.name("idx_tms_manual_scenario_requirement_scenario_id"),
+      JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT, new OrderField[]{
+          JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT.MANUAL_SCENARIO_ID}, false);
   public static final Index IDX_TMS_MANUAL_SCENARIO_TYPE = Internal.createIndex(
       DSL.name("idx_tms_manual_scenario_type"), JTmsManualScenario.TMS_MANUAL_SCENARIO,
       new OrderField[]{JTmsManualScenario.TMS_MANUAL_SCENARIO.TYPE}, false);

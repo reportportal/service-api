@@ -19,6 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeImportRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseImportParseResult;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseImportRQ;
@@ -171,7 +172,7 @@ class TmsTestCaseServiceImplTest {
     textManualScenarioRQ = TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
         .executionEstimationTime(30)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder().id("REQ-1").value("http://requirements.com").build()))
         .instructions("Test instructions")
         .expectedResult("Expected result")
         .build();
@@ -179,7 +180,7 @@ class TmsTestCaseServiceImplTest {
     stepsManualScenarioRQ = TmsStepsManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.STEPS)
         .executionEstimationTime(45)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder().id("REQ-1").value("http://requirements.com").build()))
         .steps(Collections.emptyList())
         .build();
 

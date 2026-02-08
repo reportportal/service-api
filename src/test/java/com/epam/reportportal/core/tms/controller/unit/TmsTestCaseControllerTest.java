@@ -309,7 +309,6 @@ public class TmsTestCaseControllerTest {
         .instructions("Test instructions")
         .expectedResult("Expected result example")
         .executionEstimationTime(15)
-        .linkToRequirements("https://requirements.example.com")
         .attachments(List.of(
             TmsManualScenarioAttachmentRQ.builder()
                 .id("attachment-001")

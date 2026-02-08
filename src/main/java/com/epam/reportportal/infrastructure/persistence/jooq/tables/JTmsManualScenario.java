@@ -11,13 +11,16 @@ import com.epam.reportportal.infrastructure.persistence.jooq.enums.JTmsManualSce
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioAttribute.JTmsManualScenarioAttributePath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions.JTmsManualScenarioPreconditionsPath;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioRequirement.JTmsManualScenarioRequirementPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStepsManualScenario.JTmsStepsManualScenarioPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion.JTmsTestCaseVersionPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsTextManualScenario.JTmsTextManualScenarioPath;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -73,11 +76,6 @@ public class JTmsManualScenario extends TableImpl<JTmsManualScenarioRecord> {
      * <code>public.tms_manual_scenario.execution_estimation_time</code>.
      */
     public final TableField<JTmsManualScenarioRecord, Integer> EXECUTION_ESTIMATION_TIME = createField(DSL.name("execution_estimation_time"), SQLDataType.INTEGER, this, "");
-
-    /**
-     * The column <code>public.tms_manual_scenario.link_to_requirements</code>.
-     */
-    public final TableField<JTmsManualScenarioRecord, String> LINK_TO_REQUIREMENTS = createField(DSL.name("link_to_requirements"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>public.tms_manual_scenario.test_case_version_id</code>.
@@ -218,6 +216,19 @@ public class JTmsManualScenario extends TableImpl<JTmsManualScenarioRecord> {
             _tmsManualScenarioPreconditions = new JTmsManualScenarioPreconditionsPath(this, null, Keys.TMS_MANUAL_SCENARIO_PRECONDITIONS__TMS_MANUAL_SCENARIO_PRECONDITIONS_FK_MANUAL_SCENARIO.getInverseKey());
 
         return _tmsManualScenarioPreconditions;
+    }
+
+    private transient JTmsManualScenarioRequirementPath _tmsManualScenarioRequirement;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_manual_scenario_requirement</code> table
+     */
+    public JTmsManualScenarioRequirementPath tmsManualScenarioRequirement() {
+        if (_tmsManualScenarioRequirement == null)
+            _tmsManualScenarioRequirement = new JTmsManualScenarioRequirementPath(this, null, Keys.TMS_MANUAL_SCENARIO_REQUIREMENT__TMS_MANUAL_SCENARIO_REQUIREMENT_FK_MANUAL_SCENARIO.getInverseKey());
+
+        return _tmsManualScenarioRequirement;
     }
 
     private transient JTmsStepsManualScenarioPath _tmsStepsManualScenario;

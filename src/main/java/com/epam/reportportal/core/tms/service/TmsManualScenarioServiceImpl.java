@@ -28,6 +28,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
   private final TmsManualScenarioImplServiceFactory tmsManualScenarioImplServiceFactory;
   private final TmsManualScenarioMapper tmsManualScenarioMapper;
   private final TmsManualScenarioPreconditionsService tmsManualScenarioPreconditionsService;
+  private final TmsManualScenarioRequirementService tmsManualScenarioRequirementService;
 
   @Override
   @Transactional
@@ -40,6 +41,10 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
     tmsManualScenarioPreconditionsService.createPreconditions(
         tmsManualScenario, testCaseManualScenarioRQ.getPreconditions()
+    );
+
+    tmsManualScenarioRequirementService.createRequirements(
+        tmsManualScenario, testCaseManualScenarioRQ.getRequirements()
     );
 
     tmsManualScenarioAttributeService.createAttributes(projectId, tmsManualScenario,
@@ -69,6 +74,10 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
       );
 
+      tmsManualScenarioRequirementService.updateRequirements(
+          existingManualScenario, testCaseManualScenarioRQ.getRequirements()
+      );
+
       tmsManualScenarioAttributeService.updateAttributes(projectId, existingManualScenario,
           testCaseManualScenarioRQ.getAttributes());
 
@@ -96,6 +105,10 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
       );
 
+      tmsManualScenarioRequirementService.patchRequirements(
+          existingManualScenario, testCaseManualScenarioRQ.getRequirements()
+      );
+
       tmsManualScenarioAttributeService.patchAttributes(projectId, existingManualScenario,
           testCaseManualScenarioRQ.getAttributes());
 
@@ -116,6 +129,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioImplServices()
         .forEach(service -> service.deleteAllByTestCaseId(testCaseId));
+    tmsManualScenarioRequirementService.deleteAllByTestCaseId(testCaseId);
     tmsManualScenarioPreconditionsService.deleteAllByTestCaseId(testCaseId);
     tmsManualScenarioAttributeService.deleteAllByTestCaseId(testCaseId);
     tmsManualScenarioRepository.deleteAllByTestCaseId(testCaseId);
@@ -128,6 +142,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioImplServices()
           .forEach(service -> service.deleteAllByTestCaseIds(testCaseIds));
+      tmsManualScenarioRequirementService.deleteAllByTestCaseIds(testCaseIds);
       tmsManualScenarioPreconditionsService.deleteAllByTestCaseIds(testCaseIds);
       tmsManualScenarioAttributeService.deleteAllByTestCaseIds(testCaseIds);
       tmsManualScenarioRepository.deleteAllByTestCaseIds(testCaseIds);
@@ -140,6 +155,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioImplServices()
         .forEach(service -> service.deleteAllByTestFolderId(projectId, folderId));
+    tmsManualScenarioRequirementService.deleteAllByTestFolderId(projectId, folderId);
     tmsManualScenarioPreconditionsService.deleteAllByTestFolderId(projectId, folderId);
     tmsManualScenarioAttributeService.deleteAllByTestFolderId(projectId, folderId);
     tmsManualScenarioRepository.deleteAllByTestFolderId(projectId, folderId);
@@ -161,6 +177,11 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
     if (CollectionUtils.isNotEmpty(originalScenario.getAttributes())) {
       tmsManualScenarioAttributeService.duplicateAttributes(originalScenario, duplicatedScenario);
+    }
+
+    if (CollectionUtils.isNotEmpty(originalScenario.getRequirements())) {
+      tmsManualScenarioRequirementService.duplicateRequirements(originalScenario,
+          duplicatedScenario);
     }
 
     tmsManualScenarioImplServiceFactory

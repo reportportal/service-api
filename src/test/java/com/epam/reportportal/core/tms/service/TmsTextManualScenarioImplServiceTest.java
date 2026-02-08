@@ -12,6 +12,7 @@ import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsManualScen
 import com.epam.reportportal.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import com.epam.reportportal.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.core.tms.mapper.TmsTextManualScenarioMapper;
 import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
@@ -378,7 +379,7 @@ class TmsTextManualScenarioImplServiceTest {
     return TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
         .executionEstimationTime(30)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder().id("req-1").value("http://requirements.com").build()))
         .instructions("Test instructions")
         .expectedResult("Expected result")
         .attributes(Collections.emptyList())

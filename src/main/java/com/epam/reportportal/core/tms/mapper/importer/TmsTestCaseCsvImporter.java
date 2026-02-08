@@ -1,7 +1,9 @@
+
 package com.epam.reportportal.core.tms.mapper.importer;
 
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseImportFormat;
 import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseImportParseResult;
@@ -17,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -176,6 +179,23 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
         .toList();
   }
 
+  /**
+   * Parses requirements string from CSV into a list of TmsRequirementRQ.
+   * Each non-blank requirements string is treated as a single requirement with a generated UUID id.
+   */
+  private List<TmsRequirementRQ> parseRequirements(String requirements) {
+    if (StringUtils.isBlank(requirements)) {
+      return List.of(TmsRequirementRQ.builder()
+          .id(UUID.randomUUID().toString())
+          .value("")
+          .build());
+    }
+    return List.of(TmsRequirementRQ.builder()
+        .id(UUID.randomUUID().toString())
+        .value(requirements)
+        .build());
+  }
+
   private TmsTextManualScenarioRQ buildManualScenario(String testSteps, String expectedResult,
       String requirements, String preconditions) {
     var preconditionsValue = preconditions != null ? preconditions : "";
@@ -183,7 +203,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
     return TmsTextManualScenarioRQ.builder()
         .instructions(testSteps)
         .expectedResult(expectedResult)
-        .linkToRequirements(requirements)
+        .requirements(parseRequirements(requirements))
         .manualScenarioType(TmsManualScenarioType.TEXT)
         .preconditions(TmsManualScenarioPreconditionsRQ.builder()
             .value(preconditionsValue)

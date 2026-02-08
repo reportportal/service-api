@@ -6,6 +6,7 @@ package com.epam.reportportal.infrastructure.persistence.jooq.tables.records;
 
 import com.epam.reportportal.infrastructure.persistence.jooq.enums.JTmsManualScenarioType;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenario;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -49,45 +50,31 @@ public class JTmsManualScenarioRecord extends UpdatableRecordImpl<JTmsManualScen
     }
 
     /**
-     * Setter for <code>public.tms_manual_scenario.link_to_requirements</code>.
-     */
-    public void setLinkToRequirements(String value) {
-        set(2, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_manual_scenario.link_to_requirements</code>.
-     */
-    public String getLinkToRequirements() {
-        return (String) get(2);
-    }
-
-    /**
      * Setter for <code>public.tms_manual_scenario.test_case_version_id</code>.
      */
     public void setTestCaseVersionId(Long value) {
-        set(3, value);
+        set(2, value);
     }
 
     /**
      * Getter for <code>public.tms_manual_scenario.test_case_version_id</code>.
      */
     public Long getTestCaseVersionId() {
-        return (Long) get(3);
+        return (Long) get(2);
     }
 
     /**
      * Setter for <code>public.tms_manual_scenario.type</code>.
      */
     public void setType(JTmsManualScenarioType value) {
-        set(4, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.tms_manual_scenario.type</code>.
      */
     public JTmsManualScenarioType getType() {
-        return (JTmsManualScenarioType) get(4);
+        return (JTmsManualScenarioType) get(3);
     }
 
     // -------------------------------------------------------------------------
@@ -113,12 +100,11 @@ public class JTmsManualScenarioRecord extends UpdatableRecordImpl<JTmsManualScen
     /**
      * Create a detached, initialised JTmsManualScenarioRecord
      */
-    public JTmsManualScenarioRecord(Long id, Integer executionEstimationTime, String linkToRequirements, Long testCaseVersionId, JTmsManualScenarioType type) {
+    public JTmsManualScenarioRecord(Long id, Integer executionEstimationTime, Long testCaseVersionId, JTmsManualScenarioType type) {
         super(JTmsManualScenario.TMS_MANUAL_SCENARIO);
 
         setId(id);
         setExecutionEstimationTime(executionEstimationTime);
-        setLinkToRequirements(linkToRequirements);
         setTestCaseVersionId(testCaseVersionId);
         setType(type);
         resetChangedOnNotNull();

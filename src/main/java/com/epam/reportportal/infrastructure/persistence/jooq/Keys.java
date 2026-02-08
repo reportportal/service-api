@@ -68,6 +68,7 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualSc
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioAttribute;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioRequirement;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsMilestone;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsProductVersion;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStep;
@@ -156,6 +157,7 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTms
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioPreconditionsAttachmentRecord;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioPreconditionsRecord;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioRecord;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioRequirementRecord;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsMilestoneRecord;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsProductVersionRecord;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.records.JTmsStepAttachmentRecord;
@@ -449,10 +451,6 @@ public class Keys {
   public static final UniqueKey<JTmsAttachmentRecord> TMS_ATTACHMENT_PK = Internal.createUniqueKey(
       JTmsAttachment.TMS_ATTACHMENT, DSL.name("tms_attachment_pk"),
       new TableField[]{JTmsAttachment.TMS_ATTACHMENT.ID}, true);
-  public static final UniqueKey<JTmsAttributeRecord> TMS_ATTRIBUTE_KEY_PROJECT_UNIQUE = Internal.createUniqueKey(
-      JTmsAttribute.TMS_ATTRIBUTE, DSL.name("tms_attribute_key_project_unique"),
-      new TableField[]{JTmsAttribute.TMS_ATTRIBUTE.KEY, JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID},
-      true);
   public static final UniqueKey<JTmsAttributeRecord> TMS_ATTRIBUTE_PK = Internal.createUniqueKey(
       JTmsAttribute.TMS_ATTRIBUTE, DSL.name("tms_attribute_pk"),
       new TableField[]{JTmsAttribute.TMS_ATTRIBUTE.ID}, true);
@@ -499,6 +497,10 @@ public class Keys {
           JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT.PRECONDITIONS_ID,
           JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT.ATTACHMENT_ID},
       true);
+  public static final UniqueKey<JTmsManualScenarioRequirementRecord> TMS_MANUAL_SCENARIO_REQUIREMENT_PK = Internal.createUniqueKey(
+      JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT,
+      DSL.name("tms_manual_scenario_requirement_pk"),
+      new TableField[]{JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT.ID}, true);
   public static final UniqueKey<JTmsMilestoneRecord> TMS_MILESTONE_PK = Internal.createUniqueKey(
       JTmsMilestone.TMS_MILESTONE, DSL.name("tms_milestone_pk"),
       new TableField[]{JTmsMilestone.TMS_MILESTONE.ID}, true);
@@ -911,6 +913,12 @@ public class Keys {
           JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT.PRECONDITIONS_ID},
       Keys.TMS_MANUAL_SCENARIO_PRECONDITIONS_PK,
       new TableField[]{JTmsManualScenarioPreconditions.TMS_MANUAL_SCENARIO_PRECONDITIONS.ID}, true);
+  public static final ForeignKey<JTmsManualScenarioRequirementRecord, JTmsManualScenarioRecord> TMS_MANUAL_SCENARIO_REQUIREMENT__TMS_MANUAL_SCENARIO_REQUIREMENT_FK_MANUAL_SCENARIO = Internal.createForeignKey(
+      JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT,
+      DSL.name("tms_manual_scenario_requirement_fk_manual_scenario"), new TableField[]{
+          JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT.MANUAL_SCENARIO_ID},
+      Keys.TMS_MANUAL_SCENARIO_PK, new TableField[]{JTmsManualScenario.TMS_MANUAL_SCENARIO.ID},
+      true);
   public static final ForeignKey<JTmsMilestoneRecord, JTmsProductVersionRecord> TMS_MILESTONE__TMS_MILESTONE_FK_PRODUCT_VERSION = Internal.createForeignKey(
       JTmsMilestone.TMS_MILESTONE, DSL.name("tms_milestone_fk_product_version"),
       new TableField[]{JTmsMilestone.TMS_MILESTONE.PRODUCT_VERSION_ID}, Keys.TMS_PRODUCT_VERSION_PK,

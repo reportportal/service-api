@@ -1,3 +1,4 @@
+
 -- Test folders
 insert into tms_test_folder (id, "name", description, project_id)
 values (3, 'Test Folder 3', 'Description for test folder 3', 1);
@@ -469,101 +470,135 @@ insert into tms_test_case_version (id, test_case_id, "name", is_default, is_draf
 values (103, 103, 'Default Version 103', true, false);
 
 -- Manual scenarios
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (1, 1, 30, 'REQ-004', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (1, 1, 30, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (2, 2, 25, 'REQ-005', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (2, 2, 25, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (3, 3, 20, 'REQ-006', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (3, 3, 20, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (4, 4, 35, 'REQ-007', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (4, 4, 35, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (5, 5, 40, 'REQ-008', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (5, 5, 40, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (6, 6, 15, 'REQ-009', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (6, 6, 15, 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (7, 7, 45, 'REQ-010', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (7, 7, 45, 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (8, 8, 30, 'REQ-011', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (8, 8, 30, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (9, 9, 25, 'REQ-012', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (9, 9, 25, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (10, 10, 50, 'REQ-013', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (10, 10, 50, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (11, 11, 35, 'REQ-014', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (11, 11, 35, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (12, 12, 40, 'REQ-015', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (12, 12, 40, 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (13, 13, 30, 'REQ-016', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (13, 13, 30, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (14, 14, 45, 'REQ-017', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (14, 14, 45, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (15, 15, 60, 'REQ-018', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (15, 15, 60, 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (16, 16, 35, 'REQ-019', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (16, 16, 35, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (17, 17, 20, 'REQ-020', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (17, 17, 20, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (18, 18, 25, 'REQ-021', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (18, 18, 25, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (19, 19, 30, 'REQ-022', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (19, 19, 30, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (20, 20, 15, 'REQ-023', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (20, 20, 15, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (21, 21, 20, 'REQ-024', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (21, 21, 20, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (22, 22, 25, 'REQ-025', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (22, 22, 25, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (23, 23, 30, 'REQ-026', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (23, 23, 30, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (24, 24, 20, 'REQ-027', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (24, 24, 20, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (25, 25, 25, 'REQ-028', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (25, 25, 25, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (26, 26, 35, 'REQ-029', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (26, 26, 35, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (27, 27, 40, 'REQ-030', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (27, 27, 40, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (28, 28, 45, 'REQ-031', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (28, 28, 45, 'STEPS');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (29, 29, 30, 'REQ-032', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (29, 29, 30, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (30, 30, 25, 'REQ-033', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (30, 30, 25, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (31, 31, 30, 'REQ-034', 'TEXT');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (31, 31, 30, 'TEXT');
 
-insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-values (32, 32, 35, 'REQ-035', 'STEPS');
+insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+values (32, 32, 35, 'STEPS');
+
+-- Manual scenario requirements
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-004', 'Requirement for TC4', 1);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-005', 'Requirement for TC5', 2);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-006', 'Requirement for TC6', 3);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-007', 'Requirement for TC7', 4);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-008', 'Requirement for TC8', 5);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-009', 'Requirement for TC9', 6);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-010', 'Requirement for TC10', 7);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-011', 'Requirement for TC11', 8);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-012', 'Requirement for TC12', 9);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-013', 'Requirement for TC13', 10);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-014', 'Requirement for TC14', 11);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-015', 'Requirement for TC15', 12);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-016', 'Requirement for TC16', 13);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-017', 'Requirement for TC17', 14);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-018', 'Requirement for TC18', 15);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-019', 'Requirement for TC19', 16);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-020', 'Requirement for TC20', 17);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-021', 'Requirement for TC21', 18);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-022', 'Requirement for TC22', 19);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-023', 'Requirement for TC23', 20);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-024', 'Requirement for TC24', 21);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-025', 'Requirement for TC25', 22);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-026', 'Requirement for TC26', 23);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-027', 'Requirement for TC27', 24);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-028', 'Requirement for TC28', 25);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-029', 'Requirement for TC29', 26);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-030', 'Requirement for TC30', 27);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-031', 'Requirement for TC31', 28);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-032', 'Requirement for TC32', 29);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-033', 'Requirement for TC33', 30);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-034', 'Requirement for TC34', 31);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-035', 'Requirement for TC35', 32);
 
 -- Manual scenario preconditions
 insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)

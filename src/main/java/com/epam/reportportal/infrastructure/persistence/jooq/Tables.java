@@ -70,6 +70,7 @@ import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualSc
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioAttribute;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment;
+import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsManualScenarioRequirement;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsMilestone;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsProductVersion;
 import com.epam.reportportal.infrastructure.persistence.jooq.tables.JTmsStep;
@@ -471,6 +472,11 @@ public class Tables {
      * <code>public.tms_manual_scenario_preconditions_attachment</code>.
      */
     public static final JTmsManualScenarioPreconditionsAttachment TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT = JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT;
+
+    /**
+     * The table <code>public.tms_manual_scenario_requirement</code>.
+     */
+    public static final JTmsManualScenarioRequirement TMS_MANUAL_SCENARIO_REQUIREMENT = JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT;
 
     /**
      * The table <code>public.tms_milestone</code>.

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseImportFormat;
 import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import java.io.ByteArrayInputStream;
@@ -113,14 +114,15 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getManualScenario()).isNotNull();
 
-    var manualScenario = (TmsTextManualScenarioRQ)
+    var manualScenario = (com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ)
         testCase.getManualScenario();
     assertThat(manualScenario.getManualScenarioType()).isEqualTo(TmsManualScenarioType.TEXT);
     assertThat(manualScenario.getInstructions()).isEqualTo("Step 1. Do something");
     assertThat(manualScenario.getExpectedResult()).isEqualTo("Result should be visible");
-    assertThat(manualScenario.getLinkToRequirements()).isEqualTo("https://req.example.com");
-    assertThat(manualScenario.getPreconditions()).isNotNull();
-    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
+    assertThat(manualScenario.getRequirements()).isNotNull();
+    assertThat(manualScenario.getRequirements()).hasSize(1);
+    assertThat(manualScenario.getRequirements().get(0).getValue()).isEqualTo("https://req.example.com");
+    assertThat(manualScenario.getRequirements().get(0).getId()).isNotNull();
   }
 
   @Test
@@ -353,7 +355,7 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getManualScenario()).isNotNull();
 
-    var manualScenario = (TmsTextManualScenarioRQ)
+    var manualScenario = (com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ)
         testCase.getManualScenario();
     assertThat(manualScenario.getInstructions()).isEqualTo("Step 1. Do something");
     assertThat(manualScenario.getExpectedResult()).isNull();
@@ -376,7 +378,7 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getManualScenario()).isNotNull();
 
-    var manualScenario = (TmsTextManualScenarioRQ)
+    var manualScenario = (com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ)
         testCase.getManualScenario();
     assertThat(manualScenario.getInstructions()).isNull();
     assertThat(manualScenario.getExpectedResult()).isEqualTo("User should see success message");

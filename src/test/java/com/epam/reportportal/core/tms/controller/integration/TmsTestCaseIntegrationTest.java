@@ -25,6 +25,7 @@ import com.epam.reportportal.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.core.tms.dto.TmsStepRQ;
 import com.epam.reportportal.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseAttributeRQ;
@@ -715,7 +716,10 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
         .executionEstimationTime(123)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder()
+            .id("REQ-001")
+            .value("http://requirements.com")
+            .build()))
         .instructions("Updated instructions")
         .expectedResult("Updated expected result")
         .build();

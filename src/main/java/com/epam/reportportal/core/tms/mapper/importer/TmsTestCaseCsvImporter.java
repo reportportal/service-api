@@ -1,5 +1,6 @@
 package com.epam.reportportal.core.tms.mapper.importer;
 
+import com.epam.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseImportFormat;
 import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
@@ -42,6 +43,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
   private static final String COL_TEST_STEPS = "test steps";
   private static final String COL_EXPECTED_RESULT = "expected result";
   private static final String COL_REQUIREMENTS = "requirements";
+  private static final String COL_PRECONDITIONS = "preconditions";
 
   // Separators
   private static final String LABEL_SEPARATOR = ";";
@@ -137,7 +139,8 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
         .manualScenario(buildManualScenario(
             getValueSafe(record, headerMap, COL_TEST_STEPS),
             getValueSafe(record, headerMap, COL_EXPECTED_RESULT),
-            getValueSafe(record, headerMap, COL_REQUIREMENTS)
+            getValueSafe(record, headerMap, COL_REQUIREMENTS),
+            getValueSafe(record, headerMap, COL_PRECONDITIONS)
         ))
         .build();
   }
@@ -174,16 +177,17 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
   }
 
   private TmsTextManualScenarioRQ buildManualScenario(String testSteps, String expectedResult,
-      String requirements) {
-    if (StringUtils.isBlank(testSteps) && StringUtils.isBlank(expectedResult)) {
-      return null;
-    }
+      String requirements, String preconditions) {
+    var preconditionsValue = preconditions != null ? preconditions : "";
 
     return TmsTextManualScenarioRQ.builder()
         .instructions(testSteps)
         .expectedResult(expectedResult)
         .linkToRequirements(requirements)
         .manualScenarioType(TmsManualScenarioType.TEXT)
+        .preconditions(TmsManualScenarioPreconditionsRQ.builder()
+            .value(preconditionsValue)
+            .build())
         .build();
   }
 }

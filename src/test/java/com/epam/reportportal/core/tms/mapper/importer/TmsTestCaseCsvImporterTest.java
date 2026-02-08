@@ -3,8 +3,10 @@ package com.epam.reportportal.core.tms.mapper.importer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.epam.reportportal.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.core.tms.dto.TmsTestCaseImportFormat;
+import com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +54,12 @@ class TmsTestCaseCsvImporterTest {
     assertThat(testCase2.getName()).isEqualTo("Test Case 2");
     assertThat(testCase2.getDescription()).isEqualTo("Description 2");
     assertThat(testCase2.getPriority()).isEqualTo("LOW");
+
+    // Verify manual scenario is always created with empty preconditions
+    assertThat(testCase1.getManualScenario()).isNotNull();
+    var manualScenario1 = (TmsTextManualScenarioRQ) testCase1.getManualScenario();
+    assertThat(manualScenario1.getPreconditions()).isNotNull();
+    assertThat(manualScenario1.getPreconditions().getValue()).isEmpty();
   }
 
   @Test
@@ -105,16 +113,18 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getManualScenario()).isNotNull();
 
-    var manualScenario = (com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ)
+    var manualScenario = (TmsTextManualScenarioRQ)
         testCase.getManualScenario();
     assertThat(manualScenario.getManualScenarioType()).isEqualTo(TmsManualScenarioType.TEXT);
     assertThat(manualScenario.getInstructions()).isEqualTo("Step 1. Do something");
     assertThat(manualScenario.getExpectedResult()).isEqualTo("Result should be visible");
     assertThat(manualScenario.getLinkToRequirements()).isEqualTo("https://req.example.com");
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
   }
 
   @Test
-  void shouldNotCreateManualScenarioWhenTestStepsAndExpectedResultAreEmpty() {
+  void shouldAlwaysCreateManualScenarioWithEmptyPreconditionsWhenTestStepsAndExpectedResultAreEmpty() {
     // Given
     var csvContent = "summary,test steps,expected result\n" +
         "Test Case,,";
@@ -126,14 +136,22 @@ class TmsTestCaseCsvImporterTest {
     // Then
     assertThat(result.getTestCases()).hasSize(1);
     var testCase = result.getTestCases().get(0);
-    assertThat(testCase.getManualScenario()).isNull();
+    assertThat(testCase.getManualScenario()).isNotNull();
+    var manualScenario = (TmsTextManualScenarioRQ) testCase.getManualScenario();
+    assertThat(manualScenario.getManualScenarioType()).isEqualTo(TmsManualScenarioType.TEXT);
+    assertThat(manualScenario.getInstructions()).isNull();
+    assertThat(manualScenario.getExpectedResult()).isNull();
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
   }
 
   @Test
   void shouldParseFullCsvWithAllColumns() {
     // Given
-    var csvContent = "summary,description,priority,labels,path,test steps,expected result,requirements\n" +
-        "Login Test,Test login functionality,HIGH,smoke;auth,Auth/Login,1. Enter credentials,User logged in,REQ-001";
+    var csvContent =
+        "summary,description,priority,labels,path,test steps,expected result,requirements,preconditions\n"
+            +
+            "Login Test,Test login functionality,HIGH,smoke;auth,Auth/Login,1. Enter credentials,User logged in,REQ-001,Setup test environment";
     var inputStream = toInputStream(csvContent);
 
     // When
@@ -149,6 +167,9 @@ class TmsTestCaseCsvImporterTest {
     assertThat(testCase.getFolderPath()).containsExactly("Auth", "Login");
     assertThat(testCase.getAttributes()).hasSize(2);
     assertThat(testCase.getManualScenario()).isNotNull();
+    var manualScenario = (TmsTextManualScenarioRQ) testCase.getManualScenario();
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEqualTo("Setup test environment");
   }
 
   @Test
@@ -169,6 +190,10 @@ class TmsTestCaseCsvImporterTest {
     assertThat(testCase.getPriority()).isNull();
     assertThat(testCase.getAttributes()).isEmpty();
     assertThat(testCase.getFolderPath()).isEmpty();
+    assertThat(testCase.getManualScenario()).isNotNull();
+    var manualScenario = (TmsTextManualScenarioRQ) testCase.getManualScenario();
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
   }
 
   @Test
@@ -328,10 +353,12 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getManualScenario()).isNotNull();
 
-    var manualScenario = (com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ)
+    var manualScenario = (TmsTextManualScenarioRQ)
         testCase.getManualScenario();
     assertThat(manualScenario.getInstructions()).isEqualTo("Step 1. Do something");
     assertThat(manualScenario.getExpectedResult()).isNull();
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
   }
 
   @Test
@@ -349,10 +376,12 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getManualScenario()).isNotNull();
 
-    var manualScenario = (com.epam.reportportal.core.tms.dto.TmsTextManualScenarioRQ)
+    var manualScenario = (TmsTextManualScenarioRQ)
         testCase.getManualScenario();
     assertThat(manualScenario.getInstructions()).isNull();
     assertThat(manualScenario.getExpectedResult()).isEqualTo("User should see success message");
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
   }
 
   @Test
@@ -388,6 +417,77 @@ class TmsTestCaseCsvImporterTest {
     assertThat(result.getTestCases())
         .extracting("name")
         .containsExactly("Test Case 1", "Test Case 2");
+
+    // Verify manual scenario is always created with empty preconditions
+    result.getTestCases().forEach(testCase -> {
+      assertThat(testCase.getManualScenario()).isNotNull();
+      var manualScenario = (TmsTextManualScenarioRQ) testCase.getManualScenario();
+      assertThat(manualScenario.getPreconditions()).isNotNull();
+      assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
+    });
+  }
+
+  @Test
+  void shouldParsePreconditionsFromCsvColumn() {
+    // Given
+    var csvContent = "summary,test steps,expected result,preconditions\n" +
+        "Test Case,Step 1,Result 1,Setup environment";
+    var inputStream = toInputStream(csvContent);
+
+    // When
+    var result = csvImporter.parse(inputStream);
+
+    // Then
+    assertThat(result.getTestCases()).hasSize(1);
+    var testCase = result.getTestCases().get(0);
+    assertThat(testCase.getManualScenario()).isNotNull();
+
+    var manualScenario = (TmsTextManualScenarioRQ) testCase.getManualScenario();
+    assertThat(manualScenario.getManualScenarioType()).isEqualTo(TmsManualScenarioType.TEXT);
+    assertThat(manualScenario.getInstructions()).isEqualTo("Step 1");
+    assertThat(manualScenario.getExpectedResult()).isEqualTo("Result 1");
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEqualTo("Setup environment");
+  }
+
+  @Test
+  void shouldSetEmptyPreconditionsWhenColumnNotPresent() {
+    // Given
+    var csvContent = "summary,test steps,expected result\n" +
+        "Test Case,Step 1,Result 1";
+    var inputStream = toInputStream(csvContent);
+
+    // When
+    var result = csvImporter.parse(inputStream);
+
+    // Then
+    assertThat(result.getTestCases()).hasSize(1);
+    var testCase = result.getTestCases().get(0);
+    assertThat(testCase.getManualScenario()).isNotNull();
+
+    var manualScenario = (TmsTextManualScenarioRQ) testCase.getManualScenario();
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
+  }
+
+  @Test
+  void shouldSetEmptyPreconditionsWhenColumnValueIsEmpty() {
+    // Given
+    var csvContent = "summary,test steps,expected result,preconditions\n" +
+        "Test Case,Step 1,Result 1,";
+    var inputStream = toInputStream(csvContent);
+
+    // When
+    var result = csvImporter.parse(inputStream);
+
+    // Then
+    assertThat(result.getTestCases()).hasSize(1);
+    var testCase = result.getTestCases().get(0);
+    assertThat(testCase.getManualScenario()).isNotNull();
+
+    var manualScenario = (TmsTextManualScenarioRQ) testCase.getManualScenario();
+    assertThat(manualScenario.getPreconditions()).isNotNull();
+    assertThat(manualScenario.getPreconditions().getValue()).isEmpty();
   }
 
   private ByteArrayInputStream toInputStream(String content) {

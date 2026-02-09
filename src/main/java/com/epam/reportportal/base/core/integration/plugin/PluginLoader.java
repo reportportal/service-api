@@ -17,7 +17,7 @@
 package com.epam.reportportal.base.core.integration.plugin;
 
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.base.extension.common.ExtensionPoint;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStore;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;

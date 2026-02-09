@@ -25,7 +25,7 @@ import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
-import com.epam.reportportal.base.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.reporting.async.producer.ItemFinishProducer;
 import com.epam.reportportal.base.reporting.async.producer.ItemStartProducer;

@@ -19,7 +19,7 @@ package com.epam.reportportal.base.core.events.listener;
 import com.epam.reportportal.base.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.reportportal.base.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.base.core.project.config.ProjectConfigProvider;
-import com.epam.reportportal.base.extension.event.LaunchStartUniqueErrorAnalysisEvent;
+import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

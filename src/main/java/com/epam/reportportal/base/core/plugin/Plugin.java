@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.core.plugin;
 
-import com.epam.reportportal.base.extension.common.ExtensionPoint;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.io.Serializable;
 import java.util.Objects;
 

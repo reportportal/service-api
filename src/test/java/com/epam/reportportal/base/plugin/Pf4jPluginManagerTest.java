@@ -28,7 +28,7 @@ import com.epam.reportportal.base.core.integration.impl.util.IntegrationTestUtil
 import com.epam.reportportal.base.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.base.core.plugin.Plugin;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.base.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;

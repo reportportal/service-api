@@ -31,7 +31,7 @@ import com.epam.reportportal.base.core.events.domain.PluginUpdatedEvent;
 import com.epam.reportportal.base.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.reportportal.base.core.integration.plugin.UpdatePluginHandler;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
-import com.epam.reportportal.base.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;

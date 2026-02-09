@@ -16,14 +16,14 @@
 
 package com.epam.reportportal.base.job.service.impl;
 
-import static com.epam.reportportal.base.extension.common.IntegrationTypeProperties.FILE_ID;
-import static com.epam.reportportal.base.extension.common.IntegrationTypeProperties.FILE_NAME;
-import static com.epam.reportportal.base.extension.common.IntegrationTypeProperties.VERSION;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_ID;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_NAME;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.VERSION;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum.EXTENSION;
 
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.base.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;

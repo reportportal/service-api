@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.plugin;
 
-import com.epam.reportportal.base.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;

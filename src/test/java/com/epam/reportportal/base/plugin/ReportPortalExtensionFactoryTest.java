@@ -23,7 +23,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import java.io.File;
 import java.util.Map;
 import lombok.Getter;

@@ -20,8 +20,8 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.base.extension.common.ExtensionPoint;
-import com.epam.reportportal.base.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.common.ExtensionPoint;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;

@@ -19,9 +19,9 @@ package com.epam.reportportal.base.core.configs.event.publisher;
 import static org.springframework.context.support.AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
 
 import com.epam.reportportal.base.core.events.multicaster.DelegatingApplicationEventMulticaster;
-import com.epam.reportportal.base.extension.event.LaunchAutoAnalysisFinishEvent;
-import com.epam.reportportal.base.extension.event.LaunchStartUniqueErrorAnalysisEvent;
-import com.epam.reportportal.base.extension.event.LaunchUniqueErrorAnalysisFinishEvent;
+import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
+import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent;
+import com.epam.reportportal.extension.event.LaunchUniqueErrorAnalysisFinishEvent;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

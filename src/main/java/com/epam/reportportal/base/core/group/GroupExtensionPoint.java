@@ -27,7 +27,7 @@ import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
-import com.epam.reportportal.base.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Optional;
 import org.jclouds.rest.ResourceNotFoundException;
 

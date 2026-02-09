@@ -19,7 +19,7 @@ package com.epam.reportportal.base.plugin;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
-import com.epam.reportportal.base.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.google.common.collect.Lists;
 import jakarta.annotation.PostConstruct;

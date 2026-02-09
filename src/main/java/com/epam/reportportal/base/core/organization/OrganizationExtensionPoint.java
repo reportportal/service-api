@@ -19,7 +19,7 @@ package com.epam.reportportal.base.core.organization;
 import com.epam.reportportal.api.model.CreateOrganizationRequest;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.UpdateOrganizationRequest;
-import com.epam.reportportal.base.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 

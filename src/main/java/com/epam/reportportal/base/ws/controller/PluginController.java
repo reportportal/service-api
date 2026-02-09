@@ -19,7 +19,7 @@ package com.epam.reportportal.base.ws.controller;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.reportportal.base.extension.util.CommandParamUtils.ENTITY_PARAM;
+import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
 import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;

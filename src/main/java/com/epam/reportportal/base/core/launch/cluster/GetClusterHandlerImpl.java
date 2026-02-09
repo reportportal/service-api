@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.core.launch.cluster;
 
-import com.epam.reportportal.base.extension.event.GetClusterResourcesEvent;
+import com.epam.reportportal.extension.event.GetClusterResourcesEvent;
 import com.epam.reportportal.base.infrastructure.model.launch.cluster.ClusterInfoResource;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ClusterRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;

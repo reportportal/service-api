@@ -29,7 +29,7 @@ import com.epam.reportportal.base.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
-import com.epam.reportportal.base.extension.event.LaunchFinishedNotificationEvent;
+import com.epam.reportportal.extension.event.LaunchFinishedNotificationEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogicalOperator;

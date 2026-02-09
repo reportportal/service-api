@@ -26,7 +26,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.core.plugin.Plugin;
-import com.epam.reportportal.base.extension.common.ExtensionPoint;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;

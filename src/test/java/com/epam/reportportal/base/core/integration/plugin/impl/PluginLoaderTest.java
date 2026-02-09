@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.base.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStore;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;

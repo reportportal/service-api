@@ -17,7 +17,7 @@
 package com.epam.reportportal.base.core.configs;
 
 import com.epam.reportportal.base.core.tms.scheduled.TmsAttachmentCleanupJob;
-import com.epam.reportportal.base.extension.classloader.ReportPortalResourceLoader;
+import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
 import com.epam.reportportal.base.job.CleanExpiredCreationBidsJob;
 import com.epam.reportportal.base.job.FlushingDataJob;
 import com.epam.reportportal.base.job.InterruptBrokenLaunchesJob;

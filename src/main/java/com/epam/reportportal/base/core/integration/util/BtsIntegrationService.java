@@ -21,7 +21,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 
 import com.epam.reportportal.base.core.integration.util.property.BtsProperties;
 import com.epam.reportportal.base.core.plugin.PluginBox;
-import com.epam.reportportal.base.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.AuthType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;

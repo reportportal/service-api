@@ -18,7 +18,7 @@ package com.epam.reportportal.base.core.events.handler.launch;
 
 import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.base.core.events.handler.ConfigurableEventHandler;
-import com.epam.reportportal.base.extension.event.LaunchAnalysisFinishEvent;
+import com.epam.reportportal.extension.event.LaunchAnalysisFinishEvent;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;

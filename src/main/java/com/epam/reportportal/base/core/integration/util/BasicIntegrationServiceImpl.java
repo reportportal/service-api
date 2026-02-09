@@ -20,9 +20,9 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.plugin.PluginBox;
-import com.epam.reportportal.base.extension.CommonPluginCommand;
-import com.epam.reportportal.base.extension.PluginCommand;
-import com.epam.reportportal.base.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.CommonPluginCommand;
+import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;

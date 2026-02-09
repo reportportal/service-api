@@ -25,7 +25,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
-import com.epam.reportportal.base.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;

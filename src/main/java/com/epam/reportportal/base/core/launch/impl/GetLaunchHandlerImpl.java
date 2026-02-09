@@ -49,7 +49,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.cluster.GetClusterHandler;
 import com.epam.reportportal.base.core.launch.export.LaunchExportService;
-import com.epam.reportportal.base.extension.event.GetLaunchResourceCollectionEvent;
+import com.epam.reportportal.extension.event.GetLaunchResourceCollectionEvent;
 import com.epam.reportportal.base.infrastructure.model.launch.cluster.ClusterInfoResource;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;

@@ -16,8 +16,10 @@
 package com.epam.ta.reportportal.core.launch.export;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.NestedItemAttachment;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -40,5 +42,10 @@ public class JasperDataProvider {
         .map(item -> TestItemPojo.build(item, includeAttachments))
         .collect(Collectors.toMap(TestItemPojo::getId, it -> it, (oldValue, newValue) -> oldValue,
             LinkedHashMap::new));
+  }
+
+  public List<NestedItemAttachment> getNestedStepsAttachments(Long launchId, String parentPath,
+      Long parentItemId) {
+    return testItemRepository.findNestedStepsAttachments(launchId, parentPath, parentItemId);
   }
 }

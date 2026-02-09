@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch.export;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.item.NestedItemAttachment;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.google.common.net.HttpHeaders;
@@ -26,16 +27,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Component responsible for exporting launch reports, either as a single file (PDF/HTML/XLS) or as a ZIP archive that
- * includes attachments.
+ * Component responsible for exporting launch reports, either as a single file (PDF/HTML/XLS) or as
+ * a ZIP archive that includes attachments.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -49,9 +52,11 @@ public class LaunchExportService {
   private final PathBuilderService pathService;
 
 
-  public void exportLaunch(Launch launch, String username, String reportFormat, HttpServletResponse response) {
+  public void exportLaunch(Launch launch, String username, String reportFormat,
+      HttpServletResponse response) {
     ReportFormat format = reportService.resolveFormat(reportFormat);
-    byte[] report = reportService.generateReport(launch, dataProvider.getTestItemsOfLaunch(launch, false).values(),
+    byte[] report = reportService.generateReport(launch,
+        dataProvider.getTestItemsOfLaunch(launch, false).values(),
         username,
         format);
 
@@ -87,11 +92,34 @@ public class LaunchExportService {
       Set<String> uniquePaths = new HashSet<>();
       for (TestItemPojo item : testItems.values()) {
         String itemsPathNames = pathService.buildItemPath(testItems, item);
-        for (AttachmentPojo att : item.getAttachmentPojoList()) {
-          String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(att.getFileName(), att.getContentType());
-          String fullPath = pathService.buildAttachmentPath(itemsPathNames, fileNameWithExtension);
-          if (uniquePaths.add(fullPath)) {
-            zipService.writeToZip(att.getFileId(), fullPath, zipOut);
+        if (item.getAttachmentPojoList() != null) {
+          for (AttachmentPojo att : item.getAttachmentPojoList()) {
+            String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
+                att.getFileName(), att.getContentType());
+            String fullPath = pathService.buildAttachmentPath(itemsPathNames,
+                fileNameWithExtension);
+            if (uniquePaths.add(fullPath)) {
+              zipService.writeToZip(att.getFileId(), fullPath, zipOut);
+            }
+          }
+        }
+
+        if (!item.isHasChildren()) {
+          List<NestedItemAttachment> nestedAttachments = dataProvider.getNestedStepsAttachments(
+              launch.getId(), item.getPath(), item.getId());
+          System.out.println(nestedAttachments.size());
+          if (!CollectionUtils.isEmpty(nestedAttachments)) {
+            for (var nestedAtt : nestedAttachments) {
+              String fileNameExtension = FileExtensionUtils.getFileNameWithExtension(
+                  nestedAtt.getFileName(), nestedAtt.getContentType());
+              String fullPath = pathService.buildAttachmentPath(itemsPathNames, fileNameExtension);
+              if (uniquePaths.add(fullPath)) {
+                System.out.println(fullPath);
+                zipService.writeToZip(nestedAtt.getFileId(), fullPath, zipOut);
+                String zipFileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
+                item.setType(item.getType() + "\n" + zipFileName);
+              }
+            }
           }
         }
       }
@@ -111,7 +139,8 @@ public class LaunchExportService {
       ZipEntry reportEntry = new ZipEntry(
           String.format("%s_%s.%s", launch.getName(), launch.getNumber(), format.getValue()));
       zipOut.putNextEntry(reportEntry);
-      byte[] reportBytes = reportService.generateReport(launch, testItems.values(), username, format);
+      byte[] reportBytes = reportService.generateReport(launch, testItems.values(), username,
+          format);
       zipOut.write(reportBytes);
       zipOut.closeEntry();
 

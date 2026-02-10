@@ -146,10 +146,8 @@ nimbus-oauth2-oidc-sdk = { group = "com.nimbusds", name = "oauth2-oidc-sdk", ver
 
 # Spring Modulith
 spring-modulith-starter-core = { group = "org.springframework.modulith", name = "spring-modulith-starter-core", version.ref = "spring-modulith" }
-spring-modulith-starter-jpa = { group = "org.springframework.modulith", name = "spring-modulith-starter-jpa", version.ref = "spring-modulith" }
 spring-modulith-events-api = { group = "org.springframework.modulith", name = "spring-modulith-events-api", version.ref = "spring-modulith" }
 spring-modulith-actuator = { group = "org.springframework.modulith", name = "spring-modulith-actuator", version.ref = "spring-modulith" }
-spring-modulith-observability = { group = "org.springframework.modulith", name = "spring-modulith-observability", version.ref = "spring-modulith" }
 spring-modulith-docs = { group = "org.springframework.modulith", name = "spring-modulith-docs", version.ref = "spring-modulith"}
 spring-modulith-junit = { group = "org.springframework.modulith", name = "spring-modulith-junit", version.ref = "spring-modulith" }
 

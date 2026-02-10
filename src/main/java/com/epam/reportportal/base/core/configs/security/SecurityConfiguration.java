@@ -23,6 +23,9 @@ import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -45,7 +48,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(proxyTargetClass = true)
-class SecurityConfiguration {
+public class SecurityConfiguration {
 
   private final PermissionEvaluator permissionEvaluator;
   private final DefaultUserDetailsService userDetailsService;
@@ -57,8 +60,7 @@ class SecurityConfiguration {
       PermissionEvaluator permissionEvaluator,
       DefaultUserDetailsService userDetailsService,
       RoleHierarchy roleHierarchy,
-      CustomAuthenticationManagerResolver customAuthenticationManagerResolver
-  ) {
+      CustomAuthenticationManagerResolver customAuthenticationManagerResolver) {
     this.permissionEvaluator = permissionEvaluator;
     this.userDetailsService = userDetailsService;
     this.roleHierarchy = roleHierarchy;
@@ -66,8 +68,21 @@ class SecurityConfiguration {
   }
 
   @Bean
+  @Order(Ordered.HIGHEST_PRECEDENCE + 1)
   public SecurityFilterChain web(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(authorize -> authorize
+    http
+        .securityMatchers(matchers -> matchers.requestMatchers(
+            "/v1/**",
+            "/v2/**",
+            "/api/**",
+            "/swagger-resources/**",
+            "/certificate/**",
+            "/api-internal/**",
+            "/api-docs/**",
+            "/documentation.html",
+            "/health",
+            "/info"))
+        .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(
                 "/**/invitations/**",
                 "/**/user**/password/reset/*",
@@ -77,8 +92,7 @@ class SecurityConfiguration {
                 "/documentation.html",
                 "/health",
                 "/info",
-                "/api-docs"
-            )
+                "/api-docs")
             .permitAll()
             /* set of special endpoints for another microservices from RP ecosystem */
             .requestMatchers("/api-internal/**")
@@ -90,6 +104,7 @@ class SecurityConfiguration {
         .oauth2ResourceServer(resourceServer -> resourceServer
             .authenticationManagerResolver(customAuthenticationManagerResolver)
             .authenticationEntryPoint(authenticationEntryPoint()))
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .userDetailsService(userDetailsService)
         .csrf(AbstractHttpConfigurer::disable);
 
@@ -124,6 +139,3 @@ class SecurityConfiguration {
     return handler;
   }
 }
-
-
-

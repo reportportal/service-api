@@ -55,6 +55,7 @@ dependencies {
     implementation(platform(libs.spring.modulith.bom))
     implementation(libs.spring.modulith.starter.core)
     implementation(libs.spring.modulith.events.api)
+    implementation(libs.spring.modulith.actuator)
     testImplementation(libs.spring.modulith.docs)
     testImplementation(libs.spring.modulith.starter.test)
     testImplementation(libs.spring.modulith.junit)

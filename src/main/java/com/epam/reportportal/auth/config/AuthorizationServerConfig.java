@@ -31,14 +31,13 @@ import com.epam.reportportal.auth.integration.ldap.LdapUserReplicator;
 import com.epam.reportportal.auth.integration.parameter.ParameterUtils;
 import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
-import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import java.util.List;
@@ -51,7 +50,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -62,7 +60,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -128,11 +125,15 @@ public class AuthorizationServerConfig {
 
   private final BasicTextEncryptor encryptor;
 
+  private final PasswordEncoder passwordEncoder;
+
+  private final UserDetailsService userDetailsService;
+
   @Bean
   public RegisteredClientRepository registeredClientRepository() {
     RegisteredClient uiClient = RegisteredClient.withId(ReportPortalClient.ui.name())
         .clientId(ReportPortalClient.ui.name())
-        .clientSecret(passwordEncoder().encode("uiman"))
+        .clientSecret(passwordEncoder.encode("uiman"))
         .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
         .authorizationGrantType(AuthorizationGrantType.PASSWORD)
         .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
@@ -197,8 +198,7 @@ public class AuthorizationServerConfig {
   @Bean
   @Order(1)
   SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-    OAuth2AuthorizationServerConfigurer configurer =
-        new OAuth2AuthorizationServerConfigurer();
+    OAuth2AuthorizationServerConfigurer configurer = new OAuth2AuthorizationServerConfigurer();
 
     http
         .securityMatcher("/sso/oauth/token")
@@ -206,15 +206,12 @@ public class AuthorizationServerConfig {
         .csrf(AbstractHttpConfigurer::disable)
         .exceptionHandling(ex -> ex
             .authenticationEntryPoint(new OAuth2ErrorResponseHandler())
-            .accessDeniedHandler(new OAuth2ErrorResponseHandler())
-        )
+            .accessDeniedHandler(new OAuth2ErrorResponseHandler()))
         .apply(configurer).tokenEndpoint(
-            tokenEndpoint ->
-                tokenEndpoint
-                    .accessTokenRequestConverter(new CustomCodeGrantAuthenticationConverter())
-                    .authenticationProvider(basicPasswordAuthProvider())
-                    .authenticationProvider(ldapAuthProvider())
-        );
+            tokenEndpoint -> tokenEndpoint
+                .accessTokenRequestConverter(new CustomCodeGrantAuthenticationConverter())
+                .authenticationProvider(basicPasswordAuthProvider())
+                .authenticationProvider(ldapAuthProvider()));
 
     return http.build();
   }
@@ -222,8 +219,8 @@ public class AuthorizationServerConfig {
   @Bean
   public AuthenticationProvider basicPasswordAuthProvider() {
     BasicPasswordAuthenticationProvider provider = new BasicPasswordAuthenticationProvider();
-    provider.setUserDetailsService(userDetailsService());
-    provider.setPasswordEncoder(passwordEncoder());
+    provider.setUserDetailsService(userDetailsService);
+    provider.setPasswordEncoder(passwordEncoder);
     return provider;
   }
 
@@ -242,8 +239,7 @@ public class AuthorizationServerConfig {
                 .findFirst()
                 .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND))
 
-        )
-    );
+        ));
   }
 
   private String getSecret() {
@@ -254,11 +250,6 @@ public class AuthorizationServerConfig {
     return serverSettingsRepository.findByKey(SECRET_KEY)
         .map(ServerSettings::getValue)
         .orElseGet(serverSettingsRepository::generateSecret);
-  }
-
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
   }
 
   @Bean
@@ -274,49 +265,42 @@ public class AuthorizationServerConfig {
                 "/oauth/login/**",
                 "/epam/**",
                 "/saml2/**",
-                "/login/**"
-            ).permitAll()
-            .anyRequest().authenticated()
-        )
+                "/login/**")
+            .permitAll()
+            .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2ResourceServerCustomizer())
         .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .oauth2Login(oauth2 -> oauth2
             .userInfoEndpoint(
                 userInfo -> userInfo.userService(new DelegatingOAuth2UserService<>(getUserServices(authProviders))))
             .clientRegistrationRepository(clientRegistrationRepository)
             .authorizationEndpoint(authorization -> authorization
                 .baseUri("/oauth/login")
-                .authorizationRequestResolver(authorizationRequestResolver)
-            )
+                .authorizationRequestResolver(authorizationRequestResolver))
             .redirectionEndpoint(redirection -> redirection
-                .baseUri("/sso/login/*")
-            )
+                .baseUri("/sso/login/*"))
             .successHandler(successHandler)
-            .failureHandler(authenticationFailureHandler)
-        )
+            .failureHandler(authenticationFailureHandler))
         .oauth2Client(Customizer.withDefaults());
 
     return http.build();
   }
 
   @Bean
-  @Order(5)
+  @Order(6)
   public SecurityFilterChain ssoSecurityFilterChain(HttpSecurity http) throws Exception {
     http
         .securityMatcher("/sso/me/**", "/sso/internal/**", "/settings/**")
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/settings/**").hasRole("ADMINISTRATOR")
             .requestMatchers("/sso/internal/**").hasRole("INTERNAL")
-            .anyRequest().authenticated()
-        )
+            .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2ResourceServerCustomizer())
         .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     return http.build();
   }
@@ -325,8 +309,7 @@ public class AuthorizationServerConfig {
   public OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
     return new DefaultOAuth2AuthorizationRequestResolver(
         clientRegistrationRepository,
-        "/oauth/login"
-    );
+        "/oauth/login");
   }
 
   @Bean
@@ -335,28 +318,20 @@ public class AuthorizationServerConfig {
       OAuth2AuthorizedClientRepository authorizedClientRepository) {
     return new DefaultOAuth2AuthorizedClientManager(
         clientRegistrationRepository,
-        authorizedClientRepository
-    );
-  }
-
-  @Bean
-  @Primary
-  protected UserDetailsService userDetailsService() {
-    return new DefaultUserDetailsService();
+        authorizedClientRepository);
   }
 
   private Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>> oauth2ResourceServerCustomizer() {
     return oauth2 -> oauth2
         .jwt(jwt -> jwt
             .decoder(jwtDecoder())
-            .jwtAuthenticationConverter(new JwtReportPortalUserConverter(userDetailsService()))
-        );
+            .jwtAuthenticationConverter(new JwtReportPortalUserConverter(userDetailsService)));
   }
 
   public List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> getUserServices(List<OAuthProvider> providers) {
     return providers.stream()
-        .map(provider ->
-            provider.getUserService(clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
+        .map(provider -> provider
+            .getUserService(clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
                 .map(OAuthRegistrationConverters.TO_RESOURCE)
                 .orElse(new OAuthRegistrationResource())))
         .collect(Collectors.toList());

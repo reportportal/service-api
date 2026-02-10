@@ -36,10 +36,11 @@ public interface GetUserFilterHandler {
    * Get {@link UserFilterResource} by provided id
    *
    * @param id             Provided id
-   * @param projectDetails Projcet details
+   * @param projectDetails Project details
+   * @param user           ReportPortal user
    * @return {@link UserFilterResource}
    */
-  UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails);
+  UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
   /**
    * Get {@link UserFilterResource} objects
@@ -51,7 +52,7 @@ public interface GetUserFilterHandler {
    * @return {@link Page}
    */
   Page<UserFilterResource> getUserFilters(String projectName, Pageable pageable, Filter filter,
-                                          ReportPortalUser user);
+      ReportPortalUser user);
 
   /**
    * Get all {@link com.epam.ta.reportportal.entity.filter.UserFilter}'s names
@@ -66,9 +67,7 @@ public interface GetUserFilterHandler {
       Pageable pageable, Filter filter, ReportPortalUser user);
 
   /**
-   * Get all
-   * {@link UserFilterResource}
-   * objects
+   * Get all {@link UserFilterResource} objects
    *
    * @param ids            Filter IDs
    * @param projectDetails Project details

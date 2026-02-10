@@ -25,8 +25,8 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 
 /**
- * Service responsible for building safe file paths and folder structures for use inside ZIP
- * archives.
+ * Service responsible for building safe file paths and folder structures
+ * for use inside ZIP archives.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -47,23 +47,23 @@ public class PathBuilderService {
   /**
    * Constructs a full hierarchical path for a test item based on its parent chain.
    *
-   * @param names       the map of test item IDs to test item names
-   * @param currentPath the test item path whose path should be built
+   * @param items the full map of test item IDs to test items
+   * @param item  the test item whose path should be built
    * @return a sanitized path for the item (e.g., "Suite/TestCase/Step")
    */
-  public String buildItemPath(Map<Long, String> names, String currentPath) {
-    return getPathNames(names, currentPath).stream()
+  public String buildItemPath(Map<Long, TestItemPojo> items, TestItemPojo item) {
+    return getPathNames(items, item).stream()
         .map(this::sanitize)
         .collect(Collectors.joining("/"));
   }
 
-  private List<String> getPathNames(Map<Long, String> names, String currentPath) {
-    if (Strings.isBlank(currentPath)) {
+  private List<String> getPathNames(Map<Long, TestItemPojo> items, TestItemPojo current) {
+    if (Strings.isBlank(current.getPath())) {
       return Collections.emptyList();
     }
-    return Arrays.stream(currentPath.split("\\."))
+    return Arrays.stream(current.getPath().split("\\."))
         .map(Long::parseLong)
-        .map(names::get)
+        .map(id -> items.get(id).getItemName())
         .collect(Collectors.toList());
   }
 

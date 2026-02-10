@@ -21,10 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.model.ValidationConstraints;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -33,7 +36,6 @@ import com.epam.ta.reportportal.model.filter.Order;
 import com.epam.ta.reportportal.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.reportportal.model.ValidationConstraints;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -216,5 +218,32 @@ class UserFilterControllerTest extends BaseMvcTest {
         filterCondition.getValue().substring(filterCondition.getValue().indexOf(":") + 1);
     assertEquals(ValidationConstraints.MAX_ATTRIBUTE_LENGTH, actualKey.length());
     assertEquals(ValidationConstraints.MAX_ATTRIBUTE_LENGTH, actualValue.length());
+  }
+
+  @Test
+  void getFilterWithLockedDashboards() throws Exception {
+    // Lock dashboard
+    mockMvc.perform(
+            patch(SUPERADMIN_PROJECT_BASE_URL + "/dashboard/14")
+                .with(token(oAuthHelper.getSuperadminToken()))
+                .content("{ \"locked\": true }")
+                .contentType(APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    // Verify filter response contains locked dashboard
+    mockMvc.perform(
+            get(SUPERADMIN_PROJECT_BASE_URL + "/filter/1")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lockedDashboards").exists())
+        .andExpect(jsonPath("$.lockedDashboards[0]").value("test admin private dashboard"));
+
+    // Unlock dashboard to clean up
+    mockMvc.perform(
+            patch(SUPERADMIN_PROJECT_BASE_URL + "/dashboard/14")
+                .with(token(oAuthHelper.getSuperadminToken()))
+                .content("{ \"locked\": false }")
+                .contentType(APPLICATION_JSON))
+        .andExpect(status().isOk());
   }
 }

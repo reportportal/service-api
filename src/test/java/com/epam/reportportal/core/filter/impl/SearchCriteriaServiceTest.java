@@ -25,15 +25,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.epam.reportportal.api.model.FilterOperation;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.reportportal.api.model.SearchOperator;
+import com.epam.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.CompositeFilter;
+import com.epam.reportportal.infrastructure.persistence.commons.querygen.ConvertibleCondition;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.FilterTarget;
 import com.epam.reportportal.infrastructure.persistence.commons.querygen.Queryable;
-import com.epam.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.reportportal.infrastructure.persistence.entity.activity.Activity;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Operator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,8 +68,8 @@ class SearchCriteriaServiceTest {
   @Test
   void testCreateFilterBySearchCriteria_criteriaWithoutPredefinedFilter() {
     List<SearchCriteriaSearchCriteriaInner> criteriaList =
-        List.of(new SearchCriteriaSearchCriteriaInner("sampleKey1", FilterOperation.EQ, "sampleValue1"),
-            new SearchCriteriaSearchCriteriaInner("sampleKey2", FilterOperation.IN, "sampleValue2")
+        List.of(new SearchCriteriaSearchCriteriaInner("sampleKey1", null, FilterOperation.EQ, "sampleValue1"),
+            new SearchCriteriaSearchCriteriaInner("sampleKey2", null, FilterOperation.IN, "sampleValue2")
         );
     searchCriteriaRQ.setSearchCriteria(criteriaList);
 
@@ -81,8 +84,8 @@ class SearchCriteriaServiceTest {
   @Test
   void testCreateFilterBySearchCriteria_criteriaWithPredefinedFilter() {
     List<SearchCriteriaSearchCriteriaInner> criteriaList =
-        List.of(new SearchCriteriaSearchCriteriaInner("predefinedFilter", null, "predefinedValue"),
-            new SearchCriteriaSearchCriteriaInner("sampleKey3", FilterOperation.EQ, "sampleValue3")
+        List.of(new SearchCriteriaSearchCriteriaInner("predefinedFilter", null, null, "predefinedValue"),
+            new SearchCriteriaSearchCriteriaInner("sampleKey3", null, FilterOperation.EQ, "sampleValue3")
         );
     searchCriteriaRQ.setSearchCriteria(criteriaList);
 
@@ -96,9 +99,52 @@ class SearchCriteriaServiceTest {
 
 
   @Test
+  void testCreateFilterBySearchCriteria_criteriaWithOrOperator() {
+    List<SearchCriteriaSearchCriteriaInner> criteriaList =
+        List.of(
+            new SearchCriteriaSearchCriteriaInner("sampleKey1", SearchOperator.OR,
+                FilterOperation.EQ, "sampleValue1"),
+            new SearchCriteriaSearchCriteriaInner("sampleKey2", SearchOperator.OR,
+                FilterOperation.IN, "sampleValue2")
+        );
+    searchCriteriaRQ.setSearchCriteria(criteriaList);
+
+    var filter = searchCriteriaService.createFilterBySearchCriteria(
+        searchCriteriaRQ, target, PredefinedFilterType.ACTIVITIES);
+
+    assertInstanceOf(Filter.class, filter);
+    assertEquals(2, filter.getFilterConditions().size());
+    filter.getFilterConditions().forEach(cnd -> {
+      FilterCondition condition = (FilterCondition) cnd;
+      assertEquals(Operator.OR, condition.getOperator());
+    });
+  }
+
+  @Test
+  void testCreateFilterBySearchCriteria_criteriaWithMixedOperators() {
+    List<SearchCriteriaSearchCriteriaInner> criteriaList =
+        List.of(
+            new SearchCriteriaSearchCriteriaInner("sampleKey1", null, FilterOperation.EQ,
+                "sampleValue1"),
+            new SearchCriteriaSearchCriteriaInner("sampleKey2", SearchOperator.OR,
+                FilterOperation.IN, "sampleValue2")
+        );
+    searchCriteriaRQ.setSearchCriteria(criteriaList);
+
+    var filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ, target,
+        PredefinedFilterType.ACTIVITIES);
+
+    assertInstanceOf(Filter.class, filter);
+    List<ConvertibleCondition> conditions = filter.getFilterConditions();
+    assertEquals(2, conditions.size());
+    assertEquals(Operator.AND, ((FilterCondition) conditions.get(0)).getOperator());
+    assertEquals(Operator.OR, ((FilterCondition) conditions.get(1)).getOperator());
+  }
+
+  @Test
   void testNormalizeValueSpaces() {
     List<SearchCriteriaSearchCriteriaInner> criteriaList =
-        List.of(new SearchCriteriaSearchCriteriaInner("predefinedFilter", FilterOperation.CNT, "sample Value1"));
+        List.of(new SearchCriteriaSearchCriteriaInner("predefinedFilter", null, FilterOperation.CNT, "sample Value1"));
     searchCriteriaRQ.setSearchCriteria(criteriaList);
     Queryable filter = searchCriteriaService.createFilterBySearchCriteria(searchCriteriaRQ, target,
         PredefinedFilterType.ACTIVITIES

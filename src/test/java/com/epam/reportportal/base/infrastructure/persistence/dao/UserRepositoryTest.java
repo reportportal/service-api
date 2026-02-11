@@ -43,7 +43,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdFullNameProjection;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdDisplayNameProjection;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.ws.BaseMvcTest;
@@ -168,13 +168,12 @@ class UserRepositoryTest extends BaseMvcTest {
     List<Long> userIds = List.of(1L, 2L);
 
     // when
-    List<UserIdFullNameProjection> fullNamesByIds = userRepository.findFullNamesByIds(
-        userIds);
+    List<UserIdDisplayNameProjection> fullNamesByIds = userRepository.findDisplayNamesByIds(userIds);
 
     // then
     assertEquals(2, fullNamesByIds.size());
-    assertEquals("tester", fullNamesByIds.get(0).fullName());
-    assertEquals("tester", fullNamesByIds.get(1).fullName());
+    assertEquals("tester", fullNamesByIds.get(0).displayName());
+    assertEquals("tester", fullNamesByIds.get(1).displayName());
   }
 
   @Test

@@ -131,11 +131,16 @@ public class FlushingDataJob implements Job {
    * Get exclusive lock. Kill all running transactions. Truncate tables
    */
   private void truncateTables() {
-    jdbcTemplate.execute("BEGIN; " + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
+    jdbcTemplate.execute("""
+        BEGIN;
+        TRUNCATE TABLE launch RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE activity RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;
+        DELETE FROM statistics_field WHERE sf_id > 14;
+        COMMIT;
+        """);
   }
 
   private void restartSequences() {

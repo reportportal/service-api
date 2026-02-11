@@ -20,7 +20,7 @@ import static com.epam.reportportal.base.ws.converter.converters.LaunchConverter
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdFullNameProjection;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdDisplayNameProjection;
 import com.epam.reportportal.base.reporting.TestItemResource;
 import com.epam.reportportal.base.ws.converter.utils.ResourceUpdater;
 import com.epam.reportportal.base.ws.converter.utils.ResourceUpdaterProvider;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service to provide a {@link ResourceUpdater} for test items that populates analysis owner information. Performs batch
- * fetching of user full names for optimal performance.
+ * fetching of user full names (or logins) for optimal performance.
  *
  */
 @Service
@@ -47,7 +47,7 @@ public class AnalysisOwnerUpdaterProvider
 
   /**
    * Retrieves and constructs a {@code ResourceUpdater} for working with test items, mapping each item's ID to the
-   * analysis owner's full name.
+   * analysis owner's full name (or login if full name is null).
    *
    * @param updaterContent The content containing test items to update.
    * @return A {@code ResourceUpdater} tailored to handle analysis owner mappings.
@@ -77,10 +77,10 @@ public class AnalysisOwnerUpdaterProvider
   }
 
   private Map<Long, String> getUserNamesMap(List<Long> userIds) {
-    return userRepository.findFullNamesByIds(userIds).stream()
+    return userRepository.findDisplayNamesByIds(userIds).stream()
         .collect(Collectors.toMap(
-            UserIdFullNameProjection::id,
-            UserIdFullNameProjection::fullName
+            UserIdDisplayNameProjection::id,
+            UserIdDisplayNameProjection::displayName
         ));
   }
 }

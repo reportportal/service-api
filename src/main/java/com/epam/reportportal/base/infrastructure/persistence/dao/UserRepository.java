@@ -20,7 +20,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserAuthProjection;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdFullNameProjection;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdDisplayNameProjection;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import java.time.Instant;
@@ -100,7 +100,7 @@ public interface UserRepository extends ReportPortalRepository<User, Long>, User
 
   @Query(value = """
       SELECT u.email FROM users u
-            JOIN organization_user ou ON u.id = ou.user_id 
+            JOIN organization_user ou ON u.id = ou.user_id
             WHERE ou.organization_id = :organizationId 
             AND ou.organization_role = cast(:#{#organizationRole.name()} AS organization_role_enum)
       """, nativeQuery = true)
@@ -118,13 +118,21 @@ public interface UserRepository extends ReportPortalRepository<User, Long>, User
   Optional<String> findLoginById(@Param("id") Long id);
 
   /**
-   * Batch fetch user full names by user IDs.
+   * Batch fetch user display names by user IDs. Display name is the user's full name if available, otherwise the
+   * login.
    *
    * @param userIds collection of user IDs
-   * @return List of user ID and full name projections
+   * @return List of user ID and display name projections
    */
-  @Query("SELECT new com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdFullNameProjection(u.id, u.fullName) FROM User u WHERE u.id IN :userIds")
-  List<UserIdFullNameProjection> findFullNamesByIds(@Param("userIds") List<Long> userIds);
+  @Query("""
+      SELECT new com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdDisplayNameProjection(
+          u.id,
+          COALESCE(NULLIF(TRIM(u.fullName), ''), u.login)
+      )
+      FROM User u
+      WHERE u.id IN :userIds
+      """)
+  List<UserIdDisplayNameProjection> findDisplayNamesByIds(@Param("userIds") List<Long> userIds);
 
   /**
    * Optimized method to find user authentication data by login. Returns only fields needed for authentication.

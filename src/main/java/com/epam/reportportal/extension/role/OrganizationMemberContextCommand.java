@@ -16,20 +16,20 @@
 
 package com.epam.reportportal.extension.role;
 
-import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.notNull;
-import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.notNull;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 
 import com.epam.reportportal.api.model.PluginCommandContext;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.extension.AbstractContextBasedCommand;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
-import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationUserRepository;
-import com.epam.reportportal.infrastructure.persistence.entity.organization.Organization;
-import com.epam.reportportal.infrastructure.persistence.entity.user.OrganizationUser;
-import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.infrastructure.rules.commons.validation.Suppliers;
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 

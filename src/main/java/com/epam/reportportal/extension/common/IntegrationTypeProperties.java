@@ -18,7 +18,7 @@ package com.epam.reportportal.extension.common;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;

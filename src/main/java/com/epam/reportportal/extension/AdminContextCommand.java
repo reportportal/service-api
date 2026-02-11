@@ -1,10 +1,10 @@
 package com.epam.reportportal.extension;
 
 import com.epam.reportportal.api.model.PluginCommandContext;
-import com.epam.reportportal.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import java.util.function.Predicate;
 import org.springframework.security.core.context.SecurityContextHolder;
 

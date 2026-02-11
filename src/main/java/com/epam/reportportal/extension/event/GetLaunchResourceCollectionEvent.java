@@ -16,8 +16,8 @@
 
 package com.epam.reportportal.extension.event;
 
-import com.epam.reportportal.core.events.domain.AbstractEvent;
-import com.epam.reportportal.reporting.LaunchResource;
+import com.epam.reportportal.base.core.events.domain.AbstractEvent;
+import com.epam.reportportal.base.reporting.LaunchResource;
 import java.util.Collection;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,7 +1,7 @@
 package com.epam.reportportal.extension;
 
 import com.epam.reportportal.api.model.PluginCommandRQ;
-import com.epam.reportportal.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import java.util.Map;
 
 /**

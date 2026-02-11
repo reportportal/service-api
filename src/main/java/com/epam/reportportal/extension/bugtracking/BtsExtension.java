@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.extension.bugtracking;
 
-import com.epam.reportportal.infrastructure.model.externalsystem.PostFormField;
-import com.epam.reportportal.infrastructure.model.externalsystem.PostTicketRQ;
-import com.epam.reportportal.infrastructure.model.externalsystem.Ticket;
-import com.epam.reportportal.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import java.util.List;
 import java.util.Optional;
 import org.pf4j.ExtensionPoint;

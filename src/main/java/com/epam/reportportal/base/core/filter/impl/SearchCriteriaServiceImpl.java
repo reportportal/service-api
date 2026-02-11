@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.filter.impl;
 
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
+import com.epam.reportportal.api.model.SearchOperator;
 import com.epam.reportportal.base.core.filter.FilterOperation;
 import com.epam.reportportal.base.core.filter.SearchCriteriaService;
 import com.epam.reportportal.base.core.filter.predefined.PredefinedFilterType;
@@ -74,12 +75,13 @@ public class SearchCriteriaServiceImpl implements SearchCriteriaService {
         .map(this::mapCriteriaToCondition).collect(Collectors.toList());
   }
 
-  private ConvertibleCondition mapCriteriaToCondition(
-      SearchCriteriaSearchCriteriaInner searchCriteria) {
+  private ConvertibleCondition mapCriteriaToCondition(SearchCriteriaSearchCriteriaInner searchCriteria) {
+    var operator = searchCriteria.getOperator() == SearchOperator.OR ? Operator.OR : Operator.AND;
     return FilterOperation.fromString(searchCriteria.getOperation().toString())
         .map(operation -> operation.getConditionBuilder()
             .withSearchCriteria(searchCriteria.getFilterKey())
             .withValue(searchCriteria.getValue())
+            .withOperator(operator)
             .build())
         .orElseThrow(() -> new ReportPortalException(
             String.format("Can not convert operation type %s.", searchCriteria.getOperation())));

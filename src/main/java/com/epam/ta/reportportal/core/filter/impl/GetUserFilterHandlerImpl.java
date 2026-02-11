@@ -16,19 +16,21 @@
 
 package com.epam.ta.reportportal.core.filter.impl;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.OwnedEntityResource;
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,18 +60,21 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   }
 
   @Override
-  public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails) {
+  public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
     final UserFilter userFilter =
         filterRepository.findByIdAndProjectId(id, projectDetails.getProjectId()).orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, id,
                 projectDetails.getProjectName()
             ));
-    return UserFilterConverter.TO_FILTER_RESOURCE.apply(userFilter);
+    UserFilterResource resource = UserFilterConverter.TO_FILTER_RESOURCE.apply(userFilter);
+    populateLockedDashboards(resource, userFilter, projectDetails, user);
+    return resource;
   }
 
   @Override
   public com.epam.ta.reportportal.model.Page<UserFilterResource> getUserFilters(String projectName, Pageable pageable,
-                                                                                Filter filter, ReportPortalUser user) {
+      Filter filter, ReportPortalUser user) {
     ReportPortalUser.ProjectDetails projectDetails =
         projectExtractor.extractProjectDetails(user, projectName);
     Page<UserFilter> userFilters =
@@ -97,5 +102,24 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
       ReportPortalUser user) {
     return filterRepository.findAllByIdInAndProjectId(
         Lists.newArrayList(ids), projectDetails.getProjectId());
+  }
+
+  private void populateLockedDashboards(UserFilterResource resource, UserFilter userFilter,
+      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+    if (!Boolean.TRUE.equals(userFilter.getLocked())) {
+      return;
+    }
+
+    if (!hasManagementPermissions(user, projectDetails)) {
+      return;
+    }
+
+    resource.setLockedDashboards(
+        filterRepository.findLockedDashboardsByFilterId(userFilter.getId(), projectDetails.getProjectId()));
+  }
+
+  private boolean hasManagementPermissions(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+    return user.getUserRole() == UserRole.ADMINISTRATOR ||
+        projectDetails.getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
   }
 }

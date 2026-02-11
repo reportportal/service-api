@@ -228,6 +228,7 @@ test {
     reports {
         junitXml.required = true
     }
+    maxHeapSize = '2g'
 }
 
 compileJava.dependsOn tasks.named('openApiGenerate')

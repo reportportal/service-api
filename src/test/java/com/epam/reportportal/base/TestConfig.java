@@ -34,32 +34,37 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Configuration
+@SpringBootConfiguration
+@EnableConfigurationProperties
 @EnableAutoConfiguration(exclude = {QuartzAutoConfiguration.class, RabbitAutoConfiguration.class})
-@ComponentScan(value = {"com.epam.reportportal.base"}, excludeFilters = {
+@ComponentScan(value = {"com.epam.reportportal"}, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.reportportal.auth.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.reportportal.base.ws.rabbit.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.reportportal.base.reporting.async.*"),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.reportportal.base.job.*"}),
-    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.epam.reportportal.base.core.integration.migration.*"}),
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
+        "com.epam.reportportal.base.core.integration.migration.*"}),
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class)})
 public class TestConfig {
+
+  @Value("${rp.jwt.signing-key}")
+  private String secret;
 
   @MockBean
   protected Client rabbitClient;
@@ -106,8 +111,4 @@ public class TestConfig {
     return om;
   }
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
 }

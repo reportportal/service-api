@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdFullNameProjection;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdDisplayNameProjection;
 import com.epam.reportportal.base.reporting.TestItemResource;
 import com.epam.reportportal.base.ws.converter.utils.ResourceUpdater;
 import com.epam.reportportal.base.ws.converter.utils.item.content.TestItemUpdaterContent;

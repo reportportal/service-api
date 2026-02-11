@@ -124,7 +124,14 @@ public interface UserRepository extends ReportPortalRepository<User, Long>, User
    * @param userIds collection of user IDs
    * @return List of user ID and display name projections
    */
-  @Query("SELECT new com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdDisplayNameProjection(u.id, COALESCE(u.fullName, u.login)) FROM User u WHERE u.id IN :userIds")
+  @Query("""
+      SELECT new com.epam.reportportal.base.infrastructure.persistence.entity.user.UserIdDisplayNameProjection(
+          u.id,
+          COALESCE(NULLIF(TRIM(u.fullName), ''), u.login)
+      )
+      FROM User u
+      WHERE u.id IN :userIds
+      """)
   List<UserIdDisplayNameProjection> findDisplayNamesByIds(@Param("userIds") List<Long> userIds);
 
   /**

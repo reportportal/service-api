@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.infrastructure.persistence.entity.user;
+package com.epam.reportportal.base.infrastructure.persistence.entity.user;
 
 /**
  * Projection for User entity containing ID and display name. Display name is the user's full name if available,

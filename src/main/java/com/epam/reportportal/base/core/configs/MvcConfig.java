@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -39,8 +38,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -54,9 +51,6 @@ public class MvcConfig implements WebMvcConfigurer {
 
   @Autowired
   private ObjectMapper objectMapper;
-
-  @Autowired
-  private List<HttpMessageConverter<?>> converters;
 
   private static final String[] CLASSPATH_RESOURCE_LOCATIONS =
       {"classpath:/public/", "classpath:/META-INF/resources/", "classpath:/resources/"};
@@ -111,17 +105,6 @@ public class MvcConfig implements WebMvcConfigurer {
     converters.add(stringConverter());
   }
 
-
-  @Override
-  public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    configurer.favorPathExtension(false);
-  }
-
-  @Override
-  public void configurePathMatch(PathMatchConfigurer configurer) {
-    configurer.setUseSuffixPatternMatch(false);
-  }
-
   @Bean
   public BeanValidationPostProcessor beanValidationPostProcessor() {
     return new BeanValidationPostProcessor();
@@ -155,11 +138,6 @@ public class MvcConfig implements WebMvcConfigurer {
   @Bean
   public ByteArrayHttpMessageConverter byteArrayConverter() {
     return new ByteArrayHttpMessageConverter();
-  }
-
-  @Bean
-  HttpMessageConverters httpMessageConverters() {
-    return new HttpMessageConverters(converters);
   }
 
 }

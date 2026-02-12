@@ -2,7 +2,7 @@
 # Development versions
 
 # Platform versions
-spring-boot = "3.5.9"
+spring-boot = "4.0.2"
 zonky-postgres-bom = "17.6.0"
 
 # Plugin versions
@@ -23,18 +23,13 @@ embedded-postgres = "2.2.0"
 flyway-spring-test = "10.0.0"
 google-api-client = "2.8.1"
 guava = "33.5.0-jre"
-hibernate-validator = "8.0.2.Final"
-httpclient5 = "5.5.1"
-jakarta-inject = "2.0.1"
 jakarta-mail = "2.0.2"
-jakarta-xml-bind-api = "3.0.1"
 jasperreports = "6.21.3"
 jasypt = "1.9.3"
 jaxb-api = "2.4.0-b180830.0359"
 jclouds = "2.7.0"
-jdbc-driver-version = "42.7.8"
 jjwt = "0.12.5"
-jooq = "3.19.27"
+jooq = "3.19.29"
 json-schema-validator = "1.5.6"
 lombok = "1.18.42"
 nimbus-oauth2-oidc-sdk = "10.15.1"
@@ -43,7 +38,7 @@ openpdf = "2.4.0"
 pf4j = "3.13.0"
 rabbitmq-http = "5.4.0"
 slugify = "3.0.7"
-spring-modulith = "1.4.7"
+spring-modulith = "2.0.2"
 springdoc-openapi = "2.8.14"
 tika = "3.2.3"
 thumbnailator = "0.4.21"
@@ -52,8 +47,6 @@ mapstruct = "1.6.3"
 pf4j-update = "2.3.0"
 kotlin = "2.3.0"
 json = "20250107"
-flyway = "10.15.2"
-flyway-postgres = "10.20.0"
 
 [libraries]
 # Development libs
@@ -66,16 +59,17 @@ zonky-postgres-bom = { group = "io.zonky.test.postgres", name = "embedded-postgr
 spring-modulith-bom = { group = "org.springframework.modulith", name = "spring-modulith-bom", version.ref = "spring-modulith" }
 
 # Spring Boot
-spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-boot-starter-aop" }
-spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web" }
+spring-boot-starter-aspectj = { group = "org.springframework.boot", name = "spring-boot-starter-aspectj" }
+spring-boot-starter-webmvc = { group = "org.springframework.boot", name = "spring-boot-starter-webmvc" }
 spring-boot-starter-data-jpa = { group = "org.springframework.boot", name = "spring-boot-starter-data-jpa" }
 spring-boot-starter-quartz = { group = "org.springframework.boot", name = "spring-boot-starter-quartz" }
 spring-boot-starter-freemarker = { group = "org.springframework.boot", name = "spring-boot-starter-freemarker" }
 spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
 spring-boot-starter-amqp = { group = "org.springframework.boot", name = "spring-boot-starter-amqp" }
-spring-boot-starter-batch = { group = "org.springframework.boot", name = "spring-boot-starter-batch" }
+spring-boot-starter-batch = { group = "org.springframework.boot", name = "spring-boot-starter-batch-jdbc" }
 spring-boot-starter-security = { group = "org.springframework.boot", name = "spring-boot-starter-security" }
-spring-boot-starter-oauth2-client = { group = "org.springframework.boot", name = "spring-boot-starter-oauth2-client" }
+spring-boot-starter-security-oauth2-client = { group = "org.springframework.boot", name = "spring-boot-starter-security-oauth2-client" }
+spring-boot-starter-restclient = { group = "org.springframework.boot", name = "spring-boot-starter-restclient" }
 spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
 spring-modulith-starter-test = { group = "org.springframework.modulith", name = "spring-modulith-starter-test" }
 
@@ -95,12 +89,12 @@ opencsv = { group = "com.opencsv", name = "opencsv", version.ref = "opencsv" }
 jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
 slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugify" }
 rabbitmq-http-client = { group = "com.rabbitmq", name = "http-client", version.ref = "rabbitmq-http" }
-httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5", version.ref = "httpclient5" }
+httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5" }
 jasperreports = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasperreports" }
 apache-poi = { group = "org.apache.poi", name = "poi", version.ref = "apache-poi" }
 apache-poi-ooxml = { group = "org.apache.poi", name = "poi-ooxml", version.ref = "apache-poi" }
 openpdf = { group = "com.github.librepdf", name = "openpdf", version.ref = "openpdf" }
-jakarta-inject-api = { group = "jakarta.inject", name = "jakarta.inject-api", version.ref = "jakarta-inject" }
+jakarta-inject-api = { group = "jakarta.inject", name = "jakarta.inject-api" }
 jakarta-mail = { group = "com.sun.mail", name = "jakarta.mail", version.ref = "jakarta-mail" }
 xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
 bouncycastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
@@ -109,10 +103,10 @@ commons-validator = { group = "commons-validator", name = "commons-validator", v
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "apache-commons-compress" }
 apache-commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "apache-commons-lang3" }
 apache-commons-collections4 = { group = "org.apache.commons", name = "commons-collections4", version.ref = "apache-commons-collections4" }
-hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator", version.ref = "hibernate-validator" }
+hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version.ref = "json-schema-validator" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
-postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "jdbc-driver-version" }
+postgresql = { group = "org.postgresql", name = "postgresql" }
 tika = { group = "org.apache.tika", name = "tika-core", version.ref = "tika" }
 thumbnailator = { group = "net.coobird", name = "thumbnailator", version.ref = "thumbnailator" }
 jclouds-s3 = { group = "org.apache.jclouds.api", name = "s3", version.ref = "jclouds" }
@@ -121,34 +115,33 @@ jclouds-filesystem = { group = "org.apache.jclouds.provider", name = "aws-s3", v
 aws-core = { group = "software.amazon.awssdk", name = "aws-core", version.ref = "aws-sdk" }
 aws-sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "aws-sdk" }
 jaxb-api = { group = "javax.xml.bind", name = "jaxb-api", version.ref = "jaxb-api" }
-jakarta-xml-bind-api = { group = "jakarta.xml.bind", name = "jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
+jakarta-xml-bind-api = { group = "jakarta.xml.bind", name = "jakarta.xml.bind-api" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 jasypt = { group = "org.jasypt", name = "jasypt", version.ref = "jasypt" }
 pf4j = { group = "org.pf4j", name = "pf4j", version.ref = "pf4j" }
 embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version.ref = "embedded-postgres" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
-jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
 spring-context = { group = "org.springframework", name = "spring-context" }
 spring-jdbc = { group = "org.springframework", name = "spring-jdbc" }
 spring-web = { group = "org.springframework", name = "spring-web" }
 spring-data-jpa = { group = "org.springframework.data", name = "spring-data-jpa" }
 spring-security-core = { group = "org.springframework.security", name = "spring-security-core" }
 spring-data-commons = { group = "org.springframework.data", name = "spring-data-commons" }
+spring-batch-infrastructure = { group = "org.springframework.batch", name = "spring-batch-infrastructure" }
 hibernate-core = { group = "org.hibernate.orm", name = "hibernate-core" }
 jakarta-validation = { group = "jakarta.validation", name = "jakarta.validation-api" }
 apache-commons-commonscsv = { group = "org.apache.commons", name = "commons-csv", version.ref = "apache-commons-csv" }
 pf4j-update = { group = "org.pf4j", name = "pf4j-update", version.ref = "pf4j-update" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 json = { group = "org.json", name = "json", version.ref = "json" }
-flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
-flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway-postgres" }
+flyway-core = { group = "org.flywaydb", name = "flyway-core" }
+flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql" }
 nimbus-oauth2-oidc-sdk = { group = "com.nimbusds", name = "oauth2-oidc-sdk", version.ref = "nimbus-oauth2-oidc-sdk" }
 
 # Spring Modulith
 spring-modulith-starter-core = { group = "org.springframework.modulith", name = "spring-modulith-starter-core", version.ref = "spring-modulith" }
 spring-modulith-events-api = { group = "org.springframework.modulith", name = "spring-modulith-events-api", version.ref = "spring-modulith" }
 spring-modulith-actuator = { group = "org.springframework.modulith", name = "spring-modulith-actuator", version.ref = "spring-modulith" }
-spring-modulith-docs = { group = "org.springframework.modulith", name = "spring-modulith-docs", version.ref = "spring-modulith"}
+spring-modulith-docs = { group = "org.springframework.modulith", name = "spring-modulith-docs", version.ref = "spring-modulith" }
 spring-modulith-junit = { group = "org.springframework.modulith", name = "spring-modulith-junit", version.ref = "spring-modulith" }
 
 # Lombok
@@ -166,8 +159,8 @@ jjwt-jackson = { group = "io.jsonwebtoken", name = "jjwt-jackson", version.ref =
 
 [bundles]
 spring-boot-starters = [
-    "spring-boot-starter-aop",
-    "spring-boot-starter-web",
+    "spring-boot-starter-aspectj",
+    "spring-boot-starter-webmvc",
     "spring-boot-starter-data-jpa",
     "spring-boot-starter-quartz",
     "spring-boot-starter-freemarker",
@@ -175,7 +168,8 @@ spring-boot-starters = [
     "spring-boot-starter-amqp",
     "spring-boot-starter-batch",
     "spring-boot-starter-security",
-    "spring-boot-starter-oauth2-client"
+    "spring-boot-starter-security-oauth2-client",
+    "spring-boot-starter-restclient"
 ]
 
 spring-security = [

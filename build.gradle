@@ -66,8 +66,6 @@ dependencies {
     api(libs.guava)
     api(libs.jasypt)
     api(libs.pf4j)
-    api(libs.jackson.databind)
-    api(libs.jackson.jsr310)
     api(libs.jooq)
     api(libs.apache.commons.collections4)
     api(libs.tika)
@@ -89,6 +87,8 @@ dependencies {
 
     api(libs.pf4j.update) // TODO get rid of and rewrite with the latest version of pf4j
     implementation(libs.bundles.spring.boot.starters)
+
+    implementation(libs.spring.batch.infrastructure)
     implementation(libs.bundles.spring.security)
 
     // MultipartFileUtils requires org.springframework.mock.web.MockMultipartFile

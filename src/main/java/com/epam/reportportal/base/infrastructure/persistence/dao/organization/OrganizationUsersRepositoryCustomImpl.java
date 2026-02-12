@@ -23,12 +23,12 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Qu
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserAccount;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -40,13 +40,13 @@ import org.springframework.stereotype.Repository;
  * @author Siarhei Hrabko
  */
 @Repository
+@RequiredArgsConstructor
 public class OrganizationUsersRepositoryCustomImpl implements OrganizationUsersRepositoryCustom {
 
   protected final Logger LOGGER = LoggerFactory.getLogger(
       OrganizationUsersRepositoryCustomImpl.class);
 
-  @Autowired
-  private DSLContext dsl;
+  private final DSLContext dsl;
 
   @Override
   public List<OrganizationUserAccount> findByFilter(Queryable filter) {

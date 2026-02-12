@@ -25,22 +25,23 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
-public class CustomCodeGrantAuthenticationConverter implements AuthenticationConverter {
-
-  @Nullable
-  @Override
-  public Authentication convert(HttpServletRequest request) {
-    String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
-    if (!"password".equals(grantType)) {
-      return null;
-    }
-    Authentication clientPrincipal = SecurityContextHolder.getContext().getAuthentication();
-
-    ClientToken usernamePasswordAuthenticationToken = new ClientToken(
-        request.getParameter(OAuth2ParameterNames.USERNAME), request.getParameter(OAuth2ParameterNames.PASSWORD),
-        clientPrincipal.getAuthorities());
-    usernamePasswordAuthenticationToken.setClientPrincipal(clientPrincipal);
-
-    return usernamePasswordAuthenticationToken;
-  }
-}
+//todo: grant type password is removed in SB4
+//public class CustomCodeGrantAuthenticationConverter implements AuthenticationConverter {
+//
+//  @Nullable
+//  @Override
+//  public Authentication convert(HttpServletRequest request) {
+//    String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
+//    if (!"password".equals(grantType)) {
+//      return null;
+//    }
+//    Authentication clientPrincipal = SecurityContextHolder.getContext().getAuthentication();
+//
+//    ClientToken usernamePasswordAuthenticationToken = new ClientToken(
+//        request.getParameter(OAuth2ParameterNames.USERNAME), request.getParameter(OAuth2ParameterNames.PASSWORD),
+//        clientPrincipal.getAuthorities());
+//    usernamePasswordAuthenticationToken.setClientPrincipal(clientPrincipal);
+//
+//    return usernamePasswordAuthenticationToken;
+//  }
+//}

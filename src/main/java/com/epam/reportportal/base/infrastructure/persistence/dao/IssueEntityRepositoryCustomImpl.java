@@ -21,19 +21,19 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntityPojo;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JIssueRecord;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.InsertValuesStep5;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Repository
+@RequiredArgsConstructor
 public class IssueEntityRepositoryCustomImpl implements IssueEntityRepositoryCustom {
 
-  @Autowired
-  private DSLContext dslContext;
+  private final DSLContext dslContext;
 
   @Override
   public int saveMultiple(List<IssueEntityPojo> issueEntities) {

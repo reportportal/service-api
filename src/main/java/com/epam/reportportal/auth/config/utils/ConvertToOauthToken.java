@@ -45,6 +45,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
+//todo: grant type password is removed in SB4
 public class ConvertToOauthToken {
 
   private TokenServicesFacade tokenService;
@@ -63,7 +64,7 @@ public class ConvertToOauthToken {
         .principal(authentication)
         .authorizationServerContext(AuthorizationServerContextHolder.getContext())
         .authorizedScopes(authorizedScopes)
-        .authorizationGrantType(AuthorizationGrantType.PASSWORD)
+//        .authorizationGrantType(AuthorizationGrantType.PASSWORD)
         .authorizationGrant(clientToken);
 
     // ----- Access Token -----
@@ -82,8 +83,8 @@ public class ConvertToOauthToken {
         generatedAccessToken.getExpiresAt(), null);
 
     OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-        .principalName(clientPrincipal.getName())
-        .authorizationGrantType(AuthorizationGrantType.PASSWORD);
+        .principalName(clientPrincipal.getName());
+//        .authorizationGrantType(AuthorizationGrantType.PASSWORD);
     authorizationBuilder.token(accessToken,
         (metadata) -> metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME,
             ((ClaimAccessor) generatedAccessToken).getClaims()));

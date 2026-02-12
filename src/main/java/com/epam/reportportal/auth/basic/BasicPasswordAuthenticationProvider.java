@@ -31,6 +31,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
@@ -39,6 +40,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 public class BasicPasswordAuthenticationProvider extends DaoAuthenticationProvider {
+
+  public BasicPasswordAuthenticationProvider(UserDetailsService userDetailsService) {
+    super(userDetailsService);
+  }
 
   @Autowired
   private ApplicationEventPublisher eventPublisher;

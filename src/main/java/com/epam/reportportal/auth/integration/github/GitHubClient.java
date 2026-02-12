@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.auth.integration.github;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,7 @@ public class GitHubClient {
   private GitHubClient(String accessToken) {
     this.restTemplate = new RestTemplate();
     this.restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-      @Override
+      //todo remove???
       public void handleError(ClientHttpResponse response) {
         String errorMessage =
             "Unable to load Github Data:" + new String(getResponseBody(response), StandardCharsets.UTF_8);

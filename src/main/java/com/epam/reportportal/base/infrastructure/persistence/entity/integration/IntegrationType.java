@@ -39,9 +39,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 
 /**
@@ -68,7 +68,7 @@ public class IntegrationType implements Serializable {
   private PluginTypeEnum pluginType;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "auth_flow")
   private IntegrationAuthFlowEnum authFlow;
 
@@ -78,7 +78,7 @@ public class IntegrationType implements Serializable {
   private Instant creationDate;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "group_type", nullable = false)
   private IntegrationGroupEnum integrationGroup;
 

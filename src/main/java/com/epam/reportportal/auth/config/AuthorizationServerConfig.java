@@ -20,7 +20,6 @@ import com.epam.reportportal.auth.OAuthSuccessHandler;
 import com.epam.reportportal.auth.ReportPortalClient;
 import com.epam.reportportal.auth.TokenServicesFacade;
 import com.epam.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
-import com.epam.reportportal.auth.config.password.CustomCodeGrantAuthenticationConverter;
 import com.epam.reportportal.auth.config.password.OAuth2ErrorResponseHandler;
 import com.epam.reportportal.auth.config.utils.JwtReportPortalUserConverter;
 import com.epam.reportportal.auth.integration.AuthIntegrationType;
@@ -57,6 +56,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -80,7 +80,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
@@ -94,6 +93,7 @@ import org.springframework.util.StringUtils;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+//todo: grant type password is removed in SB4
 public class AuthorizationServerConfig {
 
   private static final String SECRET_KEY = "secret.key";
@@ -135,7 +135,7 @@ public class AuthorizationServerConfig {
         .clientId(ReportPortalClient.ui.name())
         .clientSecret(passwordEncoder.encode("uiman"))
         .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-        .authorizationGrantType(AuthorizationGrantType.PASSWORD)
+        // .authorizationGrantType(AuthorizationGrantType.PASSWORD)
         .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
         .scope("ui")
         .tokenSettings(tokenSettings())
@@ -145,7 +145,7 @@ public class AuthorizationServerConfig {
         .clientId(ReportPortalClient.api.name())
         .clientSecret("apiman")
         .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-        .authorizationGrantType(AuthorizationGrantType.PASSWORD)
+        // .authorizationGrantType(AuthorizationGrantType.PASSWORD)
         .scope("api")
         .tokenSettings(TokenSettings.builder()
             .accessTokenTimeToLive(Duration.ofDays(1))
@@ -209,7 +209,7 @@ public class AuthorizationServerConfig {
             .accessDeniedHandler(new OAuth2ErrorResponseHandler()))
         .apply(configurer).tokenEndpoint(
             tokenEndpoint -> tokenEndpoint
-                .accessTokenRequestConverter(new CustomCodeGrantAuthenticationConverter())
+//                .accessTokenRequestConverter(new CustomCodeGrantAuthenticationConverter())
                 .authenticationProvider(basicPasswordAuthProvider())
                 .authenticationProvider(ldapAuthProvider()));
 
@@ -218,8 +218,7 @@ public class AuthorizationServerConfig {
 
   @Bean
   public AuthenticationProvider basicPasswordAuthProvider() {
-    BasicPasswordAuthenticationProvider provider = new BasicPasswordAuthenticationProvider();
-    provider.setUserDetailsService(userDetailsService);
+    BasicPasswordAuthenticationProvider provider = new BasicPasswordAuthenticationProvider(userDetailsService);
     provider.setPasswordEncoder(passwordEncoder);
     return provider;
   }

@@ -33,9 +33,9 @@ import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.type.SqlTypes;
 
 
 /**
@@ -61,7 +61,7 @@ public class Activity implements Serializable {
 
   @Column(name = "action", nullable = false)
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private EventAction action;
 
   @Column(name = "event_name", nullable = false)
@@ -69,7 +69,7 @@ public class Activity implements Serializable {
 
   @Column(name = "priority", nullable = false)
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private EventPriority priority;
 
   @Column(name = "object_id")
@@ -79,7 +79,7 @@ public class Activity implements Serializable {
   private String objectName;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "object_type", nullable = false)
   private EventObject objectType;
 
@@ -103,7 +103,7 @@ public class Activity implements Serializable {
   private String subjectName;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "subject_type", nullable = false)
   private EventSubject subjectType;
 

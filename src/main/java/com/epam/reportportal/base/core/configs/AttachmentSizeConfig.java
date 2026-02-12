@@ -25,12 +25,13 @@ import java.util.Optional;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.database.JdbcCursorItemReader;
+import org.springframework.batch.infrastructure.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -64,23 +65,24 @@ public class AttachmentSizeConfig {
   @Autowired
   private JobRepository jobRepository;
 
+  @Autowired
   private PlatformTransactionManager transactionManager;
 
 
   @Bean
-  public JdbcCursorItemReader<Attachment> reader() throws Exception {
+  public JdbcCursorItemReader<Attachment> reader() {
     String query = "SELECT * from attachment order by id";
-    JdbcCursorItemReader<Attachment> reader = new JdbcCursorItemReader<>();
-    reader.setSql(query);
-    reader.setDataSource(dataSource);
-    reader.setRowMapper((rs, rowNum) -> {
-      Attachment attachment = new Attachment();
-      attachment.setId(rs.getLong("id"));
-      attachment.setFileId(rs.getString("file_id"));
-      return attachment;
-    });
-    reader.afterPropertiesSet();
-    return reader;
+    return new JdbcCursorItemReaderBuilder<Attachment>()
+        .name("attachmentReader")
+        .dataSource(dataSource)
+        .sql(query)
+        .rowMapper((rs, rowNum) -> {
+          Attachment attachment = new Attachment();
+          attachment.setId(rs.getLong("id"));
+          attachment.setFileId(rs.getString("file_id"));
+          return attachment;
+        })
+        .build();
   }
 
   @Bean
@@ -112,7 +114,7 @@ public class AttachmentSizeConfig {
   }
 
   @Bean
-  public Step attachmentSizeStep() throws Exception {
+  public Step attachmentSizeStep() {
     return new StepBuilder("attachment", jobRepository)
         .<Attachment, Attachment>chunk(CHUNK_SIZE, transactionManager)
         .reader(reader())

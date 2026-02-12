@@ -18,18 +18,18 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUserCreationBid.USER_CREATION_BID;
 
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Repository
+@RequiredArgsConstructor
 public class UserCreationBidRepositoryCustomImpl implements UserCreationBidRepositoryCustom {
 
-  @Autowired
-  private DSLContext dsl;
+  private final DSLContext dsl;
 
   @Override
   public int deleteAllByEmail(String email) {

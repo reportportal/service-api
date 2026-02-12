@@ -78,7 +78,7 @@ public class SamlIntegrationStrategy extends AuthIntegrationStrategy {
         .build();
 
     params.put(IDP_URL.getParameterName(), relyingPartyRegistration.getRegistrationId());
-    params.put(IDP_ALIAS.getParameterName(), relyingPartyRegistration.getAssertingPartyDetails().getEntityId());
+    params.put(IDP_ALIAS.getParameterName(), relyingPartyRegistration.getAssertingPartyMetadata().getEntityId());
     params.put(IDP_NAME_ID.getParameterName(),
         StringUtils.isNotEmpty(relyingPartyRegistration.getNameIdFormat()) ? relyingPartyRegistration.getNameIdFormat()
             : NameID.UNSPECIFIED);

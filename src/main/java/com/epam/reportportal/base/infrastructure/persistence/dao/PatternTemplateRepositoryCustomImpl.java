@@ -21,19 +21,19 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JPatternTemplateTestItemRecord;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.InsertValuesStep2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Repository
+@RequiredArgsConstructor
 public class PatternTemplateRepositoryCustomImpl implements PatternTemplateRepositoryCustom {
 
-  @Autowired
-  private DSLContext dslContext;
+  private final DSLContext dslContext;
 
   @Override
   public int saveInBatch(List<PatternTemplateTestItemPojo> patternTemplateTestItems) {

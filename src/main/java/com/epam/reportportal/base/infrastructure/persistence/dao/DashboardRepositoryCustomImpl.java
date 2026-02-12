@@ -27,8 +27,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -39,14 +39,10 @@ import org.springframework.stereotype.Repository;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Repository
+@RequiredArgsConstructor
 public class DashboardRepositoryCustomImpl implements DashboardRepositoryCustom {
 
-  private DSLContext dsl;
-
-  @Autowired
-  public void setDsl(DSLContext dsl) {
-    this.dsl = dsl;
-  }
+  private final DSLContext dsl;
 
   @Override
   public List<Dashboard> findByFilter(Queryable filter) {

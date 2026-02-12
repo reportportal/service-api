@@ -105,6 +105,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.jooq.CommonTableExpression;
@@ -121,7 +122,6 @@ import org.jooq.SelectOnConditionStep;
 import org.jooq.SelectQuery;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -134,6 +134,7 @@ import org.springframework.stereotype.Repository;
  * @author Pavel Bortnik
  */
 @Repository
+@RequiredArgsConstructor
 public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
   private static final String OUTER_ITEM_TABLE = "outer_item_table";
@@ -151,12 +152,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
   private static final String LAUNCH_START_TIME = "launchStartTime";
   private static final String ACCUMULATED_STATISTICS = "accumulated_statistics";
 
-  private DSLContext dsl;
-
-  @Autowired
-  public void setDsl(DSLContext dsl) {
-    this.dsl = dsl;
-  }
+  private final DSLContext dsl;
 
   @Override
   public Set<Statistics> accumulateStatisticsByFilter(Queryable filter) {

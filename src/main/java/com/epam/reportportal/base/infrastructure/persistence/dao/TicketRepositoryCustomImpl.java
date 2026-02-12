@@ -25,17 +25,17 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 
 import java.time.Instant;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@RequiredArgsConstructor
 public class TicketRepositoryCustomImpl implements TicketRepositoryCustom {
 
-  @Autowired
-  private DSLContext dsl;
+  private final DSLContext dsl;
 
   @Override
   public List<String> findByLaunchIdAndTerm(Long launchId, String term) {

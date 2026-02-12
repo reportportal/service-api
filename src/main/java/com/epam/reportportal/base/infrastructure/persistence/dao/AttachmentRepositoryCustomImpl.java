@@ -28,20 +28,20 @@ import java.util.List;
 import org.jooq.DSLContext;
 import org.jooq.Operator;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Repository
+@RequiredArgsConstructor
 public class AttachmentRepositoryCustomImpl implements AttachmentRepositoryCustom {
 
-  @Autowired
-  private DSLContext dsl;
+  private final DSLContext dsl;
 
   @Override
   public int moveForDeletionByProjectId(Long projectId) {

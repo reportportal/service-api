@@ -61,7 +61,7 @@ public abstract class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessH
     MultiValueMap<String, String> query = new LinkedMultiValueMap<>();
     query.add("token", token.getTokenValue());
     query.add("token_type", "bearer");
-    URI rqUrl = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
+    URI rqUrl = UriComponentsBuilder.fromUri(new ServletServerHttpRequest(request).getURI())
         .replacePath(pathValue.replaceFirst("/api", "") + "/ui/authSuccess")
         .replaceQueryParams(query)
         .build()

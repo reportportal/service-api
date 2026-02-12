@@ -17,12 +17,7 @@
 package com.epam.reportportal;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ReactiveElasticsearchRepositoriesAutoConfiguration;
-import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -30,15 +25,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Andrei Varabyeu
  */
-@SpringBootApplication(
-    scanBasePackages = {"com.epam.reportportal"},
-    exclude = {
-        FlywayAutoConfiguration.class,
-        LdapHealthContributorAutoConfiguration.class,
-        ElasticsearchDataAutoConfiguration.class,
-        ElasticsearchRepositoriesAutoConfiguration.class,
-        ReactiveElasticsearchRepositoriesAutoConfiguration.class
-    })
+@SpringBootApplication(scanBasePackages = {"com.epam.reportportal"})
 @Configuration
 public class ReportPortalApp {
 

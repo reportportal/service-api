@@ -21,8 +21,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "tms_manual_scenario", schema = "public")
@@ -49,7 +49,7 @@ public class TmsManualScenario {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type")
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private TmsManualScenarioType type;
 
   @OneToOne(fetch = FetchType.LAZY)

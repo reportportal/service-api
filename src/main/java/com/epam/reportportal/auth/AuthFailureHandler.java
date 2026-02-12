@@ -38,7 +38,7 @@ public class AuthFailureHandler implements AuthenticationFailureHandler {
       AuthenticationException exception)
       throws IOException {
     response.sendRedirect(
-        UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
+        UriComponentsBuilder.fromUri(new ServletServerHttpRequest(request).getURI())
             .replacePath("ui/#login")
             .replaceQuery("errorAuth=" + StringUtils.normalizeSpace(exception.getMessage()))
             .build()

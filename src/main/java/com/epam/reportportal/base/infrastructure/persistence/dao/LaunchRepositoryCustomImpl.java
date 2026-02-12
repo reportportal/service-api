@@ -65,12 +65,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.JSON;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -81,10 +81,10 @@ import org.springframework.stereotype.Repository;
  * @author Pavel Bortnik
  */
 @Repository
+@RequiredArgsConstructor
 public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 
-  @Autowired
-  private DSLContext dsl;
+  private final DSLContext dsl;
 
   @Override
   public boolean hasItemsInStatuses(Long launchId, List<JStatusEnum> statuses) {

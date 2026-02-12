@@ -16,20 +16,18 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ApiKey;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import java.util.List;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Repository;
 
 /**
  * ApiKey Repository
  *
  * @author Andrei Piankouski
  */
-@Repository
 public interface ApiKeyRepository
     extends ReportPortalRepository<ApiKey, Long>, ApiKeyRepositoryCustom {
 

@@ -26,12 +26,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationProfile;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -43,12 +43,12 @@ import org.springframework.stereotype.Repository;
  * @author Siarhei Hrabko
  */
 @Repository
+@RequiredArgsConstructor
 public class OrganizationRepositoryCustomImpl implements OrganizationRepositoryCustom {
 
   protected final Logger LOGGER = LoggerFactory.getLogger(OrganizationRepositoryCustomImpl.class);
 
-  @Autowired
-  private DSLContext dsl;
+  private final DSLContext dsl;
 
   @Override
   public List<OrganizationProfile> findByFilter(Queryable filter) {

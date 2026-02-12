@@ -25,22 +25,18 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.I
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Pavel Bortnik
  */
 @Repository
+@RequiredArgsConstructor
 public class IssueTypeRepositoryCustomImpl implements IssueTypeRepositoryCustom {
 
-  private DSLContext dsl;
-
-  @Autowired
-  public void setDsl(DSLContext dsl) {
-    this.dsl = dsl;
-  }
+  private final DSLContext dsl;
 
   @Override
   public List<IssueType> getDefaultIssueTypes() {

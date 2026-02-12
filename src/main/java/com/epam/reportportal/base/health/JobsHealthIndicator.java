@@ -21,10 +21,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Health.Builder;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health.Builder;
+import org.springframework.boot.health.contributor.Status;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -69,11 +68,6 @@ public class JobsHealthIndicator extends AbstractHealthIndicator {
           .withException(e)
           .build();
     }
-  }
-
-  @Override
-  public Health getHealth(boolean includeDetails) {
-    return super.getHealth(includeDetails);
   }
 
 }

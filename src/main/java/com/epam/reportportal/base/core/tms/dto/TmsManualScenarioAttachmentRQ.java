@@ -8,8 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for manual scenario attachment operations. Contains information about an attachment in a manual scenario
- * or step.
+ * Request DTO for manual scenario attachment operations.
+ * Contains information about an attachment in a manual scenario or step.
  */
 @Data
 @Builder
@@ -19,7 +19,8 @@ import lombok.NoArgsConstructor;
 public class TmsManualScenarioAttachmentRQ {
 
   /**
-   * ID of the attachment. Must not be blank.
+   * ID of the attachment.
+   * Must not be blank.
    */
   @NotBlank(message = "Attachment ID must not be blank")
   private String id;

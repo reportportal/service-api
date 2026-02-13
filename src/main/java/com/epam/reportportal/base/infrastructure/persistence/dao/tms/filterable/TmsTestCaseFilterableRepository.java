@@ -87,6 +87,6 @@ public class TmsTestCaseFilterableRepository implements FilterableRepository<Tms
         String.valueOf(projectId),
         CRITERIA_PROJECT_ID
     ));
-    return findIdsByFilter(filter, pageable);
+   return findIdsByFilter(filter, pageable);
   }
 }

@@ -7,11 +7,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsDatasetRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsDatasetMapper;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsDatasetRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Optional;
@@ -257,7 +257,7 @@ class TmsDatasetServiceImplTest {
         Optional.empty());
 
     // Act & Assert
-    assertThrows(ReportPortalException.class,
+   assertThrows(ReportPortalException.class,
         () -> sut.patch(projectId, datasetId, tmsDatasetRQ));
   }
 }

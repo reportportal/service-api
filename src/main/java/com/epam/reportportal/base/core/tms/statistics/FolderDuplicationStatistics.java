@@ -6,8 +6,8 @@ import java.util.List;
 import lombok.Getter;
 
 /**
- * Statistics collector for folder duplication operations. Tracks successful folder duplications and errors that
- * occurred during the process.
+ * Statistics collector for folder duplication operations.
+ * Tracks successful folder duplications and errors that occurred during the process.
  */
 @Getter
 public class FolderDuplicationStatistics {

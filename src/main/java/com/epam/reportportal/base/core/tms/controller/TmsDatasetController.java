@@ -24,8 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Controller for managing datasets within a project. Provides endpoints to create, retrieve, update, and delete
- * datasets, as well as upload datasets from files. All endpoints are secured and require administrator privileges.
+ * Controller for managing datasets within a project. Provides endpoints to
+ * create, retrieve, update, and delete datasets, as well as upload datasets
+ * from files. All endpoints are secured and require administrator privileges.
  */
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms/dataset")
@@ -40,7 +41,7 @@ public class TmsDatasetController {
    * Creates a new dataset in the specified project.
    *
    * @param projectKey The key of the project.
-   * @param datasetRQ  A request payload ({@link TmsDatasetRQ}) containing dataset details.
+   * @param datasetRQ A request payload ({@link TmsDatasetRQ}) containing dataset details.
    * @return A data transfer object ({@link TmsDatasetRS}) with the created dataset's details.
    */
   @PostMapping
@@ -58,7 +59,7 @@ public class TmsDatasetController {
    * Uploads a dataset from a file.
    *
    * @param projectKey The key of the project.
-   * @param file       The file containing dataset data.
+   * @param file      The file containing dataset data.
    * @return A list of data transfer objects ({@link TmsDatasetRS}) representing created datasets.
    */
   @PostMapping(path = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -91,7 +92,7 @@ public class TmsDatasetController {
    * Fetches details of a specific dataset by its ID.
    *
    * @param projectKey The key of the project.
-   * @param datasetId  The ID of the dataset to retrieve.
+   * @param datasetId The ID of the dataset to retrieve.
    * @return A dataset's details ({@link TmsDatasetRS}).
    */
   @GetMapping("/{datasetId}")
@@ -109,8 +110,8 @@ public class TmsDatasetController {
    * Updates an existing dataset with new data.
    *
    * @param projectKey The key of the project.
-   * @param datasetId  The ID of the dataset to update.
-   * @param datasetRQ  A request payload ({@link TmsDatasetRQ}) containing updated fields.
+   * @param datasetId The ID of the dataset to update.
+   * @param datasetRQ A request payload ({@link TmsDatasetRQ}) containing updated fields.
    * @return The updated dataset details ({@link TmsDatasetRS}).
    */
   @PutMapping("/{datasetId}")
@@ -129,8 +130,8 @@ public class TmsDatasetController {
   /**
    * Applies partial modifications to an existing dataset.
    *
-   * @param projectKey         The key of the project.
-   * @param datasetId          The ID of the dataset to patch.
+   * @param projectKey The key of the project.
+   * @param datasetId The ID of the dataset to patch.
    * @param tmsDatasetUpdateRQ A request payload ({@link TmsDatasetRQ}) containing updated fields.
    * @return The updated dataset details ({@link TmsDatasetRS}).
    */
@@ -151,7 +152,7 @@ public class TmsDatasetController {
    * Deletes a dataset from the project.
    *
    * @param projectKey The key of the project.
-   * @param datasetId  The ID of the dataset to delete.
+   * @param datasetId The ID of the dataset to delete.
    */
   @DeleteMapping("/{datasetId}")
   public void delete(@PathVariable("projectKey") String projectKey,

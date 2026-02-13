@@ -59,7 +59,7 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
 
       tmsAttachmentService.saveAll(attachments);
 
-      log.info("Created {} attachment relationships for text manual scenario: {}",
+      log.debug("Created {} attachment relationships for text manual scenario: {}",
           attachments.size(), tmsTextManualScenario.getManualScenarioId());
     }
   }
@@ -72,13 +72,13 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
         textManualScenario.getManualScenarioId());
 
     // Delete existing relationships
-    if (CollectionUtils.isNotEmpty(textManualScenario.getAttachments())) {
-      textManualScenarioAttachmentRepository
-          .deleteByTextManualScenarioId(textManualScenario.getManualScenarioId());
-      textManualScenario.setAttachments(new HashSet<>());
-      log.debug("Deleted existing attachment relationships for text manual scenario: {}",
-          textManualScenario.getManualScenarioId());
-    }
+   if (CollectionUtils.isNotEmpty(textManualScenario.getAttachments())) {
+     textManualScenarioAttachmentRepository
+         .deleteByTextManualScenarioId(textManualScenario.getManualScenarioId());
+     textManualScenario.setAttachments(new HashSet<>());
+     log.debug("Deleted existing attachment relationships for text manual scenario: {}",
+         textManualScenario.getManualScenarioId());
+   }
 
     // Create new relationships
     createAttachments(textManualScenario, tmsTextManualScenarioRQ);
@@ -139,7 +139,7 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
     }
 
     textManualScenarioAttachmentRepository.deleteByTestCaseId(testCaseId);
-    log.info("Deleted all text manual scenario attachment relationships for test case: {}",
+    log.debug("Deleted all text manual scenario attachment relationships for test case: {}",
         testCaseId);
   }
 
@@ -155,7 +155,7 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
     }
 
     textManualScenarioAttachmentRepository.deleteByTestCaseIds(testCaseIds);
-    log.info("Deleted all text manual scenario attachment relationships for {} test cases",
+    log.debug("Deleted all text manual scenario attachment relationships for {} test cases",
         testCaseIds.size());
   }
 
@@ -172,7 +172,7 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
     }
 
     textManualScenarioAttachmentRepository.deleteByTestFolderId(projectId, folderId);
-    log.info(
+    log.debug(
         "Deleted all text manual scenario attachment relationships for project: {} and folder: {}",
         projectId, folderId);
   }

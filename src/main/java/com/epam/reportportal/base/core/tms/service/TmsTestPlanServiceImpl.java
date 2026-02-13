@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +72,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
     testPlanRepository.save(tmsTestPlan);
 
-    tmsTestPlanAttributeService.createTestPlanAttributes(tmsTestPlan,
+    tmsTestPlanAttributeService.createTestPlanAttributes(projectId, tmsTestPlan,
         testPlanRQ.getAttributes());
 
     return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
@@ -89,7 +91,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           tmsTestPlanMapper.update(existingTestPlan,
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
-          tmsTestPlanAttributeService.updateTestPlanAttributes(existingTestPlan,
+          tmsTestPlanAttributeService.updateTestPlanAttributes(projectId, existingTestPlan,
               testPlanRQ.getAttributes());
 
           return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
@@ -107,7 +109,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           tmsTestPlanMapper.patch(existingTestPlan,
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
-          tmsTestPlanAttributeService.patchTestPlanAttributes(existingTestPlan,
+          tmsTestPlanAttributeService.patchTestPlanAttributes(projectId, existingTestPlan,
               testPlanRQ.getAttributes());
 
           return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
@@ -273,13 +275,14 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         );
 
     // Duplicate test plan entity
-    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ);
+    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan,
+        duplicateTestPlanRQ);
 
     duplicatedTestPlan = testPlanRepository.save(duplicatedTestPlan);
 
     // Duplicate test plan attributes
     tmsTestPlanAttributeService.createTestPlanAttributes(
-        duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
+        projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
     );
 
     // Get test case IDs from the original plan
@@ -287,39 +290,43 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         originalTestPlan.getId());
 
     // Process test case duplication and addition to plan
-    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(projectId, duplicatedTestPlan.getId(),
+    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(projectId,
+        duplicatedTestPlan.getId(),
         originalTestCaseIds);
 
-    return tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, duplicateTestCasesStatistic);
+    return tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan,
+        duplicateTestCasesStatistic);
   }
 
-  private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(long projectId, Long newTestPlanId,
-      List<Long> originalTestCaseIds) {
-    if (originalTestCaseIds.isEmpty()) {
-      return tmsTestPlanMapper.createFailedBatchResult(Collections.emptyList(),
-          "No test cases to duplicate");
-    }
-
-    // Step 1: Duplicate test cases in batch
-    var duplicationResult = tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds);
-
-    // Step 2: Add successfully duplicated test cases to the new plan
-    if (!duplicationResult.getSuccessTestCaseIds().isEmpty()) {
-      try {
-        var addToPlanResult = addTestCasesToPlan(projectId, newTestPlanId,
-            duplicationResult.getSuccessTestCaseIds());
-        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult);
-      } catch (Exception e) {
-        // If adding to plan fails completely, mark all duplicated test cases as failed
-        var failedAddResult = tmsTestPlanMapper.createFailedBatchResult(
-            duplicationResult.getSuccessTestCaseIds(),
-            "Failed to add duplicated test case to plan: " + e.getMessage()
+  @Override
+  @Transactional
+  public DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId) {
+    // Get original test plan
+    var originalTestPlan = testPlanRepository
+        .findByIdAndProjectId(testPlanId, projectId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
         );
-        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, failedAddResult);
-      }
-    }
 
-    return duplicationResult;
+    // Duplicate test plan entity
+    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan);
+
+    duplicatedTestPlan = testPlanRepository.save(duplicatedTestPlan);
+
+    // Duplicate test plan attributes
+    tmsTestPlanAttributeService.duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
+
+    // Get test case IDs from the original plan
+    var originalTestCaseIds = tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(
+        originalTestPlan.getId());
+
+    // Process test case duplication and addition to plan
+    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(projectId,
+        duplicatedTestPlan.getId(),
+        originalTestCaseIds);
+
+    return tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan,
+        duplicateTestCasesStatistic);
   }
 
   @Override
@@ -337,9 +344,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(Long projectId, Long testPlanId,
-      Pageable pageable) {
+      Long testFolderId, Pageable pageable) {
     verifyTestPlanExists(projectId, testPlanId);
-    return tmsTestCaseService.getTestCasesInTestPlan(projectId, testPlanId, pageable);
+    return tmsTestCaseService.getTestCasesInTestPlan(projectId, testPlanId, testFolderId, pageable);
   }
 
   @Override
@@ -366,5 +373,166 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     verifyTestPlanExists(projectId, testPlanId);
 
     return tmsTestFolderService.getFoldersByTestPlanId(projectId, testPlanId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Long, TmsTestPlan> getTestPlanMap(List<Long> testPlanIds) {
+    if (CollectionUtils.isEmpty(testPlanIds)) {
+      return Collections.emptyMap();
+    }
+
+    return testPlanRepository
+        .findByIds(testPlanIds)
+        .stream()
+        .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestPlan getEntityById(Long projectId, Long testPlanId) {
+    return testPlanRepository
+        .findByIdAndProjectId(testPlanId, projectId)
+        .orElse(null);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Long> getTestCaseIdsAddedToPlan(long projectId, Long testPlanId) {
+    verifyTestPlanExists(projectId, testPlanId);
+    return tmsTestCaseService.getTestCaseIdsInTestPlan(projectId, testPlanId);
+  }
+
+  @Override
+  @Transactional
+  public void removeTestPlanFromMilestone(Long projectId, Long milestoneId, Long testPlanId) {
+    verifyTestPlanExists(projectId, testPlanId);
+
+    var updatedCount = testPlanRepository.removeTestPlanFromMilestone(milestoneId, testPlanId,
+        projectId);
+
+    if (updatedCount == 0) {
+      throw new ReportPortalException(NOT_FOUND,
+          "Test plan " + testPlanId + " in milestone " + milestoneId);
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TmsTestPlanRS> getByMilestoneId(Long projectId, Long milestoneId) {
+    var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneId(
+        projectId, milestoneId
+    );
+
+    if (testPlanIds.isEmpty()) {
+      return List.of();
+    }
+
+    var testPlans = testPlanRepository
+        .findByIdsWithAttributes(testPlanIds)
+        .stream()
+        .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
+
+    var orderedTestPlans = testPlanIds
+        .stream()
+        .map(testPlans::get)
+        .map(tmsTestPlanExecutionService::enrichWithStatistics)
+        .filter(Objects::nonNull)
+        .toList();
+
+    return tmsTestPlanMapper
+        .convertTmsTestPlansWithStatisticToRS(orderedTestPlans);
+  }
+
+  @Override
+  public Map<Long, List<TmsTestPlanRS>> getByMilestoneIds(Long projectId, List<Long> milestoneIds) {
+    var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneIds(
+        projectId, milestoneIds
+    );
+
+    if (testPlanIds.isEmpty()) {
+      return Map.of();
+    }
+
+    var testPlans = testPlanRepository
+        .findByIdsWithAttributes(testPlanIds)
+        .stream()
+        .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
+
+    var orderedTestPlans = testPlanIds
+        .stream()
+        .map(testPlans::get)
+        .map(tmsTestPlanExecutionService::enrichWithStatistics)
+        .filter(Objects::nonNull)
+        .toList();
+
+    return tmsTestPlanMapper
+        .convertTmsTestPlansWithStatisticToMap(orderedTestPlans);
+  }
+
+  @Override
+  @Transactional
+  public List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(Long projectId,
+      Long milestoneId) {
+    var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneId(
+        projectId, milestoneId
+    );
+
+    if (testPlanIds.isEmpty()) {
+      return List.of();
+    }
+    var result = new ArrayList<DuplicateTmsTestPlanRS>();
+    for (var testPlanId : testPlanIds) {
+      var duplicatedTestPlanRS = duplicate(projectId, testPlanId);
+      result.add(duplicatedTestPlanRS);
+    }
+    return result;
+  }
+
+  @Override
+  @Transactional
+  public void addTestPlanMilestone(Long projectId, Long milestoneId, Long testPlanId) {
+    verifyTestPlanExists(projectId, testPlanId);
+
+    testPlanRepository.addTestPlanToMilestone(milestoneId, testPlanId,
+        projectId);
+  }
+
+  @Override
+  @Transactional
+  public void removeTestPlansFromMilestone(Long projectId, Long milestoneId) {
+    testPlanRepository.removeTestPlansFromMilestone(milestoneId, projectId);
+  }
+
+  private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(long projectId,
+      Long newTestPlanId,
+      List<Long> originalTestCaseIds) {
+    if (originalTestCaseIds.isEmpty()) {
+      return tmsTestPlanMapper.createFailedBatchResult(Collections.emptyList(),
+          "No test cases to duplicate");
+    }
+
+    // Step 1: Duplicate test cases in batch
+    var duplicationResult = tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds);
+
+    // Step 2: Add successfully duplicated test cases to the new plan
+    if (!duplicationResult.getSuccessTestCaseIds().isEmpty()) {
+      try {
+        var addToPlanResult = addTestCasesToPlan(projectId, newTestPlanId,
+            duplicationResult.getSuccessTestCaseIds());
+        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult,
+            addToPlanResult);
+      } catch (Exception e) {
+        // If adding to plan fails completely, mark all duplicated test cases as failed
+        var failedAddResult = tmsTestPlanMapper.createFailedBatchResult(
+            duplicationResult.getSuccessTestCaseIds(),
+            "Failed to add duplicated test case to plan: " + e.getMessage()
+        );
+        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult,
+            failedAddResult);
+      }
+    }
+
+    return duplicationResult;
   }
 }

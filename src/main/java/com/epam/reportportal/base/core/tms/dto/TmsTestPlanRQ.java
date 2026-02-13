@@ -10,5 +10,6 @@ public class TmsTestPlanRQ {
 
   private String name;
   private String description;
+  private Long milestoneId;
   private List<TmsTestPlanAttributeRQ> attributes;
 }

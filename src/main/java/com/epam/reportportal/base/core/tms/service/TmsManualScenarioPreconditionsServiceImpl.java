@@ -48,7 +48,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
     tmsManualScenarioPreconditionsAttachmentService.createAttachments(savedPreconditions,
         tmsManualScenarioPreconditionsRQ);
 
-    log.info("Created preconditions with ID: {} for manual scenario: {}",
+    log.debug("Created preconditions with ID: {} for manual scenario: {}",
         savedPreconditions.getId(), tmsManualScenario.getId());
   }
 
@@ -79,7 +79,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
       }
     }
 
-    log.info("Updated preconditions for manual scenario: {}", manualScenario.getId());
+    log.debug("Updated preconditions for manual scenario: {}", manualScenario.getId());
   }
 
   @Override
@@ -113,7 +113,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
     tmsManualScenarioPreconditionsAttachmentService.patchAttachments(savedPreconditions,
         tmsManualScenarioPreconditionsRQ);
 
-    log.info("Patched preconditions with ID: {} for manual scenario: {}",
+    log.debug("Patched preconditions with ID: {} for manual scenario: {}",
         savedPreconditions.getId(), existingManualScenario.getId());
   }
 
@@ -133,7 +133,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
     // Then delete preconditions
     tmsManualScenarioPreconditionRepository.deleteAllByTestCaseId(testCaseId);
 
-    log.info("Deleted all preconditions for test case: {}", testCaseId);
+    log.debug("Deleted all preconditions for test case: {}", testCaseId);
   }
 
   @Override
@@ -152,7 +152,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
     // Then delete preconditions
     tmsManualScenarioPreconditionRepository.deleteAllByTestCaseIds(testCaseIds);
 
-    log.info("Deleted all preconditions for {} test cases", testCaseIds.size());
+    log.debug("Deleted all preconditions for {} test cases", testCaseIds.size());
   }
 
   @Override
@@ -171,7 +171,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
     // Then delete preconditions
     tmsManualScenarioPreconditionRepository.deleteAllByTestFolderId(projectId, folderId);
 
-    log.info("Deleted all preconditions for project: {} and folder: {}", projectId, folderId);
+    log.debug("Deleted all preconditions for project: {} and folder: {}", projectId, folderId);
   }
 
   @Override
@@ -202,7 +202,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
 
     duplicatedScenario.setPreconditions(savedDuplicatedPreconditions);
 
-    log.info("Duplicated preconditions from manual scenario: {} to: {} with new ID: {}",
+    log.debug("Duplicated preconditions from manual scenario: {} to: {} with new ID: {}",
         originalScenario.getId(), duplicatedScenario.getId(),
         savedDuplicatedPreconditions.getId());
   }

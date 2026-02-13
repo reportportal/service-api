@@ -17,9 +17,9 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 
 import com.epam.reportportal.base.core.tms.controller.TmsTestFolderController;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
-import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
+import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationResultRS;
@@ -55,8 +55,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * Unit tests for TmsTestFolderController. Tests CRUD operations, filtering, sorting, duplication, and export
- * functionality for test folders.
+ * Unit tests for TmsTestFolderController.
+ * Tests CRUD operations, filtering, sorting, duplication, and export functionality for test folders.
  */
 public class TmsTestFolderControllerTest {
 
@@ -919,7 +919,7 @@ public class TmsTestFolderControllerTest {
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.totalCount").value(5))
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.successCount").value(4))
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.failureCount").value(1))
-        .andExpect(jsonPath("$.testCaseDuplicationStatistic.errors[0].testCaseIds").value(24))
+        .andExpect(jsonPath("$.testCaseDuplicationStatistic.errors[0].testCaseId").value(24))
         .andExpect(
             jsonPath("$.testCaseDuplicationStatistic.errors[0].errorMessage").value("Failed to duplicate test case"));
 

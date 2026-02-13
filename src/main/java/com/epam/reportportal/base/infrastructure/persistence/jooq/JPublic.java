@@ -79,7 +79,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSte
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseLaunch;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan;
@@ -523,11 +522,6 @@ public class JPublic extends SchemaImpl {
   public final JTmsTestCaseExecution TMS_TEST_CASE_EXECUTION = JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION;
 
   /**
-   * The table <code>public.tms_test_case_launch</code>.
-   */
-  public final JTmsTestCaseLaunch TMS_TEST_CASE_LAUNCH = JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH;
-
-  /**
    * The table <code>public.tms_test_case_version</code>.
    */
   public final JTmsTestCaseVersion TMS_TEST_CASE_VERSION = JTmsTestCaseVersion.TMS_TEST_CASE_VERSION;
@@ -683,7 +677,6 @@ public class JPublic extends SchemaImpl {
         JTmsTestCase.TMS_TEST_CASE,
         JTmsTestCaseAttribute.TMS_TEST_CASE_ATTRIBUTE,
         JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
-        JTmsTestCaseLaunch.TMS_TEST_CASE_LAUNCH,
         JTmsTestCaseVersion.TMS_TEST_CASE_VERSION,
         JTmsTestFolder.TMS_TEST_FOLDER,
         JTmsTestPlan.TMS_TEST_PLAN,

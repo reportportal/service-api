@@ -1,6 +1,8 @@
+
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,8 +43,9 @@ public class TmsManualScenario {
   @Column(name = "execution_estimation_time")
   private Integer executionEstimationTime;
 
-  @Column(name = "link_to_requirements")
-  private String linkToRequirements;
+  @OneToMany(mappedBy = "manualScenario", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Fetch(FetchMode.SUBSELECT)
+  private Set<TmsManualScenarioRequirement> requirements;
 
   @OneToOne(mappedBy = "manualScenario")
   private TmsManualScenarioPreconditions preconditions;

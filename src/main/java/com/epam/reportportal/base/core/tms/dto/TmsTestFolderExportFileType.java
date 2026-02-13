@@ -4,7 +4,8 @@ public enum TmsTestFolderExportFileType {
   CSV;
 
   /**
-   * Returns the corresponding TmsTestFolderExportFileType enum value for the given string, ignoring case.
+   * Returns the corresponding TmsTestFolderExportFileType enum value for the given string, ignoring
+   * case.
    *
    * @param value the string representing the enum value
    * @return the matching TmsTestFolderExportFileType, or null if no match is found

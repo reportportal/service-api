@@ -14,12 +14,15 @@ import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * Entity representing test case execution in a launch. Combines execution data and launch association.
+ * Entity representing test case execution in a launch. Combines execution data and launch
+ * association.
  */
 @Entity
 @Table(name = "tms_test_case_execution")
@@ -27,26 +30,35 @@ import org.hibernate.type.SqlTypes;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(of = "id")
 public class TmsTestCaseExecution implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @OneToOne(fetch = FetchType.LAZY)
+  @OneToOne
   @JoinColumn(name = "test_item_id", unique = true)
+  @ToString.Exclude
   private TestItem testItem;
 
   @Column(name = "test_case_id")
   private Long testCaseId;
 
-//  @Column(name = "launch_id")
-//  private Long launchId;
+  @Column(name = "launch_id")
+  private Long launchId;
 
   @Column(name = "test_case_version_id")
   private Long testCaseVersionId;
 
+  @Column(name = "priority")
+  private String priority;
+
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "test_case_snapshot", nullable = false, columnDefinition = "jsonb")
   private String testCaseSnapshot;
+
+  @OneToOne(mappedBy = "execution")
+  @ToString.Exclude
+  private TmsTestCaseExecutionComment executionComment;
 }

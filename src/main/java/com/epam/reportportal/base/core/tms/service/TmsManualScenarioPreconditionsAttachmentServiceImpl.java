@@ -56,7 +56,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
 
       tmsAttachmentService.saveAll(attachments);
 
-      log.info("Created {} attachment relationships for preconditions: {}", attachments.size(),
+      log.debug("Created {} attachment relationships for preconditions: {}", attachments.size(),
           preconditions.getId());
     }
   }
@@ -133,7 +133,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     preconditionsAttachmentRepository.deleteByTestCaseId(testCaseId);
-    log.info("Deleted all preconditions attachment relationships for test case: {}", testCaseId);
+    log.debug("Deleted all preconditions attachment relationships for test case: {}", testCaseId);
   }
 
   @Override
@@ -148,7 +148,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     preconditionsAttachmentRepository.deleteByTestCaseIds(testCaseIds);
-    log.info("Deleted all preconditions attachment relationships for {} test cases",
+    log.debug("Deleted all preconditions attachment relationships for {} test cases",
         testCaseIds.size());
   }
 
@@ -164,7 +164,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     preconditionsAttachmentRepository.deleteByTestFolderId(projectId, folderId);
-    log.info("Deleted all preconditions attachment relationships for project: {} and folder: {}",
+    log.debug("Deleted all preconditions attachment relationships for project: {} and folder: {}",
         projectId, folderId);
   }
 

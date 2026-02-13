@@ -27,9 +27,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST Controller for TMS attachment operations.
- * <p>
- * Provides endpoints for uploading, downloading, and deleting TMS attachments that can be used in test case
- * preconditions and manual scenario steps.
+ *
+ * Provides endpoints for uploading, downloading, and deleting TMS attachments
+ * that can be used in test case preconditions and manual scenario steps.
  */
 @Slf4j
 @RestController

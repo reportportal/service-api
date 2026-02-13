@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Request DTO for manual scenario step operations. Contains information about a step in a step-based manual scenario.
+ * Request DTO for manual scenario step operations.
+ * Contains information about a step in a step-based manual scenario.
  */
 @Data
 @Builder

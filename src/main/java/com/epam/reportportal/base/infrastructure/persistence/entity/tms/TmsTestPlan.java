@@ -23,6 +23,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -65,25 +67,29 @@ public class TmsTestPlan {
   private Project project;
 
   @ManyToOne
-  @JoinColumn(name = "environment_id", nullable = false)
+  @JoinColumn(name = "environment_id")
   private TmsEnvironment environment;
 
   @ManyToOne
-  @JoinColumn(name = "product_version_id", nullable = false)
+  @JoinColumn(name = "product_version_id")
   private TmsProductVersion productVersion;
 
+  @ManyToOne
+  @JoinColumn(name = "milestone_id")
+  private TmsMilestone milestone;
+
   @OneToMany
-  @JoinColumn(name = "test_plan_id", referencedColumnName = "id", insertable = false, updatable = false)
+  @JoinColumn(name = "test_plan_id",
+      referencedColumnName = "id",
+      insertable = false, updatable = false)
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<Launch> launches;
 
   @OneToMany(mappedBy = "testPlan")
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsTestPlanAttribute> attributes;
-
-  @OneToMany(mappedBy = "testPlan")
-  @ToString.Exclude
-  private Set<TmsMilestone> milestones;
 
   @ManyToMany
   @JoinTable(

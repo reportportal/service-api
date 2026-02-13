@@ -247,37 +247,37 @@ public class JLaunchRecord extends UpdatableRecordImpl<JLaunchRecord> {
     return (JRetentionPolicyEnum) get(15);
   }
 
-  /**
-   * Setter for <code>public.launch.test_plan_id</code>.
-   */
-  public void setTestPlanId(Long value) {
-    set(16, value);
-  }
+    /**
+     * Setter for <code>public.launch.test_plan_id</code>.
+     */
+    public void setTestPlanId(Long value) {
+        set(16, value);
+    }
 
-  /**
-   * Getter for <code>public.launch.test_plan_id</code>.
-   */
-  public Long getTestPlanId() {
-    return (Long) get(16);
-  }
+    /**
+     * Getter for <code>public.launch.test_plan_id</code>.
+     */
+    public Long getTestPlanId() {
+        return (Long) get(16);
+    }
 
-  /**
-   * Setter for <code>public.launch.launch_type</code>.
-   */
-  public void setLaunchType(JLaunchTypeEnum value) {
-    set(17, value);
-  }
+    /**
+     * Setter for <code>public.launch.launch_type</code>.
+     */
+    public void setLaunchType(JLaunchTypeEnum value) {
+        set(17, value);
+    }
 
-  /**
-   * Getter for <code>public.launch.launch_type</code>.
-   */
-  public JLaunchTypeEnum getLaunchType() {
-    return (JLaunchTypeEnum) get(17);
-  }
+    /**
+     * Getter for <code>public.launch.launch_type</code>.
+     */
+    public JLaunchTypeEnum getLaunchType() {
+        return (JLaunchTypeEnum) get(17);
+    }
 
-  // -------------------------------------------------------------------------
-  // Primary key information
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Primary key information
+    // -------------------------------------------------------------------------
 
   @Override
   public Record1<Long> key() {
@@ -295,33 +295,30 @@ public class JLaunchRecord extends UpdatableRecordImpl<JLaunchRecord> {
     super(JLaunch.LAUNCH);
   }
 
-  /**
-   * Create a detached, initialised JLaunchRecord
-   */
-  public JLaunchRecord(Long id, String uuid, Long projectId, Long userId, String name, String description,
-      Instant startTime, Instant endTime, Integer number, Instant lastModified, JLaunchModeEnum mode,
-      JStatusEnum status, Boolean hasRetries, Boolean rerun, Double approximateDuration,
-      JRetentionPolicyEnum retentionPolicy, Long testPlanId, JLaunchTypeEnum launchType) {
-    super(JLaunch.LAUNCH);
+    /**
+     * Create a detached, initialised JLaunchRecord
+     */
+    public JLaunchRecord(Long id, String uuid, Long projectId, Long userId, String name, String description, Instant startTime, Instant endTime, Integer number, Instant lastModified, JLaunchModeEnum mode, JStatusEnum status, Boolean hasRetries, Boolean rerun, Double approximateDuration, JRetentionPolicyEnum retentionPolicy, Long testPlanId, JLaunchTypeEnum launchType) {
+        super(JLaunch.LAUNCH);
 
-    setId(id);
-    setUuid(uuid);
-    setProjectId(projectId);
-    setUserId(userId);
-    setName(name);
-    setDescription(description);
-    setStartTime(startTime);
-    setEndTime(endTime);
-    setNumber(number);
-    setLastModified(lastModified);
-    setMode(mode);
-    setStatus(status);
-    setHasRetries(hasRetries);
-    setRerun(rerun);
-    setApproximateDuration(approximateDuration);
-    setRetentionPolicy(retentionPolicy);
-    setTestPlanId(testPlanId);
-    setLaunchType(launchType);
-    resetChangedOnNotNull();
-  }
+        setId(id);
+        setUuid(uuid);
+        setProjectId(projectId);
+        setUserId(userId);
+        setName(name);
+        setDescription(description);
+        setStartTime(startTime);
+        setEndTime(endTime);
+        setNumber(number);
+        setLastModified(lastModified);
+        setMode(mode);
+        setStatus(status);
+        setHasRetries(hasRetries);
+        setRerun(rerun);
+        setApproximateDuration(approximateDuration);
+        setRetentionPolicy(retentionPolicy);
+        setTestPlanId(testPlanId);
+        setLaunchType(launchType);
+        resetChangedOnNotNull();
+    }
 }

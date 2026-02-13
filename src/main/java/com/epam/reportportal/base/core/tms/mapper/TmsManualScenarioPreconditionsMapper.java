@@ -12,8 +12,8 @@ import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 /**
- * Mapper interface for converting between TmsManualScenarioPreconditions entity and its DTOs. Uses MapStruct for
- * automatic mapping generation.
+ * Mapper interface for converting between TmsManualScenarioPreconditions entity and its DTOs.
+ * Uses MapStruct for automatic mapping generation.
  */
 @Mapper(config = CommonMapperConfig.class, uses = {TmsManualScenarioAttachmentMapper.class})
 public interface TmsManualScenarioPreconditionsMapper {
@@ -39,10 +39,10 @@ public interface TmsManualScenarioPreconditionsMapper {
   TmsManualScenarioPreconditionsRS toResponse(TmsManualScenarioPreconditions entity);
 
   /**
-   * Updates existing entity with data from request DTO for full update operations. Sets values to null if they are null
-   * in the request (complete replacement).
+   * Updates existing entity with data from request DTO for full update operations.
+   * Sets values to null if they are null in the request (complete replacement).
    *
-   * @param target  the target entity to update
+   * @param target the target entity to update
    * @param request the request DTO with new data
    */
   @BeanMapping(
@@ -56,10 +56,10 @@ public interface TmsManualScenarioPreconditionsMapper {
       TmsManualScenarioPreconditionsRQ request);
 
   /**
-   * Patches existing entity with non-null data from request DTO for partial update operations. Ignores null values in
-   * the request (partial update).
+   * Patches existing entity with non-null data from request DTO for partial update operations.
+   * Ignores null values in the request (partial update).
    *
-   * @param target  the target entity to patch
+   * @param target the target entity to patch
    * @param request the request DTO with new data
    */
   @BeanMapping(

@@ -54,8 +54,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
@@ -65,6 +67,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementation for GET user operations.
@@ -225,4 +228,27 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Long, User> getUserMap(List<Long> userIds) {
+    if (userIds == null || userIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    return userRepository.findByIds(userIds)
+        .stream()
+        .collect(Collectors.toMap(User::getId, Function.identity()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserById(Long userId) {
+    if (userId == null) {
+      return null;
+    }
+
+    return userRepository
+        .findById(userId)
+        .orElse(null);
+  }
 }

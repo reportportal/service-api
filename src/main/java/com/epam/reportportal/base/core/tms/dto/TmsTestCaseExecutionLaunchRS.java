@@ -15,5 +15,7 @@ public class TmsTestCaseExecutionLaunchRS {
 
   private Long id;
 
+  private Long number;
+
   private String name;
 }

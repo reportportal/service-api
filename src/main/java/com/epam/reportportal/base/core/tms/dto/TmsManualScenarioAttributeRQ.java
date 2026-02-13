@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for manual scenario attribute operations. Contains information about an attribute of the manual
- * scenario.
+ * Request DTO for manual scenario attribute operations. Contains information about an attribute of
+ * the manual scenario.
  */
 @Data
 @Builder
@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 public class TmsManualScenarioAttributeRQ {
 
   private Long id;
+
+  private String key;
 
   private String value;
 }

@@ -25,40 +25,67 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   private final TmsTestCaseAttributeMapper tmsTestCaseAttributeMapper;
   private final TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
+  private final TmsAttributeService tmsAttributeService;
 
   @Override
   @Transactional
-  public void createTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
+  public void createTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       @NotEmpty List<TmsTestCaseAttributeRQ> attributes) {
-    var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
-        attributes);
+    
+    var tmsTestCaseAttributes = attributes.stream()
+        .map(req -> {
+          var attribute = req.getId() != null
+              ? tmsAttributeService.getEntityById(projectId, req.getId())
+              : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
+          return tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute);
+        })
+        .collect(Collectors.toSet());
+    
     tmsTestCase.setAttributes(tmsTestCaseAttributes);
-    tmsTestCaseAttributes.forEach(
-        tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
     tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
   }
 
   @Override
   @Transactional
-  public void updateTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
+  public void updateTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes) {
-    tmsTestCaseAttributeRepository.deleteAllByTestCaseId(tmsTestCase.getId());
+    if (CollectionUtils.isNotEmpty(tmsTestCase.getAttributes())) { //TODO refactor to the option with highest performance
+      tmsTestCaseAttributeRepository.deleteAll(tmsTestCase.getAttributes());
+      tmsTestCase.setAttributes(new HashSet<>());
+    }
     if (CollectionUtils.isNotEmpty(attributes)) {
-      createTestCaseAttributes(tmsTestCase, attributes);
+      
+      var tmsTestCaseAttributes = attributes.stream()
+          .map(req -> {
+            var attribute = req.getId() != null
+                ? tmsAttributeService.getEntityById(projectId, req.getId())
+                : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
+            return tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute);
+          })
+          .collect(Collectors.toSet());
+      
+      tmsTestCase.setAttributes(tmsTestCaseAttributes);
+      tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
     }
   }
 
   @Override
   @Transactional
-  public void patchTestCaseAttributes(@NotNull TmsTestCase tmsTestCase,
+  public void patchTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes) {
     if (isEmpty(attributes)) {
       return;
     }
-    var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
-        attributes);
-    tmsTestCaseAttributes.forEach(
-        tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
+    
+    var tmsTestCaseAttributes = attributes.stream()
+        .map(req -> {
+          var attribute = req.getId() != null
+              ? tmsAttributeService.getEntityById(projectId, req.getId())
+              : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
+          return tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute);
+        })
+        .collect(Collectors.toSet());
+    
     tmsTestCase.getAttributes().addAll(tmsTestCaseAttributes);
     tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
   }
@@ -70,11 +97,19 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
     if (isEmpty(attributes)) {
       return;
     }
-    var tmsTestCaseAttributes = tmsTestCaseAttributeMapper.convertToTmsTestCaseAttributes(
-        attributes);
+    
     tmsTestCases.forEach(tmsTestCase -> {
-      tmsTestCaseAttributes.forEach(
-          tmsTestCaseAttribute -> tmsTestCaseAttribute.setTestCase(tmsTestCase));
+      Long projectId = tmsTestCase.getTestFolder().getProject().getId();
+      
+      var tmsTestCaseAttributes = attributes.stream()
+          .map(req -> {
+            var attribute = req.getId() != null
+                ? tmsAttributeService.getEntityById(projectId, req.getId())
+                : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
+            return tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute);
+          })
+          .collect(Collectors.toSet());
+      
       tmsTestCase.getAttributes().addAll(tmsTestCaseAttributes);
       tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
     });

@@ -1,21 +1,15 @@
-ALTER SEQUENCE IF EXISTS tms_test_folder_id_seq RESTART WITH 1;
+-- ==================== TEST FOLDERS ====================
 
 -- Root folders for different test scenarios
 INSERT INTO tms_test_folder (id, project_id, description, "name")
-VALUES (3, 1, 'description_folder3', 'name_folder3');
-
-INSERT INTO tms_test_folder (id, project_id, description, "name")
-VALUES (4, 1, 'description_folder4', 'name_folder4');
-
-INSERT INTO tms_test_folder (id, project_id, description, "name")
-VALUES (5, 1, 'description_folder5', 'name_folder5');
+VALUES (3, 1, 'description_folder3', 'name_folder3'),
+       (4, 1, 'description_folder4', 'name_folder4'),
+       (5, 1, 'description_folder5', 'name_folder5');
 
 -- Subfolders of folder 3 (used for hierarchy duplication tests)
 INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (6, 1, 'description_subfolder1', 'name_subfolder1', 3);
-
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (7, 1, 'description_subfolder2', 'name_subfolder2', 3);
+VALUES (6, 1, 'description_subfolder1', 'name_subfolder1', 3),
+       (7, 1, 'description_subfolder2', 'name_subfolder2', 3);
 
 -- Sub-subfolder of folder 6 (nested hierarchy test)
 INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
@@ -28,32 +22,20 @@ VALUES (9, 1, 'description_subfolder_of_4', 'name_subfolder_of_4', 4);
 -- Additional subfolders for export testing
 INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
 VALUES (10, 1, 'This is a longer description with special characters: !@#$%^&*()',
-        'Export Test Folder', 3);
-
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (11, 1, NULL, 'Empty Description Folder', 3);
+        'Export Test Folder', 3),
+       (11, 1, NULL, 'Empty Description Folder', 3);
 
 -- Root folder for export testing with complex hierarchy
 INSERT INTO tms_test_folder (id, project_id, description, "name")
 VALUES (12, 1, 'Root folder for export testing', 'Export Root');
 
 INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (13, 1, 'First level subfolder 1', 'Export Sub 1', 12);
-
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (14, 1, 'First level subfolder 2', 'Export Sub 2', 12);
-
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (15, 1, 'Second level subfolder 1', 'Export Sub-Sub 1', 13);
-
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (16, 1, 'Second level subfolder 2', 'Export Sub-Sub 2', 13);
-
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (17, 1, 'Second level subfolder 3', 'Export Sub-Sub 3', 14);
-
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (18, 1, 'Third level subfolder', 'Export Sub-Sub-Sub', 15);
+VALUES (13, 1, 'First level subfolder 1', 'Export Sub 1', 12),
+       (14, 1, 'First level subfolder 2', 'Export Sub 2', 12),
+       (15, 1, 'Second level subfolder 1', 'Export Sub-Sub 1', 13),
+       (16, 1, 'Second level subfolder 2', 'Export Sub-Sub 2', 13),
+       (17, 1, 'Second level subfolder 3', 'Export Sub-Sub 3', 14),
+       (18, 1, 'Third level subfolder', 'Export Sub-Sub-Sub', 15);
 
 -- Test folders for test plan integration tests
 INSERT INTO tms_test_folder (id, "name", description, project_id, parent_id)
@@ -61,14 +43,41 @@ VALUES (19, 'Root Test Folder', 'Root test folder description', 1, NULL),
        (20, 'Sub Test Folder 1', 'Sub test folder 1 description', 1, 19),
        (21, 'Sub Test Folder 2', 'Sub test folder 2 description', 1, 19);
 
+INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
+VALUES (22, 1, 'new_description_subfolder_of_3', 'new_name_subfolder_of_4', 3);
+
 -- ==================== TEST ATTRIBUTES ====================
-INSERT INTO tms_attribute (id, "key")
-VALUES (10, 'test_key_10'),
-       (11, 'test_key_11'),
-       (12, 'test_key_12'),
-       (13, 'priority'),
-       (14, 'component'),
-       (15, 'environment');
+-- Теперь атрибуты содержат пары (key, value)
+
+-- Общие атрибуты (без конкретных значений - для совместимости)
+INSERT INTO tms_attribute (id, "key", value, project_id)
+VALUES (10, 'test_key_10', NULL, 1),
+       (11, 'test_key_11', NULL, 1),
+       (12, 'test_key_12', NULL, 1);
+
+-- Атрибуты Priority (разные значения)
+INSERT INTO tms_attribute (id, "key", value, project_id)
+VALUES (13, 'priority', 'high', 1),
+       (14, 'priority', 'medium', 1),
+       (15, 'priority', 'low', 1);
+
+-- Атрибуты Component (разные значения)
+INSERT INTO tms_attribute (id, "key", value, project_id)
+VALUES (16, 'component', 'core', 1),
+       (17, 'component', 'api', 1),
+       (18, 'component', 'ui', 1),
+       (19, 'component', 'integration', 1),
+       (20, 'component', 'smoke', 1),
+       (21, 'component', 'regression', 1),
+       (22, 'component', 'performance', 1),
+       (23, 'component', 'functional', 1);
+
+-- Атрибуты Environment (разные значения)
+INSERT INTO tms_attribute (id, "key", value, project_id)
+VALUES (24, 'environment', 'staging', 1),
+       (25, 'environment', 'production', 1),
+       (26, 'environment', 'dev', 1),
+       (27, 'environment', 'qa', 1);
 
 -- ==================== TEST PLANS ====================
 INSERT INTO tms_test_plan (id, "name", description, project_id, environment_id, product_version_id)
@@ -148,26 +157,48 @@ VALUES (100, 100, 'Default Version', true, false),
 -- ==================== MANUAL SCENARIOS ====================
 
 -- TEXT manual scenarios for test cases
-INSERT INTO tms_manual_scenario (id, test_case_version_id, execution_estimation_time, link_to_requirements, type)
-VALUES (100, 100, 30, 'REQ-100', 'TEXT'),
-       (101, 101, 25, 'REQ-101', 'TEXT'),
-       (102, 102, 20, 'REQ-102', 'TEXT'),
-       (103, 103, 35, 'REQ-103', 'TEXT'),
-       (104, 104, 40, 'REQ-104', 'TEXT'),
-       (105, 105, 15, 'REQ-105', 'TEXT'),
-       (106, 106, 45, 'REQ-106', 'TEXT'),
-       (107, 107, 30, 'REQ-107', 'TEXT'),
-       (108, 108, 35, 'REQ-108', 'TEXT'),
-       (109, 109, 50, 'REQ-109', 'TEXT'),
-       (110, 110, 20, 'REQ-110', 'TEXT'),
-       (111, 111, 30, 'REQ-111', 'TEXT'),
-       (112, 112, 25, 'REQ-112', 'TEXT'),
-       (113, 113, 30, 'REQ-113', 'TEXT'),
-       (114, 114, 20, 'REQ-114', 'TEXT'),
-       (115, 115, 40, 'REQ-115', 'TEXT'),
-       (116, 116, 35, 'REQ-116', 'TEXT'),
-       (117, 117, 45, 'REQ-117', 'TEXT'),
-       (118, 118, 25, 'REQ-118', 'TEXT');
+INSERT INTO tms_manual_scenario (id, test_case_version_id, execution_estimation_time, type)
+VALUES (100, 100, 30, 'TEXT'),
+       (101, 101, 25, 'TEXT'),
+       (102, 102, 20, 'TEXT'),
+       (103, 103, 35, 'TEXT'),
+       (104, 104, 40, 'TEXT'),
+       (105, 105, 15, 'TEXT'),
+       (106, 106, 45, 'TEXT'),
+       (107, 107, 30, 'TEXT'),
+       (108, 108, 35, 'TEXT'),
+       (109, 109, 50, 'TEXT'),
+       (110, 110, 20, 'TEXT'),
+       (111, 111, 30, 'TEXT'),
+       (112, 112, 25, 'TEXT'),
+       (113, 113, 30, 'TEXT'),
+       (114, 114, 20, 'TEXT'),
+       (115, 115, 40, 'TEXT'),
+       (116, 116, 35, 'TEXT'),
+       (117, 117, 45, 'TEXT'),
+       (118, 118, 25, 'TEXT');
+
+-- Manual scenario requirements
+INSERT INTO tms_manual_scenario_requirement (id, value, manual_scenario_id)
+VALUES ('REQ-100', 'Requirement for TC100', 100),
+       ('REQ-101', 'Requirement for TC101', 101),
+       ('REQ-102', 'Requirement for TC102', 102),
+       ('REQ-103', 'Requirement for TC103', 103),
+       ('REQ-104', 'Requirement for TC104', 104),
+       ('REQ-105', 'Requirement for TC105', 105),
+       ('REQ-106', 'Requirement for TC106', 106),
+       ('REQ-107', 'Requirement for TC107', 107),
+       ('REQ-108', 'Requirement for TC108', 108),
+       ('REQ-109', 'Requirement for TC109', 109),
+       ('REQ-110', 'Requirement for TC110', 110),
+       ('REQ-111', 'Requirement for TC111', 111),
+       ('REQ-112', 'Requirement for TC112', 112),
+       ('REQ-113', 'Requirement for TC113', 113),
+       ('REQ-114', 'Requirement for TC114', 114),
+       ('REQ-115', 'Requirement for TC115', 115),
+       ('REQ-116', 'Requirement for TC116', 116),
+       ('REQ-117', 'Requirement for TC117', 117),
+       ('REQ-118', 'Requirement for TC118', 118);
 
 -- Manual scenario preconditions
 INSERT INTO tms_manual_scenario_preconditions (id, manual_scenario_id, value)
@@ -214,50 +245,51 @@ VALUES (100, 'Execute test case 100 functionality', 'Test should pass with high 
        (118, 'Execute test case 118 functionality', 'Sub test folder 2 test');
 
 -- ==================== TEST CASE ATTRIBUTES ====================
+-- Теперь без поля value - просто ссылка на атрибут (который уже содержит пару key-value)
 
 -- Attributes for test cases in folder 3 hierarchy
-INSERT INTO tms_test_case_attribute (test_case_id, attribute_id, value)
-VALUES (100, 13, 'high'),
-       (100, 14, 'core'),
-       (101, 13, 'medium'),
-       (101, 15, 'staging'),
-       (102, 13, 'low'),
-       (103, 13, 'high'),
-       (103, 14, 'api'),
-       (104, 13, 'medium'),
-       (105, 13, 'low'),
-       (105, 15, 'production'),
-       (106, 13, 'high'),
-       (106, 14, 'ui'),
-       (107, 13, 'medium'),
-       (107, 14, 'integration'),
-       (108, 13, 'high'),
-       (108, 14, 'smoke');
+INSERT INTO tms_test_case_attribute (test_case_id, attribute_id)
+VALUES (100, 13),  -- priority='high'
+       (100, 16),  -- component='core'
+       (101, 14),  -- priority='medium'
+       (101, 24),  -- environment='staging'
+       (102, 15),  -- priority='low'
+       (103, 13),  -- priority='high'
+       (103, 17),  -- component='api'
+       (104, 14),  -- priority='medium'
+       (105, 15),  -- priority='low'
+       (105, 25),  -- environment='production'
+       (106, 13),  -- priority='high'
+       (106, 18),  -- component='ui'
+       (107, 14),  -- priority='medium'
+       (107, 19),  -- component='integration'
+       (108, 13),  -- priority='high'
+       (108, 20);  -- component='smoke'
 
 -- Attributes for test cases in folder 4 hierarchy
-INSERT INTO tms_test_case_attribute (test_case_id, attribute_id, value)
-VALUES (109, 13, 'high'),
-       (109, 14, 'regression'),
-       (110, 13, 'low'),
-       (111, 13, 'medium'),
-       (111, 15, 'dev');
+INSERT INTO tms_test_case_attribute (test_case_id, attribute_id)
+VALUES (109, 13),  -- priority='high'
+       (109, 21),  -- component='regression'
+       (110, 15),  -- priority='low'
+       (111, 14),  -- priority='medium'
+       (111, 26);  -- environment='dev'
 
 -- Attributes for test cases in folder 5
-INSERT INTO tms_test_case_attribute (test_case_id, attribute_id, value)
-VALUES (112, 13, 'high'),
-       (112, 14, 'performance'),
-       (113, 13, 'medium'),
-       (114, 13, 'low'),
-       (114, 15, 'qa');
+INSERT INTO tms_test_case_attribute (test_case_id, attribute_id)
+VALUES (112, 13),  -- priority='high'
+       (112, 22),  -- component='performance'
+       (113, 14),  -- priority='medium'
+       (114, 15),  -- priority='low'
+       (114, 27);  -- environment='qa'
 
 -- Attributes for test cases in test plan folders
-INSERT INTO tms_test_case_attribute (test_case_id, attribute_id, value)
-VALUES (115, 13, 'high'),
-       (116, 13, 'medium'),
-       (116, 14, 'functional'),
-       (117, 13, 'high'),
-       (117, 14, 'integration'),
-       (118, 13, 'low');
+INSERT INTO tms_test_case_attribute (test_case_id, attribute_id)
+VALUES (115, 13),  -- priority='high'
+       (116, 14),  -- priority='medium'
+       (116, 23),  -- component='functional'
+       (117, 13),  -- priority='high'
+       (117, 19),  -- component='integration'
+       (118, 15);  -- priority='low'
 
 -- ==================== TEST PLAN TEST CASE LINKS ====================
 

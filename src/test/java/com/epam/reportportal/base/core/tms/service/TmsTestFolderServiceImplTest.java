@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -19,24 +20,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
+import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.reportportal.base.core.tms.mapper.exporter.TmsTestFolderExporter;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestFolderExporterFactory;
-import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
-import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.validation.TestFolderIdValidator;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,8 +58,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Unit tests for TmsTestFolderServiceImpl. Tests CRUD operations, hierarchy management, duplication, and export
- * functionality.
+ * Unit tests for TmsTestFolderServiceImpl.
+ * Tests CRUD operations, hierarchy management, duplication, and export functionality.
  */
 @ExtendWith(MockitoExtension.class)
 class TmsTestFolderServiceImplTest {
@@ -297,8 +298,7 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQWithNestedParentFolder);
     verify(tmsTestFolderRepository).existsByIdAndProjectId(5L, projectId);
-    verify(tmsTestFolderMapper).convertToTestFolder(projectId,
-        testFolderRQWithNestedParentFolder.getParentTestFolder());
+    verify(tmsTestFolderMapper).convertToTestFolder(projectId, testFolderRQWithNestedParentFolder.getParentTestFolder());
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
@@ -470,8 +470,7 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findByIdAndProjectId(testFolderId, projectId);
     verify(tmsTestFolderRepository).existsByIdAndProjectId(5L, projectId);
     verify(tmsTestFolderMapper).update(eq(testFolder), any(TmsTestFolder.class));
-    verify(tmsTestFolderMapper).convertToTestFolder(projectId,
-        testFolderRQWithNestedParentFolder.getParentTestFolder());
+    verify(tmsTestFolderMapper).convertToTestFolder(projectId, testFolderRQWithNestedParentFolder.getParentTestFolder());
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
@@ -1093,7 +1092,7 @@ class TmsTestFolderServiceImplTest {
         sut.resolveTargetFolderId(projectId, null, null));
 
     assertTrue(exception.getMessage().contains(
-        "Either target folder id or target folder name must be provided for duplication"));
+        "Either target folder id or target folder name must be provided"));
   }
 
   @Test
@@ -1953,5 +1952,595 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
         projectId, testPlanId, secondPage);
     verify(tmsTestFolderMapper).convert(folderPage);
+  }
+
+  @Test
+  void testResolveFolderPath_WithEmptyPath_ShouldReturnParentFolderId() {
+    // Given
+    var parentFolderId = 5L;
+    List<String> emptyPath = Collections.emptyList();
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, emptyPath);
+
+    // Then
+    assertEquals(parentFolderId, result);
+    verify(tmsTestFolderRepository, never()).findByProjectIdAndParentIdAndName(
+        anyLong(), any(), anyString());
+  }
+
+  @Test
+  void testResolveFolderPath_WithNullPath_ShouldReturnParentFolderId() {
+    // Given
+    var parentFolderId = 5L;
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, null);
+
+    // Then
+    assertEquals(parentFolderId, result);
+    verify(tmsTestFolderRepository, never()).findByProjectIdAndParentIdAndName(
+        anyLong(), any(), anyString());
+  }
+
+  @Test
+  void testResolveFolderPath_WithExistingFolder_ShouldReturnExistingFolderId() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("ExistingFolder");
+
+    var existingFolder = new TmsTestFolder();
+    existingFolder.setId(10L);
+    existingFolder.setName("ExistingFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "ExistingFolder"))
+        .thenReturn(Optional.of(existingFolder));
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(10L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "ExistingFolder");
+    verify(tmsTestFolderRepository, never()).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPath_WithNonExistingFolder_ShouldCreateAndReturnNewFolderId() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("NewFolder");
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(20L);
+    newFolder.setName("NewFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "NewFolder"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "NewFolder"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newFolder);
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(20L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "NewFolder");
+    verify(tmsTestFolderMapper).convertFromName(projectId, "NewFolder");
+    verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPath_WithNullParentFolderId_ShouldResolveFromRoot() {
+    // Given
+    var pathHierarchy = List.of("RootFolder");
+
+    var rootFolder = new TmsTestFolder();
+    rootFolder.setId(10L);
+    rootFolder.setName("RootFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "RootFolder"))
+        .thenReturn(Optional.of(rootFolder));
+
+    // When
+    var result = sut.resolveFolderPath(projectId, null, pathHierarchy);
+
+    // Then
+    assertEquals(10L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, null, "RootFolder");
+  }
+
+  @Test
+  void testResolveFolderPath_WithMultiLevelPath_ShouldResolveAllLevels() {
+    // Given
+    var pathHierarchy = List.of("Level1", "Level2", "Level3");
+
+    var level1Folder = new TmsTestFolder();
+    level1Folder.setId(10L);
+    level1Folder.setName("Level1");
+
+    var level2Folder = new TmsTestFolder();
+    level2Folder.setId(20L);
+    level2Folder.setName("Level2");
+
+    var level3Folder = new TmsTestFolder();
+    level3Folder.setId(30L);
+    level3Folder.setName("Level3");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Level1"))
+        .thenReturn(Optional.of(level1Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Level2"))
+        .thenReturn(Optional.of(level2Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 20L, "Level3"))
+        .thenReturn(Optional.of(level3Folder));
+
+    // When
+    var result = sut.resolveFolderPath(projectId, null, pathHierarchy);
+
+    // Then
+    assertEquals(30L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, null, "Level1");
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, 10L, "Level2");
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, 20L, "Level3");
+  }
+
+  @Test
+  void testResolveFolderPath_WithMixedExistingAndNew_ShouldCreateOnlyMissing() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("Existing", "New");
+
+    var existingFolder = new TmsTestFolder();
+    existingFolder.setId(10L);
+    existingFolder.setName("Existing");
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(20L);
+    newFolder.setName("New");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "Existing"))
+        .thenReturn(Optional.of(existingFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "New"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "New"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newFolder);
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(20L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "Existing");
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, 10L, "New");
+    verify(tmsTestFolderMapper).convertFromName(projectId, "New");
+    verify(tmsTestFolderRepository, times(1)).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPath_WithNewFolderUnderParent_ShouldSetParentFolder() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("NewChild");
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(20L);
+    newFolder.setName("NewChild");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "NewChild"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "NewChild"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenAnswer(invocation -> {
+          var folder = (TmsTestFolder) invocation.getArgument(0);
+          // Verify parent folder was set
+          assertNotNull(folder.getParentTestFolder());
+          assertEquals(parentFolderId, folder.getParentTestFolder().getId());
+          return newFolder;
+        });
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(20L, result);
+    verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithEmptyList_ShouldReturnEmptyMap() {
+    // Given
+    var parentFolderId = 5L;
+    List<List<String>> emptyPaths = Collections.emptyList();
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, parentFolderId, emptyPaths);
+
+    // Then
+    assertTrue(result.isEmpty());
+    verify(tmsTestFolderRepository, never()).findByProjectIdAndParentIdAndName(
+        anyLong(), any(), anyString());
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithSinglePath_ShouldResolvePath() {
+    // Given
+    List<List<String>> paths = List.of(List.of("Folder1"));
+
+    var folder = new TmsTestFolder();
+    folder.setId(10L);
+    folder.setName("Folder1");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("Folder1"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithMultiplePaths_ShouldResolveAll() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Folder1"),
+        List.of("Folder2")
+    );
+
+    var folder1 = new TmsTestFolder();
+    folder1.setId(10L);
+    folder1.setName("Folder1");
+
+    var folder2 = new TmsTestFolder();
+    folder2.setId(20L);
+    folder2.setName("Folder2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder1));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder2"))
+        .thenReturn(Optional.of(folder2));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(2, result.size());
+    assertEquals(10L, result.get("Folder1"));
+    assertEquals(20L, result.get("Folder2"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithNestedPaths_ShouldResolveHierarchy() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Parent", "Child")
+    );
+
+    var parentFolder = new TmsTestFolder();
+    parentFolder.setId(10L);
+    parentFolder.setName("Parent");
+
+    var childFolder = new TmsTestFolder();
+    childFolder.setId(20L);
+    childFolder.setName("Child");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Parent"))
+        .thenReturn(Optional.of(parentFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Child"))
+        .thenReturn(Optional.of(childFolder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(2, result.size());
+    assertEquals(10L, result.get("Parent"));
+    assertEquals(20L, result.get("Parent/Child"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithDuplicatePaths_ShouldResolveOnce() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Folder1"),
+        List.of("Folder1"),
+        List.of("Folder1")
+    );
+
+    var folder = new TmsTestFolder();
+    folder.setId(10L);
+    folder.setName("Folder1");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("Folder1"));
+    // Should only be called once due to caching
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, null, "Folder1");
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithSharedParentPaths_ShouldReuseParent() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Parent", "Child1"),
+        List.of("Parent", "Child2")
+    );
+
+    var parentFolder = new TmsTestFolder();
+    parentFolder.setId(10L);
+    parentFolder.setName("Parent");
+
+    var child1Folder = new TmsTestFolder();
+    child1Folder.setId(20L);
+    child1Folder.setName("Child1");
+
+    var child2Folder = new TmsTestFolder();
+    child2Folder.setId(30L);
+    child2Folder.setName("Child2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Parent"))
+        .thenReturn(Optional.of(parentFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Child1"))
+        .thenReturn(Optional.of(child1Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Child2"))
+        .thenReturn(Optional.of(child2Folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(3, result.size());
+    assertEquals(10L, result.get("Parent"));
+    assertEquals(20L, result.get("Parent/Child1"));
+    assertEquals(30L, result.get("Parent/Child2"));
+    // Parent should only be resolved once due to caching
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, null, "Parent");
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithEmptyPathInList_ShouldSkipEmpty() {
+    // Given
+    List<List<String>> paths = List.of(
+        Collections.emptyList(),
+        List.of("Folder1")
+    );
+
+    var folder = new TmsTestFolder();
+    folder.setId(10L);
+    folder.setName("Folder1");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("Folder1"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithNewFolders_ShouldCreateAll() {
+    // Given
+    List<List<String>> paths = List.of(List.of("NewFolder"));
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(10L);
+    newFolder.setName("NewFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "NewFolder"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "NewFolder"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newFolder);
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("NewFolder"));
+    verify(tmsTestFolderMapper).convertFromName(projectId, "NewFolder");
+    verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithParentFolderId_ShouldUseAsBase() {
+    // Given
+    var parentFolderId = 5L;
+    List<List<String>> paths = List.of(List.of("SubFolder"));
+
+    var subFolder = new TmsTestFolder();
+    subFolder.setId(10L);
+    subFolder.setName("SubFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "SubFolder"))
+        .thenReturn(Optional.of(subFolder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, parentFolderId, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("SubFolder"));
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "SubFolder");
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithDeepHierarchy_ShouldResolveAllLevels() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("A", "B", "C", "D")
+    );
+
+    var folderA = new TmsTestFolder();
+    folderA.setId(1L);
+    folderA.setName("A");
+
+    var folderB = new TmsTestFolder();
+    folderB.setId(2L);
+    folderB.setName("B");
+
+    var folderC = new TmsTestFolder();
+    folderC.setId(3L);
+    folderC.setName("C");
+
+    var folderD = new TmsTestFolder();
+    folderD.setId(4L);
+    folderD.setName("D");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "A"))
+        .thenReturn(Optional.of(folderA));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 1L, "B"))
+        .thenReturn(Optional.of(folderB));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 2L, "C"))
+        .thenReturn(Optional.of(folderC));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 3L, "D"))
+        .thenReturn(Optional.of(folderD));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(4, result.size());
+    assertEquals(1L, result.get("A"));
+    assertEquals(2L, result.get("A/B"));
+    assertEquals(3L, result.get("A/B/C"));
+    assertEquals(4L, result.get("A/B/C/D"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithMixedExistingAndNewInHierarchy_ShouldHandleCorrectly() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Existing", "New1", "New2")
+    );
+
+    var existingFolder = new TmsTestFolder();
+    existingFolder.setId(10L);
+    existingFolder.setName("Existing");
+
+    var new1Folder = new TmsTestFolder();
+    new1Folder.setId(20L);
+    new1Folder.setName("New1");
+
+    var new2Folder = new TmsTestFolder();
+    new2Folder.setId(30L);
+    new2Folder.setName("New2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Existing"))
+        .thenReturn(Optional.of(existingFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "New1"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "New1"))
+        .thenReturn(new1Folder);
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 20L, "New2"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "New2"))
+        .thenReturn(new2Folder);
+
+    // Use thenAnswer to handle different folders being saved
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenAnswer(invocation -> {
+          TmsTestFolder folder = invocation.getArgument(0);
+          if ("New1".equals(folder.getName())) {
+            return new1Folder;
+          }
+          if ("New2".equals(folder.getName())) {
+            return new2Folder;
+          }
+          return folder;
+        });
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(3, result.size());
+    assertEquals(10L, result.get("Existing"));
+    assertEquals(20L, result.get("Existing/New1"));
+    assertEquals(30L, result.get("Existing/New1/New2"));
+
+    // Verify save was called twice (for New1 and New2)
+    verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithOverlappingPaths_ShouldCacheIntermediate() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Root", "Sub1"),
+        List.of("Root", "Sub1", "Deep"),
+        List.of("Root", "Sub2")
+    );
+
+    var rootFolder = new TmsTestFolder();
+    rootFolder.setId(1L);
+    rootFolder.setName("Root");
+
+    var sub1Folder = new TmsTestFolder();
+    sub1Folder.setId(2L);
+    sub1Folder.setName("Sub1");
+
+    var deepFolder = new TmsTestFolder();
+    deepFolder.setId(3L);
+    deepFolder.setName("Deep");
+
+    var sub2Folder = new TmsTestFolder();
+    sub2Folder.setId(4L);
+    sub2Folder.setName("Sub2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Root"))
+        .thenReturn(Optional.of(rootFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 1L, "Sub1"))
+        .thenReturn(Optional.of(sub1Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 2L, "Deep"))
+        .thenReturn(Optional.of(deepFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 1L, "Sub2"))
+        .thenReturn(Optional.of(sub2Folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(4, result.size());
+    assertEquals(1L, result.get("Root"));
+    assertEquals(2L, result.get("Root/Sub1"));
+    assertEquals(3L, result.get("Root/Sub1/Deep"));
+    assertEquals(4L, result.get("Root/Sub2"));
+
+    // Root should be queried only once due to caching
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, null, "Root");
+    // Sub1 should be queried only once
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, 1L, "Sub1");
   }
 }

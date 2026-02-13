@@ -104,7 +104,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     var expiredAttachments = tmsAttachmentRepository.findExpiredAttachments(Instant.now());
 
     if (!expiredAttachments.isEmpty()) {
-      log.info("Found {} expired attachments for cleanup", expiredAttachments.size());
+      log.debug("Found {} expired attachments for cleanup", expiredAttachments.size());
 
       // Delete files from data store
       expiredAttachments.forEach(attachment -> {
@@ -123,7 +123,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
           .collect(Collectors.toList());
       tmsAttachmentRepository.deleteByIds(expiredIds);
 
-      log.info("Cleaned up {} expired attachments", expiredIds.size());
+      log.debug("Cleaned up {} expired attachments", expiredIds.size());
     }
   }
 
@@ -165,7 +165,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       // Step 5: Save duplicated attachment to a database
       var savedDuplicate = tmsAttachmentRepository.save(duplicatedAttachment);
 
-      log.info("Successfully duplicated TMS attachment {} to new attachment {} with file: {}",
+      log.debug("Successfully duplicated TMS attachment {} to new attachment {} with file: {}",
           originalAttachment.getId(), savedDuplicate.getId(), newFileName);
 
       return savedDuplicate;
@@ -217,7 +217,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
         unusedAttachmentIds, expirationTime
     );
 
-    log.info("Set TTL (expires at: {}) for {} unused TMS attachments",
+    log.debug("Set TTL (expires at: {}) for {} unused TMS attachments",
         expirationTime, updatedCount);
   }
 
@@ -251,8 +251,9 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   }
 
   /**
-   * Generates a unique filename for duplicated attachment. * Adds timestamp and UUID to avoid filename conflicts. * *
-   * @param originalFileName the original filename * @return new unique filename
+   * Generates a unique filename for duplicated attachment. * Adds timestamp and UUID to avoid
+   * filename conflicts. * * @param originalFileName the original filename * @return new unique
+   * filename
    */
   private String generateDuplicateFileName(String originalFileName) {
     if (originalFileName == null || originalFileName.trim().isEmpty()) {

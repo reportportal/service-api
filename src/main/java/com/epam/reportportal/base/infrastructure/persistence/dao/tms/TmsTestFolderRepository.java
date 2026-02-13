@@ -17,8 +17,8 @@ import org.springframework.stereotype.Repository;
  * Repository interface for managing TMS test folders.
  *
  * <p>This repository provides methods for CRUD operations on test folders, including hierarchical
- * operations for managing folder structures, counting test cases, and handling subfolder relationships within the Test
- * Management System.
+ * operations for managing folder structures, counting test cases, and handling subfolder
+ * relationships within the Test Management System.
  * </p>
  *
  * @author Andrei_Varabyeu
@@ -194,8 +194,8 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * Recursively deletes a test folder and all its subfolders.
    *
    * <p>This method uses a recursive Common Table Expression (CTE) to identify all subfolders
-   * at any level of nesting and then deletes them. The deletion is performed in a way that respects the folder
-   * hierarchy.
+   * at any level of nesting and then deletes them. The deletion is performed in a way that respects
+   * the folder hierarchy.
    * </p>
    *
    * <p><strong>Warning:</strong> This method should be used after deleting all related entities
@@ -232,8 +232,9 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * <p>This method uses a recursive CTE to traverse the folder hierarchy and return all folder
    * IDs including the root folder and all its nested subfolders at any level.
    * </p>
-   * <p>
-   * Note: This query is PostgreSQL specific and may not work with other database systems.
+   *
+   * Note: This query is PostgreSQL specific and may not work with other
+   * database systems.
    *
    * @param projectId the ID of the project to ensure security boundaries
    * @param folderId  the ID of the root folder to start the hierarchy traversal from
@@ -254,7 +255,7 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * This method determines whether a test folder with an id exists in a project.
    *
    * @param projectId project's id
-   * @param id        test folder's id
+   * @param id test folder's id
    * @return true if exists, false if not
    */
   Boolean existsByIdAndProjectId(long id, long projectId);
@@ -323,4 +324,48 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("testCaseIds") List<Long> testCaseIds,
       @Param("folderId") Long folderId
   );
+
+  /**
+   * Finds unique test folders from test cases in a specific launch with test case counts.
+   *
+   * @param launchId launch ID
+   * @param pageable pagination information
+   * @return paginated list of unique folders with test case counts
+   */
+  @Query("""
+    SELECT new com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases(
+        tc.testFolder, 
+        COUNT(DISTINCT tc.id)
+    )
+    FROM TmsTestCaseExecution e
+    JOIN TmsTestCase tc ON e.testCaseId = tc.id
+    WHERE e.launchId = :launchId
+    GROUP BY tc.testFolder.id, tc.testFolder.name, tc.testFolder.description, tc.testFolder.project.id, tc.testFolder.parentTestFolder.id
+    ORDER BY tc.testFolder.name
+    """)
+  Page<TmsTestFolderWithCountOfTestCases> findUniqueFoldersByLaunchIdWithTestCaseCount(
+      @Param("launchId") Long launchId,
+      Pageable pageable
+  );
+
+  /**
+   * Finds a folder by project ID, parent folder ID and name.
+   * Used for resolving folder paths during import.
+   *
+   * @param projectId      the project ID
+   * @param parentFolderId the parent folder ID (null for root level folders)
+   * @param name           the folder name
+   * @return optional containing the folder if found
+   */
+  @Query("""
+      SELECT f FROM TmsTestFolder f
+      WHERE f.project.id = :projectId
+      AND f.name = :name
+      AND (:parentFolderId IS NULL AND f.parentTestFolder IS NULL
+           OR f.parentTestFolder.id = :parentFolderId)
+      """)
+  Optional<TmsTestFolder> findByProjectIdAndParentIdAndName(
+      @Param("projectId") Long projectId,
+      @Param("parentFolderId") Long parentFolderId,
+      @Param("name") String name);
 }

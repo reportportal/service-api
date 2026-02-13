@@ -45,6 +45,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TICKET;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION_COMMENT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.WIDGET;
@@ -101,6 +103,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.S
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
@@ -809,6 +813,62 @@ public class RecordMappers {
     TmsAttribute attribute = new TmsAttribute();
     attribute.setId(r.get(TMS_ATTRIBUTE.ID));
     attribute.setKey(r.get(TMS_ATTRIBUTE.KEY));
+    attribute.setValue(r.get(TMS_ATTRIBUTE.VALUE));
     return attribute;
+  };
+
+  /**
+   * Maps record into {@link TmsTestCaseExecution} object
+   */
+  public static final RecordMapper<? super Record, TmsTestCaseExecution> TMS_TEST_CASE_EXECUTION_MAPPER = r -> {
+    TmsTestCaseExecution execution = new TmsTestCaseExecution();
+    execution.setId(r.get(TMS_TEST_CASE_EXECUTION.ID));
+    execution.setTestCaseId(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_ID));
+    execution.setLaunchId(r.get(TMS_TEST_CASE_EXECUTION.LAUNCH_ID));
+    execution.setTestCaseVersionId(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID));
+    execution.setPriority(r.get(TMS_TEST_CASE_EXECUTION.PRIORITY, String.class));
+    execution.setTestCaseSnapshot(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT, String.class));
+
+    //Create TestItem with id, if test_item_id exists
+    ofNullable(r.get(TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID)).ifPresent(testItemId -> {
+      TestItem testItem = new TestItem();
+      testItem.setItemId(testItemId);
+
+      // If there is test_item from JOIN - fill that
+      ofNullable(r.field(TEST_ITEM.START_TIME)).flatMap(f -> ofNullable(r.get(f, Instant.class)))
+          .ifPresent(testItem::setStartTime);
+      ofNullable(r.field(TEST_ITEM.NAME)).flatMap(f -> ofNullable(r.get(f, String.class)))
+          .ifPresent(testItem::setName);
+      ofNullable(r.field(TEST_ITEM.PARENT_ID)).flatMap(f -> ofNullable(r.get(f, Long.class)))
+          .ifPresent(testItem::setParentId);
+
+      // Get TestItemResults
+      ofNullable(r.field(TEST_ITEM_RESULTS.RESULT_ID))
+          .flatMap(f -> ofNullable(r.get(f, Long.class)))
+          .ifPresent(resultId -> {
+            TestItemResults results = new TestItemResults();
+            results.setItemId(resultId);
+            ofNullable(r.field(TEST_ITEM_RESULTS.STATUS)).flatMap(f -> ofNullable(r.get(f)))
+                .ifPresent(status -> results.setStatus(StatusEnum.valueOf(status.getLiteral())));
+            ofNullable(r.field(TEST_ITEM_RESULTS.END_TIME)).flatMap(f -> ofNullable(r.get(f, Instant.class)))
+                .ifPresent(results::setEndTime);
+            testItem.setItemResults(results);
+          });
+
+      execution.setTestItem(testItem);
+    });
+
+    ofNullable(r.field(TMS_TEST_CASE_EXECUTION_COMMENT.ID))
+        .flatMap(f -> ofNullable(r.get(f, Long.class)))
+        .ifPresent(commentId -> {
+          TmsTestCaseExecutionComment comment = new TmsTestCaseExecutionComment();
+          comment.setId(commentId);
+          ofNullable(r.field(TMS_TEST_CASE_EXECUTION_COMMENT.COMMENT))
+              .flatMap(f -> ofNullable(r.get(f, String.class)))
+              .ifPresent(comment::setComment);
+          execution.setExecutionComment(comment);
+        });
+
+    return execution;
   };
 }

@@ -6,13 +6,13 @@ import java.util.List;
 
 public interface TmsManualScenarioAttributeService {
 
-  void createAttributes(TmsManualScenario tmsManualScenario,
+  void createAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes);
 
-  void updateAttributes(TmsManualScenario tmsManualScenario,
+  void updateAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes);
 
-  void patchAttributes(TmsManualScenario tmsManualScenario,
+  void patchAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes);
 
   void deleteAllByTestCaseId(Long testCaseId);
@@ -22,8 +22,8 @@ public interface TmsManualScenarioAttributeService {
   void deleteAllByTestFolderId(Long projectId, Long folderId);
 
   /**
-   * Duplicates attributes from original scenario to new scenario. Uses existing TmsAttribute entities but creates new
-   * TmsManualScenarioAttribute associations.
+   * Duplicates attributes from original scenario to new scenario. Uses existing TmsAttribute
+   * entities but creates new TmsManualScenarioAttribute associations.
    *
    * @param originalScenario The original scenario with attributes to duplicate.
    * @param newScenario      The new scenario to attach duplicated attributes to.

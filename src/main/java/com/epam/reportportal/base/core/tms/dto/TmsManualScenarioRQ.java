@@ -13,8 +13,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Abstract base request DTO for manual scenario operations. Contains common information for all types of manual
- * scenarios. This class is extended by concrete implementations for different scenario types.
+ * Abstract base request DTO for manual scenario operations. Contains common information for all
+ * types of manual scenarios. This class is extended by concrete implementations for different
+ * scenario types.
  */
 @Data
 @SuperBuilder
@@ -39,7 +40,11 @@ public abstract class TmsManualScenarioRQ {
   @Min(value = 1, message = "Execution estimation time must be positive")
   protected Integer executionEstimationTime;
 
-  protected String linkToRequirements;
+  /**
+   * Requirements linked to the manual scenario.
+   */
+  @Valid
+  protected List<TmsRequirementRQ> requirements;
 
   /**
    * Type of manual scenario (STEPS or TEXT). Required for proper JSON deserialization.

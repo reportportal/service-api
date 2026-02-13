@@ -12,7 +12,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(config = CommonMapperConfig.class, uses = TmsManualScenarioAttributeMapper.class)
+@Mapper(config = CommonMapperConfig.class, uses = {TmsManualScenarioAttributeMapper.class, TmsManualScenarioRequirementMapper.class})
 public interface TmsTextManualScenarioMapper {
 
   @Mapping(target = "manualScenarioId", ignore = true)
@@ -44,7 +44,7 @@ public interface TmsTextManualScenarioMapper {
 
   @Mapping(target = "id", source = "id")
   @Mapping(target = "executionEstimationTime", source = "executionEstimationTime")
-  @Mapping(target = "linkToRequirements", source = "linkToRequirements")
+  @Mapping(target = "requirements", source = "requirements", defaultExpression = "java(java.util.List.of())")
   @Mapping(target = "preconditions", source = "preconditions")
   @Mapping(target = "manualScenarioType", source = "type")
   @Mapping(target = "attributes", source = "attributes")

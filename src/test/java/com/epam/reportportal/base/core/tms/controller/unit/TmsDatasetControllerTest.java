@@ -81,7 +81,7 @@ class TmsDatasetControllerTest {
 
           @Override
           public Object resolveArgument(MethodParameter parameter,
-              ModelAndViewContainer mavContainer,
+                                        ModelAndViewContainer mavContainer,
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return testUser;
           }
@@ -165,7 +165,7 @@ class TmsDatasetControllerTest {
 
     mockMvc
         .perform(get("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey,
-            datasetId))
+                                                                                 datasetId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(mockResponse.getId()))
         .andExpect(jsonPath("$.name").value(mockResponse.getName()));
@@ -226,7 +226,7 @@ class TmsDatasetControllerTest {
 
     mockMvc
         .perform(
-            delete("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
+          delete("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());

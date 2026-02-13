@@ -54,7 +54,8 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       @Param("id") Long id);
 
   /**
-   * Finds test case ids by project with optional search and folder filtering, supporting pagination.
+   * Finds test case ids by project with optional search and folder filtering, supporting
+   * pagination.
    *
    * @param projectId    The project ID
    * @param search       Optional search term for full-text search in name and description
@@ -85,9 +86,9 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       Pageable pageable);
 
   /**
-   * Deletes all test cases that belong to the specified folder or any of its subfolders. Uses a recursive Common Table
-   * Expression (CTE) to identify all subfolders at any level of nesting and then deletes test cases associated with
-   * those folders.
+   * Deletes all test cases that belong to the specified folder or any of its subfolders. Uses a
+   * recursive Common Table Expression (CTE) to identify all subfolders at any level of nesting and
+   * then deletes test cases associated with those folders.
    *
    * @param folderId  The ID of the folder
    * @param projectId The project ID to ensure folder belongs to the correct project
@@ -113,12 +114,12 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * Deletes multiple test cases by their IDs in a single batch operation.
    *
    * <p>This method performs a bulk delete operation which is more efficient than deleting test
-   * cases one by one. If any of the provided IDs don't exist, they will be silently ignored without throwing an
-   * exception.
+   * cases one by one. If any of the provided IDs don't exist, they will be silently ignored without
+   * throwing an exception.
    * </p>
    *
-   * @param testCaseIds the list of test case IDs to delete. Cannot be null, but can be empty. If empty list is
-   *                    provided, no deletion will be performed.
+   * @param testCaseIds the list of test case IDs to delete. Cannot be null, but can be empty. If
+   *                    empty list is provided, no deletion will be performed.
    */
   @Modifying
   @Query(value = "DELETE FROM TmsTestCase WHERE id IN (:testCaseIds)")
@@ -128,8 +129,8 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * Updates multiple test cases with new field values in a single batch operation.
    *
    * <p>This method performs a conditional update using CASE statements to only update fields when
-   * new values are provided (not null). Currently supports updating the test folder ID, but is designed to be
-   * extensible for additional fields in the future.
+   * new values are provided (not null). Currently supports updating the test folder ID, but is
+   * designed to be extensible for additional fields in the future.
    * </p>
    * The update logic:
    * <ul>
@@ -145,10 +146,10 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    *  @param projectId    the project ID for additional context/validation (currently not used in
    *                     query but may be used for future security/validation purposes)
    *
-   * @param testCaseIds  the list of test case IDs to update. Cannot be null, but can be empty. If empty, no updates
-   *                     will be performed.
-   * @param testFolderId the new test folder ID to assign. If null, the current test folder assignment will remain
-   *                     unchanged.
+   * @param testCaseIds  the list of test case IDs to update. Cannot be null, but can be empty. If
+   *                     empty, no updates will be performed.
+   * @param testFolderId the new test folder ID to assign. If null, the current test folder
+   *                     assignment will remain unchanged.
    * @param priority     the new priority to assign
    */
   @Modifying
@@ -178,7 +179,7 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * Checks if a test case exists by ID within the project
    *
    * @param testCaseId test case ID
-   * @param projectId  project ID
+   * @param projectId project ID
    * @return true if a test case exists in the project
    */
   @Query("SELECT COUNT(tc) > 0 FROM TmsTestCase tc " +
@@ -190,7 +191,7 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   /**
    * Returns list of test case IDs that exist in the project from the provided list
    *
-   * @param projectId   project ID
+   * @param projectId project ID
    * @param testCaseIds list of test case IDs to check
    * @return list of test case IDs that actually exist in the project
    */
@@ -199,15 +200,4 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       "AND tc.testFolder.project.id = :projectId")
   List<Long> findExistingTestCaseIds(@Param("projectId") Long projectId,
       @Param("testCaseIds") List<Long> testCaseIds);
-
-  @Query("SELECT COUNT(tc) > 0 FROM TmsTestCase tc " +
-      "WHERE tc.name = :testCaseName " +
-      "AND tc.testFolder.id = :testFolderId " +
-      "AND tc.testFolder.project.id = :projectId"
-  )
-  boolean existsByNameAndTestFolder(
-      @Param("projectId") Long projectId,
-      @Param("testCaseName") String testCaseName,
-      @Param("testFolderId") Long testFolderId
-  );
 }

@@ -27,6 +27,7 @@ import com.epam.reportportal.api.model.CreateOrganizationRequest;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.api.model.OrganizationSettings;
+import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateOrganizationRequest;
@@ -48,8 +49,10 @@ import com.epam.reportportal.base.util.ControllerUtils;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -187,6 +190,14 @@ public class OrganizationController extends BaseController implements Organizati
   public ResponseEntity<SuccessfulUpdate> updateOrgSettingsByOrgId(Long orgId,
       OrganizationSettings organizationSettings) {
     organizationSettingsHandler.updateOrgSettings(orgId, organizationSettings);
+    return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
+  }
+
+  @Override
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  @Transactional
+  public ResponseEntity<SuccessfulUpdate> patchOrganizationOrgId(Long orgId,
+                                                                 List<@Valid PatchOperation> patchOperation) {
     return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
   }
 

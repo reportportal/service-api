@@ -51,7 +51,8 @@ class AutoAnalysisEnabledStarterTest {
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         analyzerConfig,
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     autoAnalysisEnabledStarter.start(config);
@@ -68,7 +69,8 @@ class AutoAnalysisEnabledStarterTest {
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         analyzerConfig,
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     autoAnalysisEnabledStarter.start(config);

@@ -2020,6 +2020,7 @@ public enum FilterTarget {
           TEST_ITEM.START_TIME,
           TEST_ITEM.NAME,
           TEST_ITEM.PARENT_ID,
+          TEST_ITEM_RESULTS.RESULT_ID,
           TEST_ITEM_RESULTS.STATUS,
           TEST_ITEM_RESULTS.END_TIME
       );

@@ -140,7 +140,7 @@ public abstract class TmsTestCaseExecutionMapper {
     execution.setTestCaseId(testCase.getId());
     execution.setLaunchId(launch.getId());
     execution.setTestItem(testItem);
-    execution.setTestCaseSnapshot(testCase.getPriority());
+    execution.setPriority(testCase.getPriority());
     execution.setTestCaseVersionId(defaultVersionId);
     execution.setTestCaseSnapshot(snapshot);
 

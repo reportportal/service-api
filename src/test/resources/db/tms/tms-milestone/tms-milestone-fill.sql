@@ -111,14 +111,14 @@ values (400, 400, 30, 'TEXT'),
        (406, 406, 20, 'TEXT');
 
 -- Manual scenario requirements
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id)
-values ('REQ-400', 'Requirement for TC400', 400),
-       ('REQ-401', 'Requirement for TC401', 401),
-       ('REQ-402', 'Requirement for TC402', 402),
-       ('REQ-403', 'Requirement for TC403', 403),
-       ('REQ-404', 'Requirement for TC404', 404),
-       ('REQ-405', 'Requirement for TC405', 405),
-       ('REQ-406', 'Requirement for TC406', 406);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number)
+values ('REQ-400', 'Requirement for TC400', 400, 0),
+       ('REQ-401', 'Requirement for TC401', 401, 0),
+       ('REQ-402', 'Requirement for TC402', 402, 0),
+       ('REQ-403', 'Requirement for TC403', 403, 0),
+       ('REQ-404', 'Requirement for TC404', 404, 0),
+       ('REQ-405', 'Requirement for TC405', 405, 0),
+       ('REQ-406', 'Requirement for TC406', 406, 0);
 
 -- Text manual scenarios
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)

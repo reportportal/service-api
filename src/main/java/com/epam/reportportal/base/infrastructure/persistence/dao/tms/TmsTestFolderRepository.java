@@ -368,4 +368,53 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("projectId") Long projectId,
       @Param("parentFolderId") Long parentFolderId,
       @Param("name") String name);
+
+  /**
+   * Finds the maximum index of test folders within a given parent folder.
+   *
+   * @param projectId project id
+   * @param parentId  parent folder id (null for root folders)
+   * @return the maximum index value, or null if no folders exist
+   */
+  @Query("SELECT MAX(tf.index) FROM TmsTestFolder tf WHERE tf.project.id = :projectId AND ((:parentId IS NULL AND tf.parentTestFolder IS NULL) OR tf.parentTestFolder.id = :parentId)")
+  Integer findMaxIndex(@Param("projectId") Long projectId, @Param("parentId") Long parentId);
+
+  /**
+   * Shifts indexes of test folders starting from a given index by a specified amount.
+   * This is typically used when inserting or deleting folders to maintain order.
+   *
+   * @param projectId project id
+   * @param parentId  parent folder id (null for root folders)
+   * @param fromIndex the index to start shifting from (inclusive)
+   * @param amount    the amount to shift (positive to increment, negative to decrement)
+   */
+  @Modifying
+  @Query("UPDATE TmsTestFolder tf SET tf.index = tf.index + :amount WHERE tf.project.id = :projectId AND ((:parentId IS NULL AND tf.parentTestFolder IS NULL) OR tf.parentTestFolder.id = :parentId) AND tf.index >= :fromIndex")
+  void shiftIndexes(@Param("projectId") Long projectId, @Param("parentId") Long parentId,
+      @Param("fromIndex") int fromIndex, @Param("amount") int amount);
+
+  /**
+   * Shifts indexes of test folders within a specific range by a specified amount.
+   * This is useful for reordering operations where only a subset of items needs to be shifted.
+   *
+   * @param projectId project id
+   * @param parentId  parent folder id (null for root folders)
+   * @param start     the start index of the range (inclusive)
+   * @param end       the end index of the range (inclusive)
+   * @param amount    the amount to shift
+   */
+  @Modifying
+  @Query("UPDATE TmsTestFolder tf "
+      + "SET tf.index = tf.index + :amount "
+      + "WHERE tf.project.id = :projectId "
+      + "AND ((:parentId IS NULL AND tf.parentTestFolder IS NULL) OR tf.parentTestFolder.id = :parentId) "
+      + "AND tf.index >= :start AND tf.index <= :end")
+  void shiftIndexesBetween(
+      @Param("projectId") Long projectId,
+      @Param("parentId") Long parentId,
+      @Param("start") int start,
+      @Param("end") int end,
+      @Param("amount") int amount
+  );
+
 }

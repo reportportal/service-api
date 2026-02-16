@@ -156,6 +156,33 @@ public class TmsTestFolderControllerTest {
   }
 
   @Test
+  public void testCreateTestFolder_WithIndex() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Folder with index")
+        .name("Indexed Folder")
+        .index(5)
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(1L)
+        .name("Indexed Folder")
+        .description("Folder with index")
+        .index(5)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.index").value(5));
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).create(projectId, request);
+  }
+
+  @Test
   public void testCreateTestFolder_WithExistingParent() throws Exception {
     Long existingParentId = 5L;
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()

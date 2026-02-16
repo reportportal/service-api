@@ -81,7 +81,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
     /**
      * The column <code>public.tms_test_case.description</code>.
      */
-    public final TableField<JTmsTestCaseRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(1000), this, "");
+    public final TableField<JTmsTestCaseRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.tms_test_case.test_folder_id</code>.

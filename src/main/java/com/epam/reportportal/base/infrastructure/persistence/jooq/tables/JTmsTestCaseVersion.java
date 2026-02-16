@@ -9,11 +9,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution.JTmsTestCaseExecutionPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseVersionRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

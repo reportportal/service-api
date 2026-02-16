@@ -790,6 +790,7 @@ public class RecordMappers {
     testFolder.setId(r.get(TMS_TEST_FOLDER.ID));
     testFolder.setName(r.get(TMS_TEST_FOLDER.NAME));
     testFolder.setDescription(r.get(TMS_TEST_FOLDER.DESCRIPTION));
+    testFolder.setIndex(r.get(TMS_TEST_FOLDER.INDEX));
 
     ofNullable(r.get(TMS_TEST_FOLDER.PROJECT_ID)).ifPresent(projectId -> {
       Project project = new Project();

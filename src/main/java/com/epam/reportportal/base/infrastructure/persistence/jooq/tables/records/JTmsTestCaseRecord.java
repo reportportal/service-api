@@ -5,7 +5,9 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase;
+
 import java.time.Instant;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 

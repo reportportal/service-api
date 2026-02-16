@@ -1,3 +1,4 @@
+
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
 import jakarta.persistence.Column;
@@ -30,6 +31,9 @@ public class TmsManualScenarioRequirement {
 
   @Column(name = "value")
   private String value;
+
+  @Column(name = "number", nullable = false)
+  private Integer number = 0;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "manual_scenario_id", nullable = false)

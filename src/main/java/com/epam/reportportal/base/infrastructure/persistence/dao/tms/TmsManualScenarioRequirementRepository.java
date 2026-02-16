@@ -53,5 +53,5 @@ public interface TmsManualScenarioRequirementRepository
       + "WHERE r.manualScenario.id = :manualScenarioId")
   void deleteByManualScenarioId(@Param("manualScenarioId") Long manualScenarioId);
 
-  List<TmsManualScenarioRequirement> findByManualScenarioId(Long manualScenarioId);
+  List<TmsManualScenarioRequirement> findByManualScenarioIdOrderByNumberAsc(Long manualScenarioId);
 }

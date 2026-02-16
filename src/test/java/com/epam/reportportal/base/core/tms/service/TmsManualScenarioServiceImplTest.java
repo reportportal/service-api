@@ -675,7 +675,7 @@ class TmsManualScenarioServiceImplTest {
     var scenario = new TmsManualScenario();
     scenario.setId(1L);
     scenario.setExecutionEstimationTime(30);
-    scenario.setRequirements(Set.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
+    scenario.setRequirements(List.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
     scenario.setType(
         com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.TEXT);
     return scenario;
@@ -685,7 +685,7 @@ class TmsManualScenarioServiceImplTest {
     var scenario = new TmsManualScenario();
     scenario.setId(99L);
     scenario.setExecutionEstimationTime(60);
-    scenario.setRequirements(Set.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
+    scenario.setRequirements(List.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
     scenario.setType(
         com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.TEXT);
     return scenario;
@@ -695,7 +695,7 @@ class TmsManualScenarioServiceImplTest {
     var scenario = new TmsManualScenario();
     scenario.setId(10L);
     scenario.setExecutionEstimationTime(45);
-    scenario.setRequirements(Set.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
+    scenario.setRequirements(List.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
     scenario.setType(
         com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.TEXT);
 
@@ -714,7 +714,7 @@ class TmsManualScenarioServiceImplTest {
     var scenario = new TmsManualScenario();
     scenario.setId(10L);
     scenario.setExecutionEstimationTime(45);
-    scenario.setRequirements(Set.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
+    scenario.setRequirements(List.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
     scenario.setType(
         com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.TEXT);
     scenario.setPreconditions(null);
@@ -729,7 +729,7 @@ class TmsManualScenarioServiceImplTest {
     var scenario = new TmsManualScenario();
     scenario.setId(11L);
     scenario.setExecutionEstimationTime(50);
-    scenario.setRequirements(Set.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
+    scenario.setRequirements(List.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
     scenario.setType(
         com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.STEPS);
 
@@ -758,7 +758,7 @@ class TmsManualScenarioServiceImplTest {
     var scenario = new TmsManualScenario();
     scenario.setId(12L);
     scenario.setExecutionEstimationTime(55);
-    scenario.setRequirements(Collections.emptySet());
+    scenario.setRequirements(Collections.emptyList());
     scenario.setType(
         com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.TEXT);
     scenario.setPreconditions(null);
@@ -770,7 +770,7 @@ class TmsManualScenarioServiceImplTest {
     var scenario = new TmsManualScenario();
     scenario.setId(20L);
     scenario.setExecutionEstimationTime(45);
-    scenario.setRequirements(Set.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
+    scenario.setRequirements(List.of(TmsManualScenarioRequirement.builder().id("REQ-001").value("http://requirements.com").build()));
     scenario.setType(
         com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType.TEXT);
     return scenario;

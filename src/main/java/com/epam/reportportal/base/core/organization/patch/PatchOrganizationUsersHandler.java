@@ -32,10 +32,8 @@ import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.epam.reportportal.base.ws.converter.converters.UserConverter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.List;
 import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,129 +49,129 @@ import org.springframework.util.ObjectUtils;
 @Slf4j
 public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler {
 
-    private final UserRepository userRepository;
-    private final OrganizationRepositoryCustom organizationRepository;
-    private final OrganizationUserRepository organizationUserRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
+  private final UserRepository userRepository;
+  private final OrganizationRepositoryCustom organizationRepository;
+  private final OrganizationUserRepository organizationUserRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
-    /**
-     * Constructor.
-     *
-     * @param organizationUserService The service for managing organization users.
-     * @param objectMapper            The object mapper for JSON conversion.
-     */
-    @Autowired
-    protected PatchOrganizationUsersHandler(
-            OrganizationUserService organizationUserService,
-            ObjectMapper objectMapper,
-            UserRepository userRepository,
-            OrganizationRepositoryCustom organizationRepository,
-            OrganizationUserRepository organizationUserRepository,
-            ApplicationEventPublisher applicationEventPublisher
-    ) {
-        super(organizationUserService, objectMapper);
-        this.userRepository = userRepository;
-        this.organizationRepository = organizationRepository;
-        this.organizationUserRepository = organizationUserRepository;
-        this.applicationEventPublisher = applicationEventPublisher;
+  /**
+   * Constructor.
+   *
+   * @param organizationUserService The service for managing organization users.
+   * @param objectMapper            The object mapper for JSON conversion.
+   */
+  @Autowired
+  protected PatchOrganizationUsersHandler(
+      OrganizationUserService organizationUserService,
+      ObjectMapper objectMapper,
+      UserRepository userRepository,
+      OrganizationRepositoryCustom organizationRepository,
+      OrganizationUserRepository organizationUserRepository,
+      ApplicationEventPublisher applicationEventPublisher
+  ) {
+    super(organizationUserService, objectMapper);
+    this.userRepository = userRepository;
+    this.organizationRepository = organizationRepository;
+    this.organizationUserRepository = organizationUserRepository;
+    this.applicationEventPublisher = applicationEventPublisher;
+  }
+
+  /**
+   * Add operation according to RFC 6902 is treated as replace for the list of users.
+   */
+  @Override
+  public void add(PatchOperation operation, Long orgId) {
+    replace(operation, orgId);
+  }
+
+  @Override
+  public void replace(PatchOperation operation, Long orgId) {
+    var ops = readOperationValue(operation, new TypeReference<List<UserOrgInfo>>() {
+    });
+
+    var newUserIds = ops.stream()
+        .map(UserOrgInfo::getId)
+        .toList();
+
+    var org = organizationRepository.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+
+    if (newUserIds.isEmpty()) {
+      unassignAllUsersFromOrganization(org.getId());
+      return;
+    } else {
+      // TODO: Add OrgUser Activity Resource or extend OrganizationAttributesActivityResource
+      // for publishing events when several users are unassigned from organization
+      organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(org.getId(), newUserIds);
+      log.info("Users not in {} have been removed from organization with ID {}", newUserIds, org.getId());
     }
 
-    /**
-     * Add operation according to RFC 6902 is treated as replace for the list of users.
-     */
-    @Override
-    public void add(PatchOperation operation, Long orgId) {
-        replace(operation, orgId);
+    var principal = SecurityContextUtils.getPrincipal();
+
+    ops.forEach(info -> {
+      var userId = Optional.ofNullable(info.getId()).orElseThrow(() ->
+          new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
+
+      var role = Optional.ofNullable(info.getOrgRole()).orElseThrow(() ->
+          new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required"));
+
+      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userId, org.getId());
+      if (orgUser.isPresent()
+          && orgUser.get().getOrganizationRole().equals(OrganizationRole.valueOf(role.toString()))) {
+        log.info("User with ID {} already has role {} in organization with ID {}, skipping assignment",
+            userId, role, org.getId());
+        return;
+      }
+
+      var user = userRepository.findById(userId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+
+      organizationUserService.saveOrganizationUser(org, user, role.toString());
+
+      log.info("User with ID {} has been assigned to the organization {} with role {}",
+          user.getId(), orgId, role);
+
+      applicationEventPublisher.publishEvent(
+          new AssignUserEvent(
+              UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
+              principal.getUserId(), principal.getUsername(), org.getId()
+          ));
+    });
+  }
+
+  @Override
+  public void remove(PatchOperation operation, Long orgId) {
+    if (ObjectUtils.isEmpty(operation.getValue())) {
+      unassignAllUsersFromOrganization(orgId);
+      return;
+    }
+    var ids = readOperationValue(operation, new TypeReference<List<IdContainer>>() {
+    });
+
+    if (CollectionUtils.isEmpty(ids)) {
+      unassignAllUsersFromOrganization(orgId);
+      return;
     }
 
-    @Override
-    public void replace(PatchOperation operation, Long orgId) {
-        var ops = readOperationValue(operation, new TypeReference<List<UserOrgInfo>>() {
-        });
+    var principal = SecurityContextUtils.getPrincipal();
 
-        var newUserIds = ops.stream()
-                .map(UserOrgInfo::getId)
-                .toList();
+    ids.forEach(idContainer -> {
+      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(idContainer.getId(), orgId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer.getId()));
+      organizationUserRepository.deleteByUserIdAndOrganizationId(idContainer.getId(), orgId);
+      log.info("User with ID {} has been removed from organization with ID {}", idContainer.getId(), orgId);
+      applicationEventPublisher.publishEvent(
+          new UnassignUserEvent(
+              UserConverter.TO_ACTIVITY_RESOURCE.apply(orgUser.getUser(), null),
+              principal.getUserId(), principal.getUsername(), orgId
+          ));
+    });
+  }
 
-        var org = organizationRepository.findById(orgId)
-                .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
-
-        if (newUserIds.isEmpty()) {
-            unassignAllUsersFromOrganization(org.getId());
-            return;
-        } else {
-            // TODO: Add OrgUser Activity Resource or extend OrganizationAttributesActivityResource
-            // for publishing events when several users are unassigned from organization
-            organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(org.getId(), newUserIds);
-            log.info("Users not in {} have been removed from organization with ID {}", newUserIds, org.getId());
-        }
-
-        var principal = SecurityContextUtils.getPrincipal();
-
-        ops.forEach(info -> {
-            var userId = Optional.ofNullable(info.getId()).orElseThrow(
-                    () -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
-
-            var role = Optional.ofNullable(info.getOrgRole()).orElseThrow(
-                    () -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required"));
-
-            var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userId, org.getId());
-            if (orgUser.isPresent()
-                    && orgUser.get().getOrganizationRole().equals(OrganizationRole.valueOf(role.toString()))) {
-                log.info("User with ID {} already has role {} in organization with ID {}, skipping assignment",
-                        userId, role, org.getId());
-                return;
-            }
-
-            var user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
-
-            organizationUserService.saveOrganizationUser(org, user, role.toString());
-
-            log.info("User with ID {} has been assigned to the organization {} with role {}",
-                    user.getId(), orgId, role);
-
-            applicationEventPublisher.publishEvent(
-                    new AssignUserEvent(
-                            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
-                            principal.getUserId(), principal.getUsername(), org.getId()
-                    ));
-        });
-    }
-
-    @Override
-    public void remove(PatchOperation operation, Long orgId) {
-        if (ObjectUtils.isEmpty(operation.getValue())) {
-            unassignAllUsersFromOrganization(orgId);
-            return;
-        }
-        var ids = readOperationValue(operation, new TypeReference<List<IdContainer>>() {
-        });
-
-        if (CollectionUtils.isEmpty(ids)) {
-            unassignAllUsersFromOrganization(orgId);
-            return;
-        }
-
-        var principal = SecurityContextUtils.getPrincipal();
-
-        ids.forEach(idContainer -> {
-            var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(idContainer.getId(), orgId)
-                    .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer.getId()));
-            organizationUserRepository.deleteByUserIdAndOrganizationId(idContainer.getId(), orgId);
-            log.info("User with ID {} has been removed from organization with ID {}", idContainer.getId(), orgId);
-            applicationEventPublisher.publishEvent(
-                    new UnassignUserEvent(
-                            UserConverter.TO_ACTIVITY_RESOURCE.apply(orgUser.getUser(), null),
-                            principal.getUserId(), principal.getUsername(), orgId
-                    ));
-        });
-    }
-
-    // TODO: Add OrgUser Activity Resource or extend OrganizationAttributesActivityResource
-    // for publishing events when several users are unassigned from organization
-    private void unassignAllUsersFromOrganization(Long orgId) {
-        organizationUserRepository.deleteAllByOrganizationId(orgId);
-        log.info("All users have been removed from organization with ID {}", orgId);
-    }
+  // TODO: Add OrgUser Activity Resource or extend OrganizationAttributesActivityResource
+  // for publishing events when several users are unassigned from organization
+  private void unassignAllUsersFromOrganization(Long orgId) {
+    organizationUserRepository.deleteAllByOrganizationId(orgId);
+    log.info("All users have been removed from organization with ID {}", orgId);
+  }
 }

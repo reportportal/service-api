@@ -165,7 +165,7 @@ public class OrganizationController extends BaseController implements Organizati
   public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgId(Long orgId, UpdateOrganizationRequest request) {
     var principal = SecurityContextUtils.getPrincipal();
     getOrgExtension().updateOrganization(orgId, request, principal);
-    return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
+    return ResponseEntity.ok(new SuccessfulUpdate());
   }
 
   @Override
@@ -187,18 +187,22 @@ public class OrganizationController extends BaseController implements Organizati
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   @Transactional
-  public ResponseEntity<SuccessfulUpdate> updateOrgSettingsByOrgId(Long orgId,
-      OrganizationSettings organizationSettings) {
+  public ResponseEntity<SuccessfulUpdate> updateOrgSettingsByOrgId(
+      Long orgId,
+      OrganizationSettings organizationSettings
+  ) {
     organizationSettingsHandler.updateOrgSettings(orgId, organizationSettings);
-    return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
+    return ResponseEntity.ok(new SuccessfulUpdate());
   }
 
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   @Transactional
-  public ResponseEntity<SuccessfulUpdate> patchOrganizationOrgId(Long orgId,
-                                                                 List<@Valid PatchOperation> patchOperation) {
-    return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
+  public ResponseEntity<SuccessfulUpdate> patchOrganizationOrgId(
+      Long orgId,
+      List<@Valid PatchOperation> patchOperation
+  ) {
+    return ResponseEntity.ok().body(new SuccessfulUpdate());
   }
 
   private OrganizationExtensionPoint getOrgExtension() {

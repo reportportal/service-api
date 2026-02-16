@@ -22,6 +22,7 @@ import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
@@ -45,6 +46,7 @@ public class PatchOrganizationUserAddHandler extends BasePatchOrganizationHandle
   private final UserRepository userRepository;
   private final OrganizationRepositoryCustom organizationRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
+  private final OrganizationUserRepository organizationUserRepository;
 
   /**
    * Constructor.
@@ -58,12 +60,13 @@ public class PatchOrganizationUserAddHandler extends BasePatchOrganizationHandle
       OrganizationUserService organizationUserService,
       ObjectMapper objectMapper,
       OrganizationRepositoryCustom organizationRepository,
-      ApplicationEventPublisher applicationEventPublisher
-  ) {
+      ApplicationEventPublisher applicationEventPublisher,
+      OrganizationUserRepository organizationUserRepository) {
     super(organizationUserService, objectMapper);
     this.userRepository = userRepository;
     this.organizationRepository = organizationRepository;
     this.applicationEventPublisher = applicationEventPublisher;
+    this.organizationUserRepository = organizationUserRepository;
   }
 
   @Override
@@ -76,6 +79,10 @@ public class PatchOrganizationUserAddHandler extends BasePatchOrganizationHandle
 
     var role = Optional.ofNullable(userOrgInfo.getOrgRole())
         .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required"));
+
+    organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId).ifPresent(ou -> {
+      throw new ReportPortalException(ErrorType.USER_ALREADY_ASSIGNED, userId, orgId);
+    });
 
     var user = userRepository.findById(userId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));

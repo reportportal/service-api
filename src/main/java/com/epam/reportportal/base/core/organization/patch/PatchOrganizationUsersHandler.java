@@ -111,6 +111,10 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       var userId = Optional.ofNullable(info.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
 
+      organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId).ifPresent(ou -> {
+        throw new ReportPortalException(ErrorType.USER_ALREADY_ASSIGNED, userId, orgId);
+      });
+
       var user = userRepository.findById(userId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
 

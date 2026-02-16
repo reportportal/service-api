@@ -24,6 +24,7 @@ import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.IdContainer;
@@ -111,15 +112,17 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       var userId = Optional.ofNullable(info.getId())
           .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
 
-      organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId).ifPresent(_ -> {
-        throw new ReportPortalException(ErrorType.USER_ALREADY_ASSIGNED, userId, orgId);
-      });
+      var role = Optional.ofNullable(info.getOrgRole())
+              .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required"));
+
+      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userId, org.getId());
+      if (orgUser.isPresent() && orgUser.get().getOrganizationRole().equals(OrganizationRole.valueOf(role.toString()))) {
+        log.info("User with ID {} already has role {} in organization with ID {}, skipping assignment", userId, role, org.getId());
+        return;
+      }
 
       var user = userRepository.findById(userId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
-
-      var role = Optional.ofNullable(info.getOrgRole())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required"));
 
       organizationUserService.saveOrganizationUser(org, user, role.toString());
 

@@ -36,6 +36,7 @@ import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.jasper.impl.OrganizationJasperReportHandler;
 import com.epam.reportportal.base.core.organization.GetOrganizationHandler;
 import com.epam.reportportal.base.core.organization.OrganizationExtensionPoint;
+import com.epam.reportportal.base.core.organization.patch.PatchOrganizationHandler;
 import com.epam.reportportal.base.core.organization.settings.OrganizationSettingsHandler;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
@@ -81,6 +82,7 @@ public class OrganizationController extends BaseController implements Organizati
   private final OrganizationSettingsHandler organizationSettingsHandler;
   private final OrganizationJasperReportHandler organizationReportHandler;
   private final HttpServletResponse httpServletResponse;
+  private final PatchOrganizationHandler patchOrganizationHandler;
 
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MEMBER)
@@ -200,8 +202,9 @@ public class OrganizationController extends BaseController implements Organizati
   @Transactional
   public ResponseEntity<SuccessfulUpdate> patchOrganizationOrgId(
       Long orgId,
-      List<@Valid PatchOperation> patchOperation
+      List<@Valid PatchOperation> patchOperations
   ) {
+    patchOrganizationHandler.patchOrganization(patchOperations, orgId);
     return ResponseEntity.ok().body(new SuccessfulUpdate());
   }
 

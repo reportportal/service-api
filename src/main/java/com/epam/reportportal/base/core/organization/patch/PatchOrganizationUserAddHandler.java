@@ -80,7 +80,7 @@ public class PatchOrganizationUserAddHandler extends BasePatchOrganizationHandle
     var role = Optional.ofNullable(userOrgInfo.getOrgRole())
         .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required"));
 
-    organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId).ifPresent(ou -> {
+    organizationUserRepository.findByUserIdAndOrganization_Id(userId, orgId).ifPresent(_ -> {
       throw new ReportPortalException(ErrorType.USER_ALREADY_ASSIGNED, userId, orgId);
     });
 

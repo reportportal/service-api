@@ -55,6 +55,7 @@ public class PatchOrganizationHandler {
   private final GetOrganizationHandler organizationHandler;
   private final PatchOrganizationUsersHandler patchOrganizationUsersHandler;
   private final PatchOrganizationUserAddHandler patchOrganizationAddUserHandler;
+  private final PatchOrganizationNoPathHandler patchOrganizationNoPathHandler;
 
   /**
    * Applies a list of patch operations to an organization.
@@ -88,7 +89,7 @@ public class PatchOrganizationHandler {
     BasePatchOrganizationHandler patchOperationHandler = switch (operation.getPath()) {
       case "/users" -> this.patchOrganizationUsersHandler;
       case "/users/-" -> this.patchOrganizationAddUserHandler;
-      case null -> throw new IllegalArgumentException("Field 'path' is required");
+      case null -> this.patchOrganizationNoPathHandler;
       default -> throw new IllegalArgumentException("Unexpected path: '%s'".formatted(operation.getPath()));
     };
 

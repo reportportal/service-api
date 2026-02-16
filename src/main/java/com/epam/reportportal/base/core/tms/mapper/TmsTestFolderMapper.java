@@ -271,6 +271,7 @@ public abstract class TmsTestFolderMapper {
   @Mapping(target = "description", source = "sourceFolder.description")
   @Mapping(target = "parentTestFolder", source = "targetParent")
   @Mapping(target = "project", source = "sourceFolder.project")
+  @Mapping(target = "index", source = "sourceFolder.index")
   @Mapping(target = "subFolders", ignore = true)
   @Mapping(target = "testCases", ignore = true)
   public abstract TmsTestFolder duplicateTestFolder(

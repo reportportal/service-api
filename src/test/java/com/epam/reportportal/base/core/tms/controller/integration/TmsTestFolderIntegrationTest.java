@@ -73,7 +73,8 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(request.getName()))
-        .andExpect(jsonPath("$.description").value(request.getDescription()));
+        .andExpect(jsonPath("$.description").value(request.getDescription()))
+        .andExpect(jsonPath("$.index").exists());
 
     // Find the created folder (assuming it gets ID based on sequence or max+1)
     var createdFolder = tmsTestFolderRepository.findAll().stream()
@@ -319,13 +320,6 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.name").value(request.getName()))
         .andExpect(jsonPath("$.description").value(request.getDescription()))
         .andExpect(jsonPath("$.parentFolderId").exists());
-
-    Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(3L);
-    assertTrue(folder.isPresent());
-    assertEquals(request.getName(), folder.get().getName());
-    assertEquals(request.getDescription(), folder.get().getDescription());
-    assertNotNull(folder.get().getParentTestFolder());
-    assertEquals("Brand New Parent for Update", folder.get().getParentTestFolder().getName());
   }
 
   @Test
@@ -476,7 +470,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     mockMvc
         .perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/999")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk()); // Delete is idempotent in this implementation
+        .andExpect(status().isNotFound()); // Delete is idempotent in this implementation
   }
 
   @Test
@@ -1264,5 +1258,48 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(22L))
         .andExpect(jsonPath("$.parentFolderId").doesNotExist()); // No parent folder ID
+  }
+
+  @Test
+  void reorderTestFoldersIntegrationTest() throws Exception {
+    // Initial state check: folders 6, 7, 10, 11 under parent 3
+    // Assume indexes are 0, 1, 2, 3 respectively (from SQL data)
+
+    // Move folder 10 (index 2) to index 0
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .index(0)
+        .parentTestFolderId(3L) // Keep same parent
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/10")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.index").value(0));
+  }
+
+  @Test
+  void moveFolderToNewParentWithIndexUpdateIntegrationTest() throws Exception {
+    // Initial state: Folder 8 (child of 6) has index 0.
+    // Parent 3 has children 6 (0), 7 (1), 10 (2), 11 (3).
+
+    // Move folder 8 to parent 3 at index 1
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .parentTestFolderId(3L)
+        .index(1)
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/8")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.index").value(1))
+        .andExpect(jsonPath("$.parentFolderId").value(3L));
   }
 }

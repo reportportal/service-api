@@ -22,6 +22,7 @@ public interface TmsManualScenarioRequirementMapper {
    * @return the requirement entity
    */
   @Mapping(target = "manualScenario", ignore = true)
+  @Mapping(target = "number", ignore = true)
   TmsManualScenarioRequirement toEntity(TmsRequirementRQ request);
 
   /**

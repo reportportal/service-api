@@ -1,4 +1,3 @@
-
 -- Test folders
 insert into tms_test_folder (id, "name", description, project_id)
 values (3, 'Test Folder 3', 'Description for test folder 3', 1);
@@ -567,38 +566,38 @@ insert into tms_manual_scenario (id, test_case_version_id, execution_estimation_
 values (32, 32, 35, 'STEPS');
 
 -- Manual scenario requirements
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-004', 'Requirement for TC4', 1);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-005', 'Requirement for TC5', 2);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-006', 'Requirement for TC6', 3);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-007', 'Requirement for TC7', 4);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-008', 'Requirement for TC8', 5);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-009', 'Requirement for TC9', 6);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-010', 'Requirement for TC10', 7);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-011', 'Requirement for TC11', 8);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-012', 'Requirement for TC12', 9);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-013', 'Requirement for TC13', 10);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-014', 'Requirement for TC14', 11);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-015', 'Requirement for TC15', 12);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-016', 'Requirement for TC16', 13);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-017', 'Requirement for TC17', 14);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-018', 'Requirement for TC18', 15);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-019', 'Requirement for TC19', 16);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-020', 'Requirement for TC20', 17);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-021', 'Requirement for TC21', 18);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-022', 'Requirement for TC22', 19);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-023', 'Requirement for TC23', 20);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-024', 'Requirement for TC24', 21);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-025', 'Requirement for TC25', 22);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-026', 'Requirement for TC26', 23);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-027', 'Requirement for TC27', 24);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-028', 'Requirement for TC28', 25);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-029', 'Requirement for TC29', 26);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-030', 'Requirement for TC30', 27);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-031', 'Requirement for TC31', 28);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-032', 'Requirement for TC32', 29);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-033', 'Requirement for TC33', 30);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-034', 'Requirement for TC34', 31);
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id) values ('REQ-035', 'Requirement for TC35', 32);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-004', 'Requirement for TC4', 1, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-005', 'Requirement for TC5', 2, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-006', 'Requirement for TC6', 3, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-007', 'Requirement for TC7', 4, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-008', 'Requirement for TC8', 5, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-009', 'Requirement for TC9', 6, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-010', 'Requirement for TC10', 7, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-011', 'Requirement for TC11', 8, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-012', 'Requirement for TC12', 9, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-013', 'Requirement for TC13', 10, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-014', 'Requirement for TC14', 11, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-015', 'Requirement for TC15', 12, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-016', 'Requirement for TC16', 13, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-017', 'Requirement for TC17', 14, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-018', 'Requirement for TC18', 15, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-019', 'Requirement for TC19', 16, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-020', 'Requirement for TC20', 17, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-021', 'Requirement for TC21', 18, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-022', 'Requirement for TC22', 19, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-023', 'Requirement for TC23', 20, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-024', 'Requirement for TC24', 21, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-025', 'Requirement for TC25', 22, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-026', 'Requirement for TC26', 23, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-027', 'Requirement for TC27', 24, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-028', 'Requirement for TC28', 25, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-029', 'Requirement for TC29', 26, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-030', 'Requirement for TC30', 27, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-031', 'Requirement for TC31', 28, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-032', 'Requirement for TC32', 29, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-033', 'Requirement for TC33', 30, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-034', 'Requirement for TC34', 31, 0);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number) values ('REQ-035', 'Requirement for TC35', 32, 0);
 
 -- Manual scenario preconditions
 insert into tms_manual_scenario_preconditions (id, manual_scenario_id, value)

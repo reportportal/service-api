@@ -179,26 +179,26 @@ VALUES (100, 100, 30, 'TEXT'),
        (118, 118, 25, 'TEXT');
 
 -- Manual scenario requirements
-INSERT INTO tms_manual_scenario_requirement (id, value, manual_scenario_id)
-VALUES ('REQ-100', 'Requirement for TC100', 100),
-       ('REQ-101', 'Requirement for TC101', 101),
-       ('REQ-102', 'Requirement for TC102', 102),
-       ('REQ-103', 'Requirement for TC103', 103),
-       ('REQ-104', 'Requirement for TC104', 104),
-       ('REQ-105', 'Requirement for TC105', 105),
-       ('REQ-106', 'Requirement for TC106', 106),
-       ('REQ-107', 'Requirement for TC107', 107),
-       ('REQ-108', 'Requirement for TC108', 108),
-       ('REQ-109', 'Requirement for TC109', 109),
-       ('REQ-110', 'Requirement for TC110', 110),
-       ('REQ-111', 'Requirement for TC111', 111),
-       ('REQ-112', 'Requirement for TC112', 112),
-       ('REQ-113', 'Requirement for TC113', 113),
-       ('REQ-114', 'Requirement for TC114', 114),
-       ('REQ-115', 'Requirement for TC115', 115),
-       ('REQ-116', 'Requirement for TC116', 116),
-       ('REQ-117', 'Requirement for TC117', 117),
-       ('REQ-118', 'Requirement for TC118', 118);
+INSERT INTO tms_manual_scenario_requirement (id, value, manual_scenario_id, number)
+VALUES ('REQ-100', 'Requirement for TC100', 100, 0),
+       ('REQ-101', 'Requirement for TC101', 101, 0),
+       ('REQ-102', 'Requirement for TC102', 102, 0),
+       ('REQ-103', 'Requirement for TC103', 103, 0),
+       ('REQ-104', 'Requirement for TC104', 104, 0),
+       ('REQ-105', 'Requirement for TC105', 105, 0),
+       ('REQ-106', 'Requirement for TC106', 106, 0),
+       ('REQ-107', 'Requirement for TC107', 107, 0),
+       ('REQ-108', 'Requirement for TC108', 108, 0),
+       ('REQ-109', 'Requirement for TC109', 109, 0),
+       ('REQ-110', 'Requirement for TC110', 110, 0),
+       ('REQ-111', 'Requirement for TC111', 111, 0),
+       ('REQ-112', 'Requirement for TC112', 112, 0),
+       ('REQ-113', 'Requirement for TC113', 113, 0),
+       ('REQ-114', 'Requirement for TC114', 114, 0),
+       ('REQ-115', 'Requirement for TC115', 115, 0),
+       ('REQ-116', 'Requirement for TC116', 116, 0),
+       ('REQ-117', 'Requirement for TC117', 117, 0),
+       ('REQ-118', 'Requirement for TC118', 118, 0);
 
 -- Manual scenario preconditions
 INSERT INTO tms_manual_scenario_preconditions (id, manual_scenario_id, value)

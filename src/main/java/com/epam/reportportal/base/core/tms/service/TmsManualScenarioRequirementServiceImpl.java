@@ -1,4 +1,3 @@
-
 package com.epam.reportportal.base.core.tms.service;
 
 import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
@@ -7,6 +6,8 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualSc
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioRequirement;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,22 +39,24 @@ public class TmsManualScenarioRequirementServiceImpl implements
     }
 
     var entities = new ArrayList<TmsManualScenarioRequirement>();
-    for (var requirementRQ : requirements) {
-      // If requirement with this id already exists — update its value
+    for (int i = 0; i < requirements.size(); i++) {
+      var requirementRQ = requirements.get(i);
       var existingOpt = tmsManualScenarioRequirementRepository.findById(requirementRQ.getId());
       if (existingOpt.isPresent()) {
         var existing = existingOpt.get();
         existing.setValue(requirementRQ.getValue());
         existing.setManualScenario(tmsManualScenario);
+        existing.setNumber(i);
         entities.add(existing);
       } else {
         var entity = tmsManualScenarioRequirementMapper.toEntity(requirementRQ);
         entity.setManualScenario(tmsManualScenario);
+        entity.setNumber(i);
         entities.add(entity);
       }
     }
 
-    tmsManualScenarioRequirementRepository.saveAll(entities);
+    tmsManualScenario.setRequirements(tmsManualScenarioRequirementRepository.saveAll(entities));
 
     log.debug("Created {} requirements for manual scenario: {}",
         entities.size(), tmsManualScenario.getId());
@@ -66,7 +69,12 @@ public class TmsManualScenarioRequirementServiceImpl implements
     log.debug("Updating requirements for manual scenario: {}", manualScenario.getId());
 
     // Delete all existing requirements for this manual scenario
-    tmsManualScenarioRequirementRepository.deleteByManualScenarioId(manualScenario.getId());
+    if (CollectionUtils.isNotEmpty(manualScenario.getRequirements())) {
+      tmsManualScenarioRequirementRepository.deleteAll(
+        manualScenario.getRequirements()
+      );
+      manualScenario.setRequirements(null);
+    }
 
     if (CollectionUtils.isNotEmpty(requirements)) {
       createRequirements(manualScenario, requirements);
@@ -88,16 +96,22 @@ public class TmsManualScenarioRequirementServiceImpl implements
     }
 
     // Build a map of existing requirements by id for efficient lookup
-    var existingRequirements = tmsManualScenarioRequirementRepository
-        .findByManualScenarioId(existingManualScenario.getId())
-        .stream()
+    var existingRequirementsList = tmsManualScenarioRequirementRepository
+        .findByManualScenarioIdOrderByNumberAsc(existingManualScenario.getId());
+
+    var existingRequirements = existingRequirementsList.stream()
         .collect(Collectors.toMap(TmsManualScenarioRequirement::getId, Function.identity()));
+
+    int maxNumber = existingRequirementsList.stream()
+        .mapToInt(TmsManualScenarioRequirement::getNumber)
+        .max()
+        .orElse(-1);
 
     var entitiesToSave = new ArrayList<TmsManualScenarioRequirement>();
     for (var requirementRQ : requirements) {
       var existing = existingRequirements.get(requirementRQ.getId());
       if (existing != null) {
-        // If requirement with this id already exists — update its value
+        // If requirement with this id already exists — update only its value, preserve number
         existing.setValue(requirementRQ.getValue());
         entitiesToSave.add(existing);
       } else {
@@ -107,16 +121,20 @@ public class TmsManualScenarioRequirementServiceImpl implements
           var global = globalOpt.get();
           global.setValue(requirementRQ.getValue());
           global.setManualScenario(existingManualScenario);
+          global.setNumber(++maxNumber);
           entitiesToSave.add(global);
         } else {
           var entity = tmsManualScenarioRequirementMapper.toEntity(requirementRQ);
           entity.setManualScenario(existingManualScenario);
+          entity.setNumber(++maxNumber);
           entitiesToSave.add(entity);
         }
       }
     }
 
-    tmsManualScenarioRequirementRepository.saveAll(entitiesToSave);
+    existingManualScenario
+        .getRequirements()
+        .addAll(tmsManualScenarioRequirementRepository.saveAll(entitiesToSave));
 
     log.debug("Patched {} requirements for manual scenario: {}",
         entitiesToSave.size(), existingManualScenario.getId());
@@ -182,6 +200,7 @@ public class TmsManualScenarioRequirementServiceImpl implements
     }
 
     var duplicatedEntities = originalRequirements.stream()
+        .sorted(Comparator.comparing(TmsManualScenarioRequirement::getNumber))
         .map(original -> {
           var duplicated = tmsManualScenarioRequirementMapper.duplicate(original);
           duplicated.setManualScenario(duplicatedScenario);

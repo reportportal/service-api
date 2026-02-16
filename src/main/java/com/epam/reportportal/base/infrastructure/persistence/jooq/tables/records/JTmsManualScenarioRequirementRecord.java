@@ -62,6 +62,20 @@ public class JTmsManualScenarioRequirementRecord extends UpdatableRecordImpl<JTm
         return (Long) get(2);
     }
 
+    /**
+     * Setter for <code>public.tms_manual_scenario_requirement.number</code>.
+     */
+    public void setNumber(Integer value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_manual_scenario_requirement.number</code>.
+     */
+    public Integer getNumber() {
+        return (Integer) get(3);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -85,12 +99,13 @@ public class JTmsManualScenarioRequirementRecord extends UpdatableRecordImpl<JTm
     /**
      * Create a detached, initialised JTmsManualScenarioRequirementRecord
      */
-    public JTmsManualScenarioRequirementRecord(String id, String value, Long manualScenarioId) {
+    public JTmsManualScenarioRequirementRecord(String id, String value, Long manualScenarioId, Integer number) {
         super(JTmsManualScenarioRequirement.TMS_MANUAL_SCENARIO_REQUIREMENT);
 
         setId(id);
         setValue(value);
         setManualScenarioId(manualScenarioId);
+        setNumber(number);
         resetChangedOnNotNull();
     }
 }

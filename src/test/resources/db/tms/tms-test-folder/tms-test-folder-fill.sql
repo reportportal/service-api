@@ -1,50 +1,50 @@
 -- ==================== TEST FOLDERS ====================
 
 -- Root folders for different test scenarios
-INSERT INTO tms_test_folder (id, project_id, description, "name")
-VALUES (3, 1, 'description_folder3', 'name_folder3'),
-       (4, 1, 'description_folder4', 'name_folder4'),
-       (5, 1, 'description_folder5', 'name_folder5');
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index")
+VALUES (3, 1, 'description_folder3', 'name_folder3', 0),
+       (4, 1, 'description_folder4', 'name_folder4', 1),
+       (5, 1, 'description_folder5', 'name_folder5', 2);
 
 -- Subfolders of folder 3 (used for hierarchy duplication tests)
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (6, 1, 'description_subfolder1', 'name_subfolder1', 3),
-       (7, 1, 'description_subfolder2', 'name_subfolder2', 3);
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index", parent_id)
+VALUES (6, 1, 'description_subfolder1', 'name_subfolder1', 0, 3),
+       (7, 1, 'description_subfolder2', 'name_subfolder2', 1, 3);
 
 -- Sub-subfolder of folder 6 (nested hierarchy test)
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (8, 1, 'description_subsubfolder', 'name_subsubfolder', 6);
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index", parent_id)
+VALUES (8, 1, 'description_subsubfolder', 'name_subsubfolder', 0, 6);
 
 -- Subfolder of folder 4
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (9, 1, 'description_subfolder_of_4', 'name_subfolder_of_4', 4);
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index", parent_id)
+VALUES (9, 1, 'description_subfolder_of_4', 'name_subfolder_of_4', 0, 4);
 
 -- Additional subfolders for export testing
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index", parent_id)
 VALUES (10, 1, 'This is a longer description with special characters: !@#$%^&*()',
-        'Export Test Folder', 3),
-       (11, 1, NULL, 'Empty Description Folder', 3);
+        'Export Test Folder', 2, 3),
+       (11, 1, NULL, 'Empty Description Folder', 3, 3);
 
 -- Root folder for export testing with complex hierarchy
-INSERT INTO tms_test_folder (id, project_id, description, "name")
-VALUES (12, 1, 'Root folder for export testing', 'Export Root');
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index")
+VALUES (12, 1, 'Root folder for export testing', 'Export Root', 3);
 
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (13, 1, 'First level subfolder 1', 'Export Sub 1', 12),
-       (14, 1, 'First level subfolder 2', 'Export Sub 2', 12),
-       (15, 1, 'Second level subfolder 1', 'Export Sub-Sub 1', 13),
-       (16, 1, 'Second level subfolder 2', 'Export Sub-Sub 2', 13),
-       (17, 1, 'Second level subfolder 3', 'Export Sub-Sub 3', 14),
-       (18, 1, 'Third level subfolder', 'Export Sub-Sub-Sub', 15);
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index", parent_id)
+VALUES (13, 1, 'First level subfolder 1', 'Export Sub 1', 0, 12),
+       (14, 1, 'First level subfolder 2', 'Export Sub 2', 1, 12),
+       (15, 1, 'Second level subfolder 1', 'Export Sub-Sub 1', 0, 13),
+       (16, 1, 'Second level subfolder 2', 'Export Sub-Sub 2', 1, 13),
+       (17, 1, 'Second level subfolder 3', 'Export Sub-Sub 3', 0, 14),
+       (18, 1, 'Third level subfolder', 'Export Sub-Sub-Sub', 0, 15);
 
 -- Test folders for test plan integration tests
-INSERT INTO tms_test_folder (id, "name", description, project_id, parent_id)
-VALUES (19, 'Root Test Folder', 'Root test folder description', 1, NULL),
-       (20, 'Sub Test Folder 1', 'Sub test folder 1 description', 1, 19),
-       (21, 'Sub Test Folder 2', 'Sub test folder 2 description', 1, 19);
+INSERT INTO tms_test_folder (id, "name", description, project_id, "index", parent_id)
+VALUES (19, 'Root Test Folder', 'Root test folder description', 1, 4, NULL),
+       (20, 'Sub Test Folder 1', 'Sub test folder 1 description', 1, 0, 19),
+       (21, 'Sub Test Folder 2', 'Sub test folder 2 description', 1, 1, 19);
 
-INSERT INTO tms_test_folder (id, project_id, description, "name", parent_id)
-VALUES (22, 1, 'new_description_subfolder_of_3', 'new_name_subfolder_of_4', 3);
+INSERT INTO tms_test_folder (id, project_id, description, "name", "index", parent_id)
+VALUES (22, 1, 'new_description_subfolder_of_3', 'new_name_subfolder_of_4', 4, 3);
 
 -- ==================== TEST ATTRIBUTES ====================
 -- Теперь атрибуты содержат пары (key, value)

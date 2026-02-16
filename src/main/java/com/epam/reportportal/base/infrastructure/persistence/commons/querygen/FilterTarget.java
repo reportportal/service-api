@@ -1920,7 +1920,8 @@ public enum FilterTarget {
           TMS_TEST_FOLDER.NAME,
           TMS_TEST_FOLDER.DESCRIPTION,
           TMS_TEST_FOLDER.PARENT_ID,
-          TMS_TEST_FOLDER.PROJECT_ID
+          TMS_TEST_FOLDER.PROJECT_ID,
+          TMS_TEST_FOLDER.INDEX
       );
     }
 

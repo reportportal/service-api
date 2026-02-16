@@ -5,6 +5,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -87,6 +88,20 @@ public class JTmsTestFolderRecord extends UpdatableRecordImpl<JTmsTestFolderReco
         return (Long) get(4);
     }
 
+    /**
+     * Setter for <code>public.tms_test_folder.index</code>.
+     */
+    public void setIndex(Integer value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_folder.index</code>.
+     */
+    public Integer getIndex() {
+        return (Integer) get(5);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -110,7 +125,7 @@ public class JTmsTestFolderRecord extends UpdatableRecordImpl<JTmsTestFolderReco
     /**
      * Create a detached, initialised JTmsTestFolderRecord
      */
-    public JTmsTestFolderRecord(Long id, String name, String description, Long parentId, Long projectId) {
+    public JTmsTestFolderRecord(Long id, String name, String description, Long parentId, Long projectId, Integer index) {
         super(JTmsTestFolder.TMS_TEST_FOLDER);
 
         setId(id);
@@ -118,6 +133,7 @@ public class JTmsTestFolderRecord extends UpdatableRecordImpl<JTmsTestFolderReco
         setDescription(description);
         setParentId(parentId);
         setProjectId(projectId);
+        setIndex(index);
         resetChangedOnNotNull();
     }
 }

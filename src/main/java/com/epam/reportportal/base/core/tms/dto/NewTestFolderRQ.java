@@ -14,4 +14,6 @@ public class NewTestFolderRQ {
   private String name;
 
   private Long parentTestFolderId;
+
+  private Integer index;
 }

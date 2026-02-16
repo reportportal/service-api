@@ -75,6 +75,11 @@ public class JTmsManualScenarioRequirement extends TableImpl<JTmsManualScenarioR
      */
     public final TableField<JTmsManualScenarioRequirementRecord, Long> MANUAL_SCENARIO_ID = createField(DSL.name("manual_scenario_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
+    /**
+     * The column <code>public.tms_manual_scenario_requirement.number</code>.
+     */
+    public final TableField<JTmsManualScenarioRequirementRecord, Integer> NUMBER = createField(DSL.name("number"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
     private JTmsManualScenarioRequirement(Name alias, Table<JTmsManualScenarioRequirementRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

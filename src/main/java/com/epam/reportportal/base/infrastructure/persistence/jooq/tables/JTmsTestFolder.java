@@ -8,10 +8,13 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder.JTmsTestFolderPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestFolderRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -80,6 +83,11 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
      * The column <code>public.tms_test_folder.project_id</code>.
      */
     public final TableField<JTmsTestFolderRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.tms_test_folder.index</code>.
+     */
+    public final TableField<JTmsTestFolderRecord, Integer> INDEX = createField(DSL.name("index"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
 
     private JTmsTestFolder(Name alias, Table<JTmsTestFolderRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

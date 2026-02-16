@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.core.organization.patch;
 
-import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.notNull;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
@@ -57,15 +57,15 @@ public class PatchOrganizationHandler {
   private final PatchOrganizationUserAddHandler patchOrganizationAddUserHandler;
 
   /**
-   * Applies a list of patch operations to a project within an organization. Verifies that the project exists within the
-   * specified organization before applying any patches.
+   * Applies a list of patch operations to an organization.
+   * Verifies that the organization exists before applying any patches.
    *
-   * @param patchOperations list of patch operations to be applied to the project
-   * @param orgId           ID of the organization that owns the project
-   * @throws ReportPortalException if a project is not found in the organization
+   * @param patchOperations list of patch operations to be applied to the organization
+   * @param orgId           ID of the organization that owns the organization
+   * @throws ReportPortalException if an organization is not found
    */
   public void patchOrganization(List<PatchOperation> patchOperations, Long orgId) {
-    expect(organizationHandler.getOrganizationById(orgId), equalTo(true))
+    expect(organizationHandler.getOrganizationById(orgId), notNull())
         .verify(NOT_FOUND, "Organization " + orgId);
 
     patchOperations.forEach(operation -> {

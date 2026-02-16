@@ -159,16 +159,16 @@ values (104, 4, 30, 'TEXT'),
        (111, 11, 55, 'TEXT'),
        (112, 12, 60, 'STEPS');
 
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id)
-values ('REQ-004', 'Requirement for TC4', 104),
-       ('REQ-005', 'Requirement for TC5', 105),
-       ('REQ-006', 'Requirement for TC6', 106),
-       ('REQ-007', 'Requirement for TC7', 107),
-       ('REQ-008', 'Requirement for TC8', 108),
-       ('REQ-009', 'Requirement for TC9', 109),
-       ('REQ-010', 'Requirement for TC10', 110),
-       ('REQ-011', 'Requirement for TC11', 111),
-       ('REQ-012', 'Requirement for TC12', 112);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number)
+values ('REQ-004', 'Requirement for TC4', 104, 0),
+       ('REQ-005', 'Requirement for TC5', 105, 0),
+       ('REQ-006', 'Requirement for TC6', 106, 0),
+       ('REQ-007', 'Requirement for TC7', 107, 0),
+       ('REQ-008', 'Requirement for TC8', 108, 0),
+       ('REQ-009', 'Requirement for TC9', 109, 0),
+       ('REQ-010', 'Requirement for TC10', 110, 0),
+       ('REQ-011', 'Requirement for TC11', 111, 0),
+       ('REQ-012', 'Requirement for TC12', 112, 0);
 
 -- Text manual scenarios
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
@@ -265,12 +265,12 @@ values (200, 200, 30, 'TEXT'),
        (203, 203, 15, 'TEXT'),
        (204, 204, 10, 'TEXT');
 
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id)
-values ('REQ-200', 'Requirement for TC200', 200),
-       ('REQ-201', 'Requirement for TC201', 201),
-       ('REQ-202', 'Requirement for TC202', 202),
-       ('REQ-203', 'Requirement for TC203', 203),
-       ('REQ-204', 'Requirement for TC204', 204);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number)
+values ('REQ-200', 'Requirement for TC200', 200, 0),
+       ('REQ-201', 'Requirement for TC201', 201, 0),
+       ('REQ-202', 'Requirement for TC202', 202, 0),
+       ('REQ-203', 'Requirement for TC203', 203, 0),
+       ('REQ-204', 'Requirement for TC204', 204, 0);
 
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
 values (200, 'Execute test case 200', 'System should respond correctly for TC200'),
@@ -409,28 +409,28 @@ values (300, 300, 30, 'TEXT'),
        (319, 319, 15, 'TEXT'),
        (320, 320, 30, 'TEXT');
 
-insert into tms_manual_scenario_requirement (id, value, manual_scenario_id)
-values ('REQ-300', 'Requirement for TC300', 300),
-       ('REQ-301', 'Requirement for TC301', 301),
-       ('REQ-302', 'Requirement for TC302', 302),
-       ('REQ-303', 'Requirement for TC303', 303),
-       ('REQ-304', 'Requirement for TC304', 304),
-       ('REQ-305', 'Requirement for TC305', 305),
-       ('REQ-306', 'Requirement for TC306', 306),
-       ('REQ-307', 'Requirement for TC307', 307),
-       ('REQ-308', 'Requirement for TC308', 308),
-       ('REQ-309', 'Requirement for TC309', 309),
-       ('REQ-310', 'Requirement for TC310', 310),
-       ('REQ-311', 'Requirement for TC311', 311),
-       ('REQ-312', 'Requirement for TC312', 312),
-       ('REQ-313', 'Requirement for TC313', 313),
-       ('REQ-314', 'Requirement for TC314', 314),
-       ('REQ-315', 'Requirement for TC315', 315),
-       ('REQ-316', 'Requirement for TC316', 316),
-       ('REQ-317', 'Requirement for TC317', 317),
-       ('REQ-318', 'Requirement for TC318', 318),
-       ('REQ-319', 'Requirement for TC319', 319),
-       ('REQ-320', 'Requirement for TC320', 320);
+insert into tms_manual_scenario_requirement (id, value, manual_scenario_id, number)
+values ('REQ-300', 'Requirement for TC300', 300, 0),
+       ('REQ-301', 'Requirement for TC301', 301, 0),
+       ('REQ-302', 'Requirement for TC302', 302, 0),
+       ('REQ-303', 'Requirement for TC303', 303, 0),
+       ('REQ-304', 'Requirement for TC304', 304, 0),
+       ('REQ-305', 'Requirement for TC305', 305, 0),
+       ('REQ-306', 'Requirement for TC306', 306, 0),
+       ('REQ-307', 'Requirement for TC307', 307, 0),
+       ('REQ-308', 'Requirement for TC308', 308, 0),
+       ('REQ-309', 'Requirement for TC309', 309, 0),
+       ('REQ-310', 'Requirement for TC310', 310, 0),
+       ('REQ-311', 'Requirement for TC311', 311, 0),
+       ('REQ-312', 'Requirement for TC312', 312, 0),
+       ('REQ-313', 'Requirement for TC313', 313, 0),
+       ('REQ-314', 'Requirement for TC314', 314, 0),
+       ('REQ-315', 'Requirement for TC315', 315, 0),
+       ('REQ-316', 'Requirement for TC316', 316, 0),
+       ('REQ-317', 'Requirement for TC317', 317, 0),
+       ('REQ-318', 'Requirement for TC318', 318, 0),
+       ('REQ-319', 'Requirement for TC319', 319, 0),
+       ('REQ-320', 'Requirement for TC320', 320, 0);
 
 insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected_result)
 values (300, 'Execute test case 300', 'System should respond correctly for TC300'),

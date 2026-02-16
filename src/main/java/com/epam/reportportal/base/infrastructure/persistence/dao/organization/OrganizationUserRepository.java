@@ -83,7 +83,7 @@ public interface OrganizationUserRepository extends
    */
   @Modifying
   @Query(value =
-      "DELETE FROM organization_user WHERE organization_id = :orgId AND user_id NOT IN :userIds",
+      "DELETE FROM organization_user WHERE organization_id = :orgId AND user_id NOT IN (:userIds)",
       nativeQuery = true)
   void deleteByOrganizationIdAndUserIdNotIn(@Param("orgId") Long orgId, @Param("userIds") List<Long> userIds);
 

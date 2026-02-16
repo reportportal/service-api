@@ -102,7 +102,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       // TODO: Add OrgUser Activity Resource or extend OrganizationAttributesActivityResource
       // for publishing events when several users are unassigned from organization
       organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(org.getId(), newUserIds);
-      log.info("Users not in {} have been removed from project with ID {}", newUserIds, org.getId());
+      log.info("Users not in {} have been removed from organization with ID {}", newUserIds, org.getId());
     }
 
     var principal = SecurityContextUtils.getPrincipal();
@@ -147,7 +147,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
 
     ids.forEach(idContainer -> {
       var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(idContainer.getId(), orgId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer));
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer.getId()));
       organizationUserRepository.deleteByUserIdAndOrganizationId(idContainer.getId(), orgId);
       log.info("User with ID {} has been removed from organization with ID {}", idContainer.getId(), orgId);
       applicationEventPublisher.publishEvent(

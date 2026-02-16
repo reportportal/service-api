@@ -50,7 +50,6 @@ import com.epam.reportportal.base.util.ControllerUtils;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -202,7 +201,7 @@ public class OrganizationController extends BaseController implements Organizati
   @Transactional
   public ResponseEntity<SuccessfulUpdate> patchOrganizationOrgId(
       Long orgId,
-      List<@Valid PatchOperation> patchOperations
+      List<PatchOperation> patchOperations
   ) {
     patchOrganizationHandler.patchOrganization(patchOperations, orgId);
     return ResponseEntity.ok().body(new SuccessfulUpdate());

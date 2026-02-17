@@ -16,38 +16,31 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.strategy.analyze;
 
-import static java.util.stream.Collectors.toList;
-
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Service
+@RequiredArgsConstructor
 public class IgnoreImmediateCollector implements AnalyzeItemsCollector {
 
   protected static final String IMMEDIATE_AUTO_ANALYSIS = "immediateAutoAnalysis";
 
-  private TestItemRepository testItemRepository;
-
-  @Autowired
-  public IgnoreImmediateCollector(TestItemRepository testItemRepository) {
-    this.testItemRepository = testItemRepository;
-  }
+  private final TestItemRepository testItemRepository;
 
   @Override
-  public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
+  public List<Long> collectItems(Long projectId, Long launchId, Long userId, String userLogin) {
     return testItemRepository.findItemsForAnalyze(launchId)
         .stream()
         .filter(ti -> !ti.getItemResults().getIssue().getIgnoreAnalyzer())
         .filter(this::skipImmediateAA)
         .map(TestItem::getItemId)
-        .collect(toList());
+        .toList();
   }
 
   private boolean skipImmediateAA(TestItem item) {

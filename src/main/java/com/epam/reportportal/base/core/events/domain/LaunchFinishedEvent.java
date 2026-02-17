@@ -36,7 +36,6 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
   private Long id;
   private String name;
   private LaunchModeEnum mode;
-  private ReportPortalUser user;
   private String baseUrl;
 
   /**
@@ -96,7 +95,6 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
    */
   public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl, Long orgId) {
     this(launch, user.getUserId(), user.getUsername(), baseUrl, orgId);
-    this.user = user;
   }
 
 }

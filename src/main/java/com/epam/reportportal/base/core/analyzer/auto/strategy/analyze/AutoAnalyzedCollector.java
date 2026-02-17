@@ -18,7 +18,6 @@ package com.epam.reportportal.base.core.analyzer.auto.strategy.analyze;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import java.util.Collections;
@@ -51,7 +50,7 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
   }
 
   @Override
-  public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
+  public List<Long> collectItems(Long projectId, Long launchId, Long userId, String userLogin) {
     List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGteExcludingIssueTypes(true,
         false,
         launchId,
@@ -60,7 +59,7 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
     );
     int deletedLogsCount = logIndexer.indexItemsRemove(projectId, itemIds);
     LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
-    updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);
+    updateTestItemHandler.resetItemsIssue(itemIds, projectId, userId, userLogin);
     return itemIds;
   }
 }

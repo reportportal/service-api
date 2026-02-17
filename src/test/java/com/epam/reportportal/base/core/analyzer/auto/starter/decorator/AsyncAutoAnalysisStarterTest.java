@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.starter.decorator;
 
-import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
@@ -27,10 +26,6 @@ import com.epam.reportportal.base.core.analyzer.auto.starter.LaunchAutoAnalysisS
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SyncTaskExecutor;
@@ -48,11 +43,11 @@ class AsyncAutoAnalysisStarterTest {
 
   @Test
   void shouldExecute() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     doCallRealMethod().when(taskExecutor).execute(any());

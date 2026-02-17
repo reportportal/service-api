@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.starter.decorator;
 
-import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -25,10 +24,6 @@ import com.epam.reportportal.base.core.analyzer.auto.starter.LaunchAutoAnalysisS
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -43,15 +38,14 @@ class AutoAnalysisEnabledStarterTest {
 
   @Test
   void shouldRunWhenAutoAnalysisEnabled() {
-
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setIsAutoAnalyzerEnabled(true);
 
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         analyzerConfig,
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     autoAnalysisEnabledStarter.start(config);
@@ -61,14 +55,14 @@ class AutoAnalysisEnabledStarterTest {
 
   @Test
   void shouldNotRunWhenAutoAnalysisDisabled() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setIsAutoAnalyzerEnabled(false);
 
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         analyzerConfig,
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     autoAnalysisEnabledStarter.start(config);

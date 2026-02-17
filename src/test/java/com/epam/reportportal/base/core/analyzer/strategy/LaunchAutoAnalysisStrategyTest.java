@@ -96,6 +96,7 @@ class LaunchAutoAnalysisStrategyTest {
     final StartLaunchAutoAnalysisConfig config = configArgumentCaptor.getValue();
     Assertions.assertEquals(launch.getId(), config.getLaunchId());
     Assertions.assertEquals(Set.of(AnalyzeItemsMode.TO_INVESTIGATE), config.getAnalyzeItemsModes());
-    Assertions.assertEquals(user, config.getUser());
+    Assertions.assertEquals(user.getUserId(), config.getUserId());
+    Assertions.assertEquals(user.getUsername(), config.getUserLogin());
   }
 }

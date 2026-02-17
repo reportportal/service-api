@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.base.core.item;
 
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.model.issue.DefineIssueRQ;
 import com.epam.reportportal.base.model.item.ExternalIssueRQ;
@@ -74,9 +74,10 @@ public interface UpdateTestItemHandler {
    *
    * @param itemIds   The {@link List} of the {@link TestItemResults#itemId}
    * @param projectId Project id
-   * @param user      {@link ReportPortalUser}
+   * @param userId    User ID
+   * @param userLogin User login
    */
-  void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user);
+  void resetItemsIssue(List<Long> itemIds, Long projectId, Long userId, String userLogin);
 
   OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
       MembershipDetails membershipDetails, ReportPortalUser user);

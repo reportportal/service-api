@@ -16,42 +16,34 @@
 
 package com.epam.ta.reportportal.core.item;
 
+import com.epam.ta.reportportal.core.item.repository.TestItemLastModifiedRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Asynchronously updates {@code last_modified} timestamp on {@code test_item} rows when a launch
  * attribute that affects item visibility changes (e.g. mode switch).
- *
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TestItemLastModifiedService {
 
-  private final JdbcTemplate jdbcTemplate;
+  private final TestItemLastModifiedRepository testItemLastModifiedRepository;
 
   /**
-   * Updates {@code last_modified = CURRENT_TIMESTAMP} for every {@code test_item} that belongs to
-   * the given launch. Runs asynchronously on the {@code eventListenerExecutor} thread pool so it
-   * does not participate in the caller's transaction.
+   * Sets {@code last_modified = CURRENT_TIMESTAMP} for every {@code test_item} that belongs to the
+   * given launch. Runs asynchronously on the {@code eventListenerExecutor} thread pool so it does
+   * not participate in the caller's transaction and cannot contribute to deadlocks.
    *
    * @param launchId the launch whose items should be touched
    */
-  //TODO: move to persistence after dao merge
   @Async("eventListenerExecutor")
+  @Transactional
   public void updateByLaunchId(Long launchId) {
-    try {
-      jdbcTemplate.update("""
-          UPDATE test_item
-          SET last_modified = CURRENT_TIMESTAMP
-          WHERE launch_id = ?
-          """, launchId);
-    } catch (Exception e) {
-      log.error("Failed to update last_modified for test items of launch {}", launchId, e);
-    }
+    testItemLastModifiedRepository.updateLastModifiedByLaunchId(launchId);
   }
 }

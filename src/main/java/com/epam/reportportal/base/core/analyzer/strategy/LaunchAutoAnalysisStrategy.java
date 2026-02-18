@@ -78,7 +78,8 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
     analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
     final StartLaunchAutoAnalysisConfig autoAnalysisConfig =
-        StartLaunchAutoAnalysisConfig.of(launch.getId(), analyzerConfig, analyzeItemsModes, user);
+        StartLaunchAutoAnalysisConfig.of(launch.getId(), analyzerConfig, analyzeItemsModes, user.getUserId(),
+            user.getUsername());
 
     manualAnalysisStarter.start(autoAnalysisConfig);
   }

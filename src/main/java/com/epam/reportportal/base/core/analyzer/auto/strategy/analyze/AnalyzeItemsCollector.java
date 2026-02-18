@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.strategy.analyze;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.AnalyzeMode;
 import java.util.List;
 
@@ -34,9 +33,10 @@ public interface AnalyzeItemsCollector {
    *
    * @param projectId Project id
    * @param launchId  Launch id
-   * @param user      User started analysis
+   * @param userId    User ID who started analysis
+   * @param userLogin User login who started analysis
    * @return List of item ids
    */
-  List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user);
+  List<Long> collectItems(Long projectId, Long launchId, Long userId, String userLogin);
 
 }

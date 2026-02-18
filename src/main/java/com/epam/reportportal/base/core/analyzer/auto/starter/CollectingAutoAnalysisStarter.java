@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.starter;
 
-import static java.util.stream.Collectors.toList;
-
 import com.epam.reportportal.base.core.analyzer.auto.AnalyzerService;
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
@@ -25,7 +23,6 @@ import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeIte
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.List;
@@ -60,8 +57,8 @@ public class CollectingAutoAnalysisStarter implements LaunchAutoAnalysisStarter 
   public void start(StartLaunchAutoAnalysisConfig config) {
     final Launch launch = getLaunchHandler.get(config.getLaunchId());
 
-    final List<Long> itemIds = collectItemsByModes(launch, config.getAnalyzeItemsModes(),
-        config.getUser());
+    final List<Long> itemIds = collectItemsByModes(launch, config.getAnalyzeItemsModes(), config.getUserId(),
+        config.getUserLogin());
 
     analyzerService.runAnalyzers(launch, itemIds, config.getAnalyzerConfig());
     logIndexer.indexItemsLogs(launch.getProjectId(), launch.getId(), itemIds,
@@ -76,13 +73,16 @@ public class CollectingAutoAnalysisStarter implements LaunchAutoAnalysisStarter 
    * @see AnalyzeCollectorFactory
    * @see AnalyzeItemsCollector
    */
-  private List<Long> collectItemsByModes(Launch launch, Set<AnalyzeItemsMode> analyzeItemsModes,
-      ReportPortalUser user) {
-    return analyzeItemsModes.stream().flatMap(it -> {
-      List<Long> itemIds = analyzeCollectorFactory.getCollector(it)
-          .collectItems(launch.getProjectId(), launch.getId(), user);
-      LOGGER.debug("Item itemIds collected by '{}' mode: {}", it, itemIds);
-      return itemIds.stream();
-    }).distinct().collect(toList());
+  private List<Long> collectItemsByModes(Launch launch, Set<AnalyzeItemsMode> analyzeItemsModes, Long userId,
+      String userLogin) {
+    return analyzeItemsModes.stream()
+        .flatMap(it -> {
+          List<Long> itemIds = analyzeCollectorFactory.getCollector(it)
+              .collectItems(launch.getProjectId(), launch.getId(), userId, userLogin);
+          LOGGER.debug("Item itemIds collected by '{}' mode: {}", it, itemIds);
+          return itemIds.stream();
+        })
+        .distinct()
+        .toList();
   }
 }

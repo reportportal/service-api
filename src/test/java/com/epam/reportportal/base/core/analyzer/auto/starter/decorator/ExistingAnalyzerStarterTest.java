@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.starter.decorator;
 
-import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -29,10 +28,6 @@ import com.epam.reportportal.base.core.analyzer.auto.starter.LaunchAutoAnalysisS
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -51,11 +46,11 @@ class ExistingAnalyzerStarterTest {
   @Test
   void shouldRunWhenHasAnalyzers() {
 
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     when(analyzerService.hasAnalyzers()).thenReturn(Boolean.TRUE);
@@ -67,11 +62,11 @@ class ExistingAnalyzerStarterTest {
 
   @Test
   void shouldThrowReportPortalExceptionWhenNoAnalyzers() {
-    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
     final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(1L,
         new AnalyzerConfig(),
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     when(analyzerService.hasAnalyzers()).thenReturn(Boolean.FALSE);

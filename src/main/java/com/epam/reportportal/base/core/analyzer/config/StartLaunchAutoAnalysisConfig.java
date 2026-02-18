@@ -18,47 +18,34 @@ package com.epam.reportportal.base.core.analyzer.config;
 
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import java.util.Set;
+import lombok.Getter;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Getter
 public class StartLaunchAutoAnalysisConfig {
 
   private final Long launchId;
   private final AnalyzerConfig analyzerConfig;
   private final Set<AnalyzeItemsMode> analyzeItemsModes;
-  private final ReportPortalUser user;
+  private final Long userId;
+  private final String userLogin;
 
   private StartLaunchAutoAnalysisConfig(Long launchId, AnalyzerConfig analyzerConfig,
       Set<AnalyzeItemsMode> analyzeItemsModes,
-      ReportPortalUser user) {
+      Long userId, String userLogin) {
     this.launchId = launchId;
     this.analyzerConfig = analyzerConfig;
     this.analyzeItemsModes = analyzeItemsModes;
-    this.user = user;
+    this.userId = userId;
+    this.userLogin = userLogin;
   }
 
   public static StartLaunchAutoAnalysisConfig of(Long launchId, AnalyzerConfig analyzerConfig,
-      Set<AnalyzeItemsMode> analyzeItemsModes,
-      ReportPortalUser user) {
-    return new StartLaunchAutoAnalysisConfig(launchId, analyzerConfig, analyzeItemsModes, user);
+      Set<AnalyzeItemsMode> analyzeItemsModes, Long userId, String userLogin) {
+    return new StartLaunchAutoAnalysisConfig(launchId, analyzerConfig, analyzeItemsModes, userId, userLogin);
   }
 
-  public Long getLaunchId() {
-    return launchId;
-  }
-
-  public AnalyzerConfig getAnalyzerConfig() {
-    return analyzerConfig;
-  }
-
-  public Set<AnalyzeItemsMode> getAnalyzeItemsModes() {
-    return analyzeItemsModes;
-  }
-
-  public ReportPortalUser getUser() {
-    return user;
-  }
 }

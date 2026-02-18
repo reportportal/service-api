@@ -47,7 +47,8 @@ public class LaunchAutoAnalysisRunner implements
         launchFinishedEvent.getId(),
         analyzerConfig,
         Set.of(AnalyzeItemsMode.IGNORE_IMMEDIATE),
-        launchFinishedEvent.getUser()
+        launchFinishedEvent.getUserId(),
+        launchFinishedEvent.getUserLogin()
     );
     autoAnalysisStarter.start(config);
   }

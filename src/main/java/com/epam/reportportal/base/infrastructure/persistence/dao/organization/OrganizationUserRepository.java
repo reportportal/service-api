@@ -21,6 +21,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.Organiz
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUserId;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -60,4 +61,39 @@ public interface OrganizationUserRepository extends
       AND o.organization_type <> 'PERSONAL'
       """, nativeQuery = true)
   List<Long> findNonPersonalOrganizationIdsByUserId(@Param("userId") Long userId);
+
+  /**
+   * Deletes all entries from the organization_user table for the specified user ID and organization ID.
+   *
+   * @param userId The ID of the user whose associations should be deleted.
+   * @param orgId  The ID of the organization whose user associations should be deleted.
+   */
+  @Modifying
+  @Query(value =
+      "DELETE FROM organization_user WHERE user_id = :userId AND organization_id = :orgId",
+      nativeQuery = true)
+  void deleteByUserIdAndOrganizationId(@Param("userId") Long userId, @Param("orgId") Long orgId);
+
+  /**
+   * Deletes all entries from the organization_user table for the specified organization ID,
+   * except for those with user IDs in the provided list.
+   *
+   * @param orgId   The ID of the organization whose user associations should be deleted.
+   * @param userIds The list of user IDs to retain.
+   */
+  @Modifying
+  @Query(value =
+      "DELETE FROM organization_user WHERE organization_id = :orgId AND user_id NOT IN (:userIds)",
+      nativeQuery = true)
+  void deleteByOrganizationIdAndUserIdNotIn(@Param("orgId") Long orgId, @Param("userIds") List<Long> userIds);
+
+
+  /**
+   * Deletes all entries from the organization_user table for the specified organization ID.
+   *
+   * @param orgId The ID of the organization whose user associations should be deleted.
+   */
+  @Modifying
+  @Query(value = "DELETE FROM organization_user WHERE organization_id = :orgId", nativeQuery = true)
+  void deleteAllByOrganizationId(@Param(value = "orgId") Long orgId);
 }

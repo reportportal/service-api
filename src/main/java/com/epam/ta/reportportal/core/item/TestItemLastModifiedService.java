@@ -41,6 +41,7 @@ public class TestItemLastModifiedService {
    *
    * @param launchId the launch whose items should be touched
    */
+  //TODO: move to persistence after dao merge
   @Async("eventListenerExecutor")
   public void updateByLaunchId(Long launchId) {
     try {

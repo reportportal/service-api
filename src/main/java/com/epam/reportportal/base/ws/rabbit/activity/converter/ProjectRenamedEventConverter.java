@@ -42,17 +42,15 @@ public class ProjectRenamedEventConverter implements EventToActivityConverter<Pr
         .addAction(EventAction.UPDATE)
         .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
         .addPriority(EventPriority.LOW)
-        .addObjectId(event.getBefore().getProjectId())
-        .addObjectName(event.getBefore().getProjectName())
+        .addObjectId(event.getProjectId())
+        .addObjectName(event.getOldProjectName())
         .addObjectType(EventObject.PROJECT)
-        .addProjectId(event.getBefore().getProjectId())
+        .addProjectId(event.getProjectId())
         .addOrganizationId(event.getOrganizationId())
         .addSubjectId(event.getUserId())
         .addSubjectName(event.getUserLogin())
         .addSubjectType(EventSubject.USER)
-        .addHistoryField(processString(event.getBefore().getProjectName(),
-            event.getAfter().getProjectName(),
-            "projectName"))
+        .addHistoryField(processString(event.getOldProjectName(), event.getNewProjectName(), "projectName"))
         .get();
   }
 

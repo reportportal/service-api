@@ -137,7 +137,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     // Then
     verify(tmsTextManualScenarioMapper).patchTmsManualScenario(existingTextManualScenario, textScenarioRQ);
-    verify(tmsTextManualScenarioAttachmentService).patchAttachments(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).updateAttachments(existingTextManualScenario, textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
   }
 
@@ -152,7 +152,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     assertThat(exception.getMessage()).contains("Text Manual Scenario for Manual Scenario with id");
     verify(tmsTextManualScenarioRepository, never()).save(any());
-    verify(tmsTextManualScenarioAttachmentService, never()).patchAttachments(any(), any());
+    verify(tmsTextManualScenarioAttachmentService, never()).updateAttachments(any(), any());
   }
 
   @Test

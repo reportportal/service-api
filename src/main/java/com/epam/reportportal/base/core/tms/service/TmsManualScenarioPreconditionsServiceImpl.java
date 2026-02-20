@@ -109,8 +109,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
         tmsManualScenarioPreconditionsRQ);
     var savedPreconditions = tmsManualScenarioPreconditionRepository.save(existingPreconditions);
 
-    // Patch attachments (add new ones to existing)
-    tmsManualScenarioPreconditionsAttachmentService.patchAttachments(savedPreconditions,
+    tmsManualScenarioPreconditionsAttachmentService.updateAttachments(savedPreconditions,
         tmsManualScenarioPreconditionsRQ);
 
     log.debug("Patched preconditions with ID: {} for manual scenario: {}",

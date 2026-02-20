@@ -11,9 +11,6 @@ public interface TmsTestPlanAttributeService {
   void updateTestPlanAttributes(long projectId, TmsTestPlan existingTestPlan,
       List<TmsTestPlanAttributeRQ> attributes);
 
-  void patchTestPlanAttributes(long projectId, TmsTestPlan existingTestPlan,
-      List<TmsTestPlanAttributeRQ> attributes);
-
   void deleteAllByTestPlanId(Long testPlanId);
 
   /**

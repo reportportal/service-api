@@ -12,9 +12,6 @@ public interface TmsTextManualScenarioAttachmentService {
   void updateAttachments(TmsTextManualScenario textManualScenario,
       TmsTextManualScenarioRQ tmsTextManualScenarioRQ);
 
-  void patchAttachments(TmsTextManualScenario existingTextManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ);
-
   void deleteAllByTestCaseId(Long testCaseId);
 
   void deleteAllByTestCaseIds(List<Long> testCaseIds);

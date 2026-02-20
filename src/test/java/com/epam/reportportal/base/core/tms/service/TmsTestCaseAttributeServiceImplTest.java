@@ -1,3 +1,4 @@
+
 package com.epam.reportportal.base.core.tms.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,8 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.TmsAttributeRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsAttributeMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseAttributeMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
@@ -34,6 +38,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class TmsTestCaseAttributeServiceImplTest {
@@ -49,6 +56,12 @@ class TmsTestCaseAttributeServiceImplTest {
   @Mock
   private TmsAttributeService tmsAttributeService;
 
+  @Mock
+  private TmsAttributeRepository tmsAttributeRepository;
+
+  @Mock
+  private TmsAttributeMapper tmsAttributeMapper;
+
   @InjectMocks
   private TmsTestCaseAttributeServiceImpl sut;
 
@@ -62,9 +75,13 @@ class TmsTestCaseAttributeServiceImplTest {
   private Set<TmsTestCaseAttribute> existingAttributes;
   private Set<TmsTestCaseAttribute> duplicatedAttributes;
   private TmsAttribute tmsAttribute;
+  private Pageable pageable;
 
   @BeforeEach
   void setUp() {
+    // Setup pageable
+    pageable = PageRequest.of(0, 20);
+
     // Setup project
     var project = new Project();
     project.setId(PROJECT_ID);
@@ -964,5 +981,140 @@ class TmsTestCaseAttributeServiceImplTest {
     // Then
     verify(tmsTestCaseAttributeRepository).saveAll(Collections.emptyList());
     verifyNoInteractions(tmsTestCaseAttributeMapper);
+  }
+
+  // Tests for getAttributesByTestCaseIds method
+
+  @Test
+  void getAttributesByTestCaseIds_ShouldReturnPagedAttributes() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var attr1 = createTmsAttribute(10L, "browser", "Chrome");
+    var attr2 = createTmsAttribute(11L, "priority", "High");
+    var page = new PageImpl<>(List.of(attr1, attr2), pageable, 2);
+
+    var rs1 = createTmsAttributeRS(10L, "browser", "Chrome");
+    var rs2 = createTmsAttributeRS(11L, "priority", "High");
+
+    when(tmsAttributeRepository.findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, pageable))
+        .thenReturn(page);
+    when(tmsAttributeMapper.convertToTmsAttributeRS(attr1)).thenReturn(rs1);
+    when(tmsAttributeMapper.convertToTmsAttributeRS(attr2)).thenReturn(rs2);
+
+    // When
+    var result = sut.getAttributesByTestCaseIds(PROJECT_ID, testCaseIds, pageable);
+
+    // Then
+    assertEquals(2, result.getContent().size());
+    var contentList = new ArrayList<>(result.getContent());
+    assertEquals("browser", contentList.get(0).getKey());
+    assertEquals("Chrome", contentList.get(0).getValue());
+    assertEquals("priority", contentList.get(1).getKey());
+    assertEquals("High", contentList.get(1).getValue());
+    verify(tmsAttributeRepository).findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, pageable);
+  }
+
+  @Test
+  void getAttributesByTestCaseIds_WithEmptyResult_ShouldReturnEmptyPage() {
+    // Given
+    var testCaseIds = List.of(999L);
+    var emptyPage = new PageImpl<TmsAttribute>(Collections.emptyList(), pageable, 0);
+
+    when(tmsAttributeRepository.findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, pageable))
+        .thenReturn(emptyPage);
+
+    // When
+    var result = sut.getAttributesByTestCaseIds(PROJECT_ID, testCaseIds, pageable);
+
+    // Then
+    assertTrue(result.getContent().isEmpty());
+    verify(tmsAttributeRepository).findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, pageable);
+  }
+
+  @Test
+  void getAttributesByTestCaseIds_WithSingleTestCaseId_ShouldReturnAttributes() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var attr = createTmsAttribute(10L, "os", "Linux");
+    var page = new PageImpl<>(List.of(attr), pageable, 1);
+
+    var rs = createTmsAttributeRS(10L, "os", "Linux");
+
+    when(tmsAttributeRepository.findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, pageable))
+        .thenReturn(page);
+    when(tmsAttributeMapper.convertToTmsAttributeRS(attr)).thenReturn(rs);
+
+    // When
+    var result = sut.getAttributesByTestCaseIds(PROJECT_ID, testCaseIds, pageable);
+
+    // Then
+    assertEquals(1, result.getContent().size());
+    var contentList = new ArrayList<>(result.getContent());
+    assertEquals("os", contentList.get(0).getKey());
+    assertEquals("Linux", contentList.get(0).getValue());
+    verify(tmsAttributeRepository).findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, pageable);
+  }
+
+  @Test
+  void getAttributesByTestCaseIds_ShouldPassCorrectPageable() {
+    // Given
+    var testCaseIds = List.of(1L);
+    var customPageable = PageRequest.of(2, 5);
+    var emptyPage = new PageImpl<TmsAttribute>(Collections.emptyList(), customPageable, 0);
+
+    when(tmsAttributeRepository.findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, customPageable))
+        .thenReturn(emptyPage);
+
+    // When
+    sut.getAttributesByTestCaseIds(PROJECT_ID, testCaseIds, customPageable);
+
+    // Then
+    verify(tmsAttributeRepository).findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, customPageable);
+  }
+
+  @Test
+  void getAttributesByTestCaseIds_WithMultiplePages_ShouldReturnCorrectPageMetadata() {
+    // Given
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var customPageable = PageRequest.of(0, 2);
+    var attr1 = createTmsAttribute(10L, "key1", "value1");
+    var attr2 = createTmsAttribute(11L, "key2", "value2");
+    var page = new PageImpl<>(List.of(attr1, attr2), customPageable, 5);
+
+    var rs1 = createTmsAttributeRS(10L, "key1", "value1");
+    var rs2 = createTmsAttributeRS(11L, "key2", "value2");
+
+    when(tmsAttributeRepository.findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, customPageable))
+        .thenReturn(page);
+    when(tmsAttributeMapper.convertToTmsAttributeRS(attr1)).thenReturn(rs1);
+    when(tmsAttributeMapper.convertToTmsAttributeRS(attr2)).thenReturn(rs2);
+
+    // When
+    var result = sut.getAttributesByTestCaseIds(PROJECT_ID, testCaseIds, customPageable);
+
+    // Then
+    assertEquals(2, result.getContent().size());
+    assertEquals(5, result.getPage().getTotalElements());
+    assertEquals(3, result.getPage().getTotalPages());
+    verify(tmsAttributeRepository).findDistinctByTestCaseIdsAndProjectId(PROJECT_ID, testCaseIds, customPageable);
+  }
+
+  private TmsAttribute createTmsAttribute(Long id, String key, String value) {
+    var attr = new TmsAttribute();
+    attr.setId(id);
+    attr.setKey(key);
+    attr.setValue(value);
+    var project = new Project();
+    project.setId(PROJECT_ID);
+    attr.setProject(project);
+    return attr;
+  }
+
+  private TmsAttributeRS createTmsAttributeRS(Long id, String key, String value) {
+    var rs = new TmsAttributeRS();
+    rs.setId(id);
+    rs.setKey(key);
+    rs.setValue(value);
+    return rs;
   }
 }

@@ -64,13 +64,8 @@ public class OrganizationUsersController extends BaseController implements Organ
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(
-      Long orgId,
-      Integer offset,
-      Integer limit,
-      String order,
-      String sort,
-      String fullName,
-      String role
+      Long orgId, Integer offset, Integer limit, String order,
+      String sort, String fullName, String role
   ) {
     Filter filter = new Filter(OrganizationUserFilter.class, new ArrayList<>());
     filter.withCondition(
@@ -112,9 +107,10 @@ public class OrganizationUsersController extends BaseController implements Organ
 
   @Override
   @PreAuthorize(ORGANIZATION_MEMBER)
-  public ResponseEntity<OrgUserProjectPage> getOrgUserProjects(Long orgId, Long userId,
-                                                               Integer offset, Integer limit, String order,
-                                                               String sort) {
+  public ResponseEntity<OrgUserProjectPage> getOrgUserProjects(
+      Long orgId, Long userId, Integer offset,
+      Integer limit, String order, String sort
+  ) {
     ReportPortalUser principal = getPrincipal();
     BusinessRule.expect(
         principal.getUserRole().equals(UserRole.ADMINISTRATOR) || principal.getUserId()
@@ -134,8 +130,10 @@ public class OrganizationUsersController extends BaseController implements Organ
 
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
-  public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgIdUsersUserId(Long orgId, Long userId,
-                                                                           OrgUserUpdateRequest orgUserUpdateRequest) {
+  public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgIdUsersUserId(
+      Long orgId, Long userId,
+      OrgUserUpdateRequest orgUserUpdateRequest
+  ) {
     organizationUsersHandler.updateOrganizationUserDetails(orgId, userId, orgUserUpdateRequest);
     return ResponseEntity.ok(new SuccessfulUpdate());
   }

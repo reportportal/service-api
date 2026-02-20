@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.item.impl.retry;
 
+import static java.util.Optional.ofNullable;
+
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -10,6 +12,7 @@ import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.reportportal.rules.exception.ErrorType;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -17,25 +20,27 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
+@RequiredArgsConstructor
 public class DefaultRetryHandler implements RetryHandler {
 
   private final TestItemRepository testItemRepository;
   private final LaunchRepository launchRepository;
   private final ApplicationEventPublisher eventPublisher;
-
-  public DefaultRetryHandler(TestItemRepository testItemRepository,
-      LaunchRepository launchRepository,
-      ApplicationEventPublisher eventPublisher) {
-    this.testItemRepository = testItemRepository;
-    this.launchRepository = launchRepository;
-    this.eventPublisher = eventPublisher;
-  }
+  private final RetrySearcher retrySearcher;
 
   @Override
-  public void handleRetries(Launch launch, TestItem newRetryParent, Long previousParent) {
-    handleRetries(launch, previousParent, newRetryParent);
+  public void handleRetry(Launch launch, TestItem lastTry, String retryOf) {
+    Long previousParentId = getPreviousParentId(launch, lastTry, retryOf);
+    handleRetries(launch, previousParentId, lastTry);
     eventPublisher.publishEvent(
-        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), newRetryParent.getItemId()));
+        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), lastTry.getItemId()));
+  }
+
+  private Long getPreviousParentId(Launch launch, TestItem lastTry, String retryOf) {
+    return ofNullable(retryOf)
+        .flatMap(testItemRepository::findIdByUuid)
+        .orElseGet(
+            () -> retrySearcher.findPreviousTry(launch, lastTry).orElse(null));
   }
 
   @Override

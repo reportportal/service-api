@@ -16,17 +16,16 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.CHILD_START_TIME_EARLIER_THAN_PARENT;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.reportportal.rules.exception.ErrorType.TEST_ITEM_NOT_FOUND;
-import static java.util.Optional.ofNullable;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
-import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
@@ -34,7 +33,6 @@ import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
-import com.epam.ta.reportportal.core.item.impl.retry.RetrySearcher;
 import com.epam.ta.reportportal.core.item.validator.parent.ParentItemValidator;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -43,19 +41,17 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.reporting.ItemCreatedRS;
+import com.epam.ta.reportportal.ws.reporting.StartTestItemRQ;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Primary
 @Transactional
+@RequiredArgsConstructor
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
@@ -85,26 +82,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
   private final List<ParentItemValidator> parentItemValidators;
 
-  private final RetrySearcher retrySearcher;
   private final RetryHandler retryHandler;
-
-  @Autowired
-  public StartTestItemHandlerImpl(TestItemRepository testItemRepository,
-      LaunchRepository launchRepository,
-      UniqueIdGenerator uniqueIdGenerator, TestCaseHashGenerator testCaseHashGenerator,
-      RerunHandler rerunHandler,
-      List<ParentItemValidator> parentItemValidators,
-      @Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher,
-      RetryHandler retryHandler) {
-    this.testItemRepository = testItemRepository;
-    this.launchRepository = launchRepository;
-    this.uniqueIdGenerator = uniqueIdGenerator;
-    this.testCaseHashGenerator = testCaseHashGenerator;
-    this.rerunHandler = rerunHandler;
-    this.parentItemValidators = parentItemValidators;
-    this.retrySearcher = retrySearcher;
-    this.retryHandler = retryHandler;
-  }
 
   @Override
   public ItemCreatedRS startRootItem(ReportPortalUser user,
@@ -133,8 +111,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
   public ItemCreatedRS startChildItem(ReportPortalUser user,
       ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
       String parentId) {
-    boolean isRetry =
-        BooleanUtils.toBoolean(rq.getRetry()) || StringUtils.isNotBlank(rq.getRetryOf());
 
     Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
@@ -146,45 +122,37 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
       }
     }
 
-    final TestItem parentItem;
-    if (isRetry) {
-      // Lock for test
-      Long lockedParentId = testItemRepository.findIdByUuidForUpdate(parentId)
-          .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
-      parentItem = testItemRepository.getOne(lockedParentId);
-    } else {
-      parentItem = testItemRepository.findByUuid(parentId)
-          .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
-    }
+    TestItem treeParent = testItemRepository.findByUuid(parentId)
+        .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
 
-    parentItemValidators.forEach(v -> v.validate(rq, parentItem));
+    parentItemValidators.forEach(v -> v.validate(rq, treeParent));
 
     TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes())
         .addLaunchId(launch.getId()).get();
 
+    boolean isRetry =
+        BooleanUtils.toBoolean(rq.getRetry()) || StringUtils.isNotBlank(rq.getRetryOf());
     if (isRetry) {
-      processRetry(rq, launch, item, parentItem);
+      processRetry(rq, launch, item, treeParent);
     } else {
-      saveChildItem(launch, item, parentItem);
+      saveChildItem(launch, item, treeParent);
     }
 
-    LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
-
-    if (rq.isHasStats() && !parentItem.isHasChildren()) {
-      parentItem.setHasChildren(true);
+    if (rq.isHasStats() && !treeParent.isHasChildren()) {
+      treeParent.setHasChildren(true);
     }
-
     return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
   }
 
-  private void processRetry(StartTestItemRQ rq, Launch launch, TestItem item, TestItem parentItem) {
-    Long retryParentId = Optional.ofNullable(rq.getRetryOf())
-        .flatMap(testItemRepository::findIdByUuidForUpdate)
-        .orElseGet(() -> retrySearcher.findPreviousRetry(launch, item, parentItem)
-            .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, item.getUniqueId())));
-
-    saveChildItem(launch, item, parentItem);
-    retryHandler.handleRetries(launch, item, retryParentId);
+  /**
+   * Retry flow on item start: 1. Resolve previousTryId — either from explicit {@code retryOf} UUID
+   * or by searching 2. Save the incoming item as a new child in the tree 3. Link previousTry ↔
+   * lastTry via {@code handle_retry} (SQL decides who becomes main)
+   */
+  private void processRetry(StartTestItemRQ rq, Launch launch, TestItem retry,
+      TestItem treeParent) {
+    TestItem lastTry = saveChildItem(launch, retry, treeParent);
+    retryHandler.handleRetry(launch, lastTry, rq.getRetryOf());
   }
 
   private TestItem saveChildItem(Launch launch, TestItem childItem, TestItem parentItem) {

@@ -245,7 +245,7 @@ class RerunHandlerImplTest {
 
     Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, "uuid");
 
-    verify(retryHandler, times(1)).handleRetries(any(), any(), any());
+    verify(retryHandler, times(1)).handleRetry(any(), any(), any());
 
     assertTrue(rerunCreatedRS.isPresent());
   }

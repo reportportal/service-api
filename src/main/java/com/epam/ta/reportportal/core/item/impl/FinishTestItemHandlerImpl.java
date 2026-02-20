@@ -119,6 +119,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   private final ChangeStatusHandler changeStatusHandler;
 
   private final RetrySearcher retrySearcher;
+
   private final RetryHandler retryHandler;
 
   private final ApplicationEventPublisher eventPublisher;
@@ -126,6 +127,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   private final MessageBus messageBus;
 
   private final ExternalTicketHandler externalTicketHandler;
+
 
   @Autowired
   FinishTestItemHandlerImpl(TestItemRepository testItemRepository,
@@ -158,8 +160,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     final TestItem testItem = testItemRepository.findByUuid(testItemId).filter(
         it -> it.isHasChildren() || (!it.isHasChildren()
             && it.getItemResults().getStatus() == IN_PROGRESS)).orElseGet(
-        () -> testItemRepository.findIdByUuidForUpdate(testItemId)
-            .flatMap(testItemRepository::findById)
+        () -> testItemRepository.findByUuid(testItemId)
             .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId)));
 
     final Launch launch = retrieveLaunch(testItem);
@@ -177,17 +178,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
     if (BooleanUtils.toBoolean(finishExecutionRQ.getRetry()) || StringUtils.isNotBlank(
         finishExecutionRQ.getRetryOf())) {
-      Optional.of(testItem).filter(
-              it -> !it.isHasChildren() && !it.isHasRetries() && Objects.isNull(it.getRetryOf()))
-          .map(TestItem::getParentId).flatMap(testItemRepository::findById).ifPresent(
-              parentItem -> ofNullable(finishExecutionRQ.getRetryOf()).flatMap(
-                  testItemRepository::findIdByUuidForUpdate).ifPresentOrElse(
-                  retryParentId -> retryHandler.handleRetries(launch, itemForUpdate, retryParentId),
-                  () -> retrySearcher.findPreviousRetry(launch, itemForUpdate, parentItem).ifPresent(
-                      previousRetryId -> retryHandler.handleRetries(launch, itemForUpdate,
-                          previousRetryId
-                      ))
-              ));
+      processRetryOnFinish(launch, itemForUpdate, finishExecutionRQ);
     }
     eventPublisher.publishEvent(
         new TestItemFinishedEvent(itemForUpdate, projectDetails.getProjectId()));
@@ -311,8 +302,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     if (testItemResults.getStatus() == IN_PROGRESS) {
       testItemResults.setStatus(actualStatus);
       resolvedIssue.ifPresent(issue -> updateItemIssue(testItemResults, issue));
-      ofNullable(testItem.getRetryOf()).ifPresentOrElse(retryOf -> {
-      }, () -> {
+      if (testItem.getRetryOf() == null) {
         changeStatusHandler.changeParentStatus(testItem, projectDetails.getProjectId(), user);
         changeStatusHandler.changeLaunchStatus(launch);
         if (testItem.isHasRetries()) {
@@ -320,7 +310,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
               finishTestItemRQ.getEndTime()
           );
         }
-      });
+      }
     } else {
       updateFinishedItem(testItemResults, actualStatus, resolvedIssue, testItem, user,
           projectDetails.getProjectId()
@@ -425,6 +415,20 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       issueEntityRepository.delete(issueEntity);
       testItemResults.setIssue(null);
     });
+  }
+
+  /**
+   * Retry flow on item finish: 1. Guard — only leaf items that are not already part of a retry
+   * chain 2. Resolve previousTryId — either from explicit {@code retryOf} UUID or by searching 3.
+   * Link previousTry ↔ lastTry via {@code handle_retry} (SQL decides who becomes main)
+   *
+   * <p>Unlike {@code processRetry} on start, this silently skips if no previous try is found.
+   */
+  private void processRetryOnFinish(Launch launch, TestItem lastTry, FinishTestItemRQ rq) {
+    if (lastTry.isHasChildren() || lastTry.isHasRetries() || lastTry.getRetryOf() != null) {
+      return;
+    }
+    retryHandler.handleRetry(launch, lastTry, rq.getRetryOf());
   }
 
   private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {

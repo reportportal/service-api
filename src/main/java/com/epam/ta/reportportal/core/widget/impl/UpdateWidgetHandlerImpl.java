@@ -36,7 +36,9 @@ import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.model.activity.WidgetActivityResource;
+import com.epam.ta.reportportal.model.widget.ContentParameters;
 import com.epam.ta.reportportal.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
@@ -44,6 +46,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -82,8 +88,10 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
             () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, widgetId,
                 projectDetails.getProjectName()
             ));
-    validateOwnedEntityLocked(widget, projectDetails, user);
 
+    if (!isEligibleForLockBypass(widget, updateRQ)) {
+      validateOwnedEntityLocked(widget, projectDetails, user);
+    }
     widgetContentFieldsValidator.validate(widget);
 
     if (!widget.getName().equals(updateRQ.getName())) {
@@ -104,7 +112,6 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
         .addFilters(userFilter)
         .get();
     widgetRepository.save(widget);
-    syncFiltersLockedStatus(widget);
 
     messageBus.publishActivity(
         new WidgetUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(widget), widgetOptionsBefore,
@@ -134,11 +141,38 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
     }
   }
 
-  private void syncFiltersLockedStatus(Widget widget) {
-    if (widget.getLocked()) {
-      widgetRepository.lockWidgetFilters(widget.getId());
-    } else {
-      widgetRepository.unlockWidgetFilters(widget.getId());
+  private boolean isEligibleForLockBypass(Widget widget, WidgetRQ request) {
+    return isMetadataUnchanged(widget, request)
+        && isContentUnchanged(widget, request.getContentParameters());
+  }
+
+  private boolean isMetadataUnchanged(Widget widget, WidgetRQ request) {
+    return Objects.equals(widget.getName(), request.getName())
+        && Objects.equals(widget.getDescription(), request.getDescription())
+        && Objects.equals(widget.getWidgetType(), request.getWidgetType());
+  }
+
+  private boolean isContentUnchanged(Widget widget, ContentParameters params) {
+    if (params == null) {
+      return true;
     }
+
+    return widget.getItemsCount() == params.getItemsCount()
+        && contentFieldsMatch(widget.getContentFields(), params.getContentFields())
+        && widgetOptionsMatch(widget.getWidgetOptions(), params.getWidgetOptions());
+  }
+
+  private boolean contentFieldsMatch(Set<String> existing, List<String> incoming) {
+    var incomingAsSet = Optional.ofNullable(incoming)
+        .map(Set::copyOf)
+        .orElse(null);
+    return Objects.equals(existing, incomingAsSet);
+  }
+
+  private boolean widgetOptionsMatch(WidgetOptions existing, Map<String, Object> incoming) {
+    var existingOptions = Optional.ofNullable(existing)
+        .map(WidgetOptions::getOptions)
+        .orElse(null);
+    return Objects.equals(existingOptions, incoming);
   }
 }

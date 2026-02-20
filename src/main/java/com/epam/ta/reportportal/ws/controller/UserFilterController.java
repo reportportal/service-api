@@ -101,7 +101,7 @@ public class UserFilterController {
   public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getFilterHandler.getUserFilter(
-        filterId, projectExtractor.extractProjectDetails(user, projectName), user);
+        filterId, projectExtractor.extractProjectDetails(user, projectName));
   }
 
   @Transactional(readOnly = true)
@@ -153,11 +153,10 @@ public class UserFilterController {
   @Operation(summary = "Get list of specified user filters")
   public List<UserFilterResource> getUserFilters(@PathVariable String projectName,
       @RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-    ReportPortalUser.ProjectDetails projectDetails =
-        projectExtractor.extractProjectDetails(user, projectName);
-    List<UserFilter> filters = getFilterHandler.getFiltersById(ids, projectDetails, user);
-    return filters.stream()
-        .map(UserFilterConverter.TO_FILTER_RESOURCE)
+    List<UserFilter> filters = getFilterHandler.getFiltersById(ids,
+        projectExtractor.extractProjectDetails(user, projectName), user
+    );
+    return filters.stream().map(UserFilterConverter.TO_FILTER_RESOURCE)
         .collect(Collectors.toList());
   }
 

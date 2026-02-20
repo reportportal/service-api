@@ -206,7 +206,6 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId,
                 dashboardId));
-    widgetRepository.unlockWidgetFilters(widgetId);
 
     dashboardWidgetRepository.delete(toRemove);
 

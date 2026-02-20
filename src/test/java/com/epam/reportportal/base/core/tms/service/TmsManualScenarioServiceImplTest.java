@@ -273,7 +273,7 @@ class TmsManualScenarioServiceImplTest {
         eq(existingManualScenario), any());
     verify(tmsManualScenarioRequirementService).patchRequirements(eq(existingManualScenario),
         any());
-    verify(tmsManualScenarioAttributeService).patchAttributes(eq(PROJECT_ID),
+    verify(tmsManualScenarioAttributeService).updateAttributes(eq(PROJECT_ID),
         eq(existingManualScenario), any());
     verify(tmsManualScenarioImplService).patchTmsManualScenarioImpl(existingManualScenario,
         textScenarioRQ);
@@ -318,7 +318,7 @@ class TmsManualScenarioServiceImplTest {
 
     // Then
     assertThat(result).isEqualTo(existingManualScenario);
-    verify(tmsManualScenarioAttributeService).patchAttributes(eq(differentProjectId),
+    verify(tmsManualScenarioAttributeService).updateAttributes(eq(differentProjectId),
         eq(existingManualScenario), any());
     verify(tmsManualScenarioRequirementService).patchRequirements(eq(existingManualScenario),
         any());

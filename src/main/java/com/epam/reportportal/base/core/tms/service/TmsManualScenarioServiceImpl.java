@@ -109,7 +109,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           existingManualScenario, testCaseManualScenarioRQ.getRequirements()
       );
 
-      tmsManualScenarioAttributeService.patchAttributes(projectId, existingManualScenario,
+      tmsManualScenarioAttributeService.updateAttributes(projectId, existingManualScenario,
           testCaseManualScenarioRQ.getAttributes());
 
       tmsManualScenarioImplServiceFactory

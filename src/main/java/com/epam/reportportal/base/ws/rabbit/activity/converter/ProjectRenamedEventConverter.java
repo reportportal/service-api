@@ -40,7 +40,7 @@ public class ProjectRenamedEventConverter implements EventToActivityConverter<Pr
     return new ActivityBuilder()
         .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.UPDATE)
-        .addEventName(ActivityAction.UPDATE_PROJECT.getValue())
+        .addEventName(ActivityAction.UPDATE_PROJECT_NAME.getValue())
         .addPriority(EventPriority.LOW)
         .addObjectId(event.getProjectId())
         .addObjectName(event.getOldProjectName())

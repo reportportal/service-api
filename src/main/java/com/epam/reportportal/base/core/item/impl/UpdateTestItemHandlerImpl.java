@@ -90,7 +90,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -345,7 +345,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   }
 
   @Override
-  public void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user) {
+  public void resetItemsIssue(List<Long> itemIds, Long projectId, Long userId, String userLogin) {
     var project = projectService.findProjectById(projectId);
     itemIds.forEach(itemId -> {
       TestItem item = testItemRepository.findById(itemId)
@@ -356,18 +356,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           TestItemIssueGroup.TO_INVESTIGATE.getLocator()
       );
       IssueEntity issueEntity = new IssueEntityBuilder(issueEntityRepository.findById(itemId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND,
-              itemId
+          .orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, itemId
           ))).addIssueType(issueType).addAutoAnalyzedFlag(false).get();
       issueEntityRepository.save(issueEntity);
       item.getItemResults().setIssue(issueEntity);
 
       TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);
-      if (!StringUtils.equalsIgnoreCase(
-          before.getIssueTypeLongName(), after.getIssueTypeLongName())) {
-        ItemIssueTypeDefinedEvent event =
-            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
-                project.getOrganizationId());
+      if (!Strings.CI.equals(before.getIssueTypeLongName(), after.getIssueTypeLongName())) {
+        ItemIssueTypeDefinedEvent event = new ItemIssueTypeDefinedEvent(before, after, userId, userLogin,
+            project.getOrganizationId());
         eventPublisher.publishEvent(event);
       }
     });

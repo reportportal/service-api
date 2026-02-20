@@ -16,36 +16,28 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.strategy.analyze;
 
-import static java.util.stream.Collectors.toList;
-
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
+@RequiredArgsConstructor
 public class ToInvestigateCollector implements AnalyzeItemsCollector {
 
-  private TestItemRepository testItemRepository;
-
-  @Autowired
-  public ToInvestigateCollector(TestItemRepository testItemRepository) {
-    this.testItemRepository = testItemRepository;
-  }
+  private final TestItemRepository testItemRepository;
 
   @Override
-  public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
-    return testItemRepository.findAllInIssueGroupByLaunch(launchId,
-            TestItemIssueGroup.TO_INVESTIGATE)
+  public List<Long> collectItems(Long projectId, Long launchId, Long userId, String userLogin) {
+    return testItemRepository.findAllInIssueGroupByLaunch(launchId, TestItemIssueGroup.TO_INVESTIGATE)
         .stream()
         .filter(it -> !it.getItemResults().getIssue().getIgnoreAnalyzer())
         .map(TestItem::getItemId)
-        .collect(toList());
+        .toList();
   }
 }

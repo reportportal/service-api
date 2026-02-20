@@ -27,6 +27,7 @@ import com.epam.reportportal.api.model.CreateOrganizationRequest;
 import com.epam.reportportal.api.model.OrganizationInfo;
 import com.epam.reportportal.api.model.OrganizationPage;
 import com.epam.reportportal.api.model.OrganizationSettings;
+import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateOrganizationRequest;
@@ -35,6 +36,7 @@ import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.jasper.impl.OrganizationJasperReportHandler;
 import com.epam.reportportal.base.core.organization.GetOrganizationHandler;
 import com.epam.reportportal.base.core.organization.OrganizationExtensionPoint;
+import com.epam.reportportal.base.core.organization.patch.PatchOrganizationHandler;
 import com.epam.reportportal.base.core.organization.settings.OrganizationSettingsHandler;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
@@ -50,6 +52,7 @@ import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -78,6 +81,7 @@ public class OrganizationController extends BaseController implements Organizati
   private final OrganizationSettingsHandler organizationSettingsHandler;
   private final OrganizationJasperReportHandler organizationReportHandler;
   private final HttpServletResponse httpServletResponse;
+  private final PatchOrganizationHandler patchOrganizationHandler;
 
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MEMBER)
@@ -162,7 +166,7 @@ public class OrganizationController extends BaseController implements Organizati
   public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgId(Long orgId, UpdateOrganizationRequest request) {
     var principal = SecurityContextUtils.getPrincipal();
     getOrgExtension().updateOrganization(orgId, request, principal);
-    return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
+    return ResponseEntity.ok(new SuccessfulUpdate());
   }
 
   @Override
@@ -184,10 +188,23 @@ public class OrganizationController extends BaseController implements Organizati
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   @Transactional
-  public ResponseEntity<SuccessfulUpdate> updateOrgSettingsByOrgId(Long orgId,
-      OrganizationSettings organizationSettings) {
+  public ResponseEntity<SuccessfulUpdate> updateOrgSettingsByOrgId(
+      Long orgId,
+      OrganizationSettings organizationSettings
+  ) {
     organizationSettingsHandler.updateOrgSettings(orgId, organizationSettings);
-    return ResponseEntity.ok(new SuccessfulUpdate("The update was completed successfully."));
+    return ResponseEntity.ok(new SuccessfulUpdate());
+  }
+
+  @Override
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  @Transactional
+  public ResponseEntity<SuccessfulUpdate> patchOrganizationOrgId(
+      Long orgId,
+      List<PatchOperation> patchOperations
+  ) {
+    patchOrganizationHandler.patchOrganization(patchOperations, orgId);
+    return ResponseEntity.ok().body(new SuccessfulUpdate());
   }
 
   private OrganizationExtensionPoint getOrgExtension() {

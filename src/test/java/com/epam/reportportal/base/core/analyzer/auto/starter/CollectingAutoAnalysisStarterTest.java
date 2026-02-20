@@ -82,21 +82,19 @@ class CollectingAutoAnalysisStarterTest {
         launch.getId(),
         analyzerConfig,
         Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
-        user
+        1L,
+        "user"
     );
 
     when(analyzerService.hasAnalyzers()).thenReturn(true);
 
     when(getLaunchHandler.get(event.getId())).thenReturn(launch);
-    when(logIndexer.indexLaunchLogs(eq(launch), any(AnalyzerConfig.class))).thenReturn(
-        INDEXED_LOG_COUNT);
+    when(logIndexer.indexLaunchLogs(eq(launch), any(AnalyzerConfig.class))).thenReturn(INDEXED_LOG_COUNT);
 
-    when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(
-        analyzeItemsCollector);
+    when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
     final List<Long> itemIds = Lists.newArrayList(1L, 2L);
-    when(
-        analyzeItemsCollector.collectItems(launch.getProjectId(), launch.getId(), user)).thenReturn(
-        itemIds);
+    when(analyzeItemsCollector.collectItems(launch.getProjectId(), launch.getId(), 1L, "user"))
+        .thenReturn(itemIds);
 
     starter.start(startLaunchAutoAnalysisConfig);
 

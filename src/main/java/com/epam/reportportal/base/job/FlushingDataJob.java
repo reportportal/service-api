@@ -18,10 +18,12 @@ package com.epam.reportportal.base.job;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.reportportal.base.core.logtype.DefaultLogTypeProvider;
 import com.epam.reportportal.base.core.organization.PersonalOrganizationService;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LogTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
@@ -96,6 +98,12 @@ public class FlushingDataJob implements Job {
   @Autowired
   private PersonalOrganizationService personalOrganizationService;
 
+  @Autowired
+  private DefaultLogTypeProvider defaultLogTypeProvider;
+
+  @Autowired
+  private LogTypeRepository logTypeRepository;
+
   @Value("${datastore.bucketPrefix}")
   private String bucketPrefix;
 
@@ -148,6 +156,7 @@ public class FlushingDataJob implements Job {
     jdbcTemplate.execute("ALTER SEQUENCE users_id_seq RESTART WITH 2");
     jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
     jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
+    jdbcTemplate.execute("ALTER SEQUENCE log_type_id_seq RESTART WITH 8");
   }
 
   private void createDefaultUser() {
@@ -157,7 +166,8 @@ public class FlushingDataJob implements Job {
     request.setPassword("1q2w3e");
     User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
         .addPassword(passwordEncoder.encode(request.getPassword())).get();
-    projectRepository.save(personalProjectService.generatePersonalProject(user));
+    Project savedProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
+    logTypeRepository.saveAll(defaultLogTypeProvider.provideDefaultLogTypes(savedProject.getId()));
     var savedUser = userRepository.save(user);
     personalOrganizationService.createPersonalOrganization(savedUser.getId());
     LOGGER.info("Default user has been successfully created.");

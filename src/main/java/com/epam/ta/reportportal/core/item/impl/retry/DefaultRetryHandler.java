@@ -44,8 +44,8 @@ public class DefaultRetryHandler implements RetryHandler {
   }
 
   @Override
-  public void finishRetries(Long retryParentId, JStatusEnum status, Instant endTime) {
-    testItemRepository.updateStatusAndEndTimeByRetryOfId(retryParentId,
+  public void finishRetries(TestItem retryParent, JStatusEnum status, Instant endTime) {
+    testItemRepository.updateStatusAndEndTimeByRetryOfId(retryParent.getItemId(),
         JStatusEnum.IN_PROGRESS,
         JStatusEnum.valueOf(status.name()),
         endTime

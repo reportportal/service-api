@@ -16,13 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.starter.decorator;
 
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
-import com.epam.reportportal.rules.exception.ErrorType;
-import java.util.function.Predicate;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -39,10 +35,8 @@ public class ExistingAnalyzerStarter implements LaunchAutoAnalysisStarter {
 
   @Override
   public void start(StartLaunchAutoAnalysisConfig config) {
-    expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
-        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-        "There are no analyzer services are deployed."
-    );
-    launchAutoAnalysisStarter.start(config);
+    if (analyzerService.hasAnalyzers()) {
+      launchAutoAnalysisStarter.start(config);
+    }
   }
 }

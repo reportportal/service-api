@@ -226,7 +226,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     interruptedAttribute.setTestItem(testItem);
     testItem.getAttributes().add(interruptedAttribute);
     if (testItem.isHasRetries()) {
-      retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(status.name()), endTime);
+      retryHandler.finishRetries(testItem, JStatusEnum.valueOf(status.name()), endTime);
     }
   }
 }

@@ -1,13 +1,41 @@
+# syntax=docker/dockerfile:1.4
 FROM --platform=$BUILDPLATFORM gradle:8.10.0-jdk21-alpine AS build
 ARG RELEASE_MODE
 ARG APP_VERSION
+ARG BUILDKIT_INLINE_CACHE=1
+
 WORKDIR /usr/app
-COPY . /usr/app
-RUN if [ "${RELEASE_MODE}" = true ]; then \
-    gradle build --no-build-cache --exclude-task test \
-        -PreleaseMode=true \
-        -Dorg.gradle.project.version=${APP_VERSION}; \
-    else gradle build --no-build-cache --exclude-task test -Dorg.gradle.project.version=${APP_VERSION}; fi
+
+# Копируем только конфигурационные файлы Gradle для лучшего кэширования слоев
+COPY build.gradle settings.gradle gradle.properties project-properties.gradle ./
+COPY gradle/wrapper ./gradle/wrapper
+
+# Копируем конфигурационные файлы для api-registry (если есть)
+COPY api-registry/build.gradle api-registry/settings.gradle ./api-registry/
+
+# Загружаем зависимости (этот слой будет кэшироваться, если не изменятся build.gradle файлы)
+# Используем BuildKit cache mount для кэширования Gradle dependencies
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    gradle dependencies --no-daemon || true
+
+# Копируем исходный код (этот слой пересобирается только при изменении кода)
+COPY src ./src
+COPY api-registry ./api-registry
+
+# Собираем приложение с использованием кэша
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    if [ "${RELEASE_MODE}" = "true" ]; then \
+        gradle build --parallel --build-cache --exclude-task test \
+            -PreleaseMode=true \
+            -Dorg.gradle.project.version=${APP_VERSION} \
+            -Dorg.gradle.caching=true; \
+    else \
+        gradle build --parallel --build-cache --exclude-task test \
+            -Dorg.gradle.project.version=${APP_VERSION} \
+            -Dorg.gradle.caching=true; \
+    fi
 
 FROM amazoncorretto:21.0.9
 LABEL version=${APP_VERSION} description="EPAM Report portal. Main API Service" maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>, Hleb Kanonik <hleb_kanonik@epam.com>"
@@ -18,5 +46,4 @@ WORKDIR $APP_DIR
 COPY --from=build $APP_DIR/build/libs/service-api-*exec.jar .
 VOLUME ["/tmp"]
 EXPOSE 8080
-# ENTRYPOINT exec java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-*exec.jar
 ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-*exec.jar"]

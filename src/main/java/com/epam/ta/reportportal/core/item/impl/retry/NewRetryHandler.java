@@ -1,12 +1,13 @@
 package com.epam.ta.reportportal.core.item.impl.retry;
 
 import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
+import com.epam.ta.reportportal.core.item.repository.PreviousTryProjection;
 import com.epam.ta.reportportal.core.item.repository.RetryRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NewRetryHandler implements RetryHandler {
 
-  private final TestItemRepository testItemRepository;
   private final RetryRepository retryRepository;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -61,8 +61,8 @@ public class NewRetryHandler implements RetryHandler {
     retryRepository.advisoryXactLock(launch.getId());
 
     // 2. Find the winner (max start_time, then max item_id) among active items
-    Optional<Long> latestTry =
-        retryRepository.findLatestTryByUniqueIdAndParentId(uniqueId, parentId);
+    Optional<Long> latestTry = retryRepository.findLatestTryByUniqueIdAndParentId(uniqueId,
+        parentId);
 
     if (latestTry.isEmpty()) {
       return;
@@ -70,15 +70,20 @@ public class NewRetryHandler implements RetryHandler {
 
     Long lastestTryId = latestTry.get();
 
-    // 3. Demote all other active items to retries of the winner
-    int demoted = retryRepository.changeActiveTyPreviousTry(uniqueId, parentId, lastestTryId);
+    List<PreviousTryProjection> previousTries = retryRepository.getPreviousTries(uniqueId, parentId,
+        lastestTryId);
 
-    if (demoted == 0) {
-      return; // no duplicates found — nothing to do
+    if (previousTries.isEmpty()) {
+      return;
     }
+    List<Long> previousTriesIds = previousTries.stream().map(PreviousTryProjection::getItemId)
+        .toList();
+
+    // 3. Demote all other active items to retries of the winner
+    retryRepository.changeActiveTyPreviousTry(previousTriesIds, lastestTryId);
 
     // 4. Flatten: re-point any existing retries to the winner directly (no chains)
-    retryRepository.pointPreviousTriesToLatest(uniqueId, parentId, lastestTryId);
+    retryRepository.pointPreviousTriesToLatest(previousTriesIds, lastestTryId);
 
     // 5. Mark the winner as having retries
     retryRepository.markAsHavingRetries(lastestTryId);
@@ -92,8 +97,9 @@ public class NewRetryHandler implements RetryHandler {
   }
 
   @Override
-  public void finishRetries(Long itemId, JStatusEnum status, Instant endTime) {
+  public void finishRetries(TestItem item, JStatusEnum status, Instant endTime) {
+//    retryRepository.advisoryXactLock(item.getLaunchId());
 //    testItemRepository.updateStatusAndEndTimeByRetryOfId(
-//        itemId, JStatusEnum.IN_PROGRESS, JStatusEnum.valueOf(status.name()), endTime);
+//        item.getItemId(), JStatusEnum.IN_PROGRESS, JStatusEnum.valueOf(status.name()), endTime);
   }
 }

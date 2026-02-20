@@ -42,5 +42,5 @@ public interface RetryHandler {
    * @param status  the final status to assign to dangling retries
    * @param endTime the end time to assign to dangling retries
    */
-  void finishRetries(Long itemId, JStatusEnum status, Instant endTime);
+  void finishRetries(TestItem itemId, JStatusEnum status, Instant endTime);
 }

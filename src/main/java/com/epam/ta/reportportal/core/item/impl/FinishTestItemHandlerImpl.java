@@ -56,6 +56,7 @@ import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
 import com.epam.ta.reportportal.core.item.impl.retry.RetrySearcher;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -128,6 +129,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private final ExternalTicketHandler externalTicketHandler;
 
+  private final TestItemStatisticsService testItemStatisticsService;
+
 
   @Autowired
   FinishTestItemHandlerImpl(TestItemRepository testItemRepository,
@@ -137,7 +140,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
       @Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher, RetryHandler retryHandler,
-      MessageBus messageBus, ExternalTicketHandler externalTicketHandler) {
+      MessageBus messageBus, ExternalTicketHandler externalTicketHandler,
+      TestItemStatisticsService testItemStatisticsService) {
     this.testItemRepository = testItemRepository;
     this.issueTypeHandler = issueTypeHandler;
     this.finishHierarchyHandler = finishHierarchyHandler;
@@ -151,6 +155,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     this.retryHandler = retryHandler;
     this.messageBus = messageBus;
     this.externalTicketHandler = externalTicketHandler;
+    this.testItemStatisticsService = testItemStatisticsService;
   }
 
   @Override
@@ -306,7 +311,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         changeStatusHandler.changeParentStatus(testItem, projectDetails.getProjectId(), user);
         changeStatusHandler.changeLaunchStatus(launch);
         if (testItem.isHasRetries()) {
-          retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(actualStatus.name()),
+          retryHandler.finishRetries(testItem, JStatusEnum.valueOf(actualStatus.name()),
               finishTestItemRQ.getEndTime()
           );
         }
@@ -420,15 +425,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   /**
    * Retry flow on item finish: 1. Guard — only leaf items that are not already part of a retry
    * chain 2. Resolve previousTryId — either from explicit {@code retryOf} UUID or by searching 3.
-   * Link previousTry ↔ lastTry via {@code handle_retry} (SQL decides who becomes main)
+   * Link previousTry ↔ newTry via {@code handle_retry} (SQL decides who becomes main)
    *
    * <p>Unlike {@code processRetry} on start, this silently skips if no previous try is found.
    */
-  private void processRetryOnFinish(Launch launch, TestItem lastTry, FinishTestItemRQ rq) {
-    if (lastTry.isHasChildren() || lastTry.isHasRetries() || lastTry.getRetryOf() != null) {
+  private void processRetryOnFinish(Launch launch, TestItem newTry, FinishTestItemRQ rq) {
+    if (newTry.isHasChildren() || newTry.isHasRetries() || newTry.getRetryOf() != null) {
       return;
     }
-    retryHandler.handleRetry(launch, lastTry, rq.getRetryOf());
+    retryHandler.handleRetry(launch, newTry, rq.getRetryOf());
   }
 
   private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {

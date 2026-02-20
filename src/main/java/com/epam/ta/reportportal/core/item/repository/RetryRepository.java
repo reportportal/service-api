@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.repository;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -30,50 +31,6 @@ import org.springframework.data.repository.query.Param;
  * entity graphs for bulk operations.
  */
 public interface RetryRepository extends JpaRepository<TestItem, Long> {
-
-  /**
-   * Converts the given main item and all its existing retries into retries of a new main item. Sets
-   * {@code retry_of = newMainId}, {@code launch_id = NULL}, {@code has_retries = FALSE},
-   * {@code last_modified = CURRENT_TIMESTAMP}, {@code path = NULL}.
-   *
-   * @param oldMainId item_id of the current main item whose chain is being reassigned
-   * @param newMainId item_id of the new main item
-   */
-  @Modifying
-  @Query(value = """
-      UPDATE test_item
-      SET    retry_of      = :newMainId,
-             launch_id     = NULL,
-             has_retries   = FALSE,
-             last_modified = CURRENT_TIMESTAMP,
-             path          = NULL
-      WHERE  item_id IN (SELECT item_id
-                         FROM   test_item
-                         WHERE  retry_of = :oldMainId OR item_id = :oldMainId
-                         ORDER BY item_id)
-      """, nativeQuery = true)
-  void convertChainToRetries(@Param("oldMainId") Long oldMainId,
-      @Param("newMainId") Long newMainId);
-
-  /**
-   * Converts a single item into a retry of the given main item. Sets {@code retry_of = mainId},
-   * {@code launch_id = NULL}, {@code has_retries = FALSE},
-   * {@code last_modified = CURRENT_TIMESTAMP}, {@code path = NULL}.
-   *
-   * @param itemId item_id of the item to convert
-   * @param mainId item_id of the main item it should point to
-   */
-  @Modifying
-  @Query(value = """
-      UPDATE test_item
-      SET    retry_of      = :mainId,
-             launch_id     = NULL,
-             has_retries   = FALSE,
-             last_modified = CURRENT_TIMESTAMP,
-             path          = NULL
-      WHERE  item_id = :itemId
-      """, nativeQuery = true)
-  void convertSingleToRetry(@Param("itemId") Long itemId, @Param("mainId") Long mainId);
 
   /**
    * Marks an item as having retries.
@@ -128,7 +85,6 @@ public interface RetryRepository extends JpaRepository<TestItem, Long> {
    * @param uniqueId unique identifier of the test case
    * @param parentId parent item id
    * @param winnerId item_id of the winner that should remain active
-   * @return the number of rows updated (i.e. items demoted)
    */
   @Modifying
   @Query(value = """
@@ -138,13 +94,21 @@ public interface RetryRepository extends JpaRepository<TestItem, Long> {
              has_retries   = FALSE,
              last_modified = CURRENT_TIMESTAMP,
              path          = NULL
+      WHERE  item_id in (:itemIds)
+      """, nativeQuery = true)
+  void changeActiveTyPreviousTry(@Param("itemIds") List<Long> itemIds,
+      @Param("winnerId") Long winnerId);
+
+  @Query(value = """
+      SELECT item_id, launch_id, path::VARCHAR
+      FROM test_item
       WHERE  unique_id = :uniqueId
         AND  parent_id = :parentId
         AND  path IS NOT NULL
         AND  retry_of IS NULL
         AND  item_id != :winnerId
       """, nativeQuery = true)
-  int changeActiveTyPreviousTry(
+  List<PreviousTryProjection> getPreviousTries(
       @Param("uniqueId") String uniqueId,
       @Param("parentId") Long parentId,
       @Param("winnerId") Long winnerId);
@@ -154,24 +118,18 @@ public interface RetryRepository extends JpaRepository<TestItem, Long> {
    * that already has {@code retry_of} set but pointing to a different item is re-pointed to the
    * current winner. This ensures every retry references the main item directly (no chains).
    *
-   * @param uniqueId unique identifier of the test case
-   * @param parentId parent item id
+   * @param itemIds  item ids
    * @param winnerId item_id of the current winner (main item)
-   * @return the number of rows updated
    */
   @Modifying
   @Query(value = """
       UPDATE test_item
       SET    retry_of      = :winnerId,
              last_modified = CURRENT_TIMESTAMP
-      WHERE  unique_id = :uniqueId
-        AND  parent_id = :parentId
-        AND  retry_of IS NOT NULL
-        AND  retry_of != :winnerId
+      WHERE  retry_of in (:itemIds)
       """, nativeQuery = true)
-  int pointPreviousTriesToLatest(
-      @Param("uniqueId") String uniqueId,
-      @Param("parentId") Long parentId,
+  void pointPreviousTriesToLatest(
+      @Param("itemIds") List<Long> itemIds,
       @Param("winnerId") Long winnerId);
 
 }

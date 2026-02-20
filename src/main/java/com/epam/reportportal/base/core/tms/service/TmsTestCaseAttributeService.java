@@ -1,11 +1,15 @@
+
 package com.epam.reportportal.base.core.tms.service;
 
+import com.epam.reportportal.base.core.tms.dto.TmsAttributeRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.model.Page;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface TmsTestCaseAttributeService {
 
@@ -38,4 +42,15 @@ public interface TmsTestCaseAttributeService {
 
   void addAttributesToTestCases(@NotNull @NotEmpty List<Long> testCaseIds,
       @NotNull @NotEmpty Collection<Long> attributeIds);
+
+  /**
+   * Retrieves unique TMS attributes assigned to the specified test cases with pagination.
+   *
+   * @param projectId   the project ID
+   * @param testCaseIds list of test case IDs
+   * @param pageable    pagination parameters
+   * @return paginated list of TMS attribute responses
+   */
+  Page<TmsAttributeRS> getAttributesByTestCaseIds(Long projectId, List<Long> testCaseIds,
+      Pageable pageable);
 }

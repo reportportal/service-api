@@ -5,6 +5,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttri
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -42,5 +44,14 @@ public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttrib
   List<String> findDistinctValuesByProjectIdAndValueLike(
       @Param("projectId") Long projectId,
       @Param("search") String search);
+
+  @Query("SELECT DISTINCT a FROM TmsAttribute a "
+      + "JOIN TmsTestCaseAttribute tca ON tca.attribute.id = a.id "
+      + "WHERE tca.testCase.id IN :testCaseIds "
+      + "AND a.project.id = :projectId")
+  Page<TmsAttribute> findDistinctByTestCaseIdsAndProjectId(
+      @Param("projectId") Long projectId,
+      @Param("testCaseIds") List<Long> testCaseIds,
+      Pageable pageable);
 
 }

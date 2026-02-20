@@ -1,11 +1,17 @@
+
 package com.epam.reportportal.base.core.tms.service;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
+import com.epam.reportportal.base.core.tms.dto.TmsAttributeRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsAttributeMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseAttributeMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.model.Page;
+import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +33,8 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   private final TmsTestCaseAttributeMapper tmsTestCaseAttributeMapper;
   private final TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
   private final TmsAttributeService tmsAttributeService;
+  private final TmsAttributeRepository tmsAttributeRepository;
+  private final TmsAttributeMapper tmsAttributeMapper;
 
   @Override
   @Transactional
@@ -158,5 +167,15 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
         .toList();
 
     tmsTestCaseAttributeRepository.saveAll(testCaseAttributes);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<TmsAttributeRS> getAttributesByTestCaseIds(Long projectId, List<Long> testCaseIds,
+      Pageable pageable) {
+    return PagedResourcesAssembler
+        .pageConverter(tmsAttributeMapper::convertToTmsAttributeRS)
+        .apply(tmsAttributeRepository.findDistinctByTestCaseIdsAndProjectId(
+            projectId, testCaseIds, pageable));
   }
 }

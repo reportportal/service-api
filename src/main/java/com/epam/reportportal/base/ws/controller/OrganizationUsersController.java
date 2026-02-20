@@ -18,6 +18,7 @@ package com.epam.reportportal.base.ws.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ORGANIZATION_MEMBER;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USER_ROLE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
 import static org.springframework.http.HttpStatus.OK;
@@ -62,14 +63,25 @@ public class OrganizationUsersController extends BaseController implements Organ
 
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
-  public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(Long orgId,
-      Integer offset, Integer limit, String order, String sort, String fullName) {
+  public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(
+      Long orgId,
+      Integer offset,
+      Integer limit,
+      String order,
+      String sort,
+      String fullName,
+      String role
+  ) {
     Filter filter = new Filter(OrganizationUserFilter.class, new ArrayList<>());
     filter.withCondition(
         new FilterCondition(Condition.EQUALS, false, orgId.toString(), "organization_id"));
     if (StringUtils.isNotEmpty(fullName)) {
       filter.withCondition(
           new FilterCondition(Condition.CONTAINS, false, fullName, CRITERIA_FULL_NAME));
+    }
+    if (StringUtils.isNotEmpty(role)) {
+      filter.withCondition(
+          new FilterCondition(Condition.EQUALS, false, role, CRITERIA_ORG_USER_ROLE));
     }
 
     // sort by name only for now
@@ -101,7 +113,8 @@ public class OrganizationUsersController extends BaseController implements Organ
   @Override
   @PreAuthorize(ORGANIZATION_MEMBER)
   public ResponseEntity<OrgUserProjectPage> getOrgUserProjects(Long orgId, Long userId,
-      Integer offset, Integer limit, String order, String sort) {
+                                                               Integer offset, Integer limit, String order,
+                                                               String sort) {
     ReportPortalUser principal = getPrincipal();
     BusinessRule.expect(
         principal.getUserRole().equals(UserRole.ADMINISTRATOR) || principal.getUserId()
@@ -122,7 +135,7 @@ public class OrganizationUsersController extends BaseController implements Organ
   @Override
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<SuccessfulUpdate> putOrganizationsOrgIdUsersUserId(Long orgId, Long userId,
-      OrgUserUpdateRequest orgUserUpdateRequest) {
+                                                                           OrgUserUpdateRequest orgUserUpdateRequest) {
     organizationUsersHandler.updateOrganizationUserDetails(orgId, userId, orgUserUpdateRequest);
     return ResponseEntity.ok(new SuccessfulUpdate());
   }

@@ -16,19 +16,20 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
-import com.epam.reportportal.events.ElementsDeletedEvent;
+import com.epam.reportportal.rules.exception.ErrorRS;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
@@ -40,22 +41,16 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.activity.LaunchActivityResource;
-import com.epam.reportportal.rules.exception.ErrorRS;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -66,6 +61,7 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
+@RequiredArgsConstructor
 public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
   private final ContentRemover<Launch> launchContentRemover;
@@ -78,34 +74,13 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
   private final AttachmentRepository attachmentRepository;
 
-  private final ApplicationEventPublisher eventPublisher;
-
-  private final ElementsCounterService elementsCounterService;
-
   private final LogService logService;
-
-  @Autowired
-  public DeleteLaunchHandlerImpl(ContentRemover<Launch> launchContentRemover,
-      LaunchRepository launchRepository, MessageBus messageBus, LogIndexer logIndexer,
-      AttachmentRepository attachmentRepository, ApplicationEventPublisher eventPublisher,
-      ElementsCounterService elementsCounterService, LogService logService) {
-    this.launchContentRemover = launchContentRemover;
-    this.launchRepository = launchRepository;
-    this.messageBus = messageBus;
-    this.logIndexer = logIndexer;
-    this.attachmentRepository = attachmentRepository;
-    this.eventPublisher = eventPublisher;
-    this.elementsCounterService = elementsCounterService;
-    this.logService = logService;
-  }
 
   public OperationCompletionRS deleteLaunch(Long launchId,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
     validate(launch, user, projectDetails);
-    final Long numberOfLaunchElements =
-        elementsCounterService.countNumberOfLaunchElements(launchId);
 
     logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
     launchContentRemover.remove(launch);
@@ -117,8 +92,6 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
         new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
             user.getUsername()
         ));
-    eventPublisher.publishEvent(
-        new ElementsDeletedEvent(launchId, launch.getProjectId(), numberOfLaunchElements));
     return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
   }
 
@@ -126,7 +99,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
     List<Long> notFound = Lists.newArrayList();
     List<ReportPortalException> exceptions = Lists.newArrayList();
-    Map<Launch, Long> toDelete = Maps.newHashMap();
+    List<Launch> toDelete = Lists.newArrayList();
     List<Long> launchIds = Lists.newArrayList();
 
     ids.forEach(id -> {
@@ -135,9 +108,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
         Launch launch = optionalLaunch.get();
         try {
           validate(launch, user, projectDetails);
-          Long numberOfLaunchElements =
-              elementsCounterService.countNumberOfLaunchElements(launch.getId());
-          toDelete.put(launch, numberOfLaunchElements);
+          toDelete.add(launch);
           launchIds.add(id);
         } catch (ReportPortalException ex) {
           exceptions.add(ex);
@@ -149,20 +120,16 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
     if (CollectionUtils.isNotEmpty(launchIds)) {
       logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
-      toDelete.keySet().forEach(launchContentRemover::remove);
+      toDelete.forEach(launchContentRemover::remove);
       logService.deleteLogMessageByLaunchList(projectDetails.getProjectId(), launchIds);
-      launchRepository.deleteAll(toDelete.keySet());
+      launchRepository.deleteAll(toDelete);
       attachmentRepository.moveForDeletionByLaunchIds(launchIds);
     }
 
-    toDelete.entrySet().forEach(entry -> {
-      LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(entry.getKey());
+    toDelete.forEach(launch -> {
+      LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(launch);
       messageBus.publishActivity(
           new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
-      eventPublisher.publishEvent(
-          new ElementsDeletedEvent(entry.getKey().getId(), entry.getKey().getProjectId(),
-              entry.getValue()
-          ));
     });
 
     return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {

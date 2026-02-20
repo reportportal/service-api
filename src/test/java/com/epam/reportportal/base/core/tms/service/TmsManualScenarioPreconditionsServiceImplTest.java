@@ -214,7 +214,7 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     // Then existing preconditions should be patched
     verify(tmsManualScenarioPreconditionsMapper).patch(existingPreconditions, preconditionsRQ);
     verify(tmsManualScenarioPreconditionRepository).save(existingPreconditions);
-    verify(tmsManualScenarioPreconditionsAttachmentService).patchAttachments(savedPreconditions, preconditionsRQ);
+    verify(tmsManualScenarioPreconditionsAttachmentService).updateAttachments(savedPreconditions, preconditionsRQ);
     verify(tmsManualScenarioPreconditionsMapper, never()).toEntity(any());
   }
 

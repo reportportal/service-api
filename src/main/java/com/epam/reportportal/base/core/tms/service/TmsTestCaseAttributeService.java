@@ -15,9 +15,6 @@ public interface TmsTestCaseAttributeService {
   void updateTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes);
 
-  void patchTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
-      List<TmsTestCaseAttributeRQ> attributes);
-
   void patchTestCaseAttributes(@NotNull @NotEmpty List<TmsTestCase> testCaseIds,
       List<TmsTestCaseAttributeRQ> attributes);
 

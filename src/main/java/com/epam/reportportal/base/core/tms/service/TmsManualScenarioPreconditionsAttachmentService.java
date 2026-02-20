@@ -12,9 +12,6 @@ public interface TmsManualScenarioPreconditionsAttachmentService {
   void updateAttachments(TmsManualScenarioPreconditions existingPreconditions,
       TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ);
 
-  void patchAttachments(TmsManualScenarioPreconditions existingPreconditions,
-      TmsManualScenarioPreconditionsRQ preconditionsRQ);
-
   void deleteAllByTestCaseId(Long testCaseId);
 
   void deleteAllByTestCaseIds(List<Long> testCaseIds);

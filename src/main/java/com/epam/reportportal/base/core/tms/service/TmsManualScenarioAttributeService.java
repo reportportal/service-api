@@ -12,9 +12,6 @@ public interface TmsManualScenarioAttributeService {
   void updateAttributes(long projectId, TmsManualScenario tmsManualScenario,
       List<TmsManualScenarioAttributeRQ> attributes);
 
-  void patchAttributes(long projectId, TmsManualScenario tmsManualScenario,
-      List<TmsManualScenarioAttributeRQ> attributes);
-
   void deleteAllByTestCaseId(Long testCaseId);
 
   void deleteAllByTestCaseIds(List<Long> testCaseIds);

@@ -61,29 +61,6 @@ public class TmsManualScenarioAttributeServiceImpl implements TmsManualScenarioA
 
   @Override
   @Transactional
-  public void patchAttributes(long projectId, TmsManualScenario tmsManualScenario,
-      List<TmsManualScenarioAttributeRQ> attributes) {
-    if (isEmpty(attributes)) {
-      return;
-    }
-    var tmsManualScenarioAttributes = attributes.stream()
-        .map(attributeRQ -> {
-          var attribute = attributeRQ.getId() != null
-              ? tmsAttributeService.getEntityById(projectId, attributeRQ.getId())
-              : tmsAttributeService.findOrCreateAttribute(projectId, attributeRQ.getKey(),
-                  attributeRQ.getValue());
-          var manualScenarioAttribute = new TmsManualScenarioAttribute();
-          manualScenarioAttribute.setAttribute(attribute);
-          manualScenarioAttribute.setManualScenario(tmsManualScenario);
-          return manualScenarioAttribute;
-        })
-        .collect(Collectors.toSet());
-    tmsManualScenario.getAttributes().addAll(tmsManualScenarioAttributes);
-    tmsManualScenarioAttributeRepository.saveAll(tmsManualScenarioAttributes);
-  }
-
-  @Override
-  @Transactional
   public void deleteAllByTestCaseId(Long testCaseId) {
     tmsManualScenarioAttributeRepository.deleteAllByTestCaseId(testCaseId);
   }

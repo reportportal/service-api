@@ -71,27 +71,6 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   @Override
   @Transactional
-  public void patchTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
-      List<TmsTestCaseAttributeRQ> attributes) {
-    if (isEmpty(attributes)) {
-      return;
-    }
-    
-    var tmsTestCaseAttributes = attributes.stream()
-        .map(req -> {
-          var attribute = req.getId() != null
-              ? tmsAttributeService.getEntityById(projectId, req.getId())
-              : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
-          return tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute);
-        })
-        .collect(Collectors.toSet());
-    
-    tmsTestCase.getAttributes().addAll(tmsTestCaseAttributes);
-    tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
-  }
-
-  @Override
-  @Transactional
   public void patchTestCaseAttributes(@NotNull @NotEmpty List<TmsTestCase> tmsTestCases,
       List<TmsTestCaseAttributeRQ> attributes) {
     if (isEmpty(attributes)) {

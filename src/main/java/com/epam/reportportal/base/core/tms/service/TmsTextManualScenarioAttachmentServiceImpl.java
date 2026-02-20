@@ -86,49 +86,6 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void patchAttachments(TmsTextManualScenario existingTextManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ) {
-    log.debug("Patching attachments for text manual scenario: {}",
-        existingTextManualScenario.getManualScenarioId());
-
-    if (tmsTextManualScenarioRQ == null || CollectionUtils.isEmpty(
-        tmsTextManualScenarioRQ.getAttachments())) {
-      log.debug("No attachments to patch for text manual scenario: {}",
-          existingTextManualScenario.getManualScenarioId());
-      return;
-    }
-
-    var newAttachmentIds = tmsTextManualScenarioRQ
-        .getAttachments()
-        .stream()
-        .map(attachment -> Long.valueOf(attachment.getId()))
-        .collect(Collectors.toList());
-
-    var newAttachments = tmsAttachmentService.getTmsAttachmentsByIds(newAttachmentIds);
-
-    if (CollectionUtils.isNotEmpty(newAttachments)) {
-      if (existingTextManualScenario.getAttachments()
-          == null) { //Remove TTL from attachment -> make that permanent
-        existingTextManualScenario.setAttachments(new HashSet<>());
-      }
-      existingTextManualScenario.getAttachments().addAll(newAttachments);
-
-      newAttachments.forEach(attachment -> {
-        if (attachment.getExpiresAt() != null) {
-          attachment.setExpiresAt(null);
-        }
-        if (attachment.getTextManualScenarios() == null) {
-          attachment.setManualScenarioPreconditions(new HashSet<>());
-        }
-        attachment.getTextManualScenarios().add(existingTextManualScenario);
-      });
-
-      tmsAttachmentService.saveAll(newAttachments);
-    }
-  }
-
-  @Override
-  @Transactional
   public void deleteAllByTestCaseId(Long testCaseId) {
     log.debug("Deleting all text manual scenario attachment relationships by test case ID: {}",
         testCaseId);

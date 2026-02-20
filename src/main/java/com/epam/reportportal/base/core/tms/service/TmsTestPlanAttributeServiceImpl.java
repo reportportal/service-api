@@ -56,28 +56,6 @@ public class TmsTestPlanAttributeServiceImpl implements TmsTestPlanAttributeServ
 
   @Override
   @Transactional
-  public void patchTestPlanAttributes(long projectId, TmsTestPlan existingTestPlan,
-      List<TmsTestPlanAttributeRQ> attributes) {
-    if (isEmpty(attributes)) {
-      return;
-    }
-    
-    var tmsTestPlanAttributes = attributes.stream()
-        .map(attributeRQ -> {
-          var tmsAttribute = attributeRQ.getId() != null
-              ? tmsAttributeService.getEntityById(projectId, attributeRQ.getId())
-              : tmsAttributeService.findOrCreateAttribute(projectId, attributeRQ.getKey(), attributeRQ.getValue());
-          
-          return tmsTestPlanAttributeMapper.createTestPlanAttribute(existingTestPlan, tmsAttribute);
-        })
-        .collect(Collectors.toSet());
-    
-    existingTestPlan.getAttributes().addAll(tmsTestPlanAttributes);
-    tmsTestPlanAttributeRepository.saveAll(tmsTestPlanAttributes);
-  }
-
-  @Override
-  @Transactional
   public void deleteAllByTestPlanId(Long testPlanId) {
     tmsTestPlanAttributeRepository.deleteAllByTestPlanId(testPlanId);
   }

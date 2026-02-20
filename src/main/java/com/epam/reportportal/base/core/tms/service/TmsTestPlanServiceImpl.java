@@ -109,7 +109,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           tmsTestPlanMapper.patch(existingTestPlan,
               tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ));
 
-          tmsTestPlanAttributeService.patchTestPlanAttributes(projectId, existingTestPlan,
+          tmsTestPlanAttributeService.updateTestPlanAttributes(projectId, existingTestPlan,
               testPlanRQ.getAttributes());
 
           return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(

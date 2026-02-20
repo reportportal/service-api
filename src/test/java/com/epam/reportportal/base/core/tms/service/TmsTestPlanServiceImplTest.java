@@ -361,7 +361,7 @@ class TmsTestPlanServiceImplTest {
     assertEquals(testPlanRS, result);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(tmsTestPlanMapper).patch(existingTestPlan, patchedTestPlan);
-    verify(tmsTestPlanAttributeService).patchTestPlanAttributes(projectId, existingTestPlan,
+    verify(tmsTestPlanAttributeService).updateTestPlanAttributes(projectId, existingTestPlan,
         testPlanRQ.getAttributes());
     verify(tmsTestPlanExecutionService).enrichWithStatistics(existingTestPlan);
     verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);

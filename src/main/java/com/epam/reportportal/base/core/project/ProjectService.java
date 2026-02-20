@@ -19,15 +19,18 @@ package com.epam.reportportal.base.core.project;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
 
+import com.epam.reportportal.base.core.events.domain.ProjectRenamedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.epam.reportportal.base.util.SlugUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -40,19 +43,12 @@ import org.springframework.validation.annotation.Validated;
  */
 @Service
 @Validated
+@RequiredArgsConstructor
 public class ProjectService {
 
   private final ProjectRepository projectRepository;
 
-  /**
-   * Constructs a new ProjectService with the specified ProjectRepository.
-   *
-   * @param projectRepository the repository used for project data access, must not be {@code null}
-   */
-  @Autowired
-  public ProjectService(ProjectRepository projectRepository) {
-    this.projectRepository = projectRepository;
-  }
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   /**
    * Retrieves a {@link Project} by its unique identifier.
@@ -76,7 +72,10 @@ public class ProjectService {
   public void updateProjectName(Long orgId, Long projectId,
       @Valid @NotNull @Pattern(regexp = "^[A-Za-z0-9.'_\\- ]+$") @Size(min = 3, max = 60) String name) {
     checkForExistingName(orgId, projectId, name);
+    publishProjectRenamedEvent(orgId, projectId, name);
+
     projectRepository.updateProjectName(name, projectId);
+
   }
 
   /**
@@ -159,5 +158,16 @@ public class ProjectService {
     var project = findProjectById(projectId);
     project.setSlug(SlugUtils.slug(project.getName()));
   }
+
+
+  private void publishProjectRenamedEvent(Long orgId, Long projectId, String newName) {
+    String oldName = projectRepository.getProjectName(projectId);
+    var user = SecurityContextUtils.getPrincipal();
+
+    ProjectRenamedEvent event = new ProjectRenamedEvent(user.getUserId(), user.getUsername(), projectId,
+        oldName, newName, orgId);
+    applicationEventPublisher.publishEvent(event);
+  }
+
 
 }

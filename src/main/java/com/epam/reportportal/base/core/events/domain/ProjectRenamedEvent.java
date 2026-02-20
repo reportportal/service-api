@@ -33,11 +33,11 @@ public class ProjectRenamedEvent extends AbstractEvent<ProjectAttributesActivity
   private String oldProjectName;
 
   /**
-   * Constructs a ProjectCreatedEvent.
+   * Constructs a ProjectRenamedEvent.
    *
-   * @param userId    The ID of the user who created the project
-   * @param userLogin The login of the user who created the project
-   * @param projectId The ID of the created project
+   * @param userId    The ID of the user who updated the project
+   * @param userLogin The login of the user who updated the project
+   * @param projectId The ID of the project
    * @param orgId     The organization ID
    */
   public ProjectRenamedEvent(Long userId, String userLogin, Long projectId, String oldProjectName,

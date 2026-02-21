@@ -17,6 +17,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionError;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
@@ -423,6 +426,48 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     log.debug("Test case execution: {} deleted from launch: {} in project: {}",
         executionId, launchId, projectId);
+  }
+
+  @Override
+  @Transactional
+  public BatchDeleteTestCaseExecutionsResultRS batchDeleteTestCaseExecutions(Long projectId,
+      Long launchId, BatchDeleteTestCaseExecutionsRQ request) {
+
+    // Validate launch belongs to project
+    validateLaunchBelongsToProject(launchId, projectId);
+
+    List<Long> successExecutionIds = new ArrayList<>();
+    List<BatchDeleteTestCaseExecutionError> errors = new ArrayList<>();
+    var executionIds = request.getExecutionIds();
+
+    for (var executionId : executionIds) {
+      try {
+        // Verify execution exists and belongs to launch
+        if (!tmsTestCaseExecutionService.existsByTestCaseExecutionIdAndLaunchId(executionId,
+            launchId)) {
+          errors.add(new BatchDeleteTestCaseExecutionError(
+              executionId,
+              "Test case execution not found in launch " + launchId
+          ));
+          continue;
+        }
+
+        tmsTestCaseExecutionService.deleteTestCaseExecutionFromLaunch(projectId, launchId,
+            executionId);
+        successExecutionIds.add(executionId);
+
+      } catch (Exception e) {
+        log.error("Failed to delete execution {} from launch {}", executionId, launchId, e);
+        errors.add(new BatchDeleteTestCaseExecutionError(
+            executionId,
+            e.getMessage()
+        ));
+      }
+    }
+
+    return tmsManualLaunchMapper.convertToBatchDeleteExecutionsResponse(
+        executionIds, successExecutionIds, errors
+    );
   }
 
   @Override

@@ -7,8 +7,12 @@ import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(config = CommonMapperConfig.class, uses = {TmsStepMapper.class,
-    TmsManualScenarioAttributeMapper.class, TmsManualScenarioRequirementMapper.class})
+@Mapper(config = CommonMapperConfig.class, uses = {
+    TmsStepMapper.class,
+    TmsManualScenarioAttributeMapper.class,
+    TmsManualScenarioRequirementMapper.class,
+    TmsManualScenarioAttachmentMapper.class
+})
 public interface TmsStepsManualScenarioMapper {
 
   default TmsStepsManualScenario createTmsStepsManualScenario() {

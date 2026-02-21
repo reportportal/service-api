@@ -51,6 +51,9 @@ public class TmsAttachment implements Serializable {
 
   @Column(name = "path_to_file")
   private String pathToFile;
+  
+  @Column(name = "thumbnail_path")
+  private String thumbnailPath;
 
   @Column(name = "expires_at")
   @Convert(converter = JpaInstantConverter.class)

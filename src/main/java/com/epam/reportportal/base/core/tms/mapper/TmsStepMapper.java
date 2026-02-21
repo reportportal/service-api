@@ -17,7 +17,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(config = CommonMapperConfig.class)
+@Mapper(config = CommonMapperConfig.class, uses = {TmsManualScenarioAttachmentMapper.class})
 public interface TmsStepMapper {
 
   @Mapping(target = "attachments", ignore = true)

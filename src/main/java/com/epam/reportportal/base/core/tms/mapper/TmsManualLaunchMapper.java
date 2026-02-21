@@ -5,6 +5,8 @@ import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionError;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
@@ -122,6 +124,18 @@ public interface TmsManualLaunchMapper {
         .successCount(successLaunchIds.size())
         .failureCount(errors.size())
         .successLaunchIds(successLaunchIds)
+        .errors(errors)
+        .build();
+  }
+
+  default BatchDeleteTestCaseExecutionsResultRS convertToBatchDeleteExecutionsResponse(
+      List<Long> requestedExecutionIds, List<Long> successExecutionIds,
+      List<BatchDeleteTestCaseExecutionError> errors) {
+    return BatchDeleteTestCaseExecutionsResultRS.builder()
+        .totalCount(requestedExecutionIds.size())
+        .successCount(successExecutionIds.size())
+        .failureCount(errors.size())
+        .successExecutionIds(successExecutionIds)
         .errors(errors)
         .build();
   }

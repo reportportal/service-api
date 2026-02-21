@@ -12,6 +12,8 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.service.TmsManualLaunchService;
@@ -262,6 +264,24 @@ public class TmsManualLaunchController {
             .getProjectId(),
         launchId,
         executionId
+    );
+  }
+
+  @DeleteMapping("/{launchId}/test-case/execution")
+  @Operation(summary = "Batch delete test case executions from launch")
+  public BatchDeleteTestCaseExecutionsResultRS batchDeleteTestCaseExecutions(
+      @Parameter(description = "Project key", required = true)
+      @PathVariable String projectKey,
+      @Parameter(description = "Launch ID", required = true)
+      @PathVariable Long launchId,
+      @Valid @RequestBody BatchDeleteTestCaseExecutionsRQ request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return tmsManualLaunchService.batchDeleteTestCaseExecutions(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        request
     );
   }
 

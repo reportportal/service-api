@@ -26,6 +26,8 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -1429,6 +1431,124 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.comment").value("Final comment v3"));
   }
 
+  // ==================== BATCH DELETE TEST CASE EXECUTIONS ====================
+
+  @Test
+  void batchDeleteTestCaseExecutions_AllValid_ShouldDeleteAll() throws Exception {
+    // Given
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
+        .executionIds(List.of(10L, 11L))
+        .build();
+
+    // When
+    var result = mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(2))
+        .andExpect(jsonPath("$.failureCount").value(0))
+        .andReturn();
+
+    var response = mapper.readValue(
+        result.getResponse().getContentAsString(),
+        BatchDeleteTestCaseExecutionsResultRS.class
+    );
+
+    // Then
+    assertThat(response.getSuccessExecutionIds()).containsExactlyInAnyOrder(10L, 11L);
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_SomeNonExistent_ShouldReturnPartialSuccess() throws Exception {
+    // Given
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
+        .executionIds(List.of(10L, 999L))
+        .build();
+
+    // When
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(1))
+        .andExpect(jsonPath("$.failureCount").value(1))
+        .andExpect(jsonPath("$.errors[0].executionId").value(999));
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_AllNonExistent_ShouldReturnAllErrors() throws Exception {
+    // Given
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
+        .executionIds(List.of(998L, 999L))
+        .build();
+
+    // When
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(0))
+        .andExpect(jsonPath("$.failureCount").value(2));
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_EmptyList_ShouldReturnBadRequest() throws Exception {
+    // Given
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
+        .executionIds(List.of())
+        .build();
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_NonExistentLaunch_ShouldReturnNotFound() throws Exception {
+    // Given
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
+        .executionIds(List.of(10L))
+        .build();
+
+    // When/Then
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999/test-case/execution")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_ExecutionFromDifferentLaunch_ShouldReturnError() throws Exception {
+    // Given - execution 10 is in launch 200. Try to delete it from launch 201.
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
+        .executionIds(List.of(10L))
+        .build();
+
+    // When
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/test-case/execution")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(0))
+        .andExpect(jsonPath("$.failureCount").value(1))
+        .andExpect(jsonPath("$.errors[0].executionId").value(10))
+        .andExpect(jsonPath("$.errors[0].errorMessage").value(containsString("not found in launch 201")));
+  }
+
   // ==================== HELPER METHODS ====================
 
   private UploadAttachmentRS uploadTestAttachment(String fileName, String contentType)
@@ -1453,4 +1573,3 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     );
   }
 }
-

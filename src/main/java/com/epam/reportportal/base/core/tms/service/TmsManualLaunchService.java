@@ -12,6 +12,8 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -189,4 +191,14 @@ public interface TmsManualLaunchService {
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 
   Map<Long, Launch> getEntitiesByIds(Long projectId, List<Long> launchIds);
+
+  /**
+   * Deletes multiple test case executions from launch.
+   *
+   * @param projectId project ID
+   * @param launchId  launch ID
+   * @param request   batch delete request
+   * @return operation result
+   */
+  BatchDeleteTestCaseExecutionsResultRS batchDeleteTestCaseExecutions(Long projectId, Long launchId, BatchDeleteTestCaseExecutionsRQ request);
 }

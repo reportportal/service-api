@@ -12,7 +12,11 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(config = CommonMapperConfig.class, uses = {TmsManualScenarioAttributeMapper.class, TmsManualScenarioRequirementMapper.class})
+@Mapper(config = CommonMapperConfig.class, uses = {
+    TmsManualScenarioAttributeMapper.class,
+    TmsManualScenarioRequirementMapper.class,
+    TmsManualScenarioAttachmentMapper.class
+})
 public interface TmsTextManualScenarioMapper {
 
   @Mapping(target = "manualScenarioId", ignore = true)

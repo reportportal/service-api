@@ -21,6 +21,7 @@ public interface TmsManualScenarioAttachmentMapper {
    * @return the attachment response DTO
    */
   @Mapping(target = "id", source = "id", numberFormat = "0")
+  @Mapping(target = "hasThumbnail", expression = "java(attachment.getThumbnailPath() != null)")
   TmsManualScenarioAttachmentRS toResponse(TmsAttachment attachment);
 
   /**

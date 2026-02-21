@@ -16,4 +16,5 @@ public class UploadAttachmentRS {
   private Long fileSize;
   private String fileName;
   private String fileType;
+  private Boolean hasThumbnail;
 }

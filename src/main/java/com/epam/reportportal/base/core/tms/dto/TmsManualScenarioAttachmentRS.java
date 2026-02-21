@@ -30,4 +30,6 @@ public class TmsManualScenarioAttachmentRS {
   private String fileType;
 
   private long fileSize;
+
+  private boolean hasThumbnail;
 }

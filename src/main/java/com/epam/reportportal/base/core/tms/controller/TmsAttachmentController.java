@@ -79,6 +79,37 @@ public class TmsAttachmentController {
         .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getFileSize()))
         .body(resource);
   }
+  
+  @GetMapping("/{attachmentId}/thumbnail")
+  @Operation(summary = "Download TMS attachment thumbnail",
+      description = "Downloads TMS attachment thumbnail file by ID")
+  @PreAuthorize("hasPermission(#projectKey, 'allowedToViewProject')")
+  public ResponseEntity<InputStreamResource> downloadThumbnail(
+      @Parameter(description = "Project key") @PathVariable String projectKey,
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+
+    log.debug("Downloading TMS attachment thumbnail: {} for project: {}", attachmentId, projectKey);
+
+    var attachment = tmsAttachmentService.getTmsAttachment(attachmentId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
+            "Attachment not found: " + attachmentId));
+
+    if (attachment.getThumbnailPath() == null) {
+      throw new ReportPortalException(ErrorType.NOT_FOUND, 
+          "Thumbnail not found for attachment: " + attachmentId);
+    }
+
+    var resource = new InputStreamResource(
+        tmsAttachmentDataStoreService
+            .load(attachment.getThumbnailPath())
+            .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
+                "Attachment thumbnail file not found: " + attachmentId))
+    );
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_TYPE, attachment.getFileType())
+        .body(resource);
+  }
 
   @DeleteMapping("/{attachmentId}")
   @Operation(summary = "Delete TMS attachment",

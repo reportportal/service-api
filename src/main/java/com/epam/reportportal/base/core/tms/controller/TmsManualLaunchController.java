@@ -22,6 +22,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
@@ -198,13 +199,15 @@ public class TmsManualLaunchController {
       @PathVariable String projectKey,
       @Parameter(description = "Launch ID", required = true)
       @PathVariable Long launchId,
-      @PagingOffset(sortable = TmsTestFolder.class) OffsetRequest pageable,
+      @FilterFor(TmsTestFolderTestItem.class) Filter filter,
+      @PagingOffset(sortable = TmsTestFolderTestItem.class) OffsetRequest pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsManualLaunchService.getLaunchFolders(
         projectExtractor
             .extractMembershipDetails(user, projectKey)
             .getProjectId(),
         launchId,
+        filter,
         pageable
     );
   }

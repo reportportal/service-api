@@ -148,11 +148,11 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_UPDATED_AT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_LAUNCH_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TAG;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ID;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_VERSION_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_ITEM_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_DESCRIPTION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_ID;
@@ -164,6 +164,14 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CHILD_ATTR;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CHILD_EXECUTION;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CHILD_ITEM;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_LAUNCH_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_ATTRIBUTE_KEY;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_CREATED_AT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_DESCRIPTION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_ID;
@@ -213,6 +221,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER_TEST_ITEM;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.USERS;
@@ -242,6 +251,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttri
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
@@ -2064,6 +2074,92 @@ public enum FilterTarget {
     }
   },
 
+  TMS_TEST_FOLDER_TEST_ITEM_TARGET(TmsTestFolderTestItem.class,
+      Arrays.asList(
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_ID,
+              TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID, Long.class
+          ).get(),
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_LAUNCH_ID,
+              TMS_TEST_FOLDER_TEST_ITEM.LAUNCH_ID, Long.class
+          ).get(),
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_NAME,
+              CHILD_EXECUTION.NAME, String.class,
+              Lists.newArrayList(
+                  JoinEntity.of(CHILD_ITEM, JoinType.LEFT_OUTER_JOIN,
+                      CHILD_ITEM.PARENT_ID.eq(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)),
+                  JoinEntity.of(CHILD_EXECUTION, JoinType.LEFT_OUTER_JOIN,
+                      CHILD_EXECUTION.TEST_ITEM_ID.eq(CHILD_ITEM.ITEM_ID))
+              )
+          ).get(),
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_PRIORITY,
+              CHILD_EXECUTION.PRIORITY, String.class,
+              Lists.newArrayList(
+                  JoinEntity.of(CHILD_ITEM, JoinType.LEFT_OUTER_JOIN,
+                      CHILD_ITEM.PARENT_ID.eq(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)),
+                  JoinEntity.of(CHILD_EXECUTION, JoinType.LEFT_OUTER_JOIN,
+                      CHILD_EXECUTION.TEST_ITEM_ID.eq(CHILD_ITEM.ITEM_ID))
+              )
+          ).get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_ATTRIBUTE_KEY,
+                  CHILD_ATTR.VALUE, // Filter by VALUE because key is mapped to value
+                  List.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(CHILD_ITEM, JoinType.LEFT_OUTER_JOIN,
+                          CHILD_ITEM.PARENT_ID.eq(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)),
+                      JoinEntity.of(CHILD_ATTR, JoinType.LEFT_OUTER_JOIN,
+                          CHILD_ATTR.ITEM_ID.eq(CHILD_ITEM.ITEM_ID)
+                              .and(CHILD_ATTR.KEY.eq("tag")) // Hardcoded key check
+                              .and(DSL.coalesce(CHILD_ATTR.SYSTEM, false).eq(false)))
+                  )
+              )
+              .withAggregateCriteria(
+                  DSL.arrayAggDistinct(CHILD_ATTR.VALUE) // Aggregate VALUE
+                      .filterWhere(CHILD_ATTR.KEY.eq("tag") // Filter agg by key
+                          .and(DSL.coalesce(CHILD_ATTR.SYSTEM, false).eq(false)))
+                      .toString()
+              )
+              .get()
+      )
+  ) {
+    @Override
+    protected Collection<? extends SelectField> selectFields() {
+      return Lists.newArrayList(
+          TMS_TEST_FOLDER_TEST_ITEM.ID,
+          TMS_TEST_FOLDER_TEST_ITEM.LAUNCH_ID,
+          TMS_TEST_FOLDER_TEST_ITEM.TEST_FOLDER_ID,
+          TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID,
+          TMS_TEST_FOLDER_TEST_ITEM.NAME,
+          TMS_TEST_FOLDER_TEST_ITEM.DESCRIPTION
+      );
+    }
+
+    @Override
+    protected void addFrom(SelectQuery<? extends Record> query) {
+      query.addFrom(TMS_TEST_FOLDER_TEST_ITEM);
+    }
+
+    @Override
+    protected void joinTables(QuerySupplier query) {
+      query.addJoin(TEST_ITEM, JoinType.JOIN,
+          TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID.eq(TEST_ITEM.ITEM_ID));
+    }
+
+    @Override
+    protected void joinTablesForFilter(QuerySupplier query) {
+      // Empty - joins are added dynamically from CriteriaHolder join chains
+    }
+
+    @Override
+    protected Field<Long> idField() {
+      return TMS_TEST_FOLDER_TEST_ITEM.ID;
+    }
+  },
+
   TMS_TEST_CASE_EXECUTION_TARGET(TmsTestCaseExecution.class,
       Arrays.asList(
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_ID,
@@ -2074,21 +2170,22 @@ public enum FilterTarget {
               TMS_TEST_CASE_EXECUTION.TEST_CASE_ID, Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_LAUNCH_ID,
               TMS_TEST_CASE_EXECUTION.LAUNCH_ID, Long.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_VERSION_ID,
-              TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID, Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_PRIORITY,
               TMS_TEST_CASE_EXECUTION.PRIORITY, String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_NAME,
+              TMS_TEST_CASE_EXECUTION.NAME, String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS,
               TEST_ITEM_RESULTS.STATUS,
               JStatusEnum.class
           ).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_TAG,
-              ITEM_ATTRIBUTE.VALUE,
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ATTRIBUTE_KEY,
+              ITEM_ATTRIBUTE.VALUE, // Filter by VALUE
               List.class,
               Lists.newArrayList(JoinEntity.of(ITEM_ATTRIBUTE,
                   JoinType.LEFT_OUTER_JOIN,
                   TEST_ITEM.ITEM_ID.eq(ITEM_ATTRIBUTE.ITEM_ID)
-                      .and(ITEM_ATTRIBUTE.KEY.eq(CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS))
+                      .and(ITEM_ATTRIBUTE.KEY.eq("tag")) // Hardcoded key check
                       .and(DSL.coalesce(ITEM_ATTRIBUTE.SYSTEM, false).eq(false))
               ))
           ).get()
@@ -2217,10 +2314,10 @@ public enum FilterTarget {
   }
 
   public Optional<CriteriaHolder> getCriteriaByFilter(String filterCriteria) {
-		/*
-			creates criteria holder for statistics search criteria cause there
-			can be custom statistics so we can't know it till this moment
-		*/
+   /*
+    creates criteria holder for statistics search criteria cause there
+    can be custom statistics so we can't know it till this moment
+   */
     if (filterCriteria != null && filterCriteria.startsWith(STATISTICS_KEY)) {
       return Optional.of(new CriteriaHolderBuilder().newBuilder(filterCriteria,
           DSL.coalesce(

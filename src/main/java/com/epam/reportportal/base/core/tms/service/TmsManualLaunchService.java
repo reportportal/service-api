@@ -177,10 +177,11 @@ public interface TmsManualLaunchService {
    *
    * @param projectId project ID
    * @param launchId  launch ID
+   * @param filter    filter criteria
    * @param pageable  pagination parameters
    * @return page of test folders
    */
-  Page<TmsTestFolderRS> getLaunchFolders(Long projectId, Long launchId, Pageable pageable);
+  Page<TmsTestFolderRS> getLaunchFolders(Long projectId, Long launchId, Filter filter, OffsetRequest pageable);
 
   BatchManualLaunchOperationResultRS batchDeleteManualLaunches(MembershipDetails membershipDetails,  BatchDeleteManualLaunchesRQ batchDeleteManualLaunchesRQ, ReportPortalUser user);
 

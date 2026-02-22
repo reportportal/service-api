@@ -506,17 +506,9 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     return tmsTestCaseExecutionService.patch(executionId, launchId, request);
   }
 
-  /**
-   * Gets unique folders from test cases in launch.
-   *
-   * @param projectId project ID
-   * @param launchId  launch ID
-   * @param pageable  pagination parameters
-   * @return page of test folders
-   */
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestFolderRS> getLaunchFolders(Long projectId, Long launchId, Pageable pageable) {
+  public Page<TmsTestFolderRS> getLaunchFolders(Long projectId, Long launchId, Filter filter, OffsetRequest pageable) {
     log.debug("Getting folders for launch: {} in project: {}", launchId, projectId);
 
     // Validate launch belongs to project
@@ -524,7 +516,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Get unique folders from test case executions
     return testFolderItemService.getSuiteFoldersByLaunch(projectId,
-        launchId, pageable
+        launchId, filter, pageable
     );
   }
 

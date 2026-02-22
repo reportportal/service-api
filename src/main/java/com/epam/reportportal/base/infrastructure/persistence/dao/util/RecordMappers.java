@@ -48,6 +48,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION_COMMENT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER_TEST_ITEM;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.WIDGET;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JActivity.ACTIVITY;
@@ -106,6 +107,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUserId;
@@ -871,5 +873,25 @@ public class RecordMappers {
         });
 
     return execution;
+  };
+
+  /**
+   * Maps record into {@link TmsTestFolderTestItem} object
+   */
+  public static final RecordMapper<? super Record, TmsTestFolderTestItem> TMS_TEST_FOLDER_TEST_ITEM_MAPPER = r -> {
+    TmsTestFolderTestItem item = new TmsTestFolderTestItem();
+    item.setId(r.get(TMS_TEST_FOLDER_TEST_ITEM.ID));
+    item.setName(r.get(TMS_TEST_FOLDER_TEST_ITEM.NAME));
+    item.setDescription(r.get(TMS_TEST_FOLDER_TEST_ITEM.DESCRIPTION));
+    item.setTestFolderId(r.get(TMS_TEST_FOLDER_TEST_ITEM.TEST_FOLDER_ID));
+    item.setLaunchId(r.get(TMS_TEST_FOLDER_TEST_ITEM.LAUNCH_ID));
+
+    ofNullable(r.get(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)).ifPresent(itemId -> {
+        TestItem testItem = new TestItem();
+        testItem.setItemId(itemId);
+        item.setTestItem(testItem);
+    });
+
+    return item;
   };
 }

@@ -33,6 +33,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Rec
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_CASE_EXECUTION_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_CASE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_MAPPER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_TEST_ITEM_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_PLAN_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ACTIVITY;
@@ -49,6 +50,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER_TEST_ITEM;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.PROJECT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjectUser.PROJECT_USER;
@@ -80,6 +82,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttri
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
@@ -577,5 +580,19 @@ public class ResultFetchers {
       }
     });
     return new ArrayList<>(executions.values());
+  };
+
+  /**
+   * Fetches records from db results into list of {@link TmsTestFolderTestItem} objects.
+   */
+  public static final Function<Result<? extends Record>, List<TmsTestFolderTestItem>> TMS_TEST_FOLDER_TEST_ITEM_FETCHER = rows -> {
+    Map<Long, TmsTestFolderTestItem> items = Maps.newLinkedHashMap();
+    rows.forEach(row -> {
+      Long id = row.get(TMS_TEST_FOLDER_TEST_ITEM.ID);
+      if (!items.containsKey(id)) {
+        items.put(id, TMS_TEST_FOLDER_TEST_ITEM_MAPPER.map(row));
+      }
+    });
+    return new ArrayList<>(items.values());
   };
 }

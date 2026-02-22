@@ -138,6 +138,7 @@ public abstract class TmsTestCaseExecutionMapper {
     // Create TmsTestCaseExecution
     var execution = new TmsTestCaseExecution();
     execution.setTestCaseId(testCase.getId());
+    execution.setName(testCase.getName());
     execution.setLaunchId(launch.getId());
     execution.setTestItem(testItem);
     execution.setPriority(testCase.getPriority());

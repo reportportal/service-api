@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -35,6 +36,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
@@ -52,6 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration tests for TMS Manual Launch functionality.
@@ -754,6 +757,63 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.size").value(5));
+  }
+
+  @Test
+  @Transactional
+  void getLaunchFolders_WithFilters_ShouldReturnFilteredFolders() throws Exception {
+    // Given
+    // 1. Manually populate `name` and `priority` for Launch 201 executions because
+    //    the SQL init script leaves them null for existing items.
+    //    Launch 201 has executions: id=12 (test_item=2002, parent=10005 Smoke Tests),
+    //    id=13 (test_item=2003, parent=10006 Regression Tests),
+    //    id=14 (test_item=2004, parent=10006 Regression Tests).
+    var executions = testCaseExecutionRepository.findByLaunchId(201L);
+    assertThat(executions).isNotEmpty();
+
+    // Update execution for filtering
+    var execToUpdate = executions.getFirst();
+    execToUpdate.setName("Search Functionality Test");
+    execToUpdate.setPriority("P1");
+    testCaseExecutionRepository.save(execToUpdate);
+
+    // 2. Add an attribute to the child TEST item (not the SUITE/folder) to test attribute filtering.
+    //    The filter `testCaseAttributeKey` joins child_item (TEST) -> item_attribute,
+    //    so the attribute must belong to the TEST item linked to the execution.
+    var testItem = execToUpdate.getTestItem();
+    var attribute = new ItemAttribute("tag", "suite_type", false);
+    attribute.setTestItem(testItem);
+    itemAttributeRepository.save(attribute);
+
+    entityManager.flush();
+    entityManager.clear();
+
+    // When & Then - Case 1: Filter by test case name
+    mockMvc.perform(
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/folder")
+                .param("filter.cnt.testCaseName", "Search")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content", hasSize(1)));
+
+    // When & Then - Case 2: Filter by test case priority
+    mockMvc.perform(
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/folder")
+                .param("filter.eq.testCasePriority", "P1")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content", hasSize(1)));
+
+    // When & Then - Case 3: Filter by test item attribute (child TEST item attribute)
+    mockMvc.perform(
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/folder")
+                .param("filter.has.testCaseAttributeKey", "suite_type")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content", hasSize(1)));
   }
 
   // ==================== GET TEST CASE EXECUTIONS ====================

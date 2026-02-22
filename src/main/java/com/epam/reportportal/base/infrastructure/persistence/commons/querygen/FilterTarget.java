@@ -156,6 +156,9 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_PARENT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_PROJECT_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTES;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_CREATED_AT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_DESCRIPTION;
@@ -1910,6 +1913,38 @@ public enum FilterTarget {
                       JoinEntity.of(TMS_TEST_PLAN_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
                           TMS_TEST_CASE.ID.eq(TMS_TEST_PLAN_TEST_CASE.TEST_CASE_ID))
                   ))
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME,
+                  TMS_TEST_CASE.NAME,
+                  String.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID))
+                  ))
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY,
+                  TMS_TEST_CASE.PRIORITY,
+                  String.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID))
+                  ))
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTES,
+                  TMS_TEST_CASE_ATTRIBUTE.ATTRIBUTE_ID,
+                  Long.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID)),
+                      JoinEntity.of(TMS_TEST_CASE_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_CASE_ATTRIBUTE.TEST_CASE_ID.eq(TMS_TEST_CASE.ID))
+                  ))
+              .withAggregateCriteria(
+                  DSL.arrayAggDistinct(TMS_TEST_CASE_ATTRIBUTE.ATTRIBUTE_ID).toString()
+              )
               .get()
       )
   ) {

@@ -29,7 +29,6 @@ public class CreateTmsManualLaunchRQ {
 
   private String description;
 
-  @NotNull
   private Long testPlanId;
 
   private List<Long> testCaseIds;

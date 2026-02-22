@@ -218,6 +218,7 @@ public abstract class TmsTestFolderMapper {
         .parentFolderId(folder.getParentTestFolder() != null
             ? folder.getParentTestFolder().getId()
             : null)
+        .index(folder.getIndex())
         .folderDuplicationStatistic(convertToFolderOperationResult(folderDuplicationStatistics))
         .testCaseDuplicationStatistic(convertToTestCaseOperationResult(testCaseDuplicationStatistics))
         .build();

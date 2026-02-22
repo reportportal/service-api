@@ -372,6 +372,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         sourceFolder,
         inputDto.getName(),
         targetParentFolderId,
+        inputDto.getIndex(),
         folderStatistics,
         testCaseStatistics
     );
@@ -687,6 +688,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       TmsTestFolder sourceFolder,
       String targetName,
       Long targetParentFolderId,
+      Integer targetIndex,
       FolderDuplicationStatistics folderStatistics,
       TestCaseDuplicationStatistics testCaseStatistics) {
 
@@ -707,8 +709,12 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       duplicatedFolder.setName(uniqueName);
       duplicatedFolder.setSubFolders(new ArrayList<>());
 
-      Integer max = tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId);
-      duplicatedFolder.setIndex(max != null ? max + 1 : 0);
+      if (targetIndex != null) {
+        duplicatedFolder.setIndex(targetIndex);
+      } else {
+        var max = tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId);
+        duplicatedFolder.setIndex(max != null ? max + 1 : 0);
+      }
 
       duplicatedFolder = tmsTestFolderRepository.save(duplicatedFolder);
       folderStatistics.addSuccess(duplicatedFolder.getId());
@@ -728,6 +734,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
                 subFolder,
                 subFolder.getName() + "-copy",
                 duplicatedFolder.getId(),
+                subFolder.getIndex(),
                 folderStatistics,
                 testCaseStatistics
             );

@@ -1302,4 +1302,79 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.index").value(1))
         .andExpect(jsonPath("$.parentFolderId").value(3L));
   }
+
+  @Test
+  void getFoldersByTestCaseNameFilterIntegrationTest() throws Exception {
+    // Filter by test case name "TC100" which is in folder 3
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseName", "TC100")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(3));
+  }
+
+  @Test
+  void getFoldersByTestCasePriorityFilterIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.eq.testCasePriority", "HIGH")
+            .param("sort", "id,asc")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(8))
+        .andExpect(jsonPath("$.content[0].id").value(3))
+        .andExpect(jsonPath("$.content[1].id").value(4))
+        .andExpect(jsonPath("$.content[2].id").value(5))
+        .andExpect(jsonPath("$.content[3].id").value(6))
+        .andExpect(jsonPath("$.content[4].id").value(7))
+        .andExpect(jsonPath("$.content[5].id").value(8))
+        .andExpect(jsonPath("$.content[6].id").value(19))
+        .andExpect(jsonPath("$.content[7].id").value(20));
+  }
+
+  @Test
+  void getFoldersByTestCaseNameAndPriorityFilterIntegrationTest() throws Exception {
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseName", "TC1")
+            .param("filter.eq.testCasePriority", "MEDIUM")
+            .param("sort", "id,asc")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(6))
+        .andExpect(jsonPath("$.content[0].id").value(3))
+        .andExpect(jsonPath("$.content[1].id").value(5))
+        .andExpect(jsonPath("$.content[2].id").value(6))
+        .andExpect(jsonPath("$.content[3].id").value(8))
+        .andExpect(jsonPath("$.content[4].id").value(9))
+        .andExpect(jsonPath("$.content[5].id").value(20));
+  }
+
+  @Test
+  void getFoldersByNonExistentTestCaseNameFilterIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseName", "NonExistentTC")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
+  void verifyCountOfTestCasesWithFilter() throws Exception {
+    // Folder 3 has 3 test cases: TC100(HIGH), TC101(MEDIUM), TC102(LOW)
+    // Filter by priority HIGH -> count should be 1 (only TC100)
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.eq.id", "3")
+            .param("filter.eq.testCasePriority", "HIGH")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].id").value(3))
+        .andExpect(jsonPath("$.content[0].countOfTestCases").value(1));
+  }
 }

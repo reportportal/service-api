@@ -20,6 +20,7 @@ public class DuplicateTmsTestFolderRS {
   private String description;
   private Long countOfTestCases;
   private Long parentFolderId;
+  private Integer index;
   private BatchTestCaseOperationResultRS testCaseDuplicationStatistic;
   private BatchFolderOperationResultRS folderDuplicationStatistic;
 }

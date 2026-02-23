@@ -1,8 +1,9 @@
 package com.epam.ta.reportportal.core.item.impl.retry;
 
 import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
-import com.epam.ta.reportportal.core.item.repository.PreviousTryProjection;
+import com.epam.ta.reportportal.core.item.repository.DeleteItemContext;
 import com.epam.ta.reportportal.core.item.repository.RetryRepository;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
@@ -23,8 +24,8 @@ import org.springframework.stereotype.Service;
  * <p>An "active" item is one that is still part of the launch tree:
  * {@code path IS NOT NULL AND retry_of IS NULL}.
  *
- * <p>After determining the winner, existing retries that pointed to any of the losers are
- * re-pointed ("flattened") to the winner so that every retry always references the current main
+ * <p>After determining the latestTry, existing retries that pointed to any of the losers are
+ * re-pointed ("flattened") to the latestTry so that every retry always references the current main
  * item directly — no chains.
  *
  * @author Pavel Bortnik
@@ -37,11 +38,12 @@ public class NewRetryHandler implements RetryHandler {
 
   private final RetryRepository retryRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final TestItemStatisticsService testItemStatisticsService;
 
   /**
-   * Finds the winner among all active items sharing {@code newTry.uniqueId} and
+   * Finds the latestTry among all active items sharing {@code newTry.uniqueId} and
    * {@code newTry.parentId}, demotes losers, and flattens existing retry chains so every retry
-   * points directly to the winner.
+   * points directly to the latestTry.
    *
    * <p>{@code previousTryId} is accepted for interface compatibility but is not used — the handler
    * discovers all candidates by itself.
@@ -60,7 +62,7 @@ public class NewRetryHandler implements RetryHandler {
     // 1. Advisory lock — serialize all retry operations within the launch
     retryRepository.advisoryXactLock(launch.getId());
 
-    // 2. Find the winner (max start_time, then max item_id) among active items
+    // 2. Find the latestTry (max start_time, then max item_id) among active items
     Optional<Long> latestTry = retryRepository.findLatestTryByUniqueIdAndParentId(uniqueId,
         parentId);
 
@@ -70,30 +72,32 @@ public class NewRetryHandler implements RetryHandler {
 
     Long lastestTryId = latestTry.get();
 
-    List<PreviousTryProjection> previousTries = retryRepository.getPreviousTries(uniqueId, parentId,
+    List<DeleteItemContext> previousTries = retryRepository.getPreviousTries(uniqueId, parentId,
         lastestTryId);
 
     if (previousTries.isEmpty()) {
       return;
     }
-    List<Long> previousTriesIds = previousTries.stream().map(PreviousTryProjection::getItemId)
+    List<Long> previousTriesIds = previousTries.stream().map(DeleteItemContext::getItemId)
         .toList();
 
-    // 3. Demote all other active items to retries of the winner
+    // 3. Demote all other active items to retries of the latestTry
     retryRepository.changeActiveTyPreviousTry(previousTriesIds, lastestTryId);
 
-    // 4. Flatten: re-point any existing retries to the winner directly (no chains)
+    // 4. Flatten: re-point any existing retries to the latestTry directly (no chains)
     retryRepository.pointPreviousTriesToLatest(previousTriesIds, lastestTryId);
 
-    // 5. Mark the winner as having retries
+    // 5. Mark the latestTry as having retries
     retryRepository.markAsHavingRetries(lastestTryId);
 
     if (!launch.isHasRetries()) {
       launch.setHasRetries(true);
     }
 
+    previousTries.forEach(testItemStatisticsService::deleteItemStatistics);
+
     eventPublisher.publishEvent(
-        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), newTry.getItemId()));
+        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), lastestTryId));
   }
 
   @Override

@@ -82,8 +82,6 @@ public interface RetryRepository extends JpaRepository<TestItem, Long> {
    * {@code parentId}, except the winner, into retries. Sets {@code retry_of = winnerId}, clears
    * {@code launch_id} and {@code path}.
    *
-   * @param uniqueId unique identifier of the test case
-   * @param parentId parent item id
    * @param winnerId item_id of the winner that should remain active
    */
   @Modifying
@@ -108,7 +106,7 @@ public interface RetryRepository extends JpaRepository<TestItem, Long> {
         AND  retry_of IS NULL
         AND  item_id != :winnerId
       """, nativeQuery = true)
-  List<PreviousTryProjection> getPreviousTries(
+  List<DeleteItemContext> getPreviousTries(
       @Param("uniqueId") String uniqueId,
       @Param("parentId") Long parentId,
       @Param("winnerId") Long winnerId);

@@ -53,7 +53,6 @@ import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
-import com.epam.ta.reportportal.core.item.impl.retry.RetrySearcher;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
@@ -119,8 +118,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private final ChangeStatusHandler changeStatusHandler;
 
-  private final RetrySearcher retrySearcher;
-
   private final RetryHandler retryHandler;
 
   private final ApplicationEventPublisher eventPublisher;
@@ -139,8 +136,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
       IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
-      @Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher, RetryHandler retryHandler,
-      MessageBus messageBus, ExternalTicketHandler externalTicketHandler,
+      RetryHandler retryHandler, MessageBus messageBus, ExternalTicketHandler externalTicketHandler,
       TestItemStatisticsService testItemStatisticsService) {
     this.testItemRepository = testItemRepository;
     this.issueTypeHandler = issueTypeHandler;
@@ -151,7 +147,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     this.launchRepository = launchRepository;
     this.changeStatusHandler = changeStatusHandler;
     this.eventPublisher = eventPublisher;
-    this.retrySearcher = retrySearcher;
     this.retryHandler = retryHandler;
     this.messageBus = messageBus;
     this.externalTicketHandler = externalTicketHandler;
@@ -185,6 +180,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
         finishExecutionRQ.getRetryOf())) {
       processRetryOnFinish(launch, itemForUpdate, finishExecutionRQ);
     }
+
+    testItemStatisticsService.addStatistics(itemForUpdate);
+
     eventPublisher.publishEvent(
         new TestItemFinishedEvent(itemForUpdate, projectDetails.getProjectId()));
 

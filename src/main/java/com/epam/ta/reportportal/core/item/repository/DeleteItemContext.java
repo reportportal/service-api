@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
-public class PreviousTryProjection {
+@AllArgsConstructor
+public class DeleteItemContext {
 
   private Long itemId;
   private Long launchId;

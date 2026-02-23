@@ -28,7 +28,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
@@ -67,9 +66,6 @@ class DeleteTestItemHandlerImplTest {
 
   @Mock
   private LogIndexer logIndexer;
-
-  @Mock
-  private ElementsCounterService elementsCounterService;
 
   @Mock
   private ApplicationEventPublisher eventPublisher;

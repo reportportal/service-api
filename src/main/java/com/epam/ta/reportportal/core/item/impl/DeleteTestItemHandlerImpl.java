@@ -28,12 +28,10 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.reportportal.events.ElementsDeletedEvent;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.ElementsCounterService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.core.item.repository.DeleteItemContext;
@@ -63,7 +61,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -86,10 +83,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
   private final AttachmentRepository attachmentRepository;
 
-  private final ApplicationEventPublisher eventPublisher;
-
-  private final ElementsCounterService elementsCounterService;
-
   private final LogService logService;
 
   private final TestItemStatisticsService testItemStatisticsService;
@@ -110,10 +103,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         testItemRepository.selectAllDescendantsIds(item.getPath()));
     itemsForRemove.forEach(itemContentRemover::remove);
 
-    eventPublisher.publishEvent(new ElementsDeletedEvent(item,
-        projectDetails.getProjectId(),
-        elementsCounterService.countNumberOfItemElements(item)
-    ));
     logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), itemsForRemove);
     itemContentRemover.remove(item.getItemId());
     DeleteItemContext cur = new DeleteItemContext(item.getItemId(),
@@ -175,11 +164,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         .collect(toSet());
 
     idsToDelete.forEach(itemContentRemover::remove);
-    eventPublisher.publishEvent(new ElementsDeletedEvent(
-        items,
-        projectDetails.getProjectId(),
-        elementsCounterService.countNumberOfItemElements(items)
-    ));
     logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), removedItems);
     testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
@@ -203,9 +187,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
   };
 
   /**
-   * Validate {@link ReportPortalUser} credentials, {@link TestItemResults#getStatus()},
-   * {@link Launch#getStatus()} and {@link Launch} affiliation to the
-   * {@link com.epam.ta.reportportal.entity.project.Project}
+   * Validate {@link ReportPortalUser} credentials, {@link TestItemResults#getStatus()}, {@link Launch#getStatus()} and
+   * {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
    *
    * @param testItem       {@link TestItem}
    * @param user           {@link ReportPortalUser}

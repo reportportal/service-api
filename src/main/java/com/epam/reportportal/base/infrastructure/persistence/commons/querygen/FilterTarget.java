@@ -1689,7 +1689,9 @@ public enum FilterTarget {
               Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_FULL_NAME, USERS.FULL_NAME, String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, PROJECT.ID, Long.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_USER_ROLE, ORGANIZATION_USER.ORGANIZATION_ROLE, String.class).get()
+          new CriteriaHolderBuilder()
+              .newBuilder(CRITERIA_ORG_USER_ROLE, ORGANIZATION_USER.ORGANIZATION_ROLE, String.class)
+              .get()
       )
   ) {
     @Override

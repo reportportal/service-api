@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.ORGANIZATI
 import static com.epam.reportportal.base.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USER_ROLE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -41,6 +42,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.ControllerUtils;
 import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
@@ -75,8 +77,11 @@ public class OrganizationUsersController extends BaseController implements Organ
           new FilterCondition(Condition.CONTAINS, false, fullName, CRITERIA_FULL_NAME));
     }
     if (StringUtils.isNotEmpty(role)) {
+      var validRole = OrganizationRole.forName(role).orElseThrow(() ->
+          new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Incorrect organization role provided: " + role));
+
       filter.withCondition(
-          new FilterCondition(Condition.EQUALS, false, role, CRITERIA_ORG_USER_ROLE));
+          new FilterCondition(Condition.EQUALS, false, validRole.name(), CRITERIA_ORG_USER_ROLE));
     }
 
     // sort by name only for now
@@ -112,7 +117,7 @@ public class OrganizationUsersController extends BaseController implements Organ
       Integer limit, String order, String sort
   ) {
     ReportPortalUser principal = getPrincipal();
-    BusinessRule.expect(
+    expect(
         principal.getUserRole().equals(UserRole.ADMINISTRATOR) || principal.getUserId()
             .equals(userId) || (principal.getOrganizationDetails().containsKey(orgId.toString())
             && OrganizationRole.MANAGER.equals(

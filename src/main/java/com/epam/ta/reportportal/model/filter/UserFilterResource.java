@@ -71,23 +71,12 @@ public class UserFilterResource extends OwnedResource {
   @JsonProperty(value = "owner", required = true)
   private String owner;
 
-  @JsonProperty(value = "lockedDashboards")
-  private List<String> lockedDashboards;
-
   public String getOwner() {
     return owner;
   }
 
   public void setOwner(String owner) {
     this.owner = owner;
-  }
-
-  public List<String> getLockedDashboards() {
-    return lockedDashboards;
-  }
-
-  public void setLockedDashboards(List<String> lockedDashboards) {
-    this.lockedDashboards = lockedDashboards;
   }
 
   public String getName() {

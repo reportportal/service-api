@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.util;
 
 import static com.epam.ta.reportportal.util.OwnedEntityUtils.DASHBOARD_LOCKED_MESSAGE;
-import static com.epam.ta.reportportal.util.OwnedEntityUtils.FILTER_LOCKED_MESSAGE;
 import static com.epam.ta.reportportal.util.OwnedEntityUtils.RESTRICTED_MESSAGE;
 import static com.epam.ta.reportportal.util.OwnedEntityUtils.WIDGET_LOCKED_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -30,7 +29,6 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.OwnedEntity;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.widget.Widget;
@@ -111,18 +109,6 @@ class OwnedEntityUtilsTest {
         () -> OwnedEntityUtils.validateOwnedEntityLocked(lockedWidget, memberProjectDetails, memberUser));
 
     assertTrue(exception.getMessage().contains(WIDGET_LOCKED_MESSAGE));
-
-  }
-
-  @Test
-  void validateOwnedEntityLockedShouldThrowForFilter() {
-    UserFilter lockedFilter = mock(UserFilter.class);
-    when(lockedFilter.getLocked()).thenReturn(true);
-
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> OwnedEntityUtils.validateOwnedEntityLocked(lockedFilter, memberProjectDetails, memberUser));
-
-    assertTrue(exception.getMessage().contains(FILTER_LOCKED_MESSAGE));
 
   }
 

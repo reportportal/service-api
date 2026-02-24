@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.core.statistics.repository;
 
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.dao.ReportPortalRepository;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
+import java.util.List;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -188,4 +190,26 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
                            AND retry_of IS NULL)
       """, nativeQuery = true)
   boolean canHaveIssueStats(Long itemId);
+
+
+  @Query(value = """
+      SELECT item_id,
+             launch_id,
+             path::varchar
+      FROM   test_item ti
+      JOIN   test_item_results tir
+      ON     ti.item_id = tir.result_id
+      WHERE  ti.launch_id = :launchId
+      AND    ti.has_children = false
+      AND    ti.has_stats = true
+      AND    tir.status = 'INTERRUPTED'
+      """, nativeQuery = true)
+  List<TestItemPathContext> selectInterruptedItems(Long launchId);
+
+  @Query(value = """
+      SELECT EXISTS(SELECT 1
+                    FROM   statistics
+                    WHERE  item_id = :itemId)
+      """, nativeQuery = true)
+  boolean hasStatistics(Long itemId);
 }

@@ -16,15 +16,16 @@
 
 package com.epam.ta.reportportal.core.statistics;
 
-import com.epam.ta.reportportal.core.item.repository.DeleteItemContext;
-import com.epam.ta.reportportal.core.statistics.repository.SStatisticsFieldRepository;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.statistics.repository.StatisticsRepository;
+import com.epam.ta.reportportal.dao.StatisticsFieldRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
   private static final String DEFECTS_PREFIX = "statistics$defects$";
 
   private final StatisticsRepository statisticsRepository;
-  private final SStatisticsFieldRepository SStatisticsFieldRepository;
+  private final StatisticsFieldRepository statisticsFieldRepository;
 
 
   @Override
@@ -63,6 +64,10 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
     Long[] pathIds = parsePathIds(item.getPath());
 
     acquireAdvisoryLock(launchId);
+
+    if (statisticsRepository.hasStatistics(item.getItemId())) {
+      return;
+    }
 
     if (statisticsRepository.canHaveExecutionStats(item.getItemId())) {
       String execField = executionFieldName(status);
@@ -89,7 +94,34 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
 
   @Override
   @Transactional
-  public void deleteItemStatistics(DeleteItemContext item) {
+  public void addInterruptionStatistics(Long launchId) {
+    if (launchId == null) {
+      return;
+    }
+
+    acquireAdvisoryLock(launchId);
+    List<TestItemPathContext> items = statisticsRepository.selectInterruptedItems(launchId);
+    StatusEnum status = StatusEnum.FAILED;
+
+    for (var item : items) {
+      Long[] pathIds = parsePathIds(item.getPath());
+      if (statisticsRepository.canHaveExecutionStats(item.getItemId())) {
+        String execField = executionFieldName(status);
+        StatisticsField execFieldEntity = ensureStatisticsField(execField);
+        StatisticsField totalFieldEntity = ensureStatisticsField(EXECUTIONS_TOTAL);
+
+        incrementForAncestors(pathIds, execFieldEntity, totalFieldEntity);
+        incrementForLaunch(launchId, execFieldEntity, totalFieldEntity);
+      }
+    }
+
+    statisticsRepository.flush();
+
+  }
+
+  @Override
+  @Transactional
+  public void deleteItemStatistics(TestItemPathContext item) {
     if (item.getLaunchId() == null || item.getPath() == null) {
       return;
     }
@@ -158,19 +190,19 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
    * Ensures the statistics field exists and returns it.
    */
   private StatisticsField ensureStatisticsField(String name) {
-    Optional<StatisticsField> existing = SStatisticsFieldRepository.findByName(name);
+    Optional<StatisticsField> existing = statisticsFieldRepository.findByName(name);
     if (existing.isPresent()) {
       return existing.get();
     }
     StatisticsField field = new StatisticsField(name);
-    return SStatisticsFieldRepository.save(field);
+    return statisticsFieldRepository.save(field);
   }
 
   /**
    * Resolves the statistics field by name. Returns null if not found.
    */
   private StatisticsField resolveStatisticsField(String name) {
-    return SStatisticsFieldRepository.findByName(name).orElse(null);
+    return statisticsFieldRepository.findByName(name).orElse(null);
   }
 
   /**

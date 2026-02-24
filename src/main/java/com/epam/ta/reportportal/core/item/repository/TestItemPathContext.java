@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class DeleteItemContext {
+public class TestItemPathContext {
 
   private Long itemId;
   private Long launchId;

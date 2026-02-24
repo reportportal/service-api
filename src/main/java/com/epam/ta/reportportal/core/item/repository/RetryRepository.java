@@ -106,7 +106,7 @@ public interface RetryRepository extends JpaRepository<TestItem, Long> {
         AND  retry_of IS NULL
         AND  item_id != :winnerId
       """, nativeQuery = true)
-  List<DeleteItemContext> getPreviousTries(
+  List<TestItemPathContext> getPreviousTries(
       @Param("uniqueId") String uniqueId,
       @Param("parentId") Long parentId,
       @Param("winnerId") Long winnerId);

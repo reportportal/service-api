@@ -1,9 +1,10 @@
 package com.epam.ta.reportportal.core.item.impl.retry;
 
 import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
-import com.epam.ta.reportportal.core.item.repository.DeleteItemContext;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.item.repository.RetryRepository;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
@@ -34,16 +35,17 @@ import org.springframework.stereotype.Service;
 @Primary
 @Service
 @RequiredArgsConstructor
-public class NewRetryHandler implements RetryHandler {
+public class RetryHandlerImpl implements RetryHandler {
 
   private final RetryRepository retryRepository;
+  private final TestItemRepository testItemRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final TestItemStatisticsService testItemStatisticsService;
 
   /**
    * Finds the latestTry among all active items sharing {@code newTry.uniqueId} and
-   * {@code newTry.parentId}, demotes losers, and flattens existing retry chains so every retry
-   * points directly to the latestTry.
+   * {@code newTry.parentId}, demotes active to previous, and flattens existing retry chains so
+   * every retry points directly to the latestTry.
    *
    * <p>{@code previousTryId} is accepted for interface compatibility but is not used — the handler
    * discovers all candidates by itself.
@@ -72,13 +74,13 @@ public class NewRetryHandler implements RetryHandler {
 
     Long lastestTryId = latestTry.get();
 
-    List<DeleteItemContext> previousTries = retryRepository.getPreviousTries(uniqueId, parentId,
+    List<TestItemPathContext> previousTries = retryRepository.getPreviousTries(uniqueId, parentId,
         lastestTryId);
 
     if (previousTries.isEmpty()) {
       return;
     }
-    List<Long> previousTriesIds = previousTries.stream().map(DeleteItemContext::getItemId)
+    List<Long> previousTriesIds = previousTries.stream().map(TestItemPathContext::getItemId)
         .toList();
 
     // 3. Demote all other active items to retries of the latestTry
@@ -102,8 +104,8 @@ public class NewRetryHandler implements RetryHandler {
 
   @Override
   public void finishRetries(TestItem item, JStatusEnum status, Instant endTime) {
-//    retryRepository.advisoryXactLock(item.getLaunchId());
-//    testItemRepository.updateStatusAndEndTimeByRetryOfId(
-//        item.getItemId(), JStatusEnum.IN_PROGRESS, JStatusEnum.valueOf(status.name()), endTime);
+    retryRepository.advisoryXactLock(item.getLaunchId());
+    testItemRepository.updateStatusAndEndTimeByRetryOfId(
+        item.getItemId(), JStatusEnum.IN_PROGRESS, JStatusEnum.valueOf(status.name()), endTime);
   }
 }

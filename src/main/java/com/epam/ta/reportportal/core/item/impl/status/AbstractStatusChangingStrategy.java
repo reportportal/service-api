@@ -37,7 +37,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.core.item.repository.DeleteItemContext;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -103,7 +103,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
       boolean updateParents) {
 
-    DeleteItemContext cur = new DeleteItemContext(testItem.getItemId(),
+    TestItemPathContext cur = new TestItemPathContext(testItem.getItemId(),
         testItem.getLaunchId(), testItem.getPath());
     testItemStatisticsService.deleteItemStatistics(cur);
 

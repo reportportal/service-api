@@ -166,10 +166,8 @@ public class RerunHandlerImpl implements RerunHandler {
     return rerunSearcher.findItem(childItemFilter).flatMap(testItemRepository::findById)
         .flatMap(foundItem -> {
           if (!foundItem.isHasChildren()) {
-            final TestItem parent =
-                testItemRepository.findIdByUuid(parentUuid).map(testItemRepository::getOne)
-                    .orElseThrow(
-                        () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentUuid));
+            final TestItem parent = testItemRepository.findByUuid(parentUuid).orElseThrow(
+                () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentUuid));
             parentItemValidators.forEach(v -> v.validate(request, parent));
             return Optional.of(handleRetry(launch, newItem, foundItem, parent));
           }

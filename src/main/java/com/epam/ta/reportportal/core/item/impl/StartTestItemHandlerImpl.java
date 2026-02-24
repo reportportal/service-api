@@ -144,11 +144,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
     return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
   }
 
-  /**
-   * Retry flow on item start: 1. Resolve previousTryId — either from explicit {@code retryOf} UUID
-   * or by searching 2. Save the incoming item as a new child in the tree 3. Link previousTry ↔
-   * lastTry via {@code handle_retry} (SQL decides who becomes main)
-   */
   private void processRetry(StartTestItemRQ rq, Launch launch, TestItem retry,
       TestItem treeParent) {
     TestItem lastTry = saveChildItem(launch, retry, treeParent);

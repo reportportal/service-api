@@ -34,7 +34,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
-import com.epam.ta.reportportal.core.item.repository.DeleteItemContext;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
@@ -105,7 +105,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
     logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), itemsForRemove);
     itemContentRemover.remove(item.getItemId());
-    DeleteItemContext cur = new DeleteItemContext(item.getItemId(),
+    TestItemPathContext cur = new TestItemPathContext(item.getItemId(),
         item.getLaunchId(), item.getPath());
     testItemStatisticsService.deleteItemStatistics(cur);
     testItemRepository.deleteById(item.getItemId());
@@ -137,7 +137,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         .forEach(item -> validate(item, launch, user, projectDetails)));
 
     items.forEach(it -> testItemStatisticsService.deleteItemStatistics(
-        new DeleteItemContext(it.getItemId(), it.getLaunchId(), it.getPath())));
+        new TestItemPathContext(it.getItemId(), it.getLaunchId(), it.getPath())));
 
     Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
 

@@ -16,23 +16,14 @@
 
 package com.epam.ta.reportportal.core.statistics;
 
-import com.epam.ta.reportportal.core.item.repository.DeleteItemContext;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 
 /**
  * Service for managing test item statistics directly via SQL, bypassing Hibernate. All operations
- * use advisory locks on launch_id to prevent deadlocks. Replaces the following DB trigger
- * functions:
- * <ul>
- *   <li>{@code update_executions_statistics} — handled by
- *       {@link #addExecutionStatistics} and {@link #changeExecutionStatistics}</li>
- *   <li>{@code increment_defect_statistics} — handled by {@link #addDefectStatistics}</li>
- *   <li>{@code update_defect_statistics} — handled by {@link #changeDefectStatistics}</li>
- *   <li>{@code delete_defect_statistics} — handled by {@link #removeDefectStatistics}</li>
- *   <li>{@code delete_item_statistics / decrease_statistics} — handled by
- *       {@link #deleteItemStatistics}</li>
- * </ul>
+ * use advisory locks on launch_id to prevent deadlocks.
+ *
  * <p>All methods expect a valid {@link TestItem} with populated
  * {@code itemId}, {@code launchId}, and {@code path}.
  *
@@ -40,7 +31,19 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
  */
 public interface TestItemStatisticsService {
 
+  /**
+   * Add executions and defect statistics for a test item without one.
+   *
+   * @param item leaf test item
+   */
   void addStatistics(TestItem item);
+
+  /**
+   * Add executions statistics for an interrupted test item.
+   *
+   * @param launchId launch id to find and update stats
+   */
+  void addInterruptionStatistics(Long launchId);
 
   /**
    * Change defect statistics when issue type changes. Decrements old defect type fields and
@@ -61,5 +64,5 @@ public interface TestItemStatisticsService {
    *
    * @param item leaf test item
    */
-  void deleteItemStatistics(DeleteItemContext item);
+  void deleteItemStatistics(TestItemPathContext item);
 }

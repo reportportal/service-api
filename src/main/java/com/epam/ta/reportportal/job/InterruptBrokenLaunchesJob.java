@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -33,12 +34,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Andrei Varabyeu
  */
 @Service
+@RequiredArgsConstructor
 public class InterruptBrokenLaunchesJob implements Job {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InterruptBrokenLaunchesJob.class);
@@ -65,17 +67,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 
   private final ProjectRepository projectRepository;
 
-  @Autowired
-  public InterruptBrokenLaunchesJob(ApplicationEventPublisher eventPublisher,
-      LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      LogRepository logRepository,
-      ProjectRepository projectRepository) {
-    this.eventPublisher = eventPublisher;
-    this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
-    this.logRepository = logRepository;
-    this.projectRepository = projectRepository;
-  }
+  private final TestItemStatisticsService statisticsService;
 
   @Override
   @Transactional
@@ -158,6 +150,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 
   private void interruptItems(Long launchId) {
     testItemRepository.interruptInProgressItems(launchId);
+    statisticsService.addInterruptionStatistics(launchId);
     interruptLaunch(launchId);
   }
 }

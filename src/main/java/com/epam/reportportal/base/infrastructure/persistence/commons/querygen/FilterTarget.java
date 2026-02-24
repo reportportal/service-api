@@ -82,6 +82,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_UPDATED_AT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USERS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USER_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USER_ROLE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ALLOCATED_STORAGE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_CREATION_DATE;
@@ -1687,7 +1688,10 @@ public enum FilterTarget {
           new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_ID, ORGANIZATION_USER.ORGANIZATION_ID,
               Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_FULL_NAME, USERS.FULL_NAME, String.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, PROJECT.ID, Long.class).get()
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, PROJECT.ID, Long.class).get(),
+          new CriteriaHolderBuilder()
+              .newBuilder(CRITERIA_ORG_USER_ROLE, ORGANIZATION_USER.ORGANIZATION_ROLE, String.class)
+              .get()
       )
   ) {
     @Override

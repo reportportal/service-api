@@ -36,11 +36,10 @@ public interface GetUserFilterHandler {
    * Get {@link UserFilterResource} by provided id
    *
    * @param id             Provided id
-   * @param projectDetails Project details
-   * @param user           ReportPortal user
+   * @param projectDetails Projcet details
    * @return {@link UserFilterResource}
    */
-  UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+  UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails);
 
   /**
    * Get {@link UserFilterResource} objects

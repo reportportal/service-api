@@ -24,8 +24,6 @@ import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.OwnedEntityResource;
 import com.epam.ta.reportportal.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -60,16 +58,13 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
   }
 
   @Override
-  public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails,
-      ReportPortalUser user) {
+  public UserFilterResource getUserFilter(Long id, ReportPortalUser.ProjectDetails projectDetails) {
     final UserFilter userFilter =
         filterRepository.findByIdAndProjectId(id, projectDetails.getProjectId()).orElseThrow(
             () -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, id,
                 projectDetails.getProjectName()
             ));
-    UserFilterResource resource = UserFilterConverter.TO_FILTER_RESOURCE.apply(userFilter);
-    populateLockedDashboards(resource, userFilter, projectDetails, user);
-    return resource;
+    return UserFilterConverter.TO_FILTER_RESOURCE.apply(userFilter);
   }
 
   @Override
@@ -102,24 +97,5 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
       ReportPortalUser user) {
     return filterRepository.findAllByIdInAndProjectId(
         Lists.newArrayList(ids), projectDetails.getProjectId());
-  }
-
-  private void populateLockedDashboards(UserFilterResource resource, UserFilter userFilter,
-      ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-    if (!Boolean.TRUE.equals(userFilter.getLocked())) {
-      return;
-    }
-
-    if (!hasManagementPermissions(user, projectDetails)) {
-      return;
-    }
-
-    resource.setLockedDashboards(
-        filterRepository.findLockedDashboardsByFilterId(userFilter.getId(), projectDetails.getProjectId()));
-  }
-
-  private boolean hasManagementPermissions(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-    return user.getUserRole() == UserRole.ADMINISTRATOR ||
-        projectDetails.getProjectRole().sameOrHigherThan(ProjectRole.PROJECT_MANAGER);
   }
 }

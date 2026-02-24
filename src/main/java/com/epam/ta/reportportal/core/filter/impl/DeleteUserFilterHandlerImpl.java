@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.filter.impl;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.exception.ErrorType.USER_FILTER_NOT_FOUND;
-import static com.epam.ta.reportportal.util.OwnedEntityUtils.validateOwnedEntityLocked;
 import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -40,28 +39,30 @@ public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
   private final UserFilterRepository userFilterRepository;
   private final MessageBus messageBus;
 
-	@Autowired
-	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
+  @Autowired
+  public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus) {
     this.userFilterRepository = userFilterRepository;
     this.messageBus = messageBus;
-	}
+  }
 
-	@Override
-	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
-						id,
-						projectDetails.getProjectName()
-				));
-    validateOwnedEntityLocked(userFilter, projectDetails, user);
+  @Override
+  public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails,
+      ReportPortalUser user) {
+    UserFilter userFilter = userFilterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+            id,
+            projectDetails.getProjectName()
+        ));
 
-		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
-				id,
-				projectDetails.getProjectId(),
-				user.getUserId()
-		);
-		userFilterRepository.delete(userFilter);
-		messageBus.publishActivity(new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(), user.getUsername()));
-		return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
-	}
+    expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(
+        USER_FILTER_NOT_FOUND,
+        id,
+        projectDetails.getProjectId(),
+        user.getUserId()
+    );
+    userFilterRepository.delete(userFilter);
+    messageBus.publishActivity(
+        new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(), user.getUsername()));
+    return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
+  }
 }

@@ -2,9 +2,11 @@ package com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTES;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN_TEST_CASE;
@@ -99,6 +101,8 @@ public class TmsTestFolderWithTestCaseCountRepository {
     Condition priorityCondition = null;
     List<Long> attributes = null;
     Condition attributesCondition = null;
+    List<String> attributeKeys = null;
+    Condition attributeKeysCondition = null;
 
     for (var condition : filter.getFilterConditions()) {
       if (condition instanceof FilterCondition fc) {
@@ -116,14 +120,27 @@ public class TmsTestFolderWithTestCaseCountRepository {
                 .collect(Collectors.toList());
             attributesCondition = fc.getCondition();
           }
+        } else if (CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTE_KEY.equals(fc.getSearchCriteria())) {
+        // New logic for Attribute Keys
+        if (fc.getValue() != null && !fc.getValue().isEmpty()) {
+          attributeKeys = Arrays.stream(fc.getValue().split(","))
+              .map(String::trim)
+              .toList();
+          attributeKeysCondition = fc.getCondition();
         }
+      }
       }
     }
     if ((name != null && nameCondition != null)
         || (priority != null && priorityCondition != null)
-        || (attributes != null &&  attributesCondition != null)) {
-      return new TestCaseFilterParams(name, nameCondition, priority, priorityCondition, attributes,
-          attributesCondition);
+        || (attributes != null &&  attributesCondition != null)
+        || (attributeKeys != null && attributeKeysCondition != null)) {
+      return new TestCaseFilterParams(
+          name, nameCondition,
+          priority, priorityCondition,
+          attributes, attributesCondition,
+          attributeKeys, attributeKeysCondition
+      );
     } else {
       return null;
     }
@@ -171,6 +188,32 @@ public class TmsTestFolderWithTestCaseCountRepository {
           ));
         }
       }
+      if (testCaseFilterParams.attributeKeys() != null && !testCaseFilterParams.attributeKeys().isEmpty()) {
+        // Logic: Find Test Cases that have attributes matching the provided keys
+        org.jooq.Condition keyCondition = null;
+
+        if (testCaseFilterParams.attributeKeysCondition() == Condition.IN) {
+          keyCondition = TMS_ATTRIBUTE.KEY.in(testCaseFilterParams.attributeKeys());
+        } else if (testCaseFilterParams.attributeKeysCondition() == Condition.EQUALS) {
+          // Take first if multiple provided, or exact match
+          keyCondition = TMS_ATTRIBUTE.KEY.eq(testCaseFilterParams.attributeKeys().getFirst());
+        } else if (testCaseFilterParams.attributeKeysCondition() == Condition.HAS) {
+          // If "HAS", we use IN logic here because checking for presence of ALL string keys
+          // via array_agg on joined table is expensive/complex.
+          // Usually 'HAS' for strings behaves like 'IN' (contains any).
+          keyCondition = TMS_ATTRIBUTE.KEY.in(testCaseFilterParams.attributeKeys());
+        }
+
+        if (keyCondition != null) {
+          query = query.and(DSL.exists(
+              dsl.selectOne()
+                  .from(TMS_TEST_CASE_ATTRIBUTE)
+                  .join(TMS_ATTRIBUTE).on(TMS_TEST_CASE_ATTRIBUTE.ATTRIBUTE_ID.eq(TMS_ATTRIBUTE.ID))
+                  .where(TMS_TEST_CASE_ATTRIBUTE.TEST_CASE_ID.eq(TMS_TEST_CASE.ID))
+                  .and(keyCondition)
+          ));
+        }
+      }
     }
 
     return query.fetchOne(0, Long.class);
@@ -182,7 +225,9 @@ public class TmsTestFolderWithTestCaseCountRepository {
       String priority,
       Condition priorityCondition,
       List<Long> attributes,
-      Condition attributesCondition
+      Condition attributesCondition,
+      List<String> attributeKeys,
+      Condition attributeKeysCondition
   ) {
   }
 }

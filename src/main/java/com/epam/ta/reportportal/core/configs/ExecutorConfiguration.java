@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -87,6 +88,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("log-index-exec");
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -101,6 +103,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -116,6 +119,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setAwaitTerminationSeconds(60);
     threadPoolTaskExecutor.setThreadNamePrefix("demo-data-exec");
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -130,8 +134,7 @@ public class ExecutorConfiguration {
     executor.setQueueCapacity(queueCapacity);
     executor.setAllowCoreThreadTimeOut(true);
     executor.setThreadNamePrefix("generate-widget-view-task");
-    executor.setRejectedExecutionHandler(
-        new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+    executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     return executor;
   }
 
@@ -146,6 +149,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("log-cluster-exec");
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -161,6 +165,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("event-listener-exec");
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     return threadPoolTaskExecutor;
   }
 

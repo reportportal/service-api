@@ -1,0 +1,213 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.core.analyzer.auto.impl;
+
+import static com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel.ERROR_INT;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+
+import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.reportportal.base.core.analyzer.auto.client.model.SuggestInfo;
+import com.epam.reportportal.base.core.analyzer.auto.client.model.SuggestRq;
+import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
+import com.epam.reportportal.base.core.item.validator.state.TestItemValidator;
+import com.epam.reportportal.base.core.launch.GetLaunchHandler;
+import com.epam.reportportal.base.core.launch.cluster.GetClusterHandler;
+import com.epam.reportportal.base.core.log.LogService;
+import com.epam.reportportal.base.core.project.GetProjectHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.reporting.OperationCompletionRS;
+import com.epam.reportportal.base.ws.converter.converters.IssueConverter;
+import com.epam.reportportal.base.ws.converter.converters.LogConverter;
+import com.epam.reportportal.base.ws.converter.converters.TestItemConverter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ */
+@Service
+@RequiredArgsConstructor
+public class SuggestItemService {
+
+  private static final int SUGGESTED_ITEMS_LOGS_LIMIT = 5;
+
+  private final AnalyzerServiceClient analyzerServiceClient;
+
+  private final GetProjectHandler getProjectHandler;
+  private final GetLaunchHandler getLaunchHandler;
+  private final GetClusterHandler getClusterHandler;
+
+  private final LaunchAccessValidator launchAccessValidator;
+
+  private final TestItemRepository testItemRepository;
+  private final LogService logService;
+  private final LogConverter logConverter;
+
+  private final List<TestItemValidator> testItemValidators;
+
+
+  @Transactional(readOnly = true)
+  public List<SuggestedItem> suggestItems(Long testItemId,
+      MembershipDetails membershipDetails, ReportPortalUser user) {
+
+    TestItem testItem = testItemRepository.findById(testItemId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+
+    validateTestItem(testItem);
+
+    Launch launch = getLaunch(testItem.getLaunchId(), membershipDetails, user);
+    isItemUnderProject(membershipDetails, user, launch);
+    Project project = getProjectHandler.get(membershipDetails);
+
+    SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project);
+    return getSuggestedItems(suggestRq);
+  }
+
+  private void validateTestItem(TestItem testItem) {
+    testItemValidators.forEach(v -> {
+      if (!v.validate(testItem)) {
+        throw new ReportPortalException(BAD_REQUEST_ERROR, v.provide(testItem));
+      }
+    });
+  }
+
+  private void isItemUnderProject(MembershipDetails membershipDetails,
+      ReportPortalUser user, Launch launch) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(ACCESS_DENIED,
+          "Launch is not under the specified project."
+      );
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public List<SuggestedItem> suggestClusterItems(Long clusterId,
+      MembershipDetails membershipDetails, ReportPortalUser user) {
+    final Cluster cluster = getClusterHandler.getById(clusterId);
+    final Launch launch = getLaunch(cluster.getLaunchId(), membershipDetails, user);
+    final Project project = getProjectHandler.get(membershipDetails);
+    final SuggestRq suggestRq = prepareSuggestRq(cluster, launch, project);
+    return getSuggestedItems(suggestRq);
+  }
+
+  private Launch getLaunch(Long launchId, MembershipDetails membershipDetails,
+      ReportPortalUser user) {
+    Launch launch = getLaunchHandler.get(launchId);
+    launchAccessValidator.validate(launch, membershipDetails, user);
+    return launch;
+  }
+
+  private SuggestRq prepareSuggestRq(TestItem testItem, Launch launch, Project project) {
+    SuggestRq suggestRq = prepareSuggestRq(launch, project);
+    suggestRq.setTestItemId(testItem.getItemId());
+    suggestRq.setUniqueId(testItem.getUniqueId());
+    suggestRq.setTestCaseHash(testItem.getTestCaseHash());
+    suggestRq.setLogs(AnalyzerUtils.fromLogs(
+        logService.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+            Collections.singletonList(testItem.getItemId()),
+            ERROR_INT
+        )));
+    return suggestRq;
+  }
+
+  private SuggestRq prepareSuggestRq(Cluster cluster, Launch launch, Project project) {
+    SuggestRq suggestRq = prepareSuggestRq(launch, project);
+    suggestRq.setClusterId(cluster.getIndexId());
+    return suggestRq;
+  }
+
+  private SuggestRq prepareSuggestRq(Launch launch, Project project) {
+    SuggestRq suggestRq = new SuggestRq();
+    suggestRq.setLaunchId(launch.getId());
+    suggestRq.setLaunchName(launch.getName());
+    suggestRq.setProject(project.getId());
+    suggestRq.setAnalyzerConfig(getAnalyzerConfig(project));
+    suggestRq.setLaunchNumber(launch.getNumber());
+    return suggestRq;
+  }
+
+  private List<SuggestedItem> getSuggestedItems(SuggestRq suggestRq) {
+    return analyzerServiceClient.searchSuggests(suggestRq)
+        .stream()
+        .map(this::prepareSuggestedItem)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  private SuggestedItem prepareSuggestedItem(SuggestInfo suggestInfo) {
+    TestItem relevantTestItem = testItemRepository.findById(suggestInfo.getRelevantItem())
+        .orElse(null);
+    //TODO: EPMRPP-61038 temp fix for the case when item was removed from db but still exists in elastic
+    if (relevantTestItem == null) {
+      return null;
+    }
+    var issue = getSuggestedIssue(relevantTestItem);
+    SuggestedItem suggestedItem = new SuggestedItem();
+    roundSuggestInfoMatchScore(suggestInfo);
+    suggestedItem.setSuggestRs(suggestInfo);
+    suggestedItem.setTestItemResource(TestItemConverter.TO_RESOURCE.apply(relevantTestItem));
+    issue.ifPresent(issueEntity -> suggestedItem.getTestItemResource()
+        .setIssue(IssueConverter.TO_MODEL.apply(issueEntity)));
+    suggestedItem.setLogs(logService.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(
+        relevantTestItem.getLaunchId(),
+        relevantTestItem.getItemId(),
+        ERROR_INT,
+        SUGGESTED_ITEMS_LOGS_LIMIT
+    ).stream().map(logConverter::toResource).collect(Collectors.toSet()));
+    return suggestedItem;
+  }
+
+  private Optional<IssueEntity> getSuggestedIssue(TestItem relevantTestItem) {
+    if (relevantTestItem.getRetryOf() != null) {
+      Optional<TestItem> latestRetry = testItemRepository.findById(relevantTestItem.getRetryOf());
+      if (latestRetry.isPresent()) {
+        return Optional.ofNullable(latestRetry.get().getItemResults().getIssue());
+      }
+    }
+    return Optional.empty();
+  }
+
+  private void roundSuggestInfoMatchScore(SuggestInfo info) {
+    float roundedMatchScore = Math.round(info.getMatchScore());
+    info.setMatchScore(roundedMatchScore);
+  }
+
+  public OperationCompletionRS handleSuggestChoice(List<SuggestInfo> suggestInfos) {
+    analyzerServiceClient.handleSuggestChoice(suggestInfos);
+    return new OperationCompletionRS("User choice of suggested item was sent for handling to ML");
+  }
+}

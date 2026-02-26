@@ -18,9 +18,9 @@ package com.epam.reportportal.extension.util;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.infrastructure.rules.commons.validation.Suppliers;
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
 import java.util.Iterator;

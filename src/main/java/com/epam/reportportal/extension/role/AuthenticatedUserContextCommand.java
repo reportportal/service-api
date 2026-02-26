@@ -1,9 +1,9 @@
 package com.epam.reportportal.extension.role;
 
 import com.epam.reportportal.api.model.PluginCommandContext;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.extension.AbstractContextBasedCommand;
-import com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 

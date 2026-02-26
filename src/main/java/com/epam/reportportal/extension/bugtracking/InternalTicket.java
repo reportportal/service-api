@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.extension.bugtracking;
 
-import com.epam.reportportal.infrastructure.persistence.entity.enums.ImageFormat;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ImageFormat;
 import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;

@@ -1,0 +1,107 @@
+/*
+ * Copyright 2021 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.core.analyzer.auto.starter;
+
+import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.epam.reportportal.base.core.analyzer.auto.AnalyzerService;
+import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
+import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
+import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
+import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
+import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
+import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
+import com.epam.reportportal.base.core.launch.GetLaunchHandler;
+import com.epam.reportportal.base.core.launch.impl.LaunchTestUtil;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
+class CollectingAutoAnalysisStarterTest {
+
+  public static final Long INDEXED_LOG_COUNT = 5L;
+
+  private final GetLaunchHandler getLaunchHandler = mock(GetLaunchHandler.class);
+  private final AnalyzeCollectorFactory analyzeCollectorFactory = mock(
+      AnalyzeCollectorFactory.class);
+  private final AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
+  private final AnalyzerService analyzerService = mock(AnalyzerService.class);
+  private final LogIndexer logIndexer = mock(LogIndexer.class);
+
+  private final CollectingAutoAnalysisStarter starter = new CollectingAutoAnalysisStarter(
+      getLaunchHandler,
+      analyzeCollectorFactory,
+      analyzerService,
+      logIndexer
+  );
+
+  @Test
+  void shouldAnalyze() {
+
+    final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
+        launch.getProjectId());
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
+
+    final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+    analyzerConfig.setIsAutoAnalyzerEnabled(true);
+    final StartLaunchAutoAnalysisConfig startLaunchAutoAnalysisConfig = StartLaunchAutoAnalysisConfig.of(
+        launch.getId(),
+        analyzerConfig,
+        Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
+        1L,
+        "user"
+    );
+
+    when(analyzerService.hasAnalyzers()).thenReturn(true);
+
+    when(getLaunchHandler.get(event.getId())).thenReturn(launch);
+    when(logIndexer.indexLaunchLogs(eq(launch), any(AnalyzerConfig.class))).thenReturn(INDEXED_LOG_COUNT);
+
+    when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
+    final List<Long> itemIds = Lists.newArrayList(1L, 2L);
+    when(analyzeItemsCollector.collectItems(launch.getProjectId(), launch.getId(), 1L, "user"))
+        .thenReturn(itemIds);
+
+    starter.start(startLaunchAutoAnalysisConfig);
+
+    verify(analyzerService, times(1)).runAnalyzers(eq(launch), eq(itemIds),
+        any(AnalyzerConfig.class));
+    verify(logIndexer, times(1)).indexItemsLogs(eq(launch.getProjectId()), eq(launch.getId()),
+        eq(itemIds), any(AnalyzerConfig.class));
+  }
+
+}

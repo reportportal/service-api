@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.extension.classloader;
 
-import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.equalTo;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 
-import com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.stereotype.Service;

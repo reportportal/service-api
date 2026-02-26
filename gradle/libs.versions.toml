@@ -13,6 +13,7 @@ openapi-generator = "7.11.0"
 # Library versions
 apache-commons-collections4 = "4.5.0"
 apache-commons-compress = "1.28.0"
+apache-commons-csv = "1.10.0"
 apache-commons-lang3 = "3.20.0"
 apache-poi = "5.5.0"
 aws-sdk = "2.41.3"
@@ -36,17 +37,23 @@ jjwt = "0.12.5"
 jooq = "3.19.27"
 json-schema-validator = "1.5.6"
 lombok = "1.18.42"
+nimbus-oauth2-oidc-sdk = "10.15.1"
 opencsv = "5.12.0"
 openpdf = "2.4.0"
 pf4j = "3.13.0"
 rabbitmq-http = "5.4.0"
 slugify = "3.0.7"
+spring-modulith = "1.4.7"
 springdoc-openapi = "2.8.14"
 tika = "3.2.3"
 thumbnailator = "0.4.21"
 xerces = "2.12.2"
-mapstruct = "1.5.5.Final"
-apache-commons-csv = "1.10.0"
+mapstruct = "1.6.3"
+pf4j-update = "2.3.0"
+kotlin = "2.3.0"
+json = "20250107"
+flyway = "10.15.2"
+flyway-postgres = "10.20.0"
 
 [libraries]
 # Development libs
@@ -56,6 +63,7 @@ apache-commons-csv = "1.10.0"
 # Platforms
 spring-boot-bom = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring-boot" }
 zonky-postgres-bom = { group = "io.zonky.test.postgres", name = "embedded-postgres-binaries-bom", version.ref = "zonky-postgres-bom" }
+spring-modulith-bom = { group = "org.springframework.modulith", name = "spring-modulith-bom", version.ref = "spring-modulith" }
 
 # Spring Boot
 spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-boot-starter-aop" }
@@ -69,10 +77,16 @@ spring-boot-starter-batch = { group = "org.springframework.boot", name = "spring
 spring-boot-starter-security = { group = "org.springframework.boot", name = "spring-boot-starter-security" }
 spring-boot-starter-oauth2-client = { group = "org.springframework.boot", name = "spring-boot-starter-oauth2-client" }
 spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
+spring-modulith-starter-test = { group = "org.springframework.modulith", name = "spring-modulith-starter-test" }
 
 # Spring Security
 spring-security-acl = { group = "org.springframework.security", name = "spring-security-acl" }
+spring-security-ldap = { group = "org.springframework.security", name = "spring-security-ldap" }
+spring-security-saml2-service-provider = { group = "org.springframework.security", name = "spring-security-saml2-service-provider" }
 spring-security-oauth2-resource-server = { group = "org.springframework.security", name = "spring-security-oauth2-resource-server" }
+spring-security-oauth2-authorization-server = { group = "org.springframework.security", name = "spring-security-oauth2-authorization-server" }
+spring-security-oauth2-jose = { group = "org.springframework.security", name = "spring-security-oauth2-jose" }
+spring-security-oauth2-core = { group = "org.springframework.security", name = "spring-security-oauth2-core" }
 
 # Other libraries
 springdoc-openapi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
@@ -123,6 +137,19 @@ spring-data-commons = { group = "org.springframework.data", name = "spring-data-
 hibernate-core = { group = "org.hibernate.orm", name = "hibernate-core" }
 jakarta-validation = { group = "jakarta.validation", name = "jakarta.validation-api" }
 apache-commons-commonscsv = { group = "org.apache.commons", name = "commons-csv", version.ref = "apache-commons-csv" }
+pf4j-update = { group = "org.pf4j", name = "pf4j-update", version.ref = "pf4j-update" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+json = { group = "org.json", name = "json", version.ref = "json" }
+flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
+flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway-postgres" }
+nimbus-oauth2-oidc-sdk = { group = "com.nimbusds", name = "oauth2-oidc-sdk", version.ref = "nimbus-oauth2-oidc-sdk" }
+
+# Spring Modulith
+spring-modulith-starter-core = { group = "org.springframework.modulith", name = "spring-modulith-starter-core", version.ref = "spring-modulith" }
+spring-modulith-events-api = { group = "org.springframework.modulith", name = "spring-modulith-events-api", version.ref = "spring-modulith" }
+spring-modulith-actuator = { group = "org.springframework.modulith", name = "spring-modulith-actuator", version.ref = "spring-modulith" }
+spring-modulith-docs = { group = "org.springframework.modulith", name = "spring-modulith-docs", version.ref = "spring-modulith"}
+spring-modulith-junit = { group = "org.springframework.modulith", name = "spring-modulith-junit", version.ref = "spring-modulith" }
 
 # Lombok
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
@@ -159,6 +186,7 @@ spring-security = [
 test-libs = [
     "spring-boot-starter-test",
     "flyway-spring-test",
+    "spring-modulith-starter-test",
     "jjwt-impl",
     "jjwt-jackson"
 ]
@@ -170,4 +198,3 @@ owasp-dependencycheck = { id = "org.owasp.dependencycheck", version.ref = "owasp
 drill-integration = { id = "com.epam.drill.integration.cicd", version.ref = "drill-integration" }
 openapi-generator = { id = "org.openapi.generator", version.ref = "openapi-generator" }
 jooq-codegen = { id = "org.jooq.jooq-codegen-gradle", version.ref = "jooq" }
-

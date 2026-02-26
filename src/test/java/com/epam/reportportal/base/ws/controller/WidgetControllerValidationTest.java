@@ -1,0 +1,268 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.ws.controller;
+
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_BLANK_MESSAGE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.ID_PATH;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.LONG_NAME_VALUE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.SHORT_NAME_VALUE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
+import com.epam.reportportal.base.model.widget.ContentParameters;
+import com.epam.reportportal.base.model.widget.WidgetRQ;
+import com.epam.reportportal.base.ws.BaseMvcTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
+
+/**
+ * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
+ */
+class WidgetControllerValidationTest extends BaseMvcTest {
+
+  private static final String WIDGET_PATH = "/widget";
+
+  private static final String FIELD_NAME_SIZE_MESSAGE =
+      String.format(FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 3, 128);
+
+  @Autowired
+  private ObjectMapper objectMapper;
+
+  @Test
+  void createWidgetShouldReturnErrorWhenNameIsNull() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(widgetRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + "] ", error.getMessage());
+  }
+
+  @Test
+  void createWidgetShouldReturnErrorWhenNameIsEmpty() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(EMPTY);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(widgetRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_SIZE_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+  }
+
+  @Test
+  void createWidgetShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(WHITESPACES_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(widgetRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + "] ",
+        error.getMessage());
+  }
+
+  @Test
+  void createWidgetShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(SHORT_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(widgetRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+  }
+
+  @Test
+  void createWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters()
+      throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(LONG_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(widgetRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+  }
+
+  @Test
+  void updateWidgetShouldReturnErrorWhenNameIsNull() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+        put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH).with(
+                token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(widgetRQ))
+            .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+
+  }
+
+  @Test
+  void updateWidgetShouldReturnErrorWhenNameIsEmpty() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(EMPTY);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+        put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH).with(
+                token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(widgetRQ))
+            .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_SIZE_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+
+  }
+
+  @Test
+  void updateWidgetShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(WHITESPACES_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+        put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH).with(
+                token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(widgetRQ))
+            .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + "] ", error.getMessage());
+  }
+
+  @Test
+  void updateWidgetShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(SHORT_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+        put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH).with(
+                token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(widgetRQ))
+            .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+  }
+
+  @Test
+  void updateWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters()
+      throws Exception {
+    //GIVEN
+    WidgetRQ widgetRQ = prepareWidget();
+    widgetRQ.setName(LONG_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+        put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH).with(
+                token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(widgetRQ))
+            .contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+  }
+
+  private WidgetRQ prepareWidget() {
+    WidgetRQ widgetRQ = new WidgetRQ();
+    widgetRQ.setDescription("description");
+    widgetRQ.setWidgetType("oldLineChart");
+    ContentParameters contentParameters = new ContentParameters();
+    contentParameters.setContentFields(
+        Arrays.asList("number", "name", "user", "statistics$defects$automation_bug$AB002"));
+    contentParameters.setItemsCount(50);
+    widgetRQ.setContentParameters(contentParameters);
+    return widgetRQ;
+  }
+}

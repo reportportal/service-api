@@ -18,14 +18,14 @@ package com.epam.reportportal.extension.bugtracking;
 
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.base.infrastructure.persistence.binary.impl.AttachmentDataStoreService;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
+import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataEncoder;
 import com.epam.reportportal.extension.util.FileNameExtractor;
-import com.epam.reportportal.infrastructure.model.externalsystem.PostFormField;
-import com.epam.reportportal.infrastructure.model.externalsystem.PostTicketRQ;
-import com.epam.reportportal.infrastructure.persistence.binary.impl.AttachmentDataStoreService;
-import com.epam.reportportal.infrastructure.persistence.dao.LogRepository;
-import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
-import com.epam.reportportal.infrastructure.persistence.entity.log.Log;
-import com.epam.reportportal.infrastructure.persistence.filesystem.DataEncoder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;

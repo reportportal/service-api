@@ -25,8 +25,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLev
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JIntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JOrganizationRoleEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.util.DateTimeUtils;
@@ -214,6 +216,14 @@ public class CriteriaHolder {
               formattedSupplier("Cannot convert '{}' to valid 'Integration group",
                   oneValue));
       castedValue = JIntegrationGroupEnum.valueOf(integrationGroup.get().name());
+
+    } else if (JOrganizationRoleEnum.class.isAssignableFrom(getDataType())) {
+
+      Optional<OrganizationRole> organizationRole = OrganizationRole.forName(oneValue);
+      BusinessRule.expect(organizationRole, Optional::isPresent)
+          .verify(errorType,
+              formattedSupplier("Cannot convert '{}' to valid 'Organization role'", oneValue));
+      castedValue = JOrganizationRoleEnum.valueOf(organizationRole.get().name());
 
     } else if (TestItemIssueGroup.class.isAssignableFrom(getDataType())) {
       castedValue = TestItemIssueGroup.validate(oneValue);

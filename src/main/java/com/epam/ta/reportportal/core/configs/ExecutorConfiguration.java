@@ -88,7 +88,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("log-index-exec");
-    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -103,7 +103,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
-    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -119,7 +119,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setAwaitTerminationSeconds(60);
     threadPoolTaskExecutor.setThreadNamePrefix("demo-data-exec");
-    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -149,7 +149,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("log-cluster-exec");
-    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
     return threadPoolTaskExecutor;
   }
 
@@ -165,7 +165,7 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("event-listener-exec");
-    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
     return threadPoolTaskExecutor;
   }
 

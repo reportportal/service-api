@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.item.IssueResolvedEvent;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -65,7 +66,7 @@ import org.springframework.context.ApplicationEventPublisher;
 class FinishTestItemHandlerImplTest {
 
   @Mock
-  private TestItemRepository repository;
+  private TestItemRepository testItemRepository;
 
   @Mock
   private LaunchRepository launchRepository;
@@ -91,13 +92,16 @@ class FinishTestItemHandlerImplTest {
   @Mock
   private ApplicationEventPublisher eventPublisher;
 
+  @Mock
+  private TestItemStatisticsService statisticsService;
+
   @InjectMocks
   private FinishTestItemHandlerImpl handler;
 
   @Test
   void finishNotExistedTestItem() {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-    when(repository.findByUuid("1")).thenReturn(Optional.empty());
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
             new FinishTestItemRQ()
@@ -116,7 +120,7 @@ class FinishTestItemHandlerImplTest {
     results.setStatus(StatusEnum.IN_PROGRESS);
     item.setItemResults(results);
     item.setItemId(1L);
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1",
@@ -140,7 +144,7 @@ class FinishTestItemHandlerImplTest {
     item.setItemId(1L);
     item.setLaunchId(launch.getId());
     item.setHasChildren(false);
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.IN_PROGRESS);
     item.setItemResults(results);
@@ -173,7 +177,7 @@ class FinishTestItemHandlerImplTest {
     launch.setProjectId(1L);
     item.setLaunchId(launch.getId());
     item.setHasChildren(false);
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
     doNothing().when(changeStatusHandler).changeLaunchStatus(any());
     doNothing().when(changeStatusHandler).changeParentStatus(any(), any(), any());
@@ -189,6 +193,7 @@ class FinishTestItemHandlerImplTest {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
+    item.setLaunchId(1L);
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.PASSED);
     item.setItemResults(results);
@@ -201,10 +206,8 @@ class FinishTestItemHandlerImplTest {
     item.setType(TestItemTypeEnum.STEP);
     item.setHasStats(true);
     item.setHasChildren(false);
-    when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
-    when(repository.findIdByUuidForUpdate(any())).thenReturn(Optional.of(item.getItemId()));
-    when(repository.findById(item.getItemId())).thenReturn(Optional.of(item));
+    when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 
     IssueType issueType = new IssueType();
     issueType.setLocator("123");
@@ -230,5 +233,6 @@ class FinishTestItemHandlerImplTest {
     verify(issueEntityRepository, times(1)).save(any());
     verify(messageBus, times(1)).publishActivity(any());
     verify(eventPublisher, times(1)).publishEvent(any(IssueResolvedEvent.class));
+    verify(statisticsService, times(1)).addStatistics(any(TestItem.class));
   }
 }

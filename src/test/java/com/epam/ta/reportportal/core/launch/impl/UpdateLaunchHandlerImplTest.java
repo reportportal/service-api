@@ -31,12 +31,14 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.item.TestItemLastModifiedService;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -91,6 +93,12 @@ class UpdateLaunchHandlerImplTest {
 
   @Mock
   private LogIndexer logIndexer;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
+
+  @Mock
+  private TestItemLastModifiedService testItemLastModifiedService;
 
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;

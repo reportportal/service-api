@@ -29,8 +29,10 @@ import static org.mockito.Mockito.when;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -78,6 +80,9 @@ class DeleteTestItemHandlerImplTest {
 
   @Mock
   private LogService logService;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
 
   @InjectMocks
   private DeleteTestItemHandlerImpl handler;
@@ -211,6 +216,7 @@ class DeleteTestItemHandlerImplTest {
     handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
+    verify(statisticsService, times(1)).deleteItemStatistics(any(TestItemPathContext.class));
     assertFalse(parent.isHasChildren());
   }
 
@@ -231,6 +237,7 @@ class DeleteTestItemHandlerImplTest {
         extractProjectDetails(rpUser, "test_project"), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
+    verify(statisticsService, times(1)).deleteItemStatistics(any(TestItemPathContext.class));
     assertEquals("Test Item with ID = '1' has been successfully deleted.",
         response.getResultMessage());
 

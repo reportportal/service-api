@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -75,6 +76,9 @@ class FinishLaunchHandlerImplTest {
 
   @Mock
   private ApplicationEventPublisher publisher;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
 
   @Mock
   LinkGenerator linkGenerator;
@@ -147,6 +151,7 @@ class FinishLaunchHandlerImplTest {
     );
     assertNotNull(response);
     assertEquals("Launch with ID = '1' successfully stopped.", response.getResultMessage());
+    verify(statisticsService, times(1)).addInterruptionStatistics(1L);
   }
 
   @Test
@@ -173,6 +178,7 @@ class FinishLaunchHandlerImplTest {
     );
     assertNotNull(response);
     assertEquals(1, response.size());
+    verify(statisticsService, times(1)).addInterruptionStatistics(1L);
   }
 
   @Test

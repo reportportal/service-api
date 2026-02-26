@@ -157,11 +157,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   public OperationCompletionRS finishTestItem(ReportPortalUser user,
       ReportPortalUser.ProjectDetails projectDetails, String testItemId,
       FinishTestItemRQ finishExecutionRQ) {
-    final TestItem testItem = testItemRepository.findByUuid(testItemId).filter(
-        it -> it.isHasChildren() || (!it.isHasChildren()
-            && it.getItemResults().getStatus() == IN_PROGRESS)).orElseGet(
-        () -> testItemRepository.findByUuid(testItemId)
-            .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId)));
+    final TestItem testItem = testItemRepository.findByUuid(testItemId)
+        .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
     final Launch launch = retrieveLaunch(testItem);
 

@@ -162,6 +162,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
     final Launch launch = retrieveLaunch(testItem);
 
+    testItemStatisticsService.acquireAdvisoryLock(launch.getId());
+
     final TestItemResults testItemResults =
         processItemResults(user, projectDetails, launch, testItem, finishExecutionRQ);
 

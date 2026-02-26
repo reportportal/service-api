@@ -65,4 +65,6 @@ public interface TestItemStatisticsService {
    * @param item leaf test item
    */
   void deleteItemStatistics(TestItemPathContext item);
+
+  void acquireAdvisoryLock(Long launchId);
 }

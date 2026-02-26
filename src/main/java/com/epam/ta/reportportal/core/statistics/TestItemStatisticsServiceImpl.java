@@ -173,7 +173,7 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
    * Acquires a transaction-scoped advisory lock on the launch ID. Serializes all statistics
    * operations within the same launch, preventing deadlocks.
    */
-  private void acquireAdvisoryLock(Long launchId) {
+  public void acquireAdvisoryLock(Long launchId) {
     statisticsRepository.performAdvisoryLock(launchId);
   }
 

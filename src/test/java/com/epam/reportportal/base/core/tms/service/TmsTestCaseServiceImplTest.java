@@ -1620,18 +1620,23 @@ class TmsTestCaseServiceImplTest {
   void patchTestCaseAttributes_WithBothAddAndRemove_ShouldExecuteBothOperations() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToRemove = Arrays.asList(1L, 2L);
-    var attributesToAdd = Arrays.asList(4L, 5L);
+    var keysToRemove = Set.of("key1", "key2");
+    var keysToAdd = Set.of("key4", "key5");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributesToAdd)
+        .attributeKeysToRemove(keysToRemove)
+        .attributeKeysToAdd(keysToAdd)
         .build();
 
     var existingTestCaseIds = List.of(1L, 2L, 3L);
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(existingTestCaseIds);
+
+    when(tmsAttributeService.findExistingTagIdsByKeys(eq(projectId), eq(Set.of("key1", "key2"))))
+        .thenReturn(List.of(1L, 2L));
+    when(tmsAttributeService.resolveTagIdsByKeys(eq(projectId), eq(Set.of("key4", "key5"))))
+        .thenReturn(List.of(4L, 5L));
 
     // When
     sut.patchTestCaseAttributes(projectId, patchRequest);
@@ -1639,26 +1644,28 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(
-        eq(testCaseIds), eq(Set.of(1L, 2L)));
+        eq(testCaseIds), eq(List.of(1L, 2L)));
     verify(tmsTestCaseAttributeService).addAttributesToTestCases(
-        eq(testCaseIds), eq(Set.of(4L, 5L)));
+        eq(testCaseIds), eq(List.of(4L, 5L)));
   }
 
   @Test
   void patchTestCaseAttributes_WithOnlyAdd_ShouldOnlyExecuteAddOperation() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToAdd = Arrays.asList(4L, 5L);
+    var keysToAdd = Set.of("key4", "key5");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(null)
-        .attributeIdsToAdd(attributesToAdd)
+        .attributeKeysToRemove(null)
+        .attributeKeysToAdd(keysToAdd)
         .build();
 
     var existingTestCaseIds = List.of(1L, 2L, 3L);
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(existingTestCaseIds);
+    when(tmsAttributeService.resolveTagIdsByKeys(eq(projectId), eq(Set.of("key4", "key5"))))
+        .thenReturn(List.of(4L, 5L));
 
     // When
     sut.patchTestCaseAttributes(projectId, patchRequest);
@@ -1667,24 +1674,26 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
     verify(tmsTestCaseAttributeService).addAttributesToTestCases(
-        eq(testCaseIds), eq(Set.of(4L, 5L)));
+        eq(testCaseIds), eq(List.of(4L, 5L)));
   }
 
   @Test
   void patchTestCaseAttributes_WithOnlyRemove_ShouldOnlyExecuteRemoveOperation() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToRemove = Arrays.asList(1L, 2L);
+    var keysToRemove = Set.of("key1", "key2");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(null)
+        .attributeKeysToRemove(keysToRemove)
+        .attributeKeysToAdd(null)
         .build();
 
     var existingTestCaseIds = List.of(1L, 2L, 3L);
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(existingTestCaseIds);
+    when(tmsAttributeService.findExistingTagIdsByKeys(eq(projectId), eq(Set.of("key1", "key2"))))
+        .thenReturn(List.of(1L, 2L));
 
     // When
     sut.patchTestCaseAttributes(projectId, patchRequest);
@@ -1692,26 +1701,33 @@ class TmsTestCaseServiceImplTest {
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(
-        eq(testCaseIds), eq(Set.of(1L, 2L)));
+        eq(testCaseIds), eq(List.of(1L, 2L)));
     verify(tmsTestCaseAttributeService, never()).addAttributesToTestCases(any(), any());
   }
 
   @Test
   void patchTestCaseAttributes_WithIntersectingAttributes_ShouldExcludeIntersection() {
-    // Given - test case from requirements: attributesToRemove: [1,2,3], attributesToAdd: [2,3,4]
+    // Given - test case from requirements: attributesToRemove: [key1,key2,key3], attributesToAdd: [key2,key3,key4]
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToRemove = Arrays.asList(1L, 2L, 3L);
-    var attributesToAdd = Arrays.asList(2L, 3L, 4L);
+    var keysToRemove = Set.of("key1", "key2", "key3");
+    var keysToAdd = Set.of("key2", "key3", "key4");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributesToAdd)
+        .attributeKeysToRemove(keysToRemove)
+        .attributeKeysToAdd(keysToAdd)
         .build();
 
     var existingTestCaseIds = List.of(1L, 2L, 3L);
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(existingTestCaseIds);
+
+    // Intersection logic in service will remove key2, key3 from both sets.
+    // So we expect calls only for key1 (remove) and key4 (add)
+    when(tmsAttributeService.findExistingTagIdsByKeys(eq(projectId), eq(Set.of("key1"))))
+        .thenReturn(List.of(1L));
+    when(tmsAttributeService.resolveTagIdsByKeys(eq(projectId), eq(Set.of("key4"))))
+        .thenReturn(List.of(4L));
 
     // When
     sut.patchTestCaseAttributes(projectId, patchRequest);
@@ -1720,10 +1736,10 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     // Should remove only attribute 1 (excluding intersection 2,3)
     verify(tmsTestCaseAttributeService).deleteByTestCaseIdsAndAttributeIds(
-        eq(testCaseIds), eq(Set.of(1L)));
+        eq(testCaseIds), eq(List.of(1L)));
     // Should add only attribute 4 (excluding intersection 2,3)
     verify(tmsTestCaseAttributeService).addAttributesToTestCases(
-        eq(testCaseIds), eq(Set.of(4L)));
+        eq(testCaseIds), eq(List.of(4L)));
   }
 
   @Test
@@ -1733,8 +1749,8 @@ class TmsTestCaseServiceImplTest {
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(Collections.emptyList())
-        .attributeIdsToAdd(Collections.emptyList())
+        .attributeKeysToRemove(Collections.emptySet())
+        .attributeKeysToAdd(Collections.emptySet())
         .build();
 
     var existingTestCaseIds = List.of(1L, 2L, 3L);
@@ -1754,12 +1770,12 @@ class TmsTestCaseServiceImplTest {
   void patchTestCaseAttributes_WithNonExistentTestCase_ShouldThrowNotFoundException() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToAdd = Arrays.asList(4L, 5L);
+    var keysToAdd = Set.of("key4", "key5");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(null)
-        .attributeIdsToAdd(attributesToAdd)
+        .attributeKeysToRemove(null)
+        .attributeKeysToAdd(keysToAdd)
         .build();
 
     var existingTestCaseIds = List.of(1L, 2L); // Missing ID 3L
@@ -1781,13 +1797,13 @@ class TmsTestCaseServiceImplTest {
   void patchTestCaseAttributes_WithCompleteIntersection_ShouldNotExecuteAnyOperations() {
     // Given - case when all attributes intersect
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToRemove = Arrays.asList(1L, 2L);
-    var attributesToAdd = Arrays.asList(1L, 2L);
+    var keysToRemove = Set.of("key1", "key2");
+    var keysToAdd = Set.of("key1", "key2");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributesToAdd)
+        .attributeKeysToRemove(keysToRemove)
+        .attributeKeysToAdd(keysToAdd)
         .build();
 
     var existingTestCaseIds = List.of(1L, 2L, 3L);
@@ -1799,6 +1815,8 @@ class TmsTestCaseServiceImplTest {
 
     // Then
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
+    verify(tmsAttributeService, never()).findExistingTagIdsByKeys(any(), any());
+    verify(tmsAttributeService, never()).resolveTagIdsByKeys(any(), any());
     verify(tmsTestCaseAttributeService, never()).deleteByTestCaseIdsAndAttributeIds(any(), any());
     verify(tmsTestCaseAttributeService, never()).addAttributesToTestCases(any(), any());
   }

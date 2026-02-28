@@ -20,6 +20,8 @@ public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttrib
 
   List<TmsAttribute> findAllByProject_IdAndKeyIn(Long projectId, Set<String> keys);
 
+  List<TmsAttribute> findAllByProject_IdAndKeyInAndValueIsNull(Long projectId, Set<String> keys);
+
   Optional<TmsAttribute> findByProject_IdAndKeyAndValueIsNull(Long projectId, String key);
 
   @Query("SELECT a FROM TmsAttribute a WHERE a.project.id = :projectId AND a.key = :key AND a.value = :value")

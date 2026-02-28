@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -562,32 +563,42 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   public void patchTestCaseAttributes(Long projectId, BatchPatchTestCaseAttributesRQ patchRequest) {
     validateTestCasesExist(projectId, patchRequest.getTestCaseIds());
 
-    var attributesToRemove = Optional
-        .ofNullable(patchRequest.getAttributesToRemove())
-        .orElse(Collections.emptyList());
-    var attributesToAdd = Optional
-        .ofNullable(patchRequest.getAttributeIdsToAdd())
-        .orElse(Collections.emptyList());
+    var keysToRemove = Optional
+        .ofNullable(patchRequest.getAttributeKeysToRemove())
+        .orElse(Collections.emptySet());
+    var keysToAdd = Optional
+        .ofNullable(patchRequest.getAttributeKeysToAdd())
+        .orElse(Collections.emptySet());
 
-    var attributesSetToRemove = new HashSet<>(attributesToRemove);
-    var attributesSetToAdd = new HashSet<>(attributesToAdd);
+    var keysSetToRemove = new HashSet<>(keysToRemove);
+    var keysSetToAdd = new HashSet<>(keysToAdd);
 
-    var intersection = new HashSet<>(attributesSetToRemove);
-    intersection.retainAll(attributesSetToAdd);
+    var intersection = new HashSet<>(keysSetToRemove);
+    intersection.retainAll(keysSetToAdd);
 
-    attributesSetToRemove.removeAll(intersection);
-    attributesSetToAdd.removeAll(intersection);
+    keysSetToRemove.removeAll(intersection);
+    keysSetToAdd.removeAll(intersection);
 
-    if (!attributesSetToRemove.isEmpty()) {
-      tmsTestCaseAttributeService.deleteByTestCaseIdsAndAttributeIds(
-          patchRequest.getTestCaseIds(), attributesSetToRemove
+    if (!keysSetToRemove.isEmpty()) {
+      var attributeIdsToRemove = tmsAttributeService.findExistingTagIdsByKeys(
+          projectId, keysSetToRemove
       );
+      if (!attributeIdsToRemove.isEmpty()) {
+        tmsTestCaseAttributeService.deleteByTestCaseIdsAndAttributeIds(
+            patchRequest.getTestCaseIds(), attributeIdsToRemove
+        );
+      }
     }
 
-    if (!attributesSetToAdd.isEmpty()) {
-      tmsTestCaseAttributeService.addAttributesToTestCases(
-          patchRequest.getTestCaseIds(), attributesSetToAdd
+    if (!keysSetToAdd.isEmpty()) {
+      var attributeIdsToAdd = tmsAttributeService.resolveTagIdsByKeys(
+          projectId, keysSetToAdd
       );
+      if (!attributeIdsToAdd.isEmpty()) {
+        tmsTestCaseAttributeService.addAttributesToTestCases(
+            patchRequest.getTestCaseIds(), attributeIdsToAdd
+        );
+      }
     }
   }
 

@@ -12,6 +12,8 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import jakarta.persistence.EntityExistsException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +101,31 @@ public class TmsAttributeServiceImpl implements TmsAttributeService {
         .orElseGet(() -> tmsAttributeRepository.save(
             tmsAttributeMapper.convertToTmsAttribute(projectId, key)
         ));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Collection<Long> findExistingTagIdsByKeys(Long projectId, Set<String> keys) {
+    if (CollectionUtils.isEmpty(keys)) {
+      return Collections.emptyList();
+    }
+    return tmsAttributeRepository
+        .findAllByProject_IdAndKeyInAndValueIsNull(projectId, keys)
+        .stream()
+        .map(TmsAttribute::getId)
+        .toList();
+  }
+
+  @Override
+  @Transactional
+  public Collection<Long> resolveTagIdsByKeys(Long projectId, Set<String> keys) {
+    if (CollectionUtils.isEmpty(keys)) {
+      return Collections.emptyList();
+    }
+    return keys.stream()
+        .map(key -> findOrCreateTag(projectId, key))
+        .map(TmsAttribute::getId)
+        .toList();
   }
 
   @Override

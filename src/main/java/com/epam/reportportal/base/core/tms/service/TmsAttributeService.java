@@ -5,6 +5,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttri
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.core.tms.dto.TmsAttributeRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsAttributeRS;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +35,27 @@ public interface TmsAttributeService {
   
   // Find or create tag (value=NULL) for TestCase
   TmsAttribute findOrCreateTag(Long projectId, String key);
-  
+
+  /**
+   * Finds existing tag (value=NULL) attribute IDs by their keys for the given project.
+   * Keys that don't have a corresponding tag attribute are silently ignored.
+   *
+   * @param projectId the project ID
+   * @param keys      the attribute keys to look up
+   * @return collection of attribute IDs for existing tags matching the given keys
+   */
+  Collection<Long> findExistingTagIdsByKeys(Long projectId, Set<String> keys);
+
+  /**
+   * Resolves tag (value=NULL) attribute IDs by their keys for the given project.
+   * If a tag with the given key does not exist, it will be created with value=null.
+   *
+   * @param projectId the project ID
+   * @param keys      the attribute keys to resolve
+   * @return collection of attribute IDs for the resolved tags
+   */
+  Collection<Long> resolveTagIdsByKeys(Long projectId, Set<String> keys);
+
   // Find or create attribute with value for TestPlan/ManualScenario
   TmsAttribute findOrCreateAttribute(Long projectId, String key, String value);
 

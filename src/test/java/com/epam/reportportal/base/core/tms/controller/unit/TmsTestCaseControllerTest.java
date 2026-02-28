@@ -47,6 +47,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -1056,12 +1057,12 @@ public class TmsTestCaseControllerTest {
   void patchTestCaseAttributesTest() throws Exception {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToRemove = Arrays.asList(4L, 5L);
-    var attributeIdsToAdd = Arrays.asList(6L, 7L);
+    var attributesToRemove = Set.of("key4", "key5");
+    var attributeKeysToAdd = Set.of("key6", "key7");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToRemove(attributesToRemove)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     var jsonContent = objectMapper.writeValueAsString(patchRequest);
@@ -1081,12 +1082,12 @@ public class TmsTestCaseControllerTest {
   void patchTestCaseAttributesWithSingleTestCaseTest() throws Exception {
     // Given
     var testCaseIds = List.of(1L);
-    var attributesToRemove = Arrays.asList(4L, 5L, 6L);
-    var attributeIdsToAdd = Arrays.asList(7L, 8L);
+    var attributesToRemove = Set.of("key4", "key5", "key6");
+    var attributeKeysToAdd = Set.of("key7", "key8");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToRemove(attributesToRemove)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     var jsonContent = objectMapper.writeValueAsString(patchRequest);
@@ -1106,10 +1107,10 @@ public class TmsTestCaseControllerTest {
   void patchTestCaseAttributesOnlyRemoveTest() throws Exception {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L);
-    var attributesToRemove = Arrays.asList(4L, 5L);
+    var attributesToRemove = Set.of("key4", "key5");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
+        .attributeKeysToRemove(attributesToRemove)
         .build();
 
     var jsonContent = objectMapper.writeValueAsString(patchRequest);
@@ -1129,10 +1130,10 @@ public class TmsTestCaseControllerTest {
   void patchTestCaseAttributesOnlyAddTest() throws Exception {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributeIdsToAdd = Arrays.asList(6L, 7L, 8L);
+    var attributeKeysToAdd = Set.of("key6", "key7", "key8");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     var jsonContent = objectMapper.writeValueAsString(patchRequest);
@@ -1154,8 +1155,8 @@ public class TmsTestCaseControllerTest {
     var testCaseIds = Arrays.asList(1L, 2L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(Collections.emptyList())
-        .attributeIdsToAdd(Collections.emptyList())
+        .attributeKeysToRemove(Collections.emptySet())
+        .attributeKeysToAdd(Collections.emptySet())
         .build();
 
     var jsonContent = objectMapper.writeValueAsString(patchRequest);

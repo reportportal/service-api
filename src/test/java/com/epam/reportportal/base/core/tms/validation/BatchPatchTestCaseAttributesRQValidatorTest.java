@@ -9,6 +9,7 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,8 +27,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldPassValidationWhenAllFieldsAreProvided() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(List.of(1L, 2L))
-        .attributesToRemove(List.of(3L, 4L))
+        .attributeKeysToAdd(Set.of("key1", "key2"))
+        .attributeKeysToRemove(Set.of("key3", "key4"))
         .build();
 
     var violations = validator.validate(request);
@@ -39,8 +40,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldPassValidationWhenOnlyAttributesToAddIsProvided() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(List.of(1L, 2L))
-        .attributesToRemove(null)
+        .attributeKeysToAdd(Set.of("key1", "key2"))
+        .attributeKeysToRemove(null)
         .build();
 
     var violations = validator.validate(request);
@@ -52,8 +53,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldPassValidationWhenOnlyAttributesToRemoveIsProvided() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(null)
-        .attributesToRemove(List.of(3L, 4L))
+        .attributeKeysToAdd(null)
+        .attributeKeysToRemove(Set.of("key3", "key4"))
         .build();
 
     var violations = validator.validate(request);
@@ -65,8 +66,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldFailValidationWhenAllFieldsAreNull() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(null)
-        .attributesToRemove(null)
+        .attributeKeysToAdd(null)
+        .attributeKeysToRemove(null)
         .build();
 
     var violations = validator.validate(request);
@@ -80,8 +81,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldFailValidationWhenAllFieldsAreEmpty() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(Collections.emptyList())
-        .attributesToRemove(Collections.emptyList())
+        .attributeKeysToAdd(Collections.emptySet())
+        .attributeKeysToRemove(Collections.emptySet())
         .build();
 
     var violations = validator.validate(request);
@@ -95,8 +96,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldFailValidationWhenAttributesToAddIsEmptyAndAttributesToRemoveIsNull() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(Collections.emptyList())
-        .attributesToRemove(null)
+        .attributeKeysToAdd(Collections.emptySet())
+        .attributeKeysToRemove(null)
         .build();
 
     var violations = validator.validate(request);
@@ -110,8 +111,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldFailValidationWhenAttributesToAddIsNullAndAttributesToRemoveIsEmpty() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(null)
-        .attributesToRemove(Collections.emptyList())
+        .attributeKeysToAdd(null)
+        .attributeKeysToRemove(Collections.emptySet())
         .build();
 
     var violations = validator.validate(request);
@@ -135,8 +136,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldPassValidationWhenAttributesToAddHasSingleElement() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(List.of(1L))
-        .attributesToRemove(null)
+        .attributeKeysToAdd(Set.of("key1"))
+        .attributeKeysToRemove(null)
         .build();
 
     var violations = validator.validate(request);
@@ -148,8 +149,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldPassValidationWhenAttributesToRemoveHasSingleElement() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(null)
-        .attributesToRemove(List.of(3L))
+        .attributeKeysToAdd(null)
+        .attributeKeysToRemove(Set.of("key3"))
         .build();
 
     var violations = validator.validate(request);
@@ -161,8 +162,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldFailValidationWhenOnlyEmptyListsAreProvided() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(Collections.emptyList())
-        .attributesToRemove(Collections.emptyList())
+        .attributeKeysToAdd(Collections.emptySet())
+        .attributeKeysToRemove(Collections.emptySet())
         .build();
 
     var violations = validator.validate(request);
@@ -177,8 +178,8 @@ class BatchPatchTestCaseAttributesRQValidatorTest {
   void shouldPassValidationWhenBothListsHaveValidValues() {
     var request = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(List.of(1L, 2L))
-        .attributeIdsToAdd(List.of(5L, 6L, 7L))
-        .attributesToRemove(List.of(1L, 2L))
+        .attributeKeysToAdd(Set.of("key5", "key6", "key7"))
+        .attributeKeysToRemove(Set.of("key1", "key2"))
         .build();
 
     var violations = validator.validate(request);

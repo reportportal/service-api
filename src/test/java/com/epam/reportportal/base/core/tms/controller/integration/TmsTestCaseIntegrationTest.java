@@ -59,6 +59,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -1553,8 +1554,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesAddAndRemoveIntegrationTest() throws Exception {
     // Given - prepare test cases with initial attributes
     var testCaseIds = List.of(4L, 5L);
-    var attributesToRemove = List.of(4L); // Remove attribute 4
-    var attributeIdsToAdd = List.of(1L, 2L); // Add attributes 1 and 2
+    var attributeKeysToRemove = Set.of("test4"); // Remove attribute 4
+    var attributeKeysToAdd = Set.of("test1", "test2"); // Add attributes 1 and 2
 
     // Verify initial state - test case 4 has attribute 4
     var tagsBeforeTestCase4 = testCaseAttributeRepository.findAllById_TestCaseId(4L);
@@ -1563,8 +1564,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToRemove(attributeKeysToRemove)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1600,11 +1601,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesOnlyAddIntegrationTest() throws Exception {
     // Given - only add attributes, no removal
     var testCaseIds = List.of(6L, 7L);
-    var attributeIdsToAdd = List.of(3L, 4L);
+    var attributeKeysToAdd = Set.of("test3", "test4");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1635,7 +1636,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesOnlyRemoveIntegrationTest() throws Exception {
     // Given - only remove attributes, no addition
     var testCaseIds = List.of(9L);
-    var attributesToRemove = List.of(4L);
+    var attributeKeysToRemove = Set.of("test4");
 
     // Verify initial state
     var tagsBeforeTestCase9 = testCaseAttributeRepository.findAllById_TestCaseId(9L);
@@ -1644,7 +1645,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
+        .attributeKeysToRemove(attributeKeysToRemove)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1667,13 +1668,13 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesWithOverlapIntegrationTest() throws Exception {
     // Given - same attribute in both add and remove lists (should be ignored)
     var testCaseIds = List.of(10L);
-    var attributesToRemove = List.of(1L, 2L);
-    var attributeIdsToAdd = List.of(1L, 3L); // 1L is in both lists
+    var attributeKeysToRemove = Set.of("test1", "test2");
+    var attributeKeysToAdd = Set.of("test1", "test3"); // 1L is in both lists
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToRemove(attributeKeysToRemove)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1700,7 +1701,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // Given
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(Collections.emptyList())
-        .attributeIdsToAdd(List.of(1L))
+        .attributeKeysToAdd(Set.of("test1"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1720,7 +1721,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var nonExistentTestCaseIds = List.of(999L, 888L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(nonExistentTestCaseIds)
-        .attributeIdsToAdd(List.of(1L))
+        .attributeKeysToAdd(Set.of("test1"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1742,7 +1743,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var mixedTestCaseIds = List.of(4L, 999L); // 4L exists, 999L doesn't
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(mixedTestCaseIds)
-        .attributeIdsToAdd(List.of(1L))
+        .attributeKeysToAdd(Set.of("test1"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1763,8 +1764,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseIds = List.of(11L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(Collections.emptyList())
-        .attributeIdsToAdd(Collections.emptyList())
+        .attributeKeysToRemove(Collections.emptySet())
+        .attributeKeysToAdd(Collections.emptySet())
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1784,8 +1785,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseIds = List.of(12L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(null)
-        .attributeIdsToAdd(null)
+        .attributeKeysToRemove(null)
+        .attributeKeysToAdd(null)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1802,7 +1803,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void patchTestCaseAttributesWithMalformedJsonIntegrationTest() throws Exception {
     // Given - malformed JSON
-    String malformedJson = "{\"testCaseIds\": [4, 5], \"attributeIdsToAdd\": [1, 2";
+    String malformedJson = "{\"testCaseIds\": [4, 5], \"attributeKeysToAdd\": [\"test1\", \"test2\"";
 
     // When/Then - should return bad request
     mockMvc.perform(
@@ -1816,7 +1817,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void patchTestCaseAttributesWithNullTestCaseIdsIntegrationTest() throws Exception {
     // Given - null test case IDs
-    String jsonContent = "{\"testCaseIds\": null, \"attributeIdsToAdd\": [1, 2]}";
+    String jsonContent = "{\"testCaseIds\": null, \"attributeKeysToAdd\": [\"test1\", \"test2\"]}";
 
     // When/Then - should return validation error due to @NotEmpty
     mockMvc.perform(
@@ -1833,8 +1834,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseIds = List.of(13L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(null)
-        .attributeIdsToAdd(List.of(1L, 2L))
+        .attributeKeysToRemove(null)
+        .attributeKeysToAdd(Set.of("test1", "test2"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1867,8 +1868,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(List.of(2L))
-        .attributeIdsToAdd(null)
+        .attributeKeysToRemove(Set.of("test2"))
+        .attributeKeysToAdd(null)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1887,6 +1888,54 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var tagsAfterTestCase14 = testCaseAttributeRepository.findAllById_TestCaseId(14L);
     assertFalse(
         tagsAfterTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+  }
+
+  @Test
+  void patchTestCaseAttributes_ShouldCreateNonExistentAttributes() throws Exception {
+    // Given
+    var testCaseIds = List.of(4L);
+    var newKey = "new_unique_key";
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributeKeysToAdd(Set.of(newKey))
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then
+    var tagsAfter = testCaseAttributeRepository.findAllById_TestCaseId(4L);
+    assertTrue(tagsAfter.stream().anyMatch(tag -> tag.getAttribute().getKey().equals(newKey)));
+  }
+
+  @Test
+  void patchTestCaseAttributes_ShouldIgnoreNonExistentAttributesRemoval() throws Exception {
+    // Given
+    var testCaseIds = List.of(4L);
+    var nonExistentKey = "non_existent_key";
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributeKeysToRemove(Set.of(nonExistentKey))
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+    
+    // No error expected
   }
 
   @Test

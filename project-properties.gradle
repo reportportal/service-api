@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : '5.14.0')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.15.0' : 'EPMRPP-111517')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.15.1' : 'feature/upcoming')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [

@@ -31,6 +31,7 @@ import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.base.core.analyzer.config.AnalyzerType;
 import com.epam.reportportal.base.core.analyzer.strategy.LaunchAnalysisStrategy;
+import com.epam.reportportal.base.core.item.TestItemLastModifiedService;
 import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.UpdateLaunchHandler;
@@ -94,6 +95,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
+  private final TestItemLastModifiedService itemLastModifiedService;
+
   @Autowired
   public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, LaunchAccessValidator launchAccessValidator,
@@ -101,7 +104,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
       Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
       @Qualifier("uniqueErrorAnalysisStarterAsync")
       UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
-      LaunchAttributeHandlerService launchAttributeHandlerService) {
+      LaunchAttributeHandlerService launchAttributeHandlerService,
+      TestItemLastModifiedService itemLastModifiedService) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.launchAccessValidator = launchAccessValidator;
@@ -110,6 +114,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     this.logIndexer = logIndexer;
     this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
     this.launchAttributeHandlerService = launchAttributeHandlerService;
+    this.itemLastModifiedService = itemLastModifiedService;
   }
 
   @Override
@@ -129,6 +134,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
     if (!previousMode.equals(launch.getMode())) {
       reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
+      itemLastModifiedService.updateByLaunchId(launch.getId());
     }
     return new OperationCompletionRS(
         "Launch with ID = '" + launch.getId() + "' successfully updated.");
@@ -184,7 +190,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   @Override
   public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
       MembershipDetails membershipDetails) {
-    expect(getProjectHandler.exists(membershipDetails.getProjectId()), Predicate.isEqual(true)).verify(
+    expect(getProjectHandler.exists(membershipDetails.getProjectId()),
+        Predicate.isEqual(true)).verify(
         NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
@@ -247,7 +254,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         membershipDetails.getOrgRole())) {
       expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId()))
           .verify(ACCESS_DENIED);
-      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole()
+      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+          && membershipDetails.getProjectRole()
           .equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED);
       }

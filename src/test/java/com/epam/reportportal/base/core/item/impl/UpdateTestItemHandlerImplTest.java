@@ -39,6 +39,7 @@ import com.epam.reportportal.base.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.base.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.reportportal.base.core.item.ExternalTicketHandler;
 import com.epam.reportportal.base.core.item.TestItemService;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.item.impl.status.StatusChangingStrategy;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
@@ -113,6 +114,9 @@ class UpdateTestItemHandlerImplTest {
 
   @Mock
   private LogIndexerService logIndexerService;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
 
   @InjectMocks
   private UpdateTestItemHandlerImpl handler;
@@ -426,6 +430,7 @@ class UpdateTestItemHandlerImplTest {
 
     assertEquals(user.getUserId(), item.getAnalysisOwnerId());
     verify(itemRepository, times(1)).save(item);
+    verify(statisticsService, times(1)).changeDefectStatistics(any(), any(), any());
   }
 
   @Test

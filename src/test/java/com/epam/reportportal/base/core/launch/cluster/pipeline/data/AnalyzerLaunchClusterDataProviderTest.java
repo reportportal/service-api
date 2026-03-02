@@ -17,8 +17,6 @@
 package com.epam.reportportal.base.core.launch.cluster.pipeline.data;
 
 import static com.epam.reportportal.base.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -30,7 +28,6 @@ import com.epam.reportportal.base.core.analyzer.auto.client.model.cluster.Genera
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.reportportal.base.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -52,11 +49,8 @@ class AnalyzerLaunchClusterDataProviderTest {
     when(analyzerServiceClient.hasClients()).thenReturn(false);
 
     final GenerateClustersConfig config = getConfig(false);
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> provider.provide(config));
-    assertEquals(
-        "Impossible interact with integration. There are no analyzer services are deployed.",
-        exception.getMessage());
+    Optional<ClusterData> provide = provider.provide(config);
+    assertTrue(provide.isEmpty());
   }
 
   @Test

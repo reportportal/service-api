@@ -22,6 +22,7 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.TestItemService;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
@@ -55,9 +56,11 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       IssueTypeHandler issueTypeHandler, ApplicationEventPublisher eventPublisher,
       IssueEntityRepository issueEntityRepository, LogRepository logRepository,
-      LogIndexer logIndexer, TestItemRepository testItemRepository) {
+      LogIndexer logIndexer, TestItemRepository testItemRepository,
+      TestItemStatisticsService statisticsService) {
     super(testItemService, projectRepository, launchRepository, testItemRepository,
-        issueTypeHandler, eventPublisher, issueEntityRepository, logRepository, logIndexer
+        issueTypeHandler, eventPublisher, issueEntityRepository, logRepository, logIndexer,
+        statisticsService
     );
   }
 

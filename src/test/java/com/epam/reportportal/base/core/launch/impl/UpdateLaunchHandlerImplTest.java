@@ -29,6 +29,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
+import com.epam.reportportal.base.core.item.TestItemLastModifiedService;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
@@ -87,6 +89,12 @@ class UpdateLaunchHandlerImplTest {
 
   @Mock
   private LogIndexer logIndexer;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
+
+  @Mock
+  private TestItemLastModifiedService testItemLastModifiedService;
 
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;

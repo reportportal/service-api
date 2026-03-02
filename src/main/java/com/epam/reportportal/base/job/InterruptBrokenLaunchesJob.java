@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
 import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -33,23 +34,25 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Finds jobs witn duration more than defined and finishes them with interrupted {@link StatusEnum#INTERRUPTED} status
+ * Finds jobs wth duration more than defined and finishes them with interrupted
+ * {@link StatusEnum#INTERRUPTED} status
  *
  * @author Andrei Varabyeu
  */
 @Service
+@RequiredArgsConstructor
 public class InterruptBrokenLaunchesJob implements Job {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InterruptBrokenLaunchesJob.class);
@@ -64,17 +67,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 
   private final ProjectRepository projectRepository;
 
-  @Autowired
-  public InterruptBrokenLaunchesJob(ApplicationEventPublisher eventPublisher,
-      LaunchRepository launchRepository, TestItemRepository testItemRepository,
-      LogRepository logRepository,
-      ProjectRepository projectRepository) {
-    this.eventPublisher = eventPublisher;
-    this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
-    this.logRepository = logRepository;
-    this.projectRepository = projectRepository;
-  }
+  private final TestItemStatisticsService statisticsService;
 
   @Override
   @Transactional
@@ -158,6 +151,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 
   private void interruptItems(Long launchId, Long orgId) {
     testItemRepository.interruptInProgressItems(launchId);
+    statisticsService.addInterruptionStatistics(launchId);
     interruptLaunch(launchId, orgId);
   }
 }

@@ -36,3 +36,7 @@ VALUES (2, 'launches duration', null, 'launchesDurationChart', 20, '{"options": 
 insert into widget_filter(widget_id, filter_id)
 values (2, 1),
        (3, 4);
+
+-- Statistics (launches 1 and 2 only, no test items - total=0)
+INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 1);
+INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 2);

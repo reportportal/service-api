@@ -23,6 +23,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.launch.StopLaunchHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -38,7 +39,7 @@ import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.ws.converter.builders.LaunchBuilder;
 import java.time.Instant;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
   private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
@@ -55,14 +57,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
   private final LaunchRepository launchRepository;
   private final TestItemRepository testItemRepository;
   private final ApplicationEventPublisher eventPublisher;
-
-  @Autowired
-  public StopLaunchHandlerImpl(LaunchRepository launchRepository,
-      TestItemRepository testItemRepository, ApplicationEventPublisher eventPublisher) {
-    this.launchRepository = launchRepository;
-    this.testItemRepository = testItemRepository;
-    this.eventPublisher = eventPublisher;
-  }
+  private final TestItemStatisticsService statisticsService;
 
   @Override
   public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
@@ -83,6 +78,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
     launchRepository.save(launch);
     testItemRepository.interruptInProgressItems(launch.getId());
+    statisticsService.addInterruptionStatistics(launch.getId());
 
     eventPublisher.publishEvent(
         new LaunchFinishedEvent(launch, user.getUserId(), user.getUsername(), baseUrl,

@@ -85,3 +85,11 @@ values (2, 'statistics$executions$total'),
 
 insert into widget_filter(widget_id, filter_id)
 values (2, 1);
+
+-- Statistics (only launch 1 with items 1-5)
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 1), (1, 2, 1);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 2), (1, 4, 2), (1, 5, 2), (1, 6, 2);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 3), (1, 4, 3), (1, 7, 3), (1, 8, 3);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 4), (1, 2, 4);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 5), (1, 4, 5), (1, 11, 5), (1, 12, 5);
+INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);

@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.hierarchy.impl;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.FAILED;
 
 import com.epam.reportportal.base.core.hierarchy.AbstractFinishHierarchyHandler;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
@@ -45,14 +46,16 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
       TestItemRepository testItemRepository,
       ItemAttributeRepository itemAttributeRepository, RetryHandler retryHandler,
       IssueTypeHandler issueTypeHandler,
-      IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler) {
+      IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
+      TestItemStatisticsService testItemStatisticsService) {
     super(launchRepository,
         testItemRepository,
         itemAttributeRepository,
         issueEntityRepository,
         retryHandler,
         issueTypeHandler,
-        changeStatusHandler
+        changeStatusHandler,
+        testItemStatisticsService
     );
   }
 

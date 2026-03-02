@@ -11,7 +11,6 @@ jobs:
     # TODO: Pin reusable workflow to a version tag once v1 is released
     uses: reportportal/.github/.github/workflows/dockerhub-release.yaml@main
     secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       REGESTRY_USERNAME: ${{ secrets.REGESTRY_USERNAME }}
       REGESTRY_PASSWORD: ${{ secrets.REGESTRY_PASSWORD }}
     with:

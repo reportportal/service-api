@@ -42,8 +42,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Handler for patch operations related to organization users.
- * Extends {@link BasePatchOrganizationHandler} to provide user-specific patch logic.
+ * Handler for patch operations related to organization users. Extends {@link BasePatchOrganizationHandler} to provide
+ * user-specific patch logic.
  */
 @Service
 @Slf4j
@@ -116,21 +116,29 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
           new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required"));
 
       var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(userId, org.getId());
-      if (orgUser.isPresent()
-          && orgUser.get().getOrganizationRole().equals(OrganizationRole.valueOf(role.toString()))) {
-        log.info("User with ID {} already has role {} in organization with ID {}, skipping assignment",
+      if (orgUser.isPresent()) {
+        var orgRole = OrganizationRole.valueOf(role.toString());
+        if (orgUser.get().getOrganizationRole().equals(orgRole)) {
+          log.info("User with ID {} already has role {} in organization with ID {}, skipping assignment",
+              userId, role, org.getId());
+          return;
+        }
+        orgUser.get().setOrganizationRole(orgRole);
+        organizationUserRepository.save(orgUser.get());
+        log.info("User with ID {} has been updated with new role {} in organization with ID {}",
             userId, role, org.getId());
+        applicationEventPublisher.publishEvent(
+            new AssignUserEvent(
+                UserConverter.TO_ACTIVITY_RESOURCE.apply(orgUser.get().getUser(), null),
+                principal.getUserId(), principal.getUsername(), org.getId()
+            ));
         return;
       }
-
       var user = userRepository.findById(userId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
-
       organizationUserService.saveOrganizationUser(org, user, role.toString());
-
       log.info("User with ID {} has been assigned to the organization {} with role {}",
           user.getId(), orgId, role);
-
       applicationEventPublisher.publishEvent(
           new AssignUserEvent(
               UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),

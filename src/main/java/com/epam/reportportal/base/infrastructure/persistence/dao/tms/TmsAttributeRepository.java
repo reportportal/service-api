@@ -47,10 +47,15 @@ public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttrib
       @Param("projectId") Long projectId,
       @Param("search") String search);
 
-  @Query("SELECT DISTINCT a FROM TmsAttribute a "
-      + "JOIN TmsTestCaseAttribute tca ON tca.attribute.id = a.id "
-      + "WHERE tca.testCase.id IN :testCaseIds "
-      + "AND a.project.id = :projectId")
+  @Query(
+      "SELECT a FROM TmsAttribute a "
+          + "WHERE a.project.id = :projectId "
+          + "AND a.id IN ("
+          +   "SELECT tca.attribute.id FROM TmsTestCaseAttribute tca "
+          +   "WHERE tca.testCase.id IN :testCaseIds "
+          +   "GROUP BY tca.attribute.id "
+          +   "HAVING COUNT(DISTINCT tca.testCase.id) = :#{#testCaseIds.size()}"
+          + ")")
   Page<TmsAttribute> findDistinctByTestCaseIdsAndProjectId(
       @Param("projectId") Long projectId,
       @Param("testCaseIds") List<Long> testCaseIds,

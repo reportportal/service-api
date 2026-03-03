@@ -49,8 +49,8 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(4))
-        .andExpect(jsonPath("$.page.totalElements").value(4));
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
   }
 
   @Test
@@ -67,8 +67,8 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(3))
-        .andExpect(jsonPath("$.page.totalElements").value(3));
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.page.totalElements").value(2));
   }
 
   @Test
@@ -138,8 +138,8 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(6))
-        .andExpect(jsonPath("$.page.totalElements").value(6));
+        .andExpect(jsonPath("$.content.length()").value(0))
+        .andExpect(jsonPath("$.page.totalElements").value(0));
   }
 
   @Test
@@ -176,8 +176,8 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(2))
-        .andExpect(jsonPath("$.page.totalElements").value(6))
+        .andExpect(jsonPath("$.content.length()").value(0))
+        .andExpect(jsonPath("$.page.totalElements").value(0))
         .andExpect(jsonPath("$.page.size").value(2))
         .andExpect(jsonPath("$.page.number").value(1));
   }
@@ -255,8 +255,8 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(2))
-        .andExpect(jsonPath("$.page.totalElements").value(2));
+        .andExpect(jsonPath("$.content.length()").value(0))
+        .andExpect(jsonPath("$.page.totalElements").value(0));
   }
 
   @Test
@@ -272,7 +272,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(2))
-        .andExpect(jsonPath("$.page.totalElements").value(2));
+        .andExpect(jsonPath("$.content.length()").value(0))
+        .andExpect(jsonPath("$.page.totalElements").value(0));
   }
 }

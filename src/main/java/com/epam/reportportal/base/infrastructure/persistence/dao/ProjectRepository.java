@@ -51,6 +51,10 @@ public interface ProjectRepository extends ReportPortalRepository<Project, Long>
   List<Project> findUserProjects(@Param("login") String login,
       @Param("projectType") String projectType);
 
+
+  @Query(value = "SELECT p.name from project p WHERE id = :projectId", nativeQuery = true)
+  String getProjectName(@Param("projectId") Long projectId);
+
   @Modifying
   @Query(value = "UPDATE project SET name = :projectName WHERE id = :projectId", nativeQuery = true)
   void updateProjectName(@Param("projectName") String projectName, @Param("projectId") Long projectId);

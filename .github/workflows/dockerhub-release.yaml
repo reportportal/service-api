@@ -11,13 +11,13 @@ jobs:
     # TODO: Pin reusable workflow to a version tag once v1 is released
     uses: reportportal/.github/.github/workflows/dockerhub-release.yaml@main
     secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       REGESTRY_USERNAME: ${{ secrets.REGESTRY_USERNAME }}
       REGESTRY_PASSWORD: ${{ secrets.REGESTRY_PASSWORD }}
     with:
       aws-region: ${{ vars.AWS_REGION }}
-      aws-role-arn: ${{ vars.AWS_ROLE_ARN }}
-      ecr-repository: service-api
-      target-registry: docker.io
-      target-repository: reportportal/service-api
-      platforms: linux/amd64
+      ecr-repository: ${{ vars.ECR_REPOSITORY || 'service-api' }}
+      target-registry: ${{ vars.TARGET_REGISTRY || 'docker.io' }}
+      target-repository: ${{ vars.TARGET_REPOSITORY || 'reportportal/service-api' }}
+      platforms: ${{ vars.BUILD_PLATFORMS || 'linux/amd64,linux/arm64' }}
       release-mode: rc

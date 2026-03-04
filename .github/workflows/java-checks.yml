@@ -20,6 +20,9 @@ jobs:
   call-release-java-checks:
     if: ${{ github.event_name == 'pull_request' && github.base_ref == 'refs/heads/master' }}
     name: Call Release Java Checks
+    permissions:
+      contents: read
+      checks: write
     uses: reportportal/.github/.github/workflows/java-checks.yaml@8aa8cd32982dc04c87ae68f52225592dda42e644
     with:
       release-mode: true

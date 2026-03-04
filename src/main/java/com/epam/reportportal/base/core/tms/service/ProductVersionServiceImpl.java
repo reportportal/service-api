@@ -24,8 +24,7 @@ public class ProductVersionServiceImpl implements ProductVersionService {
   @Override
   @Transactional
   public TmsProductVersionRS create(long projectId, final ProductVersionRQ inputDto) {
-    final var productVersion = new TmsProductVersion(null,
-        inputDto.version(), inputDto.documentation(), projectId);
+    final var productVersion = new TmsProductVersion(null, inputDto.version(), inputDto.documentation(), projectId);
     return productVersionMapper.convert(productVersionRepository.save(productVersion));
   }
 

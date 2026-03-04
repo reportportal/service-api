@@ -23,10 +23,12 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.user.UserResource;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
@@ -114,4 +116,18 @@ public interface GetUserHandler {
   void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable);
 
   Page<UserResource> searchUsers(String term, Pageable pageable);
+
+  /**
+   * Get users map by user IDs
+   * @param userIds list of user IDs
+   * @return map where key is user ID and value is User entity
+   */
+  Map<Long, User> getUserMap(List<Long> userIds);
+
+  /**
+   * Get user by ID
+   * @param userId user ID
+   * @return user entity or null if not found
+   */
+  User getUserById(Long userId);
 }

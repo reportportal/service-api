@@ -22,8 +22,8 @@ public interface TmsManualScenarioPreconditionRepository
   void deleteAllByTestCaseId(@Param("testCaseId") Long testCaseId);
 
   /**
-   * Deletes all preconditions associated with the specified test case IDs. * * @param testCaseIds the list of test case
-   * IDs
+   * Deletes all preconditions associated with the specified test case IDs. * * @param testCaseIds
+   * the list of test case IDs
    */
   @Modifying
   @Query("DELETE FROM TmsManualScenarioPreconditions msp WHERE msp.manualScenario.id IN ("

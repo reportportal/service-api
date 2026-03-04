@@ -14,6 +14,4 @@ import lombok.NoArgsConstructor;
 public class TmsTestCaseExecutionRQ {
 
   private String status;
-
-  private TmsTestCaseExecutionCommentRQ executionComment;
 }

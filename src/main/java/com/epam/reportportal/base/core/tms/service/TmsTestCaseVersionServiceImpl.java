@@ -17,10 +17,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service implementation for managing TMS Test Case Versions.
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService {
@@ -34,13 +39,13 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
 
   @Override
   @Transactional
-  public TmsTestCaseVersion createDefaultTestCaseVersion(TmsTestCase tmsTestCase,
+  public TmsTestCaseVersion createDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ) {
     var defaultTestCaseVersion = tmsTestCaseVersionMapper.createDefaultTestCaseVersion();
 
     if (Objects.nonNull(tmsManualScenarioRQ)) {
       var tmsManualScenario = tmsManualScenarioService
-          .createTmsManualScenario(defaultTestCaseVersion, tmsManualScenarioRQ);
+          .createTmsManualScenario(projectId, defaultTestCaseVersion, tmsManualScenarioRQ);
 
       defaultTestCaseVersion.setManualScenario(tmsManualScenario);
 
@@ -55,7 +60,7 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
 
   @Override
   @Transactional
-  public TmsTestCaseVersion updateDefaultTestCaseVersion(TmsTestCase tmsTestCase,
+  public TmsTestCaseVersion updateDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ) {
     return tmsTestCaseVersionRepository
         .findDefaultVersionByTestCaseId(tmsTestCase.getId())
@@ -63,7 +68,8 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
             existingDefaultVersion -> {
               if (Objects.nonNull(tmsManualScenarioRQ)) {
                 var updatedManualScenario = tmsManualScenarioService
-                    .updateTmsManualScenario(existingDefaultVersion, tmsManualScenarioRQ);
+                    .updateTmsManualScenario(projectId, existingDefaultVersion,
+                        tmsManualScenarioRQ);
 
                 existingDefaultVersion.setManualScenario(updatedManualScenario);
 
@@ -71,19 +77,19 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
               }
               return existingDefaultVersion;
             })
-        .orElseGet(() -> createDefaultTestCaseVersion(tmsTestCase, tmsManualScenarioRQ));
+        .orElseGet(() -> createDefaultTestCaseVersion(projectId, tmsTestCase, tmsManualScenarioRQ));
   }
 
   @Override
   @Transactional
-  public TmsTestCaseVersion patchDefaultTestCaseVersion(TmsTestCase tmsTestCase,
+  public TmsTestCaseVersion patchDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ) {
     var existingDefaultVersion = getDefaultVersion(tmsTestCase.getId());
     if (Objects.isNull(tmsManualScenarioRQ)) {
       return existingDefaultVersion;
     }
     var patchedManualScenario = tmsManualScenarioService
-        .patchTmsManualScenario(existingDefaultVersion, tmsManualScenarioRQ);
+        .patchTmsManualScenario(projectId, existingDefaultVersion, tmsManualScenarioRQ);
 
     existingDefaultVersion.setManualScenario(patchedManualScenario);
 
@@ -156,5 +162,20 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
     newTestCase.setVersions(Collections.singleton(duplicatedVersion));
 
     return duplicatedVersion;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<TmsTestCaseVersion> findDefaultByTestCaseId(Long testCaseId) {
+    log.debug("Finding default version for test case: {}", testCaseId);
+    return tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<Long> findDefaultVersionIdByTestCaseId(Long testCaseId) {
+    log.debug("Finding default version ID for test case: {}", testCaseId);
+    return tmsTestCaseVersionRepository.findDefaultVersionByTestCaseId(testCaseId)
+        .map(TmsTestCaseVersion::getId);
   }
 }

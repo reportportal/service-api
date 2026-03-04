@@ -11,9 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Scheduled job for cleaning up expired TMS attachments. * * This job runs periodically to remove TMS attachments that
- * have exceeded their TTL * and are not permanently associated with test cases. It helps maintain storage * efficiency
- * by removing temporary files that users uploaded but never used.
+ * Scheduled job for cleaning up expired TMS attachments. * * This job runs periodically to remove
+ * TMS attachments that have exceeded their TTL * and are not permanently associated with test
+ * cases. It helps maintain storage * efficiency by removing temporary files that users uploaded but
+ * never used.
  */
 @Service
 public class TmsAttachmentCleanupJob implements Job {

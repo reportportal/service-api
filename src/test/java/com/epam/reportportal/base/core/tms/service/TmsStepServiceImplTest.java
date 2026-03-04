@@ -7,13 +7,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.mapper.TmsStepMapper;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepRepository;
+import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsStepMapper;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -80,6 +80,10 @@ class TmsStepServiceImplTest {
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
 
+    // Verify that numbers are set correctly
+    assertThat(step1.getNumber()).isEqualTo(0);
+    assertThat(step2.getNumber()).isEqualTo(1);
+
     // Verify that manual scenario's steps set is initialized and contains created steps
     assertThat(stepsManualScenario.getSteps()).isNotNull();
     assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
@@ -110,6 +114,10 @@ class TmsStepServiceImplTest {
     verify(tmsStepRepository).save(step2);
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
+
+    // Verify that numbers are set correctly
+    assertThat(step1.getNumber()).isEqualTo(0);
+    assertThat(step2.getNumber()).isEqualTo(1);
 
     // Verify that manual scenario's steps set is initialized and contains created steps
     assertThat(stepsManualScenario.getSteps()).isNotNull();
@@ -175,6 +183,9 @@ class TmsStepServiceImplTest {
     verify(tmsStepRepository).save(singleStep);
     verify(tmsStepAttachmentService).createAttachments(singleStep, singleStepRQ);
 
+    // Verify that number is set correctly
+    assertThat(singleStep.getNumber()).isEqualTo(0);
+
     assertThat(stepsManualScenario.getSteps()).containsExactly(singleStep);
     assertThat(singleStep.getStepsManualScenario()).isEqualTo(stepsManualScenario);
   }
@@ -205,6 +216,10 @@ class TmsStepServiceImplTest {
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
 
+    // Verify that numbers are set correctly
+    assertThat(step1.getNumber()).isEqualTo(0);
+    assertThat(step2.getNumber()).isEqualTo(1);
+
     assertThat(stepsManualScenario.getSteps()).isNotEqualTo(existingSteps);
     assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
   }
@@ -234,13 +249,17 @@ class TmsStepServiceImplTest {
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
 
+    // Verify that numbers are set correctly
+    assertThat(step1.getNumber()).isEqualTo(0);
+    assertThat(step2.getNumber()).isEqualTo(1);
+
     assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
   }
 
   @Test
   void shouldPatchSteps() {
     // Given
-    var existingSteps = createExistingSteps();
+    var existingSteps = createExistingStepsWithNumbers();
     stepsManualScenario.setSteps(existingSteps);
 
     var stepRQList = stepsScenarioRQ.getSteps();
@@ -259,6 +278,11 @@ class TmsStepServiceImplTest {
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
     verify(tmsStepRepository).saveAll(steps);
+
+    // Verify that numbers are set correctly (continuing from max existing number)
+    // existingSteps have numbers 0 and 1, so new steps should start from 2
+    assertThat(step1.getNumber()).isEqualTo(2);
+    assertThat(step2.getNumber()).isEqualTo(3);
 
     // Verify existing steps are still there and new ones are added
     var allSteps = new HashSet<>(existingSteps);
@@ -291,6 +315,47 @@ class TmsStepServiceImplTest {
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
     verify(tmsStepRepository).saveAll(steps);
+
+    // Verify that numbers are set correctly (starting from 0 when no existing steps)
+    assertThat(step1.getNumber()).isEqualTo(0);
+    assertThat(step2.getNumber()).isEqualTo(1);
+
+    // Verify that steps set was initialized
+    assertThat(stepsManualScenario.getSteps()).isNotNull();
+    assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
+
+    for (var step : steps) {
+      assertThat(step.getStepsManualScenario()).isEqualTo(stepsManualScenario);
+    }
+  }
+
+  @Test
+  void shouldPatchStepsWhenExistingStepsIsEmpty() {
+    // Given
+    stepsManualScenario.setSteps(new HashSet<>());
+
+    var stepRQList = stepsScenarioRQ.getSteps();
+    var step1 = steps.stream().findFirst().orElseThrow();
+    var step2 = steps.stream().skip(1).findFirst().orElseThrow();
+
+    when(tmsStepMapper.convertToTmsStep(stepRQList.get(0))).thenReturn(step1);
+    when(tmsStepMapper.convertToTmsStep(stepRQList.get(1))).thenReturn(step2);
+
+    // When
+    tmsStepService.patchSteps(stepsManualScenario, stepsScenarioRQ);
+
+    // Then
+    verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
+    verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
+    verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
+    verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
+    verify(tmsStepRepository).saveAll(steps);
+
+    // Verify that numbers are set correctly (starting from 0 when existing steps is empty)
+    assertThat(step1.getNumber()).isEqualTo(0);
+    assertThat(step2.getNumber()).isEqualTo(1);
+
+    assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
 
     for (var step : steps) {
       assertThat(step.getStepsManualScenario()).isEqualTo(stepsManualScenario);
@@ -423,6 +488,18 @@ class TmsStepServiceImplTest {
     originalStepsWithAttachments.forEach(
         originalStep -> verify(tmsStepAttachmentService).duplicateAttachments(eq(originalStep),
             any()));
+
+    // Verify that numbers are preserved
+    var sortedOriginal = originalStepsList.stream()
+        .sorted((s1, s2) -> Integer.compare(s1.getNumber(), s2.getNumber()))
+        .toList();
+    var sortedDuplicated = duplicatedStepsList.stream()
+        .sorted((s1, s2) -> Integer.compare(s1.getNumber(), s2.getNumber()))
+        .toList();
+
+    for (var i = 0; i < sortedOriginal.size(); i++) {
+      assertThat(sortedDuplicated.get(i).getNumber()).isEqualTo(sortedOriginal.get(i).getNumber());
+    }
   }
 
   @Test
@@ -453,6 +530,18 @@ class TmsStepServiceImplTest {
 
     // Verify that duplicateAttachments was NOT called for steps without attachments
     verify(tmsStepAttachmentService, never()).duplicateAttachments(any(), any());
+
+    // Verify that numbers are preserved
+    var sortedOriginal = originalStepsList.stream()
+        .sorted((s1, s2) -> Integer.compare(s1.getNumber(), s2.getNumber()))
+        .toList();
+    var sortedDuplicated = duplicatedStepsList.stream()
+        .sorted((s1, s2) -> Integer.compare(s1.getNumber(), s2.getNumber()))
+        .toList();
+
+    for (var i = 0; i < sortedOriginal.size(); i++) {
+      assertThat(sortedDuplicated.get(i).getNumber()).isEqualTo(sortedOriginal.get(i).getNumber());
+    }
   }
 
   @Test
@@ -499,6 +588,9 @@ class TmsStepServiceImplTest {
     verify(tmsStepAttachmentService).duplicateAttachments(singleOriginalStep, singleDuplicatedStep);
     verify(tmsStepRepository).saveAll(singleDuplicatedStepSet);
     assertThat(newStepsScenario.getSteps()).isEqualTo(singleDuplicatedStepSet);
+
+    // Verify that number is preserved
+    assertThat(singleDuplicatedStep.getNumber()).isEqualTo(singleOriginalStep.getNumber());
   }
 
   @Test
@@ -520,6 +612,45 @@ class TmsStepServiceImplTest {
     verify(tmsStepAttachmentService, never()).duplicateAttachments(any(), any());
     verify(tmsStepRepository).saveAll(singleDuplicatedStepSet);
     assertThat(newStepsScenario.getSteps()).isEqualTo(singleDuplicatedStepSet);
+
+    // Verify that number is preserved
+    assertThat(singleDuplicatedStep.getNumber()).isEqualTo(singleOriginalStep.getNumber());
+  }
+
+  @Test
+  void shouldDuplicateStepsInCorrectOrder() {
+    // Given - steps in unsorted order
+    var originalSteps = createOriginalStepsUnsorted();
+    var duplicatedSteps = createDuplicatedStepsForUnsorted();
+
+    var originalStepsList = List.copyOf(originalSteps);
+
+    // Setup mocks for each step
+    when(tmsStepMapper.duplicateStep(originalStepsList.get(0), newStepsScenario))
+        .thenReturn(duplicatedSteps.get(0));
+    when(tmsStepMapper.duplicateStep(originalStepsList.get(1), newStepsScenario))
+        .thenReturn(duplicatedSteps.get(1));
+    when(tmsStepMapper.duplicateStep(originalStepsList.get(2), newStepsScenario))
+        .thenReturn(duplicatedSteps.get(2));
+
+    // When
+    tmsStepService.duplicateSteps(originalSteps, newStepsScenario);
+
+    // Then
+    verify(tmsStepRepository).saveAll(any());
+
+    // Verify that steps were processed in sorted order by number
+    var inOrder = org.mockito.Mockito.inOrder(tmsStepMapper);
+    // Steps should be processed in order 0, 1, 2 regardless of input order
+    inOrder.verify(tmsStepMapper).duplicateStep(
+        originalStepsList.stream().filter(s -> s.getNumber() == 0).findFirst().orElseThrow(),
+        newStepsScenario);
+    inOrder.verify(tmsStepMapper).duplicateStep(
+        originalStepsList.stream().filter(s -> s.getNumber() == 1).findFirst().orElseThrow(),
+        newStepsScenario);
+    inOrder.verify(tmsStepMapper).duplicateStep(
+        originalStepsList.stream().filter(s -> s.getNumber() == 2).findFirst().orElseThrow(),
+        newStepsScenario);
   }
 
   // Helper methods
@@ -577,14 +708,32 @@ class TmsStepServiceImplTest {
     return new HashSet<>(Collections.singletonList(step));
   }
 
+  private Set<TmsStep> createExistingStepsWithNumbers() {
+    var step1 = new TmsStep();
+    step1.setId(97L);
+    step1.setNumber(0);
+    step1.setInstructions("Existing step 1 instructions");
+    step1.setExpectedResult("Existing step 1 result");
+
+    var step2 = new TmsStep();
+    step2.setId(98L);
+    step2.setNumber(1);
+    step2.setInstructions("Existing step 2 instructions");
+    step2.setExpectedResult("Existing step 2 result");
+
+    return new HashSet<>(Arrays.asList(step1, step2));
+  }
+
   private Collection<TmsStep> createOriginalSteps() {
     var step1 = new TmsStep();
     step1.setId(10L);
+    step1.setNumber(0);
     step1.setInstructions("Original step 1 instructions");
     step1.setExpectedResult("Original step 1 expected result");
 
     var step2 = new TmsStep();
     step2.setId(11L);
+    step2.setNumber(1);
     step2.setInstructions("Original step 2 instructions");
     step2.setExpectedResult("Original step 2 expected result");
 
@@ -594,11 +743,13 @@ class TmsStepServiceImplTest {
   private Set<TmsStep> createDuplicatedSteps() {
     var step1 = new TmsStep();
     step1.setId(20L);
+    step1.setNumber(0);
     step1.setInstructions("Duplicated step 1 instructions");
     step1.setExpectedResult("Duplicated step 1 expected result");
 
     var step2 = new TmsStep();
     step2.setId(21L);
+    step2.setNumber(1);
     step2.setInstructions("Duplicated step 2 instructions");
     step2.setExpectedResult("Duplicated step 2 expected result");
 
@@ -608,12 +759,14 @@ class TmsStepServiceImplTest {
   private Collection<TmsStep> createOriginalStepsWithAttachments() {
     var step1 = new TmsStep();
     step1.setId(10L);
+    step1.setNumber(0);
     step1.setInstructions("Original step 1 instructions");
     step1.setExpectedResult("Original step 1 expected result");
     step1.setAttachments(Set.of(createAttachment(1L), createAttachment(2L)));
 
     var step2 = new TmsStep();
     step2.setId(11L);
+    step2.setNumber(1);
     step2.setInstructions("Original step 2 instructions");
     step2.setExpectedResult("Original step 2 expected result");
     step2.setAttachments(Set.of(createAttachment(3L)));
@@ -624,12 +777,14 @@ class TmsStepServiceImplTest {
   private Set<TmsStep> createDuplicatedStepsWithAttachments() {
     var step1 = new TmsStep();
     step1.setId(20L);
+    step1.setNumber(0);
     step1.setInstructions("Duplicated step 1 instructions");
     step1.setExpectedResult("Duplicated step 1 expected result");
     step1.setAttachments(Set.of(createAttachment(4L), createAttachment(5L)));
 
     var step2 = new TmsStep();
     step2.setId(21L);
+    step2.setNumber(1);
     step2.setInstructions("Duplicated step 2 instructions");
     step2.setExpectedResult("Duplicated step 2 expected result");
     step2.setAttachments(Set.of(createAttachment(6L)));
@@ -640,12 +795,14 @@ class TmsStepServiceImplTest {
   private Collection<TmsStep> createOriginalStepsWithoutAttachments() {
     var step1 = new TmsStep();
     step1.setId(10L);
+    step1.setNumber(0);
     step1.setInstructions("Original step 1 instructions");
     step1.setExpectedResult("Original step 1 expected result");
     step1.setAttachments(Collections.emptySet());
 
     var step2 = new TmsStep();
     step2.setId(11L);
+    step2.setNumber(1);
     step2.setInstructions("Original step 2 instructions");
     step2.setExpectedResult("Original step 2 expected result");
     step2.setAttachments(null);
@@ -656,12 +813,14 @@ class TmsStepServiceImplTest {
   private Set<TmsStep> createDuplicatedStepsWithoutAttachments() {
     var step1 = new TmsStep();
     step1.setId(20L);
+    step1.setNumber(0);
     step1.setInstructions("Duplicated step 1 instructions");
     step1.setExpectedResult("Duplicated step 1 expected result");
     step1.setAttachments(Collections.emptySet());
 
     var step2 = new TmsStep();
     step2.setId(21L);
+    step2.setNumber(1);
     step2.setInstructions("Duplicated step 2 instructions");
     step2.setExpectedResult("Duplicated step 2 expected result");
     step2.setAttachments(null);
@@ -672,6 +831,7 @@ class TmsStepServiceImplTest {
   private TmsStep createSingleOriginalStepWithAttachments() {
     var step = new TmsStep();
     step.setId(30L);
+    step.setNumber(0);
     step.setInstructions("Single original step instructions");
     step.setExpectedResult("Single original step expected result");
     step.setAttachments(Set.of(createAttachment(7L)));
@@ -681,6 +841,7 @@ class TmsStepServiceImplTest {
   private TmsStep createSingleDuplicatedStepWithAttachments() {
     var step = new TmsStep();
     step.setId(31L);
+    step.setNumber(0);
     step.setInstructions("Single duplicated step instructions");
     step.setExpectedResult("Single duplicated step expected result");
     step.setAttachments(Set.of(createAttachment(8L)));
@@ -690,6 +851,7 @@ class TmsStepServiceImplTest {
   private TmsStep createSingleOriginalStepWithoutAttachments() {
     var step = new TmsStep();
     step.setId(32L);
+    step.setNumber(0);
     step.setInstructions("Single original step instructions");
     step.setExpectedResult("Single original step expected result");
     step.setAttachments(Collections.emptySet());
@@ -699,16 +861,66 @@ class TmsStepServiceImplTest {
   private TmsStep createSingleDuplicatedStepWithoutAttachments() {
     var step = new TmsStep();
     step.setId(33L);
+    step.setNumber(0);
     step.setInstructions("Single duplicated step instructions");
     step.setExpectedResult("Single duplicated step expected result");
     step.setAttachments(Collections.emptySet());
     return step;
   }
 
+  private Collection<TmsStep> createOriginalStepsUnsorted() {
+    var step1 = new TmsStep();
+    step1.setId(40L);
+    step1.setNumber(2);
+    step1.setInstructions("Original step with number 2");
+    step1.setExpectedResult("Result 2");
+    step1.setAttachments(Collections.emptySet());
+
+    var step2 = new TmsStep();
+    step2.setId(41L);
+    step2.setNumber(0);
+    step2.setInstructions("Original step with number 0");
+    step2.setExpectedResult("Result 0");
+    step2.setAttachments(Collections.emptySet());
+
+    var step3 = new TmsStep();
+    step3.setId(42L);
+    step3.setNumber(1);
+    step3.setInstructions("Original step with number 1");
+    step3.setExpectedResult("Result 1");
+    step3.setAttachments(Collections.emptySet());
+
+    return Arrays.asList(step1, step2, step3);
+  }
+
+  private List<TmsStep> createDuplicatedStepsForUnsorted() {
+    var step1 = new TmsStep();
+    step1.setId(50L);
+    step1.setNumber(2);
+    step1.setInstructions("Duplicated step with number 2");
+    step1.setExpectedResult("Result 2");
+    step1.setAttachments(Collections.emptySet());
+
+    var step2 = new TmsStep();
+    step2.setId(51L);
+    step2.setNumber(0);
+    step2.setInstructions("Duplicated step with number 0");
+    step2.setExpectedResult("Result 0");
+    step2.setAttachments(Collections.emptySet());
+
+    var step3 = new TmsStep();
+    step3.setId(52L);
+    step3.setNumber(1);
+    step3.setInstructions("Duplicated step with number 1");
+    step3.setExpectedResult("Result 1");
+    step3.setAttachments(Collections.emptySet());
+
+    return Arrays.asList(step1, step2, step3);
+  }
+
   private TmsAttachment createAttachment(Long id) {
     var attachment = new TmsAttachment();
     attachment.setId(id);
-    // Set other properties as needed for your attachment entity
     return attachment;
   }
 }

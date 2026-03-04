@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.dto.batch;
 
+import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.validation.ValidBatchPatchTestCasesRQ;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotEmpty;
@@ -11,8 +12,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for batch patch operations on test cases. Contains information about what fields should be updated for
- * the selected test cases.
+ * Request DTO for batch patch operations on test cases. Contains information about what fields
+ * should be updated for the selected test cases.
  */
 @Data
 @Builder
@@ -27,6 +28,8 @@ public class BatchPatchTestCasesRQ {
   private List<Long> testCaseIds;
 
   private Long testFolderId;
+
+  private NewTestFolderRQ testFolder;
 
   private String priority;
 }

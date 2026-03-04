@@ -16,5 +16,7 @@ public class TmsTestCaseExecutionCommentRQ {
 
   private String comment;
 
+  private TmsTestCaseExecutionCommentBtsTicketRQ btsTicket;
+
   private List<TmsTestCaseExecutionCommentAttachmentRQ> attachments;
 }

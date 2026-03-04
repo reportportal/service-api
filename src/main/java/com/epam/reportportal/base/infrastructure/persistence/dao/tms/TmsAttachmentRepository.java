@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository interface for managing TMS attachments. Now works with Many-to-Many relationships through junction
- * tables.
+ * Repository interface for managing TMS attachments. Now works with Many-to-Many relationships
+ * through junction tables.
  */
 @Repository
 public interface TmsAttachmentRepository extends ReportPortalRepository<TmsAttachment, Long> {
@@ -23,8 +23,8 @@ public interface TmsAttachmentRepository extends ReportPortalRepository<TmsAttac
   List<TmsAttachment> findExpiredAttachments(@Param("currentTime") Instant currentTime);
 
   /**
-   * Finds attachments that have no TTL set (expiresAt is null). These are candidates for TTL assignment if they are
-   * unused.
+   * Finds attachments that have no TTL set (expiresAt is null). These are candidates for TTL
+   * assignment if they are unused.
    */
   @Query("SELECT a FROM TmsAttachment a WHERE a.expiresAt IS NULL")
   List<TmsAttachment> findAttachmentsWithoutTtl();

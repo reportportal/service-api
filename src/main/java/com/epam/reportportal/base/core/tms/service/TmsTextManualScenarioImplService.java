@@ -87,7 +87,7 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
       tmsTextManualScenarioMapper.patchTmsManualScenario(existingTextManualScenario,
           tmsTextManualScenarioRQ);
 
-      tmsTextManualScenarioAttachmentService.patchAttachments(existingTextManualScenario,
+      tmsTextManualScenarioAttachmentService.updateAttachments(existingTextManualScenario,
           tmsTextManualScenarioRQ);
 
       tmsTextManualScenarioRepository.save(existingTextManualScenario);

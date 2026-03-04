@@ -45,14 +45,13 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 /**
- * Integration tests for TMS Test Plan Controller. Tests cover CRUD operations, batch operations, and test plan
- * duplication functionality.
+ * Integration tests for TMS Test Plan Controller. Tests cover CRUD operations, batch operations,
+ * and test plan duplication functionality.
  *
  * @author <a href="mailto:konstantin_shaplyko@epam.com">Konstantin Shaplyko</a>
  */
 @Sql("/db/tms/tms-test-plan/tms-test-plan-fill.sql")
 @ExtendWith(MockitoExtension.class)
-@Disabled
 public class TmsTestPlanIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
@@ -849,7 +848,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
           .orElseThrow();
 
       assertNotEquals(original.getId(), duplicate.getId());
-      assertEquals(original.getName() + "-copy", duplicate.getName());
+      assertEquals(original.getName(), duplicate.getName());
       assertEquals(original.getDescription(), duplicate.getDescription());
       assertEquals(original.getPriority(), duplicate.getPriority());
     }
@@ -1264,6 +1263,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.lastExecution.id").value(202))
         .andExpect(jsonPath("$.lastExecution.launch.id").value(302))
+        .andExpect(jsonPath("$.lastExecution.launch.name").value("Launch 302 for Test Cases"))
+        .andExpect(jsonPath("$.lastExecution.launch.number").value(1))
         .andExpect(jsonPath("$.lastExecution.status").value("PASSED"));
   }
 

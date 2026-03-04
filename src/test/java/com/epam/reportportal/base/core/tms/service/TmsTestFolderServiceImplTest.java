@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -19,24 +20,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
+import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.reportportal.base.core.tms.mapper.exporter.TmsTestFolderExporter;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestFolderExporterFactory;
-import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
-import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.validation.TestFolderIdValidator;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,8 +58,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Unit tests for TmsTestFolderServiceImpl. Tests CRUD operations, hierarchy management, duplication, and export
- * functionality.
+ * Unit tests for TmsTestFolderServiceImpl.
+ * Tests CRUD operations, hierarchy management, duplication, and export functionality.
  */
 @ExtendWith(MockitoExtension.class)
 class TmsTestFolderServiceImplTest {
@@ -123,6 +124,7 @@ class TmsTestFolderServiceImplTest {
     parentTestFolder.setDescription("Parent Description");
     parentTestFolder.setProject(project);
     parentTestFolder.setSubFolders(new ArrayList<>());
+    parentTestFolder.setIndex(0);
 
     // Create subfolders for testing
     subFolder1 = new TmsTestFolder();
@@ -130,12 +132,14 @@ class TmsTestFolderServiceImplTest {
     subFolder1.setName("Sub Folder 1");
     subFolder1.setParentTestFolder(parentTestFolder);
     subFolder1.setSubFolders(new ArrayList<>());
+    subFolder1.setIndex(0);
 
     subFolder2 = new TmsTestFolder();
     subFolder2.setId(5L);
     subFolder2.setName("Sub Folder 2");
     subFolder2.setParentTestFolder(parentTestFolder);
     subFolder2.setSubFolders(new ArrayList<>());
+    subFolder2.setIndex(1);
 
     parentTestFolder.getSubFolders().addAll(Arrays.asList(subFolder1, subFolder2));
 
@@ -146,6 +150,7 @@ class TmsTestFolderServiceImplTest {
     testFolder.setProject(project);
     testFolder.setParentTestFolder(parentTestFolder);
     testFolder.setSubFolders(new ArrayList<>());
+    testFolder.setIndex(0);
 
     // Test folder RQ with existing parent ID
     testFolderRQWithParentId = TmsTestFolderRQ.builder()
@@ -202,6 +207,7 @@ class TmsTestFolderServiceImplTest {
     rootFolder.setDescription("Root folder description");
     rootFolder.setProject(project);
     rootFolder.setSubFolders(new ArrayList<>());
+    rootFolder.setIndex(0);
 
     firstSubfolder = new TmsTestFolder();
     firstSubfolder.setId(firstSubFolderId);
@@ -210,6 +216,7 @@ class TmsTestFolderServiceImplTest {
     firstSubfolder.setProject(project);
     firstSubfolder.setParentTestFolder(rootFolder);
     firstSubfolder.setSubFolders(new ArrayList<>());
+    firstSubfolder.setIndex(0);
 
     secondSubfolder = new TmsTestFolder();
     secondSubfolder.setId(secondSubFolderId);
@@ -218,6 +225,7 @@ class TmsTestFolderServiceImplTest {
     secondSubfolder.setProject(project);
     secondSubfolder.setParentTestFolder(rootFolder);
     secondSubfolder.setSubFolders(new ArrayList<>());
+    secondSubfolder.setIndex(1);
 
     subSubFolder = new TmsTestFolder();
     subSubFolder.setId(subSubFolderId);
@@ -226,6 +234,7 @@ class TmsTestFolderServiceImplTest {
     subSubFolder.setProject(project);
     subSubFolder.setParentTestFolder(firstSubfolder);
     subSubFolder.setSubFolders(new ArrayList<>());
+    subSubFolder.setIndex(0);
 
     allFolders = Arrays.asList(rootFolder, firstSubfolder, secondSubfolder, subSubFolder);
 
@@ -233,9 +242,12 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testCreateWithoutParent() {
+  void testCreateWithoutParent_WithoutIndex() {
     // Arrange
+    testFolder.setParentTestFolder(null);
+
     when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQ)).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(5);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
@@ -245,12 +257,61 @@ class TmsTestFolderServiceImplTest {
     // Assert
     assertNotNull(result);
     assertEquals(testFolderRS.getId(), result.getId());
-    assertEquals(testFolderRS.getName(), result.getName());
-    assertEquals(testFolderRS.getDescription(), result.getDescription());
+    assertEquals(6, testFolder.getIndex());
 
-    verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQ);
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, null);
+    verify(tmsTestFolderRepository, never()).shiftIndexes(anyLong(), any(), anyInt(), anyInt());
     verify(tmsTestFolderRepository).save(testFolder);
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
+  }
+
+
+  @Test
+  void testCreateWithoutParent_WithIndex() {
+    // Arrange
+    testFolder.setParentTestFolder(null);
+
+    TmsTestFolderRQ rqWithIndex = TmsTestFolderRQ.builder()
+        .name("Test Folder")
+        .description("Test Description")
+        .index(2)
+        .build();
+
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithIndex)).thenReturn(testFolder);
+    doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, null, 2, 1);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    // Act
+    TmsTestFolderRS result = sut.create(projectId, rqWithIndex);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(2, testFolder.getIndex());
+
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, null, 2, 1);
+    verify(tmsTestFolderRepository, never()).findMaxIndex(anyLong(), any());
+    verify(tmsTestFolderRepository).save(testFolder);
+  }
+
+  @Test
+  void testCreateWithoutParent_FirstFolder() {
+    // Arrange
+    testFolder.setParentTestFolder(null);
+
+    when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQ)).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(null);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    // Act
+    TmsTestFolderRS result = sut.create(projectId, testFolderRQ);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(0, testFolder.getIndex());
+
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, null);
+    verify(tmsTestFolderRepository).save(testFolder);
   }
 
   @Test
@@ -259,6 +320,7 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQWithParentId)).thenReturn(testFolder);
     when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
     when(tmsTestFolderMapper.convertFromId(3L)).thenReturn(parentTestFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 3L)).thenReturn(3);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
@@ -267,25 +329,40 @@ class TmsTestFolderServiceImplTest {
 
     // Assert
     assertNotNull(result);
-    assertEquals(testFolderRS.getId(), result.getId());
-    assertEquals(testFolderRS.getName(), result.getName());
-    assertEquals(testFolderRS.getDescription(), result.getDescription());
+    assertEquals(4, testFolder.getIndex());
 
-    verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQWithParentId);
     verify(tmsTestFolderRepository).existsByIdAndProjectId(3L, projectId);
-    verify(tmsTestFolderMapper).convertFromId(3L);
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, 3L);
     verify(tmsTestFolderRepository).save(testFolder);
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
 
   @Test
   void testCreateWithNewNestedParentFolder() {
     // Arrange
-    when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQWithNestedParentFolder)).thenReturn(testFolder);
+    testFolder.setParentTestFolder(null);
+
+    TmsTestFolder grandparent = new TmsTestFolder();
+    grandparent.setId(5L);
+
+    TmsTestFolder newParentFolder = new TmsTestFolder();
+    newParentFolder.setId(3L);
+    newParentFolder.setName("New Parent Folder");
+    newParentFolder.setProject(project);
+    newParentFolder.setParentTestFolder(grandparent);
+    newParentFolder.setSubFolders(new ArrayList<>());
+
+    when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQWithNestedParentFolder))
+        .thenReturn(testFolder);
     when(tmsTestFolderRepository.existsByIdAndProjectId(5L, projectId)).thenReturn(true);
-    when(tmsTestFolderMapper.convertToTestFolder(projectId, testFolderRQWithNestedParentFolder.getParentTestFolder()))
-        .thenReturn(parentTestFolder);
-    when(tmsTestFolderRepository.save(any(TmsTestFolder.class))).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertToTestFolder(projectId,
+        testFolderRQWithNestedParentFolder.getParentTestFolder()))
+        .thenReturn(newParentFolder);
+
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 5L)).thenReturn(2);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 3L)).thenReturn(1);
+
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newParentFolder, testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
     // Act
@@ -293,15 +370,14 @@ class TmsTestFolderServiceImplTest {
 
     // Assert
     assertNotNull(result);
-    assertEquals(testFolderRS.getId(), result.getId());
+    assertEquals(3, newParentFolder.getIndex());
 
-    verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQWithNestedParentFolder);
     verify(tmsTestFolderRepository).existsByIdAndProjectId(5L, projectId);
-    verify(tmsTestFolderMapper).convertToTestFolder(projectId,
-        testFolderRQWithNestedParentFolder.getParentTestFolder());
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, 5L);
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, 3L);
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
+
 
   @Test
   void testCreateWithNewRootParentFolder() {
@@ -309,7 +385,8 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQWithRootParentFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertToTestFolder(projectId, testFolderRQWithRootParentFolder.getParentTestFolder()))
         .thenReturn(parentTestFolder);
-    when(tmsTestFolderRepository.save(any(TmsTestFolder.class))).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(4).thenReturn(1);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class))).thenReturn(parentTestFolder, testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
     // Act
@@ -317,12 +394,10 @@ class TmsTestFolderServiceImplTest {
 
     // Assert
     assertNotNull(result);
-    assertEquals(testFolderRS.getId(), result.getId());
+    assertEquals(5, parentTestFolder.getIndex());
 
-    verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQWithRootParentFolder);
-    verify(tmsTestFolderMapper).convertToTestFolder(projectId, testFolderRQWithRootParentFolder.getParentTestFolder());
+    verify(tmsTestFolderRepository, times(2)).findMaxIndex(eq(projectId), any());
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
 
   @Test
@@ -365,7 +440,7 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testUpdate() {
+  void testUpdate_NoIndexChange() {
     // Arrange
     when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
         .thenReturn(Optional.of(testFolder));
@@ -386,9 +461,159 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).existsByIdAndProjectId(3L, projectId);
     verify(tmsTestFolderRepository).findByIdAndProjectId(testFolderId, projectId);
     verify(tmsTestFolderMapper).update(eq(testFolder), any(TmsTestFolder.class));
-    verify(tmsTestFolderMapper).convertFromId(3L);
+    verify(tmsTestFolderRepository, never()).shiftIndexes(anyLong(), any(), anyInt(), anyInt());
     verify(tmsTestFolderRepository).save(testFolder);
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
+  }
+
+  @Test
+  void testUpdate_WithIndexChange_SameParent() {
+    // Arrange
+    testFolder.setIndex(2);
+    TmsTestFolderRQ rqWithNewIndex = TmsTestFolderRQ.builder()
+        .name("Test Folder")
+        .parentTestFolderId(3L)
+        .index(5)
+        .build();
+
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithNewIndex)).thenReturn(new TmsTestFolder());
+    when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
+    when(tmsTestFolderMapper.convertFromId(3L)).thenReturn(parentTestFolder);
+    doNothing().when(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 3, 5, -1);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    // Act
+    TmsTestFolderRS result = sut.update(projectId, testFolderId, rqWithNewIndex);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(5, testFolder.getIndex());
+
+    verify(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 3, 5, -1);
+    verify(tmsTestFolderRepository).save(testFolder);
+  }
+
+  @Test
+  void testUpdate_WithIndexChange_MoveBackward() {
+    // Arrange
+    testFolder.setIndex(5);
+    TmsTestFolderRQ rqWithNewIndex = TmsTestFolderRQ.builder()
+        .name("Test Folder")
+        .parentTestFolderId(3L)
+        .index(2)
+        .build();
+
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithNewIndex)).thenReturn(new TmsTestFolder());
+    when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
+    when(tmsTestFolderMapper.convertFromId(3L)).thenReturn(parentTestFolder);
+    doNothing().when(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 2, 4, 1);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    // Act
+    TmsTestFolderRS result = sut.update(projectId, testFolderId, rqWithNewIndex);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(2, testFolder.getIndex());
+
+    verify(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 2, 4, 1);
+    verify(tmsTestFolderRepository).save(testFolder);
+  }
+
+  @Test
+  void testUpdate_WithParentChange() {
+    // Arrange
+    testFolder.setIndex(2);
+    Long oldParentId = 3L;
+    Long newParentId = 5L;
+
+    testFolder.setParentTestFolder(parentTestFolder);
+
+    TmsTestFolder newParent = new TmsTestFolder();
+    newParent.setId(newParentId);
+
+    TmsTestFolderRQ rqWithNewParent = TmsTestFolderRQ.builder()
+        .name("Test Folder")
+        .parentTestFolderId(newParentId)
+        .build();
+
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithNewParent)).thenReturn(new TmsTestFolder());
+    when(tmsTestFolderRepository.existsByIdAndProjectId(newParentId, projectId)).thenReturn(true);
+
+    // Mock convertFromId for BOTH old parent restoration AND new parent setting
+    when(tmsTestFolderMapper.convertFromId(oldParentId)).thenReturn(parentTestFolder);
+    when(tmsTestFolderMapper.convertFromId(newParentId)).thenReturn(newParent);
+
+    doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, oldParentId, 3, -1);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, newParentId)).thenReturn(4);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    // Act
+    TmsTestFolderRS result = sut.update(projectId, testFolderId, rqWithNewParent);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(5, testFolder.getIndex());
+
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, oldParentId, 3, -1);
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, newParentId);
+    verify(tmsTestFolderMapper).convertFromId(oldParentId); // Restore old parent
+    verify(tmsTestFolderMapper).convertFromId(newParentId); // Set new parent
+    verify(tmsTestFolderRepository).save(testFolder);
+  }
+
+  @Test
+  void testUpdate_WithParentChangeAndIndex() {
+    // Arrange
+    testFolder.setIndex(2);
+    Long oldParentId = 3L;
+    Long newParentId = 5L;
+
+    testFolder.setParentTestFolder(parentTestFolder);
+
+    TmsTestFolder newParent = new TmsTestFolder();
+    newParent.setId(newParentId);
+
+    TmsTestFolderRQ rqWithNewParentAndIndex = TmsTestFolderRQ.builder()
+        .name("Test Folder")
+        .parentTestFolderId(newParentId)
+        .index(3)
+        .build();
+
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithNewParentAndIndex)).thenReturn(new TmsTestFolder());
+    when(tmsTestFolderRepository.existsByIdAndProjectId(newParentId, projectId)).thenReturn(true);
+
+    // Mock convertFromId for BOTH old parent restoration AND new parent setting
+    when(tmsTestFolderMapper.convertFromId(oldParentId)).thenReturn(parentTestFolder);
+    when(tmsTestFolderMapper.convertFromId(newParentId)).thenReturn(newParent);
+
+    doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, oldParentId, 3, -1);
+    doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, newParentId, 3, 1);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    // Act
+    TmsTestFolderRS result = sut.update(projectId, testFolderId, rqWithNewParentAndIndex);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(3, testFolder.getIndex());
+
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, oldParentId, 3, -1);
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, newParentId, 3, 1);
+    verify(tmsTestFolderMapper).convertFromId(oldParentId); // Restore old parent
+    verify(tmsTestFolderMapper).convertFromId(newParentId); // Set new parent
+    verify(tmsTestFolderRepository).save(testFolder);
   }
 
   @Test
@@ -399,6 +624,7 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQWithParentId)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromId(3L)).thenReturn(parentTestFolder);
     when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 3L)).thenReturn(2);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
@@ -415,7 +641,6 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQWithParentId);
     verify(tmsTestFolderMapper).convertFromId(3L);
     verify(tmsTestFolderRepository).save(testFolder);
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
 
   @Test
@@ -450,15 +675,32 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testUpdateWithNewNestedParentFolder() {
     // Arrange
+    testFolder.setParentTestFolder(null);
+
+    TmsTestFolder grandparent = new TmsTestFolder();
+    grandparent.setId(5L);
+
+    TmsTestFolder newParentFolder = new TmsTestFolder();
+    newParentFolder.setId(3L);
+    newParentFolder.setName("New Parent Folder");
+    newParentFolder.setProject(project);
+    newParentFolder.setParentTestFolder(grandparent);
+    newParentFolder.setSubFolders(new ArrayList<>());
+
     when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
         .thenReturn(Optional.of(testFolder));
     when(tmsTestFolderRepository.existsByIdAndProjectId(5L, projectId))
         .thenReturn(true);
-    when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQWithNestedParentFolder)).thenReturn(
-        new TmsTestFolder());
-    when(tmsTestFolderMapper.convertToTestFolder(projectId, testFolderRQWithNestedParentFolder.getParentTestFolder()))
-        .thenReturn(parentTestFolder);
-    when(tmsTestFolderRepository.save(any(TmsTestFolder.class))).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQWithNestedParentFolder))
+        .thenReturn(new TmsTestFolder());
+    when(tmsTestFolderMapper.convertToTestFolder(projectId,
+        testFolderRQWithNestedParentFolder.getParentTestFolder()))
+        .thenReturn(newParentFolder);
+
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 5L)).thenReturn(1);
+
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newParentFolder, testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
     // Act
@@ -472,6 +714,7 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderMapper).update(eq(testFolder), any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertToTestFolder(projectId,
         testFolderRQWithNestedParentFolder.getParentTestFolder());
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, 5L);
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
@@ -485,7 +728,8 @@ class TmsTestFolderServiceImplTest {
         new TmsTestFolder());
     when(tmsTestFolderMapper.convertToTestFolder(projectId, testFolderRQWithRootParentFolder.getParentTestFolder()))
         .thenReturn(parentTestFolder);
-    when(tmsTestFolderRepository.save(any(TmsTestFolder.class))).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(3);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class))).thenReturn(parentTestFolder, testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
     // Act
@@ -552,7 +796,6 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderMapper).patch(eq(testFolder), any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertFromId(3L);
     verify(tmsTestFolderRepository).save(testFolder);
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
 
   @Test
@@ -677,9 +920,14 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDelete() {
     // Arrange
+    testFolder.setIndex(3);
+    testFolder.setParentTestFolder(parentTestFolder);
+
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
     doNothing().when(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
-    doNothing().when(tmsTestFolderRepository)
-        .deleteTestFolderWithSubfoldersById(projectId, testFolderId);
+    doNothing().when(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
+    doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, 3L, 4, -1);
 
     // Act
     sut.delete(projectId, testFolderId);
@@ -687,6 +935,27 @@ class TmsTestFolderServiceImplTest {
     // Assert
     verify(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
     verify(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, 3L, 4, -1);
+  }
+
+  @Test
+  void testDelete_WithNullIndex() {
+    // Arrange
+    testFolder.setIndex(null);
+    testFolder.setParentTestFolder(parentTestFolder);
+
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+    doNothing().when(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
+    doNothing().when(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
+
+    // Act
+    sut.delete(projectId, testFolderId);
+
+    // Assert
+    verify(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
+    verify(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
+    verify(tmsTestFolderRepository, never()).shiftIndexes(anyLong(), any(), anyInt(), anyInt());
   }
 
   @Test
@@ -720,8 +989,11 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testCreateWithNewTestFolderRQ() {
     // Arrange
+    testFolder.setParentTestFolder(null);
+
     when(tmsTestFolderMapper.convertToRQ(newTestFolderRQ)).thenReturn(testFolderRQ);
     when(tmsTestFolderMapper.convertFromRQ(projectId, testFolderRQ)).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(2);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
 
@@ -735,7 +1007,6 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderMapper).convertToRQ(newTestFolderRQ);
     verify(tmsTestFolderMapper).convertFromRQ(projectId, testFolderRQ);
     verify(tmsTestFolderRepository).save(testFolder);
-    verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
   }
 
   @Test
@@ -1093,7 +1364,7 @@ class TmsTestFolderServiceImplTest {
         sut.resolveTargetFolderId(projectId, null, null));
 
     assertTrue(exception.getMessage().contains(
-        "Either target folder id or target folder name must be provided for duplication"));
+        "Either target folder id or target folder name must be provided"));
   }
 
   @Test
@@ -1162,13 +1433,15 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(duplicatedFolder);
     when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(null)))
         .thenReturn(false);
+    // Called because no index specified in request
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(5);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenReturn(duplicatedFolder);
 
     // Mock test case duplication
     when(tmsTestFolderRepository.findTestCaseIdsByFolderId(anyLong()))
         .thenReturn(Arrays.asList(1L, 2L));
-    BatchTestCaseOperationResultRS testCaseResult = BatchTestCaseOperationResultRS.builder()
+    var testCaseResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(2)
         .successCount(2)
         .failureCount(0)
@@ -1188,7 +1461,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1197,6 +1470,8 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);
     verify(tmsTestFolderMapper).duplicateTestFolder(eq(rootFolder), eq(null));
+    // findMaxIndex should be called because no index was specified
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, null);
     verify(tmsTestFolderRepository).countTestCasesByFolderId(100L);
     verify(tmsTestFolderMapper).convertToDuplicateTmsTestFolderRS(
         eq(duplicatedFolder),
@@ -1207,30 +1482,97 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testDuplicateFolder_WithExistingParentId() {
+  void testDuplicateFolder_WithSpecificIndex() {
     // Arrange
-    Long targetParentId = 50L;
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var targetIndex = 3;
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
-        .parentTestFolderId(targetParentId)
+        .index(targetIndex)
         .build();
 
-    TmsTestFolder targetParent = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
+    duplicatedFolder.setId(100L);
+    duplicatedFolder.setName("Duplicated Folder");
+    duplicatedFolder.setDescription(rootFolder.getDescription());
+    duplicatedFolder.setProject(project);
+
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
+        .id(100L)
+        .name("Duplicated Folder")
+        .countOfTestCases(0L)
+        .build();
+
+    // Mock hierarchy loading
+    var folderIds = Collections.singletonList(rootFolderId);
+    when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
+        .thenReturn(folderIds);
+    when(tmsTestFolderRepository.findAllById(folderIds))
+        .thenReturn(Collections.singletonList(rootFolder));
+
+    // Mock duplication
+    when(tmsTestFolderMapper.duplicateTestFolder(eq(rootFolder), eq(null)))
+        .thenReturn(duplicatedFolder);
+    when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(null)))
+        .thenReturn(false);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenAnswer(invocation -> {
+          var folder = (TmsTestFolder) invocation.getArgument(0);
+          // Verify that specific index was used
+          assertEquals(targetIndex, folder.getIndex());
+          return duplicatedFolder;
+        });
+
+    when(tmsTestFolderRepository.findTestCaseIdsByFolderId(anyLong()))
+        .thenReturn(Collections.emptyList());
+    when(tmsTestFolderRepository.countTestCasesByFolderId(100L)).thenReturn(0L);
+    when(tmsTestFolderMapper.convertToDuplicateTmsTestFolderRS(
+        eq(duplicatedFolder),
+        eq(0L),
+        any(FolderDuplicationStatistics.class),
+        any(TestCaseDuplicationStatistics.class)
+    )).thenReturn(expectedResponse);
+
+    // Act
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(100L, result.getId());
+
+    verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);
+    verify(tmsTestFolderMapper).duplicateTestFolder(eq(rootFolder), eq(null));
+    // findMaxIndex should NOT be called because specific index was provided
+    verify(tmsTestFolderRepository, never()).findMaxIndex(projectId, null);
+    verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testDuplicateFolder_WithSpecificIndexAndParent() {
+    // Arrange
+    var targetParentId = 50L;
+    var targetIndex = 5;
+    var duplicateRQ = TmsTestFolderRQ.builder()
+        .name("Duplicated Folder")
+        .parentTestFolderId(targetParentId)
+        .index(targetIndex)
+        .build();
+
+    var targetParent = new TmsTestFolder();
     targetParent.setId(targetParentId);
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Duplicated Folder");
     duplicatedFolder.setParentTestFolder(targetParent);
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Duplicated Folder")
         .parentFolderId(targetParentId)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1249,6 +1591,209 @@ class TmsTestFolderServiceImplTest {
         eq(targetParentId)))
         .thenReturn(false);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenAnswer(invocation -> {
+          var folder = (TmsTestFolder) invocation.getArgument(0);
+          // Verify that specific index was used
+          assertEquals(targetIndex, folder.getIndex());
+          return duplicatedFolder;
+        });
+
+    when(tmsTestFolderRepository.findTestCaseIdsByFolderId(anyLong()))
+        .thenReturn(Collections.emptyList());
+    when(tmsTestFolderRepository.countTestCasesByFolderId(100L)).thenReturn(0L);
+    when(tmsTestFolderMapper.convertToDuplicateTmsTestFolderRS(
+        eq(duplicatedFolder),
+        eq(0L),
+        any(FolderDuplicationStatistics.class),
+        any(TestCaseDuplicationStatistics.class)
+    )).thenReturn(expectedResponse);
+
+    // Act
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(targetParentId, result.getParentFolderId());
+
+    verify(tmsTestFolderRepository).existsByIdAndProjectId(targetParentId, projectId);
+    verify(tmsTestFolderRepository).findByIdAndProjectId(targetParentId, projectId);
+    // findMaxIndex should NOT be called for the root folder because specific index was provided
+    verify(tmsTestFolderRepository, never()).findMaxIndex(projectId, targetParentId);
+  }
+
+  @Test
+  void testDuplicateFolder_SubfoldersPreserveIndex() {
+    // Arrange
+    var duplicateRQ = TmsTestFolderRQ.builder()
+        .name("Duplicated Folder")
+        .build();
+
+    // Setup source folder with subfolders that have specific indexes
+    // Important: use ArrayList for subFolders as the service modifies this list
+    rootFolder.setSubFolders(new ArrayList<>());
+
+    var sourceSubFolder1 = new TmsTestFolder();
+    sourceSubFolder1.setId(11L);
+    sourceSubFolder1.setName("Sub Folder 1");
+    sourceSubFolder1.setParentTestFolder(rootFolder);
+    sourceSubFolder1.setSubFolders(new ArrayList<>());
+    sourceSubFolder1.setIndex(2);
+
+    var sourceSubFolder2 = new TmsTestFolder();
+    sourceSubFolder2.setId(12L);
+    sourceSubFolder2.setName("Sub Folder 2");
+    sourceSubFolder2.setParentTestFolder(rootFolder);
+    sourceSubFolder2.setSubFolders(new ArrayList<>());
+    sourceSubFolder2.setIndex(5);
+
+    var duplicatedRootFolder = new TmsTestFolder();
+    duplicatedRootFolder.setId(100L);
+    duplicatedRootFolder.setName("Duplicated Folder");
+    duplicatedRootFolder.setSubFolders(new ArrayList<>());
+
+    var duplicatedSubFolder1 = new TmsTestFolder();
+    duplicatedSubFolder1.setId(101L);
+    duplicatedSubFolder1.setName("Sub Folder 1-copy");
+    duplicatedSubFolder1.setSubFolders(new ArrayList<>());
+
+    var duplicatedSubFolder2 = new TmsTestFolder();
+    duplicatedSubFolder2.setId(102L);
+    duplicatedSubFolder2.setName("Sub Folder 2-copy");
+    duplicatedSubFolder2.setSubFolders(new ArrayList<>());
+
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
+        .id(100L)
+        .name("Duplicated Folder")
+        .countOfTestCases(0L)
+        .build();
+
+    // Mock hierarchy loading
+    var folderIds = Arrays.asList(rootFolderId, 11L, 12L);
+    when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
+        .thenReturn(folderIds);
+    when(tmsTestFolderRepository.findAllById(folderIds))
+        .thenReturn(Arrays.asList(rootFolder, sourceSubFolder1, sourceSubFolder2));
+
+    // Mock duplication for root folder
+    when(tmsTestFolderMapper.duplicateTestFolder(eq(rootFolder), eq(null)))
+        .thenReturn(duplicatedRootFolder);
+    when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), eq("Duplicated Folder"), eq(null)))
+        .thenReturn(false);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(3);
+
+    // Mock getEntityById for subfolders' parent
+    when(tmsTestFolderRepository.findByIdAndProjectId(100L, projectId))
+        .thenReturn(Optional.of(duplicatedRootFolder));
+
+    // Mock duplication for subfolders
+    when(tmsTestFolderMapper.duplicateTestFolder(eq(sourceSubFolder1), eq(duplicatedRootFolder)))
+        .thenReturn(duplicatedSubFolder1);
+    when(tmsTestFolderMapper.duplicateTestFolder(eq(sourceSubFolder2), eq(duplicatedRootFolder)))
+        .thenReturn(duplicatedSubFolder2);
+    when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(100L)))
+        .thenReturn(false);
+
+    // Capture saved folders to verify indexes
+    var savedFolders = new ArrayList<TmsTestFolder>();
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenAnswer(invocation -> {
+          var folder = (TmsTestFolder) invocation.getArgument(0);
+          // Create a copy to capture the state at save time
+          var savedCopy = new TmsTestFolder();
+          savedCopy.setId(folder.getId());
+          savedCopy.setName(folder.getName());
+          savedCopy.setIndex(folder.getIndex());
+          savedFolders.add(savedCopy);
+
+          if ("Duplicated Folder".equals(folder.getName())) {
+            return duplicatedRootFolder;
+          } else if ("Sub Folder 1-copy".equals(folder.getName())) {
+            return duplicatedSubFolder1;
+          } else if ("Sub Folder 2-copy".equals(folder.getName())) {
+            return duplicatedSubFolder2;
+          }
+          return folder;
+        });
+
+    when(tmsTestFolderRepository.findTestCaseIdsByFolderId(anyLong()))
+        .thenReturn(Collections.emptyList());
+    when(tmsTestFolderRepository.countTestCasesByFolderId(100L)).thenReturn(0L);
+    when(tmsTestFolderMapper.convertToDuplicateTmsTestFolderRS(
+        eq(duplicatedRootFolder),
+        eq(0L),
+        any(FolderDuplicationStatistics.class),
+        any(TestCaseDuplicationStatistics.class)
+    )).thenReturn(expectedResponse);
+
+    // Act
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+
+    // Assert
+    assertNotNull(result);
+
+    // Verify subfolders preserve their original indexes
+    var subFolder1Saved = savedFolders.stream()
+        .filter(f -> "Sub Folder 1-copy".equals(f.getName()))
+        .findFirst()
+        .orElse(null);
+    var subFolder2Saved = savedFolders.stream()
+        .filter(f -> "Sub Folder 2-copy".equals(f.getName()))
+        .findFirst()
+        .orElse(null);
+
+    assertNotNull(subFolder1Saved, "Sub Folder 1-copy should have been saved");
+    assertNotNull(subFolder2Saved, "Sub Folder 2-copy should have been saved");
+    assertEquals(2, subFolder1Saved.getIndex(), "Sub Folder 1 should preserve index 2");
+    assertEquals(5, subFolder2Saved.getIndex(), "Sub Folder 2 should preserve index 5");
+
+    verify(tmsTestFolderRepository, times(3)).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testDuplicateFolder_WithExistingParentId() {
+    // Arrange
+    var targetParentId = 50L;
+    var duplicateRQ = TmsTestFolderRQ.builder()
+        .name("Duplicated Folder")
+        .parentTestFolderId(targetParentId)
+        .build();
+
+    var targetParent = new TmsTestFolder();
+    targetParent.setId(targetParentId);
+
+    var duplicatedFolder = new TmsTestFolder();
+    duplicatedFolder.setId(100L);
+    duplicatedFolder.setName("Duplicated Folder");
+    duplicatedFolder.setParentTestFolder(targetParent);
+
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
+        .id(100L)
+        .name("Duplicated Folder")
+        .parentFolderId(targetParentId)
+        .build();
+
+    // Mock hierarchy loading
+    var folderIds = Collections.singletonList(rootFolderId);
+    when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
+        .thenReturn(folderIds);
+    when(tmsTestFolderRepository.findAllById(folderIds))
+        .thenReturn(Collections.singletonList(rootFolder));
+
+    // Mock parent validation
+    when(tmsTestFolderRepository.existsByIdAndProjectId(targetParentId, projectId))
+        .thenReturn(true);
+    when(tmsTestFolderRepository.findByIdAndProjectId(targetParentId, projectId))
+        .thenReturn(Optional.of(targetParent));
+
+    // Mock duplication
+    when(tmsTestFolderMapper.duplicateTestFolder(eq(rootFolder), eq(targetParent)))
+        .thenReturn(duplicatedFolder);
+    when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(),
+        eq(targetParentId)))
+        .thenReturn(false);
+    // Called because no index specified in request
+    when(tmsTestFolderRepository.findMaxIndex(projectId, targetParentId)).thenReturn(3);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenReturn(duplicatedFolder);
 
     when(tmsTestFolderRepository.findTestCaseIdsByFolderId(anyLong()))
@@ -1262,7 +1807,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1270,35 +1815,36 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).existsByIdAndProjectId(targetParentId, projectId);
     verify(tmsTestFolderRepository).findByIdAndProjectId(targetParentId, projectId);
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, targetParentId);
   }
 
   @Test
   void testDuplicateFolder_WithNewParentFolder() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .parentTestFolder(NewTestFolderRQ.builder()
             .name("New Parent")
             .build())
         .build();
 
-    TmsTestFolder newParent = new TmsTestFolder();
+    var newParent = new TmsTestFolder();
     newParent.setId(200L);
     newParent.setName("New Parent");
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Duplicated Folder");
     duplicatedFolder.setParentTestFolder(newParent);
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Duplicated Folder")
         .parentFolderId(200L)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1307,6 +1853,9 @@ class TmsTestFolderServiceImplTest {
     // Mock parent creation
     when(tmsTestFolderMapper.convertFromName(eq(projectId), eq("New Parent")))
         .thenReturn(newParent);
+    // First call for new parent, second call for duplicated folder
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(2);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 200L)).thenReturn(1);
     when(tmsTestFolderRepository.save(newParent)).thenReturn(newParent);
     when(tmsTestFolderRepository.findByIdAndProjectId(200L, projectId))
         .thenReturn(Optional.of(newParent));
@@ -1330,21 +1879,22 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
     assertEquals(200L, result.getParentFolderId());
 
     verify(tmsTestFolderMapper).convertFromName(eq(projectId), eq("New Parent"));
+    verify(tmsTestFolderRepository, times(2)).findMaxIndex(eq(projectId), any());
     verify(tmsTestFolderRepository).save(newParent);
   }
 
   @Test
   void testDuplicateFolder_WithNewParentFolderAndGrandparent() {
     // Arrange
-    Long grandparentId = 50L;
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var grandparentId = 50L;
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .parentTestFolder(NewTestFolderRQ.builder()
             .name("New Parent")
@@ -1352,26 +1902,26 @@ class TmsTestFolderServiceImplTest {
             .build())
         .build();
 
-    TmsTestFolder grandparent = new TmsTestFolder();
+    var grandparent = new TmsTestFolder();
     grandparent.setId(grandparentId);
 
-    TmsTestFolder newParent = new TmsTestFolder();
+    var newParent = new TmsTestFolder();
     newParent.setId(200L);
     newParent.setName("New Parent");
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Duplicated Folder");
     duplicatedFolder.setParentTestFolder(newParent);
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Duplicated Folder")
         .parentFolderId(200L)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1384,6 +1934,8 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(newParent);
     when(tmsTestFolderMapper.convertFromId(grandparentId))
         .thenReturn(grandparent);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, grandparentId)).thenReturn(4);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 200L)).thenReturn(0);
     when(tmsTestFolderRepository.save(newParent)).thenReturn(newParent);
     when(tmsTestFolderRepository.findByIdAndProjectId(200L, projectId))
         .thenReturn(Optional.of(newParent));
@@ -1407,7 +1959,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1416,20 +1968,21 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).existsByIdAndProjectId(grandparentId, projectId);
     verify(tmsTestFolderMapper).convertFromName(eq(projectId), eq("New Parent"));
     verify(tmsTestFolderMapper).convertFromId(grandparentId);
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, grandparentId);
     verify(tmsTestFolderRepository).save(newParent);
   }
 
   @Test
   void testDuplicateFolder_WithNonExistentParentId() {
     // Arrange
-    Long nonExistentParentId = 999L;
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var nonExistentParentId = 999L;
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .parentTestFolderId(nonExistentParentId)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1451,8 +2004,8 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_WithNewParentFolderHavingNonExistentGrandparent() {
     // Arrange
-    Long nonExistentGrandparentId = 999L;
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var nonExistentGrandparentId = 999L;
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .parentTestFolder(NewTestFolderRQ.builder()
             .name("New Parent")
@@ -1461,7 +2014,7 @@ class TmsTestFolderServiceImplTest {
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1484,14 +2037,14 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_WithBothParentOptions() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .parentTestFolderId(50L)
         .parentTestFolder(NewTestFolderRQ.builder().name("New Parent").build())
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1508,13 +2061,13 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_WithParentFolderButNoName() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .parentTestFolder(NewTestFolderRQ.builder().build()) // no name
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1531,8 +2084,8 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_SourceFolderNotFound() {
     // Arrange
-    Long nonExistentFolderId = 999L;
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var nonExistentFolderId = 999L;
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .build();
 
@@ -1553,21 +2106,21 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_WithNameConflict_GeneratesUniqueName() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Existing Folder")
         .build();
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Existing Folder-1");
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Existing Folder-1")
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1581,6 +2134,7 @@ class TmsTestFolderServiceImplTest {
 
     when(tmsTestFolderMapper.duplicateTestFolder(eq(rootFolder), eq(null)))
         .thenReturn(duplicatedFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(3);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenReturn(duplicatedFolder);
 
@@ -1595,7 +2149,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1609,16 +2163,16 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_WithTestCases_DuplicatesAndMovesToNewFolder() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .build();
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Duplicated Folder");
 
-    List<Long> testCaseIds = Arrays.asList(1L, 2L, 3L);
-    BatchTestCaseOperationResultRS testCaseResult = BatchTestCaseOperationResultRS.builder()
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testCaseResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(3)
         .successCount(3)
         .failureCount(0)
@@ -1626,14 +2180,14 @@ class TmsTestFolderServiceImplTest {
         .errors(Collections.emptyList())
         .build();
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Duplicated Folder")
         .countOfTestCases(3L)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1644,6 +2198,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(duplicatedFolder);
     when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(null)))
         .thenReturn(false);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(2);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenReturn(duplicatedFolder);
 
@@ -1662,7 +2217,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1677,16 +2232,16 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_WithTestCaseDuplicationFailure_RecordsErrors() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .build();
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Duplicated Folder");
 
-    List<Long> testCaseIds = Arrays.asList(1L, 2L);
-    BatchTestCaseOperationResultRS testCaseResult = BatchTestCaseOperationResultRS.builder()
+    var testCaseIds = Arrays.asList(1L, 2L);
+    var testCaseResult = BatchTestCaseOperationResultRS.builder()
         .totalCount(2)
         .successCount(1)
         .failureCount(1)
@@ -1695,14 +2250,14 @@ class TmsTestFolderServiceImplTest {
             2L, "Failed to duplicate test case")))
         .build();
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Duplicated Folder")
         .countOfTestCases(1L)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1713,6 +2268,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(duplicatedFolder);
     when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(null)))
         .thenReturn(false);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(1);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenReturn(duplicatedFolder);
 
@@ -1731,7 +2287,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1742,24 +2298,24 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_WithTestCaseDuplicationException_RecordsAllTestCasesAsErrors() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .build();
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Duplicated Folder");
 
-    List<Long> testCaseIds = Arrays.asList(1L, 2L);
+    var testCaseIds = Arrays.asList(1L, 2L);
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Duplicated Folder")
         .countOfTestCases(0L)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1770,6 +2326,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(duplicatedFolder);
     when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(null)))
         .thenReturn(false);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(0);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenReturn(duplicatedFolder);
 
@@ -1788,7 +2345,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1799,22 +2356,22 @@ class TmsTestFolderServiceImplTest {
   @Test
   void testDuplicateFolder_NoTestCases_Success() {
     // Arrange
-    TmsTestFolderRQ duplicateRQ = TmsTestFolderRQ.builder()
+    var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Empty Folder")
         .build();
 
-    TmsTestFolder duplicatedFolder = new TmsTestFolder();
+    var duplicatedFolder = new TmsTestFolder();
     duplicatedFolder.setId(100L);
     duplicatedFolder.setName("Duplicated Empty Folder");
 
-    DuplicateTmsTestFolderRS expectedResponse = DuplicateTmsTestFolderRS.builder()
+    var expectedResponse = DuplicateTmsTestFolderRS.builder()
         .id(100L)
         .name("Duplicated Empty Folder")
         .countOfTestCases(0L)
         .build();
 
     // Mock hierarchy loading
-    List<Long> folderIds = Collections.singletonList(rootFolderId);
+    var folderIds = Collections.singletonList(rootFolderId);
     when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, rootFolderId))
         .thenReturn(folderIds);
     when(tmsTestFolderRepository.findAllById(folderIds))
@@ -1825,6 +2382,7 @@ class TmsTestFolderServiceImplTest {
         .thenReturn(duplicatedFolder);
     when(tmsTestFolderRepository.existsByNameAndTestFolder(eq(projectId), anyString(), eq(null)))
         .thenReturn(false);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(null);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenReturn(duplicatedFolder);
 
@@ -1841,7 +2399,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    DuplicateTmsTestFolderRS result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1953,5 +2511,607 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findAllByProjectIdAndTestPlanIdWithCountOfTestCases(
         projectId, testPlanId, secondPage);
     verify(tmsTestFolderMapper).convert(folderPage);
+  }
+
+  @Test
+  void testResolveFolderPath_WithEmptyPath_ShouldReturnParentFolderId() {
+    // Given
+    var parentFolderId = 5L;
+    List<String> emptyPath = Collections.emptyList();
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, emptyPath);
+
+    // Then
+    assertEquals(parentFolderId, result);
+    verify(tmsTestFolderRepository, never()).findByProjectIdAndParentIdAndName(
+        anyLong(), any(), anyString());
+  }
+
+  @Test
+  void testResolveFolderPath_WithNullPath_ShouldReturnParentFolderId() {
+    // Given
+    var parentFolderId = 5L;
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, null);
+
+    // Then
+    assertEquals(parentFolderId, result);
+    verify(tmsTestFolderRepository, never()).findByProjectIdAndParentIdAndName(
+        anyLong(), any(), anyString());
+  }
+
+  @Test
+  void testResolveFolderPath_WithExistingFolder_ShouldReturnExistingFolderId() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("ExistingFolder");
+
+    var existingFolder = new TmsTestFolder();
+    existingFolder.setId(10L);
+    existingFolder.setName("ExistingFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "ExistingFolder"))
+        .thenReturn(Optional.of(existingFolder));
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(10L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "ExistingFolder");
+    verify(tmsTestFolderRepository, never()).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPath_WithNonExistingFolder_ShouldCreateAndReturnNewFolderId() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("NewFolder");
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(20L);
+    newFolder.setName("NewFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "NewFolder"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "NewFolder"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, parentFolderId)).thenReturn(3);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newFolder);
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(20L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "NewFolder");
+    verify(tmsTestFolderMapper).convertFromName(projectId, "NewFolder");
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, parentFolderId);
+    verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPath_WithNullParentFolderId_ShouldResolveFromRoot() {
+    // Given
+    var pathHierarchy = List.of("RootFolder");
+
+    var rootFolder = new TmsTestFolder();
+    rootFolder.setId(10L);
+    rootFolder.setName("RootFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "RootFolder"))
+        .thenReturn(Optional.of(rootFolder));
+
+    // When
+    var result = sut.resolveFolderPath(projectId, null, pathHierarchy);
+
+    // Then
+    assertEquals(10L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, null, "RootFolder");
+  }
+
+  @Test
+  void testResolveFolderPath_WithMultiLevelPath_ShouldResolveAllLevels() {
+    // Given
+    var pathHierarchy = List.of("Level1", "Level2", "Level3");
+
+    var level1Folder = new TmsTestFolder();
+    level1Folder.setId(10L);
+    level1Folder.setName("Level1");
+
+    var level2Folder = new TmsTestFolder();
+    level2Folder.setId(20L);
+    level2Folder.setName("Level2");
+
+    var level3Folder = new TmsTestFolder();
+    level3Folder.setId(30L);
+    level3Folder.setName("Level3");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Level1"))
+        .thenReturn(Optional.of(level1Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Level2"))
+        .thenReturn(Optional.of(level2Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 20L, "Level3"))
+        .thenReturn(Optional.of(level3Folder));
+
+    // When
+    var result = sut.resolveFolderPath(projectId, null, pathHierarchy);
+
+    // Then
+    assertEquals(30L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, null, "Level1");
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, 10L, "Level2");
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, 20L, "Level3");
+  }
+
+  @Test
+  void testResolveFolderPath_WithMixedExistingAndNew_ShouldCreateOnlyMissing() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("Existing", "New");
+
+    var existingFolder = new TmsTestFolder();
+    existingFolder.setId(10L);
+    existingFolder.setName("Existing");
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(20L);
+    newFolder.setName("New");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "Existing"))
+        .thenReturn(Optional.of(existingFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "New"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "New"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 10L)).thenReturn(2);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newFolder);
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(20L, result);
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "Existing");
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(projectId, 10L, "New");
+    verify(tmsTestFolderMapper).convertFromName(projectId, "New");
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, 10L);
+    verify(tmsTestFolderRepository, times(1)).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPath_WithNewFolderUnderParent_ShouldSetParentFolder() {
+    // Given
+    var parentFolderId = 5L;
+    var pathHierarchy = List.of("NewChild");
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(20L);
+    newFolder.setName("NewChild");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "NewChild"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "NewChild"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, parentFolderId)).thenReturn(1);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenAnswer(invocation -> {
+          var folder = (TmsTestFolder) invocation.getArgument(0);
+          // Verify parent folder was set
+          assertNotNull(folder.getParentTestFolder());
+          assertEquals(parentFolderId, folder.getParentTestFolder().getId());
+          assertEquals(2, folder.getIndex());
+          return newFolder;
+        });
+
+    // When
+    var result = sut.resolveFolderPath(projectId, parentFolderId, pathHierarchy);
+
+    // Then
+    assertEquals(20L, result);
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, parentFolderId);
+    verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithEmptyList_ShouldReturnEmptyMap() {
+    // Given
+    var parentFolderId = 5L;
+    List<List<String>> emptyPaths = Collections.emptyList();
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, parentFolderId, emptyPaths);
+
+    // Then
+    assertTrue(result.isEmpty());
+    verify(tmsTestFolderRepository, never()).findByProjectIdAndParentIdAndName(
+        anyLong(), any(), anyString());
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithSinglePath_ShouldResolvePath() {
+    // Given
+    List<List<String>> paths = List.of(List.of("Folder1"));
+
+    var folder = new TmsTestFolder();
+    folder.setId(10L);
+    folder.setName("Folder1");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("Folder1"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithMultiplePaths_ShouldResolveAll() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Folder1"),
+        List.of("Folder2")
+    );
+
+    var folder1 = new TmsTestFolder();
+    folder1.setId(10L);
+    folder1.setName("Folder1");
+
+    var folder2 = new TmsTestFolder();
+    folder2.setId(20L);
+    folder2.setName("Folder2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder1));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder2"))
+        .thenReturn(Optional.of(folder2));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(2, result.size());
+    assertEquals(10L, result.get("Folder1"));
+    assertEquals(20L, result.get("Folder2"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithNestedPaths_ShouldResolveHierarchy() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Parent", "Child")
+    );
+
+    var parentFolder = new TmsTestFolder();
+    parentFolder.setId(10L);
+    parentFolder.setName("Parent");
+
+    var childFolder = new TmsTestFolder();
+    childFolder.setId(20L);
+    childFolder.setName("Child");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Parent"))
+        .thenReturn(Optional.of(parentFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Child"))
+        .thenReturn(Optional.of(childFolder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(2, result.size());
+    assertEquals(10L, result.get("Parent"));
+    assertEquals(20L, result.get("Parent/Child"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithDuplicatePaths_ShouldResolveOnce() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Folder1"),
+        List.of("Folder1"),
+        List.of("Folder1")
+    );
+
+    var folder = new TmsTestFolder();
+    folder.setId(10L);
+    folder.setName("Folder1");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("Folder1"));
+    // Should only be called once due to caching
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, null, "Folder1");
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithSharedParentPaths_ShouldReuseParent() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Parent", "Child1"),
+        List.of("Parent", "Child2")
+    );
+
+    var parentFolder = new TmsTestFolder();
+    parentFolder.setId(10L);
+    parentFolder.setName("Parent");
+
+    var child1Folder = new TmsTestFolder();
+    child1Folder.setId(20L);
+    child1Folder.setName("Child1");
+
+    var child2Folder = new TmsTestFolder();
+    child2Folder.setId(30L);
+    child2Folder.setName("Child2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Parent"))
+        .thenReturn(Optional.of(parentFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Child1"))
+        .thenReturn(Optional.of(child1Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "Child2"))
+        .thenReturn(Optional.of(child2Folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(3, result.size());
+    assertEquals(10L, result.get("Parent"));
+    assertEquals(20L, result.get("Parent/Child1"));
+    assertEquals(30L, result.get("Parent/Child2"));
+    // Parent should only be resolved once due to caching
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, null, "Parent");
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithEmptyPathInList_ShouldSkipEmpty() {
+    // Given
+    List<List<String>> paths = List.of(
+        Collections.emptyList(),
+        List.of("Folder1")
+    );
+
+    var folder = new TmsTestFolder();
+    folder.setId(10L);
+    folder.setName("Folder1");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Folder1"))
+        .thenReturn(Optional.of(folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("Folder1"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithNewFolders_ShouldCreateAll() {
+    // Given
+    List<List<String>> paths = List.of(List.of("NewFolder"));
+
+    var newFolder = new TmsTestFolder();
+    newFolder.setId(10L);
+    newFolder.setName("NewFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "NewFolder"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "NewFolder"))
+        .thenReturn(newFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(2);
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenReturn(newFolder);
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("NewFolder"));
+    verify(tmsTestFolderMapper).convertFromName(projectId, "NewFolder");
+    verify(tmsTestFolderRepository).findMaxIndex(projectId, null);
+    verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithParentFolderId_ShouldUseAsBase() {
+    // Given
+    var parentFolderId = 5L;
+    List<List<String>> paths = List.of(List.of("SubFolder"));
+
+    var subFolder = new TmsTestFolder();
+    subFolder.setId(10L);
+    subFolder.setName("SubFolder");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "SubFolder"))
+        .thenReturn(Optional.of(subFolder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, parentFolderId, paths);
+
+    // Then
+    assertEquals(1, result.size());
+    assertEquals(10L, result.get("SubFolder"));
+    verify(tmsTestFolderRepository).findByProjectIdAndParentIdAndName(
+        projectId, parentFolderId, "SubFolder");
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithDeepHierarchy_ShouldResolveAllLevels() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("A", "B", "C", "D")
+    );
+
+    var folderA = new TmsTestFolder();
+    folderA.setId(1L);
+    folderA.setName("A");
+
+    var folderB = new TmsTestFolder();
+    folderB.setId(2L);
+    folderB.setName("B");
+
+    var folderC = new TmsTestFolder();
+    folderC.setId(3L);
+    folderC.setName("C");
+
+    var folderD = new TmsTestFolder();
+    folderD.setId(4L);
+    folderD.setName("D");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "A"))
+        .thenReturn(Optional.of(folderA));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 1L, "B"))
+        .thenReturn(Optional.of(folderB));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 2L, "C"))
+        .thenReturn(Optional.of(folderC));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 3L, "D"))
+        .thenReturn(Optional.of(folderD));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(4, result.size());
+    assertEquals(1L, result.get("A"));
+    assertEquals(2L, result.get("A/B"));
+    assertEquals(3L, result.get("A/B/C"));
+    assertEquals(4L, result.get("A/B/C/D"));
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithMixedExistingAndNewInHierarchy_ShouldHandleCorrectly() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Existing", "New1", "New2")
+    );
+
+    var existingFolder = new TmsTestFolder();
+    existingFolder.setId(10L);
+    existingFolder.setName("Existing");
+
+    var new1Folder = new TmsTestFolder();
+    new1Folder.setId(20L);
+    new1Folder.setName("New1");
+
+    var new2Folder = new TmsTestFolder();
+    new2Folder.setId(30L);
+    new2Folder.setName("New2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Existing"))
+        .thenReturn(Optional.of(existingFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 10L, "New1"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "New1"))
+        .thenReturn(new1Folder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 10L)).thenReturn(3);
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 20L, "New2"))
+        .thenReturn(Optional.empty());
+    when(tmsTestFolderMapper.convertFromName(projectId, "New2"))
+        .thenReturn(new2Folder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 20L)).thenReturn(null);
+
+    // Use thenAnswer to handle different folders being saved
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+        .thenAnswer(invocation -> {
+          TmsTestFolder folder = invocation.getArgument(0);
+          if ("New1".equals(folder.getName())) {
+            return new1Folder;
+          }
+          if ("New2".equals(folder.getName())) {
+            return new2Folder;
+          }
+          return folder;
+        });
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(3, result.size());
+    assertEquals(10L, result.get("Existing"));
+    assertEquals(20L, result.get("Existing/New1"));
+    assertEquals(30L, result.get("Existing/New1/New2"));
+
+    // Verify save was called twice (for New1 and New2)
+    verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
+    verify(tmsTestFolderRepository, times(2)).findMaxIndex(anyLong(), any());
+  }
+
+  @Test
+  void testResolveFolderPathsBatch_WithOverlappingPaths_ShouldCacheIntermediate() {
+    // Given
+    List<List<String>> paths = List.of(
+        List.of("Root", "Sub1"),
+        List.of("Root", "Sub1", "Deep"),
+        List.of("Root", "Sub2")
+    );
+
+    var rootFolder = new TmsTestFolder();
+    rootFolder.setId(1L);
+    rootFolder.setName("Root");
+
+    var sub1Folder = new TmsTestFolder();
+    sub1Folder.setId(2L);
+    sub1Folder.setName("Sub1");
+
+    var deepFolder = new TmsTestFolder();
+    deepFolder.setId(3L);
+    deepFolder.setName("Deep");
+
+    var sub2Folder = new TmsTestFolder();
+    sub2Folder.setId(4L);
+    sub2Folder.setName("Sub2");
+
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, null, "Root"))
+        .thenReturn(Optional.of(rootFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 1L, "Sub1"))
+        .thenReturn(Optional.of(sub1Folder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 2L, "Deep"))
+        .thenReturn(Optional.of(deepFolder));
+    when(tmsTestFolderRepository.findByProjectIdAndParentIdAndName(projectId, 1L, "Sub2"))
+        .thenReturn(Optional.of(sub2Folder));
+
+    // When
+    var result = sut.resolveFolderPathsBatch(projectId, null, paths);
+
+    // Then
+    assertEquals(4, result.size());
+    assertEquals(1L, result.get("Root"));
+    assertEquals(2L, result.get("Root/Sub1"));
+    assertEquals(3L, result.get("Root/Sub1/Deep"));
+    assertEquals(4L, result.get("Root/Sub2"));
+
+    // Root should be queried only once due to caching
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, null, "Root");
+    // Sub1 should be queried only once
+    verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
+        projectId, 1L, "Sub1");
   }
 }

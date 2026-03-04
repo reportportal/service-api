@@ -50,11 +50,6 @@ public class ProductVersionController {
         productVersionId);
   }
 
-  @GetMapping("/{productVersionId}/test")
-  TmsProductVersionRS getById(@PathVariable("projectKey") String projectKey, @PathVariable("productVersionId") final long productVersionId, @AuthenticationPrincipal ReportPortalUser user) {
-    return productVersionService.getById(projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)).getProjectId(),productVersionId);
-  }
-
   /**
    * Creates a new product version in the specified project.
    *

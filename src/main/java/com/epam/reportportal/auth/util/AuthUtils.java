@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,32 @@
 
 package com.epam.reportportal.auth.util;
 
-import com.epam.reportportal.infrastructure.persistence.entity.user.UserRole;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils.normalizeId;
+
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
- * Authentication utils
+ * Authentication utils.
  *
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 public final class AuthUtils {
 
+  public static final Function<UserRole, List<GrantedAuthority>> AS_AUTHORITIES =
+      userRole -> Collections.singletonList(new SimpleGrantedAuthority(userRole.getAuthority()));
+  public static final UnaryOperator<String> CROP_DOMAIN =
+      it -> normalizeId(StringUtils.substringBefore(it, "@"));
+  public static final UnaryOperator<String> NORMALIZE_STRING =
+      original -> normalizeId(original.trim());
+
   private AuthUtils() {
     //statics only
   }
-
-  public static final Function<UserRole, List<GrantedAuthority>> AS_AUTHORITIES = userRole ->
-      Collections.singletonList(new SimpleGrantedAuthority(userRole.getAuthority()));
-
 }

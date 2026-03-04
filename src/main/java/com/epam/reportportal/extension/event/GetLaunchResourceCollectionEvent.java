@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,32 @@
 
 package com.epam.reportportal.extension.event;
 
-import com.epam.reportportal.reporting.LaunchResource;
+import com.epam.reportportal.base.core.events.domain.AbstractEvent;
+import com.epam.reportportal.base.reporting.LaunchResource;
 import java.util.Collection;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
+ * System event published when launch resources are retrieved.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-// TODO: replace with different dto object to unwire commons-reporting lib
-public class GetLaunchResourceCollectionEvent extends EntityCollectionEvent<LaunchResource> {
+@Getter
+@Setter
+@NoArgsConstructor
+public class GetLaunchResourceCollectionEvent extends AbstractEvent<Void> {
 
+  private Collection<LaunchResource> entities;
+
+  /**
+   * Constructs a GetLaunchResourceCollectionEvent.
+   *
+   * @param entities The collection of launch resources
+   */
   public GetLaunchResourceCollectionEvent(Collection<LaunchResource> entities) {
-    super(entities);
+    super();
+    this.entities = entities;
   }
 }

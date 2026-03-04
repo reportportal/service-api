@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,34 @@
 
 package com.epam.reportportal.extension.event;
 
+import com.epam.reportportal.base.core.events.domain.AbstractEvent;
 import java.util.Map;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
+ * System event published when launch analysis finishes.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class LaunchAnalysisFinishEvent extends LaunchEvent<Long> {
+@Getter
+@Setter
+@NoArgsConstructor
+public class LaunchAnalysisFinishEvent extends AbstractEvent<Void> {
 
-  private final Map<String, String> projectConfigParams;
+  private Long launchId;
+  private Map<String, String> projectConfigParams;
 
-  public LaunchAnalysisFinishEvent(Long source, Map<String, String> projectConfigParams) {
-    super(source);
+  /**
+   * Constructs a LaunchAnalysisFinishEvent.
+   *
+   * @param launchId            The ID of the launch
+   * @param projectConfigParams The project configuration parameters
+   */
+  public LaunchAnalysisFinishEvent(Long launchId, Map<String, String> projectConfigParams) {
+    super();
+    this.launchId = launchId;
     this.projectConfigParams = projectConfigParams;
-  }
-
-  public Map<String, String> getProjectConfigParams() {
-    return projectConfigParams;
   }
 }

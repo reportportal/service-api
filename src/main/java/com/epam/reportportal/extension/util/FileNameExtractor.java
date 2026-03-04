@@ -1,6 +1,6 @@
 package com.epam.reportportal.extension.util;
 
-import com.epam.reportportal.infrastructure.persistence.filesystem.DataEncoder;
+import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataEncoder;
 import java.nio.file.Paths;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;

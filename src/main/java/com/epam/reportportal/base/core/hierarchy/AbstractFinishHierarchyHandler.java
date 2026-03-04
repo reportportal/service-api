@@ -1,0 +1,234 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.core.hierarchy;
+
+import static com.epam.reportportal.base.core.item.impl.status.ToSkippedStatusChangingStrategy.SKIPPED_ISSUE_KEY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.FAILED;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.IN_PROGRESS;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.PASSED;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.SKIPPED;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum.SUITE;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static java.util.Optional.ofNullable;
+
+import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
+import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
+import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
+import com.epam.reportportal.base.job.PageUtil;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.data.domain.Pageable;
+
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
+public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarchyHandler<T> {
+
+  public static final int ITEM_PAGE_SIZE = 50;
+
+  public static final String ATTRIBUTE_KEY_STATUS = "status";
+  public static final String ATTRIBUTE_VALUE_INTERRUPTED = "interrupted";
+
+  protected final LaunchRepository launchRepository;
+  protected final TestItemRepository testItemRepository;
+  protected final ItemAttributeRepository itemAttributeRepository;
+  protected final IssueEntityRepository issueEntityRepository;
+  private final RetryHandler retryHandler;
+  private final IssueTypeHandler issueTypeHandler;
+  private final ChangeStatusHandler changeStatusHandler;
+
+  public AbstractFinishHierarchyHandler(LaunchRepository launchRepository,
+      TestItemRepository testItemRepository,
+      ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
+      RetryHandler retryHandler,
+      IssueTypeHandler issueTypeHandler,
+      ChangeStatusHandler changeStatusHandler) {
+    this.launchRepository = launchRepository;
+    this.testItemRepository = testItemRepository;
+    this.itemAttributeRepository = itemAttributeRepository;
+    this.issueEntityRepository = issueEntityRepository;
+    this.retryHandler = retryHandler;
+    this.issueTypeHandler = issueTypeHandler;
+    this.changeStatusHandler = changeStatusHandler;
+  }
+
+  protected abstract boolean isIssueRequired(StatusEnum status, T entity);
+
+  protected abstract Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren,
+      T entity, StatusEnum status);
+
+  protected boolean evaluateSkippedAttributeValue(StatusEnum status, Long launchId) {
+    if (SKIPPED.equals(status)) {
+      return itemAttributeRepository.findByLaunchIdAndKeyAndSystem(launchId, SKIPPED_ISSUE_KEY,
+              true)
+          .map(attribute -> BooleanUtils.toBoolean(attribute.getValue()))
+          .orElse(false);
+    } else {
+      return false;
+    }
+  }
+
+  protected Optional<IssueType> getIssueType(boolean isIssueRequired, Long projectId,
+      String locator) {
+    if (isIssueRequired) {
+      return Optional.of(issueTypeHandler.defineIssueType(projectId, locator));
+    }
+    return Optional.empty();
+  }
+
+  @Override
+  public int finishDescendants(T parentEntity, StatusEnum status, Instant endDate,
+      ReportPortalUser user,
+      MembershipDetails membershipDetails) {
+
+    expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST,
+        "Unable to update current status to - " + IN_PROGRESS);
+
+    final int withoutChildren = updateDescendantsWithoutChildren(parentEntity,
+        membershipDetails, status, endDate, user);
+    final int withChildren = updateDescendantsWithChildren(parentEntity, endDate);
+    return withoutChildren + withChildren;
+  }
+
+  private int updateDescendantsWithoutChildren(T entity, MembershipDetails membershipDetails, StatusEnum status,
+      Instant endTime, ReportPortalUser user) {
+    Long projectId = membershipDetails.getProjectId();
+    AtomicInteger updatedCount = new AtomicInteger(0);
+    getIssueType(isIssueRequired(status, entity),
+        projectId,
+        TO_INVESTIGATE.getLocator()
+    ).ifPresentOrElse(issueType -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
+            getItemIdsFunction(false, entity, IN_PROGRESS),
+            itemIdsWithoutChildrenHandler(issueType, status, endTime, membershipDetails, user, updatedCount)
+        ),
+        () -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
+            getItemIdsFunction(false, entity, IN_PROGRESS),
+            itemIdsWithoutChildrenHandler(status, endTime, membershipDetails, user, updatedCount)
+        )
+    );
+    return updatedCount.get();
+  }
+
+  private Consumer<List<Long>> itemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status,
+      Instant endTime,
+      MembershipDetails membershipDetails, ReportPortalUser user, AtomicInteger updatedCount) {
+    return itemIds -> {
+      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
+      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
+        finishItem(testItem, status, endTime);
+        attachIssue(testItem, issueType);
+        changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
+      }));
+      updatedCount.addAndGet(itemIds.size());
+    };
+  }
+
+  private Consumer<List<Long>> itemIdsWithoutChildrenHandler(StatusEnum status,
+      Instant endTime, MembershipDetails membershipDetails,
+      ReportPortalUser user, AtomicInteger updatedCount) {
+    return itemIds -> {
+      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
+      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
+        finishItem(testItem, status, endTime);
+        changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
+      }));
+      updatedCount.addAndGet(itemIds.size());
+    };
+  }
+
+  /**
+   * Attach default issue to the item only if it wasn't already created
+   *
+   * @param testItem  {@link TestItem}
+   * @param issueType {@link IssueType}
+   */
+  private void attachIssue(TestItem testItem, IssueType issueType) {
+    if (!SUITE.sameLevel(testItem.getType()) && testItem.isHasStats()) {
+      issueEntityRepository.findById(testItem.getItemId()).ifPresentOrElse(issue -> {
+      }, () -> {
+        IssueEntity issueEntity = new IssueEntity();
+        issueEntity.setIssueType(issueType);
+        issueEntity.setTestItemResults(testItem.getItemResults());
+        issueEntityRepository.save(issueEntity);
+        testItem.getItemResults().setIssue(issueEntity);
+      });
+    }
+  }
+
+  private int updateDescendantsWithChildren(T entity, Instant endTime) {
+    AtomicInteger updatedCount = new AtomicInteger(0);
+    PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
+        getItemIdsFunction(true, entity, IN_PROGRESS),
+        itemIdsWithChildrenHandler(endTime, updatedCount)
+    );
+    return updatedCount.get();
+  }
+
+  private Consumer<List<Long>> itemIdsWithChildrenHandler(Instant endTime,
+      AtomicInteger updatedCount) {
+    return itemIds -> {
+      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
+      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
+        boolean isFailed = testItemRepository.hasDescendantsNotInStatus(testItem.getItemId(),
+            StatusEnum.PASSED.name(),
+            StatusEnum.INFO.name(),
+            StatusEnum.WARN.name()
+        );
+        finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
+      }));
+      updatedCount.addAndGet(itemIds.size());
+    };
+  }
+
+  private Map<Long, TestItem> getItemMapping(List<Long> itemIds) {
+    return testItemRepository.findAllById(itemIds).stream()
+        .collect(Collectors.toMap(TestItem::getItemId, i -> i));
+  }
+
+  private void finishItem(TestItem testItem, StatusEnum status, Instant endTime) {
+    testItem.getItemResults().setStatus(status);
+    testItem.getItemResults().setEndTime(endTime);
+    ItemAttribute interruptedAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS,
+        ATTRIBUTE_VALUE_INTERRUPTED, false);
+    interruptedAttribute.setTestItem(testItem);
+    testItem.getAttributes().add(interruptedAttribute);
+    if (testItem.isHasRetries()) {
+      retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(status.name()), endTime);
+    }
+  }
+}

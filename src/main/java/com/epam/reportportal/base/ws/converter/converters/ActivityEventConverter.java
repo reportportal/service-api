@@ -1,0 +1,78 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.ws.converter.converters;
+
+import com.epam.reportportal.api.model.ActivityDetails;
+import com.epam.reportportal.api.model.HistoryField;
+import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
+import com.epam.reportportal.base.model.ActivityEventResource;
+import java.util.Objects;
+import java.util.function.Function;
+import org.apache.commons.collections.CollectionUtils;
+
+/**
+ * Activity to ActivityEventResource Converter.
+ *
+ * @author Ryhor_Kukharenka
+ */
+public final class ActivityEventConverter {
+
+  private ActivityEventConverter() {
+  }
+
+  public static final Function<Activity, ActivityEventResource> TO_RESOURCE =
+      activity -> ActivityEventResource.builder()
+          .id(activity.getId())
+          .createdAt(activity.getCreatedAt())
+          .eventName(activity.getEventName()).objectId(activity.getObjectId())
+          .objectName(activity.getObjectName()).objectType(activity.getObjectType().getValue())
+          .projectId(activity.getProjectId()).projectName(activity.getProjectName())
+          .subjectName(activity.getSubjectName()).subjectType(activity.getSubjectType().getValue())
+          .subjectId(Objects.toString(activity.getSubjectId(), null)).details(activity.getDetails())
+          .build();
+
+  public static final Function<Activity, com.epam.reportportal.api.model.Activity> TO_ACTIVITY_RESOURCE =
+      activity -> new com.epam.reportportal.api.model.Activity()
+          .id(activity.getId())
+          .createdAt(activity.getCreatedAt())
+          .eventName(activity.getEventName())
+          .objectId(activity.getObjectId())
+          .objectName(activity.getObjectName())
+          .objectType(activity.getObjectType().getValue())
+          .projectId(activity.getProjectId())
+          .projectName(activity.getProjectName())
+          .subjectName(activity.getSubjectName())
+          .subjectType(activity.getSubjectType().getValue())
+          .details(convertDetails(activity.getDetails()));
+
+  private static ActivityDetails convertDetails(
+      com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails detailsEntity) {
+    if (CollectionUtils.isEmpty(detailsEntity.getHistory())) {
+      return null;
+    }
+
+    return new ActivityDetails()
+        .history(detailsEntity.getHistory().stream()
+            .map(historyField -> new HistoryField()
+                .field(historyField.getField())
+                .newValue(historyField.getNewValue())
+                .oldValue(historyField.getOldValue()))
+            .toList());
+  }
+
+
+}

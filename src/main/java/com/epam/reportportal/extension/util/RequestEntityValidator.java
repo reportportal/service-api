@@ -17,8 +17,8 @@
 package com.epam.reportportal.extension.util;
 
 
-import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import java.util.List;

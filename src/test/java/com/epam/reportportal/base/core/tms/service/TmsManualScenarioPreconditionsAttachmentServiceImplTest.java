@@ -12,11 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -225,70 +225,6 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
     verify(preconditionsAttachmentRepository, never()).deleteByPreconditionsId(preconditionsId);
     verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
-  }
-
-  @Test
-  void patchAttachments_ShouldAddNewAttachments_WhenValidPreconditionsAndNewAttachments() {
-    // Given existing preconditions with some attachments
-    var existingAttachments = new HashSet<TmsAttachment>();
-    var existingAttachment = new TmsAttachment();
-    existingAttachment.setId(99L);
-    existingAttachments.add(existingAttachment);
-    preconditions.setAttachments(existingAttachments);
-
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
-
-    // When patching attachments for existing preconditions
-    sut.patchAttachments(preconditions, preconditionsRQ);
-
-    // Then new attachments should be added to existing ones
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
-    verify(tmsAttachmentService).saveAll(attachments);
-
-    assertEquals(3, preconditions.getAttachments().size()); // 1 existing + 2 new
-    assertTrue(preconditions.getAttachments().contains(existingAttachment));
-    assertTrue(preconditions.getAttachments().contains(attachment1));
-    assertTrue(preconditions.getAttachments().contains(attachment2));
-  }
-
-  @Test
-  void patchAttachments_ShouldInitializeAttachments_WhenPreconditionsHaveNullAttachments() {
-    // Given preconditions with null attachments
-    preconditions.setAttachments(null);
-
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
-
-    // When patching attachments
-    sut.patchAttachments(preconditions, preconditionsRQ);
-
-    // Then attachments should be initialized and new ones added
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
-    verify(tmsAttachmentService).saveAll(attachments);
-
-    assertNotNull(preconditions.getAttachments());
-    assertEquals(2, preconditions.getAttachments().size());
-  }
-
-  @Test
-  void patchAttachments_ShouldDoNothing_WhenPreconditionsRQIsNull() {
-    // When patching attachments with null preconditions RQ
-    sut.patchAttachments(preconditions, null);
-
-    // Then no operations should be performed
-    verifyNoInteractions(tmsAttachmentService);
-  }
-
-  @Test
-  void patchAttachments_ShouldDoNothing_WhenAttachmentsListIsEmpty() {
-    // Given preconditions RQ with empty attachments list
-    var emptyPreconditionsRQ = new TmsManualScenarioPreconditionsRQ();
-    emptyPreconditionsRQ.setAttachments(Collections.emptyList());
-
-    // When patching attachments with empty list
-    sut.patchAttachments(preconditions, emptyPreconditionsRQ);
-
-    // Then no operations should be performed
-    verifyNoInteractions(tmsAttachmentService);
   }
 
   @Test

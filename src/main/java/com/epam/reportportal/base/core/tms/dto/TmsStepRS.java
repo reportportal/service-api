@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class TmsStepRS {
-
   private Long id;
 
   private String instructions;

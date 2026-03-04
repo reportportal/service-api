@@ -1,6 +1,5 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,18 +7,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_test_folder", schema = "public")
@@ -39,11 +37,15 @@ public class TmsTestFolder implements Serializable {
   @Column(name = "description")
   private String description;
 
+  @Column(name = "index")
+  private Integer index;
+
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;
 
   @OneToMany(mappedBy = "testFolder")
+  @Fetch(FetchMode.SUBSELECT)
   private List<TmsTestCase> testCases;
 
   @ManyToOne
@@ -51,13 +53,7 @@ public class TmsTestFolder implements Serializable {
   private TmsTestFolder parentTestFolder;
 
   @OneToMany(mappedBy = "parentTestFolder")
+  @Fetch(FetchMode.SUBSELECT)
+  @OrderBy("index ASC")
   private List<TmsTestFolder> subFolders;
-
-  @ManyToMany
-  @JoinTable(
-      name = "tms_test_folder_test_item",
-      joinColumns = @JoinColumn(name = "test_folder_id"),
-      inverseJoinColumns = @JoinColumn(name = "test_item_id"))
-  @ToString.Exclude
-  private Set<TestItem> testItems;
 }

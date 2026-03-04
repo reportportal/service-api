@@ -12,7 +12,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Junction entity for Many-to-Many relationship between TmsManualScenarioPreconditions and TmsAttachment.
+ * Junction entity for Many-to-Many relationship between TmsManualScenarioPreconditions and
+ * TmsAttachment.
  */
 @Entity
 @Table(name = "tms_manual_scenario_preconditions_attachment")

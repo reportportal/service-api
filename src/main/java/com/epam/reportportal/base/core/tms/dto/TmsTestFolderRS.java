@@ -19,4 +19,5 @@ public class TmsTestFolderRS {
   private String description;
   private Long countOfTestCases;
   private Long parentFolderId;
+  private Integer index;
 }

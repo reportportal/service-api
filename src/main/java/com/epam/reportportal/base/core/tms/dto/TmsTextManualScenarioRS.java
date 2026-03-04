@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Response DTO for text-based manual scenario operations. Contains information about instructions and expected result
- * as text.
+ * Response DTO for text-based manual scenario operations.
+ * Contains information about instructions and expected result as text.
  */
 @Data
 @SuperBuilder

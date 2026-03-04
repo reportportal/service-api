@@ -25,6 +25,7 @@ import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
@@ -35,6 +36,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRS;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
@@ -57,6 +59,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,7 +73,6 @@ import org.springframework.test.context.jdbc.Sql;
  */
 @Sql("/db/tms/tms-test-case/tms-test-case-fill.sql")
 @ExtendWith(MockitoExtension.class)
-@Disabled
 public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
@@ -118,7 +120,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void createTestCaseWithoutManualScenarioIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value3");
     attribute.setId(3L);
 
     var testCaseRQ = new TmsTestCaseRQ();
@@ -168,15 +169,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseTags = testCaseAttributeRepository.findAllById_TestCaseId(
         createdTestCase.get().getId());
     assertFalse(testCaseTags.isEmpty());
-    assertTrue(testCaseTags.stream().anyMatch(tag ->
-        tag.getValue().equals("value3") && tag.getId().getAttributeId().equals(3L)));
   }
 
   @Test
   void createTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value3");
     attribute.setId(3L);
 
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
@@ -596,7 +594,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(5)); // 5 test cases in folder 7
+        .andExpect(jsonPath("$.content.length()").value(7)); // 7 test cases in folder 7
   }
 
   @Test
@@ -616,7 +614,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(
-            1)); // 1 test case in folder 8 with priority == LOW
+            3)); // 3 test cases in folder 8 with priority == LOW
 
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
             .param("filter.eq.testFolderId", "8")
@@ -644,7 +642,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void updateTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value4");
     attribute.setId(4L);
 
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
@@ -720,7 +717,10 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
         .executionEstimationTime(123)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder()
+            .id("REQ-001")
+            .value("http://requirements.com")
+            .build()))
         .instructions("Updated instructions")
         .expectedResult("Updated expected result")
         .build();
@@ -753,7 +753,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseWithExistingFolderIdIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value6");
     attribute.setId(6L);
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case 6");
@@ -783,7 +782,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseWithNewFolderIntegrationTest() throws Exception {
     // Given
     var attribute = new TmsTestCaseAttributeRQ();
-    attribute.setValue("value6");
     attribute.setId(6L);
     TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
     testCaseRQ.setName("Patched Test Case 6 with New Folder");
@@ -1034,139 +1032,291 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   }
 
   @Test
-  void importTestCasesToExistingFolderIntegrationTest() throws Exception {
+  void batchPatchTestCasesWithNewFolderIntegrationTest() throws Exception {
     // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Imported Test Case 1",
-            "description": "Description for imported test case 1",
-            "priority": "HIGH",
-            "externalId": "123"
-          },
-          {
-            "name": "Imported Test Case 2",
-            "description": "Description for imported test case 2",
-            "priority": "MEDIUM",
-            "externalId": "321"
-          }
-        ]
-        """;
+    List<Long> testCaseIds = List.of(38L, 39L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Batch Patch Folder")
+        .build();
 
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", String.valueOf(3L))
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("Imported Test Case 1"))
-        .andExpect(jsonPath("$[1].name").value("Imported Test Case 2"));
+        .andExpect(status().isOk());
 
-    // Then - Verify test cases are created in database
-    var importedTestCases = testCaseRepository.findAll().stream()
-        .filter(tc -> tc.getName().startsWith("Imported Test Case"))
-        .toList();
+    entityManager.clear();
 
-    assertEquals(2, importedTestCases.size());
-    assertEquals(3L, importedTestCases.getFirst().getTestFolder().getId());
-    assertEquals(3L, importedTestCases.get(1).getTestFolder().getId());
+    // Then - Verify new folder was created and test cases were moved
+    Optional<TmsTestCase> testCase38After = testCaseRepository.findById(38L);
+    Optional<TmsTestCase> testCase39After = testCaseRepository.findById(39L);
+
+    assertTrue(testCase38After.isPresent());
+    assertTrue(testCase39After.isPresent());
+
+    // Both test cases should be in the same new folder
+    assertEquals(testCase38After.get().getTestFolder().getId(),
+        testCase39After.get().getTestFolder().getId());
+
+    // Verify the new folder was created with correct name
+    var newFolderId = testCase38After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("New Batch Patch Folder", createdFolder.get().getName());
+    assertNull(createdFolder.get().getParentTestFolder()); // Root folder
   }
 
   @Test
-  void importTestCasesFromJsonWithNonExistentFolderIntegrationTest() throws Exception {
+  void batchPatchTestCasesWithNewNestedFolderIntegrationTest() throws Exception {
     // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Imported Test Case with Invalid Folder",
-            "description": "Description",
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
+    List<Long> testCaseIds = List.of(40L, 41L);
+    Long parentFolderId = 10L;
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Nested Batch Folder")
+        .parentTestFolderId(parentFolderId)
+        .build();
 
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
 
-    // When/Then - should return error for non-existent folder
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", String.valueOf(999L))
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then - Verify new nested folder was created and test cases were moved
+    Optional<TmsTestCase> testCase40After = testCaseRepository.findById(40L);
+    Optional<TmsTestCase> testCase41After = testCaseRepository.findById(41L);
+
+    assertTrue(testCase40After.isPresent());
+    assertTrue(testCase41After.isPresent());
+
+    // Both test cases should be in the same new folder
+    assertEquals(testCase40After.get().getTestFolder().getId(),
+        testCase41After.get().getTestFolder().getId());
+
+    // Verify the new folder was created with correct name and parent
+    var newFolderId = testCase40After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("New Nested Batch Folder", createdFolder.get().getName());
+    assertNotNull(createdFolder.get().getParentTestFolder());
+    assertEquals(parentFolderId, createdFolder.get().getParentTestFolder().getId());
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderAndPriorityIntegrationTest() throws Exception {
+    // Given
+    List<Long> testCaseIds = List.of(42L, 43L);
+    String newPriority = "CRITICAL";
+    var newFolder = NewTestFolderRQ.builder()
+        .name("New Folder With Priority Update")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .priority(newPriority)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then - Verify both folder and priority were updated
+    Optional<TmsTestCase> testCase42After = testCaseRepository.findById(42L);
+    Optional<TmsTestCase> testCase43After = testCaseRepository.findById(43L);
+
+    assertTrue(testCase42After.isPresent());
+    assertTrue(testCase43After.isPresent());
+
+    // Both test cases should be in the same new folder
+    assertEquals(testCase42After.get().getTestFolder().getId(),
+        testCase43After.get().getTestFolder().getId());
+
+    // Verify priority was updated
+    assertEquals(newPriority, testCase42After.get().getPriority());
+    assertEquals(newPriority, testCase43After.get().getPriority());
+
+    // Verify folder name
+    var newFolderId = testCase42After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("New Folder With Priority Update", createdFolder.get().getName());
+  }
+
+  @Test
+  void batchPatchTestCasesWithBothFolderIdAndNewFolderValidationIntegrationTest() throws Exception {
+    // Given - both testFolderId and testFolder provided (should fail validation)
+    List<Long> testCaseIds = List.of(44L, 45L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Conflicting New Folder")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(6L)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - should return validation error
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+  }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderNonExistentParentIntegrationTest() throws Exception {
+    // Given - new folder with non-existent parent
+    List<Long> testCaseIds = List.of(46L, 47L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Orphan Folder")
+        .parentTestFolderId(999L) // Non-existent parent
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - should return not found for non-existent parent folder
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
         .andExpect(content().string(containsString("Test Folder with id: 999")));
   }
 
   @Test
-  void importTestCasesFromJsonWithNewFolderNameIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Imported Test Case with New Folder",
-            "description": "Description for imported test case with new folder",
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
+  void batchPatchTestCasesWithNewFolderEmptyNameValidationIntegrationTest() throws Exception {
+    // Given - new folder with empty name
+    List<Long> testCaseIds = List.of(48L, 49L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("")
+        .build();
 
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When/Then - should return 200
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void batchPatchTestCasesWithSingleTestCaseAndNewFolderIntegrationTest() throws Exception {
+    // Given - single test case with new folder
+    List<Long> testCaseIds = List.of(50L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Single Test Case New Folder")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
 
     // When
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderName", "New Import Folder")
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].name").value("Imported Test Case with New Folder"));
+        .andExpect(status().isOk());
 
     entityManager.clear();
 
-    // Then - Verify test case is created in database with new folder
-    var importedTestCases = testCaseRepository.findAll().stream()
-        .filter(tc -> tc.getName().equals("Imported Test Case with New Folder"))
-        .toList();
+    // Then
+    Optional<TmsTestCase> testCase50After = testCaseRepository.findById(50L);
+    assertTrue(testCase50After.isPresent());
 
-    assertEquals(1, importedTestCases.size());
-    assertNotNull(importedTestCases.getFirst().getTestFolder());
-
-    var testFolder = tmsTestFolderRepository.findById(
-        importedTestCases.getFirst().getTestFolder().getId());
-
-    assertTrue(testFolder.isPresent());
-    assertEquals("New Import Folder", testFolder.get().getName());
+    var newFolderId = testCase50After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("Single Test Case New Folder", createdFolder.get().getName());
   }
+
+  @Test
+  void batchPatchTestCasesWithNewFolderInDifferentProjectIntegrationTest() throws Exception {
+    // Given - test cases from default project with new folder
+    List<Long> testCaseIds = List.of(51L, 52L);
+    var newFolder = NewTestFolderRQ.builder()
+        .name("Default Project New Folder")
+        .build();
+
+    BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolder(newFolder)
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(batchPatchRequest);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + DEFAULT_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.clear();
+
+    // Then - Verify new folder was created in correct project
+    Optional<TmsTestCase> testCase51After = testCaseRepository.findById(51L);
+    assertTrue(testCase51After.isPresent());
+
+    var newFolderId = testCase51After.get().getTestFolder().getId();
+    var createdFolder = tmsTestFolderRepository.findById(newFolderId);
+    assertTrue(createdFolder.isPresent());
+    assertEquals("Default Project New Folder", createdFolder.get().getName());
+    assertEquals(2L, createdFolder.get().getProject().getId()); // default_personal project id
+  }
+
 
   @Test
   void importTestCasesFromCsvIntegrationTest() throws Exception {
     // Given
-    var csvContent = """
-        name,description,priority,externalId
-        CSV Test Case 1,Description for CSV test case 1,HIGH,123
-        CSV Test Case 2,Description for CSV test case 2,MEDIUM,321
-        """;
+    var csvContent = "path,priority,summary,test steps,expected result,status,test type,description,labels,components,versions,bugs (not imported),requirements\n"
+        + "APP/Settings/Update user preferences,High,CSV Test Case 1,\"# Open 'Preferences' tab\n#* 'Theme' dropdown\n#* 'Language' dropdown\n#* 'Notifications' toggle\n#* 'Privacy' settings section\n# Save changes\",\"# 'Theme' dropdown shows available themes\n# 'Language' dropdown lists supported languages\n# 'Notifications' toggle is present and can be switched\n# 'Privacy' section is visible\n# Changes are saved and confirmation message appears\",Untested,Manual,,SmokeTest;v1.0,User management,,,REQ-1001\n"
+        + "APP/Settings/Update user preferences,Medium,CSV Test Case 2,\"# Click on 'Language' dropdown\n# Select 'Spanish'\n# Save changes\n# Refresh the page\",\"# 'Language' dropdown expands\n# 'Spanish' is selected\n# Confirmation message appears\n# Interface language changes to Spanish after refresh\",Untested,Manual,,Regression;v1.0,User management,,,REQ-1002";
 
     MockMultipartFile file = new MockMultipartFile(
         "file",
@@ -1181,19 +1331,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .param("testFolderId", String.valueOf(4L))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("CSV Test Case 1"))
-        .andExpect(jsonPath("$[1].name").value("CSV Test Case 2"));
-
-    // Then - Verify test cases are created in database
-    var importedTestCases = testCaseRepository.findAll().stream()
-        .filter(tc -> tc.getName().startsWith("CSV Test Case"))
-        .toList();
-
-    assertEquals(2, importedTestCases.size());
-    assertEquals(4L, importedTestCases.getFirst().getTestFolder().getId());
-    assertEquals(4L, importedTestCases.get(1).getTestFolder().getId());
+        .andExpect(jsonPath("$.createdTestCaseIds").isArray())
+        .andExpect(jsonPath("$.createdTestCaseIds.length()").value(2))
+        .andExpect(jsonPath("$.totalRows").value(2))
+        .andExpect(jsonPath("$.testFolderId").value(4))
+        .andExpect(jsonPath("$.successCount").value(2));
   }
 
   @Test
@@ -1218,99 +1360,6 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 "Unsupported import format: xml"
             ))
         );
-  }
-
-  @Test
-  void importTestCasesWithInvalidTestFolderValidationIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Test Case",
-            "description": "Description",
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When/Then - should return validation error
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", String.valueOf(3L))
-            .param("testFolderName", "Test Folder")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString(
-            "Either testFolderId or testFolderName must be provided and not empty")));
-  }
-
-  @Test
-  void importTestCasesWithMissingTestFolderValidationIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Test Case",
-            "description": "Description", 
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When/Then - should return validation error
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString(
-            "Either testFolderId or testFolderName must be provided and not empty")));
-  }
-
-  @Test
-  void importTestCasesWithEmptyTestFolderNameValidationIntegrationTest() throws Exception {
-    // Given
-    var jsonContent = """
-        [
-          {
-            "name": "Test Case",
-            "description": "Description", 
-            "priority": "HIGH",
-            "externalId": "123"
-          }
-        ]
-        """;
-
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "testcases.json",
-        "application/json",
-        jsonContent.getBytes()
-    );
-
-    // When/Then - should return validation error
-    mockMvc.perform(multipart("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/import")
-            .file(file)
-            .param("testFolderId", "")
-            .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString(
-            "Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test
@@ -1505,8 +1554,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesAddAndRemoveIntegrationTest() throws Exception {
     // Given - prepare test cases with initial attributes
     var testCaseIds = List.of(4L, 5L);
-    var attributesToRemove = List.of(4L); // Remove attribute 4
-    var attributeIdsToAdd = List.of(1L, 2L); // Add attributes 1 and 2
+    var attributeKeysToRemove = Set.of("test4"); // Remove attribute 4
+    var attributeKeysToAdd = Set.of("test1", "test2"); // Add attributes 1 and 2
 
     // Verify initial state - test case 4 has attribute 4
     var tagsBeforeTestCase4 = testCaseAttributeRepository.findAllById_TestCaseId(4L);
@@ -1515,8 +1564,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToRemove(attributeKeysToRemove)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1552,11 +1601,11 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesOnlyAddIntegrationTest() throws Exception {
     // Given - only add attributes, no removal
     var testCaseIds = List.of(6L, 7L);
-    var attributeIdsToAdd = List.of(3L, 4L);
+    var attributeKeysToAdd = Set.of("test3", "test4");
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1587,7 +1636,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesOnlyRemoveIntegrationTest() throws Exception {
     // Given - only remove attributes, no addition
     var testCaseIds = List.of(9L);
-    var attributesToRemove = List.of(4L);
+    var attributeKeysToRemove = Set.of("test4");
 
     // Verify initial state
     var tagsBeforeTestCase9 = testCaseAttributeRepository.findAllById_TestCaseId(9L);
@@ -1596,7 +1645,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
+        .attributeKeysToRemove(attributeKeysToRemove)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1619,13 +1668,13 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void patchTestCaseAttributesWithOverlapIntegrationTest() throws Exception {
     // Given - same attribute in both add and remove lists (should be ignored)
     var testCaseIds = List.of(10L);
-    var attributesToRemove = List.of(1L, 2L);
-    var attributeIdsToAdd = List.of(1L, 3L); // 1L is in both lists
+    var attributeKeysToRemove = Set.of("test1", "test2");
+    var attributeKeysToAdd = Set.of("test1", "test3"); // 1L is in both lists
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(attributesToRemove)
-        .attributeIdsToAdd(attributeIdsToAdd)
+        .attributeKeysToRemove(attributeKeysToRemove)
+        .attributeKeysToAdd(attributeKeysToAdd)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1652,7 +1701,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // Given
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(Collections.emptyList())
-        .attributeIdsToAdd(List.of(1L))
+        .attributeKeysToAdd(Set.of("test1"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1672,7 +1721,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var nonExistentTestCaseIds = List.of(999L, 888L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(nonExistentTestCaseIds)
-        .attributeIdsToAdd(List.of(1L))
+        .attributeKeysToAdd(Set.of("test1"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1694,7 +1743,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var mixedTestCaseIds = List.of(4L, 999L); // 4L exists, 999L doesn't
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(mixedTestCaseIds)
-        .attributeIdsToAdd(List.of(1L))
+        .attributeKeysToAdd(Set.of("test1"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1715,8 +1764,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseIds = List.of(11L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(Collections.emptyList())
-        .attributeIdsToAdd(Collections.emptyList())
+        .attributeKeysToRemove(Collections.emptySet())
+        .attributeKeysToAdd(Collections.emptySet())
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1736,8 +1785,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseIds = List.of(12L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(null)
-        .attributeIdsToAdd(null)
+        .attributeKeysToRemove(null)
+        .attributeKeysToAdd(null)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1754,7 +1803,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void patchTestCaseAttributesWithMalformedJsonIntegrationTest() throws Exception {
     // Given - malformed JSON
-    String malformedJson = "{\"testCaseIds\": [4, 5], \"attributeIdsToAdd\": [1, 2";
+    String malformedJson = "{\"testCaseIds\": [4, 5], \"attributeKeysToAdd\": [\"test1\", \"test2\"";
 
     // When/Then - should return bad request
     mockMvc.perform(
@@ -1768,7 +1817,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void patchTestCaseAttributesWithNullTestCaseIdsIntegrationTest() throws Exception {
     // Given - null test case IDs
-    String jsonContent = "{\"testCaseIds\": null, \"attributeIdsToAdd\": [1, 2]}";
+    String jsonContent = "{\"testCaseIds\": null, \"attributeKeysToAdd\": [\"test1\", \"test2\"]}";
 
     // When/Then - should return validation error due to @NotEmpty
     mockMvc.perform(
@@ -1785,8 +1834,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var testCaseIds = List.of(13L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(null)
-        .attributeIdsToAdd(List.of(1L, 2L))
+        .attributeKeysToRemove(null)
+        .attributeKeysToAdd(Set.of("test1", "test2"))
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1819,8 +1868,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
         .testCaseIds(testCaseIds)
-        .attributesToRemove(List.of(2L))
-        .attributeIdsToAdd(null)
+        .attributeKeysToRemove(Set.of("test2"))
+        .attributeKeysToAdd(null)
         .build();
 
     String jsonContent = mapper.writeValueAsString(patchRequest);
@@ -1839,6 +1888,54 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var tagsAfterTestCase14 = testCaseAttributeRepository.findAllById_TestCaseId(14L);
     assertFalse(
         tagsAfterTestCase14.stream().anyMatch(tag -> tag.getId().getAttributeId().equals(2L)));
+  }
+
+  @Test
+  void patchTestCaseAttributes_ShouldCreateNonExistentAttributes() throws Exception {
+    // Given
+    var testCaseIds = List.of(4L);
+    var newKey = "new_unique_key";
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributeKeysToAdd(Set.of(newKey))
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then
+    var tagsAfter = testCaseAttributeRepository.findAllById_TestCaseId(4L);
+    assertTrue(tagsAfter.stream().anyMatch(tag -> tag.getAttribute().getKey().equals(newKey)));
+  }
+
+  @Test
+  void patchTestCaseAttributes_ShouldIgnoreNonExistentAttributesRemoval() throws Exception {
+    // Given
+    var testCaseIds = List.of(4L);
+    var nonExistentKey = "non_existent_key";
+    var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .attributeKeysToRemove(Set.of(nonExistentKey))
+        .build();
+
+    String jsonContent = mapper.writeValueAsString(patchRequest);
+
+    // When
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attributes/batch")
+                .contentType("application/json")
+                .content(jsonContent)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+    
+    // No error expected
   }
 
   @Test
@@ -2171,8 +2268,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(2))
         .andReturn();
 
     // Then - Verify new test cases were created
@@ -2181,20 +2279,20 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertEquals(10L, batchDuplicateResponse.getTestFolderId());
+    assertEquals(2, batchDuplicateResponse.getTestCases().size());
 
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertFalse(duplicatedTestCases.isEmpty());
     assertEquals(2, duplicatedTestCases.size());
-    duplicatedTestCases
-        .forEach(testCase -> {
-          assertEquals(10L, testCase.getTestFolder().getId());
-        });
+    duplicatedTestCases.forEach(testCase -> {
+      assertEquals(10L, testCase.getTestFolder().getId());
+    });
   }
 
   @Test
@@ -2218,11 +2316,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
   }
 
   @Test
@@ -2243,24 +2342,26 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").value(duplicateRequest.getTestFolderId()))
-        .andExpect(jsonPath("$[0].manualScenario").exists())
-        .andExpect(jsonPath("$[0].manualScenario.manualScenarioType").value("TEXT"))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").value(duplicateRequest.getTestFolderId()))
+        .andExpect(jsonPath("$.testCases[0].manualScenario").exists())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.manualScenarioType").value("TEXT"))
         .andReturn();
 
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertEquals(10L, batchDuplicateResponse.getTestFolderId());
+    assertEquals(1, batchDuplicateResponse.getTestCases().size());
 
     // Then - Verify duplicated test case has manual scenario
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertEquals(1, duplicatedTestCases.size());
@@ -2294,23 +2395,25 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].manualScenario").exists())
-        .andExpect(jsonPath("$[0].manualScenario.manualScenarioType").value("STEPS"))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testFolderId").exists())
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].manualScenario").exists())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.manualScenarioType").value("STEPS"))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
         .andReturn();
 
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertNotNull(batchDuplicateResponse.getTestFolderId());
+    assertEquals(1, batchDuplicateResponse.getTestCases().size());
 
     // Then - Verify duplicated test case has manual scenario
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertEquals(1, duplicatedTestCases.size());
@@ -2435,8 +2538,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$.testFolderId").value(11L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
         .andReturn();
 
     entityManager.clear();
@@ -2444,17 +2548,18 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     // Then - Verify duplicated test case has same tags
     var responseBody = result.getResponse().getContentAsString();
 
-    var duplicatesTestCasesResponse = mapper.readValue(responseBody,
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+    var batchDuplicateResponse = mapper.readValue(responseBody, BatchDuplicateTestCasesRS.class);
+
+    assertEquals(11L, batchDuplicateResponse.getTestFolderId());
+    assertEquals(1, batchDuplicateResponse.getTestCases().size());
 
     var duplicatedTestCases = testCaseRepository.findAllById(
-        duplicatesTestCasesResponse.stream().map(TmsTestCaseRS::getId).toList()
+        batchDuplicateResponse.getTestCases().stream().map(TmsTestCaseRS::getId).toList()
     );
 
     assertEquals(1, duplicatedTestCases.size());
 
-    var duplicatedAttributes = duplicatesTestCasesResponse.getFirst().getAttributes();
+    var duplicatedAttributes = batchDuplicateResponse.getTestCases().getFirst().getAttributes();
 
     assertEquals(originalTags.size(), duplicatedAttributes.size());
   }
@@ -2476,11 +2581,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].testFolder").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").exists())
-        .andExpect(jsonPath("$[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
+        .andExpect(jsonPath("$.testFolderId").value(11L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].testFolder").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").exists())
+        .andExpect(jsonPath("$.testCases[0].testFolder.id").value(duplicateRequest.getTestFolderId()));
   }
 
   @Test
@@ -2660,21 +2766,24 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(mapper.writeValueAsString(duplicateRequest))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].manualScenario.attachments").isArray())
-        .andExpect(jsonPath("$[0].manualScenario.attachments.length()").value(1))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].manualScenario.attachments").isArray())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.attachments.length()").value(1))
         .andReturn();
 
     entityManager.clear();
 
     // Then verify attachment was duplicated
     var duplicateResponse = mapper.readValue(duplicateResult.getResponse().getContentAsString(),
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+        BatchDuplicateTestCasesRS.class);
 
-    var textManualScenarioRS = (TmsTextManualScenarioRS) duplicateResponse.getFirst()
-        .getManualScenario();
+    assertEquals(10L, duplicateResponse.getTestFolderId());
+    assertEquals(1, duplicateResponse.getTestCases().size());
+
+    var textManualScenarioRS = (TmsTextManualScenarioRS) duplicateResponse.getTestCases()
+        .getFirst().getManualScenario();
 
     var duplicatedAttachmentId = Long.valueOf(
         textManualScenarioRS.getAttachments().getFirst().getId());
@@ -2948,18 +3057,21 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(mapper.writeValueAsString(duplicateRequest))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].manualScenario.preconditions.attachments").isArray())
-        .andExpect(jsonPath("$[0].manualScenario.preconditions.attachments.length()").value(1))
+        .andExpect(jsonPath("$.testFolderId").value(10L))
+        .andExpect(jsonPath("$.testCases").isArray())
+        .andExpect(jsonPath("$.testCases.length()").value(1))
+        .andExpect(jsonPath("$.testCases[0].manualScenario.preconditions.attachments").isArray())
+        .andExpect(jsonPath("$.testCases[0].manualScenario.preconditions.attachments.length()").value(1))
         .andReturn();
 
     // Then verify preconditions attachment was duplicated
     var duplicateResponse = mapper.readValue(duplicateResult.getResponse().getContentAsString(),
-        new TypeReference<List<TmsTestCaseRS>>() {
-        });
+        BatchDuplicateTestCasesRS.class);
 
-    var duplicatedAttachmentId = Long.valueOf(duplicateResponse.getFirst()
+    assertEquals(10L, duplicateResponse.getTestFolderId());
+    assertEquals(1, duplicateResponse.getTestCases().size());
+
+    var duplicatedAttachmentId = Long.valueOf(duplicateResponse.getTestCases().getFirst()
         .getManualScenario().getPreconditions().getAttachments().getFirst().getId());
 
     entityManager.clear();

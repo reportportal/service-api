@@ -3,13 +3,19 @@ package com.epam.reportportal.base.core.tms.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttributeRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioAttributeMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioAttributeId;
@@ -21,6 +27,8 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,146 +36,215 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TmsManualScenarioAttributeServiceImplTest {
 
+  private static final Long PROJECT_ID = 1L;
+
   @Mock
   private TmsManualScenarioAttributeMapper tmsManualScenarioAttributeMapper;
 
   @Mock
   private TmsManualScenarioAttributeRepository tmsManualScenarioAttributeRepository;
 
+  @Mock
+  private TmsAttributeService tmsAttributeService;
+
   @InjectMocks
   private TmsManualScenarioAttributeServiceImpl tmsManualScenarioAttributeService;
 
+  @Captor
+  private ArgumentCaptor<Set<TmsManualScenarioAttribute>> attributesCaptor;
+
   private TmsManualScenario manualScenario;
-  private List<TmsManualScenarioAttributeRQ> attributeRQs;
-  private Set<TmsManualScenarioAttribute> attributes;
 
   @BeforeEach
   void setUp() {
     manualScenario = createManualScenario();
-    attributeRQs = createAttributeRQs();
-    attributes = createAttributes();
   }
 
   @Test
-  void shouldCreateAttributes() {
+  void shouldCreateAttributesWithExistingAttributeIds() {
     // Given
-    when(tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(attributeRQs))
-        .thenReturn(attributes);
+    var attributeRQ1 = createAttributeRQWithId(1L);
+    var attributeRQ2 = createAttributeRQWithId(2L);
+    var attributeRQs = List.of(attributeRQ1, attributeRQ2);
+
+    var tmsAttribute1 = createTmsAttribute(1L, "key1", "value1");
+    var tmsAttribute2 = createTmsAttribute(2L, "key2", "value2");
+
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 1L)).thenReturn(tmsAttribute1);
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 2L)).thenReturn(tmsAttribute2);
 
     // When
-    tmsManualScenarioAttributeService.createAttributes(manualScenario, attributeRQs);
+    tmsManualScenarioAttributeService.createAttributes(PROJECT_ID, manualScenario, attributeRQs);
 
     // Then
-    verify(tmsManualScenarioAttributeMapper).convertToTmsManualScenarioAttributes(attributeRQs);
-    verify(tmsManualScenarioAttributeRepository).saveAll(attributes);
+    verify(tmsAttributeService).getEntityById(PROJECT_ID, 1L);
+    verify(tmsAttributeService).getEntityById(PROJECT_ID, 2L);
+    verify(tmsAttributeService, never()).findOrCreateAttribute(anyLong(), anyString(), anyString());
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
 
-    // Verify manual scenario is set on each attribute
-    for (var attribute : attributes) {
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(2);
+    assertThat(manualScenario.getAttributes()).hasSize(2);
+
+    for (var attribute : savedAttributes) {
       assertThat(attribute.getManualScenario()).isEqualTo(manualScenario);
     }
-    assertThat(manualScenario.getAttributes()).isEqualTo(attributes);
+  }
+
+  @Test
+  void shouldCreateAttributesWithKeyAndValue() {
+    // Given
+    var attributeRQ1 = createAttributeRQWithKeyAndValue("key1", "value1");
+    var attributeRQ2 = createAttributeRQWithKeyAndValue("key2", "value2");
+    var attributeRQs = List.of(attributeRQ1, attributeRQ2);
+
+    var tmsAttribute1 = createTmsAttribute(1L, "key1", "value1");
+    var tmsAttribute2 = createTmsAttribute(2L, "key2", "value2");
+
+    when(tmsAttributeService.findOrCreateAttribute(PROJECT_ID, "key1", "value1"))
+        .thenReturn(tmsAttribute1);
+    when(tmsAttributeService.findOrCreateAttribute(PROJECT_ID, "key2", "value2"))
+        .thenReturn(tmsAttribute2);
+
+    // When
+    tmsManualScenarioAttributeService.createAttributes(PROJECT_ID, manualScenario, attributeRQs);
+
+    // Then
+    verify(tmsAttributeService).findOrCreateAttribute(PROJECT_ID, "key1", "value1");
+    verify(tmsAttributeService).findOrCreateAttribute(PROJECT_ID, "key2", "value2");
+    verify(tmsAttributeService, never()).getEntityById(anyLong(), anyLong());
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
+
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(2);
+    assertThat(manualScenario.getAttributes()).hasSize(2);
+  }
+
+  @Test
+  void shouldCreateAttributesMixed() {
+    // Given
+    var attributeRQ1 = createAttributeRQWithId(1L);
+    var attributeRQ2 = createAttributeRQWithKeyAndValue("key2", "value2");
+    var attributeRQs = List.of(attributeRQ1, attributeRQ2);
+
+    var tmsAttribute1 = createTmsAttribute(1L, "key1", "value1");
+    var tmsAttribute2 = createTmsAttribute(2L, "key2", "value2");
+
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 1L)).thenReturn(tmsAttribute1);
+    when(tmsAttributeService.findOrCreateAttribute(PROJECT_ID, "key2", "value2"))
+        .thenReturn(tmsAttribute2);
+
+    // When
+    tmsManualScenarioAttributeService.createAttributes(PROJECT_ID, manualScenario, attributeRQs);
+
+    // Then
+    verify(tmsAttributeService).getEntityById(PROJECT_ID, 1L);
+    verify(tmsAttributeService).findOrCreateAttribute(PROJECT_ID, "key2", "value2");
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
+
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(2);
+    assertThat(manualScenario.getAttributes()).hasSize(2);
   }
 
   @Test
   void shouldNotCreateAttributesWhenListIsEmpty() {
     // When
-    tmsManualScenarioAttributeService.createAttributes(manualScenario, Collections.emptyList());
+    tmsManualScenarioAttributeService.createAttributes(PROJECT_ID, manualScenario,
+        Collections.emptyList());
 
     // Then
-    verify(tmsManualScenarioAttributeMapper, never()).convertToTmsManualScenarioAttributes(anyList());
+    verify(tmsAttributeService, never()).getEntityById(anyLong(), anyLong());
+    verify(tmsAttributeService, never()).findOrCreateAttribute(anyLong(), anyString(), anyString());
     verify(tmsManualScenarioAttributeRepository, never()).saveAll(any());
   }
 
   @Test
   void shouldNotCreateAttributesWhenListIsNull() {
     // When
-    tmsManualScenarioAttributeService.createAttributes(manualScenario, null);
+    tmsManualScenarioAttributeService.createAttributes(PROJECT_ID, manualScenario, null);
 
     // Then
-    verify(tmsManualScenarioAttributeMapper, never()).convertToTmsManualScenarioAttributes(anyList());
+    verify(tmsAttributeService, never()).getEntityById(anyLong(), anyLong());
+    verify(tmsAttributeService, never()).findOrCreateAttribute(anyLong(), anyString(), anyString());
     verify(tmsManualScenarioAttributeRepository, never()).saveAll(any());
   }
 
   @Test
-  void shouldUpdateAttributes() {
+  void shouldUpdateAttributesWithExistingAttributes() {
     // Given
-    var existingAttributes = createExistingAttributes();
+    var existingAttributes = createExistingManualScenarioAttributes();
     manualScenario.setAttributes(existingAttributes);
 
-    when(tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(attributeRQs))
-        .thenReturn(attributes);
+    var attributeRQ = createAttributeRQWithId(3L);
+    var attributeRQs = List.of(attributeRQ);
+
+    var tmsAttribute = createTmsAttribute(3L, "key3", "value3");
+
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 3L)).thenReturn(tmsAttribute);
 
     // When
-    tmsManualScenarioAttributeService.updateAttributes(manualScenario, attributeRQs);
+    tmsManualScenarioAttributeService.updateAttributes(PROJECT_ID, manualScenario, attributeRQs);
 
     // Then
     verify(tmsManualScenarioAttributeRepository).deleteAll(existingAttributes);
-    verify(tmsManualScenarioAttributeMapper).convertToTmsManualScenarioAttributes(attributeRQs);
-    verify(tmsManualScenarioAttributeRepository).saveAll(attributes);
+    verify(tmsAttributeService).getEntityById(PROJECT_ID, 3L);
+    verify(tmsManualScenarioAttributeRepository).saveAll(any());
 
-    assertThat(manualScenario.getAttributes()).isEqualTo(attributes);
+    assertThat(manualScenario.getAttributes()).hasSize(1);
   }
 
   @Test
   void shouldUpdateAttributesWhenNoExistingAttributes() {
     // Given
     manualScenario.setAttributes(new HashSet<>());
-    when(tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(attributeRQs))
-        .thenReturn(attributes);
+
+    var attributeRQ = createAttributeRQWithKeyAndValue("key1", "value1");
+    var attributeRQs = List.of(attributeRQ);
+
+    var tmsAttribute = createTmsAttribute(1L, "key1", "value1");
+
+    when(tmsAttributeService.findOrCreateAttribute(PROJECT_ID, "key1", "value1"))
+        .thenReturn(tmsAttribute);
 
     // When
-    tmsManualScenarioAttributeService.updateAttributes(manualScenario, attributeRQs);
+    tmsManualScenarioAttributeService.updateAttributes(PROJECT_ID, manualScenario, attributeRQs);
 
     // Then
     verify(tmsManualScenarioAttributeRepository, never()).deleteAll(any());
-    verify(tmsManualScenarioAttributeMapper).convertToTmsManualScenarioAttributes(attributeRQs);
-    verify(tmsManualScenarioAttributeRepository).saveAll(attributes);
+    verify(tmsAttributeService).findOrCreateAttribute(PROJECT_ID, "key1", "value1");
+    verify(tmsManualScenarioAttributeRepository).saveAll(any());
   }
 
   @Test
-  void shouldPatchAttributesWithNewAndUpdatedAttributes() {
+  void shouldUpdateAttributesReplacingAllAttributes() {
     // Given
-    var existingAttributes = createExistingAttributesForPatch();
+    var existingAttributes = createExistingManualScenarioAttributes();
     manualScenario.setAttributes(existingAttributes);
 
-    var newAttributeRQs = createAttributeRQsForPatch();
-    var newAttributes = createNewAttributesForPatch();
+    var attributeRQ1 = createAttributeRQWithKeyAndValue("new-key1", "new-value1");
+    var attributeRQ2 = createAttributeRQWithKeyAndValue("new-key2", "new-value2");
+    var attributeRQs = List.of(attributeRQ1, attributeRQ2);
 
-    when(tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(newAttributeRQs))
-        .thenReturn(newAttributes);
+    var tmsAttribute1 = createTmsAttribute(10L, "new-key1", "new-value1");
+    var tmsAttribute2 = createTmsAttribute(11L, "new-key2", "new-value2");
 
-    // When
-    tmsManualScenarioAttributeService.patchAttributes(manualScenario, newAttributeRQs);
-
-    // Then
-    verify(tmsManualScenarioAttributeRepository).saveAll(any());
-    // Should update existing attribute with id 1 and add new attribute with id 3
-    // Should delete attribute with id 2 (not in new list)
-  }
-
-  @Test
-  void shouldPatchAttributesWhenNoExistingAttributes() {
-    // Given
-    manualScenario.setAttributes(new HashSet<>());
-    when(tmsManualScenarioAttributeMapper.convertToTmsManualScenarioAttributes(attributeRQs))
-        .thenReturn(attributes);
+    when(tmsAttributeService.findOrCreateAttribute(PROJECT_ID, "new-key1", "new-value1"))
+        .thenReturn(tmsAttribute1);
+    when(tmsAttributeService.findOrCreateAttribute(PROJECT_ID, "new-key2", "new-value2"))
+        .thenReturn(tmsAttribute2);
 
     // When
-    tmsManualScenarioAttributeService.patchAttributes(manualScenario, attributeRQs);
+    tmsManualScenarioAttributeService.updateAttributes(PROJECT_ID, manualScenario, attributeRQs);
 
     // Then
-    verify(tmsManualScenarioAttributeMapper).convertToTmsManualScenarioAttributes(attributeRQs);
-    verify(tmsManualScenarioAttributeRepository).saveAll(attributes);
-  }
+    verify(tmsManualScenarioAttributeRepository).deleteAll(existingAttributes);
+    verify(tmsAttributeService).findOrCreateAttribute(PROJECT_ID, "new-key1", "new-value1");
+    verify(tmsAttributeService).findOrCreateAttribute(PROJECT_ID, "new-key2", "new-value2");
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
 
-  @Test
-  void shouldNotPatchAttributesWhenListIsEmpty() {
-    // When
-    tmsManualScenarioAttributeService.patchAttributes(manualScenario, Collections.emptyList());
-
-    // Then
-    verify(tmsManualScenarioAttributeMapper, never()).convertToTmsManualScenarioAttributes(anyList());
-    verify(tmsManualScenarioAttributeRepository, never()).saveAll(any());
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(2);
   }
 
   @Test
@@ -175,26 +252,33 @@ class TmsManualScenarioAttributeServiceImplTest {
     // Given
     var originalScenario = createOriginalScenario();
     var newScenario = createNewScenario();
-    var originalAttributes = createOriginalAttributes();
-    var duplicatedAttributes = createDuplicatedAttributes();
+    var originalAttributes = createOriginalManualScenarioAttributes();
+    var duplicatedAttributes = createDuplicatedManualScenarioAttributes();
 
     originalScenario.setAttributes(originalAttributes);
 
-    // Mock the mapper to return duplicated attributes
     var originalAttributesList = originalAttributes.stream().toList();
-    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttributesList.get(0), newScenario))
-        .thenReturn(duplicatedAttributes.stream().toList().get(0));
-    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttributesList.get(1), newScenario))
-        .thenReturn(duplicatedAttributes.stream().toList().get(1));
+    var duplicatedAttributesList = duplicatedAttributes.stream().toList();
+
+    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttributesList.get(0),
+        newScenario))
+        .thenReturn(duplicatedAttributesList.get(0));
+    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttributesList.get(1),
+        newScenario))
+        .thenReturn(duplicatedAttributesList.get(1));
 
     // When
     tmsManualScenarioAttributeService.duplicateAttributes(originalScenario, newScenario);
 
     // Then
-    verify(tmsManualScenarioAttributeMapper).duplicateAttribute(originalAttributesList.get(0), newScenario);
-    verify(tmsManualScenarioAttributeMapper).duplicateAttribute(originalAttributesList.get(1), newScenario);
-    verify(tmsManualScenarioAttributeRepository).saveAll(duplicatedAttributes);
+    verify(tmsManualScenarioAttributeMapper).duplicateAttribute(originalAttributesList.get(0),
+        newScenario);
+    verify(tmsManualScenarioAttributeMapper).duplicateAttribute(originalAttributesList.get(1),
+        newScenario);
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
 
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(2);
     assertThat(newScenario.getAttributes()).isEqualTo(duplicatedAttributes);
   }
 
@@ -231,6 +315,32 @@ class TmsManualScenarioAttributeServiceImplTest {
   }
 
   @Test
+  void shouldDuplicateAttributesWithSingleAttribute() {
+    // Given
+    var originalScenario = createOriginalScenario();
+    var newScenario = createNewScenario();
+
+    var originalAttribute = createManualScenarioAttribute(2L, 1L, "key1", "value1");
+    var duplicatedAttribute = createManualScenarioAttribute(3L, 1L, "key1", "value1");
+
+    originalScenario.setAttributes(Set.of(originalAttribute));
+
+    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttribute, newScenario))
+        .thenReturn(duplicatedAttribute);
+
+    // When
+    tmsManualScenarioAttributeService.duplicateAttributes(originalScenario, newScenario);
+
+    // Then
+    verify(tmsManualScenarioAttributeMapper).duplicateAttribute(originalAttribute, newScenario);
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
+
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(1);
+    assertThat(savedAttributes).contains(duplicatedAttribute);
+  }
+
+  @Test
   void shouldDeleteAllByTestCaseId() {
     // When
     tmsManualScenarioAttributeService.deleteAllByTestCaseId(123L);
@@ -261,12 +371,119 @@ class TmsManualScenarioAttributeServiceImplTest {
   }
 
   @Test
-  void shouldDeleteAllByTestFolderId() {
+  void shouldNotDeleteWhenTestCaseIdsIsNull() {
     // When
-    tmsManualScenarioAttributeService.deleteAllByTestFolderId(1L, 123L);
+    tmsManualScenarioAttributeService.deleteAllByTestCaseIds(null);
 
     // Then
-    verify(tmsManualScenarioAttributeRepository).deleteManualScenarioAttributesByTestFolderId(1L, 123L);
+    verify(tmsManualScenarioAttributeRepository, never()).deleteAllByTestCaseIds(any());
+  }
+
+  @Test
+  void shouldDeleteAllByTestFolderId() {
+    // When
+    tmsManualScenarioAttributeService.deleteAllByTestFolderId(PROJECT_ID, 123L);
+
+    // Then
+    verify(tmsManualScenarioAttributeRepository).deleteManualScenarioAttributesByTestFolderId(
+        PROJECT_ID, 123L);
+  }
+
+  @Test
+  void shouldCreateAttributesWithMultipleAttributes() {
+    // Given
+    var attributeRQ1 = createAttributeRQWithId(1L);
+    var attributeRQ2 = createAttributeRQWithKeyAndValue("key2", "value2");
+    var attributeRQ3 = createAttributeRQWithId(3L);
+    var attributeRQs = List.of(attributeRQ1, attributeRQ2, attributeRQ3);
+
+    var tmsAttribute1 = createTmsAttribute(1L, "key1", "value1");
+    var tmsAttribute2 = createTmsAttribute(2L, "key2", "value2");
+    var tmsAttribute3 = createTmsAttribute(3L, "key3", "value3");
+
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 1L)).thenReturn(tmsAttribute1);
+    when(tmsAttributeService.findOrCreateAttribute(PROJECT_ID, "key2", "value2"))
+        .thenReturn(tmsAttribute2);
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 3L)).thenReturn(tmsAttribute3);
+
+    // When
+    tmsManualScenarioAttributeService.createAttributes(PROJECT_ID, manualScenario, attributeRQs);
+
+    // Then
+    verify(tmsAttributeService).getEntityById(PROJECT_ID, 1L);
+    verify(tmsAttributeService).findOrCreateAttribute(PROJECT_ID, "key2", "value2");
+    verify(tmsAttributeService).getEntityById(PROJECT_ID, 3L);
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
+
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(3);
+  }
+
+  @Test
+  void shouldUpdateAttributesWithEmptyList() {
+    // Given
+    var existingAttributes = createExistingManualScenarioAttributes();
+    manualScenario.setAttributes(existingAttributes);
+
+    // When
+    tmsManualScenarioAttributeService.updateAttributes(PROJECT_ID, manualScenario,
+        Collections.emptyList());
+
+    // Then
+    verify(tmsManualScenarioAttributeRepository).deleteAll(existingAttributes);
+    verify(tmsAttributeService, never()).getEntityById(anyLong(), anyLong());
+    verify(tmsAttributeService, never()).findOrCreateAttribute(anyLong(), anyString(), anyString());
+    verify(tmsManualScenarioAttributeRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void shouldUpdateAttributesWithNullList() {
+    // Given
+    var existingAttributes = createExistingManualScenarioAttributes();
+    manualScenario.setAttributes(existingAttributes);
+
+    // When
+    tmsManualScenarioAttributeService.updateAttributes(PROJECT_ID, manualScenario, null);
+
+    // Then
+    verify(tmsManualScenarioAttributeRepository).deleteAll(existingAttributes);
+    verify(tmsAttributeService, never()).getEntityById(anyLong(), anyLong());
+    verify(tmsAttributeService, never()).findOrCreateAttribute(anyLong(), anyString(), anyString());
+    verify(tmsManualScenarioAttributeRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void shouldDuplicateAttributesWithMultipleAttributes() {
+    // Given
+    var originalScenario = createOriginalScenario();
+    var newScenario = createNewScenario();
+
+    var originalAttr1 = createManualScenarioAttribute(2L, 1L, "key1", "value1");
+    var originalAttr2 = createManualScenarioAttribute(2L, 2L, "key2", "value2");
+    var originalAttr3 = createManualScenarioAttribute(2L, 3L, "key3", "value3");
+
+    var duplicatedAttr1 = createManualScenarioAttribute(3L, 1L, "key1", "value1");
+    var duplicatedAttr2 = createManualScenarioAttribute(3L, 2L, "key2", "value2");
+    var duplicatedAttr3 = createManualScenarioAttribute(3L, 3L, "key3", "value3");
+
+    originalScenario.setAttributes(Set.of(originalAttr1, originalAttr2, originalAttr3));
+
+    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttr1, newScenario))
+        .thenReturn(duplicatedAttr1);
+    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttr2, newScenario))
+        .thenReturn(duplicatedAttr2);
+    when(tmsManualScenarioAttributeMapper.duplicateAttribute(originalAttr3, newScenario))
+        .thenReturn(duplicatedAttr3);
+
+    // When
+    tmsManualScenarioAttributeService.duplicateAttributes(originalScenario, newScenario);
+
+    // Then
+    verify(tmsManualScenarioAttributeMapper, times(3)).duplicateAttribute(any(), eq(newScenario));
+    verify(tmsManualScenarioAttributeRepository).saveAll(attributesCaptor.capture());
+
+    var savedAttributes = attributesCaptor.getValue();
+    assertThat(savedAttributes).hasSize(3);
   }
 
   // Helper methods
@@ -291,128 +508,63 @@ class TmsManualScenarioAttributeServiceImplTest {
     return scenario;
   }
 
-  private List<TmsManualScenarioAttributeRQ> createAttributeRQs() {
-    var attr1 = new TmsManualScenarioAttributeRQ();
-    attr1.setId(1L);
-    attr1.setValue("Value 1");
-
-    var attr2 = new TmsManualScenarioAttributeRQ();
-    attr2.setId(2L);
-    attr2.setValue("Value 2");
-
-    return Arrays.asList(attr1, attr2);
+  private TmsManualScenarioAttributeRQ createAttributeRQWithId(Long id) {
+    var rq = new TmsManualScenarioAttributeRQ();
+    rq.setId(id);
+    return rq;
   }
 
-  private Set<TmsManualScenarioAttribute> createAttributes() {
-    var attr1 = new TmsManualScenarioAttribute();
-    var id1 = new TmsManualScenarioAttributeId();
-    id1.setAttributeId(1L);
-    id1.setManualScenarioId(1L);
-    attr1.setId(id1);
-    attr1.setValue("Value 1");
+  private TmsManualScenarioAttributeRQ createAttributeRQWithKeyAndValue(String key, String value) {
+    var rq = new TmsManualScenarioAttributeRQ();
+    rq.setKey(key);
+    rq.setValue(value);
+    return rq;
+  }
 
-    var attr2 = new TmsManualScenarioAttribute();
-    var id2 = new TmsManualScenarioAttributeId();
-    id2.setAttributeId(2L);
-    id2.setManualScenarioId(1L);
-    attr2.setId(id2);
-    attr2.setValue("Value 2");
+  private TmsAttribute createTmsAttribute(Long id, String key, String value) {
+    var attribute = new TmsAttribute();
+    attribute.setId(id);
+    attribute.setKey(key);
+    attribute.setValue(value);
+    var project = new Project();
+    project.setId(PROJECT_ID);
+    attribute.setProject(project);
+    return attribute;
+  }
 
+  private Set<TmsManualScenarioAttribute> createExistingManualScenarioAttributes() {
+    var attr1 = createManualScenarioAttribute(1L, 1L, "old-key1", "old-value1");
+    var attr2 = createManualScenarioAttribute(1L, 2L, "old-key2", "old-value2");
     return new HashSet<>(Arrays.asList(attr1, attr2));
   }
 
-  private Set<TmsManualScenarioAttribute> createOriginalAttributes() {
-    var attr1 = new TmsManualScenarioAttribute();
-    var id1 = new TmsManualScenarioAttributeId();
-    id1.setAttributeId(1L);
-    id1.setManualScenarioId(2L);
-    attr1.setId(id1);
-    attr1.setValue("Original Value 1");
-
-    var attr2 = new TmsManualScenarioAttribute();
-    var id2 = new TmsManualScenarioAttributeId();
-    id2.setAttributeId(2L);
-    id2.setManualScenarioId(2L);
-    attr2.setId(id2);
-    attr2.setValue("Original Value 2");
-
+  private Set<TmsManualScenarioAttribute> createOriginalManualScenarioAttributes() {
+    var attr1 = createManualScenarioAttribute(2L, 1L, "original-key1", "original-value1");
+    var attr2 = createManualScenarioAttribute(2L, 2L, "original-key2", "original-value2");
     return new HashSet<>(Arrays.asList(attr1, attr2));
   }
 
-  private Set<TmsManualScenarioAttribute> createDuplicatedAttributes() {
-    var attr1 = new TmsManualScenarioAttribute();
-    var id1 = new TmsManualScenarioAttributeId();
-    id1.setAttributeId(1L);
-    id1.setManualScenarioId(3L);
-    attr1.setId(id1);
-    attr1.setValue("Original Value 1");
-
-    var attr2 = new TmsManualScenarioAttribute();
-    var id2 = new TmsManualScenarioAttributeId();
-    id2.setAttributeId(2L);
-    id2.setManualScenarioId(3L);
-    attr2.setId(id2);
-    attr2.setValue("Original Value 2");
-
+  private Set<TmsManualScenarioAttribute> createDuplicatedManualScenarioAttributes() {
+    var attr1 = createManualScenarioAttribute(3L, 1L, "original-key1", "original-value1");
+    var attr2 = createManualScenarioAttribute(3L, 2L, "original-key2", "original-value2");
     return new HashSet<>(Arrays.asList(attr1, attr2));
   }
 
-  private Set<TmsManualScenarioAttribute> createExistingAttributes() {
-    var attr1 = new TmsManualScenarioAttribute();
-    var id1 = new TmsManualScenarioAttributeId();
-    id1.setAttributeId(1L);
-    id1.setManualScenarioId(1L);
-    attr1.setId(id1);
-    attr1.setValue("Old Value 1");
+  private TmsManualScenarioAttribute createManualScenarioAttribute(Long scenarioId,
+      Long attributeId, String key, String value) {
+    var manualScenarioAttribute = new TmsManualScenarioAttribute();
+    var id = new TmsManualScenarioAttributeId();
+    id.setManualScenarioId(scenarioId);
+    id.setAttributeId(attributeId);
+    manualScenarioAttribute.setId(id);
 
-    return new HashSet<>(Collections.singletonList(attr1));
-  }
+    var tmsAttribute = createTmsAttribute(attributeId, key, value);
+    manualScenarioAttribute.setAttribute(tmsAttribute);
 
-  private Set<TmsManualScenarioAttribute> createExistingAttributesForPatch() {
-    var attr1 = new TmsManualScenarioAttribute();
-    var id1 = new TmsManualScenarioAttributeId();
-    id1.setAttributeId(1L);
-    id1.setManualScenarioId(1L);
-    attr1.setId(id1);
-    attr1.setValue("Old Value 1");
+    var scenario = new TmsManualScenario();
+    scenario.setId(scenarioId);
+    manualScenarioAttribute.setManualScenario(scenario);
 
-    var attr2 = new TmsManualScenarioAttribute();
-    var id2 = new TmsManualScenarioAttributeId();
-    id2.setAttributeId(2L);
-    id2.setManualScenarioId(1L);
-    attr2.setId(id2);
-    attr2.setValue("Old Value 2");
-
-    return new HashSet<>(Arrays.asList(attr1, attr2));
-  }
-
-  private List<TmsManualScenarioAttributeRQ> createAttributeRQsForPatch() {
-    var attr1 = new TmsManualScenarioAttributeRQ();
-    attr1.setId(1L);
-    attr1.setValue("Updated Value 1");
-
-    var attr3 = new TmsManualScenarioAttributeRQ();
-    attr3.setId(3L);
-    attr3.setValue("New Value 3");
-
-    return Arrays.asList(attr1, attr3);
-  }
-
-  private Set<TmsManualScenarioAttribute> createNewAttributesForPatch() {
-    var attr1 = new TmsManualScenarioAttribute();
-    var id1 = new TmsManualScenarioAttributeId();
-    id1.setAttributeId(1L);
-    id1.setManualScenarioId(1L);
-    attr1.setId(id1);
-    attr1.setValue("Updated Value 1");
-
-    var attr3 = new TmsManualScenarioAttribute();
-    var id3 = new TmsManualScenarioAttributeId();
-    id3.setAttributeId(3L);
-    id3.setManualScenarioId(1L);
-    attr3.setId(id3);
-    attr3.setValue("New Value 3");
-
-    return new HashSet<>(Arrays.asList(attr1, attr3));
+    return manualScenarioAttribute;
   }
 }

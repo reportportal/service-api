@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestCaseExecutionInTestPlanRS {
-
   private Long id;
 
   private TmsTestCaseExecutionLaunchRS launch;

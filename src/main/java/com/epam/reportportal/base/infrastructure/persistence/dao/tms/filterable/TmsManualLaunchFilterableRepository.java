@@ -73,7 +73,8 @@ public class TmsManualLaunchFilterableRepository implements FilterableRepository
   }
 
   /**
-   * Finds manual launches by project ID and filter. Automatically adds filters for project ID and MANUAL launch type.
+   * Finds manual launches by project ID and filter. Automatically adds filters for project ID and
+   * MANUAL launch type.
    *
    * @param projectId project ID
    * @param filter    filter criteria

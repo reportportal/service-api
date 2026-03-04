@@ -8,7 +8,8 @@ import java.util.Objects;
 /**
  * Validator implementation for {@link ValidTestFolderIdForPatchTestCase} annotation.
  * <p>
- * This validator ensures that either testFolderId or testFolderName is provided in the request object, but not both.
+ * This validator ensures that either testFolderId or testFolderName is provided in the request
+ * object, but not both.
  * </p>
  */
 

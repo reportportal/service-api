@@ -24,13 +24,16 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.ValidationException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -38,13 +41,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Implementation of the {@link TmsTestFolderService} interface that provides operations for managing test folders
- * within the TMS (Test Management System).
- *
- * <p>This service handles CRUD operations for test folders, including creating, updating,
- * retrieving, and deleting folders. It also supports hierarchical folder structures with parent-child relationships and
- * exporting folder data in various formats.
+ * Implementation of the {@link TmsTestFolderService} interface that provides operations for
+ * managing test folders within the TMS (Test Management System).
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TmsTestFolderServiceImpl implements TmsTestFolderService {
@@ -61,22 +61,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   private TmsTestCaseService tmsTestCaseService;
 
   @Autowired
-  public void setTmsTestCaseService(
-      TmsTestCaseService tmsTestCaseService) {
+  public void setTmsTestCaseService(TmsTestCaseService tmsTestCaseService) {
     this.tmsTestCaseService = tmsTestCaseService;
   }
 
-  /**
-   * Creates a new test folder in the specified project.
-   *
-   * <p>If the input DTO includes parent folder information, the method will establish the
-   * parent-child relationship between the folders.
-   *
-   * @param projectId The ID of the project where the folder will be created
-   * @param inputDto  The data transfer object containing folder details
-   * @return A response DTO containing the created folder's information
-   * @throws ValidationException If the parent folder information is invalid
-   */
   @Override
   @Transactional
   public TmsTestFolderRS create(final long projectId, final TmsTestFolderRQ inputDto) {
@@ -87,21 +75,23 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         inputDto.getParentTestFolder(),
         testFolder);
 
+    var parentId = testFolder.getParentTestFolder() != null
+        ? testFolder.getParentTestFolder().getId() : null;
+
+    int newIndex;
+    if (inputDto.getIndex() != null) {
+      newIndex = inputDto.getIndex();
+      tmsTestFolderRepository.shiftIndexes(projectId, parentId, newIndex, 1);
+    } else {
+      var max = tmsTestFolderRepository.findMaxIndex(projectId, parentId);
+      newIndex = (max == null) ? 0 : max + 1;
+    }
+    testFolder.setIndex(newIndex);
+
     return tmsTestFolderMapper.convertFromTmsTestFolderToRS(
         tmsTestFolderRepository.save(testFolder));
   }
 
-  /**
-   * Updates an existing test folder or creates a new one if it doesn't exist.
-   *
-   * <p>This method performs a complete update of the folder, replacing all its properties with the
-   * values provided in the input DTO. If the folder doesn't exist, a new one will be created.
-   *
-   * @param projectId    The ID of the project containing the folder
-   * @param testFolderId The ID of the folder to update
-   * @param inputDto     The data transfer object containing updated folder details
-   * @return A response DTO containing the updated or created folder's information
-   */
   @Override
   @Transactional
   public TmsTestFolderRS update(final long projectId, Long testFolderId,
@@ -109,15 +99,44 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     return tmsTestFolderRepository
         .findByIdAndProjectId(testFolderId, projectId)
         .map(existingTestFolder -> {
+          // Save old values BEFORE any modifications
+          var oldParentId = existingTestFolder.getParentTestFolder() != null
+              ? existingTestFolder.getParentTestFolder().getId() : null;
+          var oldIndex = existingTestFolder.getIndex();
+          if (oldIndex == null) {
+            oldIndex = 0;
+          }
+
+          // Save target index from request
+          var targetIndex = inputDto.getIndex();
+
+          // Resolve new parent ID WITHOUT setting it on the folder yet
+          var newParentId = resolveNewParentId(
+              projectId,
+              inputDto.getParentTestFolderId(),
+              inputDto.getParentTestFolder()
+          );
+
+          // Apply other changes via mapper
           tmsTestFolderMapper.update(existingTestFolder,
               tmsTestFolderMapper.convertFromRQ(projectId, inputDto));
 
-          updateParentTestFolder(
-              projectId,
-              inputDto.getParentTestFolderId(),
-              inputDto.getParentTestFolder(),
-              existingTestFolder
+          // Restore old index and parent to avoid auto-flush issues
+          existingTestFolder.setIndex(oldIndex);
+          existingTestFolder.setParentTestFolder(
+              oldParentId != null ? tmsTestFolderMapper.convertFromId(oldParentId) : null
           );
+
+          // Handle index changes
+          handleIndexChange(projectId, existingTestFolder, oldParentId, oldIndex,
+              newParentId, targetIndex);
+
+          // NOW set the new parent after index operations are done
+          if (!Objects.equals(oldParentId, newParentId)) {
+            existingTestFolder.setParentTestFolder(
+                newParentId != null ? tmsTestFolderMapper.convertFromId(newParentId) : null
+            );
+          }
 
           return tmsTestFolderMapper.convertFromTmsTestFolderToRS(
               tmsTestFolderRepository.save(existingTestFolder)
@@ -126,33 +145,51 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         .orElseGet(() -> create(projectId, inputDto));
   }
 
-  /**
-   * Partially updates an existing test folder with the provided values.
-   *
-   * <p>Unlike the update method, this method only changes the properties that are explicitly set
-   * in the input DTO, leaving other properties unchanged.
-   *
-   * @param projectId    The ID of the project containing the folder
-   * @param testFolderId The ID of the folder to patch
-   * @param inputDto     The data transfer object containing the fields to update
-   * @return A response DTO containing the patched folder's information
-   * @throws ReportPortalException If the folder doesn't exist
-   */
   @Override
-  public TmsTestFolderRS patch(long projectId, Long testFolderId,
-      TmsTestFolderRQ inputDto) {
+  @Transactional
+  public TmsTestFolderRS patch(long projectId, Long testFolderId, TmsTestFolderRQ inputDto) {
     return tmsTestFolderRepository
         .findByIdAndProjectId(testFolderId, projectId)
         .map(existingTestFolder -> {
+          // Save old values BEFORE any modifications
+          var oldParentId = existingTestFolder.getParentTestFolder() != null
+              ? existingTestFolder.getParentTestFolder().getId() : null;
+          var oldIndex = existingTestFolder.getIndex();
+          if (oldIndex == null) {
+            oldIndex = 0;
+          }
+
+          // Save target index from request
+          var targetIndex = inputDto.getIndex();
+
+          // Resolve new parent ID WITHOUT setting it on the folder yet
+          var newParentId = resolveNewParentIdForPatch(
+              projectId,
+              oldParentId,
+              inputDto.getParentTestFolderId(),
+              inputDto.getParentTestFolder()
+          );
+
+          // Apply other changes via mapper
           tmsTestFolderMapper.patch(existingTestFolder,
               tmsTestFolderMapper.convertFromRQ(projectId, inputDto));
 
-          patchParentTestFolder(
-              projectId,
-              inputDto.getParentTestFolderId(),
-              inputDto.getParentTestFolder(),
-              existingTestFolder
+          // Restore old index and parent to avoid auto-flush issues
+          existingTestFolder.setIndex(oldIndex);
+          existingTestFolder.setParentTestFolder(
+              oldParentId != null ? tmsTestFolderMapper.convertFromId(oldParentId) : null
           );
+
+          // Handle index changes
+          handleIndexChange(projectId, existingTestFolder, oldParentId, oldIndex,
+              newParentId, targetIndex);
+
+          // NOW set the new parent after index operations are done
+          if (!Objects.equals(oldParentId, newParentId)) {
+            existingTestFolder.setParentTestFolder(
+                newParentId != null ? tmsTestFolderMapper.convertFromId(newParentId) : null
+            );
+          }
 
           return tmsTestFolderMapper.convertFromTmsTestFolderToRS(
               tmsTestFolderRepository.save(existingTestFolder));
@@ -162,17 +199,6 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         );
   }
 
-  /**
-   * Retrieves a test folder by its ID.
-   *
-   * <p>This method fetches the folder along with information about the number of test cases it
-   * contains.
-   *
-   * @param projectId The ID of the project containing the folder
-   * @param id        The ID of the folder to retrieve
-   * @return A response DTO containing the folder's information
-   * @throws ReportPortalException If the folder doesn't exist
-   */
   @Override
   @Transactional(readOnly = true)
   public TmsTestFolderRS getById(long projectId, Long id) {
@@ -184,16 +210,6 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         );
   }
 
-  /**
-   * Retrieves test folders in a project.
-   *
-   * <p>This method returns a paginated list of folders without subfolder information.
-   *
-   * @param projectId The ID of the project
-   * @param filter    The filter
-   * @param pageable  Pagination parameters
-   * @return A paginated list of response DTOs containing folder information
-   */
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestFolderRS> getFoldersByCriteria(
@@ -205,19 +221,6 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     return tmsTestFolderMapper.convert(page);
   }
 
-  /**
-   * Exports a test folder and its entire hierarchy to the specified format.
-   *
-   * <p>This method retrieves the folder with its complete hierarchy and uses the appropriate
-   * exporter to generate the output in the requested format.
-   *
-   * @param projectId The ID of the project containing the folder
-   * @param folderId  The ID of the folder to export
-   * @param fileType  The format to export the folder to
-   * @param response  The HTTP response to write the exported data to
-   * @throws ReportPortalException         If the folder doesn't exist
-   * @throws UnsupportedOperationException If the requested file type is not supported
-   */
   @Override
   @Transactional(readOnly = true)
   public void exportFolderById(Long projectId, Long folderId,
@@ -236,13 +239,6 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     return create(projectId, tmsTestFolderMapper.convertToRQ(testFolderRQ));
   }
 
-  /**
-   * This method determines whether a test folder with an id exists in a project.
-   *
-   * @param projectId    project's id
-   * @param testFolderId test folder's id
-   * @return true if exists, false if not
-   */
   @Override
   public Boolean existsById(long projectId, Long testFolderId) {
     return tmsTestFolderRepository.existsByIdAndProjectId(testFolderId, projectId);
@@ -265,17 +261,6 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     }
   }
 
-  /**
-   * Retrieves a test folder with its complete hierarchy of subfolders.
-   *
-   * <p>This method builds a complete tree structure of the folder and all its subfolders,
-   * establishing the parent-child relationships between them.
-   *
-   * @param projectId The ID of the project containing the folder
-   * @param folderId  The ID of the root folder to retrieve
-   * @return The folder entity with its complete hierarchy of subfolders
-   * @throws ReportPortalException If the folder doesn't exist
-   */
   @Transactional(readOnly = true)
   public TmsTestFolder findFolderWithFullHierarchy(Long projectId, Long folderId) {
     var allIds = tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, folderId);
@@ -310,20 +295,20 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         );
   }
 
-  /**
-   * Deletes a test folder and all its subfolders.
-   *
-   * <p>This method first deletes all test cases associated with the folder and its subfolders,
-   * then deletes the folder and subfolder entities themselves.
-   *
-   * @param projectId The ID of the project containing the folder
-   * @param folderId  The ID of the folder to delete
-   */
   @Override
   @Transactional
   public void delete(long projectId, Long folderId) {
+    var folder = getEntityById(projectId, folderId);
+    var parentId = folder.getParentTestFolder() != null
+        ? folder.getParentTestFolder().getId() : null;
+    var index = folder.getIndex();
+
     tmsTestCaseService.deleteByTestFolderId(projectId, folderId);
     tmsTestFolderRepository.deleteTestFolderWithSubfoldersById(projectId, folderId);
+
+    if (index != null) {
+      tmsTestFolderRepository.shiftIndexes(projectId, parentId, index + 1, -1);
+    }
   }
 
   @Override
@@ -357,7 +342,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       return tmsTestFolderRepository.save(targetFolder).getId();
     } else {
       throw new ReportPortalException(BAD_REQUEST_ERROR,
-          "Either target folder id or target folder name must be provided for duplication");
+          "Either target folder id or target folder name must be provided");
     }
   }
 
@@ -371,18 +356,233 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         );
   }
 
+  @Override
+  @Transactional
+  public DuplicateTmsTestFolderRS duplicateFolder(long projectId, Long folderId,
+      TmsTestFolderRQ inputDto) {
+
+    var sourceFolder = findFolderWithFullHierarchy(projectId, folderId);
+    var targetParentFolderId = resolveTargetParentForDuplication(projectId, inputDto);
+
+    var folderStatistics = new FolderDuplicationStatistics();
+    var testCaseStatistics = new TestCaseDuplicationStatistics();
+
+    var duplicatedRootFolder = duplicateFolderHierarchy(
+        projectId,
+        sourceFolder,
+        inputDto.getName(),
+        targetParentFolderId,
+        inputDto.getIndex(),
+        folderStatistics,
+        testCaseStatistics
+    );
+
+    var testCaseCount = tmsTestFolderRepository.countTestCasesByFolderId(
+        duplicatedRootFolder.getId()
+    );
+
+    return tmsTestFolderMapper.convertToDuplicateTmsTestFolderRS(
+        duplicatedRootFolder,
+        testCaseCount,
+        folderStatistics,
+        testCaseStatistics
+    );
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<TmsTestFolderRS> getFoldersByTestPlanId(Long projectId, Long testPlanId,
+      Pageable pageable) {
+    var foldersPage = tmsTestFolderRepository
+        .findAllByProjectIdAndTestPlanIdWithCountOfTestCases(projectId, testPlanId, pageable);
+
+    return tmsTestFolderMapper.convert(foldersPage);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<TmsTestFolderRS> getFoldersByLaunchIdWithTestCaseCount(Long projectId, Long launchId,
+      Pageable pageable) {
+    var foldersPage = tmsTestFolderRepository.findUniqueFoldersByLaunchIdWithTestCaseCount(
+        launchId, pageable
+    );
+
+    return tmsTestFolderMapper.convert(foldersPage);
+  }
+
+  @Override
+  @Transactional
+  public Long resolveFolderPath(Long projectId, Long parentFolderId, List<String> pathHierarchy) {
+    if (CollectionUtils.isEmpty(pathHierarchy)) {
+      return parentFolderId;
+    }
+
+    var currentParentId = parentFolderId;
+
+    for (var folderName : pathHierarchy) {
+      currentParentId = findOrCreateFolder(projectId, currentParentId, folderName);
+    }
+
+    return currentParentId;
+  }
+
+  @Override
+  @Transactional
+  public Map<String, Long> resolveFolderPathsBatch(Long projectId, Long parentFolderId,
+      List<List<String>> pathHierarchies) {
+    Map<String, Long> pathToFolderIdCache = new HashMap<>();
+
+    for (var pathHierarchy : pathHierarchies) {
+      if (CollectionUtils.isEmpty(pathHierarchy)) {
+        continue;
+      }
+
+      var pathKey = String.join("/", pathHierarchy);
+      if (pathToFolderIdCache.containsKey(pathKey)) {
+        continue;
+      }
+
+      var resolvedParentId = parentFolderId;
+      var currentPathBuilder = new StringBuilder();
+
+      for (int i = 0; i < pathHierarchy.size(); i++) {
+        var folderName = pathHierarchy.get(i);
+        if (i > 0) {
+          currentPathBuilder.append("/");
+        }
+        currentPathBuilder.append(folderName);
+        var currentPath = currentPathBuilder.toString();
+
+        if (pathToFolderIdCache.containsKey(currentPath)) {
+          resolvedParentId = pathToFolderIdCache.get(currentPath);
+        } else {
+          resolvedParentId = findOrCreateFolder(projectId, resolvedParentId, folderName);
+          pathToFolderIdCache.put(currentPath, resolvedParentId);
+        }
+      }
+    }
+
+    return pathToFolderIdCache;
+  }
+
+  /**
+   * Resolves the new parent folder ID for update operation.
+   * Creates a new parent folder if needed, but does NOT set it on the target folder.
+   *
+   * @param projectId          project id
+   * @param parentTestFolderId parent folder id from request
+   * @param parentTestFolderRQ parent folder details from request
+   * @return resolved parent folder ID, or null for root level
+   */
+  private Long resolveNewParentId(long projectId,
+      Long parentTestFolderId,
+      NewTestFolderRQ parentTestFolderRQ) {
+
+    if ((nonNull(parentTestFolderId) && nonNull(parentTestFolderRQ)
+        && nonNull(parentTestFolderRQ.getName()))
+        || (isNull(parentTestFolderId) && nonNull(parentTestFolderRQ)
+        && isNull(parentTestFolderRQ.getName()))) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR,
+          "Either parent folder id or parent folder name should be set");
+    }
+
+    if (nonNull(parentTestFolderId)) {
+      if (!existsById(projectId, parentTestFolderId)) {
+        throw new ReportPortalException(
+            NOT_FOUND,
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId, projectId));
+      }
+      return parentTestFolderId;
+    }
+
+    if (nonNull(parentTestFolderRQ)) {
+      return createParentFolderAndGetId(projectId, parentTestFolderRQ);
+    }
+
+    // No parent specified - move to root
+    return null;
+  }
+
+  /**
+   * Resolves the new parent folder ID for patch operation.
+   * Unlike update, patch keeps the existing parent if no parent info is provided.
+   *
+   * @param projectId          project id
+   * @param currentParentId    current parent folder id
+   * @param parentTestFolderId parent folder id from request
+   * @param parentTestFolderRQ parent folder details from request
+   * @return resolved parent folder ID
+   */
+  private Long resolveNewParentIdForPatch(long projectId,
+      Long currentParentId,
+      Long parentTestFolderId,
+      NewTestFolderRQ parentTestFolderRQ) {
+
+    // Check for explicit "move to root" request
+    if (nonNull(parentTestFolderRQ)
+        && isNull(parentTestFolderId)
+        && isNull(parentTestFolderRQ.getName())
+        && isNull(parentTestFolderRQ.getParentTestFolderId())) {
+      return null;
+    }
+
+    if (nonNull(parentTestFolderId) && nonNull(parentTestFolderRQ)
+        && nonNull(parentTestFolderRQ.getName())) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR,
+          "Either parent folder id or parent folder name should be set");
+    }
+
+    if (nonNull(parentTestFolderId)) {
+      if (!existsById(projectId, parentTestFolderId)) {
+        throw new ReportPortalException(
+            NOT_FOUND,
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId, projectId));
+      }
+      return parentTestFolderId;
+    }
+
+    if (nonNull(parentTestFolderRQ) && nonNull(parentTestFolderRQ.getName())) {
+      return createParentFolderAndGetId(projectId, parentTestFolderRQ);
+    }
+
+    // No parent info provided - keep current parent
+    return currentParentId;
+  }
+
+  /**
+   * Creates a new parent folder and returns its ID.
+   *
+   * @param projectId          project id
+   * @param parentTestFolderRQ parent folder details
+   * @return ID of the created parent folder
+   */
+  private Long createParentFolderAndGetId(long projectId, NewTestFolderRQ parentTestFolderRQ) {
+    if (nonNull(parentTestFolderRQ.getParentTestFolderId())
+        && !existsById(projectId, parentTestFolderRQ.getParentTestFolderId())) {
+      throw new ReportPortalException(
+          NOT_FOUND,
+          TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderRQ.getParentTestFolderId(),
+              projectId));
+    }
+
+    var newParentFolder = tmsTestFolderMapper.convertToTestFolder(projectId, parentTestFolderRQ);
+
+    var grandParentId = newParentFolder.getParentTestFolder() != null
+        ? newParentFolder.getParentTestFolder().getId() : null;
+
+    var max = tmsTestFolderRepository.findMaxIndex(projectId, grandParentId);
+    newParentFolder.setIndex(max != null ? max + 1 : 0);
+
+    return tmsTestFolderRepository.save(newParentFolder).getId();
+  }
+
   /**
    * Creates a parent-child relationship between folders during folder creation.
-   *
-   * <p>This method handles three cases: 1. If parent folder ID is provided, it establishes a link
-   * to the existing parent 2. If parent folder name is provided, it creates a new parent folder and links to it 3. If
-   * both or neither are provided, it throws a validation exception
    *
    * @param projectId          The ID of the project
    * @param parentTestFolderId The parent folder ID
    * @param parentTestFolderRQ The parent folder information from the request
    * @param testFolder         The child folder entity to update
-   * @throws ValidationException If the parent folder information is invalid
    */
   private void createParentTestFolder(long projectId,
       Long parentTestFolderId,
@@ -398,8 +598,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       if (!existsById(projectId, parentTestFolderId)) {
         throw new ReportPortalException(
             NOT_FOUND,
-            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId,
-                projectId));
+            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId, projectId));
       } else {
         testFolder.setParentTestFolder(
             tmsTestFolderMapper.convertFromId(parentTestFolderId)
@@ -419,191 +618,25 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
           parentTestFolder.setSubFolders(new ArrayList<>());
         }
         parentTestFolder.getSubFolders().add(testFolder);
+
+        var max = tmsTestFolderRepository.findMaxIndex(projectId,
+            parentTestFolder.getParentTestFolder() != null
+                ? parentTestFolder.getParentTestFolder().getId() : null);
+        parentTestFolder.setIndex(max != null ? max + 1 : 0);
+
         testFolder.setParentTestFolder(tmsTestFolderRepository.save(parentTestFolder));
       }
     }
   }
 
-  /**
-   * Updates the parent-child relationship between folders during folder update.
-   *
-   * <p>This method handles four cases: 1. If parent folder ID is provided, it establishes a link
-   * to the existing parent 2. If parent folder name is provided, it creates a new parent folder and links to it 3. If
-   * both ID and name are null but parentTestFolderRQ is not null, it removes the parent link 4. If parentTestFolderRQ
-   * is null, it removes the parent link
-   *
-   * @param projectId          The ID of the project
-   * @param parentTestFolderId The parent folder ID
-   * @param parentTestFolderRQ The parent folder information from the request
-   * @param existingTestFolder The folder entity to update
-   */
-  private void updateParentTestFolder(long projectId,
-      Long parentTestFolderId,
-      NewTestFolderRQ parentTestFolderRQ,
-      TmsTestFolder existingTestFolder) {
-    if ((nonNull(parentTestFolderId)
-        && nonNull(parentTestFolderRQ)
-        && nonNull(parentTestFolderRQ.getName())) || (isNull(parentTestFolderId) && nonNull(
-        parentTestFolderRQ) && isNull(parentTestFolderRQ.getName()))) {
-      throw new ReportPortalException(BAD_REQUEST_ERROR,
-          "Either parent folder id or parent folder name should be set");
-    } else if (nonNull(parentTestFolderId)) {
-      if (!existsById(projectId, parentTestFolderId)) {
-        throw new ReportPortalException(
-            NOT_FOUND,
-            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId,
-                projectId));
-      } else {
-        existingTestFolder.setParentTestFolder(
-            tmsTestFolderMapper.convertFromId(parentTestFolderId)
-        );
-      }
-    } else if (nonNull(parentTestFolderRQ)) {
-      if (nonNull(parentTestFolderRQ.getParentTestFolderId())
-          && !existsById(projectId, parentTestFolderRQ.getParentTestFolderId())) {
-        throw new ReportPortalException(
-            NOT_FOUND,
-            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderRQ.getParentTestFolderId(),
-                projectId));
-      } else {
-        var parentTestFolder = tmsTestFolderMapper.convertToTestFolder(
-            projectId, parentTestFolderRQ
-        );
-        if (isNull(parentTestFolder.getSubFolders())) {
-          parentTestFolder.setSubFolders(new ArrayList<>());
-        }
-        parentTestFolder.getSubFolders().add(existingTestFolder);
-        existingTestFolder.setParentTestFolder(tmsTestFolderRepository.save(parentTestFolder));
-      }
-    } else {
-      existingTestFolder.setParentTestFolder(null);
-    }
-  }
-
-  /**
-   * Updates the parent-child relationship between folders during folder patch.
-   *
-   * <p>This method handles three cases: 1. If parent folder ID is provided, it establishes a link
-   * to the existing parent 2. If parent folder name is provided, it creates a new parent folder and links to it 3. If
-   * both ID and name are null but parentTestFolderRQ is not null, it removes the parent link 4. If parentTestFolderRQ
-   * is null, it leaves the parent relationship unchanged
-   *
-   * @param projectId          The ID of the project
-   * @param parentTestFolderId The parent folder ID
-   * @param parentTestFolderRQ The parent folder information from the request
-   * @param existingTestFolder The folder entity to update
-   */
-  private void patchParentTestFolder(long projectId,
-      Long parentTestFolderId,
-      NewTestFolderRQ parentTestFolderRQ,
-      TmsTestFolder existingTestFolder) {
-    if ((nonNull(parentTestFolderId)
-        && nonNull(parentTestFolderRQ)
-        && nonNull(parentTestFolderRQ.getName())) || (isNull(parentTestFolderId) && nonNull(
-        parentTestFolderRQ) && isNull(parentTestFolderRQ.getName()))) {
-      throw new ReportPortalException(BAD_REQUEST_ERROR,
-          "Either parent folder id or parent folder name should be set");
-    } else if (nonNull(parentTestFolderId)) {
-      if (!existsById(projectId, parentTestFolderId)) {
-        throw new ReportPortalException(
-            NOT_FOUND,
-            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderId,
-                projectId));
-      } else {
-        existingTestFolder.setParentTestFolder(
-            tmsTestFolderMapper.convertFromId(parentTestFolderId)
-        );
-      }
-    } else if (nonNull(parentTestFolderRQ)) {
-      if (nonNull(parentTestFolderRQ.getParentTestFolderId())
-          && !existsById(projectId, parentTestFolderRQ.getParentTestFolderId())) {
-        throw new ReportPortalException(
-            NOT_FOUND,
-            TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolderRQ.getParentTestFolderId(),
-                projectId));
-      } else {
-        var parentTestFolder = tmsTestFolderMapper.convertToTestFolder(projectId,
-            parentTestFolderRQ);
-        if (isNull(parentTestFolder.getSubFolders())) {
-          parentTestFolder.setSubFolders(new ArrayList<>());
-        }
-        parentTestFolder.getSubFolders().add(existingTestFolder);
-        existingTestFolder.setParentTestFolder(tmsTestFolderRepository.save(parentTestFolder));
-      }
-    }
-  }
-
-  /**
-   * Duplicates a test folder with all its subfolders and test cases.
-   *
-   * <p>This method performs a deep copy of the folder hierarchy:
-   * <ul>
-   *   <li>Creates a copy of the root folder with the specified name</li>
-   *   <li>Recursively duplicates all subfolders maintaining the hierarchy</li>
-   *   <li>Duplicates all test cases in each folder</li>
-   *   <li>Generates unique names for folders if conflicts exist</li>
-   *   <li>Collects statistics about successful and failed operations</li>
-   * </ul>
-   *
-   * @param projectId The ID of the project
-   * @param folderId  The ID of the folder to duplicate
-   * @param inputDto  The request containing name and parent folder information
-   * @return The duplicated folder details with duplication statistics
-   * @throws ReportPortalException If the source folder doesn't exist or validation fails
-   */
-  @Override
-  @Transactional
-  public DuplicateTmsTestFolderRS duplicateFolder(long projectId, Long folderId,
-      TmsTestFolderRQ inputDto) {
-
-    // Validate source folder exists
-    var sourceFolder = findFolderWithFullHierarchy(projectId, folderId);
-
-    // Validate and resolve target parent folder
-    var targetParentFolderId = resolveTargetParentForDuplication(projectId, inputDto);
-
-    // Initialize statistics collectors
-    var folderStatistics = new FolderDuplicationStatistics();
-    var testCaseStatistics = new TestCaseDuplicationStatistics();
-
-    // Duplicate the root folder and all its hierarchy
-    var duplicatedRootFolder = duplicateFolderHierarchy(
-        projectId,
-        sourceFolder,
-        inputDto.getName(),
-        targetParentFolderId,
-        folderStatistics,
-        testCaseStatistics
-    );
-
-    // Count test cases in duplicated folder
-    var testCaseCount = tmsTestFolderRepository.countTestCasesByFolderId(
-        duplicatedRootFolder.getId()
-    );
-
-    // Build and return response using mapper
-    return tmsTestFolderMapper.convertToDuplicateTmsTestFolderRS(
-        duplicatedRootFolder,
-        testCaseCount,
-        folderStatistics,
-        testCaseStatistics
-    );
-  }
-
-  /**
-   * Resolves target parent folder for duplication based on input parameters.
-   *
-   * @param projectId The ID of the project
-   * @param inputDto  The request containing parent folder information
-   * @return The ID of the target parent folder, or null for root level
-   * @throws ReportPortalException If validation fails
-   */
   private Long resolveTargetParentForDuplication(long projectId, TmsTestFolderRQ inputDto) {
     var parentTestFolderId = inputDto.getParentTestFolderId();
     var parentTestFolder = inputDto.getParentTestFolder();
 
-    if ((nonNull(parentTestFolderId) && nonNull(parentTestFolder) && nonNull(parentTestFolder.getName()))
-        || (isNull(parentTestFolderId) && nonNull(parentTestFolder) && isNull(parentTestFolder.getName()))) {
+    if ((nonNull(parentTestFolderId) && nonNull(parentTestFolder) && nonNull(
+        parentTestFolder.getName()))
+        || (isNull(parentTestFolderId) && nonNull(parentTestFolder) && isNull(
+        parentTestFolder.getName()))) {
       throw new ReportPortalException(BAD_REQUEST_ERROR,
           "Either parent folder id or parent folder name should be set");
     } else if (nonNull(parentTestFolderId)) {
@@ -619,7 +652,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         if (!existsById(projectId, parentTestFolder.getParentTestFolderId())) {
           throw new ReportPortalException(
               NOT_FOUND,
-              TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolder.getParentTestFolderId(), projectId)
+              TEST_FOLDER_NOT_FOUND_BY_ID.formatted(parentTestFolder.getParentTestFolderId(),
+                  projectId)
           );
         }
         targetFolder.setParentTestFolder(
@@ -627,9 +661,14 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         );
       }
 
+      Integer max = tmsTestFolderRepository.findMaxIndex(projectId,
+          targetFolder.getParentTestFolder() != null
+              ? targetFolder.getParentTestFolder().getId() : null);
+      targetFolder.setIndex(max != null ? max + 1 : 0);
+
       return tmsTestFolderRepository.save(targetFolder).getId();
     } else {
-      return null; //rool-layer
+      return null;
     }
   }
 
@@ -649,22 +688,20 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       TmsTestFolder sourceFolder,
       String targetName,
       Long targetParentFolderId,
+      Integer targetIndex,
       FolderDuplicationStatistics folderStatistics,
       TestCaseDuplicationStatistics testCaseStatistics) {
 
     try {
-      // Get target parent folder entity if specified
       TmsTestFolder targetParentFolder = null;
       if (nonNull(targetParentFolderId)) {
         targetParentFolder = getEntityById(projectId, targetParentFolderId);
       }
 
-      // Generate unique name for the duplicated folder
       var uniqueName = generateUniqueFolderName(
           projectId, targetName, targetParentFolderId
       );
 
-      // Create duplicate of the folder (without subfolders and test cases)
       var duplicatedFolder = tmsTestFolderMapper.duplicateTestFolder(
           sourceFolder,
           targetParentFolder
@@ -672,11 +709,16 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       duplicatedFolder.setName(uniqueName);
       duplicatedFolder.setSubFolders(new ArrayList<>());
 
-      // Save the duplicated folder
+      if (targetIndex != null) {
+        duplicatedFolder.setIndex(targetIndex);
+      } else {
+        var max = tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId);
+        duplicatedFolder.setIndex(max != null ? max + 1 : 0);
+      }
+
       duplicatedFolder = tmsTestFolderRepository.save(duplicatedFolder);
       folderStatistics.addSuccess(duplicatedFolder.getId());
 
-      // Duplicate test cases in this folder
       duplicateTestCasesInFolder(
           projectId,
           sourceFolder,
@@ -684,7 +726,6 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
           testCaseStatistics
       );
 
-      // Recursively duplicate all subfolders
       if (CollectionUtils.isNotEmpty(sourceFolder.getSubFolders())) {
         for (var subFolder : sourceFolder.getSubFolders()) {
           try {
@@ -693,6 +734,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
                 subFolder,
                 subFolder.getName() + "-copy",
                 duplicatedFolder.getId(),
+                subFolder.getIndex(),
                 folderStatistics,
                 testCaseStatistics
             );
@@ -712,14 +754,6 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     }
   }
 
-  /**
-   * Generates a unique folder name by adding incremental suffixes if conflicts exist.
-   *
-   * @param projectId      The ID of the project
-   * @param baseName       The base name for the folder
-   * @param parentFolderId The ID of the parent folder
-   * @return A unique folder name
-   */
   private String generateUniqueFolderName(long projectId, String baseName, Long parentFolderId) {
     var candidateName = baseName;
     var counter = 1;
@@ -733,49 +767,104 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     return candidateName;
   }
 
-  /**
-   * Duplicates all test cases from source folder to target folder.
-   *
-   * @param projectId          The ID of the project
-   * @param sourceFolder       The source folder
-   * @param targetFolder       The target folder
-   * @param testCaseStatistics Statistics collector for test case duplication
-   */
   private void duplicateTestCasesInFolder(
       long projectId,
       TmsTestFolder sourceFolder,
       TmsTestFolder targetFolder,
       TestCaseDuplicationStatistics testCaseStatistics) {
 
-    // Get all test case IDs in the source folder
     var testCaseIds = tmsTestFolderRepository.findTestCaseIdsByFolderId(sourceFolder.getId());
 
     if (CollectionUtils.isEmpty(testCaseIds)) {
-      return; // No test cases to duplicate
+      return;
     }
 
     try {
-      // Use existing duplicateTestCases method from TmsTestCaseService
       var duplicateTestCasesResult = tmsTestCaseService.duplicateTestCases(
           projectId, targetFolder, testCaseIds
       );
 
-      // Collect statistics
       testCaseStatistics.merge(duplicateTestCasesResult);
 
     } catch (Exception e) {
-      // Record errors for all test cases in this folder
       testCaseIds.forEach(id -> testCaseStatistics.addError(id, e.getMessage()));
     }
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Page<TmsTestFolderRS> getFoldersByTestPlanId(Long projectId, Long testPlanId,
-      Pageable pageable) {
-    var foldersPage = tmsTestFolderRepository
-        .findAllByProjectIdAndTestPlanIdWithCountOfTestCases(projectId, testPlanId, pageable);
+  private Long findOrCreateFolder(Long projectId, Long parentId, String folderName) {
+    return tmsTestFolderRepository
+        .findByProjectIdAndParentIdAndName(projectId, parentId, folderName)
+        .map(TmsTestFolder::getId)
+        .orElseGet(() -> createFolderInternal(projectId, parentId, folderName));
+  }
 
-    return tmsTestFolderMapper.convert(foldersPage);
+  private Long createFolderInternal(Long projectId, Long parentId, String folderName) {
+    var folder = tmsTestFolderMapper.convertFromName(projectId, folderName);
+
+    if (parentId != null) {
+      var parentFolder = new TmsTestFolder();
+      parentFolder.setId(parentId);
+      folder.setParentTestFolder(parentFolder);
+    }
+
+    var max = tmsTestFolderRepository.findMaxIndex(projectId, parentId);
+    folder.setIndex(max != null ? max + 1 : 0);
+
+    var savedFolder = tmsTestFolderRepository.save(folder);
+    log.debug("Created folder '{}' with ID {} under parent {}", folderName, savedFolder.getId(),
+        parentId);
+
+    return savedFolder.getId();
+  }
+
+  /**
+   * Handles index changes when moving a folder within the same parent or to a different parent.
+   *
+   * <p>IMPORTANT: This method expects that folder.index contains the OLD index value,
+   * not the target index. The target index should be passed as a parameter.
+   * This is crucial to avoid Hibernate auto-flush issues where the folder might
+   * accidentally be included in bulk update operations.
+   *
+   * @param projectId   project id
+   * @param folder      the folder being moved (with OLD index value)
+   * @param oldParentId the original parent folder id
+   * @param oldIndex    the original index of the folder
+   * @param newParentId the new parent folder id
+   * @param targetIndex the desired target index (can be null for append to end)
+   */
+  private void handleIndexChange(long projectId, TmsTestFolder folder, Long oldParentId,
+      int oldIndex, Long newParentId, Integer targetIndex) {
+    var parentChanged = !Objects.equals(oldParentId, newParentId);
+
+    if (parentChanged) {
+      // Shift folders in the old parent (close the gap)
+      tmsTestFolderRepository.shiftIndexes(projectId, oldParentId, oldIndex + 1, -1);
+
+      int newIndex;
+      if (targetIndex != null) {
+        newIndex = targetIndex;
+        // Make room in the new parent
+        tmsTestFolderRepository.shiftIndexes(projectId, newParentId, newIndex, 1);
+      } else {
+        // Append to the end
+        var max = tmsTestFolderRepository.findMaxIndex(projectId, newParentId);
+        newIndex = (max == null) ? 0 : max + 1;
+      }
+      folder.setIndex(newIndex);
+    } else {
+      // Moving within the same parent
+      if (targetIndex != null && targetIndex != oldIndex) {
+        if (targetIndex > oldIndex) {
+          // Moving down: shift items between (oldIndex+1) and targetIndex by -1
+          tmsTestFolderRepository.shiftIndexesBetween(projectId, newParentId,
+              oldIndex + 1, targetIndex, -1);
+        } else {
+          // Moving up: shift items between targetIndex and (oldIndex-1) by +1
+          tmsTestFolderRepository.shiftIndexesBetween(projectId, newParentId,
+              targetIndex, oldIndex - 1, 1);
+        }
+        folder.setIndex(targetIndex);
+      }
+    }
   }
 }

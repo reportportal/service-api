@@ -27,9 +27,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST Controller for TMS attachment operations.
- * <p>
- * Provides endpoints for uploading, downloading, and deleting TMS attachments that can be used in test case
- * preconditions and manual scenario steps.
+ *
+ * Provides endpoints for uploading, downloading, and deleting TMS attachments
+ * that can be used in test case preconditions and manual scenario steps.
  */
 @Slf4j
 @RestController
@@ -77,6 +77,37 @@ public class TmsAttachmentController {
             "attachment; filename=\"" + attachment.getFileName() + "\"")
         .header(HttpHeaders.CONTENT_TYPE, attachment.getFileType())
         .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getFileSize()))
+        .body(resource);
+  }
+  
+  @GetMapping("/{attachmentId}/thumbnail")
+  @Operation(summary = "Download TMS attachment thumbnail",
+      description = "Downloads TMS attachment thumbnail file by ID")
+  @PreAuthorize("hasPermission(#projectKey, 'allowedToViewProject')")
+  public ResponseEntity<InputStreamResource> downloadThumbnail(
+      @Parameter(description = "Project key") @PathVariable String projectKey,
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+
+    log.debug("Downloading TMS attachment thumbnail: {} for project: {}", attachmentId, projectKey);
+
+    var attachment = tmsAttachmentService.getTmsAttachment(attachmentId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
+            "Attachment not found: " + attachmentId));
+
+    if (attachment.getThumbnailPath() == null) {
+      throw new ReportPortalException(ErrorType.NOT_FOUND, 
+          "Thumbnail not found for attachment: " + attachmentId);
+    }
+
+    var resource = new InputStreamResource(
+        tmsAttachmentDataStoreService
+            .load(attachment.getThumbnailPath())
+            .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
+                "Attachment thumbnail file not found: " + attachmentId))
+    );
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_TYPE, attachment.getFileType())
         .body(resource);
   }
 

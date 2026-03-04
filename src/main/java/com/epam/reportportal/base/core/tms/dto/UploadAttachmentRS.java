@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UploadAttachmentRS {
-
   private Long id;
   private Long fileSize;
   private String fileName;
   private String fileType;
+  private Boolean hasThumbnail;
 }

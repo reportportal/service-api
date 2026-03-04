@@ -74,17 +74,17 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
   @Transactional
   public void patchTmsManualScenarioImpl(TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
-    var existingStepsManualScenario = manualScenario.getStepsScenario();
-    if (Objects.nonNull(existingStepsManualScenario)) {
+      var existingStepsManualScenario = manualScenario.getStepsScenario();
+      if (Objects.nonNull(existingStepsManualScenario)) {
 
-      tmsStepService.patchSteps(existingStepsManualScenario,
-          (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
+        tmsStepService.patchSteps(existingStepsManualScenario,
+            (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
 
-      tmsStepsManualScenarioRepository.save(existingStepsManualScenario);
-    } else {
-      throw new ReportPortalException(
-          NOT_FOUND, STEPS_MANUAL_SCENARIO_FOR_MANUAL_SCENARIO.formatted(manualScenario.getId()));
-    }
+        tmsStepsManualScenarioRepository.save(existingStepsManualScenario);
+      } else {
+        throw new ReportPortalException(
+            NOT_FOUND, STEPS_MANUAL_SCENARIO_FOR_MANUAL_SCENARIO.formatted(manualScenario.getId()));
+      }
   }
 
   @Override

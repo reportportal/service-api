@@ -11,8 +11,8 @@ import java.lang.annotation.Target;
 /**
  * Validation annotation to ensure that at least 1 field of BatchPatchTestCasesRQ is provided.
  * <p>
- * This annotation validates that at least one of the two fields is not null, preventing scenarios where both fields are
- * null which would make the request invalid.
+ * This annotation validates that at least one of the two fields is not null, preventing
+ * scenarios where both fields are null which would make the request invalid.
  * </p>
  */
 @Documented

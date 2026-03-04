@@ -34,11 +34,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller for managing test plans within a project. Provides endpoints for creating, retrieving, updating, patching,
- * and deleting test plans. All operations require administrator privileges.
+ * Controller for managing test plans within a project. Provides endpoints
+ * for creating, retrieving, updating, patching, and deleting test plans.
+ * All operations require administrator privileges.
  */
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms/test-plan")
@@ -53,7 +55,7 @@ public class TmsTestPlanController {
    * Creates a new test plan.
    *
    * @param projectKey The key of the project.
-   * @param testPlan   The test plan data ({@link TmsTestPlanRQ}) to be created.
+   * @param testPlan  The test plan data ({@link TmsTestPlanRQ}) to be created.
    * @return The details of the created test plan ({@link TmsTestPlanRS}).
    */
   @PostMapping
@@ -70,9 +72,9 @@ public class TmsTestPlanController {
   /**
    * Retrieves a list of test plans filtered by criteria.
    *
-   * @param projectKey    The key of the project.
-   * @param filter        Filter (optional).
-   * @param offsetRequest Pagination details.
+   * @param projectKey      The key of the project.
+   * @param filter          Filter (optional).
+   * @param offsetRequest   Pagination details.
    * @return Paginated list of test plans matching the criteria ({@link TmsTestPlanRS}).
    */
   @GetMapping
@@ -150,8 +152,8 @@ public class TmsTestPlanController {
   /**
    * Applies partial updates to an existing test plan.
    *
-   * @param projectKey      The key of the project.
-   * @param testPlanId      The ID of the test plan to patch.
+   * @param projectKey The key of the project.
+   * @param testPlanId The ID of the test plan to patch.
    * @param updatedTestPlan The patch data ({@link TmsTestPlanRQ}).
    * @return The updated test plan details ({@link TmsTestPlanRS}).
    */
@@ -197,8 +199,8 @@ public class TmsTestPlanController {
   /**
    * Removes multiple test cases from a test plan.
    *
-   * @param projectKey    The key of the project.
-   * @param testPlanId    The ID of the test plan to remove test cases from.
+   * @param projectKey The key of the project.
+   * @param testPlanId The ID of the test plan to remove test cases from.
    * @param removeRequest Request containing test case IDs to remove from the test plan.
    */
   @DeleteMapping("/{id}/test-case/batch")
@@ -221,7 +223,8 @@ public class TmsTestPlanController {
   }
 
   /**
-   * Retrieves test cases added to a test plan with pagination. Returns test cases with only the last execution.
+   * Retrieves test cases added to a test plan with pagination.
+   * Returns test cases with only the last execution.
    *
    * @param projectKey    the project key
    * @param testPlanId    the test plan ID
@@ -239,6 +242,7 @@ public class TmsTestPlanController {
   public Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(
       @PathVariable String projectKey,
       @PathVariable("testPlanId") Long testPlanId,
+      @RequestParam(value = "testFolderId", required = false) Long testFolderId,
       @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getTestCasesAddedToPlan(
@@ -246,6 +250,7 @@ public class TmsTestPlanController {
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
+        testFolderId,
         offsetRequest
     );
   }

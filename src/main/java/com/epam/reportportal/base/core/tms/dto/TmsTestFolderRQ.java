@@ -17,4 +17,5 @@ public class TmsTestFolderRQ {
   private String description;
   private Long parentTestFolderId;
   private NewTestFolderRQ parentTestFolder;
+  private Integer index;
 }

@@ -8,8 +8,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 /**
- * Mapper interface for converting between TmsAttachment entity and manual scenario attachment DTOs. Uses MapStruct for
- * automatic mapping generation.
+ * Mapper interface for converting between TmsAttachment entity and manual scenario attachment DTOs.
+ * Uses MapStruct for automatic mapping generation.
  */
 @Mapper(config = CommonMapperConfig.class)
 public interface TmsManualScenarioAttachmentMapper {
@@ -21,6 +21,7 @@ public interface TmsManualScenarioAttachmentMapper {
    * @return the attachment response DTO
    */
   @Mapping(target = "id", source = "id", numberFormat = "0")
+  @Mapping(target = "hasThumbnail", expression = "java(attachment.getThumbnailPath() != null)")
   TmsManualScenarioAttachmentRS toResponse(TmsAttachment attachment);
 
   /**

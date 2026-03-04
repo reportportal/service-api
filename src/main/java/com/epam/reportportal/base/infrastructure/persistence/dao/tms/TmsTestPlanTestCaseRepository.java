@@ -51,8 +51,8 @@ public interface TmsTestPlanTestCaseRepository extends
   void deleteAllByTestCaseId(@Param("testCaseId") Long testCaseId);
 
   /**
-   * Deletes all test plan-test case associations for test cases that belong to the specified folder within the
-   * project.
+   * Deletes all test plan-test case associations for test cases that belong to the specified folder
+   * within the project.
    *
    * @param projectId the ID of the project
    * @param folderId  the ID of the test folder

@@ -11,11 +11,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;

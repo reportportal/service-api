@@ -20,13 +20,14 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.data.domain.Page;
 
 /**
- * Mapper for TmsTestFolder entity and related DTOs. Handles conversion between entity and DTO representations without
- * subfolder hierarchy.
+ * Mapper for TmsTestFolder entity and related DTOs.
+ * Handles conversion between entity and DTO representations without subfolder hierarchy.
  */
 @Mapper(config = CommonMapperConfig.class)
 public abstract class TmsTestFolderMapper {
@@ -178,14 +179,13 @@ public abstract class TmsTestFolderMapper {
    * Converts ParentTmsTestFolderRQ to TmsTestFolder entity.
    *
    * @param projectId          The ID of the project
-   * @param parentTestFolderRQ The parent folder request
+   * @param testFolderRQ       The folder request
    * @return The test folder entity
    */
   @Mapping(target = "project.id", source = "projectId")
-  @Mapping(target = "name", source = "parentTestFolderRQ.name")
-  @Mapping(target = "parentTestFolder.id", source = "parentTestFolderRQ.parentTestFolderId")
-  public abstract TmsTestFolder convertToTestFolder(Long projectId,
-      NewTestFolderRQ parentTestFolderRQ);
+  @Mapping(target = "name", source = "testFolderRQ.name")
+  @Mapping(target = "parentTestFolder", source = "testFolderRQ", qualifiedByName = "mapParentFolder")
+  public abstract TmsTestFolder convertToTestFolder(Long projectId, NewTestFolderRQ testFolderRQ);
 
   /**
    * Converts folder name to NewTestFolderRQ.
@@ -198,9 +198,9 @@ public abstract class TmsTestFolderMapper {
   /**
    * Converts test folder entity with statistics to duplicate response DTO.
    *
-   * @param folder                        The duplicated root folder
-   * @param countOfTestCases              Count of test cases in the folder
-   * @param folderDuplicationStatistics   Statistics of folder duplication
+   * @param folder                       The duplicated root folder
+   * @param countOfTestCases             Count of test cases in the folder
+   * @param folderDuplicationStatistics  Statistics of folder duplication
    * @param testCaseDuplicationStatistics Statistics of test case duplication
    * @return The duplicate test folder response DTO
    */
@@ -218,6 +218,7 @@ public abstract class TmsTestFolderMapper {
         .parentFolderId(folder.getParentTestFolder() != null
             ? folder.getParentTestFolder().getId()
             : null)
+        .index(folder.getIndex())
         .folderDuplicationStatistic(convertToFolderOperationResult(folderDuplicationStatistics))
         .testCaseDuplicationStatistic(convertToTestCaseOperationResult(testCaseDuplicationStatistics))
         .build();
@@ -271,11 +272,28 @@ public abstract class TmsTestFolderMapper {
   @Mapping(target = "description", source = "sourceFolder.description")
   @Mapping(target = "parentTestFolder", source = "targetParent")
   @Mapping(target = "project", source = "sourceFolder.project")
+  @Mapping(target = "index", source = "sourceFolder.index")
   @Mapping(target = "subFolders", ignore = true)
   @Mapping(target = "testCases", ignore = true)
-  @Mapping(target = "testItems", ignore = true)
   public abstract TmsTestFolder duplicateTestFolder(
       TmsTestFolder sourceFolder,
       TmsTestFolder targetParent
   );
+
+  /**
+   * Maps parent folder ID to TmsTestFolder entity.
+   * Returns null if parentTestFolderId is null.
+   *
+   * @param testFolderRQ The folder request
+   * @return The parent folder entity with only an ID set, or null
+   */
+  @Named("mapParentFolder")
+  protected TmsTestFolder mapParentFolder(NewTestFolderRQ testFolderRQ) {
+    if (testFolderRQ == null || testFolderRQ.getParentTestFolderId() == null) {
+      return null;
+    }
+    var parent = new TmsTestFolder();
+    parent.setId(testFolderRQ.getParentTestFolderId());
+    return parent;
+  }
 }

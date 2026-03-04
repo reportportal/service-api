@@ -7,13 +7,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
-import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.mapper.TmsTextManualScenarioMapper;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsTextManualScenarioMapper;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.List;
@@ -136,7 +137,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     // Then
     verify(tmsTextManualScenarioMapper).patchTmsManualScenario(existingTextManualScenario, textScenarioRQ);
-    verify(tmsTextManualScenarioAttachmentService).patchAttachments(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).updateAttachments(existingTextManualScenario, textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
   }
 
@@ -151,7 +152,7 @@ class TmsTextManualScenarioImplServiceTest {
 
     assertThat(exception.getMessage()).contains("Text Manual Scenario for Manual Scenario with id");
     verify(tmsTextManualScenarioRepository, never()).save(any());
-    verify(tmsTextManualScenarioAttachmentService, never()).patchAttachments(any(), any());
+    verify(tmsTextManualScenarioAttachmentService, never()).updateAttachments(any(), any());
   }
 
   @Test
@@ -378,7 +379,7 @@ class TmsTextManualScenarioImplServiceTest {
     return TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
         .executionEstimationTime(30)
-        .linkToRequirements("http://requirements.com")
+        .requirements(List.of(TmsRequirementRQ.builder().id("req-1").value("http://requirements.com").build()))
         .instructions("Test instructions")
         .expectedResult("Expected result")
         .attributes(Collections.emptyList())

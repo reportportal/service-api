@@ -1,6 +1,5 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,6 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_step", schema = "public")
@@ -33,11 +34,14 @@ public class TmsStep implements Serializable {
   @Column(name = "id")
   private Long id;
 
-  @Column(name = "instructions")
+  @Column(name = "instructions", columnDefinition = "TEXT")
   private String instructions;
 
-  @Column(name = "expected_result")
+  @Column(name = "expected_result", columnDefinition = "TEXT")
   private String expectedResult;
+
+  @Column(name = "number", nullable = false)
+  private Integer number = 0;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "steps_manual_scenario_id")
@@ -49,13 +53,6 @@ public class TmsStep implements Serializable {
       joinColumns = @JoinColumn(name = "step_id"),
       inverseJoinColumns = @JoinColumn(name = "attachment_id"))
   @ToString.Exclude
+  @Fetch(FetchMode.SUBSELECT)
   private Set<TmsAttachment> attachments;
-
-  @ManyToMany
-  @JoinTable(
-      name = "tms_step_test_item",
-      joinColumns = @JoinColumn(name = "step_id"),
-      inverseJoinColumns = @JoinColumn(name = "test_item_id"))
-  @ToString.Exclude
-  private Set<TestItem> testItems;
 }

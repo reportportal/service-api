@@ -278,4 +278,12 @@ public interface UserRepository extends ReportPortalRepository<User, Long>, User
    * @return {@link Optional} of {@link User}
    */
   Optional<User> findByEmailIgnoreCase(String email);
+
+  /**
+   * Find users by their IDs
+   * @param userIds list of user IDs
+   * @return list of users
+   */
+  @Query("SELECT u FROM User u WHERE u.id IN :userIds")
+  List<User> findByIds(@Param("userIds") List<Long> userIds);
 }

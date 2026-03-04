@@ -1,11 +1,15 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,12 +29,13 @@ public class TmsAttribute implements Serializable {
   @Column(name = "id")
   private Long id;
 
-  // TODO: Do we actually need to mark this field unique=true and nullable=false ?
-  @Column(name = "key", nullable = false, unique = true)
+  @Column(name = "key", nullable = false)
   private String key;
 
-  @Column(name = "search_vector", insertable = false, updatable = false)
-  private String searchVector; //immutable, because trigger updates this field
+  @Column(name = "value")
+  private String value;
 
-  //TODO: override equals and hashCode methods
+  @ManyToOne
+  @JoinColumn(name = "project_id", nullable = false)
+  private Project project;
 }

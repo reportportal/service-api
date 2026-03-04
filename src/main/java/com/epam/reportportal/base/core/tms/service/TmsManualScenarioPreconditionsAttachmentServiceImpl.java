@@ -56,7 +56,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
 
       tmsAttachmentService.saveAll(attachments);
 
-      log.info("Created {} attachment relationships for preconditions: {}", attachments.size(),
+      log.debug("Created {} attachment relationships for preconditions: {}", attachments.size(),
           preconditions.getId());
     }
   }
@@ -83,46 +83,6 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void patchAttachments(TmsManualScenarioPreconditions existingPreconditions,
-      TmsManualScenarioPreconditionsRQ preconditionsRQ) {
-    log.debug("Patching attachments for preconditions: {}", existingPreconditions.getId());
-
-    if (preconditionsRQ == null || CollectionUtils.isEmpty(preconditionsRQ.getAttachments())) {
-      log.debug("No attachments to patch for preconditions: {}", existingPreconditions.getId());
-      return;
-    }
-
-    var newAttachmentIds = preconditionsRQ
-        .getAttachments()
-        .stream()
-        .map(attachment -> Long.valueOf(attachment.getId()))
-        .collect(Collectors.toList());
-
-    // Validate and get new attachments
-    var newAttachments = tmsAttachmentService.getTmsAttachmentsByIds(newAttachmentIds);
-
-    if (CollectionUtils.isNotEmpty(newAttachments)) {
-      if (existingPreconditions.getAttachments() == null) { //Remove TTL from attachment -> make that permanent
-        existingPreconditions.setAttachments(new HashSet<>());
-      }
-      existingPreconditions.getAttachments().addAll(newAttachments);
-
-      newAttachments.forEach(attachment -> {
-        if (attachment.getExpiresAt() != null) {
-          attachment.setExpiresAt(null);
-        }
-        if (attachment.getManualScenarioPreconditions() == null) {
-          attachment.setManualScenarioPreconditions(new HashSet<>());
-        }
-        attachment.getManualScenarioPreconditions().add(existingPreconditions);
-      });
-
-      tmsAttachmentService.saveAll(newAttachments);
-    }
-  }
-
-  @Override
-  @Transactional
   public void deleteAllByTestCaseId(Long testCaseId) {
     log.debug("Deleting all preconditions attachment relationships by test case ID: {}",
         testCaseId);
@@ -133,7 +93,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     preconditionsAttachmentRepository.deleteByTestCaseId(testCaseId);
-    log.info("Deleted all preconditions attachment relationships for test case: {}", testCaseId);
+    log.debug("Deleted all preconditions attachment relationships for test case: {}", testCaseId);
   }
 
   @Override
@@ -148,7 +108,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     preconditionsAttachmentRepository.deleteByTestCaseIds(testCaseIds);
-    log.info("Deleted all preconditions attachment relationships for {} test cases",
+    log.debug("Deleted all preconditions attachment relationships for {} test cases",
         testCaseIds.size());
   }
 
@@ -164,7 +124,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     preconditionsAttachmentRepository.deleteByTestFolderId(projectId, folderId);
-    log.info("Deleted all preconditions attachment relationships for project: {} and folder: {}",
+    log.debug("Deleted all preconditions attachment relationships for project: {} and folder: {}",
         projectId, folderId);
   }
 

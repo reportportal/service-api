@@ -17,9 +17,9 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 
 import com.epam.reportportal.base.core.tms.controller.TmsTestFolderController;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
-import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
+import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationResultRS;
@@ -55,8 +55,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * Unit tests for TmsTestFolderController. Tests CRUD operations, filtering, sorting, duplication, and export
- * functionality for test folders.
+ * Unit tests for TmsTestFolderController.
+ * Tests CRUD operations, filtering, sorting, duplication, and export functionality for test folders.
  */
 public class TmsTestFolderControllerTest {
 
@@ -150,6 +150,33 @@ public class TmsTestFolderControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonContent))
         .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).create(projectId, request);
+  }
+
+  @Test
+  public void testCreateTestFolder_WithIndex() throws Exception {
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .description("Folder with index")
+        .name("Indexed Folder")
+        .index(5)
+        .build();
+    TmsTestFolderRS expectedResponse = TmsTestFolderRS.builder()
+        .id(1L)
+        .name("Indexed Folder")
+        .description("Folder with index")
+        .index(5)
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(request);
+
+    given(tmsTestFolderService.create(projectId, request)).willReturn(expectedResponse);
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.index").value(5));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestFolderService).create(projectId, request);
@@ -919,7 +946,7 @@ public class TmsTestFolderControllerTest {
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.totalCount").value(5))
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.successCount").value(4))
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.failureCount").value(1))
-        .andExpect(jsonPath("$.testCaseDuplicationStatistic.errors[0].testCaseIds").value(24))
+        .andExpect(jsonPath("$.testCaseDuplicationStatistic.errors[0].testCaseId").value(24))
         .andExpect(
             jsonPath("$.testCaseDuplicationStatistic.errors[0].errorMessage").value("Failed to duplicate test case"));
 

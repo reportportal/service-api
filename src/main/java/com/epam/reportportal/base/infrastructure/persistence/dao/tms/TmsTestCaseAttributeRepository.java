@@ -25,9 +25,10 @@ public interface TmsTestCaseAttributeRepository extends
   void deleteAllByTestCaseIds(@Param("testCaseIds") List<Long> testCaseIds);
 
   /**
-   * Deletes all test case attributes associated with test cases that belong to the specified folder or any of its
-   * subfolders. Uses a recursive Common Table Expression (CTE) to identify all subfolders at any level of nesting and
-   * then deletes attributes associated with test cases in those folders.
+   * Deletes all test case attributes associated with test cases that belong to the specified folder
+   * or any of its subfolders. Uses a recursive Common Table Expression (CTE) to identify all
+   * subfolders at any level of nesting and then deletes attributes associated with test cases in
+   * those folders.
    *
    * @param folderId  The ID of the folder
    * @param projectId The project ID to ensure folder belongs to the correct project

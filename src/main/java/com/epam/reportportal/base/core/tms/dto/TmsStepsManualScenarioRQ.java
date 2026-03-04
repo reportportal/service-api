@@ -10,7 +10,8 @@ import lombok.experimental.SuperBuilder;
 import java.util.List;
 
 /**
- * Request DTO for step-based manual scenario operations. Contains information about steps of the manual scenario.
+ * Request DTO for step-based manual scenario operations.
+ * Contains information about steps of the manual scenario.
  */
 @Data
 @SuperBuilder

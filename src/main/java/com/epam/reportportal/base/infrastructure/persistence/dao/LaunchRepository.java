@@ -19,6 +19,7 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import static org.hibernate.jpa.QueryHints.HINT_FETCH_SIZE;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -170,4 +171,34 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
       String name, Long number, Long launchId, LaunchModeEnum mode);
 
   Optional<Launch> findByIdAndProjectId(@Param("id") Long id, @Param("projectId") Long projectId);
+
+  @Query(value = "SELECT l FROM Launch l WHERE l.id = :id AND l.projectId = :projectId AND l.launchType = 'MANUAL'")
+  Optional<Launch> findManualLaunchByIdAndProjectId(@Param("id") Long id, @Param("projectId") Long projectId);
+
+  /**
+   * Checks if launch exists by ID and project ID.
+   *
+   * @param launchId  launch ID
+   * @param projectId project ID
+   * @return true if launch exists in a project, false otherwise
+   */
+  boolean existsByIdAndProjectId(Long launchId, Long projectId);
+
+  /**
+   * Checks if launch by type exists by ID and project ID.
+   *
+   * @param launchId  launch ID
+   * @param projectId project ID
+   * @return true if launch by type exists in a project, false otherwise
+   */
+  boolean existsByIdAndProjectIdAndLaunchType(Long launchId, Long projectId, LaunchTypeEnum launchType);
+
+  /**
+   * Finds test plan ID by launch ID.
+   *
+   * @param launchId the launch ID
+   * @return optional test plan ID
+   */
+  @Query("SELECT l.testPlanId FROM Launch l WHERE l.id = :launchId")
+  Optional<Long> findTestPlanIdById(@Param("launchId") Long launchId);
 }

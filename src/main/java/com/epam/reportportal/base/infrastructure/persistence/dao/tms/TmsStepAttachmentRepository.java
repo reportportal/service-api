@@ -127,8 +127,8 @@ public interface TmsStepAttachmentRepository extends
   void deleteByTestFolderId(@Param("projectId") Long projectId, @Param("folderId") Long folderId);
 
   /**
-   * Finds all attachment IDs that are referenced in step attachments. * This is optimized to return only IDs instead of
-   * full entities. * * @return list of attachment IDs used in step attachments
+   * Finds all attachment IDs that are referenced in step attachments. * This is optimized to return
+   * only IDs instead of full entities. * * @return list of attachment IDs used in step attachments
    */
   @Query("SELECT sa.id.attachmentId FROM TmsStepAttachment sa")
   List<Long> findAllAttachmentIds();

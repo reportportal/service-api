@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -49,6 +51,9 @@ public class TmsAttachment implements Serializable {
 
   @Column(name = "path_to_file")
   private String pathToFile;
+  
+  @Column(name = "thumbnail_path")
+  private String thumbnailPath;
 
   @Column(name = "expires_at")
   @Convert(converter = JpaInstantConverter.class)
@@ -60,16 +65,24 @@ public class TmsAttachment implements Serializable {
   private Instant createdAt;
 
   @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTextManualScenario> textManualScenarios;
 
   @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsStep> steps;
 
   @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsManualScenarioPreconditions> manualScenarioPreconditions;
+
+  @ManyToMany(mappedBy = "attachments")
+  @Fetch(FetchMode.SUBSELECT)
+  @ToString.Exclude
+  private Set<TmsTestCaseExecutionComment> executionComments;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "environment_id")

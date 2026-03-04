@@ -11,8 +11,8 @@ import lombok.experimental.SuperBuilder;
 import java.util.List;
 
 /**
- * Request DTO for text-based manual scenario operations. Contains information about instructions and expected result as
- * text.
+ * Request DTO for text-based manual scenario operations.
+ * Contains information about instructions and expected result as text.
  */
 @Data
 @SuperBuilder

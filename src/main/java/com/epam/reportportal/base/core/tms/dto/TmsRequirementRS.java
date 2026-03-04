@@ -1,0 +1,19 @@
+package com.epam.reportportal.base.core.tms.dto;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TmsRequirementRS {
+
+  private String id;
+
+  private String value;
+}

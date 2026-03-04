@@ -1,3 +1,4 @@
+
 package com.epam.reportportal.base.core.tms.validation;
 
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
@@ -33,10 +34,10 @@ public class BatchPatchTestCaseAttributesRQValidator
       return true; // Let @NotNull handle null objects if needed
     }
 
-    var hasAttributeIdsToAdd = CollectionUtils.isNotEmpty(value.getAttributeIdsToAdd());
-    var hasAttributeIdsToRemove = CollectionUtils.isNotEmpty(value.getAttributesToRemove());
+    var hasAttributeKeysToAdd = CollectionUtils.isNotEmpty(value.getAttributeKeysToAdd());
+    var hasAttributeKeysToRemove = CollectionUtils.isNotEmpty(value.getAttributeKeysToRemove());
 
-    if (!hasAttributeIdsToAdd && !hasAttributeIdsToRemove) {
+    if (!hasAttributeKeysToAdd && !hasAttributeKeysToRemove) {
       context.disableDefaultConstraintViolation();
       context.buildConstraintViolationWithTemplate(
               "Either attributes to add or to remove must be provided and not empty")

@@ -14,4 +14,6 @@ import lombok.NoArgsConstructor;
 public class TmsAttributeRQ {
 
   private String key;
+
+  private String value;
 }

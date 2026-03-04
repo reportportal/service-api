@@ -1,6 +1,5 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -33,7 +32,4 @@ public class TmsTestPlanAttribute implements Serializable {
   @MapsId(value = "attributeId")
   @JoinColumn(name = "attribute_id")
   private TmsAttribute attribute;
-
-  @Column(name = "value")
-  private String value;
 }

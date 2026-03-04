@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Response DTO for step-based manual scenario operations. Contains information about steps of the manual scenario.
+ * Response DTO for step-based manual scenario operations.
+ * Contains information about steps of the manual scenario.
  */
 @Data
 @SuperBuilder

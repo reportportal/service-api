@@ -20,13 +20,15 @@ public abstract class TmsAttachmentMapper {
   @Mapping(target = "fileType", source = "file.contentType")
   @Mapping(target = "fileSize", source = "file.size")
   @Mapping(target = "pathToFile", source = "fileId")
+  @Mapping(target = "thumbnailPath", source = "thumbnailPath")
   @Mapping(target = "expiresAt", expression = "java(java.time.Instant.now().plus(ttl))")
-  public abstract TmsAttachment convertToAttachment(String fileId, MultipartFile file);
+  public abstract TmsAttachment convertToAttachment(String fileId, String thumbnailPath, MultipartFile file);
 
   @Mapping(target = "id", source = "id")
   @Mapping(target = "fileSize", source = "fileSize")
   @Mapping(target = "fileType", source = "fileType")
   @Mapping(target = "fileName", source = "fileName")
+  @Mapping(target = "hasThumbnail", expression = "java(attachment.getThumbnailPath() != null)")
   public abstract UploadAttachmentRS convertToUploadAttachmentRS(TmsAttachment attachment);
 
   @Mapping(target = "createdAt", ignore = true)
@@ -35,10 +37,11 @@ public abstract class TmsAttachmentMapper {
   @Mapping(target = "fileType", source = "originalAttachment.fileType")
   @Mapping(target = "fileSize", source = "originalAttachment.fileSize")
   @Mapping(target = "pathToFile", source = "newFileId")
+  @Mapping(target = "thumbnailPath", source = "newThumbnailPath")
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "steps", ignore = true)
   @Mapping(target = "textManualScenarios", ignore = true)
   @Mapping(target = "manualScenarioPreconditions", ignore = true)
   public abstract TmsAttachment duplicateAttachment(TmsAttachment originalAttachment,
-      String newFileId);
+      String newFileId, String newThumbnailPath);
 }

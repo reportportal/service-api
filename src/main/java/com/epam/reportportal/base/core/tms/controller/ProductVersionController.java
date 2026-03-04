@@ -19,9 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller for managing product versions within a project. Each endpoint in this controller is secured and requires
- * the user to have administrator privileges. Operations supported include creating, retrieving, updating, and deleting
- * product versions associated with a specific project.
+ * Controller for managing product versions within a project. Each endpoint
+ * in this controller is secured and requires the user to have administrator
+ * privileges. Operations supported include creating, retrieving, updating,
+ * and deleting product versions associated with a specific project.
  */
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms/productversion")
@@ -35,7 +36,7 @@ public class ProductVersionController {
   /**
    * Retrieves a specific product version by its ID within a project.
    *
-   * @param projectKey       The key of the project to which the product version belongs.
+   * @param projectKey        The key of the project to which the product version belongs.
    * @param productVersionId The ID of the product version to retrieve.
    * @return A data transfer object ({@link TmsProductVersionRS}) containing details of the product version.
    */
@@ -54,8 +55,8 @@ public class ProductVersionController {
    * Creates a new product version in the specified project.
    *
    * @param projectKey The key of the project to which the new product version will be added.
-   * @param inputDto   A request payload ({@link ProductVersionRQ}) containing information about the product version to
-   *                   create.
+   * @param inputDto  A request payload ({@link ProductVersionRQ}) containing information
+   *                  about the product version to create.
    * @return A data transfer object ({@link TmsProductVersionRS}) with details of the created product version.
    */
   @PostMapping
@@ -72,10 +73,10 @@ public class ProductVersionController {
   /**
    * Updates the details of an existing product version in a project.
    *
-   * @param projectKey       The key of the project to which the product version belongs.
+   * @param projectKey        The key of the project to which the product version belongs.
    * @param productVersionId The ID of the product version to update.
-   * @param inputDto         A request payload ({@link ProductVersionRQ}) containing updated information for the product
-   *                         version.
+   * @param inputDto         A request payload ({@link ProductVersionRQ}) containing updated information
+   *                         for the product version.
    * @return A data transfer object ({@link TmsProductVersionRS}) with updated details of the product version.
    */
   @PutMapping("/{productVersionId}")
@@ -94,7 +95,7 @@ public class ProductVersionController {
   /**
    * Deletes a specific product version from a project.
    *
-   * @param projectKey       The key of the project to which the product version belongs.
+   * @param projectKey        The key of the project to which the product version belongs.
    * @param productVersionId The ID of the product version to delete.
    */
   @DeleteMapping("/{productVersionId}")

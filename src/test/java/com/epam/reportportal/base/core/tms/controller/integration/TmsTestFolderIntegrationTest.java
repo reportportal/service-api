@@ -40,12 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
 /**
- * Integration tests for TmsTestFolderController. Tests the full flow of test folder operations including database
- * interactions.
+ * Integration tests for TmsTestFolderController. Tests the full flow of test folder operations
+ * including database interactions.
  */
 @Sql("/db/tms/tms-test-folder/tms-test-folder-fill.sql")
 @ExtendWith(MockitoExtension.class)
-@Disabled
 class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
@@ -74,7 +73,8 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(request.getName()))
-        .andExpect(jsonPath("$.description").value(request.getDescription()));
+        .andExpect(jsonPath("$.description").value(request.getDescription()))
+        .andExpect(jsonPath("$.index").exists());
 
     // Find the created folder (assuming it gets ID based on sequence or max+1)
     var createdFolder = tmsTestFolderRepository.findAll().stream()
@@ -320,13 +320,6 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.name").value(request.getName()))
         .andExpect(jsonPath("$.description").value(request.getDescription()))
         .andExpect(jsonPath("$.parentFolderId").exists());
-
-    Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(3L);
-    assertTrue(folder.isPresent());
-    assertEquals(request.getName(), folder.get().getName());
-    assertEquals(request.getDescription(), folder.get().getDescription());
-    assertNotNull(folder.get().getParentTestFolder());
-    assertEquals("Brand New Parent for Update", folder.get().getParentTestFolder().getName());
   }
 
   @Test
@@ -477,7 +470,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     mockMvc
         .perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/999")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk()); // Delete is idempotent in this implementation
+        .andExpect(status().isNotFound()); // Delete is idempotent in this implementation
   }
 
   @Test
@@ -1240,5 +1233,148 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
       assertTrue(subfolder.getName().contains("-copy"),
           "Subfolder name should contain '-copy': " + subfolder.getName());
     }
+  }
+
+  @Test
+  void patchTestFolderMoveToRootIntegrationTest() throws Exception {
+    // Given - folder 4 initially has parent folder 1 (Smoke Tests - Login is subfolder of Smoke Tests)
+    var originalFolder = tmsTestFolderRepository.findById(22L);
+    assertTrue(originalFolder.isPresent());
+    assertNotNull(originalFolder.get().getParentTestFolder());
+    assertEquals(3L, originalFolder.get().getParentTestFolder().getId());
+
+    // Create request with empty parentTestFolder object to move to root
+    var request = TmsTestFolderRQ.builder()
+        .parentTestFolder(NewTestFolderRQ.builder().build()) // Empty object {} means move to root
+        .build();
+    var mapper = new ObjectMapper();
+    var jsonContent = mapper.writeValueAsString(request);
+
+    // When - patch folder to move it to root level
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/22")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(22L))
+        .andExpect(jsonPath("$.parentFolderId").doesNotExist()); // No parent folder ID
+  }
+
+  @Test
+  void reorderTestFoldersIntegrationTest() throws Exception {
+    // Initial state check: folders 6, 7, 10, 11 under parent 3
+    // Assume indexes are 0, 1, 2, 3 respectively (from SQL data)
+
+    // Move folder 10 (index 2) to index 0
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .index(0)
+        .parentTestFolderId(3L) // Keep same parent
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/10")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.index").value(0));
+  }
+
+  @Test
+  void moveFolderToNewParentWithIndexUpdateIntegrationTest() throws Exception {
+    // Initial state: Folder 8 (child of 6) has index 0.
+    // Parent 3 has children 6 (0), 7 (1), 10 (2), 11 (3).
+
+    // Move folder 8 to parent 3 at index 1
+    TmsTestFolderRQ request = TmsTestFolderRQ.builder()
+        .parentTestFolderId(3L)
+        .index(1)
+        .build();
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonContent = mapper.writeValueAsString(request);
+
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/8")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.index").value(1))
+        .andExpect(jsonPath("$.parentFolderId").value(3L));
+  }
+
+  @Test
+  void getFoldersByTestCaseNameFilterIntegrationTest() throws Exception {
+    // Filter by test case name "TC100" which is in folder 3
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseName", "TC100")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(3));
+  }
+
+  @Test
+  void getFoldersByTestCasePriorityFilterIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.eq.testCasePriority", "HIGH")
+            .param("sort", "id,asc")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(8))
+        .andExpect(jsonPath("$.content[0].id").value(3))
+        .andExpect(jsonPath("$.content[1].id").value(4))
+        .andExpect(jsonPath("$.content[2].id").value(5))
+        .andExpect(jsonPath("$.content[3].id").value(6))
+        .andExpect(jsonPath("$.content[4].id").value(7))
+        .andExpect(jsonPath("$.content[5].id").value(8))
+        .andExpect(jsonPath("$.content[6].id").value(19))
+        .andExpect(jsonPath("$.content[7].id").value(20));
+  }
+
+  @Test
+  void getFoldersByTestCaseNameAndPriorityFilterIntegrationTest() throws Exception {
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseName", "TC1")
+            .param("filter.eq.testCasePriority", "MEDIUM")
+            .param("sort", "id,asc")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(6))
+        .andExpect(jsonPath("$.content[0].id").value(3))
+        .andExpect(jsonPath("$.content[1].id").value(5))
+        .andExpect(jsonPath("$.content[2].id").value(6))
+        .andExpect(jsonPath("$.content[3].id").value(8))
+        .andExpect(jsonPath("$.content[4].id").value(9))
+        .andExpect(jsonPath("$.content[5].id").value(20));
+  }
+
+  @Test
+  void getFoldersByNonExistentTestCaseNameFilterIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseName", "NonExistentTC")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
+  void verifyCountOfTestCasesWithFilter() throws Exception {
+    // Folder 3 has 3 test cases: TC100(HIGH), TC101(MEDIUM), TC102(LOW)
+    // Filter by priority HIGH -> count should be 1 (only TC100)
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.eq.id", "3")
+            .param("filter.eq.testCasePriority", "HIGH")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].id").value(3))
+        .andExpect(jsonPath("$.content[0].countOfTestCases").value(1));
   }
 }

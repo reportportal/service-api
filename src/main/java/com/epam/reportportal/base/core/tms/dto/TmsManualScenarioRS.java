@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,8 +14,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Abstract base response DTO for manual scenario operations. Contains common information for all types of manual
- * scenarios. This class is extended by concrete implementations for different scenario types.
+ * Abstract base response DTO for manual scenario operations. Contains common information for all
+ * types of manual scenarios. This class is extended by concrete implementations for different
+ * scenario types.
  */
 @Data
 @SuperBuilder
@@ -38,7 +40,7 @@ public abstract class TmsManualScenarioRS {
   @Min(value = 1, message = "Execution estimation time must be positive")
   protected Integer executionEstimationTime;
 
-  protected String linkToRequirements;
+  protected List<TmsRequirementRS> requirements;
 
   protected TmsManualScenarioPreconditionsRS preconditions;
 

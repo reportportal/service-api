@@ -7,11 +7,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.TmsDatasetDataRQ;
-import com.epam.reportportal.base.core.tms.mapper.TmsDatasetDataMapper;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsDatasetDataRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDatasetData;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsDatasetDataRepository;
+import com.epam.reportportal.base.core.tms.dto.TmsDatasetDataRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsDatasetDataMapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

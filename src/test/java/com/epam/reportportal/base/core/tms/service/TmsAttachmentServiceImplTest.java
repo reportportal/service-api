@@ -16,14 +16,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
-import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
 import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
+import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.ByteArrayInputStream;
@@ -106,7 +106,7 @@ class TmsAttachmentServiceImplTest {
   void uploadAttachment_ShouldSucceed_WhenValidFile() throws Exception {
     // Given valid file to upload
     when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(fileId);
-    when(tmsAttachmentMapper.convertToAttachment(fileId, file)).thenReturn(attachment);
+    when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file))).thenReturn(attachment);
     when(tmsAttachmentRepository.save(attachment)).thenReturn(attachment);
     when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
         uploadAttachmentRS);
@@ -120,7 +120,7 @@ class TmsAttachmentServiceImplTest {
     assertEquals(uploadAttachmentRS.getFileName(), result.getFileName());
 
     verify(tmsAttachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
-    verify(tmsAttachmentMapper).convertToAttachment(fileId, file);
+    verify(tmsAttachmentMapper).convertToAttachment(eq(fileId), any(), eq(file));
     verify(tmsAttachmentRepository).save(attachment);
     verify(tmsAttachmentMapper).convertToUploadAttachmentRS(attachment);
   }
@@ -135,8 +135,7 @@ class TmsAttachmentServiceImplTest {
         () -> sut.uploadAttachment(emptyFile));
 
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
-    assertEquals("Error in handled Request. Please, check specified parameters: 'File cannot be empty'",
-        exception.getMessage());
+    assertEquals("Error in handled Request. Please, check specified parameters: 'File cannot be empty'", exception.getMessage());
 
     verifyNoInteractions(tmsAttachmentDataStoreService, tmsAttachmentMapper, tmsAttachmentRepository);
   }
@@ -386,7 +385,7 @@ class TmsAttachmentServiceImplTest {
         .thenReturn(Optional.of(originalFileStream));
     when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
         newFileId);
-    when(tmsAttachmentMapper.duplicateAttachment(eq(attachment), eq(newFileId)))
+    when(tmsAttachmentMapper.duplicateAttachment(eq(attachment), eq(newFileId), any()))
         .thenReturn(duplicatedAttachment);
     when(tmsAttachmentRepository.save(duplicatedAttachment)).thenReturn(duplicatedAttachment);
 
@@ -399,7 +398,7 @@ class TmsAttachmentServiceImplTest {
 
     verify(tmsAttachmentDataStoreService).load(attachment.getPathToFile());
     verify(tmsAttachmentDataStoreService).save(anyString(), eq(originalFileStream));
-    verify(tmsAttachmentMapper).duplicateAttachment(attachment, newFileId);
+    verify(tmsAttachmentMapper).duplicateAttachment(eq(attachment), eq(newFileId), any());
     verify(tmsAttachmentRepository).save(duplicatedAttachment);
   }
 

@@ -46,12 +46,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
+import org.springframework.modulith.Modulithic;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @SpringBootConfiguration
 @EnableConfigurationProperties
+@Modulithic
 @EnableAutoConfiguration(exclude = {QuartzAutoConfiguration.class, RabbitAutoConfiguration.class})
 @ComponentScan(value = {"com.epam.reportportal"}, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.reportportal.auth.*"),

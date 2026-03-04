@@ -10,6 +10,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManu
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -51,10 +52,22 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     }
 
     try {
+      byte[] bytes = file.getBytes();
       var fileId = tmsAttachmentDataStoreService.save(file.getOriginalFilename(),
-          file.getInputStream());
+          new ByteArrayInputStream(bytes));
 
-      var attachment = tmsAttachmentMapper.convertToAttachment(fileId, file);
+      String thumbnailId = null;
+      if (isImage(file.getContentType())) {
+        try {
+          thumbnailId = tmsAttachmentDataStoreService.saveThumbnail(
+              "thumbnail_" + file.getOriginalFilename(),
+              new ByteArrayInputStream(bytes));
+        } catch (Exception e) {
+          log.warn("Failed to create thumbnail for file {}", file.getOriginalFilename(), e);
+        }
+      }
+
+      var attachment = tmsAttachmentMapper.convertToAttachment(fileId, thumbnailId, file);
 
       return tmsAttachmentMapper.convertToUploadAttachmentRS(
           tmsAttachmentRepository.save(attachment));
@@ -81,6 +94,16 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     try {
       // Delete file from data store
       tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
+      
+      // Delete thumbnail if exists
+      if (attachment.getThumbnailPath() != null) {
+        try {
+          tmsAttachmentDataStoreService.delete(attachment.getThumbnailPath());
+        } catch (Exception e) {
+          log.warn("Failed to delete thumbnail {} for attachment {}: {}",
+              attachment.getThumbnailPath(), attachmentId, e.getMessage());
+        }
+      }
 
       // Delete attachment record
       tmsAttachmentRepository.deleteById(attachmentId);
@@ -104,15 +127,19 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     var expiredAttachments = tmsAttachmentRepository.findExpiredAttachments(Instant.now());
 
     if (!expiredAttachments.isEmpty()) {
-      log.info("Found {} expired attachments for cleanup", expiredAttachments.size());
+      log.debug("Found {} expired attachments for cleanup", expiredAttachments.size());
 
       // Delete files from data store
       expiredAttachments.forEach(attachment -> {
         try {
           tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
+          
+          if (attachment.getThumbnailPath() != null) {
+            tmsAttachmentDataStoreService.delete(attachment.getThumbnailPath());
+          }
         } catch (Exception e) {
-          log.warn("Failed to delete file {} for expired attachment {}: {}",
-              attachment.getPathToFile(), attachment.getId(), e.getMessage());
+          log.warn("Failed to delete file/thumbnail for expired attachment {}: {}",
+               attachment.getId(), e.getMessage());
         }
       });
 
@@ -123,7 +150,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
           .collect(Collectors.toList());
       tmsAttachmentRepository.deleteByIds(expiredIds);
 
-      log.info("Cleaned up {} expired attachments", expiredIds.size());
+      log.debug("Cleaned up {} expired attachments", expiredIds.size());
     }
   }
 
@@ -153,10 +180,26 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
       // Step 3: Save file copy to data store
       var newFileId = tmsAttachmentDataStoreService.save(newFileName, originalFileStream);
+      
+      // Step 3.1: Duplicate thumbnail if exists
+      String newThumbnailId = null;
+      if (originalAttachment.getThumbnailPath() != null) {
+        try {
+          var thumbnailStream = tmsAttachmentDataStoreService.load(originalAttachment.getThumbnailPath())
+              .orElse(null);
+          
+          if (thumbnailStream != null) {
+            String newThumbnailName = "thumbnail_" + newFileName;
+            newThumbnailId = tmsAttachmentDataStoreService.save(newThumbnailName, thumbnailStream);
+          }
+        } catch (Exception e) {
+          log.warn("Failed to duplicate thumbnail for attachment {}", originalAttachment.getId(), e);
+        }
+      }
 
       // Step 4: Create duplicated attachment entity
       var duplicatedAttachment = tmsAttachmentMapper.duplicateAttachment(originalAttachment,
-          newFileId);
+          newFileId, newThumbnailId);
 
       // Note: TTL is not set, making duplicated attachment permanent by default
       // Note: Entity relationships (step, textManualScenario, etc.) are not copied
@@ -165,7 +208,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       // Step 5: Save duplicated attachment to a database
       var savedDuplicate = tmsAttachmentRepository.save(duplicatedAttachment);
 
-      log.info("Successfully duplicated TMS attachment {} to new attachment {} with file: {}",
+      log.debug("Successfully duplicated TMS attachment {} to new attachment {} with file: {}",
           originalAttachment.getId(), savedDuplicate.getId(), newFileName);
 
       return savedDuplicate;
@@ -217,7 +260,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
         unusedAttachmentIds, expirationTime
     );
 
-    log.info("Set TTL (expires at: {}) for {} unused TMS attachments",
+    log.debug("Set TTL (expires at: {}) for {} unused TMS attachments",
         expirationTime, updatedCount);
   }
 
@@ -251,8 +294,9 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   }
 
   /**
-   * Generates a unique filename for duplicated attachment. * Adds timestamp and UUID to avoid filename conflicts. * *
-   * @param originalFileName the original filename * @return new unique filename
+   * Generates a unique filename for duplicated attachment. * Adds timestamp and UUID to avoid
+   * filename conflicts. * * @param originalFileName the original filename * @return new unique
+   * filename
    */
   private String generateDuplicateFileName(String originalFileName) {
     if (originalFileName == null || originalFileName.trim().isEmpty()) {
@@ -270,5 +314,9 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     } else {
       return String.format("%s_copy_%d_%s", baseName, timestamp, uniqueId);
     }
+  }
+
+  private boolean isImage(String contentType) {
+    return contentType != null && (contentType.equals("image/jpeg") || contentType.equals("image/png"));
   }
 }

@@ -8,8 +8,9 @@ import lombok.Data;
  * Entity representing a TMS test folder with its subfolders and their respective test case counts.
  *
  * <p>This class encapsulates information about a test folder hierarchy, including the main folder
- * with its total test case count and a mapping of subfolder IDs to their individual test case counts. It provides
- * convenient access to test case statistics for both the main folder and its subfolders.
+ * with its total test case count and a mapping of subfolder IDs to their individual test case
+ * counts. It provides convenient access to test case statistics for both the main folder and its
+ * subfolders.
  * </p>
  */
 @Data
@@ -17,8 +18,9 @@ import lombok.Data;
 public class TmsTestFolderWithSubfoldersTestCaseCount {
 
   /**
-   * The main test folder containing information about the folder itself and its total test case count. This includes
-   * both direct test cases in the folder and aggregated counts from subfolders.
+   * The main test folder containing information about the folder itself and its total test case
+   * count. This includes both direct test cases in the folder and aggregated counts from
+   * subfolders.
    */
   private TmsTestFolderWithCountOfTestCases folderWithSubfolders;
 
@@ -40,7 +42,8 @@ public class TmsTestFolderWithSubfoldersTestCaseCount {
    *
    * @param folderId the ID of the subfolder for which to retrieve the test case count
    * @return the number of test cases in the specified subfolder, or 0 if the folder ID is not found
-   * @throws NullPointerException if folderId is null and the map implementation doesn't support null keys
+   * @throws NullPointerException if folderId is null and the map implementation doesn't support
+   *                              null keys
    */
   public Long getSubFolderTestCaseCount(Long folderId) {
     return subFolderTestCaseCounts.getOrDefault(folderId, 0L);

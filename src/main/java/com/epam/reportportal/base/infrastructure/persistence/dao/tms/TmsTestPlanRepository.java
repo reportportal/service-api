@@ -45,5 +45,64 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
       "WHERE tp.id IN :ids")
   List<TmsTestPlan> findByIdsWithAttributes(@Param("ids") List<Long> ids);
 
+  @Query("SELECT tp.id FROM TmsTestPlan tp " +
+      "WHERE tp.milestone.id = :milestoneId")
+  List<Long> findIdsByProjectIdAndMilestoneId(
+      @Param("projectId") Long projectId, @Param("milestoneId") Long milestoneId
+  );
+
+  @Query("SELECT tp.id FROM TmsTestPlan tp " +
+      "WHERE tp.milestone.id in :milestoneIds")
+  List<Long> findIdsByProjectIdAndMilestoneIds(
+      @Param("projectId") Long projectId, @Param("milestoneIds") List<Long> milestoneIds
+  );
+
   Boolean existsByIdAndProject_Id(Long testPlanId, Long projectId);
+
+  /**
+   * Find test plans by their IDs
+   * @param testPlanIds list of test plan IDs
+   * @return list of test plans
+   */
+  @Query("SELECT tp FROM TmsTestPlan tp WHERE tp.id IN :testPlanIds")
+  List<TmsTestPlan> findByIds(@Param("testPlanIds") List<Long> testPlanIds);
+
+  /**
+   * Removes test plan from milestone by setting milestone to null.
+   *
+   * @param milestoneId the milestone ID
+   * @param testPlanId  the test plan ID
+   * @param projectId   the project ID
+   * @return number of updated records
+   */
+  @Modifying
+  @Query("UPDATE TmsTestPlan tp SET tp.milestone = null "
+      + "WHERE tp.id = :testPlanId AND tp.milestone.id = :milestoneId "
+      + "AND tp.project.id = :projectId")
+  int removeTestPlanFromMilestone(@Param("milestoneId") Long milestoneId,
+      @Param("testPlanId") Long testPlanId,
+      @Param("projectId") Long projectId);
+
+  /**
+   * Adds test plan to milestone by setting milestone_id.
+   *
+   * @param milestoneId the milestone ID
+   * @param testPlanId  the test plan ID
+   * @param projectId   the project ID
+   * @return number of updated records
+   */
+  @Modifying
+  @Query("UPDATE TmsTestPlan tp SET tp.milestone.id = :milestoneId "
+      + "WHERE tp.id = :testPlanId "
+      + "AND tp.project.id = :projectId")
+  int addTestPlanToMilestone(@Param("milestoneId") Long milestoneId,
+      @Param("testPlanId") Long testPlanId,
+      @Param("projectId") Long projectId);
+
+  @Modifying
+  @Query(value = "UPDATE tms_test_plan SET milestone_id = NULL "
+      + "WHERE milestone_id = :milestoneId AND project_id = :projectId",
+      nativeQuery = true)
+  void removeTestPlansFromMilestone(@Param("milestoneId") Long milestoneId,
+      @Param("projectId") Long projectId);
 }

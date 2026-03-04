@@ -8,8 +8,8 @@ import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
- * Statistics collector for test case duplication operations. Tracks successful test case duplications and errors that
- * occurred during the process.
+ * Statistics collector for test case duplication operations.
+ * Tracks successful test case duplications and errors that occurred during the process.
  */
 @Getter
 public class TestCaseDuplicationStatistics {

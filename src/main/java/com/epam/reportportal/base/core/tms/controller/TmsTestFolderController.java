@@ -35,8 +35,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller for managing test folders within a project. Provides endpoints to create, update, retrieve, and list test
- * folders. All endpoints are secured and require administrator privileges.
+ * Controller for managing test folders within a project. Provides endpoints to create, update,
+ * retrieve, and list test folders. All endpoints are secured and require administrator privileges.
  */
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms/folder")
@@ -51,8 +51,10 @@ public class TmsTestFolderController {
    * Creates a new test folder for the specified project.
    *
    * @param projectKey The key of the project to which the folder will be added.
-   * @param inputDto   A request payload ({@link TmsTestFolderRQ}) containing details of the test folder to create.
-   * @return A data transfer object ({@link TmsTestFolderRS}) containing the created folder's details.
+   * @param inputDto   A request payload ({@link TmsTestFolderRQ}) containing details of the test
+   *                   folder to create.
+   * @return A data transfer object ({@link TmsTestFolderRS}) containing the created folder's
+   * details.
    */
   @PostMapping
   @Operation(
@@ -86,7 +88,8 @@ public class TmsTestFolderController {
    *
    * @param projectKey The key of the project to which the folder belongs.
    * @param folderId   The ID of the folder to update.
-   * @param inputDto   A request payload ({@link TmsTestFolderRQ}) containing updated folder details.
+   * @param inputDto   A request payload ({@link TmsTestFolderRQ}) containing updated folder
+   *                   details.
    * @return A data transfer object ({@link TmsTestFolderRS}) with updated folder information.
    */
   @PutMapping("/{folderId}")
@@ -125,7 +128,8 @@ public class TmsTestFolderController {
    *
    * @param projectKey The key of the project to which the folder belongs.
    * @param folderId   The ID of the folder to update.
-   * @param inputDto   A request payload ({@link TmsTestFolderRQ}) containing updated folder details.
+   * @param inputDto   A request payload ({@link TmsTestFolderRQ}) containing updated folder
+   *                   details.
    * @return A data transfer object ({@link TmsTestFolderRS}) with updated folder information.
    */
   @PatchMapping("/{folderId}")
@@ -198,7 +202,8 @@ public class TmsTestFolderController {
    * Retrieves all test folders associated with a project.
    *
    * @param projectKey The key of the project.
-   * @return A list of data transfer objects ({@link TmsTestFolderRS}) representing the test folders.
+   * @return A list of data transfer objects ({@link TmsTestFolderRS}) representing the test
+   * folders.
    */
   @GetMapping
   @Operation(

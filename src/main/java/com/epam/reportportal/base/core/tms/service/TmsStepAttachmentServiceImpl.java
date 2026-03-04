@@ -55,7 +55,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
       });
       tmsAttachmentService.saveAll(attachments);
 
-      log.info("Created {} attachment relationships for step: {}", attachments.size(),
+      log.debug("Created {} attachment relationships for step: {}", attachments.size(),
           tmsStep.getId());
     }
   }
@@ -73,7 +73,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
         .collect(Collectors.toList());
 
     tmsStepAttachmentRepository.deleteByStepIdIn(stepIds);
-    log.info("Deleted all attachment relationships for {} steps", stepIds.size());
+    log.debug("Deleted all attachment relationships for {} steps", stepIds.size());
   }
 
   @Override
@@ -87,7 +87,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
     }
 
     tmsStepAttachmentRepository.deleteByTestCaseId(testCaseId);
-    log.info("Deleted all step attachment relationships for test case: {}", testCaseId);
+    log.debug("Deleted all step attachment relationships for test case: {}", testCaseId);
   }
 
   @Override
@@ -101,7 +101,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
     }
 
     tmsStepAttachmentRepository.deleteByTestCaseIds(testCaseIds);
-    log.info("Deleted all step attachment relationships for {} test cases", testCaseIds.size());
+    log.debug("Deleted all step attachment relationships for {} test cases", testCaseIds.size());
   }
 
   @Override
@@ -116,7 +116,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
     }
 
     tmsStepAttachmentRepository.deleteByTestFolderId(projectId, folderId);
-    log.info("Deleted all step attachment relationships for project: {} and folder: {}",
+    log.debug("Deleted all step attachment relationships for project: {} and folder: {}",
         projectId, folderId);
   }
 

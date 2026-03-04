@@ -16,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "tms_environment", schema = "public")
@@ -38,14 +40,17 @@ public class TmsEnvironment {
   private Project project;
 
   @OneToMany(mappedBy = "environment")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsAttachment> attachments;
 
   @OneToMany(mappedBy = "environment")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsTestPlan> testPlans;
 
   @OneToMany(mappedBy = "environment")
+  @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude
   private Set<TmsEnvironmentDataset> environmentDatasets;
 }

@@ -1,14 +1,17 @@
 package com.epam.reportportal.base.core.tms.mapper;
 
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
@@ -52,6 +55,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
+  @Mapping(target = "priority", source = "tmsTestCase.priority")
   @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
@@ -92,7 +96,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "testItems", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   public abstract void update(@MappingTarget TmsTestCase targetTestCase, TmsTestCase tmsTestCase);
@@ -104,7 +107,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "testItems", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
@@ -132,10 +134,9 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testPlans", ignore = true)
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "externalId", ignore = true) //externalId is unique
-  @Mapping(target = "testItems", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "name", ignore = true) //unique name will be set later in service
+  @Mapping(target = "name", source = "originalTestCase.name")
   @Mapping(target = "priority", source = "originalTestCase.priority")
   @Mapping(target = "description", source = "originalTestCase.description")
   @Mapping(target = "testFolder", source = "targetFolder")
@@ -171,16 +172,18 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", source = "testCase.testFolder")
   @Mapping(target = "manualScenario", expression = "java(tmsManualScenarioMapper.convert(version.getManualScenario()))")
   @Mapping(target = "attributes", source = "testCase.attributes")
-  @Mapping(target = "lastExecution", source = "lastExecution")
+  @Mapping(target = "lastExecution", expression = "java(toExecutionInTestPlanRS(lastExecution, launch))")
   @Mapping(target = "executions", ignore = true)
   public abstract TmsTestCaseInTestPlanRS convertToTestCaseInTestPlanRS(
       TmsTestCase testCase,
       TmsTestCaseVersion version,
-      TmsTestCaseExecution lastExecution
+      TmsTestCaseExecution lastExecution,
+      Launch launch
   );
 
   /**
-   * Converts test case to TmsTestCaseInTestPlanRS with full execution history (for single item endpoint).
+   * Converts test case to TmsTestCaseInTestPlanRS with full execution history (for single item
+   * endpoint).
    *
    * @param testCase      the test case entity
    * @param version       the test case version
@@ -198,13 +201,15 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", source = "testCase.testFolder")
   @Mapping(target = "manualScenario", expression = "java(tmsManualScenarioMapper.convert(version.getManualScenario()))")
   @Mapping(target = "attributes", source = "testCase.attributes")
-  @Mapping(target = "lastExecution", source = "lastExecution")
-  @Mapping(target = "executions", source = "allExecutions", qualifiedByName = "executionsToSet")
+  @Mapping(target = "lastExecution",
+      expression = "java(toExecutionInTestPlanRS(lastExecution, lastExecution != null ? launches.get(lastExecution.getLaunchId()) : null))")
+  @Mapping(target = "executions", expression = "java(executionsToSet(allExecutions, launches))")
   public abstract TmsTestCaseInTestPlanRS convertToTestCaseInTestPlanRS(
       TmsTestCase testCase,
       TmsTestCaseVersion version,
       TmsTestCaseExecution lastExecution,
-      List<TmsTestCaseExecution> allExecutions
+      List<TmsTestCaseExecution> allExecutions,
+      Map<Long, Launch> launches
   );
 
   /**
@@ -213,26 +218,55 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
    * @param execution the execution entity
    * @return TmsTestCaseExecutionInTestPlanRS
    */
-  @Mapping(target = "id", source = "id")
-  @Mapping(target = "launch", source = "testItem", qualifiedByName = "testItemToLaunchRS")
-  @Mapping(target = "status", source = "testItem.itemResults.status")
-  @Mapping(target = "startedAt", source = "testItem.startTime", qualifiedByName = "instantToMillis")
-  @Mapping(target = "finishedAt", source = "testItem.itemResults.endTime", qualifiedByName = "instantToMillis")
-  @Mapping(target = "duration", source = "testItem.itemResults.duration")
+  @Mapping(target = "id", source = "execution.id")
+  @Mapping(target = "launch", expression = "java(testItemToLaunchRS(launch))")
+  @Mapping(target = "status", source = "execution.testItem.itemResults.status")
+  @Mapping(target = "startedAt", source = "execution.testItem.startTime", qualifiedByName = "instantToMillis")
+  @Mapping(target = "finishedAt", source = "execution.testItem.itemResults.endTime", qualifiedByName = "instantToMillis")
+  @Mapping(target = "duration", source = "execution.testItem.itemResults.duration")
   public abstract TmsTestCaseExecutionInTestPlanRS toExecutionInTestPlanRS(
-      TmsTestCaseExecution execution);
+      TmsTestCaseExecution execution, Launch launch);
 
   /**
-   * Converts TestItem to TmsTestCaseExecutionLaunchRS (minimal launch info).
+   * Converts Launch to TmsTestCaseExecutionLaunchRS
    *
-   * @param testItem the test item
+   * @param launch the launch
    * @return TmsTestCaseExecutionLaunchRS
    */
-  @Named("testItemToLaunchRS")
-  @Mapping(target = "id", source = "launchId")
-  @Mapping(target = "name", ignore = true)  // We don't have a launch name directly in TestItem
+  @Mapping(target = "id", source = "id")
+  @Mapping(target = "name", source = "name")
+  @Mapping(target = "number", source = "number")
   public abstract TmsTestCaseExecutionLaunchRS testItemToLaunchRS(
-      TestItem testItem);
+      Launch launch);
+
+  @Mapping(target = "testFolderId", source = "testFolderId",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+      nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  @Mapping(target = "testCaseIds", source = "patchRequest.testCaseIds",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+      nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  @Mapping(target = "priority", source = "patchRequest.priority",
+      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+      nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  public abstract BatchPatchTestCasesRS toBatchPatchTestCasesRS(
+      Long testFolderId, BatchPatchTestCasesRQ patchRequest
+  );
+
+  public TmsTestCase convertFromImportRQ(long projectId, TmsTestCaseImportRQ importRQ, Long folderId) {
+    var testCase = new TmsTestCase();
+    testCase.setName(importRQ.getName());
+    testCase.setDescription(importRQ.getDescription());
+    testCase.setPriority(importRQ.getPriority());
+    testCase.setExternalId(importRQ.getExternalId());
+
+    if (folderId != null) {
+      var folder = new TmsTestFolder();
+      folder.setId(folderId);
+      testCase.setTestFolder(folder);
+    }
+
+    return testCase;
+  }
 
   /**
    * Converts Instant to milliseconds (epoch millis).
@@ -245,20 +279,17 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     return instant != null ? instant.toEpochMilli() : null;
   }
 
-  /**
-   * Converts list of executions to set of execution RS.
-   *
-   * @param executions list of executions
-   * @return set of TmsTestCaseExecutionInTestPlanRS
-   */
-  @Named("executionsToSet")
+
   protected Set<TmsTestCaseExecutionInTestPlanRS> executionsToSet(
-      List<TmsTestCaseExecution> executions) {
+      List<TmsTestCaseExecution> executions,
+      Map<Long, Launch> launches) {
     if (executions == null) {
       return null;
     }
-    return executions.stream()
-        .map(this::toExecutionInTestPlanRS)
+    return executions
+        .stream()
+        .map(execution -> toExecutionInTestPlanRS(
+            execution, launches.get(execution.getLaunchId())))
         .collect(Collectors.toSet());
   }
 }

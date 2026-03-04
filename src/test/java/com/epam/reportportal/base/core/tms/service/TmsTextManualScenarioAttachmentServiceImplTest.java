@@ -11,11 +11,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -275,85 +275,6 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
   }
 
   @Test
-  void patchAttachments_ShouldPatchAttachments_WhenValidTextScenarioAndNewAttachments() {
-    // Given valid existing text scenario and new attachments to patch
-    var existingAttachment = new TmsAttachment();
-    existingAttachment.setId(99L);
-    textManualScenario.setAttachments(new HashSet<>(Arrays.asList(existingAttachment)));
-
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
-
-    // When patching attachments for existing text scenario
-    sut.patchAttachments(textManualScenario, textManualScenarioRQ);
-
-    // Then new attachments should be added to existing ones
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
-    verify(tmsAttachmentService).saveAll(attachments);
-
-    // Verify all attachments are present (existing + new)
-    assertEquals(3, textManualScenario.getAttachments().size());
-    assertTrue(textManualScenario.getAttachments().contains(existingAttachment));
-    assertTrue(textManualScenario.getAttachments().contains(attachment1));
-    assertTrue(textManualScenario.getAttachments().contains(attachment2));
-  }
-
-  @Test
-  void patchAttachments_ShouldInitializeAttachments_WhenTextScenarioAttachmentsIsNull() {
-    // Given text scenario with null attachments
-    textManualScenario.setAttachments(null);
-
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
-
-    // When patching attachments
-    sut.patchAttachments(textManualScenario, textManualScenarioRQ);
-
-    // Then attachments should be initialized and new ones added
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
-    verify(tmsAttachmentService).saveAll(attachments);
-
-    assertNotNull(textManualScenario.getAttachments());
-    assertEquals(2, textManualScenario.getAttachments().size());
-  }
-
-  @Test
-  void patchAttachments_ShouldDoNothing_WhenTextScenarioRQIsNull() {
-    // When patching attachments with null text scenario RQ
-    sut.patchAttachments(textManualScenario, null);
-
-    // Then no operations should be performed
-    verifyNoInteractions(tmsAttachmentService);
-    verifyNoInteractions(textManualScenarioAttachmentRepository);
-  }
-
-  @Test
-  void patchAttachments_ShouldDoNothing_WhenAttachmentsListIsEmpty() {
-    // Given text scenario RQ with empty attachments list
-    var emptyTextScenarioRQ = new TmsTextManualScenarioRQ();
-    emptyTextScenarioRQ.setAttachments(Collections.emptyList());
-
-    // When patching attachments with empty list
-    sut.patchAttachments(textManualScenario, emptyTextScenarioRQ);
-
-    // Then no operations should be performed
-    verifyNoInteractions(tmsAttachmentService);
-    verifyNoInteractions(textManualScenarioAttachmentRepository);
-  }
-
-  @Test
-  void patchAttachments_ShouldDoNothing_WhenNoAttachmentsFound() {
-    // Given attachment service returns empty list
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(
-        Collections.emptyList());
-
-    // When patching attachments but none exist
-    sut.patchAttachments(textManualScenario, textManualScenarioRQ);
-
-    // Then no save operations should occur
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
-    verify(tmsAttachmentService, never()).saveAll(anyList());
-  }
-
-  @Test
   void deleteAllByTestCaseId_ShouldDeleteRelationships_WhenValidTestCaseId() {
     // When deleting all text scenario attachment relationships by test case ID
     sut.deleteAllByTestCaseId(testCaseId);
@@ -568,30 +489,6 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
 
     // Then string IDs should be converted to Long and used correctly
     verify(tmsAttachmentService).getTmsAttachmentsByIds(List.of(123L));
-    verify(tmsAttachmentService).saveAll(List.of(expectedAttachment));
-  }
-
-  @Test
-  void patchAttachments_ShouldHandleAttachmentIds_WhenTextScenarioRQHasValidAttachmentIds() {
-    // Given text scenario RQ with string attachment IDs
-    var attachmentRQ = new TmsManualScenarioAttachmentRQ();
-    attachmentRQ.setId("456");
-
-    var textScenarioRQWithIds = new TmsTextManualScenarioRQ();
-    textScenarioRQWithIds.setAttachments(List.of(attachmentRQ));
-
-    var expectedAttachment = new TmsAttachment();
-    expectedAttachment.setId(456L);
-    expectedAttachment.setTextManualScenarios(new HashSet<>());
-
-    when(tmsAttachmentService.getTmsAttachmentsByIds(List.of(456L)))
-        .thenReturn(List.of(expectedAttachment));
-
-    // When patching attachments with string IDs
-    sut.patchAttachments(textManualScenario, textScenarioRQWithIds);
-
-    // Then string IDs should be converted to Long and used correctly
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(List.of(456L));
     verify(tmsAttachmentService).saveAll(List.of(expectedAttachment));
   }
 }

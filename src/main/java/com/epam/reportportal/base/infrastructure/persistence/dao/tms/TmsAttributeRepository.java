@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttribute, Long> {
 
+
   boolean existsByKey(String key);
 }

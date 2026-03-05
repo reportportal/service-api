@@ -50,7 +50,7 @@ public class ProjectRenamedEventConverter implements EventToActivityConverter<Pr
         .addSubjectId(event.getUserId())
         .addSubjectName(event.getUserLogin())
         .addSubjectType(EventSubject.USER)
-        .addHistoryField(processString(event.getOldProjectName(), event.getNewProjectName(), "projectName"))
+        .addHistoryField(processString("projectName", event.getOldProjectName(), event.getNewProjectName()))
         .get();
   }
 

@@ -83,7 +83,7 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
         itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
       }
       itemsToReindex.add(testItem.getItemId());
-      logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
+      logIndexer.indexItemsRemoveAsync(project.getId(), itemsToReindex);
       logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex,
           AnalyzerUtils.getAnalyzerConfig(project)
       );

@@ -795,7 +795,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content", hasSize(1)));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].countOfTestCases", equalTo(1)));
 
     // When & Then - Case 2: Filter by test case priority
     mockMvc.perform(
@@ -804,7 +805,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content", hasSize(1)));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].countOfTestCases", equalTo(1)));
 
     // When & Then - Case 3: Filter by test item attribute (child TEST item attribute)
     mockMvc.perform(
@@ -813,7 +815,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content", hasSize(1)));
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.content[0].countOfTestCases", equalTo(1)));
   }
 
   // ==================== GET TEST CASE EXECUTIONS ====================
@@ -898,7 +901,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
-
     // Then
     var execution = testCaseExecutionRepository.findById(10L);
     assertTrue(execution.isEmpty());
@@ -1125,8 +1127,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   void putTestCaseExecutionComment_WithAttachments_ShouldLinkAttachments() throws Exception {
     // Given - upload attachment first
     var attachment = uploadTestAttachment("error-screenshot.png", "image/png");
-
-    var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
+var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .comment("See attached screenshot")
         .attachments(List.of(
             TmsTestCaseExecutionCommentAttachmentRQ.builder()
@@ -1572,8 +1573,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
-
-  @Test
+@Test
   void batchDeleteTestCaseExecutions_NonExistentLaunch_ShouldReturnNotFound() throws Exception {
     // Given
     var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()

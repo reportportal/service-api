@@ -12,7 +12,7 @@ jobs:
   call-java-checks:
     if : ${{ github.event_name == 'pull_request' && github.base_ref != 'refs/heads/master' }}
     name: Call Java Checks
-    uses: reportportal/.github/.github/workflows/java-checks.yaml@main
+    uses: reportportal/.github/.github/workflows/java-checks.yaml@36b441c0674781534c320d5f646ee1b81077c9e4
     with:
       checkstyle-config: './checkstyle.xml'
     secrets: inherit

@@ -212,12 +212,8 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
         .map(s -> s.getTestItem().getItemId())
         .toList();
 
-    var testCasesCounts = testItemRepository
-        .countChildrenByParentIdsAndType(suiteItemIds, TestItemTypeEnum.TEST)
-        .stream()
-        .collect(Collectors.toMap(
-            CountOfChildTestItemsByParentId::getParentId, Function.identity()
-        ));
+    var testCasesCounts = tmsTestFolderTestItemFilterableRepository
+        .countTestCasesByFolderIdsAndFilter(suiteItemIds, filter);
 
     return PagedResourcesAssembler.<TmsTestFolderRS>pageConverter()
         .apply(new PageImpl<>(
@@ -227,10 +223,7 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
               Long parentSuiteId = null;
 
               if (suiteItem != null) {
-                testCaseCount = Optional
-                    .ofNullable(testCasesCounts.get(suiteItem.getItemId()))
-                    .map(CountOfChildTestItemsByParentId::getCount)
-                    .orElse(0L);
+                testCaseCount = testCasesCounts.getOrDefault(suiteItem.getItemId(), 0L);
                 parentSuiteId = suiteItem.getParentId();
               }
 

@@ -21,7 +21,7 @@ package com.epam.reportportal.base.infrastructure.persistence.commons.querygen;
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-enum ConditionType {
+public enum ConditionType {
   WHERE,
   HAVING
 }

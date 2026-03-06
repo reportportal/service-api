@@ -89,6 +89,7 @@ public interface TmsManualLaunchMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "testPlanId", ignore = true)
   void patch(@MappingTarget Launch existingLaunch, TmsManualLaunchRQ request);
 
   @Mapping(target = "attributes", ignore = true)
@@ -100,7 +101,7 @@ public interface TmsManualLaunchMapper {
       expression = "java(request.getMode() == null ? "
           + "com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum.DEFAULT : "
           + "com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum.findByName(request.getMode().name()).orElseThrow())")
-  @Mapping(target = "testPlanId", source = "request.testPlanId")
+  @Mapping(target = "testPlanId", source = "request.testPlan.id")
   @Mapping(target = "userId", source = "user.userId")
   Launch convertFromCreateTmsManualLaunchRQ(Long projectId, ReportPortalUser user,
       CreateTmsManualLaunchRQ request);

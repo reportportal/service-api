@@ -120,7 +120,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             projectId,
             launch,
             CollectionUtils.isEmpty(request.getTestCaseIds()) ?
-                tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId, request.getTestPlanId()) :
+                tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId, request.getTestPlan() != null ? request.getTestPlan().getId() : null) :
                 request.getTestCaseIds()
         );
 
@@ -253,6 +253,9 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Patch launch fields
     tmsManualLaunchMapper.patch(existingLaunch, request);
+    if (request.getTestPlan() != null) {
+      existingLaunch.setTestPlanId(request.getTestPlan().getId());
+    }
     existingLaunch = launchRepository.save(existingLaunch);
 
     // Patch attributes if present

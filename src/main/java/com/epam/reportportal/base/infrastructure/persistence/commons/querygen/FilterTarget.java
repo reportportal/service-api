@@ -153,6 +153,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_STATUS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_FOLDER_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_ITEM_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_DESCRIPTION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_ID;
@@ -2178,6 +2179,8 @@ public enum FilterTarget {
               TEST_ITEM_RESULTS.STATUS,
               JStatusEnum.class
           ).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_FOLDER_ID,
+              TEST_ITEM.PARENT_ID, Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(
               CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ATTRIBUTE_KEY,
               ITEM_ATTRIBUTE.VALUE, // Filter by VALUE

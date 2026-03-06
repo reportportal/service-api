@@ -33,7 +33,7 @@ public class TmsManualLaunchRQ {
 
   private String description;
 
-  private Long testPlanId;
+  private TmsManualLaunchTestPlanRQ testPlan;
 
   private List<Long> testCaseIds;
 

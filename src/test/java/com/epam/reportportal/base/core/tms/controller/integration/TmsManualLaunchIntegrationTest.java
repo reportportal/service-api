@@ -91,7 +91,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .uuid("550e8400-e29b-41d4-a716-446655440999")
         .startTime("2024-01-20T10:00:00Z")
         .mode(Mode.DEFAULT)
-        .testPlanId(6L)
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .description("Full manual launch with all fields")
         .testCaseIds(List.of(4L, 5L))
         .attributes(List.of(
@@ -137,7 +137,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given - test plan 1 has test cases: 4, 5, 6, 13, 14, 15, 16 (based on test data)
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch with Test Plan Batch")
-        .testPlanId(1L) // Test Plan 1 from test data
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(1L)) // Test Plan 1 from test data
         .build();
 
     // When
@@ -177,7 +177,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given - specify particular test cases along with test plan
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch with Specific Test Cases Batch")
-        .testPlanId(1L)
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(1L))
         .testCaseIds(List.of(4L, 5L)) // Only these specific cases, not all from test plan
         .build();
 
@@ -213,7 +213,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given - test case 4 has attribute with key="test4" (attribute_id=4, from test data)
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch for Attribute Mapping Test")
-        .testPlanId(6L)
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .testCaseIds(List.of(4L)) // Test case 4 has attributes
         .build();
 
@@ -268,7 +268,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given - test case 37 has multiple attributes (test1, test2 from test data)
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch for Multiple Attributes Test")
-        .testPlanId(6L)
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .testCaseIds(List.of(37L)) // Test case 37 has multiple attributes
         .build();
 
@@ -316,7 +316,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Minimal Manual Launch")
-        .testPlanId(6L)
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .build();
 
     // When
@@ -336,7 +336,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch with Test Cases")
-        .testPlanId(6L)
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .testCaseIds(List.of(4L, 5L, 6L))
         .build();
 
@@ -579,6 +579,24 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.attributes").isArray())
         .andExpect(jsonPath("$.attributes.length()").value(2));
+  }
+
+  @Test
+  void patchManualLaunch_UnlinkTestPlan_ShouldSucceed() throws Exception {
+    // Given
+    var patchRQ = TmsManualLaunchRQ.builder()
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ())
+        .build();
+
+    // When
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(patchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.testPlan").exists())
+        .andExpect(jsonPath("$.testPlan.id").doesNotExist());
   }
 
   @Test
@@ -1324,7 +1342,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Full Workflow Test Launch")
         .description("Complete workflow from start to finish")
-        .testPlanId(6L)
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .mode(Mode.DEFAULT)
         .attributes(List.of(
             new ItemAttributesRQ("sprint", "Sprint-25")

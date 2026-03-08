@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TmsTestCaseExecutionCommentBtsTicketRS {
   private Long id;
+  private String link;
 }

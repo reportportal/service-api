@@ -194,13 +194,14 @@ public abstract class TmsTestCaseExecutionMapper {
     if (CollectionUtils.isNotEmpty(attachmentRSList)) {
       result.setAttachments(attachmentRSList);
     }
-    var btsTicketId = comment.getBtsTicketId();
-    if (btsTicketId != null) {
-      result.setBtsTicket(
-          TmsTestCaseExecutionCommentBtsTicketRS.builder()
-              .id(btsTicketId)
-              .build()
-      );
+    
+    if (CollectionUtils.isNotEmpty(comment.getBtsTickets())) {
+      result.setBtsTickets(comment.getBtsTickets().stream()
+          .map(ticket -> TmsTestCaseExecutionCommentBtsTicketRS.builder()
+              .id(ticket.getId())
+              .link(ticket.getLink())
+              .build())
+          .toList());
     }
 
     return result;

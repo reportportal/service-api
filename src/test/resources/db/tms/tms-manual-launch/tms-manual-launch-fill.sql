@@ -681,12 +681,21 @@ VALUES
 -- TMS TEST CASE EXECUTION COMMENTS
 -- =====================================================
 
-INSERT INTO tms_test_case_execution_comment (id, execution_id, comment, bts_ticket_id)
+INSERT INTO tms_test_case_execution_comment (id, execution_id, comment)
 VALUES
-    (1, 10, 'Test passed successfully on first attempt. All login validations working as expected.', NULL),
-    (2, 11, 'Test failed due to unexpected error message. Expected "Invalid credentials" but got "System error".', 1),
-    (3, 12, 'Password reset email received within 2 minutes. All steps completed successfully.', NULL),
-    (4, 17, 'Second execution also failed. Login button not responding on Safari browser.', 2);
+    (1, 10, 'Test passed successfully on first attempt. All login validations working as expected.'),
+    (2, 11, 'Test failed due to unexpected error message. Expected "Invalid credentials" but got "System error".'),
+    (3, 12, 'Password reset email received within 2 minutes. All steps completed successfully.'),
+    (4, 17, 'Second execution also failed. Login button not responding on Safari browser.');
+
+-- =====================================================
+-- TMS TEST CASE EXECUTION COMMENT BTS TICKETS
+-- =====================================================
+
+INSERT INTO tms_test_case_execution_comment_bts_ticket (id, comment_id, url)
+VALUES
+    (1, 2, 'https://jira.example.com/browse/JIRA-123'),
+    (2, 4, 'https://jira.example.com/browse/JIRA-456');
 
 -- =====================================================
 -- TMS TEST CASE EXECUTION COMMENT ATTACHMENTS
@@ -721,4 +730,5 @@ SELECT setval('statistics_s_id_seq', (SELECT COALESCE(MAX(s_id), 1) FROM statist
 SELECT setval('test_item_item_id_seq', (SELECT COALESCE(MAX(item_id), 1) FROM test_item));
 SELECT setval('tms_test_case_execution_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));
 SELECT setval('tms_test_case_execution_comment_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution_comment));
+SELECT setval('tms_test_case_execution_comment_bts_ticket_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution_comment_bts_ticket));
 SELECT setval('tms_test_folder_test_item_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder_test_item));

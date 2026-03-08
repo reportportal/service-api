@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
@@ -45,8 +46,9 @@ public class TmsTestCaseExecutionComment implements Serializable {
   @Column(name = "comment", columnDefinition = "text")
   private String comment;
 
-  @Column(name = "bts_ticket_id")
-  private Long btsTicketId;
+  @OneToMany(mappedBy = "comment")
+  @ToString.Exclude
+  private Set<TmsTestCaseExecutionCommentBtsTicket> btsTickets;
 
   @ManyToMany
   @JoinTable(

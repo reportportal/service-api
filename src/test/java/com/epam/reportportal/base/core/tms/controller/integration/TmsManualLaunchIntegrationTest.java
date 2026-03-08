@@ -21,7 +21,6 @@ import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentAttachmentRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentBtsTicketRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
@@ -1119,9 +1118,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given
     var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .comment("Bug found, see linked ticket")
-        .btsTicket(TmsTestCaseExecutionCommentBtsTicketRQ.builder()
-            .id(1L)
-            .build())
+        .btsTickets(List.of("https://jira.example.com/browse/JIRA-123"))
         .build();
 
     // When
@@ -1132,13 +1129,40 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .content(mapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.btsTicket.id").value(1));
+        .andExpect(jsonPath("$.btsTickets").isArray())
+        .andExpect(jsonPath("$.btsTickets[0].link").value("https://jira.example.com/browse/JIRA-123"));
 
     // Then
     entityManager.clear();
     var comment = executionCommentRepository.findByExecutionId(11L);
     assertTrue(comment.isPresent());
-    assertEquals(1L, comment.get().getBtsTicketId());
+  }
+
+  @Test
+  void putTestCaseExecutionComment_WithMultipleBtsTickets_ShouldLinkTickets() throws Exception {
+    // Given
+    var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
+        .comment("Multiple bugs found")
+        .btsTickets(List.of("https://example.com/ticket/1", "https://example.com/ticket/2"))
+        .build();
+
+    // When
+    mockMvc.perform(
+            put("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/11/comment")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(commentRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.btsTickets").isArray())
+        .andExpect(jsonPath("$.btsTickets.length()").value(2))
+        .andExpect(jsonPath("$.btsTickets[0].link").value("https://example.com/ticket/1"))
+        .andExpect(jsonPath("$.btsTickets[1].link").value("https://example.com/ticket/2"));
+
+    // Then
+    entityManager.clear();
+    var comment = executionCommentRepository.findByExecutionId(11L);
+    assertTrue(comment.isPresent());
   }
 
   @Test

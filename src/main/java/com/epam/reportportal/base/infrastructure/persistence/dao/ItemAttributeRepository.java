@@ -20,6 +20,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribut
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -34,7 +37,10 @@ public interface ItemAttributeRepository extends ReportPortalRepository<ItemAttr
 
   int deleteAllByKeyAndSystem(String key, boolean isSystem);
 
-  int deleteAllByLaunchIdAndSystem(Long launchId, boolean isSystem);
+
+  @Modifying
+  @Query("DELETE FROM ItemAttribute ia WHERE ia.launch.id = :launchId AND ia.system = :isSystem")
+  int deleteAllByLaunchIdAndSystem(@Param("launchId") Long launchId, @Param("isSystem") boolean isSystem);
 
   List<ItemAttribute> findAllByTestItem(TestItem testItem);
 }

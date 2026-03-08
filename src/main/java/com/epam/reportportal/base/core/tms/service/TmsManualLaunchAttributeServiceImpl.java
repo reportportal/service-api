@@ -42,40 +42,46 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
 
     itemAttributeRepository.saveAll(launchAttributes);
 
-    launch.setAttributes(launchAttributes);
+
+    if (launch.getAttributes() == null) {
+      launch.setAttributes(launchAttributes);
+    } else {
+      launch.getAttributes().addAll(launchAttributes);
+    }
 
     log.debug("Created {} attributeRQS for launch: {}", launchAttributes.size(), launch.getId());
   }
 
   @Override
   @Transactional
-  public void updateAttributes(Launch existingLaunch,
-      Collection<ItemAttributesRQ> attributes) {
-    log.debug("Patching attributes for launch: {}", existingLaunch.getId());
-
+  public void updateAttributes(Launch existingLaunch, Collection<ItemAttributesRQ> attributes) {
     if (attributes == null) {
-      log.debug("No attributes to patch for launch: {}", existingLaunch.getId());
+      log.debug("No attributes to update for launch: {}", existingLaunch.getId());
       return;
     }
 
-    // Delete existing attributes
-    deleteAllByLaunchId(existingLaunch.getId());
+    log.debug("Updating attributes for launch: {} with PUT semantics", existingLaunch.getId());
 
-    // Create new attributes
+
+    if (existingLaunch.getAttributes() != null) {
+      itemAttributeRepository.deleteAll(existingLaunch.getAttributes());
+      existingLaunch.getAttributes().clear();
+    }
+
     if (!attributes.isEmpty()) {
       createAttributes(existingLaunch, attributes);
     }
 
-    log.debug("Patched attributes for launch: {}", existingLaunch.getId());
+    log.debug("Updated attributes for launch: {}", existingLaunch.getId());
   }
 
   @Override
   @Transactional
   public void deleteAllByLaunchId(Long launchId) {
-    log.debug("Deleting all attributes for launch: {}", launchId);
+    log.debug("Deleting all non-system attributes for launch: {}", launchId);
 
     itemAttributeRepository.deleteAllByLaunchIdAndSystem(launchId, false);
 
-    log.debug("Deleted all attributes for launch: {}", launchId);
+    log.debug("Deleted all non-system attributes for launch: {}", launchId);
   }
 }

@@ -1627,6 +1627,25 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(jsonPath("$.errors[0].errorMessage").value(containsString("not found in launch 201")));
   }
 
+  @Test
+  void patchManualLaunch_ClearAttributes_ShouldSucceed() throws Exception {
+    var patchRQ = TmsManualLaunchRQ.builder()
+        .attributes(java.util.Collections.emptyList())
+        .build();
+
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(patchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.attributes").isEmpty());
+
+    var launch = launchRepository.findById(200L);
+    assertTrue(launch.isPresent());
+    assertTrue(launch.get().getAttributes().isEmpty());
+  }
+
   // ==================== HELPER METHODS ====================
 
   private UploadAttachmentRS uploadTestAttachment(String fileName, String contentType)

@@ -9,8 +9,11 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCase
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,7 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
   private final TmsTestCaseExecutionCommentRepository tmsTestCaseExecutionCommentRepository;
   private final TmsTestCaseExecutionCommentAttachmentService tmsTestCaseExecutionCommentAttachmentService;
+  private final TmsTestCaseExecutionCommentBtsTicketService tmsTestCaseExecutionCommentBtsTicketService;
   private final TmsTestCaseExecutionCommentMapper tmsTestCaseExecutionCommentMapper;
 
   @Override
@@ -67,6 +71,7 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
   @Transactional
   public void deleteByLaunchId(Long launchId) {
     tmsTestCaseExecutionCommentAttachmentService.deleteByLaunchId(launchId);
+    tmsTestCaseExecutionCommentBtsTicketService.deleteByLaunchId(launchId);
     tmsTestCaseExecutionCommentRepository.deleteByLaunchId(launchId);
   }
 
@@ -101,6 +106,10 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
     tmsTestCaseExecutionCommentAttachmentService.updateAttachments(existingComment,
         executionCommentRQ);
 
+    // Update BTS tickets
+    tmsTestCaseExecutionCommentBtsTicketService.updateBtsTickets(existingComment,
+        executionCommentRQ);
+
     // Save updated comment
     return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
         tmsTestCaseExecutionCommentRepository.save(existingComment)
@@ -127,6 +136,10 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
     tmsTestCaseExecutionCommentAttachmentService.createAttachments(savedComment,
         executionCommentRQ);
 
+    // Create BTS tickets
+    tmsTestCaseExecutionCommentBtsTicketService.createBtsTickets(savedComment,
+        executionCommentRQ);
+
     // Set bidirectional relationship
     existingExecution.setExecutionComment(savedComment);
 
@@ -147,6 +160,10 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
       // Delete attachments first
       tmsTestCaseExecutionCommentAttachmentService.deleteAllByExecutionId(
+          existingExecution.getId());
+
+      // Delete BTS tickets
+      tmsTestCaseExecutionCommentBtsTicketService.deleteAllByExecutionId(
           existingExecution.getId());
 
       // Delete comment

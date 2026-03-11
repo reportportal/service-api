@@ -22,7 +22,6 @@ import static com.epam.reportportal.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.rules.exception.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -73,11 +72,11 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
         ));
     executionParams.put(PROJECT_ID, projectDetails.getProjectId());
     executionParams.put(PROJECT_NAME, projectDetails.getProjectName());
-    return ofNullable(pluginInstance.getCommonCommand(command)).map(
-            it -> it.executeCommand(executionParams))
+    var pluginCommand = ofNullable(pluginInstance.getCommonCommand(command))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
         ));
+    return pluginCommand.executeCommand(executionParams);
   }
 
   @Override

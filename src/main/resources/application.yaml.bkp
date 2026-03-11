@@ -72,8 +72,6 @@ rp:
         consumers-count: 2
         prefetch-count: 0
         single-item: true
-      elements-counter:
-        batch-size: 50
       history:
         old: false
       demo:

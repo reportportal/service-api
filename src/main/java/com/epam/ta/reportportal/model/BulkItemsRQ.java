@@ -14,34 +14,28 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.model.activity;
+package com.epam.ta.reportportal.model;
+
+import static com.epam.ta.reportportal.ws.resolver.PagingHandlerMethodArgumentResolver.CUT_DEFAULT_OFFSET;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+import java.util.List;
+import lombok.Data;
 
 /**
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * Request for retrieving test items by list of IDs.
+ *
+ * @author Pavel Bortnik
  */
-@Setter
-@Getter
-@ToString
-public class DashboardActivityResource {
+@Data
+public class BulkItemsRQ {
 
-  @JsonProperty(value = "id", required = true)
-  private Long id;
-
-  @JsonProperty(value = "name", required = true)
-  private String name;
-
-  @JsonProperty(value = "projectId", required = true)
-  private Long projectId;
-
-  @JsonProperty(value = "locked")
-  private boolean locked;
-
-  @JsonProperty(value = "description")
-  private String description;
+  @NotEmpty
+  @Size(max = CUT_DEFAULT_OFFSET, message = "Maximum 300 IDs are allowed")
+  @JsonProperty(value = "ids", required = true)
+  private List<Long> ids;
 
 }
+

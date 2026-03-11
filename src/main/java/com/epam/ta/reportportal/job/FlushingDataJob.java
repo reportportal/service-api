@@ -19,8 +19,10 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.logtype.DefaultLogTypeProvider;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.LogTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.FeatureFlag;
@@ -92,6 +94,12 @@ public class FlushingDataJob implements Job {
   @Autowired
   private FeatureFlagHandler featureFlagHandler;
 
+  @Autowired
+  private DefaultLogTypeProvider defaultLogTypeProvider;
+
+  @Autowired
+  private LogTypeRepository logTypeRepository;
+
   @Value("${datastore.bucketPrefix}")
   private String bucketPrefix;
 
@@ -127,11 +135,17 @@ public class FlushingDataJob implements Job {
    * Get exclusive lock. Kill all running transactions. Truncate tables
    */
   private void truncateTables() {
-    jdbcTemplate.execute("BEGIN; " + "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
-        + "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
+    jdbcTemplate.execute("""
+        BEGIN;
+        TRUNCATE TABLE launch RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE activity RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;
+        TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;
+        DELETE FROM statistics_field WHERE sf_id > 14;
+        DELETE FROM log_type WHERE id > 7;
+        COMMIT;
+        """);
   }
 
   private void restartSequences() {
@@ -139,6 +153,7 @@ public class FlushingDataJob implements Job {
     jdbcTemplate.execute("ALTER SEQUENCE users_id_seq RESTART WITH 2");
     jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
     jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
+    jdbcTemplate.execute("ALTER SEQUENCE log_type_id_seq RESTART WITH 8");
   }
 
   private void createDefaultUser() {
@@ -149,7 +164,8 @@ public class FlushingDataJob implements Job {
     request.setEmail("defaultemail@domain.com");
     User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
         .addPassword(passwordEncoder.encode(request.getPassword())).get();
-    projectRepository.save(personalProjectService.generatePersonalProject(user));
+    Project savedProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
+    logTypeRepository.saveAll(defaultLogTypeProvider.provideDefaultLogTypes(savedProject.getId()));
     userRepository.save(user);
     LOGGER.info("Default user has been successfully created.");
   }

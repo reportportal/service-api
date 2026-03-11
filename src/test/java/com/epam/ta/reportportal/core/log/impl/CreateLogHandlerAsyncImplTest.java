@@ -30,14 +30,14 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.reporting.async.producer.LogProducer;
 import com.epam.ta.reportportal.ws.reporting.SaveLogRQ;
-import java.util.UUID;
 import jakarta.inject.Provider;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -52,7 +52,7 @@ class CreateLogHandlerAsyncImplTest {
   Provider<SaveLogBinaryDataTaskAsync> provider;
 
   @Mock
-  AmqpTemplate amqpTemplate;
+  RabbitTemplate amqpTemplate;
 
   @InjectMocks
   LogProducer createLogHandlerAsync;
@@ -96,7 +96,7 @@ class CreateLogHandlerAsyncImplTest {
     request.setLaunchUuid(UUID.randomUUID().toString());
 
     createLogHandlerAsync.sendMessage(request, binaryDataMetaInfo, 0L);
-    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(amqpTemplate).invoke(any());
   }
 
 

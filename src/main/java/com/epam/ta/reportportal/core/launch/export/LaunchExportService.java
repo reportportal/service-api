@@ -19,23 +19,29 @@ package com.epam.ta.reportportal.core.launch.export;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.item.NestedItemAttachment;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.google.common.net.HttpHeaders;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
- * Component responsible for exporting launch reports, either as a single file (PDF/HTML/XLS) or as a ZIP archive that
- * includes attachments.
+ * Component responsible for exporting launch reports, either as a single file (PDF/HTML/XLS) or as
+ * a ZIP archive that includes attachments.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -48,10 +54,11 @@ public class LaunchExportService {
   private final AttachmentZipService zipService;
   private final PathBuilderService pathService;
 
-
-  public void exportLaunch(Launch launch, String username, String reportFormat, HttpServletResponse response) {
+  public void exportLaunch(Launch launch, String username, String reportFormat,
+      HttpServletResponse response) {
     ReportFormat format = reportService.resolveFormat(reportFormat);
-    byte[] report = reportService.generateReport(launch, dataProvider.getTestItemsOfLaunch(launch, false).values(),
+    byte[] report = reportService.generateReport(launch,
+        dataProvider.getTestItemsOfLaunch(launch, false).values(),
         username,
         format);
 
@@ -78,45 +85,118 @@ public class LaunchExportService {
   public void exportLaunchWithAttachments(Launch launch, String username, String reportFormat,
       HttpServletResponse response) {
     ReportFormat format = reportService.resolveFormat(reportFormat);
-    response.setContentType("application/zip");
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=\"%s_%s.zip\"", launch.getName(), launch.getNumber()));
+    prepareZipResponseHeaders(launch, response);
 
     try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
       Map<Long, TestItemPojo> testItems = dataProvider.getTestItemsOfLaunch(launch, true);
-      Set<String> uniquePaths = new HashSet<>();
-      for (TestItemPojo item : testItems.values()) {
-        String itemsPathNames = pathService.buildItemPath(testItems, item);
-        for (AttachmentPojo att : item.getAttachmentPojoList()) {
-          String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(att.getFileName(), att.getContentType());
-          String fullPath = pathService.buildAttachmentPath(itemsPathNames, fileNameWithExtension);
-          if (uniquePaths.add(fullPath)) {
-            zipService.writeToZip(att.getFileId(), fullPath, zipOut);
-          }
-        }
-      }
 
-      for (Log log : launch.getLogs()) {
-        if (log.getAttachment() != null) {
-          String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
-              log.getAttachment().getFileName(),
-              log.getAttachment().getContentType()
-          );
-          if (uniquePaths.add(fileNameWithExtension)) {
-            zipService.writeToZip(log.getAttachment().getFileId(), fileNameWithExtension, zipOut);
-          }
-        }
-      }
-
-      ZipEntry reportEntry = new ZipEntry(
-          String.format("%s_%s.%s", launch.getName(), launch.getNumber(), format.getValue()));
-      zipOut.putNextEntry(reportEntry);
-      byte[] reportBytes = reportService.generateReport(launch, testItems.values(), username, format);
-      zipOut.write(reportBytes);
-      zipOut.closeEntry();
-
+      writeTestItemsAttachmentsToZip(launch, testItems, zipOut);
+      writeLaunchLogAttachmentsToZip(launch, zipOut);
+      writeReportToZip(launch, testItems.values(), username, format, zipOut);
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Failed to export ZIP", e);
     }
+  }
+
+  private void prepareZipResponseHeaders(Launch launch, HttpServletResponse response) {
+    response.setContentType("application/zip");
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+        String.format("attachment; filename=\"%s_%s.zip\"", launch.getName(), launch.getNumber()));
+  }
+
+  private Map<Long, String> buildIdNameMapping(Map<Long, TestItemPojo> testItems) {
+    return testItems.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getItemName()));
+  }
+
+  private void writeTestItemsAttachmentsToZip(Launch launch, Map<Long, TestItemPojo> testItems,
+      ZipOutputStream zipOut) throws IOException {
+    Map<Long, String> idNameMapping = buildIdNameMapping(testItems);
+    Set<String> uniquePaths = new HashSet<>();
+    for (TestItemPojo item : testItems.values()) {
+      String itemPathNames = pathService.buildItemPath(idNameMapping, item.getPath());
+      writeItemAttachmentsToZip(item, itemPathNames, uniquePaths, zipOut);
+
+      if (item.isHasChildren()) {
+        continue;
+      }
+      writeNestedStepsAttachmentsToZip(launch, item, idNameMapping, uniquePaths, zipOut);
+    }
+  }
+
+  private void writeItemAttachmentsToZip(TestItemPojo item, String itemPathNames,
+      Set<String> uniquePaths, ZipOutputStream zipOut) {
+    if (item.getAttachmentPojoList() == null) {
+      return;
+    }
+    for (AttachmentPojo attachment : item.getAttachmentPojoList()) {
+      String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
+          attachment.getFileName(), attachment.getContentType());
+      String fullPath = pathService.buildAttachmentPath(itemPathNames, fileNameWithExtension);
+      writeToZipIfUnique(attachment.getFileId(), fullPath, uniquePaths, zipOut);
+    }
+  }
+
+  private void writeNestedStepsAttachmentsToZip(Launch launch, TestItemPojo item,
+      Map<Long, String> idNameMapping, Set<String> uniquePaths, ZipOutputStream zipOut) {
+    List<NestedItemAttachment> nestedAttachments = dataProvider.getNestedStepsAttachments(
+        launch.getId(), item.getPath(), item.getId());
+    if (CollectionUtils.isEmpty(nestedAttachments)) {
+      return;
+    }
+
+    nestedAttachments.forEach(it -> idNameMapping.putIfAbsent(it.getItemId(), it.getName()));
+
+    for (NestedItemAttachment attachment : nestedAttachments) {
+      if (!StringUtils.hasText(attachment.getFileId())) {
+        continue;
+      }
+      String nestedItemPathNames = pathService.buildItemPath(idNameMapping, attachment.getPath());
+      String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
+          attachment.getFileName(), attachment.getContentType());
+      String fullPath = pathService.buildAttachmentPath(nestedItemPathNames, fileNameWithExtension);
+
+      if (writeToZipIfUnique(attachment.getFileId(), fullPath, uniquePaths, zipOut)) {
+        appendZipFileNameToItemType(item, fullPath);
+      }
+    }
+  }
+
+  private void writeLaunchLogAttachmentsToZip(Launch launch, ZipOutputStream zipOut)
+      throws IOException {
+    Set<String> uniquePaths = new HashSet<>();
+    for (Log log : launch.getLogs()) {
+      if (log.getAttachment() == null) {
+        continue;
+      }
+      String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
+          log.getAttachment().getFileName(), log.getAttachment().getContentType());
+      writeToZipIfUnique(log.getAttachment().getFileId(), fileNameWithExtension, uniquePaths,
+          zipOut);
+    }
+  }
+
+  private void writeReportToZip(Launch launch, Collection<TestItemPojo> testItems, String username,
+      ReportFormat format, ZipOutputStream zipOut) throws IOException {
+    ZipEntry reportEntry = new ZipEntry(
+        String.format("%s_%s.%s", launch.getName(), launch.getNumber(), format.getValue()));
+    zipOut.putNextEntry(reportEntry);
+    byte[] reportBytes = reportService.generateReport(launch, testItems, username, format);
+    zipOut.write(reportBytes);
+    zipOut.closeEntry();
+  }
+
+  private boolean writeToZipIfUnique(String fileId, String path, Set<String> uniquePaths,
+      ZipOutputStream zipOut) {
+    if (uniquePaths.add(path)) {
+      zipService.writeToZip(fileId, path, zipOut);
+      return true;
+    }
+    return false;
+  }
+
+  private void appendZipFileNameToItemType(TestItemPojo item, String fullPath) {
+    String zipFileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
+    item.setType(item.getType() + "\n" + zipFileName);
   }
 }

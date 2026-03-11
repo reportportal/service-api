@@ -25,12 +25,12 @@ import com.epam.ta.reportportal.ws.reporting.OwnedResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
-import java.util.Set;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.List;
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -62,7 +62,7 @@ public class UserFilterResource extends OwnedResource {
   @JsonProperty(value = "orders", required = true)
   private List<Order> orders;
 
-  @In(allowedValues = { "launch", "testItem", "log" })
+  @In(allowedValues = {"launch", "testItem", "log"})
   @NotNull
   @JsonProperty(value = "type", required = true)
   private String objectType;

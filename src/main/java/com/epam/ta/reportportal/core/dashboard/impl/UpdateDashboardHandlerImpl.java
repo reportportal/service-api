@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
+import static com.epam.ta.reportportal.util.OwnedEntityUtils.validateOwnedEntityLocked;
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
@@ -23,9 +24,11 @@ import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedStateEvent;
 import com.epam.ta.reportportal.core.events.activity.WidgetDeletedEvent;
 import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.dao.DashboardRepository;
@@ -78,12 +81,13 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails,
       UpdateDashboardRQ rq, Long dashboardId,
       ReportPortalUser user) {
-    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId,
-            projectDetails.getProjectId())
+    Dashboard dashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
             dashboardId,
             projectDetails.getProjectName()
         ));
+    validateOwnedEntityLocked(dashboard, projectDetails, user);
+
     DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
     if (!dashboard.getName().equals(rq.getName())) {
@@ -95,6 +99,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
     dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
     dashboardRepository.save(dashboard);
+    this.toggleDashboardLock(dashboardId, dashboard.getLocked());
 
     messageBus.publishActivity(new DashboardUpdatedEvent(before,
         TO_ACTIVITY_RESOURCE.apply(dashboard),
@@ -115,6 +120,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             dashboardId,
             projectDetails.getProjectName()
         ));
+    validateOwnedEntityLocked(dashboard, projectDetails, user);
+
     Set<DashboardWidget> dashboardWidgets = dashboard.getWidgets();
 
     validateWidgetBeforeAddingToDashboard(rq, dashboard, dashboardWidgets);
@@ -129,10 +136,18 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(),
         dashboard, widget, isCreatedOnDashboard);
     dashboardWidgetRepository.save(dashboardWidget);
+    lockDashboardChildEntities(dashboard.getId(), dashboard.getLocked());
+
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId()
             + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");
 
+  }
+
+  private void lockDashboardChildEntities(Long dashboardId, Boolean locked) {
+    if (locked) {
+      dashboardRepository.lockDashboard(dashboardId);
+    }
   }
 
   private void validateWidgetBeforeAddingToDashboard(AddWidgetRq rq, Dashboard dashboard,
@@ -166,6 +181,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             dashboardId,
             projectDetails.getProjectName()
         ));
+    validateOwnedEntityLocked(dashboard, projectDetails, user);
+
     Widget widget = widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
             widgetId,
@@ -198,6 +215,28 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             + "'");
   }
 
+  @Override
+  public OperationCompletionRS toggleDashboardLock(ProjectDetails projectDetails, Long dashboardId, Boolean isLocked,
+      ReportPortalUser user) {
+    var currentDashboard = dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
+            dashboardId,
+            projectDetails.getProjectName()
+        ));
+
+    if (currentDashboard.getLocked() != isLocked) {
+      this.toggleDashboardLock(dashboardId, isLocked);
+      var currentDashboardActivity = TO_ACTIVITY_RESOURCE.apply(currentDashboard);
+
+      var newDashboardStateResource = new DashboardActivityResource();
+      newDashboardStateResource.setLocked(isLocked);
+      messageBus.publishActivity(new DashboardUpdatedStateEvent(currentDashboardActivity, newDashboardStateResource,
+          user.getUserId(), user.getUsername()));
+    }
+
+    return new OperationCompletionRS("Dashboard has been updated successfully");
+  }
+
   private boolean shouldDelete(Widget widget) {
     return dashboardWidgetRepository.countAllByWidgetId(widget.getId())
         <= DELETE_WIDGET_COUNT_THRESHOLD;
@@ -215,6 +254,14 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     widgetRepository.delete(widget);
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
+  }
+
+  private void toggleDashboardLock(Long dashboardId, Boolean locked) {
+    if (locked) {
+      dashboardRepository.lockDashboard(dashboardId);
+    } else {
+      dashboardRepository.unlockDashboard(dashboardId);
+    }
   }
 
 }

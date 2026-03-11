@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.core.item.impl.retry;
 
 import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
-import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.item.repository.RetryRepository;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -13,21 +13,26 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
- * Retry handler that finds ALL active items with the same {@code uniqueId} and {@code parentId},
- * picks the one with the latest {@code start_time} as the "main", and demotes all others to
- * retries.
+ * Retry handler supporting two modes:
+ * <ul>
+ *   <li><b>Explicit</b> — when {@code retryOf} UUID is provided, {@code newTry} is linked
+ *       directly to the specific item identified by that UUID.</li>
+ *   <li><b>Implicit</b> — when {@code retryOf} is absent, all active items with the same
+ *       {@code uniqueId} and {@code parentId} are discovered and the one with the latest
+ *       {@code start_time} becomes the "main".</li>
+ * </ul>
  *
  * <p>An "active" item is one that is still part of the launch tree:
  * {@code path IS NOT NULL AND retry_of IS NULL}.
  *
- * <p>After determining the latestTry, existing retries that pointed to any of the losers are
- * re-pointed ("flattened") to the latestTry so that every retry always references the current main
- * item directly — no chains.
+ * <p>In both modes existing retry chains are flattened so that every retry always references the
+ * current main item directly — no chains.
  *
  * @author Pavel Bortnik
  */
@@ -42,16 +47,62 @@ public class RetryHandlerImpl implements RetryHandler {
   private final ApplicationEventPublisher eventPublisher;
   private final TestItemStatisticsService testItemStatisticsService;
 
-  /**
-   * Finds the latestTry among all active items sharing {@code newTry.uniqueId} and
-   * {@code newTry.parentId}, demotes active to previous, and flattens existing retry chains so
-   * every retry points directly to the latestTry.
-   *
-   * <p>{@code previousTryId} is accepted for interface compatibility but is not used — the handler
-   * discovers all candidates by itself.
-   */
   @Override
   public void handleRetry(Launch launch, TestItem newTry, String retryOf) {
+    retryRepository.advisoryXactLock(launch.getId());
+
+    if (StringUtils.isNotBlank(retryOf)) {
+      handleExplicitRetry(launch, newTry, retryOf);
+    } else {
+      handleImplicitRetry(launch, newTry);
+    }
+  }
+
+  /**
+   * Explicit mode: {@code newTry} is a new attempt of the specific item with
+   * {@code uuid = retryOf}. The target is demoted and {@code newTry} becomes the main item. Falls
+   * back to implicit mode if the target UUID is not found.
+   */
+  private void handleExplicitRetry(Launch launch, TestItem newTry, String retryOfUuid) {
+    Optional<TestItem> targetOpt = testItemRepository.findByUuid(retryOfUuid);
+    if (targetOpt.isEmpty()) {
+      log.warn("retryOf UUID '{}' not found, falling back to implicit retry", retryOfUuid);
+      handleImplicitRetry(launch, newTry);
+      return;
+    }
+
+    TestItem target = targetOpt.get();
+
+    if (target.getRetryOf() != null || target.getPath() == null) {
+      log.warn("Target item {} (uuid={}) is already a retry or removed from tree, skipping",
+          target.getItemId(), retryOfUuid);
+      return;
+    }
+
+    Long latestTryId = newTry.getItemId();
+    Long previousTryId = target.getItemId();
+
+    retryRepository.changeActiveTyPreviousTry(List.of(previousTryId), latestTryId);
+    retryRepository.pointPreviousTriesToLatest(List.of(previousTryId), latestTryId);
+    retryRepository.markAsHavingRetries(latestTryId);
+
+    if (!launch.isHasRetries()) {
+      launch.setHasRetries(true);
+    }
+
+    testItemStatisticsService.deleteItemStatistics(
+        new TestItemPathContext(target.getItemId(), target.getLaunchId(), target.getPath()));
+
+    eventPublisher.publishEvent(
+        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), latestTryId));
+  }
+
+  /**
+   * Implicit mode: discovers all active items sharing {@code newTry.uniqueId} and
+   * {@code newTry.parentId}, picks the latest by {@code start_time} as the winner, and demotes the
+   * rest.
+   */
+  private void handleImplicitRetry(Launch launch, TestItem newTry) {
     String uniqueId = newTry.getUniqueId();
     Long parentId = newTry.getParentId();
 
@@ -61,36 +112,26 @@ public class RetryHandlerImpl implements RetryHandler {
       return;
     }
 
-    // 1. Advisory lock — serialize all retry operations within the launch
-    retryRepository.advisoryXactLock(launch.getId());
-
-    // 2. Find the latestTry (max start_time, then max item_id) among active items
-    Optional<Long> latestTry = retryRepository.findLatestTryByUniqueIdAndParentId(uniqueId,
-        parentId);
-
+    Optional<Long> latestTry =
+        retryRepository.findLatestTryByUniqueIdAndParentId(uniqueId, parentId);
     if (latestTry.isEmpty()) {
       return;
     }
 
-    Long lastestTryId = latestTry.get();
+    Long latestTryId = latestTry.get();
 
-    List<TestItemPathContext> previousTries = retryRepository.getPreviousTries(uniqueId, parentId,
-        lastestTryId);
-
+    List<TestItemPathContext> previousTries =
+        retryRepository.getPreviousTries(uniqueId, parentId, latestTryId);
     if (previousTries.isEmpty()) {
       return;
     }
-    List<Long> previousTriesIds = previousTries.stream().map(TestItemPathContext::getItemId)
-        .toList();
 
-    // 3. Demote all other active items to retries of the latestTry
-    retryRepository.changeActiveTyPreviousTry(previousTriesIds, lastestTryId);
+    List<Long> previousTriesIds =
+        previousTries.stream().map(TestItemPathContext::getItemId).toList();
 
-    // 4. Flatten: re-point any existing retries to the latestTry directly (no chains)
-    retryRepository.pointPreviousTriesToLatest(previousTriesIds, lastestTryId);
-
-    // 5. Mark the latestTry as having retries
-    retryRepository.markAsHavingRetries(lastestTryId);
+    retryRepository.changeActiveTyPreviousTry(previousTriesIds, latestTryId);
+    retryRepository.pointPreviousTriesToLatest(previousTriesIds, latestTryId);
+    retryRepository.markAsHavingRetries(latestTryId);
 
     if (!launch.isHasRetries()) {
       launch.setHasRetries(true);
@@ -99,7 +140,7 @@ public class RetryHandlerImpl implements RetryHandler {
     previousTries.forEach(testItemStatisticsService::deleteItemStatistics);
 
     eventPublisher.publishEvent(
-        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), lastestTryId));
+        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), latestTryId));
   }
 
   @Override

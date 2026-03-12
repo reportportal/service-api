@@ -145,7 +145,9 @@ public class AnalyzerUtils {
     relevantItemInfo.setItemId(String.valueOf(item.getItemId()));
     relevantItemInfo.setPath(item.getPath());
     relevantItemInfo.setLaunchId(String.valueOf(item.getLaunchId()));
-    relevantItemInfo.setIssueType(item.getItemResults().getIssue().getIssueType());
+    if (item.getItemResults() != null && item.getItemResults().getIssue() != null) {
+      relevantItemInfo.setIssueType(item.getItemResults().getIssue().getIssueType());
+    }
     return relevantItemInfo;
   };
 }

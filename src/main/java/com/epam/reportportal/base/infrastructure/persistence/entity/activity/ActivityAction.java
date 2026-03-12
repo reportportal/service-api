@@ -46,6 +46,7 @@ public enum ActivityAction {
   MARK_LAUNCH_AS_IMPORTANT("markLaunchAsImportant"),
   UNMARK_LAUNCH_AS_IMPORTANT("unmarkLaunchAsImportant"),
   UPDATE_PROJECT("updateProject"),
+  UPDATE_PROJECT_NAME("updateProjectName"),
   UPDATE_ANALYZER("updateAnalyzer"),
   POST_ISSUE("postIssue"),
   LINK_ISSUE("linkIssue"),

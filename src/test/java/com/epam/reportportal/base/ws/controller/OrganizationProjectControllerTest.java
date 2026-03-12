@@ -47,7 +47,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
@@ -68,6 +70,10 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   ProjectService projectService;
   @Autowired
   private ProjectUserRepository projectUserRepository;
+
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
+
 
   @Test
   void getOrganizationProjectAdmin() throws Exception {

@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
@@ -89,6 +90,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private final DefectUpdateStatisticsService defectUpdateStatisticsService;
 
+  private final TestItemStatisticsService testItemStatisticsService;
+
   @Autowired
   public AnalyzerServiceImpl(
       @Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize,
@@ -96,7 +99,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
       TestItemRepository testItemRepository,
       MessageBus messageBus, LaunchRepository launchRepository,
-      DefectUpdateStatisticsService defectUpdateStatisticsService) {
+      DefectUpdateStatisticsService defectUpdateStatisticsService,
+      TestItemStatisticsService testItemStatisticsService) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
     this.launchPreparerService = launchPreparerService;
@@ -106,6 +110,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     this.messageBus = messageBus;
     this.launchRepository = launchRepository;
     this.defectUpdateStatisticsService = defectUpdateStatisticsService;
+    this.testItemStatisticsService = testItemStatisticsService;
   }
 
   @Override
@@ -186,15 +191,19 @@ public class AnalyzerServiceImpl implements AnalyzerService {
           testItem = testItemRepository.findById(testItem.getRetryOf())
               .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
         }
-        if (!testItem.getItemResults().getIssue().getIssueType().getLocator()
-            .equals(analyzed.getLocator())) {
+        IssueType beforeIssue = testItem.getItemResults().getIssue().getIssueType();
+        if (!beforeIssue.getLocator().equals(analyzed.getLocator())) {
           TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
           RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
           TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
+          testItemStatisticsService.changeDefectStatistics(testItem, beforeIssue,
+              relevantItemInfo.getIssueType());
           testItemRepository.save(testItem);
+
           messageBus.publishActivity(
               new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
+
           ofNullable(after.getTickets()).ifPresent(
               it -> messageBus.publishActivity(new LinkTicketEvent(before,
                   after,

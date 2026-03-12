@@ -16,50 +16,22 @@
 
 package com.epam.ta.reportportal.model.analyzer;
 
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Data
 public class RelevantItemInfo implements Serializable {
 
-	private String itemId;
+  private String itemId;
 
-	private String path;
+  private String path;
 
-	private String launchId;
+  private String launchId;
 
-	public String getItemId() {
-		return itemId;
-	}
+  private IssueType issueType;
 
-	public void setItemId(String itemId) {
-		this.itemId = itemId;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public String getLaunchId() {
-		return launchId;
-	}
-
-	public void setLaunchId(String launchId) {
-		this.launchId = launchId;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("RelevantItemInfo{");
-		sb.append("itemId='").append(itemId).append('\'');
-		sb.append(", path='").append(path).append('\'');
-		sb.append(", launchId='").append(launchId).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
 }

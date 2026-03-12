@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.model.analyzer;
 
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import java.io.Serializable;
 import lombok.Data;
 
@@ -31,7 +30,5 @@ public class RelevantItemInfo implements Serializable {
   private String path;
 
   private String launchId;
-
-  private IssueType issueType;
 
 }

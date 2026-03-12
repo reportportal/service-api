@@ -198,7 +198,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
           TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
           testItemStatisticsService.changeDefectStatistics(testItem, beforeIssue,
-              relevantItemInfo.getIssueType());
+              testItem.getItemResults().getIssue().getIssueType());
           testItemRepository.save(testItem);
 
           messageBus.publishActivity(

@@ -311,11 +311,11 @@ class EditUserHandlerImplTest {
     user.setLogin("other_user");
     user.setUserType(UserType.INTERNAL);
     when(userRepository.findByLogin("other_user")).thenReturn(Optional.of(user));
-    final EditUserRQ editUserRQ = new EditUserRQ();
-    editUserRQ.setExternalId("new-ext-id");
+    final EditUserRQ editUserRq = new EditUserRQ();
+    editUserRq.setExternalId("new-ext-id");
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.editUser("other_user", editUserRQ,
+        () -> handler.editUser("other_user", editUserRq,
             getRpUser("regular_user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L)
         )
     );

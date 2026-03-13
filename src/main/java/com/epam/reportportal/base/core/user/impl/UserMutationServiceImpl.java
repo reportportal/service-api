@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.user.impl;
 
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MAX_USER_NAME_LENGTH;
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MIN_USER_NAME_LENGTH;
+import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.USER_FULL_NAME_REGEXP;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
@@ -50,7 +51,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserMutationServiceImpl implements UserMutationService {
 
-  private static final Pattern FULL_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9.'_\\- ]+$");
+  private static final Pattern FULL_NAME_PATTERN = Pattern.compile(USER_FULL_NAME_REGEXP);
   private static final Set<UserType> ALLOWED_ACCOUNT_TYPES = Set.of(UserType.INTERNAL, UserType.SCIM);
 
   private final UserRepository userRepository;

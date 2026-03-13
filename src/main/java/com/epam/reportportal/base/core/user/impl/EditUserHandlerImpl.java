@@ -121,8 +121,10 @@ public class EditUserHandlerImpl implements EditUserHandler {
     ofNullable(editUserRq.getFullName()).ifPresent(fullName ->
         userMutationService.updateFullName(user, fullName, editor));
 
-    ofNullable(editUserRq.getExternalId())
-        .ifPresent(extId -> userMutationService.updateExternalId(user, extId));
+    ofNullable(editUserRq.getExternalId()).ifPresent(extId -> {
+      checkPossibilityToEdit(editor, user, "externalId");
+      userMutationService.updateExternalId(user, extId);
+    });
 
     try {
       userRepository.save(user);

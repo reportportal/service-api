@@ -43,6 +43,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+/**
+ * Implementation of {@link UserMutationService} providing validated user field mutations.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserMutationServiceImpl implements UserMutationService {

@@ -170,34 +170,53 @@ public class PatchUserHandler {
   private void handlePatchOperation(PatchOperation operation, User user) {
     String path = operation.getPath();
     var principal = SecurityContextUtils.getPrincipal();
+
     switch (operation.getOp()) {
       case REPLACE -> {
         switch (path) {
-          case EMAIL_PATH -> userMutationService.updateEmail(user, (String) operation.getValue(), principal);
-          case FULL_NAME_PATH -> userMutationService.updateFullName(user, (String) operation.getValue(), principal);
-          case ROLE_PATH -> userMutationService.updateInstanceRole(user, (String) operation.getValue(), principal);
-          case ACTIVE_PATH -> userMutationService.updateActive(user, operation.getValue());
-          case ACCOUNT_TYPE_PATH -> userMutationService.updateAccountType(user, (String) operation.getValue());
-          case EXTERNAL_ID_PATH -> userMutationService.updateExternalId(user, (String) operation.getValue());
-          case null, default ->
-              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
+          case EMAIL_PATH ->
+              userMutationService.updateEmail(user, validateAndGetTypedValue(operation, path, String.class), principal);
+          case FULL_NAME_PATH ->
+              userMutationService.updateFullName(user, validateAndGetTypedValue(operation, path, String.class),
+                  principal);
+          case ROLE_PATH ->
+              userMutationService.updateInstanceRole(user, validateAndGetTypedValue(operation, path, String.class),
+                  principal);
+          case ACTIVE_PATH ->
+              userMutationService.updateActive(user, validateAndGetTypedValue(operation, path, Boolean.class));
+          case ACCOUNT_TYPE_PATH ->
+              userMutationService.updateAccountType(user, validateAndGetTypedValue(operation, path, String.class));
+          case EXTERNAL_ID_PATH ->
+              userMutationService.updateExternalId(user, validateAndGetTypedValue(operation, path, String.class));
+          case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));
         }
       }
       case ADD -> {
         switch (path) {
-          case EXTERNAL_ID_PATH -> userMutationService.updateExternalId(user, (String) operation.getValue());
-          case null, default ->
-              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
+          case EXTERNAL_ID_PATH ->
+              userMutationService.updateExternalId(user, validateAndGetTypedValue(operation, path, String.class));
+          case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));
         }
       }
       case REMOVE -> {
         switch (path) {
           case EXTERNAL_ID_PATH -> user.setExternalId(null);
-          case null, default ->
-              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
+          case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));
         }
       }
       case null, default -> throw new IllegalArgumentException("Unexpected operation: " + operation.getOp());
     }
+  }
+
+  private <T> T validateAndGetTypedValue(PatchOperation operation, String path, Class<T> expectedType) {
+    Object value = operation.getValue();
+
+    if (expectedType.isInstance(value)) {
+      return expectedType.cast(value);
+    }
+
+    throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+        "Invalid type for path '%s': expected %s".formatted(path, expectedType.getSimpleName())
+    );
   }
 }

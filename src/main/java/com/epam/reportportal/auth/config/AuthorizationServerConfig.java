@@ -18,26 +18,19 @@ package com.epam.reportportal.auth.config;
 
 import com.epam.reportportal.auth.OAuthSuccessHandler;
 import com.epam.reportportal.auth.ReportPortalClient;
-import com.epam.reportportal.auth.TokenServicesFacade;
 import com.epam.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
 import com.epam.reportportal.auth.config.password.CustomCodeGrantAuthenticationConverter;
 import com.epam.reportportal.auth.config.password.OAuth2ErrorResponseHandler;
 import com.epam.reportportal.auth.config.utils.JwtReportPortalUserConverter;
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters;
-import com.epam.reportportal.auth.integration.ldap.DetailsContextMapper;
-import com.epam.reportportal.auth.integration.ldap.LdapAuthProvider;
-import com.epam.reportportal.auth.integration.ldap.LdapUserReplicator;
-import com.epam.reportportal.auth.integration.parameter.ParameterUtils;
 import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
-import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.AuthExtension;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import java.util.List;
@@ -45,9 +38,7 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -109,21 +100,13 @@ public class AuthorizationServerConfig {
 
   private final ServerSettingsRepository serverSettingsRepository;
 
-  private final IntegrationRepository authConfigRepository;
-
-  private final LdapUserReplicator ldapUserReplicator;
-
-  private final ApplicationEventPublisher eventPublisher;
+  private final Pf4jPluginBox pluginBox;
 
   private final MutableClientRegistrationRepository clientRegistrationRepository;
 
   private final AuthenticationFailureHandler authenticationFailureHandler;
 
   private final List<OAuthProvider> authProviders;
-
-  private final FeatureFlagHandler featureFlagHandler;
-
-  private final BasicTextEncryptor encryptor;
 
   private final PasswordEncoder passwordEncoder;
 
@@ -207,11 +190,17 @@ public class AuthorizationServerConfig {
         .exceptionHandling(ex -> ex
             .authenticationEntryPoint(new OAuth2ErrorResponseHandler())
             .accessDeniedHandler(new OAuth2ErrorResponseHandler()))
-        .apply(configurer).tokenEndpoint(
-            tokenEndpoint -> tokenEndpoint
-                .accessTokenRequestConverter(new CustomCodeGrantAuthenticationConverter())
-                .authenticationProvider(basicPasswordAuthProvider())
-                .authenticationProvider(ldapAuthProvider()));
+        .apply(configurer)
+        .tokenEndpoint(tokenEndpoint -> {
+          tokenEndpoint
+              .accessTokenRequestConverter(new CustomCodeGrantAuthenticationConverter())
+              .authenticationProvider(basicPasswordAuthProvider());
+          pluginBox.getPlugins().stream()
+              .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
+              .forEach(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class)
+                  .ifPresent(authExtension -> tokenEndpoint.authenticationProvider(
+                      authExtension.getAuthenticationProvider())));
+        });
 
     return http.build();
   }
@@ -222,24 +211,6 @@ public class AuthorizationServerConfig {
     provider.setUserDetailsService(userDetailsService);
     provider.setPasswordEncoder(passwordEncoder);
     return provider;
-  }
-
-  @Bean
-  public AuthenticationProvider ldapAuthProvider() {
-    return new LdapAuthProvider(authConfigRepository, eventPublisher, ldapDetailsContextMapper(),
-        new TokenServicesFacade(jwtEncoder(), jwtIssuer), featureFlagHandler, encryptor);
-  }
-
-  @Bean("ldapDetailsContextMapper")
-  public DetailsContextMapper ldapDetailsContextMapper() {
-    return new DetailsContextMapper(
-        ldapUserReplicator,
-        () -> ParameterUtils.getLdapSyncAttributes(
-            authConfigRepository.findAllByTypeIn(AuthIntegrationType.LDAP.getName()).stream()
-                .findFirst()
-                .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND))
-
-        ));
   }
 
   private String getSecret() {

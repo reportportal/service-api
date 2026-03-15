@@ -889,6 +889,7 @@ public class RecordMappers {
     ofNullable(r.get(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)).ifPresent(itemId -> {
         TestItem testItem = new TestItem();
         testItem.setItemId(itemId);
+        ofNullable(r.get(TEST_ITEM.PARENT_ID)).ifPresent(testItem::setParentId);
         item.setTestItem(testItem);
     });
 

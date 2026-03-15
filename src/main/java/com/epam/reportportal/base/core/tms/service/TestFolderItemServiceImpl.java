@@ -4,7 +4,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 
 import com.epam.reportportal.base.core.item.identity.IdentityUtil;
 import com.epam.reportportal.base.core.item.identity.TestCaseHashGenerator;
-import com.epam.reportportal.base.core.tms.dto.CountOfChildTestItemsByParentId;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.mapper.SuiteTestItemBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -12,16 +11,14 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TmsTestFolderTestItemFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TmsTestFolderTestItemRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageImpl;
@@ -71,7 +68,8 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
 
     // Create new SUITE item
     var suiteItem = createTestFolderSuiteItem(projectId, testFolderId, launch);
-    log.debug("Created new SUITE item: {} for test folder: {}", suiteItem.getItemId(), testFolderId);
+    log.debug("Created new SUITE item: {} for test folder: {}", suiteItem.getItemId(),
+        testFolderId);
     return suiteItem;
   }
 
@@ -208,6 +206,11 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
 
     var suitePage = tmsTestFolderTestItemFilterableRepository.findByFilter(filter, pageable);
 
+    if (suitePage.isEmpty()) {
+      return PagedResourcesAssembler.<TmsTestFolderRS>pageConverter()
+          .apply(new PageImpl<>(java.util.Collections.emptyList(), pageable, 0));
+    }
+
     var suiteItemIds = suitePage.stream()
         .map(s -> s.getTestItem().getItemId())
         .toList();
@@ -215,31 +218,58 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
     var testCasesCounts = tmsTestFolderTestItemFilterableRepository
         .countTestCasesByFolderIdsAndFilter(suiteItemIds, filter);
 
+    var allParentItemIds = testItemRepository.findAllParentItemIds(launchId, suiteItemIds);
+    var missingParentIds = allParentItemIds
+        .stream()
+        .filter(id -> !suiteItemIds.contains(id))
+        .toList();
+
+    List<TmsTestFolderTestItem> missingParents = Collections.emptyList();
+    if (!missingParentIds.isEmpty()) {
+      missingParents = testFolderTestItemRepository.findAllByLaunchIdAndTestItemItemIdIn(launchId,
+          missingParentIds);
+    }
+
+    var resultList = new java.util.ArrayList<TmsTestFolderRS>();
+
+    resultList.addAll(suitePage.getContent().stream().map(suiteTestItem -> {
+      var suiteItem = suiteTestItem.getTestItem();
+      var testCaseCount = 0L;
+      Long parentSuiteId = null;
+
+      if (suiteItem != null) {
+        testCaseCount = testCasesCounts.getOrDefault(suiteItem.getItemId(), 0L);
+        parentSuiteId = suiteItem.getParentId();
+      }
+
+      return TmsTestFolderRS.builder()
+          .id(suiteItem != null ? suiteItem.getItemId() : null)
+          .name(suiteTestItem.getName() != null ? suiteTestItem.getName()
+              : (suiteItem != null ? suiteItem.getName() : null))
+          .description(suiteTestItem.getDescription() != null ? suiteTestItem.getDescription()
+              : (suiteItem != null ? suiteItem.getDescription() : null))
+          .countOfTestCases(testCaseCount)
+          .parentFolderId(parentSuiteId)
+          .build();
+    }).toList());
+
+    resultList.addAll(missingParents.stream().map(suiteTestItem -> {
+      var suiteItem = suiteTestItem.getTestItem();
+      Long parentSuiteId = suiteItem != null ? suiteItem.getParentId() : null;
+
+      return TmsTestFolderRS.builder()
+          .id(suiteItem != null ? suiteItem.getItemId() : null)
+          .name(suiteTestItem.getName() != null ? suiteTestItem.getName()
+              : (suiteItem != null ? suiteItem.getName() : null))
+          .description(suiteTestItem.getDescription() != null ? suiteTestItem.getDescription()
+              : (suiteItem != null ? suiteItem.getDescription() : null))
+          .countOfTestCases(0L)
+          .parentFolderId(parentSuiteId)
+          .build();
+    }).toList());
+
     return PagedResourcesAssembler.<TmsTestFolderRS>pageConverter()
-        .apply(new PageImpl<>(
-            suitePage.getContent().stream().map(suiteTestItem -> {
-              var suiteItem = suiteTestItem.getTestItem();
-              var testCaseCount = 0L;
-              Long parentSuiteId = null;
-
-              if (suiteItem != null) {
-                testCaseCount = testCasesCounts.getOrDefault(suiteItem.getItemId(), 0L);
-                parentSuiteId = suiteItem.getParentId();
-              }
-
-              return TmsTestFolderRS.builder()
-                  .id(suiteItem != null ? suiteItem.getItemId() : null)
-                  .name(suiteTestItem.getName() != null ? suiteTestItem.getName()
-                      : (suiteItem != null ? suiteItem.getName() : null))
-                  .description(suiteTestItem.getDescription() != null ? suiteTestItem.getDescription()
-                      : (suiteItem != null ? suiteItem.getDescription() : null))
-                  .countOfTestCases(testCaseCount)
-                  .parentFolderId(parentSuiteId)
-                  .build();
-            }).toList(),
-            pageable,
-            suitePage.getTotalElements()
-        ));
+        .apply(new PageImpl<>(resultList, pageable, suitePage.getTotalElements()));
   }
 
   @Transactional

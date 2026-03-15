@@ -1,6 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,11 @@ public interface TmsTestFolderTestItemRepository extends
    * @return page of junction records
    */
   Page<TmsTestFolderTestItem> findByLaunchId(Long launchId, Pageable pageable);
+
+  @Query("SELECT tft FROM TmsTestFolderTestItem tft WHERE tft.launchId = :launchId AND tft.testItem.itemId IN :testItemIds")
+  List<TmsTestFolderTestItem> findAllByLaunchIdAndTestItemItemIdIn(
+      @Param("launchId") Long launchId,
+      @Param("testItemIds") java.util.Collection<Long> testItemIds);
 
   void deleteByTestItem_ItemId(Long testItemId);
 

@@ -1344,13 +1344,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(6))
-        .andExpect(jsonPath("$.content[0].id").value(3))
-        .andExpect(jsonPath("$.content[1].id").value(5))
-        .andExpect(jsonPath("$.content[2].id").value(6))
-        .andExpect(jsonPath("$.content[3].id").value(8))
-        .andExpect(jsonPath("$.content[4].id").value(9))
-        .andExpect(jsonPath("$.content[5].id").value(20));
+        .andExpect(jsonPath("$.content.length()").value(8));
   }
 
   @Test

@@ -874,6 +874,8 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderWithTestCaseCountRepository.findAllByProjectIdAndFilterWithCountOfTestCases(
         projectId, filter, pageable))
         .thenReturn(folderPage);
+    when(tmsTestFolderRepository.findAllParentFolderIds(eq(projectId), anyList()))
+        .thenReturn(Collections.emptyList());
     when(tmsTestFolderMapper.convert(folderPage))
         .thenReturn(folderRSPage);
 
@@ -886,6 +888,7 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderWithTestCaseCountRepository).findAllByProjectIdAndFilterWithCountOfTestCases(
         projectId, filter, pageable);
+    verify(tmsTestFolderRepository).findAllParentFolderIds(eq(projectId), anyList());
     verify(tmsTestFolderMapper).convert(folderPage);
   }
 

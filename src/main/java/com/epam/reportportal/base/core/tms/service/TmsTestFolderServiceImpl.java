@@ -218,7 +218,39 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       Pageable pageable) {
     var page = tmsTestFolderWithTestCaseCountRepository
         .findAllByProjectIdAndFilterWithCountOfTestCases(projectId, filter, pageable);
-    return tmsTestFolderMapper.convert(page);
+
+    var mappedPage = tmsTestFolderMapper.convert(page);
+
+    if (mappedPage.getContent().isEmpty()) {
+      return mappedPage;
+    }
+
+    var folderIds = page
+        .getContent()
+        .stream()
+        .map(folder -> folder.getTestFolder().getId())
+        .toList();
+
+    var allParentIds = tmsTestFolderRepository.findAllParentFolderIds(projectId, folderIds);
+
+    var missingParentIds = allParentIds.stream()
+        .filter(id -> !folderIds.contains(id))
+        .collect(Collectors.toSet());
+
+    if (missingParentIds.isEmpty()) {
+      return mappedPage;
+    }
+
+    var missingParents = tmsTestFolderRepository.findAllById(missingParentIds);
+
+    var content = new ArrayList<>(mappedPage.getContent());
+    missingParents.forEach(parent -> {
+      var rs = tmsTestFolderMapper.convertFromTmsTestFolderToRS(parent);
+      rs.setCountOfTestCases(0L);
+      content.add(rs);
+    });
+
+    return new Page<>(content, mappedPage.getPage());
   }
 
   @Override

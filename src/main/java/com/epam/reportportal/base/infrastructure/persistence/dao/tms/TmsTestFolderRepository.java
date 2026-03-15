@@ -252,6 +252,31 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("folderId") Long folderId);
 
   /**
+   * Finds all ancestor folder IDs in the hierarchy starting from a given list of folders.
+   *
+   * <p>This method uses a recursive CTE to traverse the folder hierarchy upwards and return all
+   * ancestor folder IDs including the initial folders and all their parents at any level.
+   * </p>
+   *
+   * Note: This query is PostgreSQL specific and may not work with other
+   * database systems.
+   *
+   * @param projectId the ID of the project to ensure security boundaries
+   * @param folderIds the list of folder IDs to start the hierarchy traversal upwards from
+   * @return list of all ancestor folder IDs in the hierarchy
+   */
+  @Query(value = """
+      WITH RECURSIVE ids(id) AS (
+        SELECT id FROM tms_test_folder WHERE id IN :folderIds AND project_id = :projectId
+        UNION
+        SELECT tf.parent_id FROM tms_test_folder tf JOIN ids ON tf.id = ids.id WHERE tf.parent_id IS NOT NULL
+      )
+      SELECT id FROM ids
+      """, nativeQuery = true)
+  List<Long> findAllParentFolderIds(@Param("projectId") Long projectId,
+      @Param("folderIds") List<Long> folderIds);
+
+  /**
    * This method determines whether a test folder with an id exists in a project.
    *
    * @param projectId project's id

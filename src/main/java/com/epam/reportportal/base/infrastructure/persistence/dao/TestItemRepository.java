@@ -657,4 +657,18 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       @Param("parentIds") List<Long> parentIds,
       @Param("type") TestItemTypeEnum type
   );
+
+  /**
+   * Finds all ancestor test item IDs in the hierarchy starting from a given list of items.
+   */
+  @Query(value =
+      "WITH RECURSIVE ids(id) AS ("
+          + "  SELECT item_id FROM test_item WHERE item_id IN :itemIds AND launch_id = :launchId "
+          + "  UNION "
+          + "  SELECT ti.parent_id FROM test_item ti JOIN ids ON ti.item_id = ids.id WHERE ti.parent_id IS NOT NULL"
+          + ") "
+          + "SELECT id FROM ids",
+      nativeQuery = true)
+  List<Long> findAllParentItemIds(@Param("launchId") Long launchId,
+      @Param("itemIds") Collection<Long> itemIds);
 }

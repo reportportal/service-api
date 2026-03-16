@@ -29,9 +29,6 @@ import static com.epam.reportportal.auth.integration.parameter.SamlParameter.ROL
 
 import com.epam.reportportal.base.infrastructure.model.integration.auth.UpdateAuthRQ;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -40,10 +37,6 @@ public final class ParameterUtils {
 
   private ParameterUtils() {
     //static only
-  }
-
-  public static void setLdapParameters(UpdateAuthRQ request, Integration integration) {
-    Arrays.stream(LdapParameter.values()).forEach(it -> it.setParameter(request, integration));
   }
 
   public static void setSamlParameters(UpdateAuthRQ request, Integration integration) {
@@ -64,14 +57,6 @@ public final class ParameterUtils {
       FIRST_NAME_ATTRIBUTE.setParameter(request, integration);
       LAST_NAME_ATTRIBUTE.setParameter(request, integration);
     });
-  }
-
-  public static Map<String, String> getLdapSyncAttributes(Integration integration) {
-    return Arrays.stream(LdapParameter.values())
-        .filter(LdapParameter::isSyncAttribute)
-        .filter(it -> it.getParameter(integration).isPresent())
-        .collect(Collectors.toMap(LdapParameter::getParameterName,
-            it -> it.getParameter(integration).get()));
   }
 
 }

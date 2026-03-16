@@ -18,26 +18,21 @@ package com.epam.reportportal.auth.endpoint;
 
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
-import com.epam.reportportal.auth.integration.parameter.SamlParameter;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.OAuthRegistrationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistration;
-import com.google.common.collect.Maps;
+import com.epam.reportportal.extension.AuthExtension;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Shows list of supported authentication providers.
@@ -49,24 +44,19 @@ public class AuthProvidersInfoContributor implements InfoContributor {
 
   public static final String SSO_LOGIN_PATH = "/oauth/login";
 
-  private static final String SAML_BUTTON = "<span>Login with SAML</span>";
-
   @Value("${rp.auth.saml.prefix}")
   private String samlPrefix;
 
   private final OAuthRegistrationRepository oAuthRegistrationRepository;
-  private final IntegrationRepository integrationRepository;
-  private final IntegrationTypeRepository integrationTypeRepository;
+  private final Pf4jPluginBox pluginBox;
   private final Map<String, OAuthProvider> providersMap;
 
   @Autowired
   public AuthProvidersInfoContributor(OAuthRegistrationRepository oAuthRegistrationRepository,
-      IntegrationRepository integrationRepository,
-      IntegrationTypeRepository integrationTypeRepository,
+      Pf4jPluginBox pluginBox,
       Map<String, OAuthProvider> providersMap) {
     this.oAuthRegistrationRepository = oAuthRegistrationRepository;
-    this.integrationRepository = integrationRepository;
-    this.integrationTypeRepository = integrationTypeRepository;
+    this.pluginBox = pluginBox;
     this.providersMap = providersMap;
   }
 
@@ -74,7 +64,7 @@ public class AuthProvidersInfoContributor implements InfoContributor {
   public void contribute(Info.Builder builder) {
     final List<OAuthRegistration> oauth2Details = oAuthRegistrationRepository.findAll();
 
-    final Map<String, AuthProviderInfo> providers = providersMap.values()
+    final Map<String, Object> providers = providersMap.values()
         .stream()
         .filter(p -> !p.isConfigDynamic() || oauth2Details.stream()
             .anyMatch(it -> it.getId().equalsIgnoreCase(p.getName())))
@@ -82,27 +72,12 @@ public class AuthProvidersInfoContributor implements InfoContributor {
             p -> new OAuthProviderInfo(p.getButton(), p.buildPath(getAuthBasePath()))
         ));
 
-    Optional<IntegrationType> samlIntegrationType = integrationTypeRepository.findByName(
-        AuthIntegrationType.SAML.getName());
-
-    Map<String, String> samlProviders = Maps.newHashMap();
-
-    if (samlIntegrationType.isPresent()) {
-      samlProviders = integrationRepository.findAllGlobalByType(samlIntegrationType.get())
-          .stream()
-          .filter(Integration::isEnabled)
-          .filter(it -> SamlParameter.IDP_URL.getParameter(it).isPresent())
-          .collect(Collectors.toMap(
-              Integration::getName,
-              it -> fromCurrentContextPath().path(String.format("/saml2/authenticate/%s",
-                  SamlParameter.IDP_NAME.getParameter(it).get()
-              )).build().getPath()
-          ));
-    }
-
-    if (!CollectionUtils.isEmpty(samlProviders)) {
-      providers.put("samlProviders", new SamlProviderInfo(SAML_BUTTON, samlProviders));
-    }
+    // Dynamic providers from plugins
+    pluginBox.getPlugins().stream()
+        .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
+        .forEach(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class)
+            .flatMap(AuthExtension::getAuthProviderInfo)
+            .ifPresent(info -> providers.put(plugin.getId(), info)));
 
     builder.withDetail("authExtensions", providers);
   }
@@ -111,16 +86,13 @@ public class AuthProvidersInfoContributor implements InfoContributor {
     return fromCurrentContextPath().path(SSO_LOGIN_PATH).build().getPath();
   }
 
+  @Getter
   public abstract static class AuthProviderInfo {
 
     private String button;
 
     public AuthProviderInfo(String button) {
       this.button = button;
-    }
-
-    public String getButton() {
-      return button;
     }
 
     public void setButton(String button) {

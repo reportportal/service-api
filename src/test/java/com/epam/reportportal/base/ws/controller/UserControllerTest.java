@@ -207,7 +207,7 @@ class UserControllerTest extends BaseMvcTest {
     editUserRQ.setFullName("randName");
     mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
+        .content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isForbidden());
   }
 
   @Test

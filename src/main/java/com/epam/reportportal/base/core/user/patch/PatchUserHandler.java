@@ -17,9 +17,9 @@
 package com.epam.reportportal.base.core.user.patch;
 
 import com.epam.reportportal.api.model.PatchOperation;
+import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.core.user.UserService;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -60,6 +60,7 @@ public class PatchUserHandler {
   private static final String UNEXPECTED_PATH_MESSAGE = "Unexpected path: '%s'";
 
   private final UserService userService;
+  private final UserMutationService userMutationService;
 
   /**
    * Applies a list of patch operations to the user identified by {@code userId}.
@@ -100,9 +101,9 @@ public class PatchUserHandler {
     String path = operation.getPath();
     Assert.isTrue(StringUtils.isNotEmpty(path), "The 'path' must not be null");
 
+    validateOwnerFieldAccess(isAdmin, isOwnProfile, path);
     checkIfAuthorizedToPatchUser(user, isAdmin, isOwnProfile);
     validateUpsaUserModification(user, path);
-    validateOwnerFieldAccess(isOwnProfile, path);
   }
 
   /**
@@ -113,8 +114,8 @@ public class PatchUserHandler {
    * @param path         the JSON-Patch path of the field being modified
    * @throws ReportPortalException with ErrorType.ACCESS_DENIED if a non-permitted field is modified
    */
-  private static void validateOwnerFieldAccess(boolean isOwnProfile, String path) {
-    if (isOwnProfile && !path.equals(EMAIL_PATH) && !path.equals(FULL_NAME_PATH)) {
+  private static void validateOwnerFieldAccess(boolean isAdmin, boolean isOwnProfile, String path) {
+    if (!isAdmin && isOwnProfile && !path.equals(EMAIL_PATH) && !path.equals(FULL_NAME_PATH)) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED,
           "You can only update your own email and full name. Other fields can only be changed by an administrator for you.");
     }
@@ -168,34 +169,54 @@ public class PatchUserHandler {
    */
   private void handlePatchOperation(PatchOperation operation, User user) {
     String path = operation.getPath();
+    var principal = SecurityContextUtils.getPrincipal();
+
     switch (operation.getOp()) {
       case REPLACE -> {
         switch (path) {
-          case EMAIL_PATH -> user.setEmail((String) operation.getValue());
-          case FULL_NAME_PATH -> user.setFullName((String) operation.getValue());
-          case ROLE_PATH -> user.setRole(UserRole.valueOf((String) operation.getValue()));
-          case ACTIVE_PATH -> user.setActive((Boolean) operation.getValue());
-          case ACCOUNT_TYPE_PATH -> user.setUserType(UserType.valueOf((String) operation.getValue()));
-          case EXTERNAL_ID_PATH -> user.setExternalId((String) operation.getValue());
-          case null, default ->
-              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
+          case EMAIL_PATH ->
+              userMutationService.updateEmail(user, validateAndGetTypedValue(operation, path, String.class), principal);
+          case FULL_NAME_PATH ->
+              userMutationService.updateFullName(user, validateAndGetTypedValue(operation, path, String.class),
+                  principal);
+          case ROLE_PATH ->
+              userMutationService.updateInstanceRole(user, validateAndGetTypedValue(operation, path, String.class),
+                  principal);
+          case ACTIVE_PATH ->
+              userMutationService.updateActive(user, validateAndGetTypedValue(operation, path, Boolean.class));
+          case ACCOUNT_TYPE_PATH ->
+              userMutationService.updateAccountType(user, validateAndGetTypedValue(operation, path, String.class));
+          case EXTERNAL_ID_PATH ->
+              userMutationService.updateExternalId(user, validateAndGetTypedValue(operation, path, String.class));
+          case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));
         }
       }
       case ADD -> {
         switch (path) {
-          case EXTERNAL_ID_PATH -> user.setExternalId((String) operation.getValue());
-          case null, default ->
-              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
+          case EXTERNAL_ID_PATH ->
+              userMutationService.updateExternalId(user, validateAndGetTypedValue(operation, path, String.class));
+          case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));
         }
       }
       case REMOVE -> {
         switch (path) {
           case EXTERNAL_ID_PATH -> user.setExternalId(null);
-          case null, default ->
-              throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(operation.getPath()));
+          case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));
         }
       }
       case null, default -> throw new IllegalArgumentException("Unexpected operation: " + operation.getOp());
     }
+  }
+
+  private <T> T validateAndGetTypedValue(PatchOperation operation, String path, Class<T> expectedType) {
+    Object value = operation.getValue();
+
+    if (expectedType.isInstance(value)) {
+      return expectedType.cast(value);
+    }
+
+    throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+        "Invalid type for path '%s': expected %s".formatted(path, expectedType.getSimpleName())
+    );
   }
 }

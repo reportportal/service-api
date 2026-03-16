@@ -24,26 +24,18 @@ import static com.epam.reportportal.base.infrastructure.persistence.entity.user.
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.fail;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BINARY_DATA_CANNOT_BE_SAVED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.FORBIDDEN_OPERATION;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
-import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.base.core.user.EditUserHandler;
+import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
-import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ImageFormat;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -55,7 +47,6 @@ import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import javax.imageio.ImageIO;
@@ -68,7 +59,6 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,8 +76,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private final UserRepository userRepository;
 
-  private final ProjectRepository projectRepository;
-
   private final UserBinaryDataService userBinaryDataService;
 
   private final PasswordEncoder passwordEncoder;
@@ -96,31 +84,27 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
   private final MailServiceFactory emailServiceFactory;
 
-  private final ApplicationEventPublisher eventPublisher;
+  private final UserMutationService userMutationService;
 
   /**
    * Constructor.
    *
    * @param passwordEncoder       Password encoder
    * @param userRepository        User repository
-   * @param projectRepository     Project repository
    * @param userBinaryDataService User binary data service
    * @param autoDetectParser      Auto detect parser
    * @param emailServiceFactory   Email service factory
-   * @param eventPublisher        Event publisher
    */
   @Autowired
   public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
-      ProjectRepository projectRepository,
       UserBinaryDataService userBinaryDataService, AutoDetectParser autoDetectParser,
-      MailServiceFactory emailServiceFactory, ApplicationEventPublisher eventPublisher) {
+      MailServiceFactory emailServiceFactory, UserMutationService userMutationService) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
-    this.projectRepository = projectRepository;
     this.userBinaryDataService = userBinaryDataService;
     this.autoDetectParser = autoDetectParser;
     this.emailServiceFactory = emailServiceFactory;
-    this.eventPublisher = eventPublisher;
+    this.userMutationService = userMutationService;
   }
 
   @Override
@@ -131,15 +115,16 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
     updateRestrictedFields(editor, user, editUserRq);
 
-    ofNullable(editUserRq.getEmail())
-        .map(NORMALIZE_EMAIL)
-        .filter(email -> !email.equals(user.getEmail()))
-        .ifPresent(email -> updateEmail(email, user, editor));
+    ofNullable(editUserRq.getEmail()).ifPresent(email ->
+        userMutationService.updateEmail(user, email, editor));
 
-    ofNullable(editUserRq.getFullName())
-        .ifPresent(fullName -> updateFullName(fullName, user, editor));
+    ofNullable(editUserRq.getFullName()).ifPresent(fullName ->
+        userMutationService.updateFullName(user, fullName, editor));
 
-    ofNullable(editUserRq.getExternalId()).ifPresent(user::setExternalId);
+    ofNullable(editUserRq.getExternalId()).ifPresent(extId -> {
+      checkPossibilityToEdit(editor, user, "externalId");
+      userMutationService.updateExternalId(user, extId);
+    });
 
     try {
       userRepository.save(user);
@@ -220,54 +205,18 @@ public class EditUserHandlerImpl implements EditUserHandler {
     return new OperationCompletionRS("Password has been changed successfully");
   }
 
-  private void updateEmail(String email, User user, ReportPortalUser editor) {
-    if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-      expect(user.getUserType(), equalTo(INTERNAL))
-          .verify(ACCESS_DENIED, "Unable to change email for external user");
-    }
-
-    expect(userRepository.findByEmail(email), Predicates.not(Optional::isPresent))
-        .verify(USER_ALREADY_EXISTS, email);
-
-    List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
-
-    userProjects.forEach(
-        project -> ProjectUtils.updateProjectRecipients(user.getEmail(), email, project));
-
-    user.setEmail(email);
-    user.setLogin(email);
-
-    try {
-      projectRepository.saveAll(userProjects);
-    } catch (Exception exp) {
-      throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
-    }
-  }
-
-  private void updateFullName(String fullName, User user, ReportPortalUser editor) {
-    if (!editor.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-      expect(user.getUserType(), equalTo(INTERNAL)).verify(
-          ACCESS_DENIED, "Unable to change full name for external user");
-    }
-    user.setFullName(fullName);
-  }
-
   private void updateRestrictedFields(ReportPortalUser editor, User user, EditUserRQ editUserRq) {
     ofNullable(editUserRq.getRole()).ifPresent(role -> {
       checkPossibilityToEdit(editor, user, "role");
-      UserRole newRole = UserRole.findByName(role).orElseThrow(
-          () -> new ReportPortalException(BAD_REQUEST_ERROR,
-              "Incorrect specified Account Role parameter."));
-      publishChangeUserTypeEvent(user, editor, newRole);
-      user.setRole(newRole);
+      userMutationService.updateInstanceRole(user, role, editor);
     });
     ofNullable(editUserRq.getActive()).ifPresent(isActive -> {
       checkPossibilityToEdit(editor, user, "active");
-      user.setActive(isActive);
+      userMutationService.updateActive(user, isActive);
     });
     ofNullable(editUserRq.getAccountType()).ifPresent(accountType -> {
       checkPossibilityToEdit(editor, user, "accountType");
-      user.setUserType(UserType.valueOf(accountType));
+      userMutationService.updateAccountType(user, accountType);
     });
   }
 
@@ -328,12 +277,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
       }
     }
     return Optional.empty();
-  }
-
-  private void publishChangeUserTypeEvent(User user, ReportPortalUser editor, UserRole newRole) {
-    eventPublisher.publishEvent(
-        new ChangeUserTypeEvent(user.getId(), user.getLogin(), user.getRole(), newRole,
-            editor.getUserId(), editor.getUsername()));
   }
 
   private void checkPossibilityToEdit(ReportPortalUser editor, User user, String fieldName) {

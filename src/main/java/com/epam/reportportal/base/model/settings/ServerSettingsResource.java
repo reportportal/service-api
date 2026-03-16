@@ -19,12 +19,14 @@ package com.epam.reportportal.base.model.settings;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class ServerSettingsResource {
 

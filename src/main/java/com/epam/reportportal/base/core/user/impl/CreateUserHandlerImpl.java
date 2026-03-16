@@ -19,11 +19,9 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.fail;
-import static com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.RESOURCE_ALREADY_EXISTS;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_NOT_FOUND;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 import static com.epam.reportportal.base.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
@@ -34,6 +32,7 @@ import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.organization.PersonalOrganizationService;
 import com.epam.reportportal.base.core.user.CreateUserHandler;
+import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.RestorePasswordBidRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
@@ -78,11 +77,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final PasswordEncoder passwordEncoder;
   private final ApplicationEventPublisher eventPublisher;
   private final PersonalOrganizationService personalOrganizationService;
+  private final UserMutationService userMutationService;
 
   @Override
   public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator,
       String basicUrl) {
-    var email = NORMALIZE_EMAIL.apply(request.getEmail());
+    var email = userMutationService.normalizeAndValidateEmail(request.getEmail());
     request.setEmail(email);
 
     var savedUser = saveUser(request);
@@ -160,8 +160,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   }
 
   private User saveUser(NewUserRequest request) {
-    expect(userRepository.findByEmail(request.getEmail()).isEmpty(), equalTo(true))
-        .verify(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
+    userMutationService.checkEmailUniqueness(request.getEmail());
     var user = convert(request);
     try {
       userRepository.save(user);

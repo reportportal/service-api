@@ -19,20 +19,21 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
 import com.epam.reportportal.base.model.user.EditUserRQ;
@@ -42,7 +43,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -56,13 +56,10 @@ class EditUserHandlerImplTest {
   private UserRepository userRepository;
 
   @Mock
-  private ProjectRepository projectRepository;
-
-  @Mock
   private PasswordEncoder passwordEncoder;
 
   @Mock
-  private ApplicationEventPublisher eventPublisher;
+  private UserMutationService userMutationService;
 
   @InjectMocks
   private EditUserHandlerImpl handler;
@@ -184,6 +181,10 @@ class EditUserHandlerImplTest {
     User user = new User();
     user.setLogin("test");
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
+    doThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+        "Incorrect specified Account Role parameter."))
+        .when(userMutationService)
+        .updateInstanceRole(any(), eq("not_exist_role"), any());
     final EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setRole("not_exist_role");
 
@@ -205,7 +206,6 @@ class EditUserHandlerImplTest {
     User user = new User();
     user.setLogin("test");
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
-    doNothing().when(eventPublisher).publishEvent(isA(ChangeUserTypeEvent.class));
     final EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setRole(UserRole.ADMINISTRATOR.name());
 
@@ -215,7 +215,8 @@ class EditUserHandlerImplTest {
     );
 
     //then
-    verify(eventPublisher, times(1)).publishEvent(isA(ChangeUserTypeEvent.class));
+    verify(userMutationService, times(1))
+        .updateInstanceRole(any(), eq(UserRole.ADMINISTRATOR.name()), any());
   }
 
   @Test
@@ -223,6 +224,9 @@ class EditUserHandlerImplTest {
     User user = new User();
     user.setUserType(UserType.LDAP);
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED,
+        "Unable to change email for external user"))
+        .when(userMutationService).updateEmail(any(), eq("newemail@domain.com"), any());
     final EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setEmail("newemail@domain.com");
 
@@ -241,6 +245,9 @@ class EditUserHandlerImplTest {
     User user = new User();
     user.setUserType(UserType.INTERNAL);
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
+    doThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+        "wrong email: incorrect#domain.com"))
+        .when(userMutationService).updateEmail(any(), eq("incorrect#domain.com"), any());
     final EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setEmail("incorrect#domain.com");
 
@@ -260,7 +267,8 @@ class EditUserHandlerImplTest {
     User user = new User();
     user.setUserType(UserType.INTERNAL);
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
-    when(userRepository.findByEmail("existed@domain.com")).thenReturn(Optional.of(new User()));
+    doThrow(new ReportPortalException(ErrorType.USER_ALREADY_EXISTS, "existed@domain.com"))
+        .when(userMutationService).updateEmail(any(), eq("existed@domain.com"), any());
     final EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setEmail("existed@domain.com");
 
@@ -280,6 +288,9 @@ class EditUserHandlerImplTest {
     User user = new User();
     user.setUserType(UserType.GITHUB);
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED,
+        "Unable to change full name for external user"))
+        .when(userMutationService).updateFullName(any(), eq("full name"), any());
     final EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setFullName("full name");
 
@@ -290,6 +301,25 @@ class EditUserHandlerImplTest {
     );
     assertEquals(
         "You do not have enough permissions. Unable to change full name for external user",
+        exception.getMessage()
+    );
+  }
+
+  @Test
+  void editUserWithExternalIdWhenNonAdminShouldThrow() {
+    User user = new User();
+    user.setLogin("other_user");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByLogin("other_user")).thenReturn(Optional.of(user));
+    final EditUserRQ editUserRq = new EditUserRQ();
+    editUserRq.setExternalId("new-ext-id");
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.editUser("other_user", editUserRq,
+            getRpUser("regular_user", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L)
+        )
+    );
+    assertEquals("You do not have enough permissions. Current Account Role can't update externalId",
         exception.getMessage()
     );
   }

@@ -63,6 +63,15 @@ public interface OrganizationUserRepository extends
   List<Long> findNonPersonalOrganizationIdsByUserId(@Param("userId") Long userId);
 
   /**
+   * Finds all user IDs associated with a specific organization ID.
+   *
+   * @param orgId The ID of the organization.
+   * @return A list of user IDs associated with the specified organization ID.
+   */
+  @Query(value = "SELECT ou.user_id FROM organization_user ou WHERE ou.organization_id = :orgId", nativeQuery = true)
+  List<Long> findUserIdsByOrganizationId(@Param("orgId") Long orgId);
+
+  /**
    * Deletes all entries from the organization_user table for the specified user ID and organization ID.
    *
    * @param userId The ID of the user whose associations should be deleted.

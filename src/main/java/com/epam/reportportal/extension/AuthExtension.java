@@ -28,7 +28,7 @@ public interface AuthExtension extends ReportPortalExtensionPoint {
     return Optional.empty();
   }
 
-  default Optional<GetAuthIntegrationStrategy> getGetStrategy() {
+  default Optional<GetAuthIntegrationStrategy> getSamlStrategy() {
     return Optional.empty();
   }
 }

@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.auth.config;
 
+import com.epam.reportportal.auth.DelegatingPluginAuthenticationProvider;
 import com.epam.reportportal.auth.OAuthSuccessHandler;
 import com.epam.reportportal.auth.ReportPortalClient;
 import com.epam.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
@@ -29,8 +30,6 @@ import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
-import com.epam.reportportal.extension.AuthExtension;
-import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import java.util.List;
@@ -111,6 +110,8 @@ public class AuthorizationServerConfig {
   private final PasswordEncoder passwordEncoder;
 
   private final UserDetailsService userDetailsService;
+
+  private final DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider;
 
   @Bean
   public RegisteredClientRepository registeredClientRepository() {
@@ -194,12 +195,8 @@ public class AuthorizationServerConfig {
         .tokenEndpoint(tokenEndpoint -> {
           tokenEndpoint
               .accessTokenRequestConverter(new CustomCodeGrantAuthenticationConverter())
-              .authenticationProvider(basicPasswordAuthProvider());
-          pluginBox.getPlugins().stream()
-              .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
-              .forEach(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class)
-                  .ifPresent(authExtension -> tokenEndpoint.authenticationProvider(
-                      authExtension.getAuthenticationProvider())));
+              .authenticationProvider(basicPasswordAuthProvider())
+              .authenticationProvider(delegatingPluginAuthenticationProvider);
         });
 
     return http.build();

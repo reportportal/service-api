@@ -5,12 +5,13 @@ import static com.epam.reportportal.api.model.OperationType.REMOVE;
 import static com.epam.reportportal.api.model.OperationType.REPLACE;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.PatchOperation;
+import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.core.user.UserService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -37,6 +38,9 @@ class PatchUserHandlerTest {
 
   @Mock
   private UserService userService;
+
+  @Mock
+  private UserMutationService userMutationService;
 
   @InjectMocks
   private PatchUserHandler patchUserHandler;
@@ -75,9 +79,9 @@ class PatchUserHandlerTest {
   // --- Test Cases for Profile Owner (INTERNAL, non-UPSA) ---
 
   @Test
-  @DisplayName("Profile owner (INTERNAL) updates own email - Should succeed")
+  @DisplayName("Profile owner (INTERNAL) updates own email - Should delegate to UserMutationService")
   void profileOwnerInternalUpdatesOwnEmailShouldSucceed() {
-    targetUser.setId(principalUser.getUserId()); // Make target user the principal
+    targetUser.setId(principalUser.getUserId());
     mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
@@ -87,13 +91,13 @@ class PatchUserHandlerTest {
     op.setValue("new_email@example.com");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals("new_email@example.com", targetUser.getEmail());
+    verify(userMutationService).updateEmail(targetUser, "new_email@example.com", principalUser);
   }
 
   @Test
-  @DisplayName("Profile owner (INTERNAL) updates own full_name - Should succeed")
+  @DisplayName("Profile owner (INTERNAL) updates own full_name - Should delegate to UserMutationService")
   void profileOwnerInternalUpdatesOwnFullNameShouldSucceed() {
-    targetUser.setId(principalUser.getUserId()); // Make target user the principal
+    targetUser.setId(principalUser.getUserId());
     mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
@@ -103,13 +107,13 @@ class PatchUserHandlerTest {
     op.setValue("New Full Name");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals("New Full Name", targetUser.getFullName());
+    verify(userMutationService).updateFullName(targetUser, "New Full Name", principalUser);
   }
 
   @Test
   @DisplayName("Profile owner (INTERNAL) updates own role - Should fail with ACCESS_DENIED")
   void profileOwnerInternalUpdatesOwnRoleShouldFail() {
-    targetUser.setId(principalUser.getUserId()); // Make target user the principal
+    targetUser.setId(principalUser.getUserId());
     mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
@@ -129,7 +133,7 @@ class PatchUserHandlerTest {
   @Test
   @DisplayName("Profile owner (INTERNAL) updates another user's email - Should fail with ACCESS_DENIED")
   void profileOwnerInternalUpdatesAnotherUserEmailShouldFail() {
-    mockPrincipal(principalUser, false); // Principal is not admin
+    mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -147,9 +151,9 @@ class PatchUserHandlerTest {
   // --- Test Cases for Admin ---
 
   @Test
-  @DisplayName("Admin updates another user's (INTERNAL) email - Should succeed")
+  @DisplayName("Admin updates another user's (INTERNAL) email - Should delegate to UserMutationService")
   void adminUpdatesAnotherUserInternalEmailShouldSucceed() {
-    mockPrincipal(principalUser, true); // Principal is admin
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -158,13 +162,13 @@ class PatchUserHandlerTest {
     op.setValue("admin_changed@example.com");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals("admin_changed@example.com", targetUser.getEmail());
+    verify(userMutationService).updateEmail(targetUser, "admin_changed@example.com", principalUser);
   }
 
   @Test
-  @DisplayName("Admin updates another user's (INTERNAL) role - Should succeed")
+  @DisplayName("Admin updates another user's (INTERNAL) role - Should delegate to UserMutationService")
   void adminUpdatesAnotherUserInternalRoleShouldSucceed() {
-    mockPrincipal(principalUser, true); // Principal is admin
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -173,27 +177,23 @@ class PatchUserHandlerTest {
     op.setValue(UserRole.ADMINISTRATOR.name());
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals(UserRole.ADMINISTRATOR, targetUser.getRole());
+    verify(userMutationService).updateInstanceRole(targetUser, UserRole.ADMINISTRATOR.name(), principalUser);
   }
 
   @Test
-  @DisplayName("Admin updates own role - Should fail with ACCESS_DENIED")
-  void adminUpdatesOwnRoleShouldFail() {
-    targetUser.setId(principalUser.getUserId()); // Admin is updating their own profile
-    mockPrincipal(principalUser, true); // Principal is admin
+  @DisplayName("Admin updates own email - Should delegate to UserMutationService")
+  void adminUpdatesOwnEmailShouldSucceed() {
+    targetUser.setId(principalUser.getUserId());
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
-    op.setPath("/instance_role");
-    op.setValue(UserRole.ADMINISTRATOR.name());
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+    op.setPath("/email");
+    op.setValue("admin_new@example.com");
+    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals(
-        "You do not have enough permissions. You can only update your own email and full name. Other fields can only be changed by an administrator for you.",
-        exception.getMessage());
+    verify(userMutationService).updateEmail(targetUser, "admin_new@example.com", principalUser);
   }
 
   // --- Test Cases for UPSA Users ---
@@ -201,9 +201,9 @@ class PatchUserHandlerTest {
   @Test
   @DisplayName("Profile owner (UPSA) updates own email - Should fail with ACCESS_DENIED")
   void profileOwnerUpsaUpdatesOwnEmailShouldFail() {
-    targetUser.setId(principalUser.getUserId()); // Make target user the principal
+    targetUser.setId(principalUser.getUserId());
     targetUser.setUserType(UserType.UPSA);
-    mockPrincipal(principalUser, false); // Principal is not admin
+    mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -222,7 +222,7 @@ class PatchUserHandlerTest {
   @DisplayName("Admin updates UPSA user's email - Should fail with ACCESS_DENIED")
   void adminUpdatesUpsaUserEmailShouldFail() {
     targetUser.setUserType(UserType.UPSA);
-    mockPrincipal(principalUser, true); // Principal is admin
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -238,10 +238,10 @@ class PatchUserHandlerTest {
   }
 
   @Test
-  @DisplayName("Admin updates UPSA user's external_id (REPLACE) - Should succeed")
+  @DisplayName("Admin updates UPSA user's external_id (REPLACE) - Should delegate to UserMutationService")
   void adminUpdatesUpsaUserExternalIdReplaceShouldSucceed() {
     targetUser.setUserType(UserType.UPSA);
-    mockPrincipal(principalUser, true); // Principal is admin
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -250,15 +250,15 @@ class PatchUserHandlerTest {
     op.setValue("new_external_id");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals("new_external_id", targetUser.getExternalId());
+    verify(userMutationService).updateExternalId(targetUser, "new_external_id");
   }
 
   @Test
-  @DisplayName("Admin updates UPSA user's external_id (ADD) - Should succeed")
+  @DisplayName("Admin updates UPSA user's external_id (ADD) - Should delegate to UserMutationService")
   void adminUpdatesUpsaUserExternalIdAddShouldSucceed() {
     targetUser.setUserType(UserType.UPSA);
-    targetUser.setExternalId(null); // Ensure it's null for ADD operation
-    mockPrincipal(principalUser, true); // Principal is admin
+    targetUser.setExternalId(null);
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -267,23 +267,44 @@ class PatchUserHandlerTest {
     op.setValue("added_external_id");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals("added_external_id", targetUser.getExternalId());
+    verify(userMutationService).updateExternalId(targetUser, "added_external_id");
   }
 
   @Test
-  @DisplayName("Admin updates UPSA user's external_id (REMOVE) - Should succeed")
+  @DisplayName("Admin updates UPSA user's external_id (REMOVE) - Should delegate to UserMutationService")
   void adminUpdatesUpsaUserExternalIdRemoveShouldSucceed() {
     targetUser.setUserType(UserType.UPSA);
     targetUser.setExternalId("existing_external_id");
-    mockPrincipal(principalUser, true); // Principal is admin
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(REMOVE);
     op.setPath("/external_id");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
+  }
 
-    assertNull(targetUser.getExternalId());
+  // --- Unified Error Messages ---
+
+  @Test
+  @DisplayName("UPSA user updating own role gets same error as INTERNAL user")
+  void upsaUserUpdatesOwnRoleShouldGetSameErrorAsInternalUser() {
+    targetUser.setId(principalUser.getUserId());
+    targetUser.setUserType(UserType.UPSA);
+    mockPrincipal(principalUser, false);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/instance_role");
+    op.setValue(UserRole.ADMINISTRATOR.name());
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    assertEquals(
+        "You do not have enough permissions. You can only update your own email and full name. Other fields can only be changed by an administrator for you.",
+        exception.getMessage());
   }
 
   // --- Other Operations ---
@@ -296,7 +317,7 @@ class PatchUserHandlerTest {
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
-    op.setOp(null); // Null operation type
+    op.setOp(null);
     op.setPath("/email");
     op.setValue("test@example.com");
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -306,10 +327,10 @@ class PatchUserHandlerTest {
   }
 
   @Test
-  @DisplayName("Unsupported path for ADD operation - Should throw UnsupportedOperationException")
+  @DisplayName("Unsupported path for ADD operation - Should throw IllegalArgumentException")
   void unsupportedPathForAddOperationShouldThrowException() {
     targetUser.setId(principalUser.getUserId());
-    mockPrincipal(principalUser, true); // Admin can do more, but not this
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -323,10 +344,10 @@ class PatchUserHandlerTest {
   }
 
   @Test
-  @DisplayName("Unsupported path for REMOVE operation - Should throw UnsupportedOperationException")
+  @DisplayName("Unsupported path for REMOVE operation - Should throw IllegalArgumentException")
   void unsupportedPathForRemoveOperationShouldThrowException() {
     targetUser.setId(principalUser.getUserId());
-    mockPrincipal(principalUser, true); // Admin can do more, but not this
+    mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -339,10 +360,27 @@ class PatchUserHandlerTest {
   }
 
   @Test
-  @DisplayName("Unsupported path for REPLACE operation - Should throw UnsupportedOperationException")
+  @DisplayName("Unsupported path for REPLACE operation by admin - Should throw IllegalArgumentException")
   void unsupportedPathForReplaceOperationShouldThrowException() {
     targetUser.setId(principalUser.getUserId());
-    mockPrincipal(principalUser, true); // Admin can do more, but not this
+    mockPrincipal(principalUser, true);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("unsupported_path");
+    op.setValue("value");
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals("Unexpected path: 'unsupported_path'", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Unsupported path for REPLACE by non-admin own profile - Should fail with ACCESS_DENIED")
+  void unsupportedPathForReplaceByNonAdminOwnProfileShouldFail() {
+    targetUser.setId(principalUser.getUserId());
+    mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
 
     PatchOperation op = new PatchOperation();
@@ -352,8 +390,85 @@ class PatchUserHandlerTest {
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
     assertEquals(
         "You do not have enough permissions. You can only update your own email and full name. Other fields can only be changed by an administrator for you.",
         exception.getMessage());
+  }
+
+  // --- Test Cases for External Users (LDAP, SCIM, SAML, GITHUB) ---
+
+  @Test
+  @DisplayName("External user (LDAP, instance_role=USER) tries to update own email - Should fail with ACCESS_DENIED")
+  void externalUserLdapWithUserRoleUpdatesOwnEmailShouldFail() {
+    targetUser.setId(principalUser.getUserId());
+    targetUser.setUserType(UserType.LDAP);
+    targetUser.setRole(UserRole.USER);
+    mockPrincipal(principalUser, false);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/email");
+    op.setValue("new@example.com");
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    assertEquals(
+        "You do not have enough permissions. You are not allowed to update this user's profile.",
+        exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("External user (SCIM, instance_role=USER) tries to update own full_name - Should fail with ACCESS_DENIED")
+  void externalUserScimWithUserRoleUpdatesOwnFullNameShouldFail() {
+    targetUser.setId(principalUser.getUserId());
+    targetUser.setUserType(UserType.SCIM);
+    targetUser.setRole(UserRole.USER);
+    mockPrincipal(principalUser, false);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/full_name");
+    op.setValue("New Name");
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    assertEquals(
+        "You do not have enough permissions. You are not allowed to update this user's profile.",
+        exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Admin updates valid account_type to INTERNAL - Should delegate to UserMutationService")
+  void adminUpdatesValidAccountTypeToInternalShouldSucceed() {
+    mockPrincipal(principalUser, true);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/account_type");
+    op.setValue("INTERNAL");
+    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
+
+    verify(userMutationService).updateAccountType(targetUser, "INTERNAL");
+  }
+
+  @Test
+  @DisplayName("Admin updates valid account_type to SCIM - Should delegate to UserMutationService")
+  void adminUpdatesValidAccountTypeToScimShouldSucceed() {
+    mockPrincipal(principalUser, true);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/account_type");
+    op.setValue("SCIM");
+    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
+
+    verify(userMutationService).updateAccountType(targetUser, "SCIM");
   }
 }

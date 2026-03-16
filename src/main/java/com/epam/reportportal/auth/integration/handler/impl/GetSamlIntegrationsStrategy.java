@@ -35,10 +35,9 @@ public class GetSamlIntegrationsStrategy implements GetAuthIntegrationStrategy {
 
   @Override
   public AbstractAuthResource getIntegration() {
-    IntegrationType samlIntegrationType = integrationTypeRepository.findByName(
-            AuthIntegrationType.SAML.getName())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND,
-            AuthIntegrationType.SAML.getName()));
+    IntegrationType samlIntegrationType = integrationTypeRepository.findByName(AuthIntegrationType.SAML.getName())
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, AuthIntegrationType.SAML.getName()));
     List<Integration> providers = integrationRepository.findAllGlobalByType(samlIntegrationType);
     SamlProvidersResource resource = TO_PROVIDERS_RESOURCE.apply(providers);
     resource.setType(samlIntegrationType.getName());

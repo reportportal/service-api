@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.extension.common;
 
+import com.epam.reportportal.extension.AuthExtension;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import lombok.Getter;
 public enum ExtensionPoint {
 
   BTS(BtsExtension.class),
+  AUTH(AuthExtension.class),
   REPORT_PORTAL(ReportPortalExtensionPoint.class);
 
   private final Class<? extends org.pf4j.ExtensionPoint> extensionClass;

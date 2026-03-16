@@ -82,6 +82,7 @@ public class ValidationConstraints {
   public static final String HEX_COLOR_REGEXP = "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$";
   public static final String PROJECT_NAME_REGEXP = "[a-zA-Z0-9-_]+";
   public static final String USER_PASSWORD_REGEXP = "^(?=.*\\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^a-zA-Z\\d\\s])([^\\s]){8,256}$"; //NOSONAR
+  public static final String USER_FULL_NAME_REGEXP = "^[A-Za-z0-9.'_\\- ]+$";
 
   private ValidationConstraints() {
 

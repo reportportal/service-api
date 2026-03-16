@@ -19,18 +19,18 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,6 +46,9 @@ class CreateUserHandlerImplTest {
   @Mock
   private UserRepository userRepository;
 
+  @Mock
+  private UserMutationService userMutationService;
+
   @InjectMocks
   private CreateUserHandlerImpl handler;
 
@@ -55,7 +58,10 @@ class CreateUserHandlerImplTest {
         getRpUser("new_user@example.com", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER,
             ProjectRole.EDITOR, 1L);
 
-    doReturn(Optional.of(new User())).when(userRepository).findByEmail("new_user@example.com");
+    when(userMutationService.normalizeAndValidateEmail("new_user@example.com"))
+        .thenReturn("new_user@example.com");
+    doThrow(new ReportPortalException(ErrorType.USER_ALREADY_EXISTS, "new_user@example.com"))
+        .when(userMutationService).checkEmailUniqueness("new_user@example.com");
 
     var request = new NewUserRequest();
     request.setEmail("new_user@example.com");
@@ -63,7 +69,7 @@ class CreateUserHandlerImplTest {
         () -> handler.createUser(request, rpUser, "url")
     );
     assertEquals(
-        "User with 'email='new_user@example.com'' already exists. You couldn't create the duplicate.",
+        "User with 'new_user@example.com' already exists. You couldn't create the duplicate.",
         exception.getMessage()
     );
   }
@@ -73,6 +79,10 @@ class CreateUserHandlerImplTest {
     final ReportPortalUser rpUser =
         getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
             1L);
+
+    when(userMutationService.normalizeAndValidateEmail("incorrect.email"))
+        .thenThrow(
+            new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "wrong email: incorrect.email"));
 
     var request = new NewUserRequest();
     request.setEmail("incorrect.email");
@@ -91,7 +101,10 @@ class CreateUserHandlerImplTest {
         getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
             1L);
 
-    when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
+    when(userMutationService.normalizeAndValidateEmail("correct@domain.com"))
+        .thenReturn("correct@domain.com");
+    doThrow(new ReportPortalException(ErrorType.USER_ALREADY_EXISTS, "correct@domain.com"))
+        .when(userMutationService).checkEmailUniqueness("correct@domain.com");
 
     var request = new NewUserRequest();
     request.setEmail("correct@domain.com");
@@ -99,7 +112,7 @@ class CreateUserHandlerImplTest {
         () -> handler.createUser(request, rpUser, "url")
     );
     assertEquals(
-        "User with 'email='correct@domain.com'' already exists. You couldn't create the duplicate.",
+        "User with 'correct@domain.com' already exists. You couldn't create the duplicate.",
         exception.getMessage()
     );
   }
@@ -110,7 +123,10 @@ class CreateUserHandlerImplTest {
         getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
             1L);
 
-    when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
+    when(userMutationService.normalizeAndValidateEmail("CORRECT@domain.com"))
+        .thenReturn("correct@domain.com");
+    doThrow(new ReportPortalException(ErrorType.USER_ALREADY_EXISTS, "correct@domain.com"))
+        .when(userMutationService).checkEmailUniqueness("correct@domain.com");
 
     var request = new NewUserRequest();
     request.setEmail("CORRECT@domain.com");
@@ -118,7 +134,7 @@ class CreateUserHandlerImplTest {
         () -> handler.createUser(request, rpUser, "url")
     );
     assertEquals(
-        "User with 'email='correct@domain.com'' already exists. You couldn't create the duplicate.",
+        "User with 'correct@domain.com' already exists. You couldn't create the duplicate.",
         exception.getMessage()
     );
   }

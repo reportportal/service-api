@@ -42,6 +42,7 @@ public class UpdateSettingsRq {
       - `server.sidebar.links` - Configures links in the UI footer.
       - `server.features.important.enabled` - Enables or disables creation of personal organizations for new users.
       - `server.features.personal-organization.enabled` - Enables or disables personal organization features.
+      - `server.password.min.length` - Sets the minimum password length (8–256).
       - `secret.key` - Manages the secret key used for various security purposes.
       """)
   @NotNull
@@ -63,6 +64,7 @@ public class UpdateSettingsRq {
     SERVER_FEATURES_PERSONAL_ORGANIZATION_ENABLED("server.features.personal-organization.enabled"),
 
     SERVER_FEATURES_IMPORTANT("server.features.important.enabled"),
+    SERVER_PASSWORD_MIN_LENGTH("server.password.min.length"),
     SECRET_KEY("secret.key");
 
     private final String name;

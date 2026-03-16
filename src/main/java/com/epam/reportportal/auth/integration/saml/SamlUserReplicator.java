@@ -24,8 +24,6 @@ import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.integration.parameter.SamlParameter;
 import com.epam.reportportal.auth.model.saml.SamlResponse;
 import com.epam.reportportal.auth.oauth.UserSynchronizationException;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.commons.ContentTypeResolver;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
@@ -37,13 +35,15 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.infrastructure.persistence.util.PersonalProjectService;
-import jakarta.persistence.NonUniqueResultException;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,15 +112,14 @@ public class SamlUserReplicator extends AbstractUserReplicator {
 
     try {
       userOptional = userRepository.findByEmailIgnoreCase(userEmail);
-    } catch (NonUniqueResultException e) {
+    } catch (IncorrectResultSizeDataAccessException e) {
       log.error("Data integrity violation: Multiple users found with email: {}", userEmail);
       throw new UserSynchronizationException("User with email '"
           + userEmail
           + "' already exists, but multiple records found. Please contact administrator to resolve this issue.");
     }
 
-    return userOptional.orElseGet(
-        () -> createUser(samlResponse.getAttributes(), findProvider(samlResponse)));
+    return userOptional.orElseGet(() -> createUser(samlResponse.getAttributes(), findProvider(samlResponse)));
   }
 
   private Integration findProvider(SamlResponse samlResponse) {

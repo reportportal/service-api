@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.events.domain;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,6 +30,7 @@ import lombok.NoArgsConstructor;
 public class OrganizationDeletedEvent extends AbstractEvent<Void> {
 
   private String organizationName;
+  private List<Long> userIds;
 
   /**
    * Constructs an OrganizationDeletedEvent.
@@ -37,11 +39,13 @@ public class OrganizationDeletedEvent extends AbstractEvent<Void> {
    * @param userLogin        The login of the user who deleted the organization
    * @param organizationId   The ID of the deleted organization
    * @param organizationName The name of the deleted organization
+   * @param userIds          The IDs of users unassigned after the organization deletion
    */
   public OrganizationDeletedEvent(Long userId, String userLogin, Long organizationId,
-      String organizationName) {
+      String organizationName, List<Long> userIds) {
     super(userId, userLogin);
     this.organizationId = organizationId;
     this.organizationName = organizationName;
+    this.userIds = userIds;
   }
 }

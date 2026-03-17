@@ -24,8 +24,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
+import com.epam.reportportal.base.infrastructure.persistence.entity.activity.HistoryField;
 import com.epam.reportportal.base.ws.rabbit.activity.converter.OrganizationDeletedEventConverter;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,7 +37,22 @@ import org.junit.jupiter.api.Test;
  **/
 class OrganizationDeletedEventTest {
 
-  private static Activity getExpectedActivity() {
+  private static final List<Long> USER_IDS = List.of(10L, 20L);
+
+  @Test
+  void toActivity() {
+    OrganizationDeletedEvent event = new OrganizationDeletedEvent(
+        1L, "user", 2L, "Test Organization", USER_IDS);
+
+    OrganizationDeletedEventConverter converter = new OrganizationDeletedEventConverter();
+
+    Activity actual = converter.convert(event);
+    Activity expected = getExpectedActivity(event.getOccurredAt());
+
+    checkActivity(expected, actual);
+  }
+
+  private static Activity getExpectedActivity(Instant createdAt) {
     Activity activity = new Activity();
     activity.setAction(EventAction.DELETE);
     activity.setEventName("deleteOrganization");
@@ -45,19 +62,13 @@ class OrganizationDeletedEventTest {
     activity.setSubjectName("user");
     activity.setSubjectType(EventSubject.USER);
     activity.setObjectId(2L);
-    activity.setCreatedAt(Instant.now());
+    activity.setCreatedAt(createdAt);
     activity.setObjectName("Test Organization");
-    activity.setDetails(new ActivityDetails());
-    return activity;
-  }
 
-  @Test
-  void toActivity() {
-    OrganizationDeletedEvent event = new OrganizationDeletedEvent(1L, "user", 2L,
-        "Test Organization");
-    OrganizationDeletedEventConverter converter = new OrganizationDeletedEventConverter();
-    final Activity actual = converter.convert(event);
-    final Activity expected = getExpectedActivity();
-    checkActivity(expected, actual);
+    ActivityDetails details = new ActivityDetails();
+    details.addHistoryField(HistoryField.of("users", "10, 20", ""));
+    activity.setDetails(details);
+
+    return activity;
   }
 }

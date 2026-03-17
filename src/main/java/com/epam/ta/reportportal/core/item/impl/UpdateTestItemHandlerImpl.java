@@ -327,6 +327,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     itemIds.forEach(itemId -> {
       TestItem item = testItemRepository.findById(itemId)
           .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
+      IssueType beforeIssue = item.getItemResults().getIssue().getIssueType();
       TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
 
       IssueType issueType = issueTypeHandler.defineIssueType(projectId,
@@ -338,6 +339,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           ))).addIssueType(issueType).addAutoAnalyzedFlag(false).get();
       issueEntityRepository.save(issueEntity);
       item.getItemResults().setIssue(issueEntity);
+
+      testItemStatisticsService.changeDefectStatistics(item, beforeIssue, issueType);
 
       TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);
       if (!StringUtils.equalsIgnoreCase(

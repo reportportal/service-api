@@ -61,7 +61,7 @@ public class UserMutationServiceImpl implements UserMutationService {
   @Override
   public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
     if (!UserRole.ADMINISTRATOR.equals(editor.getUserRole())) {
-      expect(user.getUserType() == UserType.INTERNAL, Boolean.TRUE::equals)
+      expect(user.getUserType() != UserType.UPSA, Boolean.TRUE::equals)
           .verify(ACCESS_DENIED, "Unable to change email for external user");
     }
 
@@ -89,7 +89,7 @@ public class UserMutationServiceImpl implements UserMutationService {
   @Override
   public void updateFullName(User user, String fullName, ReportPortalUser editor) {
     if (!UserRole.ADMINISTRATOR.equals(editor.getUserRole())) {
-      expect(user.getUserType() == UserType.INTERNAL, Boolean.TRUE::equals)
+      expect(user.getUserType() != UserType.UPSA, Boolean.TRUE::equals)
           .verify(ACCESS_DENIED, "Unable to change full name for external user");
     }
 

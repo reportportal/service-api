@@ -399,8 +399,8 @@ class PatchUserHandlerTest {
   // --- Test Cases for External Users (LDAP, SCIM, SAML, GITHUB) ---
 
   @Test
-  @DisplayName("External user (LDAP, instance_role=USER) tries to update own email - Should fail with ACCESS_DENIED")
-  void externalUserLdapWithUserRoleUpdatesOwnEmailShouldFail() {
+  @DisplayName("External user (LDAP, instance_role=USER) updates own email - Should delegate to UserMutationService")
+  void externalUserLdapWithUserRoleUpdatesOwnEmailShouldSucceed() {
     targetUser.setId(principalUser.getUserId());
     targetUser.setUserType(UserType.LDAP);
     targetUser.setRole(UserRole.USER);
@@ -411,18 +411,14 @@ class PatchUserHandlerTest {
     op.setOp(REPLACE);
     op.setPath("/email");
     op.setValue("new@example.com");
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals(
-        "You do not have enough permissions. You are not allowed to update this user's profile.",
-        exception.getMessage());
+    verify(userMutationService).updateEmail(targetUser, "new@example.com", principalUser);
   }
 
   @Test
-  @DisplayName("External user (SCIM, instance_role=USER) tries to update own full_name - Should fail with ACCESS_DENIED")
-  void externalUserScimWithUserRoleUpdatesOwnFullNameShouldFail() {
+  @DisplayName("External user (SCIM, instance_role=USER) updates own full_name - Should delegate to UserMutationService")
+  void externalUserScimWithUserRoleUpdatesOwnFullNameShouldSucceed() {
     targetUser.setId(principalUser.getUserId());
     targetUser.setUserType(UserType.SCIM);
     targetUser.setRole(UserRole.USER);
@@ -433,13 +429,9 @@ class PatchUserHandlerTest {
     op.setOp(REPLACE);
     op.setPath("/full_name");
     op.setValue("New Name");
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals(
-        "You do not have enough permissions. You are not allowed to update this user's profile.",
-        exception.getMessage());
+    verify(userMutationService).updateFullName(targetUser, "New Name", principalUser);
   }
 
   @Test

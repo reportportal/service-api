@@ -85,9 +85,9 @@ class UserMutationServiceImplTest {
   class UpdateEmail {
 
     @Test
-    @DisplayName("Should reject non-admin changing external user email")
-    void updateEmailWhenNonAdminAndExternalUserShouldThrow() {
-      user.setUserType(UserType.LDAP);
+    @DisplayName("Should reject non-admin changing UPSA user email")
+    void updateEmailWhenNonAdminAndUpsaUserShouldThrow() {
+      user.setUserType(UserType.UPSA);
 
       assertThatThrownBy(
           () -> userMutationService.updateEmail(user, "new@example.com", regularEditor))
@@ -175,9 +175,9 @@ class UserMutationServiceImplTest {
   class UpdateFullName {
 
     @Test
-    @DisplayName("Should reject non-admin changing external user full name")
-    void updateFullNameWhenNonAdminAndExternalUserShouldThrow() {
-      user.setUserType(UserType.GITHUB);
+    @DisplayName("Should reject non-admin changing UPSA user full name")
+    void updateFullNameWhenNonAdminAndUpsaUserShouldThrow() {
+      user.setUserType(UserType.UPSA);
 
       assertThatThrownBy(
           () -> userMutationService.updateFullName(user, "New Name", regularEditor))

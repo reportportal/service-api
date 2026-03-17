@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * <p>Authorization rules:
  * <ul>
  *   <li>Administrators may update any user's fields.</li>
- *   <li>Regular INTERNAL users may update only their own email and full name.</li>
+ *   <li>Regular users (any type except UPSA) may update only their own email and full name.</li>
  *   <li>UPSA users' email and full_name cannot be changed by anyone.</li>
  * </ul>
  *
@@ -142,16 +142,18 @@ public class PatchUserHandler {
    * Ensures the current principal is authorized to update the specified user.
    *
    * <p>Authorization rules enforced here:
-   * - Administrators are allowed to update any user's profile. - INTERNAL users may update only their own profile.
-   * <p>
-   * Throws a {@link ReportPortalException} with {@link ErrorType#ACCESS_DENIED} when the principal is not authorized.
+   * - Administrators are allowed to update any user's profile. - Users with any type except UPSA may update only their
+   * own profile.
+   *
+   * <p>Throws a {@link ReportPortalException} with {@link ErrorType#ACCESS_DENIED} when the principal is not
+   * authorized.
    *
    * @param user         target user to update
    * @param isAdmin      whether current principal has an admin role
    * @param isOwnProfile whether current principal is the owner of the profile
    */
   private static void checkIfAuthorizedToPatchUser(User user, boolean isAdmin, boolean isOwnProfile) {
-    boolean isAuthorized = isAdmin || (user.getUserType() == UserType.INTERNAL && isOwnProfile);
+    boolean isAuthorized = isAdmin || (user.getUserType() != UserType.UPSA && isOwnProfile);
     if (!isAuthorized) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED, "You are not allowed to update this user's profile.");
     }

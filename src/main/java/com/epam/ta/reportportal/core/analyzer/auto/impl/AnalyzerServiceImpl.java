@@ -183,7 +183,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       List<TestItem> testItems, Long projectId) {
     return rs.stream().map(analyzed -> {
       Optional<TestItem> toUpdate = testItemRepository.findById(analyzed.getItemId());
-      toUpdate.ifPresent(testItem -> {
+      toUpdate = toUpdate.map(testItem -> {
         LOGGER.debug("Analysis has found a match: {}", analyzed);
         if (testItem.getRetryOf() != null) {
           LOGGER.info("Analyzed item is retry {}, replacing with original {} for update",
@@ -211,6 +211,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
                   true
               )));
         }
+        return testItem;
       });
       return toUpdate;
     }).filter(Optional::isPresent).map(Optional::get).collect(toList());

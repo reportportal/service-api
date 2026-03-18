@@ -59,12 +59,14 @@ public class UserMutationServiceImpl implements UserMutationService {
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
-  public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
-    if (!UserRole.ADMINISTRATOR.equals(editor.getUserRole())) {
-      expect(user.getUserType() != UserType.UPSA, Boolean.TRUE::equals)
-          .verify(ACCESS_DENIED, "Unable to change email for external user");
+  public void validateUserUpdatable(User user) {
+    if (user.getUserType() == UserType.UPSA) {
+      throw new ReportPortalException(ACCESS_DENIED, "UPSA users cannot be updated.");
     }
+  }
 
+  @Override
+  public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
     var email = normalizeAndValidateEmail(rawEmail);
     if (email.equals(user.getEmail())) {
       return;
@@ -88,11 +90,6 @@ public class UserMutationServiceImpl implements UserMutationService {
 
   @Override
   public void updateFullName(User user, String fullName, ReportPortalUser editor) {
-    if (!UserRole.ADMINISTRATOR.equals(editor.getUserRole())) {
-      expect(user.getUserType() != UserType.UPSA, Boolean.TRUE::equals)
-          .verify(ACCESS_DENIED, "Unable to change full name for external user");
-    }
-
     expect(StringUtils.isNotBlank(fullName), Boolean.TRUE::equals)
         .verify(BAD_REQUEST_ERROR, "Full name must not be empty.");
 

@@ -16,15 +16,12 @@
 
 package com.epam.reportportal.auth.config;
 
-import static com.epam.reportportal.auth.integration.AuthIntegrationType.LDAP;
 import static com.epam.reportportal.auth.integration.AuthIntegrationType.SAML;
 
 import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationStrategy;
-import com.epam.reportportal.auth.integration.handler.impl.GetLdapStrategy;
 import com.epam.reportportal.auth.integration.handler.impl.GetSamlIntegrationsStrategy;
 import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
-import com.epam.reportportal.auth.integration.handler.impl.strategy.LdapIntegrationStrategy;
 import com.epam.reportportal.auth.integration.handler.impl.strategy.SamlIntegrationStrategy;
 import com.epam.reportportal.auth.integration.provider.AuthIntegrationStrategyProvider;
 import com.google.common.collect.ImmutableMap;
@@ -51,7 +48,6 @@ public class AuthIntegrationConfig {
   @Bean("getAuthIntegrationStrategyMapping")
   public Map<AuthIntegrationType, GetAuthIntegrationStrategy> getAuthIntegrationStrategyMapping() {
     return new ImmutableMap.Builder<AuthIntegrationType, GetAuthIntegrationStrategy>()
-        .put(LDAP, applicationContext.getBean(GetLdapStrategy.class))
         .put(SAML, applicationContext.getBean(GetSamlIntegrationsStrategy.class))
         .build();
   }
@@ -65,7 +61,6 @@ public class AuthIntegrationConfig {
 
   private ImmutableMap<AuthIntegrationType, AuthIntegrationStrategy> buildAuthIntegrationStrategyMap() {
     return new ImmutableMap.Builder<AuthIntegrationType, AuthIntegrationStrategy>()
-        .put(LDAP, applicationContext.getBean(LdapIntegrationStrategy.class))
         .put(SAML, applicationContext.getBean(SamlIntegrationStrategy.class))
         .build();
   }

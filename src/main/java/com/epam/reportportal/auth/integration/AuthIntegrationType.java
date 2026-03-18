@@ -18,11 +18,9 @@ package com.epam.reportportal.auth.integration;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.auth.integration.converter.LdapConverter;
 import com.epam.reportportal.auth.integration.converter.SamlConverter;
 import com.epam.reportportal.auth.model.SamlResource;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
-import com.epam.reportportal.base.infrastructure.model.integration.auth.LdapResource;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import java.util.Arrays;
 import java.util.Optional;
@@ -35,17 +33,6 @@ import lombok.Getter;
 @Getter
 public enum AuthIntegrationType {
 
-  LDAP("ldap") {
-    @Override
-    public Optional<Integration> get(Integration entity) {
-      return ofNullable(entity);
-    }
-
-    @Override
-    public Function<Integration, LdapResource> getToResourceMapper() {
-      return LdapConverter.TO_RESOURCE;
-    }
-  },
   SAML("saml") {
     @Override
     public Optional<Integration> get(Integration entity) {

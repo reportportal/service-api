@@ -67,28 +67,29 @@ public class ActivityDetailsUtil {
   public static final String RECIPIENTS = "recipients";
   public static final String LAUNCH_NAMES = "launchNames";
   public static final String ATTRIBUTES = "attributes";
+  public static final String USERS = "users";
   public static final String SEND_CASE = "sendCase";
   public static final String TYPE = "type";
   public static final String ATTRIBUTES_OPERATOR = "attributesOperator";
   public static final String RULE_DETAILS = "ruleDetails";
 
   /**
-   * Builds a history field for a changed list value. Lists are normalized (nulls handled, strings converted) before
-   * comparison.
+   * Builds a history field for a changed list value. Lists are normalized (nulls handled, elements converted to
+   * strings) before comparison.
    *
    * @param fieldName field key to use in history field
    * @param before    previous list value
    * @param after     current list value
+   * @param <T>       element type
    * @return optional history field present if normalized lists differ
    */
-  public static Optional<HistoryField> processList(String fieldName, List<String> before,
-      List<String> after) {
+  public static <T> Optional<HistoryField> processList(String fieldName,
+      List<T> before, List<T> after) {
     var left = normalizeList(before);
     var right = normalizeList(after);
     return left.equals(right)
         ? Optional.empty()
-        : Optional.of(
-            HistoryField.of(fieldName, String.join(", ", left), String.join(", ", right)));
+        : Optional.of(HistoryField.of(fieldName, String.join(", ", left), String.join(", ", right)));
   }
 
   public static Optional<HistoryField> processMap(String fieldName, Map<String, Object> before,
@@ -229,7 +230,7 @@ public class ActivityDetailsUtil {
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static List<String> normalizeList(List<String> input) {
+  private static <T> List<String> normalizeList(List<T> input) {
     return Optional.ofNullable(input)
         .orElseGet(List::of)
         .stream()

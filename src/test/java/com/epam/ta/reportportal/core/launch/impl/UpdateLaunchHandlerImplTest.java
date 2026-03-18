@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.item.TestItemLastModifiedService;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
@@ -96,9 +95,6 @@ class UpdateLaunchHandlerImplTest {
 
   @Mock
   private TestItemStatisticsService statisticsService;
-
-  @Mock
-  private TestItemLastModifiedService testItemLastModifiedService;
 
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;

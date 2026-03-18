@@ -65,7 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
-import com.epam.ta.reportportal.core.item.TestItemLastModifiedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -94,8 +93,6 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
-  private final TestItemLastModifiedService testItemLastModifiedService;
-
   @Autowired
   public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, LaunchAccessValidator launchAccessValidator,
@@ -103,8 +100,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
       Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
       @Qualifier("uniqueErrorAnalysisStarterAsync")
       UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
-      LaunchAttributeHandlerService launchAttributeHandlerService,
-      TestItemLastModifiedService testItemLastModifiedService) {
+      LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.launchAccessValidator = launchAccessValidator;
@@ -113,7 +109,6 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     this.logIndexer = logIndexer;
     this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
     this.launchAttributeHandlerService = launchAttributeHandlerService;
-    this.testItemLastModifiedService = testItemLastModifiedService;
   }
 
   @Override
@@ -133,7 +128,6 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
     if (!previousMode.equals(launch.getMode())) {
       reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
-      testItemLastModifiedService.updateByLaunchId(launch.getId());
     }
     return new OperationCompletionRS(
         "Launch with ID = '" + launch.getId() + "' successfully updated.");

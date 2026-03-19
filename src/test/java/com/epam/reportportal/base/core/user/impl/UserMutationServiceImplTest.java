@@ -63,12 +63,10 @@ class UserMutationServiceImplTest {
 
   private User user;
   private ReportPortalUser adminEditor;
-  private ReportPortalUser regularEditor;
 
   @BeforeEach
   void setUp() {
     adminEditor = getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 2L);
-    regularEditor = getRpUser("regular", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 3L);
     user = new User();
     user.setId(1L);
     user.setLogin("user@example.com");
@@ -83,17 +81,6 @@ class UserMutationServiceImplTest {
   @Nested
   @DisplayName("updateEmail")
   class UpdateEmail {
-
-    @Test
-    @DisplayName("Should reject non-admin changing external user email")
-    void updateEmailWhenNonAdminAndExternalUserShouldThrow() {
-      user.setUserType(UserType.LDAP);
-
-      assertThatThrownBy(
-          () -> userMutationService.updateEmail(user, "new@example.com", regularEditor))
-          .isInstanceOf(ReportPortalException.class)
-          .hasMessageContaining("Unable to change email for external user");
-    }
 
     @Test
     @DisplayName("Should allow admin to change external user email")
@@ -173,17 +160,6 @@ class UserMutationServiceImplTest {
   @Nested
   @DisplayName("updateFullName")
   class UpdateFullName {
-
-    @Test
-    @DisplayName("Should reject non-admin changing external user full name")
-    void updateFullNameWhenNonAdminAndExternalUserShouldThrow() {
-      user.setUserType(UserType.GITHUB);
-
-      assertThatThrownBy(
-          () -> userMutationService.updateFullName(user, "New Name", regularEditor))
-          .isInstanceOf(ReportPortalException.class)
-          .hasMessageContaining("Unable to change full name for external user");
-    }
 
     @Test
     @DisplayName("Should allow admin to change external user full name")

@@ -18,11 +18,21 @@ package com.epam.reportportal.base.core.user;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 
 /**
  * Service for mutating user entity attributes with validation and authorization checks.
  */
 public interface UserMutationService {
+
+  /**
+   * Validates that the user can be updated. Immutable user types (e.g. UPSA) are rejected.
+   * Call before any mutation when handling PUT or PATCH requests.
+   *
+   * @param user target user to validate
+   * @throws ReportPortalException with ACCESS_DENIED when user is immutable
+   */
+  void validateUserUpdatable(User user);
 
   /**
    * Updates user email with validation and duplicate checking.

@@ -6,7 +6,11 @@ import static com.epam.reportportal.api.model.OperationType.REPLACE;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +39,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class PatchUserHandlerTest {
+
+  private static final String UPSA_IMMUTABLE_MESSAGE = "UPSA users cannot be updated.";
 
   @Mock
   private UserService userService;
@@ -126,7 +132,7 @@ class PatchUserHandlerTest {
 
     assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
     assertEquals(
-        "You do not have enough permissions. You can only update your own email and full name. Other fields can only be changed by an administrator for you.",
+        "You do not have enough permissions. You can only update your own email and full name.",
         exception.getMessage());
   }
 
@@ -205,6 +211,8 @@ class PatchUserHandlerTest {
     targetUser.setUserType(UserType.UPSA);
     mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED, UPSA_IMMUTABLE_MESSAGE))
+        .when(userMutationService).validateUserUpdatable(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
@@ -214,8 +222,7 @@ class PatchUserHandlerTest {
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
     assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals("You do not have enough permissions. You are not allowed to update this user's profile.",
-        exception.getMessage());
+    assertTrue(exception.getMessage().contains(UPSA_IMMUTABLE_MESSAGE));
   }
 
   @Test
@@ -224,6 +231,8 @@ class PatchUserHandlerTest {
     targetUser.setUserType(UserType.UPSA);
     mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED, UPSA_IMMUTABLE_MESSAGE))
+        .when(userMutationService).validateUserUpdatable(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
@@ -233,66 +242,83 @@ class PatchUserHandlerTest {
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
     assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals("You do not have enough permissions. Email and full name of UPSA users cannot be updated.",
-        exception.getMessage());
+    assertTrue(exception.getMessage().contains(UPSA_IMMUTABLE_MESSAGE));
   }
 
   @Test
-  @DisplayName("Admin updates UPSA user's external_id (REPLACE) - Should delegate to UserMutationService")
-  void adminUpdatesUpsaUserExternalIdReplaceShouldSucceed() {
+  @DisplayName("Admin updates UPSA user's external_id (REPLACE) - Should fail with ACCESS_DENIED")
+  void adminUpdatesUpsaUserExternalIdReplaceShouldFail() {
     targetUser.setUserType(UserType.UPSA);
     mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED, UPSA_IMMUTABLE_MESSAGE))
+        .when(userMutationService).validateUserUpdatable(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
     op.setPath("/external_id");
     op.setValue("new_external_id");
-    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
-    verify(userMutationService).updateExternalId(targetUser, "new_external_id");
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    assertTrue(exception.getMessage().contains(UPSA_IMMUTABLE_MESSAGE));
+    verify(userMutationService, never()).updateExternalId(any(), any());
   }
 
   @Test
-  @DisplayName("Admin updates UPSA user's external_id (ADD) - Should delegate to UserMutationService")
-  void adminUpdatesUpsaUserExternalIdAddShouldSucceed() {
+  @DisplayName("Admin updates UPSA user's external_id (ADD) - Should fail with ACCESS_DENIED")
+  void adminUpdatesUpsaUserExternalIdAddShouldFail() {
     targetUser.setUserType(UserType.UPSA);
     targetUser.setExternalId(null);
     mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED, UPSA_IMMUTABLE_MESSAGE))
+        .when(userMutationService).validateUserUpdatable(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(ADD);
     op.setPath("/external_id");
     op.setValue("added_external_id");
-    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
-    verify(userMutationService).updateExternalId(targetUser, "added_external_id");
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    assertTrue(exception.getMessage().contains(UPSA_IMMUTABLE_MESSAGE));
+    verify(userMutationService, never()).updateExternalId(any(), any());
   }
 
   @Test
-  @DisplayName("Admin updates UPSA user's external_id (REMOVE) - Should delegate to UserMutationService")
-  void adminUpdatesUpsaUserExternalIdRemoveShouldSucceed() {
+  @DisplayName("Admin updates UPSA user's external_id (REMOVE) - Should fail with ACCESS_DENIED")
+  void adminUpdatesUpsaUserExternalIdRemoveShouldFail() {
     targetUser.setUserType(UserType.UPSA);
     targetUser.setExternalId("existing_external_id");
     mockPrincipal(principalUser, true);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED, UPSA_IMMUTABLE_MESSAGE))
+        .when(userMutationService).validateUserUpdatable(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(REMOVE);
     op.setPath("/external_id");
-    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    assertTrue(exception.getMessage().contains(UPSA_IMMUTABLE_MESSAGE));
   }
 
   // --- Unified Error Messages ---
 
   @Test
-  @DisplayName("UPSA user updating own role gets same error as INTERNAL user")
-  void upsaUserUpdatesOwnRoleShouldGetSameErrorAsInternalUser() {
+  @DisplayName("UPSA user updating own role fails with immutable user error")
+  void upsaUserUpdatesOwnRoleShouldFailWithImmutableError() {
     targetUser.setId(principalUser.getUserId());
     targetUser.setUserType(UserType.UPSA);
     mockPrincipal(principalUser, false);
     when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+    doThrow(new ReportPortalException(ErrorType.ACCESS_DENIED, UPSA_IMMUTABLE_MESSAGE))
+        .when(userMutationService).validateUserUpdatable(targetUser);
 
     PatchOperation op = new PatchOperation();
     op.setOp(REPLACE);
@@ -302,9 +328,7 @@ class PatchUserHandlerTest {
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
     assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals(
-        "You do not have enough permissions. You can only update your own email and full name. Other fields can only be changed by an administrator for you.",
-        exception.getMessage());
+    assertTrue(exception.getMessage().contains(UPSA_IMMUTABLE_MESSAGE));
   }
 
   // --- Other Operations ---
@@ -391,16 +415,15 @@ class PatchUserHandlerTest {
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
     assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals(
-        "You do not have enough permissions. You can only update your own email and full name. Other fields can only be changed by an administrator for you.",
+    assertEquals("You do not have enough permissions. You can only update your own email and full name.",
         exception.getMessage());
   }
 
   // --- Test Cases for External Users (LDAP, SCIM, SAML, GITHUB) ---
 
   @Test
-  @DisplayName("External user (LDAP, instance_role=USER) tries to update own email - Should fail with ACCESS_DENIED")
-  void externalUserLdapWithUserRoleUpdatesOwnEmailShouldFail() {
+  @DisplayName("External user (LDAP, instance_role=USER) updates own email - Should delegate to UserMutationService")
+  void externalUserLdapWithUserRoleUpdatesOwnEmailShouldSucceed() {
     targetUser.setId(principalUser.getUserId());
     targetUser.setUserType(UserType.LDAP);
     targetUser.setRole(UserRole.USER);
@@ -411,18 +434,14 @@ class PatchUserHandlerTest {
     op.setOp(REPLACE);
     op.setPath("/email");
     op.setValue("new@example.com");
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals(
-        "You do not have enough permissions. You are not allowed to update this user's profile.",
-        exception.getMessage());
+    verify(userMutationService).updateEmail(targetUser, "new@example.com", principalUser);
   }
 
   @Test
-  @DisplayName("External user (SCIM, instance_role=USER) tries to update own full_name - Should fail with ACCESS_DENIED")
-  void externalUserScimWithUserRoleUpdatesOwnFullNameShouldFail() {
+  @DisplayName("External user (SCIM, instance_role=USER) updates own full_name - Should delegate to UserMutationService")
+  void externalUserScimWithUserRoleUpdatesOwnFullNameShouldSucceed() {
     targetUser.setId(principalUser.getUserId());
     targetUser.setUserType(UserType.SCIM);
     targetUser.setRole(UserRole.USER);
@@ -433,13 +452,9 @@ class PatchUserHandlerTest {
     op.setOp(REPLACE);
     op.setPath("/full_name");
     op.setValue("New Name");
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+    patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    assertEquals(
-        "You do not have enough permissions. You are not allowed to update this user's profile.",
-        exception.getMessage());
+    verify(userMutationService).updateFullName(targetUser, "New Name", principalUser);
   }
 
   @Test

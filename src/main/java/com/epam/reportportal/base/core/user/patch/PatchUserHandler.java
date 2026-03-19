@@ -20,11 +20,11 @@ import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.core.user.UserService;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -39,9 +39,11 @@ import org.springframework.util.Assert;
  *
  * <p>Authorization rules:
  * <ul>
- *   <li>Administrators may update any user's fields.</li>
- *   <li>Regular INTERNAL users may update only their own email and full name.</li>
- *   <li>UPSA users' email and full_name cannot be changed by anyone.</li>
+ *   <li>Administrators may update email, full_name, role, active, account_type and external_id of
+ *       any non-UPSA user.</li>
+ *   <li>Regular users (any type except UPSA) may update only their own email and full name.</li>
+ *   <li>UPSA users' mutable fields (email, full_name, role, active, account_type, external_id)
+ *       cannot be changed by anyone, including administrators.</li>
  * </ul>
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
@@ -58,6 +60,7 @@ public class PatchUserHandler {
   public static final String ACCOUNT_TYPE_PATH = "/account_type";
   public static final String EXTERNAL_ID_PATH = "/external_id";
   private static final String UNEXPECTED_PATH_MESSAGE = "Unexpected path: '%s'";
+  private static final Set<String> ALLOWED_SELF_UPDATE_PATHS = Set.of(EMAIL_PATH, FULL_NAME_PATH);
 
   private final UserService userService;
   private final UserMutationService userMutationService;
@@ -87,73 +90,40 @@ public class PatchUserHandler {
    * Validates whether the current principal is allowed to perform the provided {@code operation} on the given
    * {@code user}.
    *
-   * <p>This method enforces general authorization rules (admin vs regular user) and field-level
-   * restrictions (e.g. UPSA users' email/full name cannot be changed).
+   * <p>Authorization rules enforced:
+   * <ul>
+   *   <li>Administrators can update any field for any user</li>
+   *   <li>Regular users can only update their own profile</li>
+   *   <li>Regular users are restricted to updating only their email and full name</li>
+   * </ul>
    *
-   * @param user      target user to validate against
-   * @param operation patch operation to validate
-   * @throws ReportPortalException when the operation is not permitted
+   * <p>Additionally delegates to {@link UserMutationService#validateUserUpdatable(User)}
+   * for user-type-specific restrictions (e.g., UPSA users).
+   *
+   * @param user      the target user whose profile is being modified
+   * @param operation the patch operation containing the field path and new value
+   * @throws ReportPortalException    with {@link ErrorType#ACCESS_DENIED} if the operation is not permitted
+   * @throws IllegalArgumentException if the operation path is null or empty
    */
   private void validateOperation(User user, PatchOperation operation) {
-    boolean isOwnProfile = SecurityContextUtils.getPrincipal().getUserId().equals(user.getId());
-    boolean isAdmin = SecurityContextUtils.isAdminRole();
-
     String path = operation.getPath();
     Assert.isTrue(StringUtils.isNotEmpty(path), "The 'path' must not be null");
 
-    validateOwnerFieldAccess(isAdmin, isOwnProfile, path);
-    checkIfAuthorizedToPatchUser(user, isAdmin, isOwnProfile);
-    validateUpsaUserModification(user, path);
-  }
+    userMutationService.validateUserUpdatable(user);
 
-  /**
-   * Ensures that when the current principal is updating their own profile only the email and full name fields are
-   * allowed to be changed.
-   *
-   * @param isOwnProfile whether the current principal is the owner of the profile
-   * @param path         the JSON-Patch path of the field being modified
-   * @throws ReportPortalException with ErrorType.ACCESS_DENIED if a non-permitted field is modified
-   */
-  private static void validateOwnerFieldAccess(boolean isAdmin, boolean isOwnProfile, String path) {
-    if (!isAdmin && isOwnProfile && !path.equals(EMAIL_PATH) && !path.equals(FULL_NAME_PATH)) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
-          "You can only update your own email and full name. Other fields can only be changed by an administrator for you.");
+    boolean isAdmin = SecurityContextUtils.isAdminRole();
+    if (isAdmin) {
+      return;
     }
-  }
 
-  /**
-   * Validates that UPSA users' email and full name cannot be modified.
-   *
-   * <p>If the target {@code user} has type {@link UserType#UPSA} and the provided {@code path}
-   * points to either the {@value #EMAIL_PATH} or {@value #FULL_NAME_PATH}, a {@link ReportPortalException} with
-   * {@link ErrorType#ACCESS_DENIED} is thrown.
-   *
-   * @param user target user to validate
-   * @param path JSON-Patch path of the field being modified
-   * @throws ReportPortalException when attempting to modify email or full name of a UPSA user
-   */
-  private static void validateUpsaUserModification(User user, String path) {
-    if (user.getUserType() == UserType.UPSA && (path.equals(EMAIL_PATH) || path.equals(FULL_NAME_PATH))) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED, "Email and full name of UPSA users cannot be updated.");
-    }
-  }
+    boolean isOwnProfile = SecurityContextUtils.getPrincipal().getUserId().equals(user.getId());
 
-  /**
-   * Ensures the current principal is authorized to update the specified user.
-   *
-   * <p>Authorization rules enforced here:
-   * - Administrators are allowed to update any user's profile. - INTERNAL users may update only their own profile.
-   * <p>
-   * Throws a {@link ReportPortalException} with {@link ErrorType#ACCESS_DENIED} when the principal is not authorized.
-   *
-   * @param user         target user to update
-   * @param isAdmin      whether current principal has an admin role
-   * @param isOwnProfile whether current principal is the owner of the profile
-   */
-  private static void checkIfAuthorizedToPatchUser(User user, boolean isAdmin, boolean isOwnProfile) {
-    boolean isAuthorized = isAdmin || (user.getUserType() == UserType.INTERNAL && isOwnProfile);
-    if (!isAuthorized) {
+    if (!isOwnProfile) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED, "You are not allowed to update this user's profile.");
+    }
+
+    if (!ALLOWED_SELF_UPDATE_PATHS.contains(path)) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED, "You can only update your own email and full name.");
     }
   }
 

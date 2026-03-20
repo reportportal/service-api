@@ -39,11 +39,12 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
    * @param projectId    the project ID
    * @param testPlanId   the test plan ID
    * @param testFolderId test folder ID
+   * @param filter       the filter parameters
    * @param pageable     pagination parameters
    * @return page of test cases added to the test plan
    */
   Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(Long projectId, Long testPlanId,
-      Long testFolderId, Pageable pageable);
+      Filter filter, Pageable pageable);
 
   /**
    * Retrieves a single test case in test plan with full execution history.

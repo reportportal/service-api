@@ -70,15 +70,25 @@ public class TmsTestCaseFilterableRepository implements FilterableRepository<Tms
   }
 
   public Page<Long> findIdsByFilter(Filter filter, Pageable pageable) {
-    //TODO refactor to the correct implementation with a fetching of ids from DB initially
-    Page<TmsTestCase> fullResults = findByFilter(filter, pageable);
-
-    List<Long> ids = fullResults.getContent()
+    Set<String> fields = filter.getFilterConditions()
         .stream()
-        .map(TmsTestCase::getId)
-        .collect(Collectors.toList());
+        .map(ConvertibleCondition::getAllConditions)
+        .flatMap(Collection::stream)
+        .map(FilterCondition::getSearchCriteria)
+        .collect(Collectors.toSet());
 
-    return new PageImpl<>(ids, pageable, fullResults.getTotalElements());
+    fields.addAll(pageable.getSort().get()
+        .map(Sort.Order::getProperty)
+        .collect(Collectors.toSet()));
+
+    var query = QueryBuilder.newBuilder(filter, fields)
+        .with(pageable)
+        .build();
+
+    return PageableExecutionUtils.getPage(
+        dsl.fetch(query).into(Long.class),
+        pageable,
+        () -> dsl.fetchCount(QueryBuilder.newBuilder(filter, fields).build()));
   }
 
   public Page<Long> findIdsByProjectIdAndFilter(long projectId, Filter filter, Pageable pageable) {

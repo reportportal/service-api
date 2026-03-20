@@ -242,7 +242,7 @@ public class TmsTestPlanController {
   public Page<TmsTestCaseInTestPlanRS> getTestCasesAddedToPlan(
       @PathVariable String projectKey,
       @PathVariable("testPlanId") Long testPlanId,
-      @RequestParam(value = "testFolderId", required = false) Long testFolderId,
+      @FilterFor(TmsTestCase.class) Filter filter,
       @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestPlanService.getTestCasesAddedToPlan(
@@ -250,7 +250,7 @@ public class TmsTestPlanController {
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
-        testFolderId,
+        filter,
         offsetRequest
     );
   }

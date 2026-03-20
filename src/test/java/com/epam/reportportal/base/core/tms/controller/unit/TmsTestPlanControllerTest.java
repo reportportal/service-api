@@ -790,12 +790,12 @@ public class TmsTestPlanControllerTest {
         1L
     );
 
-    given(tmsTestPlanService.getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), eq(testFolderId),
+    given(tmsTestPlanService.getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), any(Filter.class),
         any()))
         .willReturn(page);
 
     // When/Then
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?testFolderId={testFolderId}",
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
             projectKey, testPlanId, testFolderId)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -806,7 +806,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.page.totalElements").value(1));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), eq(testFolderId),
+    verify(tmsTestPlanService).getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), any(Filter.class),
         any());
   }
 
@@ -826,12 +826,12 @@ public class TmsTestPlanControllerTest {
         3L
     );
 
-    given(tmsTestPlanService.getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), eq(testFolderId),
+    given(tmsTestPlanService.getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), any(Filter.class),
         any()))
         .willReturn(page);
 
     // When/Then
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?testFolderId={testFolderId}",
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
             projectKey, testPlanId, testFolderId)
             .param("offset", "20")
             .param("limit", "20")
@@ -841,7 +841,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.content.length()").value(1))
         .andExpect(jsonPath("$.page.totalElements").value(50));
 
-    verify(tmsTestPlanService).getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), eq(testFolderId),
+    verify(tmsTestPlanService).getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), any(Filter.class),
         any());
   }
 
@@ -881,12 +881,12 @@ public class TmsTestPlanControllerTest {
         0L
     );
 
-    given(tmsTestPlanService.getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), eq(testFolderId),
+    given(tmsTestPlanService.getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), any(Filter.class),
         any()))
         .willReturn(emptyPage);
 
     // When/Then
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?testFolderId={testFolderId}",
+    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
             projectKey, testPlanId, testFolderId)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -894,7 +894,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.content.length()").value(0))
         .andExpect(jsonPath("$.page.totalElements").value(0));
 
-    verify(tmsTestPlanService).getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), eq(testFolderId),
+    verify(tmsTestPlanService).getTestCasesAddedToPlan(eq(projectId), eq(testPlanId), any(Filter.class),
         any());
   }
 

@@ -1,5 +1,8 @@
 package com.epam.reportportal.base.core.tms.service;
 
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PLAN_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PROJECT_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static java.util.Objects.nonNull;
 
@@ -25,7 +28,11 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResul
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseImporterFactory;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestCaseFilterableRepository;
@@ -789,16 +796,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public Page<TmsTestCaseInTestPlanRS> getTestCasesInTestPlan(Long projectId, Long testPlanId,
-      Long testFolderId, Pageable pageable) {
+      Filter filter, Pageable pageable) {
 
-    // Get test case IDs that belong to this test plan with pagination
-    var testCaseIdsPage = tmsTestCaseRepository.findIdsByCriteria(
-        projectId,
-        null, // no search query
-        testFolderId, // filter by test folder
-        testPlanId, // filter by test plan
-        pageable
-    );
+    var enhancedFilter = enhanceFilterWithProjectIdAndTestPlanId(filter, projectId, testPlanId);
+
+    var testCaseIdsPage = tmsTestCaseFilterableRepository.findIdsByFilter(enhancedFilter, pageable);
 
     if (testCaseIdsPage.isEmpty()) {
       return PagedResourcesAssembler
@@ -952,5 +954,43 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           TEST_CASE_NOT_FOUND_IN_TEST_PLAN.formatted(testCaseId, projectId, testPlanId)
       );
     }
+  }
+
+  private Filter enhanceFilterWithProjectIdAndTestPlanId(Filter originalFilter,
+      Long projectId,
+      Long testPlanId) {
+    var conditions = new ArrayList<>(originalFilter.getFilterConditions());
+
+    var hasProjectIdFilter = conditions
+        .stream()
+        .anyMatch(condition -> condition instanceof FilterCondition &&
+            ((FilterCondition) condition).getSearchCriteria()
+                .equals(CRITERIA_TMS_TEST_CASE_PROJECT_ID));
+
+    if (!hasProjectIdFilter) {
+      conditions.add(new FilterCondition(
+          Condition.EQUALS,
+          false,
+          String.valueOf(projectId),
+          CRITERIA_TMS_TEST_CASE_PROJECT_ID
+      ));
+    }
+
+    var hasTestPlanIdIdFilter = conditions
+        .stream()
+        .anyMatch(condition -> condition instanceof FilterCondition &&
+            ((FilterCondition) condition).getSearchCriteria()
+                .equals(CRITERIA_TMS_TEST_CASE_PLAN_ID));
+
+    if (!hasTestPlanIdIdFilter) {
+      conditions.add(new FilterCondition(
+          Condition.EQUALS,
+          false,
+          String.valueOf(testPlanId),
+          CRITERIA_TMS_TEST_CASE_PLAN_ID
+      ));
+    }
+
+    return new Filter(TmsTestCase.class, conditions);
   }
 }

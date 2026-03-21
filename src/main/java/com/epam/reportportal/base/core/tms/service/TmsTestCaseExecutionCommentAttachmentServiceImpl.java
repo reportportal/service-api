@@ -56,17 +56,9 @@ public class TmsTestCaseExecutionCommentAttachmentServiceImpl implements
           attachment.setExecutionComments(new HashSet<>());
         }
 
-        // Create junction entity
-        var commentAttachment = new TmsTestCaseExecutionCommentAttachment(
-            tmsTestCaseExecutionComment, attachment);
-
-        tmsTestCaseExecutionCommentAttachmentRepository.save(commentAttachment);
-
         tmsTestCaseExecutionComment.getAttachments().add(attachment);
         attachment.getExecutionComments().add(tmsTestCaseExecutionComment);
       });
-
-      tmsAttachmentService.saveAll(attachments);
 
       log.debug("Created {} attachment relationships for execution tmsTestCaseExecutionComment: {}",
           attachments.size(), tmsTestCaseExecutionComment.getId());

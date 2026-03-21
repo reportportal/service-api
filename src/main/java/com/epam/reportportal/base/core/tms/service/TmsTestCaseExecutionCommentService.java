@@ -8,6 +8,8 @@ public interface TmsTestCaseExecutionCommentService {
 
   TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ);
 
+  TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ);
+
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 
   void deleteByLaunchId(Long launchId);

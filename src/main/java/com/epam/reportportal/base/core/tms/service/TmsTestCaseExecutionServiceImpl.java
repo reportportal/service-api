@@ -535,6 +535,11 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
               updated = true;
             }
           }
+          
+          if (request.getExecutionComment() != null) {
+            tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution, request.getExecutionComment());
+            updated = true;
+          }
 
           if (updated) {
             execution = tmsTestCaseExecutionRepository.save(execution);

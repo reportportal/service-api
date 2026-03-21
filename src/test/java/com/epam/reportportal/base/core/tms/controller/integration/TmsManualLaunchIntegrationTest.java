@@ -1693,4 +1693,59 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         UploadAttachmentRS.class
     );
   }
+
+  @Test
+  void patchTestCaseExecution_WithNewComment_ShouldCreateComment() throws Exception {
+    var patchRQ = TmsTestCaseExecutionRQ.builder()
+        .status("PASSED")
+        .executionComment(TmsTestCaseExecutionCommentRQ.builder()
+            .comment("New comment added via patch")
+            .build())
+        .build();
+
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/11")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(patchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionStatus").value("PASSED"))
+        .andExpect(jsonPath("$.executionComment.comment").value("New comment added via patch"));
+
+    entityManager.clear();
+    var comment = executionCommentRepository.findByExecutionId(11L);
+    assertTrue(comment.isPresent());
+  }
+
+  @Test
+  void patchTestCaseExecution_WithPartialComment_ShouldUpdateComment() throws Exception {
+    var patchRQ = TmsTestCaseExecutionRQ.builder()
+        .executionComment(TmsTestCaseExecutionCommentRQ.builder()
+            .comment("Updated partial comment via patch")
+            .build())
+        .build();
+
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(patchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionComment.comment").value("Updated partial comment via patch"));
+  }
+
+  @Test
+  void patchTestCaseExecution_WithEmptyComment_ShouldDeleteComment() throws Exception {
+    var patchRQ = TmsTestCaseExecutionRQ.builder()
+        .executionComment(TmsTestCaseExecutionCommentRQ.builder().build())
+        .build();
+
+    mockMvc.perform(
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(patchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionComment").doesNotExist());
+  }
 }

@@ -57,6 +57,30 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
   @Override
   @Transactional
+  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(TmsTestCaseExecution existingExecution,
+      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+    log.debug("Patching execution comment for execution: {}", existingExecution.getId());
+
+    if (executionCommentRQ == null || (executionCommentRQ.getComment() == null
+        && executionCommentRQ.getAttachments() == null
+        && executionCommentRQ.getBtsTickets() == null)) {
+      log.debug("No comment data provided, removing existing comment for execution: {}",
+          existingExecution.getId());
+      removeExistingComment(existingExecution);
+      return null;
+    }
+
+    var existingComment = existingExecution.getExecutionComment();
+
+    if (existingComment != null) {
+      return patchExistingComment(existingComment, executionCommentRQ);
+    } else {
+      return createNewComment(existingExecution, executionCommentRQ);
+    }
+  }
+
+  @Override
+  @Transactional
   public void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId) {
     if (!tmsTestCaseExecutionCommentRepository.existsByExecutionId(executionId)) {
       throw new ReportPortalException(
@@ -111,6 +135,34 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
         executionCommentRQ);
 
     // Save updated comment
+    return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
+        tmsTestCaseExecutionCommentRepository.save(existingComment)
+    );
+  }
+
+  /**
+   * Selectively updates existing execution comment with new data.
+   *
+   * @return
+   */
+  private TmsTestCaseExecutionCommentRS patchExistingComment(TmsTestCaseExecutionComment existingComment,
+      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+    log.debug("Patching existing comment: {}", existingComment.getId());
+
+    if (executionCommentRQ.getComment() != null) {
+      existingComment.setComment(executionCommentRQ.getComment());
+    }
+
+    if (executionCommentRQ.getAttachments() != null) {
+      tmsTestCaseExecutionCommentAttachmentService.updateAttachments(existingComment,
+          executionCommentRQ);
+    }
+
+    if (executionCommentRQ.getBtsTickets() != null) {
+      tmsTestCaseExecutionCommentBtsTicketService.updateBtsTickets(existingComment,
+          executionCommentRQ);
+    }
+
     return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
         tmsTestCaseExecutionCommentRepository.save(existingComment)
     );

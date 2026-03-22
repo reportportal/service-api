@@ -32,17 +32,18 @@ public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttrib
   boolean existsByProjectIdAndKeyAndValue(@Param("projectId") Long projectId,
       @Param("key") String key, @Param("value") String value);
 
-  @Query("SELECT DISTINCT a.key FROM TmsAttribute a " +
-      "WHERE a.project.id = :projectId " +
-      "AND (:search IS NULL OR a.key LIKE %:search%)")
+  @Query(value = "SELECT DISTINCT key FROM tms_attribute " +
+      "WHERE project_id = :projectId " +
+      "AND (:search IS NULL OR key ILIKE '%' || :search || '%')",
+      nativeQuery = true)
   List<String> findDistinctKeysByProjectIdAndKeyLike(
       @Param("projectId") Long projectId,
       @Param("search") String search);
 
-  @Query("SELECT DISTINCT a.value FROM TmsAttribute a " +
-      "WHERE a.project.id = :projectId " +
-      "AND a.value IS NOT NULL " +
-      "AND (:search IS NULL OR a.value LIKE %:search%)")
+  @Query(value = "SELECT DISTINCT key FROM tms_attribute " +
+      "WHERE project_id = :projectId " +
+      "AND (:search IS NULL OR value ILIKE '%' || :search || '%')",
+      nativeQuery = true)
   List<String> findDistinctValuesByProjectIdAndValueLike(
       @Param("projectId") Long projectId,
       @Param("search") String search);

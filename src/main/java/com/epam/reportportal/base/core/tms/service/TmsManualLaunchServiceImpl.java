@@ -318,51 +318,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
 
-    List<Long> successTestCaseIds = new ArrayList<>();
-    List<BatchTestCaseOperationError> errors = new ArrayList<>();
-
-    var testCaseIds = request.getTestCaseIds();
-
-    // Try to add each test case
-    for (var testCaseId : testCaseIds) {
-      try {
-        // Check if already exists
-        if (!tmsTestCaseService.existsById(projectId, testCaseId)) { // Check if a test case exists
-          log.warn("Test case {} for project {} does not exist", testCaseId, projectId);
-          errors.add(new BatchTestCaseOperationError(
-              testCaseId,
-              "Test case does not exist in the project"
-          ));
-          continue;
-        } else if (tmsTestCaseExecutionService.isTestCaseInLaunch(testCaseId, launchId)) {
-          log.warn("Test case {} already exists in launch {}", testCaseId, launchId);
-          errors.add(new BatchTestCaseOperationError(
-              testCaseId,
-              "Test case already exists in launch"
-          ));
-          continue;
-        }
-
-        // Add a test case through execution service (creates execution and test item)
-        tmsTestCaseExecutionService.addTestCaseToLaunch(projectId, launch, testCaseId);
-        successTestCaseIds.add(testCaseId);
-
-      } catch (Exception e) {
-        log.error("Failed to add test case {} to launch {}", testCaseId, launchId, e);
-        errors.add(new BatchTestCaseOperationError(
-            testCaseId,
-            e.getMessage()
-        ));
-      }
-    }
-
-    var result = tmsManualLaunchMapper.convertBatchAddTestCaseOperationResultRS(testCaseIds,
-        successTestCaseIds, errors);
-
-    log.debug("Added test cases to launch: {} - success: {}, failed: {}",
-        launchId, successTestCaseIds.size(), errors.size());
-
-    return result;
+    return tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, request.getTestCaseIds());
   }
 
   @Override

@@ -117,6 +117,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
               inputDto.getParentTestFolder()
           );
 
+          validateNoCycle(projectId, existingTestFolder.getId(), newParentId);
+
           // Apply other changes via mapper
           tmsTestFolderMapper.update(existingTestFolder,
               tmsTestFolderMapper.convertFromRQ(projectId, inputDto));
@@ -169,6 +171,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
               inputDto.getParentTestFolderId(),
               inputDto.getParentTestFolder()
           );
+
+          validateNoCycle(projectId, existingTestFolder.getId(), newParentId);
 
           // Apply other changes via mapper
           tmsTestFolderMapper.patch(existingTestFolder,
@@ -897,6 +901,19 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         }
         folder.setIndex(targetIndex);
       }
+    }
+  }
+
+  private void validateNoCycle(long projectId, Long currentFolderId, Long newParentId) {
+    if (newParentId == null || currentFolderId == null) {
+      return;
+    }
+    if (currentFolderId.equals(newParentId)) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR, "Test folder cannot be its own parent.");
+    }
+    var hierarchyIds = tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, currentFolderId);
+    if (hierarchyIds.contains(newParentId)) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR, "Cannot move a test folder into its own descendant.");
     }
   }
 }

@@ -19,7 +19,9 @@ import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +58,13 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
   @Transactional
   @Override
   public TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch) {
+    return findTestFolderItem(projectId, testFolderId, launch, new HashSet<>());
+  }
+
+  private TestItem findTestFolderItem(Long projectId,
+      Long testFolderId,
+      Launch launch,
+      Set<Long> visitedFolderIds) {
     log.debug("Finding or creating SUITE item for test folder: {} in launch: {}",
         testFolderId, launch.getId());
 
@@ -69,7 +78,7 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
     }
 
     // Create new SUITE item
-    var suiteItem = createTestFolderSuiteItem(projectId, testFolderId, launch);
+    var suiteItem = createTestFolderSuiteItem(projectId, testFolderId, launch, visitedFolderIds);
     log.debug("Created new SUITE item: {} for test folder: {}", suiteItem.getItemId(),
         testFolderId);
     return suiteItem;
@@ -82,7 +91,14 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
   @Override
   public TestItem createTestFolderSuiteItem(Long projectId, Long testFolderId,
       Launch launch) {
+    return createTestFolderSuiteItem(projectId, testFolderId, launch, new java.util.HashSet<>());
+  }
+
+  private TestItem createTestFolderSuiteItem(Long projectId, Long testFolderId,
+      Launch launch, java.util.Set<Long> visitedFolderIds) {
     log.debug("Creating SUITE item for test folder: {}", testFolderId);
+
+    visitedFolderIds.add(testFolderId);
 
     // Load test folder metadata
     TmsTestFolder testFolder = null;
@@ -108,14 +124,18 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
     // If folder has a parent, ensure parent SUITE exists and set parent relation
     if (testFolder != null && testFolder.getParentTestFolder() != null) {
       var parentFolderId = testFolder.getParentTestFolder().getId();
-      var parentSuite = findTestFolderItem(projectId, parentFolderId,
-          launch); // recursion ensures parent exists
-      markAsHavingChildren(parentSuite);
+      if (visitedFolderIds.contains(parentFolderId)) {
+        log.warn("Cycle detected in test folder hierarchy for folder: {}. Breaking cycle.", testFolderId);
+      } else {
+        var parentSuite = findTestFolderItem(projectId, parentFolderId,
+            launch, visitedFolderIds); // recursion ensures parent exists
+        markAsHavingChildren(parentSuite);
 
-      // Set parentId and complete path
-      suiteItem.setParentId(parentSuite.getItemId());
-      suiteItem.setPath(parentSuite.getPath() + "." + suiteItem.getItemId());
-      suiteItem = testItemRepository.save(suiteItem);
+        // Set parentId and complete path
+        suiteItem.setParentId(parentSuite.getItemId());
+        suiteItem.setPath(parentSuite.getPath() + "." + suiteItem.getItemId());
+        suiteItem = testItemRepository.save(suiteItem);
+      }
     }
 
     // Create junction record linking SUITE item to test folder

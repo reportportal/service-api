@@ -32,6 +32,7 @@ import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -287,8 +288,18 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     var errors = new ArrayList<BatchTestCaseOperationError>();
     var successfulIds = new ArrayList<Long>();
 
+    var existingTestCaseIds = new HashSet<>(
+        tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)
+    );
+
     for (var testCaseId : testCaseIds) {
       try {
+        if (!existingTestCaseIds.contains(testCaseId)) {
+          log.warn("Test case {} for project {} does not exist", testCaseId, projectId);
+          errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
+          continue;
+        }
+
         // Check if execution already exists - prevent duplicates
         if (tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(testCaseId,
             launch.getId())) {

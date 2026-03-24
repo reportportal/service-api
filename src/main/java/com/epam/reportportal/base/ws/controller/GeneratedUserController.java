@@ -54,12 +54,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -161,6 +163,7 @@ public class GeneratedUserController extends BaseController implements UsersApi 
     Resource resource = new InputStreamResource(binaryData.getInputStream());
 
     return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
         .contentType(MediaType.parseMediaType(binaryData.getContentType()))
         .header(CONTENT_DISPOSITION,
             "attachment; filename=\"" + binaryData.getFileName() + "\"")

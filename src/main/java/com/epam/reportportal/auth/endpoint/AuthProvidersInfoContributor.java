@@ -18,6 +18,7 @@ package com.epam.reportportal.auth.endpoint;
 
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
+import com.epam.reportportal.auth.info.OAuthProviderInfo;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.OAuthRegistrationRepository;
@@ -27,8 +28,6 @@ import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
@@ -61,7 +60,7 @@ public class AuthProvidersInfoContributor implements InfoContributor {
   public void contribute(Info.Builder builder) {
     final List<OAuthRegistration> oauth2Details = oAuthRegistrationRepository.findAll();
 
-    final Map<String, Object> providers = providersMap.values()
+    final Map<String, Object> extensions = providersMap.values()
         .stream()
         .filter(p -> !p.isConfigDynamic() || oauth2Details.stream()
             .anyMatch(it -> it.getId().equalsIgnoreCase(p.getName())))
@@ -74,58 +73,13 @@ public class AuthProvidersInfoContributor implements InfoContributor {
         .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
         .forEach(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class)
             .flatMap(AuthExtension::getAuthProviderInfo)
-            .ifPresent(info -> providers.put(plugin.getId(), info)));
+            .ifPresent(info -> extensions.put(plugin.getId(), info)));
 
-    builder.withDetail("authExtensions", providers);
+    builder.withDetail("authExtensions", extensions);
   }
 
   private String getAuthBasePath() {
     return fromCurrentContextPath().path(SSO_LOGIN_PATH).build().getPath();
-  }
-
-  @Setter
-  @Getter
-  public abstract static class AuthProviderInfo {
-
-    private String button;
-
-    public AuthProviderInfo(String button) {
-      this.button = button;
-    }
-
-  }
-
-  public static class SamlProviderInfo extends AuthProviderInfo {
-
-    private Map<String, String> providers;
-
-    public SamlProviderInfo(String button, Map<String, String> providers) {
-      super(button);
-      this.providers = providers;
-    }
-
-    public Map<String, String> getProviders() {
-      return providers;
-    }
-
-    public void setProviders(Map<String, String> providers) {
-      this.providers = providers;
-    }
-  }
-
-  @Getter
-  public static class OAuthProviderInfo extends AuthProviderInfo {
-
-    private String path;
-
-    public OAuthProviderInfo(String button, String path) {
-      super(button);
-      this.path = path;
-    }
-
-    public void setPath(String path) {
-      this.path = path;
-    }
   }
 
 }

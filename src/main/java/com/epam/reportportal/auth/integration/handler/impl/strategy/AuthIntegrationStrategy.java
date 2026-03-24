@@ -19,6 +19,7 @@ package com.epam.reportportal.auth.integration.handler.impl.strategy;
 import com.epam.reportportal.auth.integration.builder.AuthIntegrationBuilder;
 import com.epam.reportportal.auth.integration.validator.duplicate.IntegrationDuplicateValidator;
 import com.epam.reportportal.auth.integration.validator.request.AuthRequestValidator;
+import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.UpdateAuthRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
@@ -45,6 +46,8 @@ public abstract class AuthIntegrationStrategy {
   }
 
   protected abstract void fill(Integration integration, UpdateAuthRQ updateRequest);
+
+  public abstract AbstractAuthResource toResource(Integration integration);
 
   public Integration createIntegration(IntegrationType integrationType, UpdateAuthRQ request,
       String username) {

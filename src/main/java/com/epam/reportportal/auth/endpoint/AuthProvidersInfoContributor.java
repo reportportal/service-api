@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
@@ -43,9 +43,6 @@ import org.springframework.stereotype.Component;
 public class AuthProvidersInfoContributor implements InfoContributor {
 
   public static final String SSO_LOGIN_PATH = "/oauth/login";
-
-  @Value("${rp.auth.saml.prefix}")
-  private String samlPrefix;
 
   private final OAuthRegistrationRepository oAuthRegistrationRepository;
   private final Pf4jPluginBox pluginBox;
@@ -86,6 +83,7 @@ public class AuthProvidersInfoContributor implements InfoContributor {
     return fromCurrentContextPath().path(SSO_LOGIN_PATH).build().getPath();
   }
 
+  @Setter
   @Getter
   public abstract static class AuthProviderInfo {
 
@@ -95,9 +93,6 @@ public class AuthProvidersInfoContributor implements InfoContributor {
       this.button = button;
     }
 
-    public void setButton(String button) {
-      this.button = button;
-    }
   }
 
   public static class SamlProviderInfo extends AuthProviderInfo {
@@ -118,6 +113,7 @@ public class AuthProvidersInfoContributor implements InfoContributor {
     }
   }
 
+  @Getter
   public static class OAuthProviderInfo extends AuthProviderInfo {
 
     private String path;
@@ -125,10 +121,6 @@ public class AuthProvidersInfoContributor implements InfoContributor {
     public OAuthProviderInfo(String button, String path) {
       super(button);
       this.path = path;
-    }
-
-    public String getPath() {
-      return path;
     }
 
     public void setPath(String path) {

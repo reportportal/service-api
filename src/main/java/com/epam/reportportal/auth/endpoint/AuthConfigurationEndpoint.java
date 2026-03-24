@@ -16,28 +16,22 @@
 
 package com.epam.reportportal.auth.endpoint;
 
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.auth.integration.handler.DeleteAuthIntegrationHandler;
 import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationHandler;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.UpdateAuthRQ;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.beans.PropertyEditorSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -80,7 +74,7 @@ public class AuthConfigurationEndpoint {
   @Operation(summary = "Create new auth integration")
   public AbstractAuthResource createAuthIntegration(@RequestBody @Valid UpdateAuthRQ request,
       @AuthenticationPrincipal ReportPortalUser user,
-      @PathVariable AuthIntegrationType authType) {
+      @PathVariable String authType) {
     return createAuthIntegrationHandler.createAuthIntegration(authType, request, user);
   }
 
@@ -99,7 +93,7 @@ public class AuthConfigurationEndpoint {
   @Operation(summary = "Update auth integration")
   public AbstractAuthResource updateAuthIntegration(@RequestBody @Valid UpdateAuthRQ request,
       @AuthenticationPrincipal ReportPortalUser user,
-      @PathVariable AuthIntegrationType authType, @PathVariable Long integrationId) {
+      @PathVariable String authType, @PathVariable Long integrationId) {
     return createAuthIntegrationHandler.updateAuthIntegration(authType, integrationId, request,
         user);
   }
@@ -114,14 +108,14 @@ public class AuthConfigurationEndpoint {
   @GetMapping(value = "/{authType}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Retrieves auth settings")
-  public AbstractAuthResource getSettings(@PathVariable AuthIntegrationType authType) {
+  public AbstractAuthResource getSettings(@PathVariable String authType) {
     return getAuthIntegrationHandler.getIntegrationByType(authType);
   }
 
   /**
-   * Deletes LDAP auth settings.
+   * Deletes auth integration settings.
    *
-   * @param integrationId Type of Auth
+   * @param integrationId Integration ID
    * @return Successful message or an error
    */
   @Transactional
@@ -130,17 +124,5 @@ public class AuthConfigurationEndpoint {
   @Operation(summary = "Retrieves auth settings")
   public OperationCompletionRS deleteSettings(@PathVariable Long integrationId) {
     return deleteAuthIntegrationHandler.deleteAuthIntegrationById(integrationId);
-  }
-
-  @InitBinder
-  public void initBinder(final WebDataBinder webdataBinder) {
-    webdataBinder.registerCustomEditor(AuthIntegrationType.class, new PropertyEditorSupport() {
-      @Override
-      public void setAsText(String text) throws IllegalArgumentException {
-        setValue(AuthIntegrationType.fromId(text)
-            .orElseThrow(
-                () -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, text)));
-      }
-    });
   }
 }

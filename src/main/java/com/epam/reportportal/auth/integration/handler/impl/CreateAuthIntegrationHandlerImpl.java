@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.auth.integration.handler.impl;
 
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters;
 import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
@@ -61,36 +60,35 @@ public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHa
   }
 
   @Override
-  public AbstractAuthResource createAuthIntegration(AuthIntegrationType type, UpdateAuthRQ request,
+  public AbstractAuthResource createAuthIntegration(String type, UpdateAuthRQ request,
       ReportPortalUser user) {
     final IntegrationType integrationType = getIntegrationType(type);
     final AuthIntegrationStrategy authIntegrationStrategy = getAuthStrategy(type);
     final Integration integration = authIntegrationStrategy.createIntegration(integrationType,
         request, user.getUsername());
-    return type.getToResourceMapper().apply(integration);
+    return authIntegrationStrategy.toResource(integration);
   }
 
   @Override
-  public AbstractAuthResource updateAuthIntegration(AuthIntegrationType type, Long integrationId,
+  public AbstractAuthResource updateAuthIntegration(String type, Long integrationId,
       UpdateAuthRQ request,
       ReportPortalUser user) {
     final IntegrationType integrationType = getIntegrationType(type);
     final AuthIntegrationStrategy authIntegrationStrategy = getAuthStrategy(type);
     final Integration integration = authIntegrationStrategy.updateIntegration(integrationType,
         integrationId, request);
-    return type.getToResourceMapper().apply(integration);
+    return authIntegrationStrategy.toResource(integration);
   }
 
-  private IntegrationType getIntegrationType(AuthIntegrationType type) {
-    return integrationTypeRepository.findByName(type.getName())
+  private IntegrationType getIntegrationType(String type) {
+    return integrationTypeRepository.findByName(type)
         .orElseThrow(
-            () -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type.getName()));
+            () -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type));
   }
 
-  private AuthIntegrationStrategy getAuthStrategy(AuthIntegrationType type) {
+  private AuthIntegrationStrategy getAuthStrategy(String type) {
     return strategyProvider.provide(type)
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type.getName()));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type));
   }
 
   @Override

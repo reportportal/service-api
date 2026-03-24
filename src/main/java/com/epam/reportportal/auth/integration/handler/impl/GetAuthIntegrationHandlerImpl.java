@@ -20,7 +20,6 @@ import static com.epam.reportportal.auth.integration.converter.OAuthRegistration
 import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.TO_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters;
 import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationHandler;
 import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationStrategy;
@@ -44,21 +43,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class GetAuthIntegrationHandlerImpl implements GetAuthIntegrationHandler {
 
-  private final Map<AuthIntegrationType, GetAuthIntegrationStrategy> authIntegrationStrategyMapping;
+  private final Map<String, GetAuthIntegrationStrategy> authIntegrationStrategyMapping;
 
   private final MutableClientRegistrationRepository clientRegistrationRepository;
 
   @Autowired
   public GetAuthIntegrationHandlerImpl(
       @Qualifier(value = "getAuthIntegrationStrategyMapping")
-      Map<AuthIntegrationType, GetAuthIntegrationStrategy> authIntegrationStrategyMapping,
+      Map<String, GetAuthIntegrationStrategy> authIntegrationStrategyMapping,
       MutableClientRegistrationRepository clientRegistrationRepository) {
     this.authIntegrationStrategyMapping = authIntegrationStrategyMapping;
     this.clientRegistrationRepository = clientRegistrationRepository;
   }
 
   @Override
-  public AbstractAuthResource getIntegrationByType(AuthIntegrationType integrationType) {
+  public AbstractAuthResource getIntegrationByType(String integrationType) {
     return ofNullable(authIntegrationStrategyMapping.get(integrationType)).orElseThrow(
             () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
                 "Unable to find suitable auth integration strategy for type= " + integrationType

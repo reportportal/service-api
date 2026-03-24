@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.auth.integration.handler;
 
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.UpdateAuthRQ;
@@ -27,10 +26,10 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
  */
 public interface CreateAuthIntegrationHandler {
 
-  AbstractAuthResource createAuthIntegration(AuthIntegrationType type, UpdateAuthRQ request,
+  AbstractAuthResource createAuthIntegration(String type, UpdateAuthRQ request,
       ReportPortalUser user);
 
-  AbstractAuthResource updateAuthIntegration(AuthIntegrationType type, Long integrationId,
+  AbstractAuthResource updateAuthIntegration(String type, Long integrationId,
       UpdateAuthRQ request, ReportPortalUser user);
 
   OAuthRegistrationResource createOrUpdateOauthSettings(String oauthProviderId,

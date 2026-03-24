@@ -16,7 +16,7 @@
 package com.epam.reportportal.auth.config.saml;
 
 import com.epam.reportportal.auth.integration.saml.ReloadableRelyingPartyRegistrationRepository;
-import com.epam.reportportal.auth.integration.saml.RelyingPartyBuilder;
+import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,22 +25,16 @@ import org.springframework.security.saml2.provider.service.web.DefaultRelyingPar
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
 
 /**
- * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
+ * SAML Service Provider configuration. Creates an empty, reloadable RP registration repository
+ * that is populated by the SAML plugin when installed.
  */
 @Configuration
 @EnableWebSecurity
 public class SamlServiceProviderConfiguration {
 
-  private final RelyingPartyBuilder relyingPartyBuilder;
-
-
-  public SamlServiceProviderConfiguration(RelyingPartyBuilder relyingPartyBuilder) {
-    this.relyingPartyBuilder = relyingPartyBuilder;
-  }
-
   @Bean
   public RelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
-    return new ReloadableRelyingPartyRegistrationRepository(relyingPartyBuilder.createRelyingPartyRegistrations());
+    return new ReloadableRelyingPartyRegistrationRepository(Collections.emptyList());
   }
 
   @Bean

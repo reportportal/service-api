@@ -60,7 +60,7 @@ dependencyManagement {
 println("Release mode: $releaseMode")
 dependencies {
     implementation 'com.github.reportportal:commons:779ea7a'
-    implementation 'com.github.reportportal:commons-dao:df38e34'
+    implementation 'com.github.reportportal:commons-dao:d18c9c70be'
     implementation('com.github.reportportal:plugin-api:5.15.0') {
         exclude group: 'com.github.reportportal', module: 'commons-dao'
         exclude group: 'com.github.reportportal', module: 'commons'

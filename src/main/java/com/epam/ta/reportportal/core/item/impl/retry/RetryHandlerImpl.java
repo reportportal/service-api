@@ -82,8 +82,9 @@ public class RetryHandlerImpl implements RetryHandler {
     Long latestTryId = newTry.getItemId();
     Long previousTryId = target.getItemId();
 
-    retryRepository.changeActiveTyPreviousTry(List.of(previousTryId), latestTryId);
-    retryRepository.pointPreviousTriesToLatest(List.of(previousTryId), latestTryId);
+    List<Long> previousTries = List.of(previousTryId);
+    retryRepository.changeActiveTyPreviousTry(previousTries, latestTryId);
+    retryRepository.pointPreviousTriesToLatest(previousTries, latestTryId);
     retryRepository.markAsHavingRetries(latestTryId);
 
     if (!launch.isHasRetries()) {
@@ -94,7 +95,7 @@ public class RetryHandlerImpl implements RetryHandler {
         new TestItemPathContext(target.getItemId(), target.getLaunchId(), target.getPath()));
 
     eventPublisher.publishEvent(
-        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), latestTryId));
+        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), previousTries));
   }
 
   /**
@@ -140,7 +141,7 @@ public class RetryHandlerImpl implements RetryHandler {
     previousTries.forEach(testItemStatisticsService::deleteItemStatistics);
 
     eventPublisher.publishEvent(
-        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), latestTryId));
+        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), previousTriesIds));
   }
 
   @Override

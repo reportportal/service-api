@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.events.activity.item;
 
 import com.epam.ta.reportportal.core.events.Event;
+import java.util.List;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -27,12 +28,12 @@ public class ItemRetryEvent implements Event {
 
   private final Long launchId;
 
-  private final Long itemId;
+  private final List<Long> previousTryIds;
 
-  private ItemRetryEvent(Long projectId, Long launchId, Long itemId) {
+  private ItemRetryEvent(Long projectId, Long launchId, List<Long> previousTryIds) {
     this.projectId = projectId;
     this.launchId = launchId;
-    this.itemId = itemId;
+    this.previousTryIds = previousTryIds;
   }
 
   public Long getProjectId() {
@@ -43,12 +44,12 @@ public class ItemRetryEvent implements Event {
     return launchId;
   }
 
-  public Long getItemId() {
-    return itemId;
+  public List<Long> getPreviousTryIds() {
+    return previousTryIds;
   }
 
-  public static ItemRetryEvent of(Long projectId, Long launchId, Long itemId) {
-    return new ItemRetryEvent(projectId, launchId, itemId);
+  public static ItemRetryEvent of(Long projectId, Long launchId, List<Long> previousTryIds) {
+    return new ItemRetryEvent(projectId, launchId, previousTryIds);
   }
 
 }

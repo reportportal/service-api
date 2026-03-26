@@ -18,21 +18,22 @@ package com.epam.reportportal.auth.integration.handler.impl;
 
 import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.RESOURCE_KEY_MAPPER;
 import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.TO_RESOURCE;
-import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters;
 import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationHandler;
-import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationStrategy;
 import com.epam.reportportal.auth.model.ExtendedOAuthRegistrationResource;
 import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
+import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
+import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
-import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
+import com.epam.reportportal.extension.AuthExtension;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -43,25 +44,30 @@ import org.springframework.stereotype.Service;
 @Service
 public class GetAuthIntegrationHandlerImpl implements GetAuthIntegrationHandler {
 
-  private final Map<String, GetAuthIntegrationStrategy> authIntegrationStrategyMapping;
+  private final Pf4jPluginBox pluginBox;
 
   private final MutableClientRegistrationRepository clientRegistrationRepository;
 
   @Autowired
-  public GetAuthIntegrationHandlerImpl(
-      @Qualifier(value = "getAuthIntegrationStrategyMapping")
-      Map<String, GetAuthIntegrationStrategy> authIntegrationStrategyMapping,
+  public GetAuthIntegrationHandlerImpl(Pf4jPluginBox pluginBox,
       MutableClientRegistrationRepository clientRegistrationRepository) {
-    this.authIntegrationStrategyMapping = authIntegrationStrategyMapping;
+    this.pluginBox = pluginBox;
     this.clientRegistrationRepository = clientRegistrationRepository;
   }
 
   @Override
   public AbstractAuthResource getIntegrationByType(String integrationType) {
-    return ofNullable(authIntegrationStrategyMapping.get(integrationType)).orElseThrow(
-            () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-                "Unable to find suitable auth integration strategy for type= " + integrationType
-            ))
+    return pluginBox.getPlugins().stream()
+        .filter(p -> ExtensionPoint.AUTH.equals(p.getType()))
+        .map(p -> pluginBox.getInstance(p.getId(), AuthExtension.class))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .filter(ext -> ext.getAuthIntegrationType().map(integrationType::equals).orElse(false))
+        .findFirst()
+        .flatMap(AuthExtension::getListIntegrationStrategy)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Unable to find suitable auth integration strategy for type= " + integrationType
+        ))
         .getIntegration();
   }
 

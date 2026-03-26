@@ -16,17 +16,8 @@
 
 package com.epam.reportportal.auth.config;
 
-import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationStrategy;
-import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
 import com.epam.reportportal.auth.integration.provider.AuthIntegrationStrategyProvider;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
-import com.epam.reportportal.extension.AuthExtension;
-import com.epam.reportportal.extension.common.ExtensionPoint;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,34 +31,8 @@ public class AuthIntegrationConfig {
   @Autowired
   private Pf4jPluginBox pluginBox;
 
-  @Bean("getAuthIntegrationStrategyMapping")
-  public Map<String, GetAuthIntegrationStrategy> getAuthIntegrationStrategyMapping() {
-    Map<String, GetAuthIntegrationStrategy> mapping = new HashMap<>();
-    getAuthExtensions().forEach(ext ->
-        ext.getAuthIntegrationType().ifPresent(type ->
-            ext.getListIntegrationStrategy().ifPresent(s -> mapping.put(type, s))
-        )
-    );
-    return mapping;
-  }
-
   @Bean("authIntegrationStrategyProvider")
   public AuthIntegrationStrategyProvider authIntegrationStrategyProvider() {
-    Map<String, AuthIntegrationStrategy> map = new HashMap<>();
-    getAuthExtensions().forEach(ext ->
-        ext.getAuthIntegrationType().ifPresent(type ->
-            ext.getStrategy().ifPresent(s -> map.put(type, s))
-        )
-    );
-    return new AuthIntegrationStrategyProvider(map);
-  }
-
-  private List<AuthExtension> getAuthExtensions() {
-    return pluginBox.getPlugins().stream()
-        .filter(p -> ExtensionPoint.AUTH.equals(p.getType()))
-        .map(p -> pluginBox.getInstance(p.getId(), AuthExtension.class))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.toList());
+    return new AuthIntegrationStrategyProvider(pluginBox);
   }
 }

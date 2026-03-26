@@ -17,19 +17,27 @@
 package com.epam.reportportal.auth.integration.provider;
 
 import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
-import java.util.Map;
+import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.extension.AuthExtension;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.util.Optional;
 
 public class AuthIntegrationStrategyProvider {
 
-  private final Map<String, AuthIntegrationStrategy> authIntegrationStrategyMapping;
+  private final Pf4jPluginBox pluginBox;
 
-  public AuthIntegrationStrategyProvider(
-      Map<String, AuthIntegrationStrategy> authIntegrationStrategyMapping) {
-    this.authIntegrationStrategyMapping = authIntegrationStrategyMapping;
+  public AuthIntegrationStrategyProvider(Pf4jPluginBox pluginBox) {
+    this.pluginBox = pluginBox;
   }
 
   public Optional<AuthIntegrationStrategy> provide(String type) {
-    return Optional.ofNullable(authIntegrationStrategyMapping.get(type));
+    return pluginBox.getPlugins().stream()
+        .filter(p -> ExtensionPoint.AUTH.equals(p.getType()))
+        .map(p -> pluginBox.getInstance(p.getId(), AuthExtension.class))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .filter(ext -> ext.getAuthIntegrationType().map(type::equals).orElse(false))
+        .findFirst()
+        .flatMap(AuthExtension::getStrategy);
   }
 }

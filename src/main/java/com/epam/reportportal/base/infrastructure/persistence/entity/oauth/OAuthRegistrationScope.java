@@ -26,10 +26,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 @Entity
 @Table(name = "oauth_registration_scope", schema = "public")
 public class OAuthRegistrationScope implements Serializable {
@@ -45,30 +49,6 @@ public class OAuthRegistrationScope implements Serializable {
   @ManyToOne
   @JoinColumn(name = "oauth_registration_fk")
   private OAuthRegistration registration;
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getScope() {
-    return scope;
-  }
-
-  public void setScope(String scope) {
-    this.scope = scope;
-  }
-
-  public OAuthRegistration getRegistration() {
-    return registration;
-  }
-
-  public void setRegistration(OAuthRegistration registration) {
-    this.registration = registration;
-  }
 
   @Override
   public boolean equals(Object o) {

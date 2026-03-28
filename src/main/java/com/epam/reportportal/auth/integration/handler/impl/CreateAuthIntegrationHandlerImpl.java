@@ -21,10 +21,8 @@ import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandl
 import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
 import com.epam.reportportal.auth.integration.provider.AuthIntegrationStrategyProvider;
 import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
-import com.epam.reportportal.auth.oauth.OAuthProviderFactory;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
+import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.UpdateAuthRQ;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -32,6 +30,12 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationType
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistration;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.AuthExtension;
+import com.epam.reportportal.extension.common.ExtensionPoint;
+import java.util.Objects;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,6 +49,7 @@ public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHa
   private final MutableClientRegistrationRepository clientRegistrationRepository;
   private final AuthIntegrationStrategyProvider strategyProvider;
   private final IntegrationTypeRepository integrationTypeRepository;
+  private final Pf4jPluginBox pluginBox;
 
   @Value("${server.servlet.context-path}")
   private String pathValue;
@@ -53,10 +58,12 @@ public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHa
   public CreateAuthIntegrationHandlerImpl(
       MutableClientRegistrationRepository clientRegistrationRepository,
       AuthIntegrationStrategyProvider strategyProvider,
-      IntegrationTypeRepository integrationTypeRepository) {
+      IntegrationTypeRepository integrationTypeRepository,
+      Pf4jPluginBox pluginBox) {
     this.clientRegistrationRepository = clientRegistrationRepository;
     this.strategyProvider = strategyProvider;
     this.integrationTypeRepository = integrationTypeRepository;
+    this.pluginBox = pluginBox;
   }
 
   @Override
@@ -82,8 +89,7 @@ public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHa
 
   private IntegrationType getIntegrationType(String type) {
     return integrationTypeRepository.findByName(type)
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type));
   }
 
   private AuthIntegrationStrategy getAuthStrategy(String type) {
@@ -95,8 +101,15 @@ public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHa
   public OAuthRegistrationResource createOrUpdateOauthSettings(String oauthProviderId,
       OAuthRegistrationResource clientRegistrationResource) {
 
-    OAuthRegistration oAuthRegistration = OAuthProviderFactory.fillOAuthRegistration(
-        oauthProviderId, clientRegistrationResource, pathValue);
+    OAuthRegistration oAuthRegistration = pluginBox.getPlugins().stream()
+        .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
+        .map(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class).orElse(null))
+        .filter(Objects::nonNull)
+        .map(ext -> ext.fillOAuthRegistration(oauthProviderId, clientRegistrationResource, pathValue))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst()
+        .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, oauthProviderId));
 
     OAuthRegistration updatedOauthRegistration =
         clientRegistrationRepository.findOAuthRegistrationById(oauthProviderId)
@@ -107,8 +120,8 @@ public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHa
             })
             .orElse(oAuthRegistration);
 
-    return OAuthRegistrationConverters.TO_RESOURCE.apply(
-        clientRegistrationRepository.save(updatedOauthRegistration));
+    return OAuthRegistrationConverters.TO_RESOURCE
+        .apply(clientRegistrationRepository.save(updatedOauthRegistration));
   }
 
 }

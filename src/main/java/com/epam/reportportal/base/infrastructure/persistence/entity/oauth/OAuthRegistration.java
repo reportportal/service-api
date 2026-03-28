@@ -26,12 +26,14 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
 
 /**
  * @author Andrei Varabyeu
  */
 @Entity
 @Table(name = "oauth_registration", schema = "public")
+@Getter
 public class OAuthRegistration implements Serializable {
 
   @Id
@@ -81,104 +83,52 @@ public class OAuthRegistration implements Serializable {
       CascadeType.REMOVE}, orphanRemoval = true)
   private Set<OAuthRegistrationRestriction> restrictions;
 
-  public String getId() {
-    return id;
-  }
-
   public void setId(String id) {
     this.id = id;
-  }
-
-  public String getClientId() {
-    return clientId;
   }
 
   public void setClientId(String clientId) {
     this.clientId = clientId;
   }
 
-  public String getClientSecret() {
-    return clientSecret;
-  }
-
   public void setClientSecret(String clientSecret) {
     this.clientSecret = clientSecret;
-  }
-
-  public String getClientAuthMethod() {
-    return clientAuthMethod;
   }
 
   public void setClientAuthMethod(String clientAuthMethod) {
     this.clientAuthMethod = clientAuthMethod;
   }
 
-  public String getAuthGrantType() {
-    return authGrantType;
-  }
-
   public void setAuthGrantType(String authGrantType) {
     this.authGrantType = authGrantType;
-  }
-
-  public String getRedirectUrlTemplate() {
-    return redirectUrlTemplate;
   }
 
   public void setRedirectUrlTemplate(String redirectUrlTemplate) {
     this.redirectUrlTemplate = redirectUrlTemplate;
   }
 
-  public String getAuthorizationUri() {
-    return authorizationUri;
-  }
-
   public void setAuthorizationUri(String authorizationUri) {
     this.authorizationUri = authorizationUri;
-  }
-
-  public String getTokenUri() {
-    return tokenUri;
   }
 
   public void setTokenUri(String tokenUri) {
     this.tokenUri = tokenUri;
   }
 
-  public String getUserInfoEndpointUri() {
-    return userInfoEndpointUri;
-  }
-
   public void setUserInfoEndpointUri(String userInfoEndpointUri) {
     this.userInfoEndpointUri = userInfoEndpointUri;
-  }
-
-  public String getUserInfoEndpointNameAttribute() {
-    return userInfoEndpointNameAttribute;
   }
 
   public void setUserInfoEndpointNameAttribute(String userInfoEndpointNameAttribute) {
     this.userInfoEndpointNameAttribute = userInfoEndpointNameAttribute;
   }
 
-  public String getJwkSetUri() {
-    return jwkSetUri;
-  }
-
   public void setJwkSetUri(String jwkSetUri) {
     this.jwkSetUri = jwkSetUri;
   }
 
-  public String getClientName() {
-    return clientName;
-  }
-
   public void setClientName(String clientName) {
     this.clientName = clientName;
-  }
-
-  public Set<OAuthRegistrationScope> getScopes() {
-    return scopes;
   }
 
   public void setScopes(Set<OAuthRegistrationScope> scopes) {
@@ -188,10 +138,6 @@ public class OAuthRegistration implements Serializable {
       this.scopes.retainAll(scopes);
       this.scopes.addAll(scopes);
     }
-  }
-
-  public Set<OAuthRegistrationRestriction> getRestrictions() {
-    return restrictions;
   }
 
   public void setRestrictions(Set<OAuthRegistrationRestriction> restrictions) {

@@ -19,7 +19,7 @@ package com.epam.reportportal.auth;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils.normalizeId;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.auth.integration.github.RPOAuth2User;
+import com.epam.reportportal.auth.oauth.RPOAuth2User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.inject.Provider;
@@ -55,7 +55,7 @@ public class OAuthSuccessHandler extends AuthSuccessHandler {
         normalizeId(principal.getName()),
         authentication,
         principal.getAccessToken() != null ? Collections.singletonMap("upstream_token",
-            principal.getAccessToken()) : Collections.EMPTY_MAP
+            principal.getAccessToken()) : Collections.emptyMap()
     );
   }
 }

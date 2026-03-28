@@ -30,9 +30,13 @@ import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
+import com.epam.reportportal.extension.AuthExtension;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -248,8 +252,7 @@ public class AuthorizationServerConfig {
             .authorizationEndpoint(authorization -> authorization
                 .baseUri("/oauth/login")
                 .authorizationRequestResolver(authorizationRequestResolver))
-            .redirectionEndpoint(redirection -> redirection
-                .baseUri("/sso/login/*"))
+            .redirectionEndpoint(redirection -> redirection.baseUri("/sso/login/*"))
             .successHandler(successHandler)
             .failureHandler(authenticationFailureHandler))
         .oauth2Client(Customizer.withDefaults());
@@ -297,11 +300,27 @@ public class AuthorizationServerConfig {
   }
 
   public List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> getUserServices(List<OAuthProvider> providers) {
-    return providers.stream()
+    List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> services = providers.stream()
         .map(provider -> provider
             .getUserService(clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
                 .map(OAuthRegistrationConverters.TO_RESOURCE)
                 .orElse(new OAuthRegistrationResource())))
         .collect(Collectors.toList());
+
+    // Also include OAuth providers contributed by AUTH plugins (e.g. plugin-auth-github)
+    pluginBox.getPlugins().stream()
+        .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
+        .map(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class).orElse(null))
+        .filter(Objects::nonNull)
+        .map(AuthExtension::getOAuthProvider)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(provider -> provider
+            .getUserService(clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
+                .map(OAuthRegistrationConverters.TO_RESOURCE)
+                .orElse(new OAuthRegistrationResource())))
+        .forEach(services::add);
+
+    return services;
   }
 }

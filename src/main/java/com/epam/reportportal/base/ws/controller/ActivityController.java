@@ -313,4 +313,20 @@ public class ActivityController {
         projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
     return activityHandler.getItemActivities(membershipDetails, itemId, filter, pageable);
   }
+
+  @GetMapping(value = "/test-case/{testCaseId}")
+  @ResponseStatus(OK)
+  @Operation(summary = "Get a list of test case activities for a specific project", description = "Fetches a list of test case activities for a specific project.")
+  public Page<ActivityEventResource> getTestCaseActivities(@PathVariable
+      @Parameter(description = "The name of the project for which the activities should be searched")
+      String projectKey, @PathVariable
+      @Parameter(description = "The ID of the test case for which all its activities should be searched") Long testCaseId,
+      @FilterFor(Activity.class) Filter filter,
+      @SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+
+    MembershipDetails membershipDetails =
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
+
+    return activityHandler.getTestCaseActivities(membershipDetails, testCaseId, filter, pageable);
+  }
 }

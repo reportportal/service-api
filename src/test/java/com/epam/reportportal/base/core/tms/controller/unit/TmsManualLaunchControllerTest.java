@@ -1,4 +1,4 @@
-package com.epam.reportportal.base.core.tms.controller;
+package com.epam.reportportal.base.core.tms.controller.unit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import com.epam.reportportal.base.core.tms.controller.TmsManualLaunchController;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.service.TmsManualLaunchService;

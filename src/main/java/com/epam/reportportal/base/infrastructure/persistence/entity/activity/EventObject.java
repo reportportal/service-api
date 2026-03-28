@@ -36,6 +36,7 @@ public enum EventObject {
   INDEX("index"),
   PLUGIN("plugin"),
   INVITATION_LINK("Invitation link"),
+  TMS_TEST_CASE("tmsTestCase"),
   LOG_TYPE("logType"),
   NOTIFICATION_RULE("Notification_rule");
 

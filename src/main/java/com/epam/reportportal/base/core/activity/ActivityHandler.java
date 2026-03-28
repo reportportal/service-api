@@ -75,4 +75,8 @@ public interface ActivityHandler {
    */
   Iterable<ActivityResource> getItemActivities(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
+
+  Page<ActivityEventResource> getTestCaseActivities(
+      MembershipDetails membershipDetails, Long testCaseId, Filter filter,
+      Pageable pageable);
 }

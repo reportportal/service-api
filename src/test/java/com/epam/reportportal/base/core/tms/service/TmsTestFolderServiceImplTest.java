@@ -14,6 +14,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,8 +24,10 @@ import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
@@ -919,41 +922,49 @@ class TmsTestFolderServiceImplTest {
 
   @Test
   void testDelete() {
+    var membershipDetails = mock(MembershipDetails.class);
+    var user = mock(ReportPortalUser.class);
     // Arrange
     testFolder.setIndex(3);
     testFolder.setParentTestFolder(parentTestFolder);
 
+    when(membershipDetails.getProjectId())
+        .thenReturn(projectId);
     when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
         .thenReturn(Optional.of(testFolder));
-    doNothing().when(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
+    doNothing().when(tmsTestCaseService).deleteByTestFolderId(membershipDetails, user, testFolderId);
     doNothing().when(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
     doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, 3L, 4, -1);
 
     // Act
-    sut.delete(projectId, testFolderId);
+    sut.delete(membershipDetails, user, testFolderId);
 
     // Assert
-    verify(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
+    verify(tmsTestCaseService).deleteByTestFolderId(membershipDetails, user, testFolderId);
     verify(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
     verify(tmsTestFolderRepository).shiftIndexes(projectId, 3L, 4, -1);
   }
 
   @Test
   void testDelete_WithNullIndex() {
+    var membershipDetails = mock(MembershipDetails.class);
+    var user = mock(ReportPortalUser.class);
     // Arrange
     testFolder.setIndex(null);
     testFolder.setParentTestFolder(parentTestFolder);
 
+    when(membershipDetails.getProjectId())
+        .thenReturn(projectId);
     when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
         .thenReturn(Optional.of(testFolder));
-    doNothing().when(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
+    doNothing().when(tmsTestCaseService).deleteByTestFolderId(membershipDetails, user, testFolderId);
     doNothing().when(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
 
     // Act
-    sut.delete(projectId, testFolderId);
+    sut.delete(membershipDetails, user, testFolderId);
 
     // Assert
-    verify(tmsTestCaseService).deleteByTestFolderId(projectId, testFolderId);
+    verify(tmsTestCaseService).deleteByTestFolderId(membershipDetails, user, testFolderId);
     verify(tmsTestFolderRepository).deleteTestFolderWithSubfoldersById(projectId, testFolderId);
     verify(tmsTestFolderRepository, never()).shiftIndexes(anyLong(), any(), anyInt(), anyInt());
   }

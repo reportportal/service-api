@@ -87,6 +87,10 @@ public enum ActivityAction {
 
   UPDATE_INSTANCE("updateInstance"),
 
+  CREATE_TEST_CASE("createTestCase"),
+  UPDATE_TEST_CASE("updateTestCase"),
+  DELETE_TEST_CASE("deleteTestCase"),
+
   CREATE_LOG_TYPE("createLogType"),
   UPDATE_LOG_TYPE("updateLogType"),
   DELETE_LOG_TYPE("deleteLogType");

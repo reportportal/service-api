@@ -11,7 +11,9 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttribute
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -24,13 +26,32 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface TmsTestCaseService extends CrudService<TmsTestCaseRQ, TmsTestCaseRS, Long> {
+public interface TmsTestCaseService {
 
   List<TmsTestCaseRS> getTestCaseByProjectId(long projectId);
 
-  void deleteByTestFolderId(long projectId, long folderId);
+  TmsTestCaseRS getById(long projectId, Long testCaseId);
 
-  void delete(long projectId, @Valid BatchDeleteTestCasesRQ deleteRequest);
+  TmsTestCaseRS create(
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
+      TmsTestCaseRQ tmsTestCaseRQ
+  );
+
+  TmsTestCaseRS update(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ);
+
+  TmsTestCaseRS patch(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ);
+
+  void delete(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long testCaseId);
+
+  void deleteByTestFolderId(MembershipDetails membershipDetails,
+      ReportPortalUser user, long folderId);
+
+  void delete(MembershipDetails membershipDetails,
+      ReportPortalUser user, @Valid BatchDeleteTestCasesRQ deleteRequest);
 
   BatchPatchTestCasesRS patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
 

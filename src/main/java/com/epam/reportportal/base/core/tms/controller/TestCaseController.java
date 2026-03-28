@@ -136,10 +136,11 @@ public class TestCaseController {
   public TmsTestCaseRS createTestCase(@PathVariable("projectKey") String projectKey,
       @RequestBody @Valid @ValidTestFolderIdForUpsertTestCase final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membershipDetails = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     return tmsTestCaseService.create(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membershipDetails,
+        user,
         inputDto
     );
   }
@@ -164,10 +165,11 @@ public class TestCaseController {
       @PathVariable("testCaseId") final long testCaseId,
       @RequestBody @Valid @ValidTestFolderIdForUpsertTestCase final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membership = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     return tmsTestCaseService.update(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membership,
+        user,
         testCaseId,
         inputDto
     );
@@ -192,10 +194,11 @@ public class TestCaseController {
       @PathVariable("testCaseId") final long testCaseId,
       @RequestBody @Valid @ValidTestFolderIdForPatchTestCase final TmsTestCaseRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membership = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     return tmsTestCaseService.patch(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membership,
+        user,
         testCaseId,
         inputDto
     );
@@ -217,9 +220,9 @@ public class TestCaseController {
   public void deleteTestCase(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") final long testCaseId,
       @AuthenticationPrincipal ReportPortalUser user) {
-    tmsTestCaseService.delete(projectExtractor
-        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-        .getProjectId(), testCaseId);
+    var membership = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
+    tmsTestCaseService.delete(membership, user, testCaseId);
   }
 
   /**
@@ -239,10 +242,10 @@ public class TestCaseController {
   public void deleteTestCases(@PathVariable("projectKey") String projectKey,
       @Valid @RequestBody BatchDeleteTestCasesRQ deleteRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membership = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     tmsTestCaseService.delete(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membership, user,
         deleteRequest
     );
   }

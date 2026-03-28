@@ -200,4 +200,11 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       "AND tc.testFolder.project.id = :projectId")
   List<Long> findExistingTestCaseIds(@Param("projectId") Long projectId,
       @Param("testCaseIds") List<Long> testCaseIds);
+
+  @Query("SELECT tc.id FROM TmsTestCase tc " +
+      "JOIN tc.testFolder tf " +
+      "WHERE tf.project.id = :projectId AND tc.testFolder.id = :testFolderId"
+  )
+  List<Long> findIdsByProjectIdAndTestFolderId(@Param("projectId") Long projectId,
+      @Param("testFolderId") Long testFolderId);
 }

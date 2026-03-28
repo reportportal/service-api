@@ -16,9 +16,11 @@ import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestFolderExporterF
 import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.validation.TestFolderIdValidator;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -333,13 +335,15 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
   @Override
   @Transactional
-  public void delete(long projectId, Long folderId) {
+  public void delete(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long folderId) {
+    var projectId = membershipDetails.getProjectId();
     var folder = getEntityById(projectId, folderId);
     var parentId = folder.getParentTestFolder() != null
         ? folder.getParentTestFolder().getId() : null;
     var index = folder.getIndex();
 
-    tmsTestCaseService.deleteByTestFolderId(projectId, folderId);
+    tmsTestCaseService.deleteByTestFolderId(membershipDetails, user, folderId);
     tmsTestFolderRepository.deleteTestFolderWithSubfoldersById(projectId, folderId);
 
     if (index != null) {

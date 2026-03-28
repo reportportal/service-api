@@ -255,10 +255,11 @@ public class TmsTestFolderController {
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Test folder ID to delete", required = true)
       @PathVariable("folderId") Long folderId) {
+    var membership = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     tmsTestFolderService.delete(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(), folderId);
+        membership, user, folderId
+    );
   }
 
   /**

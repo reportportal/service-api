@@ -20,18 +20,18 @@ import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttributeRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -81,13 +81,13 @@ public class TmsTestCaseControllerTest {
   private MockMvc mockMvc;
   private ObjectMapper objectMapper;
   private ReportPortalUser testUser;
+  private MembershipDetails membershipDetails;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
     objectMapper = new ObjectMapper();
 
-    // Create a test user
     testUser = ReportPortalUser.userBuilder()
         .withUserName("testUser")
         .withPassword("password")
@@ -96,7 +96,6 @@ public class TmsTestCaseControllerTest {
         .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
         .build();
 
-    // Configure MockMvc with custom argument resolvers
     mockMvc = standaloneSetup(testCaseController)
         .setCustomArgumentResolvers(
             new HandlerMethodArgumentResolver() {
@@ -117,23 +116,25 @@ public class TmsTestCaseControllerTest {
         )
         .build();
 
-    // Setup the project extractor mock to return a MembershipDetails with the projectId
-    var membershipDetails = MembershipDetails.builder()
+    membershipDetails = MembershipDetails.builder()
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
+
     given(projectExtractor.extractMembershipDetails(eq(testUser), anyString()))
         .willReturn(membershipDetails);
   }
 
+  // -------------------------------------------------------------------------
+  // GET — без изменений
+  // -------------------------------------------------------------------------
+
   @Test
   void getTestCaseByIdTest() throws Exception {
-    // Given
     var testCaseId = 2L;
     var testCase = new TmsTestCaseRS();
     given(tmsTestCaseService.getById(projectId, testCaseId)).willReturn(testCase);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -145,14 +146,10 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void getTestCasesByCriteriaTest() throws Exception {
-    // Given
-    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
-    var page = new Page<>(testCases, 10, 0, 2, 1);
-
+    var page = new Page<>(List.of(new TmsTestCaseRS(), new TmsTestCaseRS()), 10, 0, 2, 1);
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
         any(OffsetRequest.class))).willReturn(page);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("filter.cnt.name", "test")
@@ -168,14 +165,10 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void getTestCasesByCriteriaWithoutParametersTest() throws Exception {
-    // Given
-    var emptyTestCases = Collections.<TmsTestCaseRS>emptyList();
-    var page = new Page<>(emptyTestCases, 100, 0, 0, 0);
-
+    var page = new Page<>(Collections.<TmsTestCaseRS>emptyList(), 100, 0, 0, 0);
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
         any(OffsetRequest.class))).willReturn(page);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -188,14 +181,10 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void getTestCasesByCriteriaWithFilterOnlyTest() throws Exception {
-    // Given
-    var testCases = List.of(new TmsTestCaseRS());
-    var page = new Page<>(testCases, 100, 0, 1, 1);
-
+    var page = new Page<>(List.of(new TmsTestCaseRS()), 100, 0, 1, 1);
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
         any(OffsetRequest.class))).willReturn(page);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("filter.eq.priority", "HIGH")
@@ -209,14 +198,10 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void getTestCasesByCriteriaWithPaginationOnlyTest() throws Exception {
-    // Given
-    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
-    var page = new Page<>(testCases, 20, 10, 2, 1);
-
+    var page = new Page<>(List.of(new TmsTestCaseRS(), new TmsTestCaseRS()), 20, 10, 2, 1);
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
         any(OffsetRequest.class))).willReturn(page);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("offset", "10")
@@ -231,14 +216,11 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void getTestCasesByCriteriaWithSortTest() throws Exception {
-    // Given
-    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS());
-    var page = new Page<>(testCases, 10, 0, 3, 1);
-
+    var page = new Page<>(
+        List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS()), 10, 0, 3, 1);
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
         any(OffsetRequest.class))).willReturn(page);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("sort", "name,asc")
@@ -254,14 +236,10 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void getTestCasesByCriteriaWithMultipleFiltersTest() throws Exception {
-    // Given
-    var testCases = List.of(new TmsTestCaseRS());
-    var page = new Page<>(testCases, 10, 0, 1, 1);
-
+    var page = new Page<>(List.of(new TmsTestCaseRS()), 10, 0, 1, 1);
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
         any(OffsetRequest.class))).willReturn(page);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("filter.eq.priority", "HIGH")
@@ -278,14 +256,10 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void getTestCasesByCriteriaWithAllParametersTest() throws Exception {
-    // Given
-    var testCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
-    var page = new Page<>(testCases, 20, 10, 2, 1);
-
+    var page = new Page<>(List.of(new TmsTestCaseRS(), new TmsTestCaseRS()), 20, 10, 2, 1);
     given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
         any(OffsetRequest.class))).willReturn(page);
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case", projectKey)
                 .param("filter.cnt.name", "comprehensive")
@@ -301,9 +275,12 @@ public class TmsTestCaseControllerTest {
         any(OffsetRequest.class));
   }
 
+  // -------------------------------------------------------------------------
+  // POST create — membership + user вместо projectId
+  // -------------------------------------------------------------------------
+
   @Test
   void createTestCase_WithExistingFolder() throws Exception {
-    // Given
     Long existingFolderId = 5L;
     var textManualScenario = TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
@@ -311,13 +288,9 @@ public class TmsTestCaseControllerTest {
         .expectedResult("Expected result example")
         .executionEstimationTime(15)
         .attachments(List.of(
-            TmsManualScenarioAttachmentRQ.builder()
-                .id("attachment-001")
-                .build()
-        ))
+            TmsManualScenarioAttachmentRQ.builder().id("attachment-001").build()))
         .attributes(List.of(
-            TmsManualScenarioAttributeRQ.builder().id(1L).value("manual").build()
-        ))
+            TmsManualScenarioAttributeRQ.builder().id(1L).value("manual").build()))
         .build();
 
     var testCaseRequest = TmsTestCaseRQ.builder()
@@ -328,61 +301,50 @@ public class TmsTestCaseControllerTest {
         .testFolderId(existingFolderId)
         .attributes(List.of(
             TmsTestCaseAttributeRQ.builder().id(1L).build(),
-            TmsTestCaseAttributeRQ.builder().id(1L).build()
-        ))
+            TmsTestCaseAttributeRQ.builder().id(1L).build()))
         .manualScenario(textManualScenario)
         .build();
 
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.create(membershipDetails, testUser, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.create(projectId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(post("/v1/project/{projectKey}/tms/test-case", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonContent))
+            .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).create(projectId, testCaseRequest);
+    verify(tmsTestCaseService).create(membershipDetails, testUser, testCaseRequest);
   }
 
   @Test
   void createTestCase_WithNewFolder() throws Exception {
-    // Given
-    var newTestFolder = NewTestFolderRQ.builder()
-        .name("New Test Folder")
-        .build();
+    var newTestFolder = NewTestFolderRQ.builder().name("New Test Folder").build();
     var testCaseRequest = TmsTestCaseRQ.builder()
         .name("Test Case With New Folder")
         .description("Description for test case")
         .priority("MEDIUM")
         .testFolder(newTestFolder)
         .externalId("EXT-002")
-        .attributes(List.of(
-            TmsTestCaseAttributeRQ.builder().id(1L).build()
-        ))
+        .attributes(List.of(TmsTestCaseAttributeRQ.builder().id(1L).build()))
         .build();
 
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.create(membershipDetails, testUser, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.create(projectId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(post("/v1/project/{projectKey}/tms/test-case", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonContent))
+            .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).create(projectId, testCaseRequest);
+    verify(tmsTestCaseService).create(membershipDetails, testUser, testCaseRequest);
   }
 
   @Test
   void createTestCase_WithNewFolderAndParent() throws Exception {
-    // Given
     Long parentFolderId = 10L;
     var newTestFolder = NewTestFolderRQ.builder()
         .name("New Test Folder with Parent")
@@ -398,15 +360,12 @@ public class TmsTestCaseControllerTest {
                 .expectedResult("Login page should be displayed")
                 .attachments(List.of(
                     TmsManualScenarioAttachmentRQ.builder()
-                        .id("step-attachment-001")
-                        .build()
-                ))
+                        .id("step-attachment-001").build()))
                 .build(),
             TmsStepRQ.builder()
                 .instructions("Step 2: Enter valid credentials")
                 .expectedResult("User should be logged in successfully")
-                .build()
-        ))
+                .build()))
         .build();
 
     var testCaseRequest = TmsTestCaseRQ.builder()
@@ -416,58 +375,54 @@ public class TmsTestCaseControllerTest {
         .testFolder(newTestFolder)
         .attributes(List.of(
             TmsTestCaseAttributeRQ.builder().id(1L).build(),
-            TmsTestCaseAttributeRQ.builder().id(1L).build()
-        ))
+            TmsTestCaseAttributeRQ.builder().id(1L).build()))
         .manualScenario(stepsManualScenario)
         .build();
 
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.create(membershipDetails, testUser, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.create(projectId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(post("/v1/project/{projectKey}/tms/test-case", projectKey)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonContent))
+            .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).create(projectId, testCaseRequest);
+    verify(tmsTestCaseService).create(membershipDetails, testUser, testCaseRequest);
   }
+
+  // -------------------------------------------------------------------------
+  // PUT update — membership + user вместо projectId
+  // -------------------------------------------------------------------------
 
   @Test
   void updateTestCase_WithExistingFolder() throws Exception {
-    // Given
     var testCaseId = 2L;
-    Long existingFolderId = 7L;
     var testCaseRequest = TmsTestCaseRQ.builder()
         .name("Updated Test Case")
         .description("Updated description")
         .priority("CRITICAL")
-        .testFolderId(existingFolderId)
+        .testFolderId(7L)
         .externalId("EXT-UPD-001")
         .build();
 
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.update(membershipDetails, testUser, testCaseId, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.update(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(
             put("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).update(projectId, testCaseId, testCaseRequest);
+    verify(tmsTestCaseService).update(membershipDetails, testUser, testCaseId, testCaseRequest);
   }
 
   @Test
   void updateTestCase_WithNewFolder() throws Exception {
-    // Given
     var testCaseId = 2L;
     var newTestFolder = NewTestFolderRQ.builder()
         .name("Updated New Test Folder")
@@ -478,30 +433,25 @@ public class TmsTestCaseControllerTest {
         .description("Updated description")
         .priority("MEDIUM")
         .testFolder(newTestFolder)
-        .attributes(List.of(
-            TmsTestCaseAttributeRQ.builder().id(1L).build()
-        ))
+        .attributes(List.of(TmsTestCaseAttributeRQ.builder().id(1L).build()))
         .build();
 
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.update(membershipDetails, testUser, testCaseId, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.update(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(
             put("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).update(projectId, testCaseId, testCaseRequest);
+    verify(tmsTestCaseService).update(membershipDetails, testUser, testCaseId, testCaseRequest);
   }
 
   @Test
   void updateTestCase_ChangeFromExistingToNewFolder() throws Exception {
-    // Given
     var testCaseId = 2L;
     var textManualScenario = TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)
@@ -510,213 +460,183 @@ public class TmsTestCaseControllerTest {
         .executionEstimationTime(25)
         .build();
 
-    var newTestFolder = NewTestFolderRQ.builder()
-        .name("New Folder for Updated Test Case")
-        .build();
-
     var testCaseRequest = TmsTestCaseRQ.builder()
         .name("Updated Test Case With New Folder")
         .description("Updated description with new folder")
         .priority("LOW")
         .externalId("EXT-UPD-002")
-        .testFolder(newTestFolder)
+        .testFolder(NewTestFolderRQ.builder().name("New Folder for Updated Test Case").build())
         .manualScenario(textManualScenario)
         .build();
 
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.update(membershipDetails, testUser, testCaseId, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.update(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(
             put("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).update(projectId, testCaseId, testCaseRequest);
+    verify(tmsTestCaseService).update(membershipDetails, testUser, testCaseId, testCaseRequest);
   }
+
+  // -------------------------------------------------------------------------
+  // PATCH single — membership + user вместо projectId
+  // -------------------------------------------------------------------------
 
   @Test
   void patchTestCase_OnlyName() throws Exception {
-    // Given
     var testCaseId = 2L;
-    var testCaseRequest = TmsTestCaseRQ.builder()
-        .name("Patched Test Case Name")
-        .build();
-
+    var testCaseRequest = TmsTestCaseRQ.builder().name("Patched Test Case Name").build();
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.patch(membershipDetails, testUser, testCaseId, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.patch(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).patch(projectId, testCaseId, testCaseRequest);
+    verify(tmsTestCaseService).patch(membershipDetails, testUser, testCaseId, testCaseRequest);
   }
 
   @Test
   void patchTestCase_WithExistingFolder() throws Exception {
-    // Given
     var testCaseId = 2L;
-    Long existingFolderId = 8L;
     var testCaseRequest = TmsTestCaseRQ.builder()
-        .testFolderId(existingFolderId)
+        .testFolderId(8L)
         .priority("HIGH")
         .build();
-
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.patch(membershipDetails, testUser, testCaseId, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.patch(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).patch(projectId, testCaseId, testCaseRequest);
+    verify(tmsTestCaseService).patch(membershipDetails, testUser, testCaseId, testCaseRequest);
   }
 
   @Test
   void patchTestCase_WithNewFolder() throws Exception {
-    // Given
     var testCaseId = 2L;
-    var newTestFolder = NewTestFolderRQ.builder()
-        .name("Patched New Folder")
-        .build();
     var testCaseRequest = TmsTestCaseRQ.builder()
-        .testFolder(newTestFolder)
+        .testFolder(NewTestFolderRQ.builder().name("Patched New Folder").build())
         .description("Patched description")
         .build();
-
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.patch(membershipDetails, testUser, testCaseId, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.patch(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).patch(projectId, testCaseId, testCaseRequest);
+    verify(tmsTestCaseService).patch(membershipDetails, testUser, testCaseId, testCaseRequest);
   }
 
   @Test
   void patchTestCase_WithTags() throws Exception {
-    // Given
     var testCaseId = 2L;
     var testCaseRequest = TmsTestCaseRQ.builder()
         .attributes(List.of(
             TmsTestCaseAttributeRQ.builder().id(1L).build(),
-            TmsTestCaseAttributeRQ.builder().id(1L).build()
-        ))
+            TmsTestCaseAttributeRQ.builder().id(1L).build()))
         .build();
-
     var testCase = new TmsTestCaseRS();
-    var jsonContent = objectMapper.writeValueAsString(testCaseRequest);
+    given(tmsTestCaseService.patch(membershipDetails, testUser, testCaseId, testCaseRequest))
+        .willReturn(testCase);
 
-    given(tmsTestCaseService.patch(projectId, testCaseId, testCaseRequest)).willReturn(testCase);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(testCaseRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).patch(projectId, testCaseId, testCaseRequest);
+    verify(tmsTestCaseService).patch(membershipDetails, testUser, testCaseId, testCaseRequest);
   }
+
+  // -------------------------------------------------------------------------
+  // DELETE single — membership + user вместо projectId
+  // -------------------------------------------------------------------------
 
   @Test
   void deleteTestCaseTest() throws Exception {
-    // Given
     var testCaseId = 2L;
 
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/{projectKey}/tms/test-case/{testCaseId}", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).delete(projectId, testCaseId);
+    verify(tmsTestCaseService).delete(membershipDetails, testUser, testCaseId);
   }
+
+  // -------------------------------------------------------------------------
+  // DELETE batch — membership + user вместо projectId
+  // -------------------------------------------------------------------------
 
   @Test
   void deleteTestCasesTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var deleteRequest = BatchDeleteTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
-
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(deleteRequest)))
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).delete(projectId, deleteRequest);
+    verify(tmsTestCaseService).delete(membershipDetails, testUser, deleteRequest);
   }
 
   @Test
   void deleteTestCasesWithSingleIdTest() throws Exception {
-    // Given
-    var testCaseIds = List.of(1L);
     var deleteRequest = BatchDeleteTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(List.of(1L))
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
-
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(deleteRequest)))
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).delete(projectId, deleteRequest);
+    verify(tmsTestCaseService).delete(membershipDetails, testUser, deleteRequest);
   }
+
+  // -------------------------------------------------------------------------
+  // PATCH batch — без изменений (projectId)
+  // -------------------------------------------------------------------------
 
   @Test
   void batchPatchTestCasesTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
         .testFolderId(5L)
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -725,20 +645,15 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void batchPatchTestCasesWithSingleIdTest() throws Exception {
-    // Given
-    var testCaseIds = List.of(1L);
     var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(List.of(1L))
         .testFolderId(5L)
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -747,23 +662,15 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void batchPatchTestCasesWithNewFolderTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var newFolder = NewTestFolderRQ.builder()
-        .name("New Batch Folder")
-        .build();
     var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolder(newFolder)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
+        .testFolder(NewTestFolderRQ.builder().name("New Batch Folder").build())
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -772,25 +679,18 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void batchPatchTestCasesWithNewFolderAndParentTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L);
-    var parentFolderId = 10L;
-    var newFolder = NewTestFolderRQ.builder()
-        .name("New Nested Batch Folder")
-        .parentTestFolderId(parentFolderId)
-        .build();
     var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolder(newFolder)
+        .testCaseIds(Arrays.asList(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder()
+            .name("New Nested Batch Folder")
+            .parentTestFolderId(10L)
+            .build())
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -799,24 +699,16 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void batchPatchTestCasesWithNewFolderAndPriorityTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var newFolder = NewTestFolderRQ.builder()
-        .name("New Folder With Priority")
-        .build();
     var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolder(newFolder)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
+        .testFolder(NewTestFolderRQ.builder().name("New Folder With Priority").build())
         .priority("HIGH")
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -825,20 +717,15 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void batchPatchTestCasesWithOnlyPriorityTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
         .priority("CRITICAL")
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -847,39 +734,34 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void batchPatchTestCasesWithTestFolderIdAndPriorityTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L);
     var patchRequest = BatchPatchTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(Arrays.asList(1L, 2L))
         .testFolderId(7L)
         .priority("MEDIUM")
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).patch(projectId, patchRequest);
   }
 
+  // -------------------------------------------------------------------------
+  // Import / Export — без изменений
+  // -------------------------------------------------------------------------
+
   @Test
   void importTestCasesWithTestFolderIdTest() throws Exception {
-    // Given
-    var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var testFolderId = 3L;
     var importResult = TmsTestCaseImportRS.of(List.of(1L, 2L), 3L, 2);
-
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(null), eq(file)))
         .willReturn(importResult);
 
-    // When/Then
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
@@ -893,16 +775,12 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void importTestCasesWithTestFolderNameTest() throws Exception {
-    // Given
-    var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var testFolderName = "Test Folder";
     var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
-
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(testFolderName), eq(file)))
         .willReturn(importResult);
 
-    // When/Then
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
@@ -911,20 +789,17 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(testFolderName), eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(testFolderName),
+        eq(file));
   }
 
   @Test
   void importTestCasesWithoutFolderParametersTest() throws Exception {
-    // Given
-    var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
-
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(null), eq(file)))
         .willReturn(importResult);
 
-    // When/Then
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
@@ -937,17 +812,14 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void importTestCasesWithBothFolderParametersTest() throws Exception {
-    // Given
-    var fileContent = "test,case,data";
-    var file = new MockMultipartFile("file", "test.csv", "text/csv", fileContent.getBytes());
+    var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var testFolderId = 3L;
     var testFolderName = "Test Folder";
     var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
-
-    given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file)))
+    given(tmsTestCaseService.importFromFile(
+        eq(projectId), eq(testFolderId), eq(testFolderName), eq(file)))
         .willReturn(importResult);
 
-    // When/Then
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
@@ -957,75 +829,67 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(testFolderName), eq(file));
+    verify(tmsTestCaseService).importFromFile(
+        eq(projectId), eq(testFolderId), eq(testFolderName), eq(file));
   }
 
   @Test
   void exportTestCasesWithIdsTest() throws Exception {
-    // Given
     var testCaseIds = List.of(1L, 2L, 3L);
-    var format = "JSON";
-    var includeAttachments = true;
 
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case/export", projectKey)
                 .param("ids", "1,2,3")
-                .param("format", format)
+                .param("format", "JSON")
                 .param("includeAttachments", "true")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).exportToFile(eq(projectId), eq(testCaseIds), eq(format),
-        eq(includeAttachments), any(HttpServletResponse.class));
+    verify(tmsTestCaseService).exportToFile(
+        eq(projectId), eq(testCaseIds), eq("JSON"), eq(true), any(HttpServletResponse.class));
   }
 
   @Test
   void exportTestCasesWithoutParametersTest() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case/export", projectKey)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).exportToFile(eq(projectId), eq(null), eq("JSON"),
-        eq(false), any(HttpServletResponse.class));
+    verify(tmsTestCaseService).exportToFile(
+        eq(projectId), eq(null), eq("JSON"), eq(false), any(HttpServletResponse.class));
   }
 
   @Test
   void exportTestCasesWithCsvFormatTest() throws Exception {
-    // Given
-    var format = "CSV";
-
-    // When/Then
     mockMvc.perform(
             get("/v1/project/{projectKey}/tms/test-case/export", projectKey)
-                .param("format", format)
+                .param("format", "CSV")
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).exportToFile(eq(projectId), eq(null), eq(format),
-        eq(false), any(HttpServletResponse.class));
+    verify(tmsTestCaseService).exportToFile(
+        eq(projectId), eq(null), eq("CSV"), eq(false), any(HttpServletResponse.class));
   }
+
+  // -------------------------------------------------------------------------
+  // Tags / Attributes / Duplicate — без изменений
+  // -------------------------------------------------------------------------
 
   @Test
   void deleteTagsFromTestCaseTest() throws Exception {
-    // Given
     var testCaseId = 2L;
     var tagIds = Arrays.asList(1L, 2L, 3L);
     var deleteRequest = new DeleteTagsRQ();
     deleteRequest.setTagIds(tagIds);
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
-
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/{projectKey}/tms/test-case/{testCaseId}/tags", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(deleteRequest)))
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1034,19 +898,15 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void deleteTagsFromTestCaseWithSingleTagTest() throws Exception {
-    // Given
     var testCaseId = 2L;
     var tagIds = List.of(1L);
     var deleteRequest = new DeleteTagsRQ();
     deleteRequest.setTagIds(tagIds);
 
-    var jsonContent = objectMapper.writeValueAsString(deleteRequest);
-
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/{projectKey}/tms/test-case/{testCaseId}/tags", projectKey, testCaseId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(deleteRequest)))
         .andExpect(status().isNoContent());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1055,23 +915,16 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void patchTestCaseAttributesTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributesToRemove = Set.of("key4", "key5");
-    var attributeKeysToAdd = Set.of("key6", "key7");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .attributeKeysToRemove(attributesToRemove)
-        .attributeKeysToAdd(attributeKeysToAdd)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
+        .attributeKeysToRemove(Set.of("key4", "key5"))
+        .attributeKeysToAdd(Set.of("key6", "key7"))
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1080,23 +933,16 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void patchTestCaseAttributesWithSingleTestCaseTest() throws Exception {
-    // Given
-    var testCaseIds = List.of(1L);
-    var attributesToRemove = Set.of("key4", "key5", "key6");
-    var attributeKeysToAdd = Set.of("key7", "key8");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .attributeKeysToRemove(attributesToRemove)
-        .attributeKeysToAdd(attributeKeysToAdd)
+        .testCaseIds(List.of(1L))
+        .attributeKeysToRemove(Set.of("key4", "key5", "key6"))
+        .attributeKeysToAdd(Set.of("key7", "key8"))
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1105,21 +951,15 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void patchTestCaseAttributesOnlyRemoveTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L);
-    var attributesToRemove = Set.of("key4", "key5");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .attributeKeysToRemove(attributesToRemove)
+        .testCaseIds(Arrays.asList(1L, 2L))
+        .attributeKeysToRemove(Set.of("key4", "key5"))
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1128,21 +968,15 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void patchTestCaseAttributesOnlyAddTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var attributeKeysToAdd = Set.of("key6", "key7", "key8");
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .attributeKeysToAdd(attributeKeysToAdd)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
+        .attributeKeysToAdd(Set.of("key6", "key7", "key8"))
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1151,49 +985,35 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void patchTestCaseAttributesWithEmptyAttributeListsTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L);
     var patchRequest = BatchPatchTestCaseAttributesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(Arrays.asList(1L, 2L))
         .attributeKeysToRemove(Collections.emptySet())
         .attributeKeysToAdd(Collections.emptySet())
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(patchRequest);
-
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/{projectKey}/tms/test-case/attributes/batch", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isBadRequest());
   }
 
   @Test
   void duplicateTestCasesTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L);
-    var testFolderId = 5L;
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolderId(testFolderId)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L))
+        .testFolderId(5L)
         .build();
-
-    var duplicatedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS());
     var duplicateResponse = BatchDuplicateTestCasesRS.builder()
-        .testFolderId(testFolderId)
-        .testCases(duplicatedTestCases)
+        .testFolderId(5L)
+        .testCases(List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS()))
         .build();
-
-    var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
-
     given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
 
-    // When/Then
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(duplicateRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1202,29 +1022,20 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void duplicateTestCasesWithSingleIdTest() throws Exception {
-    // Given
-    var testCaseIds = List.of(1L);
-    var testFolderId = 5L;
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolderId(testFolderId)
+        .testCaseIds(List.of(1L))
+        .testFolderId(5L)
         .build();
-
-    var duplicatedTestCases = List.of(new TmsTestCaseRS());
     var duplicateResponse = BatchDuplicateTestCasesRS.builder()
-        .testFolderId(testFolderId)
-        .testCases(duplicatedTestCases)
+        .testFolderId(5L)
+        .testCases(List.of(new TmsTestCaseRS()))
         .build();
-
-    var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
-
     given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
 
-    // When/Then
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(duplicateRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1233,32 +1044,22 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void duplicateTestCasesWithMultipleIdsTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L, 3L, 4L, 5L);
-    var testFolderId = 10L;
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolderId(testFolderId)
+        .testCaseIds(Arrays.asList(1L, 2L, 3L, 4L, 5L))
+        .testFolderId(10L)
         .build();
-
-    var duplicatedTestCases = List.of(
-        new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS(),
-        new TmsTestCaseRS(), new TmsTestCaseRS()
-    );
     var duplicateResponse = BatchDuplicateTestCasesRS.builder()
-        .testFolderId(testFolderId)
-        .testCases(duplicatedTestCases)
+        .testFolderId(10L)
+        .testCases(List.of(
+            new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS(),
+            new TmsTestCaseRS(), new TmsTestCaseRS()))
         .build();
-
-    var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
-
     given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
 
-    // When/Then
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(duplicateRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1267,33 +1068,23 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void duplicateTestCasesWithNewFolderTest() throws Exception {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 2L);
-    var newFolder = NewTestFolderRQ.builder()
-        .name("New Duplicate Folder")
-        .parentTestFolderId(3L)
-        .build();
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
-        .testFolder(newFolder)
+        .testCaseIds(Arrays.asList(1L, 2L))
+        .testFolder(NewTestFolderRQ.builder()
+            .name("New Duplicate Folder")
+            .parentTestFolderId(3L)
+            .build())
         .build();
-
-    var duplicatedTestCases = List.of(new TmsTestCaseRS(), new TmsTestCaseRS());
-    var createdFolderId = 15L;
     var duplicateResponse = BatchDuplicateTestCasesRS.builder()
-        .testFolderId(createdFolderId)
-        .testCases(duplicatedTestCases)
+        .testFolderId(15L)
+        .testCases(List.of(new TmsTestCaseRS(), new TmsTestCaseRS()))
         .build();
-
-    var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
-
     given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
 
-    // When/Then
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(duplicateRequest)))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
@@ -1302,19 +1093,14 @@ public class TmsTestCaseControllerTest {
 
   @Test
   void duplicateTestCasesWithEmptyListTest() throws Exception {
-    // Given
-    var testCaseIds = Collections.<Long>emptyList();
     var duplicateRequest = BatchDuplicateTestCasesRQ.builder()
-        .testCaseIds(testCaseIds)
+        .testCaseIds(Collections.emptyList())
         .build();
 
-    var jsonContent = objectMapper.writeValueAsString(duplicateRequest);
-
-    // When/Then
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
+                .content(objectMapper.writeValueAsString(duplicateRequest)))
         .andExpect(status().isBadRequest());
 
     verify(tmsTestCaseService, never()).duplicate(projectId, duplicateRequest);

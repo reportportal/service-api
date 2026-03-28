@@ -26,12 +26,15 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.model.ActivityEventResource;
 import com.epam.reportportal.base.model.Page;
+import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.FilterFor;
+import com.epam.reportportal.base.ws.resolver.PagingOffset;
 import com.epam.reportportal.base.ws.resolver.SortFor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -312,5 +315,22 @@ public class ActivityController {
     MembershipDetails membershipDetails =
         projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
     return activityHandler.getItemActivities(membershipDetails, itemId, filter, pageable);
+  }
+
+  @GetMapping(value = "/test-case/{testCaseId}")
+  @ResponseStatus(OK)
+  @Operation(summary = "Get a list of test case activities for a specific project", description = "Fetches a list of test case activities for a specific project.")
+  public Page<ActivityEventResource> getTestCaseActivities(@PathVariable
+      @Parameter(description = "The name of the project for which the activities should be searched")
+      String projectKey, @PathVariable
+      @Parameter(description = "The ID of the test case for which all its activities should be searched") Long testCaseId,
+      @FilterFor(Activity.class) Filter filter,
+      @PagingOffset(sortable = Activity.class) OffsetRequest pageable,
+      @AuthenticationPrincipal ReportPortalUser user) {
+
+    MembershipDetails membershipDetails =
+        projectExtractor.extractProjectDetailsAdmin(EntityUtils.normalizeId(projectKey));
+
+    return activityHandler.getTestCaseActivities(membershipDetails, testCaseId, filter, pageable);
   }
 }

@@ -6,18 +6,30 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service interface for managing TMS Test Folders.
  */
-public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTestFolderRS, Long> {
+public interface TmsTestFolderService {
+
+  TmsTestFolderRS create(long projectId, TmsTestFolderRQ inputDto);
+
+  TmsTestFolderRS update(long projectId, Long testFolderId,
+      TmsTestFolderRQ inputDto);
+
+  TmsTestFolderRS patch(long projectId, Long testFolderId, TmsTestFolderRQ inputDto);
+
+  TmsTestFolderRS getById(long projectId, Long id);
 
   /**
    * Retrieves test folders by criteria with pagination.
@@ -66,6 +78,9 @@ public interface TmsTestFolderService extends CrudService<TmsTestFolderRQ, TmsTe
    * @param testFolderName  The name of the test folder (optional).
    */
   void resolveTestFolderRQ(TmsTestCaseRQ testCaseRequest, Long testFolderId, String testFolderName);
+
+  void delete(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long folderId);
 
   /**
    * Resolves target folder.

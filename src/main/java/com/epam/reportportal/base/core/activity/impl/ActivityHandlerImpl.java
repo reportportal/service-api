@@ -160,6 +160,38 @@ public class ActivityHandlerImpl implements ActivityHandler {
         .apply(activityRepository.findByFilter(filter, pageable));
   }
 
+  @Override
+  public com.epam.reportportal.base.model.Page<ActivityEventResource> getTestCaseActivities(
+      MembershipDetails membershipDetails,
+      Long testCaseId,
+      Filter filter,
+      Pageable pageable) {
+
+    expect(projectRepository.existsById(membershipDetails.getProjectId()), BooleanUtils::isTrue)
+        .verify(NOT_FOUND, "Project " + membershipDetails.getProjectId());
+
+    var sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT);
+
+    filter
+        .withCondition(FilterCondition.builder()
+            .eq(CRITERIA_OBJECT_ID, String.valueOf(testCaseId)).build())
+        .withCondition(FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_OBJECT_TYPE)
+            .withCondition(Condition.EQUALS)
+            .withValue(EventObject.TMS_TEST_CASE.toString())
+            .build())
+        .withCondition(FilterCondition.builder()
+            .eq(CRITERIA_PROJECT_ID, String.valueOf(membershipDetails.getProjectId()))
+            .build());
+
+    var page = activityRepository.findByFilter(
+        filter,
+        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
+    );
+
+    return PagedResourcesAssembler.pageConverter(ActivityEventConverter.TO_RESOURCE).apply(page);
+  }
+
   /**
    * Build {@link Filter} to search for {@link Activity} with {@link EventObject#PATTERN} entity and
    * {@link EventAction#MATCH}, {@link EventObject#PATTERN}  action conditions of the {@link TestItem} with provided

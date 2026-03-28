@@ -5,7 +5,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -689,15 +691,27 @@ public class TmsTestFolderControllerTest {
   @Test
   public void testDeleteTestFolder() throws Exception {
     long folderId = 2L;
+    var membershipDetails = mock(MembershipDetails.class);
 
-    doNothing().when(tmsTestFolderService).delete(projectId, folderId);
+    when(membershipDetails.getProjectId())
+        .thenReturn(projectId);
+
+    doNothing().when(tmsTestFolderService).delete(
+        any(MembershipDetails.class),
+        any(ReportPortalUser.class),
+        eq(folderId)
+    );
 
     mockMvc.perform(delete("/v1/project/{projectKey}/tms/folder/{folderId}", projectKey, folderId)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).delete(projectId, folderId);
+    verify(tmsTestFolderService).delete(
+        any(MembershipDetails.class),
+        any(ReportPortalUser.class),
+        eq(folderId)
+    );
   }
 
   @Test

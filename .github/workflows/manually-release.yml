@@ -37,6 +37,11 @@ jobs:
           email: 'support@reportportal.io'
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Configure git for release
+        run: |
+          git config fetch.recurseSubmodules false
+          git config submodule.recurse false
+
       - name: Release with Gradle
         id: release
         run: |

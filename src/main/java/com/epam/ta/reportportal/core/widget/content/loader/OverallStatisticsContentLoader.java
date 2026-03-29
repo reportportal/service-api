@@ -22,6 +22,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_FAILED;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_INTERRUPTED;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 

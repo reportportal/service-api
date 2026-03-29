@@ -28,15 +28,15 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.SEARCH_
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.model.analyzer.IndexLog;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.LogFull;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.model.project.UniqueErrorConfig;
-import com.epam.reportportal.model.analyzer.IndexLog;
-import com.epam.reportportal.model.analyzer.IndexTestItem;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -80,7 +80,7 @@ public class AnalyzerUtils {
    * @return {@link IndexTestItem} object
    */
   public static IndexTestItem fromTestItem(TestItem testItem) {
-    var  testItemStarTime = testItem.getStartTime() != null
+    var testItemStarTime = testItem.getStartTime() != null
         ? LocalDateTime.ofInstant(testItem.getStartTime(), ZoneId.systemDefault())
         : null;
     IndexTestItem indexTestItem = new IndexTestItem();

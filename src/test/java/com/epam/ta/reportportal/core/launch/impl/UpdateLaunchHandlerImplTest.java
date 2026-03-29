@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerServ
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -91,6 +92,9 @@ class UpdateLaunchHandlerImplTest {
 
   @Mock
   private LogIndexer logIndexer;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
 
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;

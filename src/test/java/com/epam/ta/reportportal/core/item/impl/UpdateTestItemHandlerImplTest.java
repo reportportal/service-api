@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -110,6 +111,9 @@ class UpdateTestItemHandlerImplTest {
 
   @Mock
   private LogIndexerService logIndexerService;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
 
   @InjectMocks
   private UpdateTestItemHandlerImpl handler;
@@ -422,6 +426,7 @@ class UpdateTestItemHandlerImplTest {
 
     assertEquals(user.getUserId(), item.getAnalysisOwnerId());
     verify(itemRepository, times(1)).save(item);
+    verify(statisticsService, times(1)).changeDefectStatistics(any(), any(), any());
   }
 
   @Test

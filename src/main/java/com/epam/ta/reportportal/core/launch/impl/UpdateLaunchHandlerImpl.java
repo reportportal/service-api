@@ -133,6 +133,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         "Launch with ID = '" + launch.getId() + "' successfully updated.");
   }
 
+
   @Override
   public List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {

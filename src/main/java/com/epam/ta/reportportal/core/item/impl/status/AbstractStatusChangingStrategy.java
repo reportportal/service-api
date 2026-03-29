@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
+import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.INFO;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
@@ -23,18 +25,20 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.WARN;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
-import static com.epam.reportportal.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -46,9 +50,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.activity.TestItemActivityResource;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
@@ -72,11 +74,14 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   protected final LogRepository logRepository;
   protected final LogIndexer logIndexer;
 
+  private final TestItemStatisticsService testItemStatisticsService;
+
   protected AbstractStatusChangingStrategy(TestItemService testItemService,
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, IssueEntityRepository issueEntityRepository,
-      LogRepository logRepository, LogIndexer logIndexer) {
+      LogRepository logRepository, LogIndexer logIndexer,
+      TestItemStatisticsService testItemStatisticsService) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.launchRepository = launchRepository;
@@ -86,6 +91,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     this.issueEntityRepository = issueEntityRepository;
     this.logRepository = logRepository;
     this.logIndexer = logIndexer;
+    this.testItemStatisticsService = testItemStatisticsService;
   }
 
   protected abstract void updateStatus(Project project, Launch launch, TestItem testItem,
@@ -96,6 +102,11 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   @Override
   public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
       boolean updateParents) {
+
+    TestItemPathContext cur = new TestItemPathContext(testItem.getItemId(),
+        testItem.getLaunchId(), testItem.getPath());
+    testItemStatisticsService.deleteItemStatistics(cur);
+
     BusinessRule.expect(testItem.getItemResults().getStatus(),
         currentStatus -> !IN_PROGRESS.equals(currentStatus)
     ).verify(
@@ -112,6 +123,8 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
         .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, launch.getProjectId()));
 
     updateStatus(project, launch, testItem, providedStatus, user, updateParents);
+
+    testItemStatisticsService.addStatistics(testItem);
   }
 
   protected void addToInvestigateIssue(TestItem testItem, Long projectId) {

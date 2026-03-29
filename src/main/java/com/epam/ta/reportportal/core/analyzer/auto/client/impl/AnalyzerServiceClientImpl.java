@@ -77,7 +77,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
   @Override
   public boolean hasClients() {
-    return rabbitMqManagementClient.getAnalyzerExchangesInfo().size() != 0;
+    return !rabbitMqManagementClient.getAnalyzerExchangesInfo().isEmpty();
   }
 
   @Override

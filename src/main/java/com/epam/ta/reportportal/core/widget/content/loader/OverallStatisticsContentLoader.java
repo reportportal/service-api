@@ -18,8 +18,11 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.SEPARATE_INTERRUPTED;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_FAILED;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_INTERRUPTED;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
@@ -32,6 +35,8 @@ import com.epam.ta.reportportal.entity.widget.content.OverallStatisticsContent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -41,10 +46,11 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
+@RequiredArgsConstructor
 public class OverallStatisticsContentLoader implements LoadContentStrategy {
 
   @Autowired
-  private WidgetContentRepository widgetContentRepository;
+  private final WidgetContentRepository widgetContentRepository;
 
   @Override
   public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping,
@@ -55,9 +61,20 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
     Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
     boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
+    boolean separateInterrupted = WidgetOptionUtil.getBooleanByKey(SEPARATE_INTERRUPTED,
+        widgetOptions);
 
     OverallStatisticsContent content = widgetContentRepository.overallStatisticsContent(filter,
         sort, contentFields, latestMode, limit);
+
+    if (separateInterrupted && MapUtils.isNotEmpty(content.getValues())) {
+      long interrupted = widgetContentRepository.overallStatisticsInterruptedCount(filter, sort,
+          latestMode, limit);
+      Long failed = Optional.ofNullable(content.getValues().get(EXECUTIONS_FAILED)).orElse(0L);
+
+      content.getValues().put(EXECUTIONS_INTERRUPTED, interrupted);
+      content.getValues().put(EXECUTIONS_FAILED, Math.max(0L, failed - interrupted));
+    }
 
     return MapUtils.isEmpty(content.getValues()) ? emptyMap()
         : singletonMap(RESULT, Collections.singletonList(content));

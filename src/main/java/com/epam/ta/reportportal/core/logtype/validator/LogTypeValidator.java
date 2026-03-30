@@ -17,8 +17,7 @@
 package com.epam.ta.reportportal.core.logtype.validator;
 
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -65,7 +64,6 @@ public class LogTypeValidator {
    */
   public void validateLogTypeBelongsToProject(ProjectLogType logType, Long projectId) {
     expect(logType.getProjectId(), equalTo(projectId))
-        .verify(ACCESS_DENIED, formattedSupplier(
-            "Log type '{}' does not belong to the specified project", logType.getId()));
+        .verify(NOT_FOUND, "Log type");
   }
 }

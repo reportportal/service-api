@@ -162,7 +162,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
   void deleteLogTypeAdminCannotDeleteFromAnyProject() throws Exception {
     mockMvc.perform(delete("/projects/default_personal/log-types/1001")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isNotFound());
   }
 
   @Test

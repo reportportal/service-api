@@ -46,11 +46,10 @@ public class DomainEventPublisher {
    * @param event The domain event to publish
    */
   @Async(value = "eventListenerExecutor")
-  @TransactionalEventListener
+  @TransactionalEventListener(fallbackExecution = true)
   public void onDomainEvent(AbstractEvent<?> event) {
     if (event.shouldPublishToRabbitMq()) {
-      log.debug("Publishing domain event to exchange '{}', event:'{}'", DOMAIN_EVENTS_EXCHANGE,
-          event.toString());
+      log.debug("Publishing domain event to exchange '{}', event:'{}'", DOMAIN_EVENTS_EXCHANGE, event);
       messageBus.publish(DOMAIN_EVENTS_EXCHANGE, generateRoutingKey(event), event);
     }
   }

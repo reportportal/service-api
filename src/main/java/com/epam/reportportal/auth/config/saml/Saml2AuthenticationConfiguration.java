@@ -72,13 +72,16 @@ public class Saml2AuthenticationConfiguration {
     Saml2RegistrationValidationFilter validationFilter =
         new Saml2RegistrationValidationFilter(relyingPartyRegistrationRepository, failureHandler);
 
+    LegacySamlAcsForwardFilter legacyAcsForwardFilter = new LegacySamlAcsForwardFilter();
+
     http
-        .securityMatcher("/saml2/**", "/login/**")
+        .securityMatcher("/saml2/**", "/login/**", "/saml/sp/SSO/**")
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/saml2/**").permitAll()
+            .requestMatchers("/saml2/**", "/saml/sp/SSO/**").permitAll()
             .anyRequest().authenticated()
         )
         .saml2Login(Customizer.withDefaults())
+        .addFilterBefore(legacyAcsForwardFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(validationFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(saml2Filter, Saml2WebSsoAuthenticationFilter.class)
         .csrf(AbstractHttpConfigurer::disable);

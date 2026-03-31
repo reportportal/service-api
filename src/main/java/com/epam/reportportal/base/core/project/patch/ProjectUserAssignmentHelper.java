@@ -22,6 +22,7 @@ import static java.util.function.Predicate.not;
 
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
+import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
@@ -124,6 +125,20 @@ public class ProjectUserAssignmentHelper {
 
     applicationEventPublisher.publishEvent(
         new AssignUserEvent(
+            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId),
+            principal.getUserId(), principal.getUsername(), orgId
+        )
+    );
+  }
+
+  /**
+   * Publishes user unassignment event and logs the action.
+   */
+  public void publishUserUnassignEvent(ReportPortalUser principal, User user, Long orgId, Long projectId) {
+    log.info("User with ID {} has been unassigned from project with ID {}", user.getId(), projectId);
+
+    applicationEventPublisher.publishEvent(
+        new UnassignUserEvent(
             UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId),
             principal.getUserId(), principal.getUsername(), orgId
         )

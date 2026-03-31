@@ -79,18 +79,12 @@ public interface ProjectUserRepository
   void deleteByUserIdAndProjectIds(@Param("userId") Long userId, @Param("projectIds") List<Long> projectIds);
 
   /**
-   * Deletes all entries from the project_user table for the specified project ID, except for those with user IDs in the
-   * provided list.
+   * Deletes all entries from the project_user table for the specified project ID with user IDs in the provided list.
    *
    * @param projectId The ID of the project whose user associations should be deleted.
-   * @param userIds   The list of user IDs to retain.
+   * @param userIds   The list of user IDs to delete.
    */
-  @Modifying
-  @Query(value =
-      """
-            DELETE FROM project_user WHERE project_id = :projectId AND user_id NOT IN :userIds
-          """, nativeQuery = true)
-  void deleteByProjectIdAndUserIdNotIn(@Param("projectId") Long projectId, @Param("userIds") List<Long> userIds);
+  void deleteByProject_IdAndUser_IdIn(Long projectId, List<Long> userIds);
 
 
   /**
@@ -101,4 +95,21 @@ public interface ProjectUserRepository
   @Modifying
   @Query(value = "DELETE FROM project_user WHERE project_id = :projectId", nativeQuery = true)
   void deleteAllByProjectId(@Param(value = "projectId") Long projectId);
+
+  /**
+   * Finds all ProjectUser entries for the specified project ID.
+   *
+   * @param projectId The project ID
+   * @return List of ProjectUser entries
+   */
+  List<ProjectUser> findAllByProject_Id(Long projectId);
+
+  /**
+   * Finds all ProjectUser entries for the specified project ID where the user ID is not in the provided list.
+   *
+   * @param projectId The project ID
+   * @param userIds   The list of user IDs to exclude
+   * @return List of ProjectUser entries
+   */
+  List<ProjectUser> findAllByProject_IdAndUser_IdNotIn(Long projectId, List<Long> userIds);
 }

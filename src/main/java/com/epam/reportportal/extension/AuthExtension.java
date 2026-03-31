@@ -28,7 +28,15 @@ public interface AuthExtension extends ReportPortalExtensionPoint {
     return Optional.empty();
   }
 
-  default Optional<GetAuthIntegrationStrategy> getSamlStrategy() {
+  default Optional<GetAuthIntegrationStrategy> getListIntegrationStrategy() {
+    return Optional.empty();
+  }
+
+  /**
+   * Returns the auth integration type name (e.g. "saml", "ldap") this plugin handles, if any.
+   * Used to register strategy mappings dynamically from the plugin.
+   */
+  default Optional<String> getAuthIntegrationType() {
     return Optional.empty();
   }
 }

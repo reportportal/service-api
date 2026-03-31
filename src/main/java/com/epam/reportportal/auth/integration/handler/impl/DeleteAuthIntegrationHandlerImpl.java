@@ -19,7 +19,6 @@ package com.epam.reportportal.auth.integration.handler.impl;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 
 import com.epam.reportportal.auth.event.SamlProvidersReloadEvent;
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.integration.handler.DeleteAuthIntegrationHandler;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
@@ -67,7 +66,7 @@ public class DeleteAuthIntegrationHandlerImpl implements DeleteAuthIntegrationHa
 
     integrationRepository.deleteById(integrationId);
 
-    if (AuthIntegrationType.SAML.getName().equals(integration.getType().getName())) {
+    if ("saml".equalsIgnoreCase(integration.getType().getName())) {
       eventPublisher.publishEvent(new SamlProvidersReloadEvent(integration.getType()));
     }
 

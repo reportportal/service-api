@@ -16,52 +16,23 @@
 
 package com.epam.reportportal.auth.config;
 
-import static com.epam.reportportal.auth.integration.AuthIntegrationType.SAML;
-
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
-import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationStrategy;
-import com.epam.reportportal.auth.integration.handler.impl.GetSamlIntegrationsStrategy;
-import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
-import com.epam.reportportal.auth.integration.handler.impl.strategy.SamlIntegrationStrategy;
 import com.epam.reportportal.auth.integration.provider.AuthIntegrationStrategyProvider;
-import com.google.common.collect.ImmutableMap;
-import java.util.Map;
-import org.springframework.beans.BeansException;
+import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * Registers auth integration strategies from installed plugins.
  */
 @Configuration
 public class AuthIntegrationConfig {
 
-  private ApplicationContext applicationContext;
-
   @Autowired
-  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    this.applicationContext = applicationContext;
-  }
-
-  @Bean("getAuthIntegrationStrategyMapping")
-  public Map<AuthIntegrationType, GetAuthIntegrationStrategy> getAuthIntegrationStrategyMapping() {
-    return new ImmutableMap.Builder<AuthIntegrationType, GetAuthIntegrationStrategy>()
-        .put(SAML, applicationContext.getBean(GetSamlIntegrationsStrategy.class))
-        .build();
-  }
+  private Pf4jPluginBox pluginBox;
 
   @Bean("authIntegrationStrategyProvider")
   public AuthIntegrationStrategyProvider authIntegrationStrategyProvider() {
-    final ImmutableMap<AuthIntegrationType, AuthIntegrationStrategy> authIntegrationStrategyMap =
-        buildAuthIntegrationStrategyMap();
-    return new AuthIntegrationStrategyProvider(authIntegrationStrategyMap);
-  }
-
-  private ImmutableMap<AuthIntegrationType, AuthIntegrationStrategy> buildAuthIntegrationStrategyMap() {
-    return new ImmutableMap.Builder<AuthIntegrationType, AuthIntegrationStrategy>()
-        .put(SAML, applicationContext.getBean(SamlIntegrationStrategy.class))
-        .build();
+    return new AuthIntegrationStrategyProvider(pluginBox);
   }
 }

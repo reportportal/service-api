@@ -17,12 +17,12 @@
 package com.epam.reportportal.auth.config.saml;
 
 import com.epam.reportportal.auth.AuthFailureHandler;
-import com.epam.reportportal.auth.integration.saml.ReportPortalSamlAuthenticationManager;
+import com.epam.reportportal.auth.DelegatingPluginAuthenticationProvider;
 import com.epam.reportportal.auth.integration.saml.SamlAuthSuccessHandler;
-import com.epam.reportportal.auth.integration.saml.SamlUserReplicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -32,7 +32,8 @@ import org.springframework.security.saml2.provider.service.web.authentication.Sa
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
+ * SAML2 security filter chain configuration. The actual SAML authentication logic is provided
+ * by the SAML plugin via {@link DelegatingPluginAuthenticationProvider}.
  */
 @Configuration
 public class Saml2AuthenticationConfiguration {
@@ -43,16 +44,17 @@ public class Saml2AuthenticationConfiguration {
 
   private final AuthFailureHandler failureHandler;
 
-  private final SamlUserReplicator samlUserReplicator;
+  private final DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider;
 
   private final RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
   public Saml2AuthenticationConfiguration(SamlAuthSuccessHandler successHandler,
-      AuthFailureHandler failureHandler, SamlUserReplicator samlUserReplicator,
+      AuthFailureHandler failureHandler,
+      DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider,
       RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
     this.successHandler = successHandler;
     this.failureHandler = failureHandler;
-    this.samlUserReplicator = samlUserReplicator;
+    this.delegatingPluginAuthenticationProvider = delegatingPluginAuthenticationProvider;
     this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
   }
 
@@ -63,20 +65,23 @@ public class Saml2AuthenticationConfiguration {
         relyingPartyRegistrationRepository,
         SAML_PROCESSING_URL
     );
-    saml2Filter.setAuthenticationManager(new ReportPortalSamlAuthenticationManager(samlUserReplicator));
+    saml2Filter.setAuthenticationManager(new ProviderManager(delegatingPluginAuthenticationProvider));
     saml2Filter.setAuthenticationSuccessHandler(successHandler);
     saml2Filter.setAuthenticationFailureHandler(failureHandler);
 
     Saml2RegistrationValidationFilter validationFilter =
         new Saml2RegistrationValidationFilter(relyingPartyRegistrationRepository, failureHandler);
 
+    LegacySamlAcsForwardFilter legacyAcsForwardFilter = new LegacySamlAcsForwardFilter();
+
     http
-        .securityMatcher("/saml2/**", "/login/**")
+        .securityMatcher("/saml2/**", "/login/**", "/saml/sp/SSO/**")
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/saml2/**").permitAll()
+            .requestMatchers("/saml2/**", "/saml/sp/SSO/**").permitAll()
             .anyRequest().authenticated()
         )
         .saml2Login(Customizer.withDefaults())
+        .addFilterBefore(legacyAcsForwardFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(validationFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(saml2Filter, Saml2WebSsoAuthenticationFilter.class)
         .csrf(AbstractHttpConfigurer::disable);

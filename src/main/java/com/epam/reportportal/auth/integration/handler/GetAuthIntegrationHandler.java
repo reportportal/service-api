@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.auth.integration.handler;
 
-import com.epam.reportportal.auth.integration.AuthIntegrationType;
 import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
 import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
 import java.util.Map;
@@ -27,7 +26,7 @@ import org.springframework.http.ResponseEntity;
  */
 public interface GetAuthIntegrationHandler {
 
-  AbstractAuthResource getIntegrationByType(AuthIntegrationType integrationType);
+  AbstractAuthResource getIntegrationByType(String integrationType);
 
   Map<String, OAuthRegistrationResource> getAllOauthIntegrations();
 

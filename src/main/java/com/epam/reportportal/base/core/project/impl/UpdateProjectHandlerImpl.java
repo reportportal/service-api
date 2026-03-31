@@ -453,7 +453,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
         if (UserRole.ADMINISTRATOR != user.getUserRole()) {
           ProjectRole principalRole =
-              projectExtractor.extractMembershipDetails(user, project.getName()).getProjectRole();
+              projectExtractor.extractMembershipDetails(user, project.getKey()).getProjectRole();
           ProjectRole updatingUserRole =
               ofNullable(ProjectUtils.findUserConfigByLogin(project, key)).orElseThrow(
                   () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();

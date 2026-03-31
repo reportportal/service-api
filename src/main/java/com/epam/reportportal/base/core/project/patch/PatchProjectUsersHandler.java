@@ -63,15 +63,10 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
    * @param objectMapper          The object mapper for JSON conversion.
    */
   @Autowired
-  protected PatchProjectUsersHandler(
-      UserRepository userRepository,
-      ProjectService projectService,
-      ProjectUserRepository projectUserRepository,
-      ObjectMapper objectMapper,
-      OrganizationRepositoryCustom organizationRepository,
-      ProjectRepository projectRepository,
-      ProjectUserAssignmentHelper assignmentHelper
-  ) {
+  protected PatchProjectUsersHandler(UserRepository userRepository, ProjectService projectService,
+      ProjectUserRepository projectUserRepository, ObjectMapper objectMapper,
+      OrganizationRepositoryCustom organizationRepository, ProjectRepository projectRepository,
+      ProjectUserAssignmentHelper assignmentHelper) {
     super(projectService, objectMapper);
     this.userRepository = userRepository;
     this.projectUserRepository = projectUserRepository;
@@ -95,9 +90,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
     var principal = SecurityContextUtils.getPrincipal();
 
-    var newUserIds = prjUsersInfo.stream()
-        .map(UserProjectInfo::getId)
-        .toList();
+    var newUserIds = prjUsersInfo.stream().map(UserProjectInfo::getId).toList();
 
     var org = organizationRepository.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
@@ -108,11 +101,15 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
 
     if (newUserIds.isEmpty()) {
-      unassignAllUsersFromProject(project.getId());
+      unassignAllUsersFromProject(project.getId(), orgId);
       return;
     } else {
-      projectUserRepository.deleteByProjectIdAndUserIdNotIn(project.getId(), newUserIds);
-      log.info("Users not in {} have been removed from project with ID {}", newUserIds, project.getId());
+      var usersToRemove = projectUserRepository.findAllByProject_IdAndUser_IdNotIn(project.getId(), newUserIds);
+      var removeIds = usersToRemove.stream().map(pu -> pu.getUser().getId()).toList();
+      projectUserRepository.deleteByProject_IdAndUser_IdIn(project.getId(), removeIds);
+      log.info("Users {} have been removed from project with ID {}", removeIds, project.getId());
+      usersToRemove.forEach(
+          pu -> assignmentHelper.publishUserUnassignEvent(principal, pu.getUser(), orgId, project.getId()));
     }
 
     prjUsersInfo.forEach(info -> {
@@ -129,10 +126,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       var projectRole = assignmentHelper.evaluateProjectRole(orgUser, info);
 
       var prjUser = projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
-          .orElseGet(() -> new ProjectUser()
-              .withUser(user)
-              .withProject(project)
-          );
+          .orElseGet(() -> new ProjectUser().withUser(user).withProject(project));
       prjUser.setProjectRole(projectRole);
       projectUserRepository.save(prjUser);
 
@@ -143,26 +137,33 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   @Override
   public void remove(PatchOperation operation, Long orgId, Long projectId) {
     if (ObjectUtils.isEmpty(operation.getValue())) {
-      unassignAllUsersFromProject(projectId);
+      unassignAllUsersFromProject(projectId, orgId);
       return;
     }
     var ids = readOperationValue(operation, new TypeReference<List<IdContainer>>() {
     });
 
     if (CollectionUtils.isEmpty(ids)) {
-      unassignAllUsersFromProject(projectId);
+      unassignAllUsersFromProject(projectId, orgId);
       return;
     }
+
+    var principal = SecurityContextUtils.getPrincipal();
     ids.forEach(idContainer -> {
-      projectUserRepository.findProjectUserByUserIdAndProjectId(idContainer.getId(), projectId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer));
+      var projectUser = projectUserRepository.findProjectUserByUserIdAndProjectId(idContainer.getId(), projectId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer.getId()));
       projectUserRepository.deleteByUserIdAndProjectIds(idContainer.getId(), List.of(projectId));
       log.info("User with ID {} has been removed from project with ID {}", idContainer.getId(), projectId);
+      assignmentHelper.publishUserUnassignEvent(principal, projectUser.getUser(), orgId, projectId);
     });
   }
 
-  private void unassignAllUsersFromProject(Long projectId) {
+  private void unassignAllUsersFromProject(Long projectId, Long orgId) {
+    var principal = SecurityContextUtils.getPrincipal();
+    var usersToRemove = projectUserRepository.findAllByProject_Id(projectId);
     projectUserRepository.deleteAllByProjectId(projectId);
     log.info("All users have been removed from project with ID {}", projectId);
+    usersToRemove
+        .forEach(pu -> assignmentHelper.publishUserUnassignEvent(principal, pu.getUser(), orgId, projectId));
   }
 }

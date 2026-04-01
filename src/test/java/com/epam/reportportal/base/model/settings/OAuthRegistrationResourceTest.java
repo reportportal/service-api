@@ -19,7 +19,7 @@ package com.epam.reportportal.base.model.settings;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.model.settings.OAuthRegistrationResource;
+import com.epam.reportportal.auth.model.OAuthRegistrationResource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,7 +33,7 @@ public class OAuthRegistrationResourceTest {
 
   private static final String URL_REGEX = OAuthRegistrationResource.URL_PATTERN;
 
-  private final List<String> correctUrls = new ArrayList<String>() {
+  private final List<String> correctUrls = new ArrayList<>() {
     {
       add("https://github.com/login/oauth/access_token");
       add("github.com/login/oauth/access_token");

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.model.integration.auth;
+package com.epam.reportportal.auth.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

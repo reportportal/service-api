@@ -22,9 +22,10 @@ import com.epam.reportportal.auth.info.OAuthProviderInfo;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.extension.AuthExtension;
 import com.epam.reportportal.extension.common.ExtensionPoint;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,12 +58,11 @@ public class AuthProvidersInfoContributor implements InfoContributor {
 
   @Override
   public void contribute(Info.Builder builder) {
-    final Collection<Map<String, Object>> configuredOAuthProviders = clientRegistrationRepository.findAll();
-
+    final List<Integration> configuredOAuthProviders = clientRegistrationRepository.findAll();
     final Map<String, Object> extensions = providersMap.values()
         .stream()
         .filter(p -> !p.isConfigDynamic() || configuredOAuthProviders.stream()
-            .anyMatch(it -> p.getName().equalsIgnoreCase((String) it.get("id"))))
+            .anyMatch(it -> p.getName().equalsIgnoreCase((String) it.getType().getName())))
         .collect(Collectors.toMap(OAuthProvider::getName,
             p -> new OAuthProviderInfo(p.getButton(), p.buildPath(getAuthBasePath()))
         ));

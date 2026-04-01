@@ -16,27 +16,29 @@
 
 package com.epam.reportportal.auth.store;
 
-import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.FROM_INTEGRATION;
-import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.INTEGRATION_TO_SPRING;
+import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.INTEGRATION_TO_OAUTH_REGISTRATION;
+import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.TO_RESOURCE;
 
+import com.epam.reportportal.auth.model.OAuthRegistrationResource;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component("mutableClientRegistrationRepository")
 public class MutableClientRegistrationRepository implements ClientRegistrationRepository {
 
+  public static final String ID_HAS_NOT_BEEN_FOUND = "Client registration with id = {} has not been found.";
   private final IntegrationRepository integrationRepository;
 
   @Autowired
@@ -46,34 +48,51 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
 
   @Override
   public ClientRegistration findByRegistrationId(String registrationId) {
-    return integrationRepository.findGlobalByNameAndGroup(registrationId, IntegrationGroupEnum.AUTH)
-        .map(INTEGRATION_TO_SPRING)
-        .orElseThrow(() -> new ReportPortalException(
-            ErrorType.AUTH_INTEGRATION_NOT_FOUND,
-            Suppliers.formattedSupplier("Client registration with id = {} has not been found.",
-                registrationId).get()
+    return integrationRepository.findGlobalByNameAndAuthFlowAndGroup(
+            registrationId,
+            IntegrationGroupEnum.AUTH,
+            IntegrationAuthFlowEnum.OAUTH)
+        .map(INTEGRATION_TO_OAUTH_REGISTRATION)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND,
+            Suppliers.formattedSupplier(ID_HAS_NOT_BEEN_FOUND, registrationId).get()
         ));
   }
 
-  public Optional<Map<String, Object>> findOAuthRegistrationById(String registrationId) {
-    return integrationRepository.findGlobalByNameAndGroup(registrationId, IntegrationGroupEnum.AUTH)
-        .map(FROM_INTEGRATION);
+  public OAuthRegistrationResource findByRegistrationId2(String registrationId) {
+    return integrationRepository.findGlobalByNameAndAuthFlowAndGroup(
+            registrationId,
+            IntegrationGroupEnum.AUTH,
+            IntegrationAuthFlowEnum.OAUTH)
+        .map(TO_RESOURCE)
+        .orElseGet(() -> {
+          log.warn("Unable to find client registration with id = {}", registrationId);
+          return null;
+        });
+  }
+
+  public List<Integration> findAll() {
+    return integrationRepository.findAllByAuthFlowAndGroup(IntegrationGroupEnum.AUTH,
+        IntegrationAuthFlowEnum.OAUTH);
+  }
+
+/*  public Optional<OAuthRegistration> findOAuthRegistrationById(String registrationId) {
+    return this.oAuthRegistrationRepository.findById(registrationId);
   }
 
   public boolean existsById(String oauthProviderId) {
-    return integrationRepository.findGlobalByNameAndGroup(oauthProviderId,
-        IntegrationGroupEnum.AUTH).isPresent();
+    return this.oAuthRegistrationRepository.existsById(oauthProviderId);
+  }
+
+  public OAuthRegistration save(OAuthRegistration registration) {
+    return this.oAuthRegistrationRepository.save(registration);
   }
 
   public void deleteById(String oauthProviderId) {
-    integrationRepository.findGlobalByNameAndGroup(oauthProviderId, IntegrationGroupEnum.AUTH)
-        .ifPresent(i -> integrationRepository.deleteById(i.getId()));
+    oAuthRegistrationRepository.deleteById(oauthProviderId);
   }
 
-  public Collection<Map<String, Object>> findAll() {
-    return integrationRepository.findAllGlobalByGroupAndAuthFlow(IntegrationGroupEnum.AUTH, IntegrationAuthFlowEnum.OAUTH)
-        .stream()
-        .map(FROM_INTEGRATION)
-        .collect(Collectors.toList());
-  }
+  public Collection<OAuthRegistration> findAll() {
+    return oAuthRegistrationRepository.findAll();
+  }*/
+
 }

@@ -19,7 +19,6 @@ package com.epam.reportportal.auth.integration.handler.impl;
 import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
 import com.epam.reportportal.auth.integration.provider.AuthIntegrationStrategyProvider;
-import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.model.integration.auth;
+package com.epam.reportportal.auth.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.Valid;
-import java.util.List;
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,9 +27,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SamlProvidersResource extends AbstractAuthResource {
+public class AbstractAuthResource implements Serializable {
 
-  @Valid
-  private List<SamlResource> providers;
+  private String type;
 
 }

@@ -32,11 +32,9 @@ import com.epam.reportportal.extension.AuthExtension;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
@@ -303,25 +301,15 @@ public class AuthorizationServerConfig {
   }
 
   public List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> getUserServices(List<OAuthProvider> providers) {
-    List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> services = providers.stream()
-        .map(provider -> provider.getUserService(
-            clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
-                .orElseGet(HashMap::new)))
-        .collect(Collectors.toList());
-
-    // Also include OAuth providers contributed by AUTH plugins (e.g. plugin-auth-github)
-    pluginBox.getPlugins().stream()
+    return pluginBox.getPlugins().stream()
         .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
         .map(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class).orElse(null))
         .filter(Objects::nonNull)
         .map(AuthExtension::getOAuthProvider)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .map(provider -> provider.getUserService(
-            clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
-                .orElseGet(HashMap::new)))
-        .forEach(services::add);
+        .map(provider -> provider.getUserService(clientRegistrationRepository.findByRegistrationId2(provider.getName())))
+        .toList();
 
-    return services;
   }
 }

@@ -197,6 +197,33 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
   Optional<Integration> findGlobalByNameAndGroup(@Param("name") String name,
       @Param("group") IntegrationGroupEnum group);
 
+
+  @Query("""
+      SELECT i
+      FROM Integration i
+      JOIN i.type t
+      WHERE i.name = :name
+        AND t.integrationGroup = :group
+        AND t.authFlow = :authFlow
+        AND i.project IS NULL
+      """)
+  Optional<Integration> findGlobalByNameAndAuthFlowAndGroup(
+      @Param("name") String name,
+      @Param("group") IntegrationGroupEnum group,
+      @Param("authFlow") IntegrationAuthFlowEnum authFlow);
+
+  @Query("""
+      SELECT i
+      FROM Integration i
+      JOIN i.type t
+      WHERE t.integrationGroup = :group
+        AND t.authFlow = :authFlow
+        AND i.project IS NULL
+      """)
+  List<Integration> findAllByAuthFlowAndGroup(
+      @Param("group") IntegrationGroupEnum group,
+      @Param("authFlow") IntegrationAuthFlowEnum authFlow);
+
   @Query("SELECT i FROM Integration i JOIN i.type t WHERE i.project IS NULL AND t.integrationGroup = :group AND t.authFlow = :authFlow order by i.creationDate desc")
   List<Integration> findAllGlobalByGroupAndAuthFlow(@Param("group") IntegrationGroupEnum group,
       @Param("authFlow") IntegrationAuthFlowEnum authFlow);

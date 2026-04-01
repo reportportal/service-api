@@ -16,15 +16,19 @@
 
 package com.epam.reportportal.auth.store;
 
-import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.TO_SPRING;
+import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.FROM_INTEGRATION;
+import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.INTEGRATION_TO_SPRING;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.OAuthRegistrationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistration;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -33,17 +37,17 @@ import org.springframework.stereotype.Component;
 @Component("mutableClientRegistrationRepository")
 public class MutableClientRegistrationRepository implements ClientRegistrationRepository {
 
-  private final OAuthRegistrationRepository oAuthRegistrationRepository;
+  private final IntegrationRepository integrationRepository;
 
   @Autowired
-  public MutableClientRegistrationRepository(
-      OAuthRegistrationRepository oAuthRegistrationRepository) {
-    this.oAuthRegistrationRepository = oAuthRegistrationRepository;
+  public MutableClientRegistrationRepository(IntegrationRepository integrationRepository) {
+    this.integrationRepository = integrationRepository;
   }
 
   @Override
   public ClientRegistration findByRegistrationId(String registrationId) {
-    return this.oAuthRegistrationRepository.findById(registrationId).map(TO_SPRING)
+    return integrationRepository.findGlobalByNameAndGroup(registrationId, IntegrationGroupEnum.AUTH)
+        .map(INTEGRATION_TO_SPRING)
         .orElseThrow(() -> new ReportPortalException(
             ErrorType.AUTH_INTEGRATION_NOT_FOUND,
             Suppliers.formattedSupplier("Client registration with id = {} has not been found.",
@@ -51,23 +55,25 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
         ));
   }
 
-  public Optional<OAuthRegistration> findOAuthRegistrationById(String registrationId) {
-    return this.oAuthRegistrationRepository.findById(registrationId);
+  public Optional<Map<String, Object>> findOAuthRegistrationById(String registrationId) {
+    return integrationRepository.findGlobalByNameAndGroup(registrationId, IntegrationGroupEnum.AUTH)
+        .map(FROM_INTEGRATION);
   }
 
   public boolean existsById(String oauthProviderId) {
-    return this.oAuthRegistrationRepository.existsById(oauthProviderId);
-  }
-
-  public OAuthRegistration save(OAuthRegistration registration) {
-    return this.oAuthRegistrationRepository.save(registration);
+    return integrationRepository.findGlobalByNameAndGroup(oauthProviderId,
+        IntegrationGroupEnum.AUTH).isPresent();
   }
 
   public void deleteById(String oauthProviderId) {
-    oAuthRegistrationRepository.deleteById(oauthProviderId);
+    integrationRepository.findGlobalByNameAndGroup(oauthProviderId, IntegrationGroupEnum.AUTH)
+        .ifPresent(i -> integrationRepository.deleteById(i.getId()));
   }
 
-  public Collection<OAuthRegistration> findAll() {
-    return oAuthRegistrationRepository.findAll();
+  public Collection<Map<String, Object>> findAll() {
+    return integrationRepository.findAllGlobalByGroupAndAuthFlow(IntegrationGroupEnum.AUTH, IntegrationAuthFlowEnum.OAUTH)
+        .stream()
+        .map(FROM_INTEGRATION)
+        .collect(Collectors.toList());
   }
 }

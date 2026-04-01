@@ -16,71 +16,33 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.oauth;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Getter;
 
 /**
+ * Plain POJO representing an OAuth registration (no longer a JPA entity).
+ * Data is sourced from the integration table's params field.
+ *
  * @author Andrei Varabyeu
  */
-@Entity
-@Table(name = "oauth_registration", schema = "public")
 @Getter
 public class OAuthRegistration implements Serializable {
 
-  @Id
-  @Column(name = "id")
   private String id;
-
-  @Column(name = "client_id")
   private String clientId;
-
-  @Column(name = "client_secret")
   private String clientSecret;
-
-  @Column(name = "client_auth_method")
   private String clientAuthMethod;
-
-  @Column(name = "auth_grant_type")
   private String authGrantType;
-
-  @Column(name = "redirect_uri_template")
   private String redirectUrlTemplate;
-
-  @Column(name = "authorization_uri")
   private String authorizationUri;
-
-  @Column(name = "token_uri")
   private String tokenUri;
-
-  @Column(name = "user_info_endpoint_uri")
   private String userInfoEndpointUri;
-
-  @Column(name = "user_info_endpoint_name_attr")
   private String userInfoEndpointNameAttribute;
-
-  @Column(name = "jwk_set_uri")
   private String jwkSetUri;
-
-  @Column(name = "client_name")
   private String clientName;
-
-  @OneToMany(mappedBy = "registration", fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST,
-      CascadeType.MERGE,
-      CascadeType.REMOVE}, orphanRemoval = true)
   private Set<OAuthRegistrationScope> scopes;
-
-  @OneToMany(mappedBy = "registration", fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST,
-      CascadeType.MERGE,
-      CascadeType.REMOVE}, orphanRemoval = true)
   private Set<OAuthRegistrationRestriction> restrictions;
 
   public void setId(String id) {
@@ -132,21 +94,11 @@ public class OAuthRegistration implements Serializable {
   }
 
   public void setScopes(Set<OAuthRegistrationScope> scopes) {
-    if (this.scopes == null) {
-      this.scopes = scopes;
-    } else {
-      this.scopes.retainAll(scopes);
-      this.scopes.addAll(scopes);
-    }
+    this.scopes = scopes;
   }
 
   public void setRestrictions(Set<OAuthRegistrationRestriction> restrictions) {
-    if (this.restrictions == null) {
-      this.restrictions = restrictions;
-    } else {
-      this.restrictions.retainAll(restrictions);
-      this.restrictions.addAll(restrictions);
-    }
+    this.restrictions = restrictions;
   }
 
   @Override
@@ -158,34 +110,23 @@ public class OAuthRegistration implements Serializable {
       return false;
     }
     OAuthRegistration that = (OAuthRegistration) o;
-    return Objects.equals(id, that.id) && Objects.equals(clientId, that.clientId) && Objects.equals(
-        clientSecret, that.clientSecret)
-        && Objects.equals(clientAuthMethod, that.clientAuthMethod) && Objects.equals(authGrantType,
-        that.authGrantType)
-        && Objects.equals(redirectUrlTemplate, that.redirectUrlTemplate) && Objects.equals(
-        authorizationUri, that.authorizationUri)
-        && Objects.equals(tokenUri, that.tokenUri) && Objects.equals(userInfoEndpointUri,
-        that.userInfoEndpointUri)
+    return Objects.equals(id, that.id) && Objects.equals(clientId, that.clientId)
+        && Objects.equals(clientSecret, that.clientSecret)
+        && Objects.equals(clientAuthMethod, that.clientAuthMethod)
+        && Objects.equals(authGrantType, that.authGrantType)
+        && Objects.equals(redirectUrlTemplate, that.redirectUrlTemplate)
+        && Objects.equals(authorizationUri, that.authorizationUri)
+        && Objects.equals(tokenUri, that.tokenUri)
+        && Objects.equals(userInfoEndpointUri, that.userInfoEndpointUri)
         && Objects.equals(userInfoEndpointNameAttribute, that.userInfoEndpointNameAttribute)
-        && Objects.equals(jwkSetUri,
-        that.jwkSetUri
-    ) && Objects.equals(clientName, that.clientName);
+        && Objects.equals(jwkSetUri, that.jwkSetUri)
+        && Objects.equals(clientName, that.clientName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id,
-        clientId,
-        clientSecret,
-        clientAuthMethod,
-        authGrantType,
-        redirectUrlTemplate,
-        authorizationUri,
-        tokenUri,
-        userInfoEndpointUri,
-        userInfoEndpointNameAttribute,
-        jwkSetUri,
-        clientName
-    );
+    return Objects.hash(id, clientId, clientSecret, clientAuthMethod, authGrantType,
+        redirectUrlTemplate, authorizationUri, tokenUri, userInfoEndpointUri,
+        userInfoEndpointNameAttribute, jwkSetUri, clientName);
   }
 }

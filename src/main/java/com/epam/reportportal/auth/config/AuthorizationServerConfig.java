@@ -23,8 +23,6 @@ import com.epam.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
 import com.epam.reportportal.auth.config.password.CustomCodeGrantAuthenticationConverter;
 import com.epam.reportportal.auth.config.password.OAuth2ErrorResponseHandler;
 import com.epam.reportportal.auth.config.utils.JwtReportPortalUserConverter;
-import com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters;
-import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
@@ -34,6 +32,7 @@ import com.epam.reportportal.extension.AuthExtension;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -246,8 +245,12 @@ public class AuthorizationServerConfig {
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .oauth2Login(oauth2 -> oauth2
-            .userInfoEndpoint(
-                userInfo -> userInfo.userService(new DelegatingOAuth2UserService<>(getUserServices(authProviders))))
+            .userInfoEndpoint(userInfo -> {
+              List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> services = getUserServices(authProviders);
+              if (!services.isEmpty()) {
+                userInfo.userService(new DelegatingOAuth2UserService<>(services));
+              }
+            })
             .clientRegistrationRepository(clientRegistrationRepository)
             .authorizationEndpoint(authorization -> authorization
                 .baseUri("/oauth/login")
@@ -301,10 +304,9 @@ public class AuthorizationServerConfig {
 
   public List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> getUserServices(List<OAuthProvider> providers) {
     List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> services = providers.stream()
-        .map(provider -> provider
-            .getUserService(clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
-                .map(OAuthRegistrationConverters.TO_RESOURCE)
-                .orElse(new OAuthRegistrationResource())))
+        .map(provider -> provider.getUserService(
+            clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
+                .orElseGet(HashMap::new)))
         .collect(Collectors.toList());
 
     // Also include OAuth providers contributed by AUTH plugins (e.g. plugin-auth-github)
@@ -315,10 +317,9 @@ public class AuthorizationServerConfig {
         .map(AuthExtension::getOAuthProvider)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .map(provider -> provider
-            .getUserService(clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
-                .map(OAuthRegistrationConverters.TO_RESOURCE)
-                .orElse(new OAuthRegistrationResource())))
+        .map(provider -> provider.getUserService(
+            clientRegistrationRepository.findOAuthRegistrationById(provider.getName())
+                .orElseGet(HashMap::new)))
         .forEach(services::add);
 
     return services;

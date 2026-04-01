@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
@@ -191,4 +192,12 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
 
   @Query(value = "SELECT i.* FROM integration i LEFT OUTER JOIN integration_type it ON i.type = it.id WHERE it.name IN (:types) order by i.creation_date desc", nativeQuery = true)
   List<Integration> findAllByTypeIn(@Param("types") String... types);
+
+  @Query("SELECT i FROM Integration i JOIN i.type t WHERE i.name = :name AND t.integrationGroup = :group AND i.project IS NULL")
+  Optional<Integration> findGlobalByNameAndGroup(@Param("name") String name,
+      @Param("group") IntegrationGroupEnum group);
+
+  @Query("SELECT i FROM Integration i JOIN i.type t WHERE i.project IS NULL AND t.integrationGroup = :group AND t.authFlow = :authFlow order by i.creationDate desc")
+  List<Integration> findAllGlobalByGroupAndAuthFlow(@Param("group") IntegrationGroupEnum group,
+      @Param("authFlow") IntegrationAuthFlowEnum authFlow);
 }

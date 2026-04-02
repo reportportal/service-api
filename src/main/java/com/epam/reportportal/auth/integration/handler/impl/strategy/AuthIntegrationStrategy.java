@@ -24,6 +24,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepo
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
+import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.time.Instant;
 
 /**
@@ -47,11 +48,11 @@ public abstract class AuthIntegrationStrategy {
 
   public abstract AbstractAuthResource toResource(Integration integration);
 
-  public Integration createIntegration(IntegrationType integrationType, IntegrationRQ request, String username) {
+  public Integration createIntegration(IntegrationType integrationType, IntegrationRQ request) {
     updateAuthRequestValidator.validate(request);
 
     final Integration integration = new AuthIntegrationBuilder()
-        .addCreator(username)
+        .addCreator(SecurityContextUtils.getPrincipal().getUsername())
         .addIntegrationType(integrationType)
         .addCreationDate(Instant.now())
         .build();

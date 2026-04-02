@@ -25,7 +25,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
-import com.epam.reportportal.base.util.SecurityContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,11 +46,9 @@ public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHa
 
   @Override
   public Integration createAuthIntegration(String type, IntegrationRQ request) {
-    var user = SecurityContextUtils.getPrincipal();
-
     final IntegrationType integrationType = getIntegrationType(type);
     final AuthIntegrationStrategy authIntegrationStrategy = getAuthStrategy(type);
-    return authIntegrationStrategy.createIntegration(integrationType, request, user.getUsername());
+    return authIntegrationStrategy.createIntegration(integrationType, request);
   }
 
   @Override

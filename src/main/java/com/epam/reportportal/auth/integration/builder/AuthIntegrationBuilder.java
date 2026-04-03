@@ -17,9 +17,11 @@
 package com.epam.reportportal.auth.integration.builder;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
+import java.util.HashMap;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -30,6 +32,7 @@ public class AuthIntegrationBuilder {
 
   public AuthIntegrationBuilder() {
     integration = new Integration();
+    integration.setParams(new IntegrationParams(new HashMap<>()));
   }
 
   public AuthIntegrationBuilder(Integration integration) {

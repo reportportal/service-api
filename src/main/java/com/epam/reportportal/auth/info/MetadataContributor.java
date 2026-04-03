@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.auth.endpoint;
+package com.epam.reportportal.auth.info;
 
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.auth.endpoint;
+package com.epam.reportportal.auth.info;
 
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
-import com.epam.reportportal.auth.info.OAuthProviderInfo;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
@@ -62,7 +61,7 @@ public class AuthProvidersInfoContributor implements InfoContributor {
     final Map<String, Object> extensions = providersMap.values()
         .stream()
         .filter(p -> !p.isConfigDynamic() || configuredOAuthProviders.stream()
-            .anyMatch(it -> p.getName().equalsIgnoreCase((String) it.getType().getName())))
+            .anyMatch(it -> p.getName().equalsIgnoreCase(it.getType().getName())))
         .collect(Collectors.toMap(OAuthProvider::getName,
             p -> new OAuthProviderInfo(p.getButton(), p.buildPath(getAuthBasePath()))
         ));

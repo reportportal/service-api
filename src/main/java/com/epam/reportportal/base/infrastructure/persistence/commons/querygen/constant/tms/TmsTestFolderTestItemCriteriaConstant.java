@@ -19,6 +19,7 @@ public final class TmsTestFolderTestItemCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_NAME = "testCaseName";
   public static final String CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_PRIORITY = "testCasePriority";
   public static final String CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_ATTRIBUTE_KEY = "testCaseAttributeKey";
+  public static final String CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_EXECUTION_STATUS = "testCaseExecutionStatus";
 
   /**
    * Alias for child test_item table (children of folder SUITE).

@@ -26,9 +26,6 @@ import com.epam.reportportal.base.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.core.plugin.Plugin;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.extension.ReportPortalExtensionPoint;
-import com.epam.reportportal.extension.common.ExtensionPoint;
-import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
@@ -42,6 +39,9 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.activity.PluginActivityResource;
 import com.epam.reportportal.base.ws.converter.builders.IntegrationTypeBuilder;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.common.ExtensionPoint;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.io.IOException;
@@ -350,26 +350,26 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     Optional<PluginWrapper> previousPlugin = getPluginById(newPluginInfo.getId());
     previousPlugin.ifPresent(this::unloadPreviousPlugin);
 
-    return ofNullable(pluginManager.loadPlugin(Paths.get(pluginsTempDir, uploadedPluginName))).map(
-            pluginId -> {
-              IntegrationTypeDetails newPluginDetails = copyPlugin(newPluginInfo, pluginDetails,
-                  uploadedPluginName);
-              try {
-                IntegrationType newIntegrationType = startUpPlugin(newPluginDetails);
-                previousPlugin.ifPresent(this::deletePreviousPlugin);
-                deleteTempPlugin(uploadedPluginName);
-                return newIntegrationType;
-              } catch (Exception ex) {
-                previousPlugin.ifPresent(p -> loadPreviousPlugin(p, newPluginDetails));
-                Throwable exception = ex;
-                String exMessage = exception.toString();
-                while (exception.getCause() != null) {
-                  exception = exception.getCause();
-                  exMessage += exception.toString() + "\n";
-                }
-                throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, exMessage);
-              }
-            })
+    return ofNullable(pluginManager.loadPlugin(Paths.get(pluginsTempDir, uploadedPluginName)))
+        .map(_ -> {
+          IntegrationTypeDetails newPluginDetails = copyPlugin(newPluginInfo, pluginDetails,
+              uploadedPluginName);
+          try {
+            IntegrationType newIntegrationType = startUpPlugin(newPluginDetails);
+            previousPlugin.ifPresent(this::deletePreviousPlugin);
+            deleteTempPlugin(uploadedPluginName);
+            return newIntegrationType;
+          } catch (Exception ex) {
+            previousPlugin.ifPresent(p -> loadPreviousPlugin(p, newPluginDetails));
+            Throwable exception = ex;
+            String exMessage = exception.toString();
+            while (exception.getCause() != null) {
+              exception = exception.getCause();
+              exMessage += exception.toString() + "\n";
+            }
+            throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, exMessage);
+          }
+        })
         .orElseThrow(() -> {
           previousPlugin.ifPresent(p -> loadPreviousPlugin(p, pluginDetails));
           deleteTempPlugin(uploadedPluginName);
@@ -626,49 +626,48 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
    */
   private IntegrationType startUpPlugin(final IntegrationTypeDetails pluginDetails) {
 
-    String newPluginFileName = IntegrationTypeProperties.FILE_NAME.getValue(
-            pluginDetails.getDetails())
+    String newPluginFileName = IntegrationTypeProperties.FILE_NAME.getValue(pluginDetails.getDetails())
         .map(String::valueOf)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-            "Unable to resolve 'fileName' property"));
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, "Unable to resolve 'fileName' property"));
 
-    return ofNullable(pluginManager.loadPlugin(Paths.get(pluginsDir, newPluginFileName))).map(
-            newLoadedPluginId -> {
-              startUpPlugin(newLoadedPluginId);
+    return ofNullable(pluginManager.loadPlugin(Paths.get(pluginsDir, newPluginFileName)))
+        .map(newLoadedPluginId -> {
+          startUpPlugin(newLoadedPluginId);
 
-              Optional<IntegrationType> oldIntegrationType = integrationTypeRepository.findByName(
-                  newLoadedPluginId);
-              oldIntegrationType.ifPresent(
-                  it -> IntegrationTypeProperties.FILE_ID.getValue(pluginDetails.getDetails())
-                      .map(String::valueOf)
-                      .ifPresent(fileId -> deletePreviousPluginFile(it, fileId)));
+          Optional<IntegrationType> oldIntegrationType = integrationTypeRepository.findByName(newLoadedPluginId);
+          oldIntegrationType.ifPresent(
+              it -> IntegrationTypeProperties.FILE_ID.getValue(pluginDetails.getDetails())
+                  .map(String::valueOf)
+                  .ifPresent(fileId -> deletePreviousPluginFile(it, fileId)));
 
-              IntegrationTypeBuilder integrationTypeBuilder = oldIntegrationType.map(
-                      IntegrationTypeBuilder::new)
-                  .orElseGet(IntegrationTypeBuilder::new);
-              integrationTypeBuilder.setName(newLoadedPluginId)
-                  .setIntegrationGroup(IntegrationGroupEnum.OTHER)
-                  .setPluginType(PluginTypeEnum.EXTENSION);
+          IntegrationTypeBuilder integrationTypeBuilder = oldIntegrationType
+              .map(IntegrationTypeBuilder::new)
+              .orElseGet(IntegrationTypeBuilder::new);
+          integrationTypeBuilder.setName(newLoadedPluginId)
+              .setIntegrationGroup(IntegrationGroupEnum.OTHER)
+              .setPluginType(PluginTypeEnum.EXTENSION);
 
-              Optional<ReportPortalExtensionPoint> instance = getInstance(newLoadedPluginId,
-                  ReportPortalExtensionPoint.class);
+          Optional<ReportPortalExtensionPoint> instance =
+              getInstance(newLoadedPluginId, ReportPortalExtensionPoint.class);
 
-              instance.ifPresent(extensionPoint -> {
-                pluginDetails.getDetails().putAll(extensionPoint.getPluginParams());
-                pluginDetails.getDetails()
-                    .put(IntegrationTypeProperties.RESOURCES_DIRECTORY.getAttribute(),
-                        Paths.get(resourcesDir, newLoadedPluginId).toString()
-                    );
-                integrationTypeBuilder.setDetails(pluginDetails);
-                integrationTypeBuilder.setIntegrationGroup(
-                    IntegrationGroupEnum.valueOf(extensionPoint.getIntegrationGroup().name()));
-              });
+          instance.ifPresent(extensionPoint -> {
+            pluginDetails.getDetails().putAll(extensionPoint.getPluginParams());
+            pluginDetails.getDetails()
+                .put(IntegrationTypeProperties.RESOURCES_DIRECTORY.getAttribute(),
+                    Paths.get(resourcesDir, newLoadedPluginId).toString()
+                );
+            integrationTypeBuilder.setDetails(pluginDetails);
+            integrationTypeBuilder.setIntegrationGroup(
+                IntegrationGroupEnum.valueOf(extensionPoint.getIntegrationGroup().name()));
+            integrationTypeBuilder.setAuthFlow(extensionPoint.getAuthFlow());
+          });
 
-              boolean enabledState = oldIntegrationType.map(IntegrationType::isEnabled).orElse(true);
-              integrationTypeBuilder.setEnabled(enabledState);
-              return integrationTypeRepository.save(integrationTypeBuilder.get());
+          boolean enabledState = oldIntegrationType.map(IntegrationType::isEnabled).orElse(true);
+          integrationTypeBuilder.setEnabled(enabledState);
+          return integrationTypeRepository.save(integrationTypeBuilder.get());
 
-            })
+        })
         .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
             Suppliers.formattedSupplier("Error during loading the plugin file = '{}'",
                 newPluginFileName).get()

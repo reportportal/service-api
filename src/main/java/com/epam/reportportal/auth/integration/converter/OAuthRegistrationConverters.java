@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -59,6 +60,16 @@ public class OAuthRegistrationConverters {
     //static only
   }
 
+  private static String getStringParam(Map<String, Object> params, String key) {
+    Object value = params.get(key);
+    return value instanceof String ? (String) value : null;
+  }
+
+  private static String getStringParam(Map<String, Object> params, String key, String defaultValue) {
+    Object value = params.get(key);
+    return value instanceof String ? (String) value : defaultValue;
+  }
+
   public static final Collector<OAuthRegistrationResource, ?,
       Map<String, OAuthRegistrationResource>> RESOURCE_KEY_MAPPER =
       Collectors.toMap(OAuthRegistrationResource::getId, r -> r);
@@ -69,28 +80,37 @@ public class OAuthRegistrationConverters {
     resource.setId(integration.getName());
 
     var params = integration.getParams().getParams();
-    resource.setClientId((String) params.get(CLIENT_ID));
-    resource.setClientSecret((String) params.get(CLIENT_SECRET));
-    resource.setClientAuthMethod((String) params.get(CLIENT_AUTH_METHOD));
-    resource.setAuthGrantType((String) params.get(AUTH_GRANT_TYPE));
-    resource.setRedirectUrlTemplate((String) params.get(REDIRECT_URI_TEMPLATE));
-    resource.setAuthorizationUri((String) params.get(AUTHORIZATION_URI));
-    resource.setTokenUri((String) params.get(TOKEN_URI));
-    resource.setUserInfoEndpointUri((String) params.get(USER_INFO_ENDPOINT_URI));
-    resource.setUserInfoEndpointNameAttribute((String) params.get(USER_INFO_ENDPOINT_NAME_ATTR));
-    resource.setJwkSetUri((String) params.get(JWK_SET_URI));
-    resource.setClientName((String) params.get(CLIENT_NAME));
+    resource.setClientId(getStringParam(params, CLIENT_ID));
+    resource.setClientSecret(getStringParam(params, CLIENT_SECRET));
+    resource.setClientAuthMethod(getStringParam(params, CLIENT_AUTH_METHOD));
+    resource.setAuthGrantType(getStringParam(params, AUTH_GRANT_TYPE));
+    resource.setRedirectUrlTemplate(getStringParam(params, REDIRECT_URI_TEMPLATE));
+    resource.setAuthorizationUri(getStringParam(params, AUTHORIZATION_URI));
+    resource.setTokenUri(getStringParam(params, TOKEN_URI));
+    resource.setUserInfoEndpointUri(getStringParam(params, USER_INFO_ENDPOINT_URI));
+    resource.setUserInfoEndpointNameAttribute(getStringParam(params, USER_INFO_ENDPOINT_NAME_ATTR));
+    resource.setJwkSetUri(getStringParam(params, JWK_SET_URI));
+    resource.setClientName(getStringParam(params, CLIENT_NAME));
 
     Object scopesObj = params.get(SCOPES);
-    if (scopesObj instanceof Collection) {
-      resource.setScopes(new HashSet<>((Collection<String>) scopesObj));
+    if (scopesObj instanceof Collection<?> collection) {
+      Set<String> scopes = new HashSet<>();
+      for (Object item : collection) {
+        if (item instanceof String s) {
+          scopes.add(s);
+        }
+      }
+      resource.setScopes(scopes);
     }
 
     Object restrictionsObj = params.get(RESTRICTIONS);
-    if (restrictionsObj instanceof List) {
-      String organizations = ((List<Map<String, Object>>) restrictionsObj).stream()
-          .filter(r -> ORGANIZATION_TYPE.equalsIgnoreCase((String) r.get("type")))
-          .map(r -> (String) r.get("value"))
+    if (restrictionsObj instanceof List<?> list) {
+      String organizations = list.stream()
+          .filter(item -> item instanceof Map<?, ?>)
+          .map(item -> (Map<?, ?>) item)
+          .filter(r -> r.get("type") instanceof String t && ORGANIZATION_TYPE.equalsIgnoreCase(t))
+          .map(r -> r.get("value") instanceof String v ? v : null)
+          .filter(v -> v != null)
           .collect(Collectors.joining(","));
       Map<String, String> restrictions = new HashMap<>();
       restrictions.put(ORGANIZATIONS_KEY, organizations);
@@ -119,20 +139,25 @@ public class OAuthRegistrationConverters {
         ? (List<String>) params.get(SCOPES)
         : List.of();
 
+    String clientAuthMethod = getStringParam(params, CLIENT_AUTH_METHOD, "").trim();
+    String authGrantType = getStringParam(params, AUTH_GRANT_TYPE, "").trim();
+
     return ClientRegistration.withRegistrationId(integration.getName())
-        .clientId((String) params.get(CLIENT_ID))
-        .clientSecret((String) params.get(CLIENT_SECRET))
-        .clientAuthenticationMethod(
-            new ClientAuthenticationMethod((String) params.getOrDefault(CLIENT_AUTH_METHOD, "")))
-        .authorizationGrantType(new AuthorizationGrantType(
-            (String) params.getOrDefault(AUTH_GRANT_TYPE, "")))
-        .redirectUri((String) params.getOrDefault(REDIRECT_URI_TEMPLATE, ""))
-        .authorizationUri((String) params.getOrDefault(AUTHORIZATION_URI, ""))
-        .tokenUri((String) params.getOrDefault(TOKEN_URI, ""))
-        .userInfoUri((String) params.getOrDefault(USER_INFO_ENDPOINT_URI, ""))
-        .userNameAttributeName((String) params.getOrDefault(USER_INFO_ENDPOINT_NAME_ATTR, ""))
-        .jwkSetUri((String) params.getOrDefault(JWK_SET_URI, ""))
-        .clientName((String) params.getOrDefault(CLIENT_NAME, integration.getName()))
+        .clientId(getStringParam(params, CLIENT_ID))
+        .clientSecret(getStringParam(params, CLIENT_SECRET))
+        .clientAuthenticationMethod(clientAuthMethod.isEmpty()
+            ? ClientAuthenticationMethod.CLIENT_SECRET_BASIC
+            : new ClientAuthenticationMethod(clientAuthMethod))
+        .authorizationGrantType(authGrantType.isEmpty()
+            ? AuthorizationGrantType.AUTHORIZATION_CODE
+            : new AuthorizationGrantType(authGrantType))
+        .redirectUri(getStringParam(params, REDIRECT_URI_TEMPLATE, ""))
+        .authorizationUri(getStringParam(params, AUTHORIZATION_URI, ""))
+        .tokenUri(getStringParam(params, TOKEN_URI, ""))
+        .userInfoUri(getStringParam(params, USER_INFO_ENDPOINT_URI, ""))
+        .userNameAttributeName(getStringParam(params, USER_INFO_ENDPOINT_NAME_ATTR, ""))
+        .jwkSetUri(getStringParam(params, JWK_SET_URI, ""))
+        .clientName(getStringParam(params, CLIENT_NAME, integration.getName()))
         .scope(scopes.toArray(String[]::new))
         .build();
   };

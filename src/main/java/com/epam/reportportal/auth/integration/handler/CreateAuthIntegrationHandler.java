@@ -24,7 +24,21 @@ import com.epam.reportportal.base.model.integration.IntegrationRQ;
  */
 public interface CreateAuthIntegrationHandler {
 
+  /**
+   * Creates a new authentication integration of the given type.
+   *
+   * @param type    the integration type identifier (e.g. "ldap", "saml")
+   * @param request the integration configuration request
+   * @return the created {@link Integration}
+   */
   Integration createAuthIntegration(String type, IntegrationRQ request);
 
+  /**
+   * Updates an existing authentication integration with the provided configuration.
+   *
+   * @param integration the existing {@link Integration} to update
+   * @param request     the updated integration configuration request
+   * @return the updated {@link Integration}
+   */
   Integration updateAuthIntegration(Integration integration, IntegrationRQ request);
 }

@@ -28,8 +28,6 @@ import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
-import com.epam.reportportal.extension.AuthExtension;
-import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import java.util.List;
@@ -99,8 +97,6 @@ public class AuthorizationServerConfig {
   private String jwtIssuer;
 
   private final ServerSettingsRepository serverSettingsRepository;
-
-  private final Pf4jPluginBox pluginBox;
 
   private final MutableClientRegistrationRepository clientRegistrationRepository;
 
@@ -301,15 +297,12 @@ public class AuthorizationServerConfig {
   }
 
   public List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> getUserServices(List<OAuthProvider> providers) {
-    return pluginBox.getPlugins().stream()
-        .filter(plugin -> ExtensionPoint.AUTH.equals(plugin.getType()))
-        .map(plugin -> pluginBox.getInstance(plugin.getId(), AuthExtension.class).orElse(null))
+    return providers.stream()
+        .map(provider -> Optional.ofNullable(
+                clientRegistrationRepository.findOAuthRegistrationResourceById(provider.getName()))
+            .map(provider::getUserService)
+            .orElse(null))
         .filter(Objects::nonNull)
-        .map(AuthExtension::getOAuthProvider)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .map(provider -> provider.getUserService(clientRegistrationRepository.findByRegistrationId2(provider.getName())))
         .toList();
-
   }
 }

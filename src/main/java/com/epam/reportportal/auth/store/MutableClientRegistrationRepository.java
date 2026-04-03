@@ -58,7 +58,7 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
         ));
   }
 
-  public OAuthRegistrationResource findByRegistrationId2(String registrationId) {
+  public OAuthRegistrationResource findOAuthRegistrationResourceById(String registrationId) {
     return integrationRepository.findGlobalByNameAndAuthFlowAndGroup(
             registrationId,
             IntegrationGroupEnum.AUTH,
@@ -74,25 +74,5 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
     return integrationRepository.findAllByAuthFlowAndGroup(IntegrationGroupEnum.AUTH,
         IntegrationAuthFlowEnum.OAUTH);
   }
-
-/*  public Optional<OAuthRegistration> findOAuthRegistrationById(String registrationId) {
-    return this.oAuthRegistrationRepository.findById(registrationId);
-  }
-
-  public boolean existsById(String oauthProviderId) {
-    return this.oAuthRegistrationRepository.existsById(oauthProviderId);
-  }
-
-  public OAuthRegistration save(OAuthRegistration registration) {
-    return this.oAuthRegistrationRepository.save(registration);
-  }
-
-  public void deleteById(String oauthProviderId) {
-    oAuthRegistrationRepository.deleteById(oauthProviderId);
-  }
-
-  public Collection<OAuthRegistration> findAll() {
-    return oAuthRegistrationRepository.findAll();
-  }*/
 
 }

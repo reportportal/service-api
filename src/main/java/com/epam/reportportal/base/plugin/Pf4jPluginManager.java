@@ -660,7 +660,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
             integrationTypeBuilder.setDetails(pluginDetails);
             integrationTypeBuilder.setIntegrationGroup(
                 IntegrationGroupEnum.valueOf(extensionPoint.getIntegrationGroup().name()));
-            integrationTypeBuilder.setAuthFlow(extensionPoint.getAuthFlow());
+            extensionPoint.getAuthFlow()
+                .ifPresent(integrationTypeBuilder::setAuthFlow);
           });
 
           boolean enabledState = oldIntegrationType.map(IntegrationType::isEnabled).orElse(true);

@@ -171,6 +171,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_LAUNCH_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_ATTRIBUTE_KEY;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_EXECUTION_STATUS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_CREATED_AT;
@@ -2124,7 +2125,19 @@ public enum FilterTarget {
                           .and(DSL.coalesce(CHILD_ATTR.SYSTEM, false).eq(false)))
                       .toString()
               )
-              .get()
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_FOLDER_TEST_ITEM_TEST_CASE_EXECUTION_STATUS,
+              TEST_ITEM_RESULTS.STATUS, JStatusEnum.class,
+              Lists.newArrayList(
+                  JoinEntity.of(CHILD_ITEM, JoinType.LEFT_OUTER_JOIN,
+                      CHILD_ITEM.PARENT_ID.eq(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)),
+                  JoinEntity.of(CHILD_EXECUTION, JoinType.LEFT_OUTER_JOIN,
+                      CHILD_EXECUTION.TEST_ITEM_ID.eq(CHILD_ITEM.ITEM_ID)),
+                  JoinEntity.of(TEST_ITEM_RESULTS, JoinType.LEFT_OUTER_JOIN,
+                      TEST_ITEM_RESULTS.RESULT_ID.eq(CHILD_ITEM.ITEM_ID))
+              )
+          ).get()
       )
   ) {
     @Override

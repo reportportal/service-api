@@ -17,11 +17,7 @@
 package com.epam.reportportal.base.core.project.impl;
 
 import static com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_KEY;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.base.core.jasper.GetJasperReportHandler;
@@ -29,7 +25,6 @@ import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.CompositeFilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
@@ -47,7 +42,6 @@ import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppli
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.project.ProjectResource;
-import com.epam.reportportal.base.model.user.SearchUserResource;
 import com.epam.reportportal.base.model.user.UserResource;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import com.epam.reportportal.base.ws.converter.converters.ProjectConverter;
@@ -58,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -167,40 +160,6 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
         .verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
             Suppliers.formattedSupplier(LENGTH_LESS_THAN_1_SYMBOL_MSG, value)
         );
-  }
-
-  @Override
-  public com.epam.reportportal.base.model.Page<SearchUserResource> getUserNames(String value,
-      MembershipDetails membershipDetails, UserRole userRole, Pageable pageable) {
-    checkBusinessRuleLessThan1Symbol(value);
-
-    final CompositeFilterCondition userCondition = (userRole.equals(UserRole.ADMINISTRATOR))
-        ? getUserSearchSuggestCondition(value) : getUserSearchCondition(value);
-
-    final Filter filter = Filter.builder()
-        .withTarget(User.class)
-        .withCondition(userCondition)
-        .withCondition(new FilterCondition(Operator.AND, Condition.ANY, false, membershipDetails.getProjectName(),
-            CRITERIA_PROJECT
-        ))
-        .build();
-
-    return PagedResourcesAssembler.pageConverter(UserConverter.TO_SEARCH_RESOURCE)
-        .apply(userRepository.findByFilterExcludingProjects(filter, pageable));
-  }
-
-  private CompositeFilterCondition getUserSearchSuggestCondition(String value) {
-    return new CompositeFilterCondition(
-        List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
-        ), Operator.AND);
-  }
-
-  private CompositeFilterCondition getUserSearchCondition(String value) {
-    return new CompositeFilterCondition(List.of(
-        new FilterCondition(Operator.OR, Condition.EQUALS, false, value, CRITERIA_EMAIL)
-    ), Operator.AND);
   }
 
   @Override

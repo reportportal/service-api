@@ -22,10 +22,8 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.project.ProjectResource;
-import com.epam.reportportal.base.model.user.SearchUserResource;
 import com.epam.reportportal.base.model.user.UserResource;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -81,19 +79,6 @@ public interface GetProjectHandler {
    * @return List of found user logins
    */
   List<String> getUserNames(MembershipDetails membershipDetails, String value);
-
-  /**
-   * Performs global search for user
-   *
-   * @param value             login OR full name of user
-   * @param membershipDetails {@link MembershipDetails}
-   * @param pageable          {@link Pageable} Page Details
-   * @return Page of found user resources
-   */
-  Page<SearchUserResource> getUserNames(String value,
-      MembershipDetails membershipDetails,
-      UserRole userRole,
-      Pageable pageable);
 
   /**
    * Get all project names

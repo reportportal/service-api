@@ -20,8 +20,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_KEY;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_LAST_LOGIN;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.CompositeFilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
@@ -58,7 +55,6 @@ import java.util.UUID;
 import org.assertj.core.util.Lists;
 import org.assertj.core.util.Sets;
 import org.hamcrest.Matchers;
-import org.jooq.Operator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -321,54 +317,6 @@ class UserRepositoryTest extends BaseMvcTest {
     PageRequest pageRequest = PageRequest.of(0, 5, Sort.Direction.ASC, CRITERIA_PROJECT);
     Page<User> result = userRepository.findByFilter(filter, pageRequest);
     assertEquals(2, result.getTotalElements());
-  }
-
-  @Test
-  void findByFilterExcludingProjects() {
-    final CompositeFilterCondition userCondition = new CompositeFilterCondition(
-        List.of(new FilterCondition(Operator.OR,
-                Condition.CONTAINS,
-                false,
-                "ch",
-                CRITERIA_USER
-            ),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, "ch", CRITERIA_FULL_NAME),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, "ch", CRITERIA_EMAIL)
-        ), Operator.AND);
-
-    Filter filter = Filter.builder()
-        .withTarget(User.class)
-        .withCondition(userCondition)
-        .withCondition(new FilterCondition(Operator.AND, Condition.ANY, true, "superadmin_personal",
-            CRITERIA_PROJECT))
-        .build();
-
-    Page<User> users = userRepository.findByFilterExcludingProjects(filter, PageRequest.of(0, 5));
-    assertEquals(3, users.getTotalElements());
-  }
-
-  @Test
-  void shouldNotFindByFilterExcludingProjects() {
-    final CompositeFilterCondition userCondition = new CompositeFilterCondition(
-        List.of(new FilterCondition(Operator.OR,
-                Condition.CONTAINS,
-                false,
-                "ch",
-                CRITERIA_USER
-            ),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, "ch", CRITERIA_FULL_NAME),
-            new FilterCondition(Operator.OR, Condition.CONTAINS, false, "ch", CRITERIA_EMAIL)
-        ), Operator.AND);
-
-    Filter filter = Filter.builder()
-        .withTarget(User.class)
-        .withCondition(userCondition)
-        .withCondition(new FilterCondition(Operator.AND, Condition.ANY, true, "millennium_falcon",
-            CRITERIA_PROJECT))
-        .build();
-
-    Page<User> users = userRepository.findByFilterExcludingProjects(filter, PageRequest.of(0, 5));
-    assertEquals(1, users.getTotalElements());
   }
 
   @Test

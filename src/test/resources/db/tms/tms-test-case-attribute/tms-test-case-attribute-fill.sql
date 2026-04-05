@@ -19,16 +19,16 @@ VALUES (7, 'browser', 'safari', 2),
        (8, 'priority', 'medium', 2);
 
 -- Test cases in project 1 (folders 3 and 4)
-INSERT INTO tms_test_case (id, "name", description, test_folder_id, priority)
-VALUES (1, 'Test Case 1', 'Description for test case 1', 3, 'HIGH'),
-       (2, 'Test Case 2', 'Description for test case 2', 3, 'MEDIUM'),
-       (3, 'Test Case 3', 'Description for test case 3', 4, 'LOW'),
-       (4, 'Test Case 4 - No Attributes', 'Test case without any attributes', 4, 'LOW'),
-       (5, 'Test Case 5', 'Description for test case 5', 3, 'HIGH');
+INSERT INTO tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+VALUES (1, 'Test Case 1', 'Description for test case 1', 3, 'HIGH', 1, 'TC-1'),
+       (2, 'Test Case 2', 'Description for test case 2', 3, 'MEDIUM', 1, 'TC-2'),
+       (3, 'Test Case 3', 'Description for test case 3', 4, 'LOW', 1, 'TC-3'),
+       (4, 'Test Case 4 - No Attributes', 'Test case without any attributes', 4, 'LOW', 1, 'TC-4'),
+       (5, 'Test Case 5', 'Description for test case 5', 3, 'HIGH', 1, 'TC-5');
 
 -- Test cases in project 2 (folder 5)
-INSERT INTO tms_test_case (id, "name", description, test_folder_id, priority)
-VALUES (6, 'Test Case 6 - Project 2', 'Test case in project 2', 5, 'HIGH');
+INSERT INTO tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+VALUES (6, 'Test Case 6 - Project 2', 'Test case in project 2', 5, 'HIGH', 2, 'TC-1');
 
 -- Test case attributes for project 1 test cases
 -- Test case 1: browser=chrome, priority=high
@@ -59,6 +59,11 @@ VALUES (5, 1),
 INSERT INTO tms_test_case_attribute (test_case_id, attribute_id)
 VALUES (6, 7),
        (6, 8);
+
+-- Project sequences for display_id tracking
+INSERT INTO tms_project_sequence (project_id, entity_type, current_value)
+VALUES (1, 'TEST_CASE', 5),
+       (2, 'TEST_CASE', 1);
 
 -- Update sequences
 SELECT setval('tms_test_folder_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));

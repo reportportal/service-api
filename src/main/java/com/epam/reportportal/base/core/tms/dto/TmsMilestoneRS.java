@@ -23,6 +23,8 @@ public class TmsMilestoneRS {
 
   private TmsMilestoneStatus status;
 
+  private String displayId;
+
   private Instant startDate;
 
   private Instant endDate;

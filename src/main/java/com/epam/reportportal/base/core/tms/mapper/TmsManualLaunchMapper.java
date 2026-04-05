@@ -9,9 +9,9 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutio
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
@@ -23,9 +23,13 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(config = CommonMapperConfig.class)
-public interface TmsManualLaunchMapper {
+public abstract class TmsManualLaunchMapper {
+
+  @Autowired
+  protected TmsDisplayIdService tmsDisplayIdService;
 
   @Mapping(target = "id", source = "launch.id")
   @Mapping(target = "name", source = "launch.name")
@@ -41,7 +45,8 @@ public interface TmsManualLaunchMapper {
   @Mapping(target = "testPlan.id", source = "launch.testPlanId")
   @Mapping(target = "attributes", source = "launch.attributes")
   @Mapping(target = "executionStatistic", source = "testCaseExecutionStatistic")
-  TmsManualLaunchRS convert(Launch launch,
+  @Mapping(target = "displayId", source = "launch.displayId")
+  public abstract TmsManualLaunchRS convert(Launch launch,
       TmsManualLaunchExecutionStatisticRS testCaseExecutionStatistic);
 
   @Mapping(target = "id", source = "launch.id")
@@ -59,7 +64,8 @@ public interface TmsManualLaunchMapper {
   @Mapping(target = "attributes", source = "launch.attributes")
   @Mapping(target = "executionStatistic.total", source = "batchTestCaseOperationResultRS.successCount")
   @Mapping(target = "executionStatistic.toRun", source = "batchTestCaseOperationResultRS.successCount")
-  CreateTmsManualLaunchRS convertToCreateTmsManualLaunchRS(Launch launch,
+  @Mapping(target = "displayId", source = "launch.displayId")
+  public abstract CreateTmsManualLaunchRS convertToCreateTmsManualLaunchRS(Launch launch,
       BatchTestCaseOperationResultRS batchTestCaseOperationResultRS);
 
   /**
@@ -81,7 +87,8 @@ public interface TmsManualLaunchMapper {
   @Mapping(target = "testPlan.name", source = "testPlan.name")
   @Mapping(target = "attributes", source = "launch.attributes")
   @Mapping(target = "executionStatistic", source = "testCaseExecutionStatistic")
-  TmsManualLaunchRS convert(Launch launch,
+  @Mapping(target = "displayId", source = "launch.displayId")
+  public abstract TmsManualLaunchRS convert(Launch launch,
       TmsManualLaunchExecutionStatisticRS testCaseExecutionStatistic,
       User user,
       TmsTestPlan testPlan);
@@ -90,7 +97,8 @@ public interface TmsManualLaunchMapper {
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "testPlanId", ignore = true)
-  void patch(@MappingTarget Launch existingLaunch, TmsManualLaunchRQ request);
+  @Mapping(target = "displayId", ignore = true)
+  public abstract void patch(@MappingTarget Launch existingLaunch, TmsManualLaunchRQ request);
 
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "uuid",
@@ -103,22 +111,11 @@ public interface TmsManualLaunchMapper {
           + "com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum.findByName(request.getMode().name()).orElseThrow())")
   @Mapping(target = "testPlanId", source = "request.testPlan.id")
   @Mapping(target = "userId", source = "user.userId")
-  Launch convertFromCreateTmsManualLaunchRQ(Long projectId, ReportPortalUser user,
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateManualLaunchDisplayId(projectId))")
+  public abstract Launch convertFromCreateTmsManualLaunchRQ(Long projectId, ReportPortalUser user,
       CreateTmsManualLaunchRQ request);
 
-  default BatchTestCaseOperationResultRS convertBatchAddTestCaseOperationResultRS(
-      List<Long> testCaseIds, List<Long> successTestCaseIds,
-      List<BatchTestCaseOperationError> errors) {
-    return BatchTestCaseOperationResultRS.builder()
-        .totalCount(testCaseIds.size())
-        .successCount(successTestCaseIds.size())
-        .failureCount(errors.size())
-        .successTestCaseIds(successTestCaseIds)
-        .errors(errors)
-        .build();
-  }
-
-  default BatchManualLaunchOperationResultRS convertToBatchDeleteResponse(List<Long> launchIds,
+  public BatchManualLaunchOperationResultRS convertToBatchDeleteResponse(List<Long> launchIds,
       List<Long> successLaunchIds, List<BatchManualLaunchOperationError> errors) {
     return BatchManualLaunchOperationResultRS.builder()
         .totalCount(launchIds.size())
@@ -129,7 +126,7 @@ public interface TmsManualLaunchMapper {
         .build();
   }
 
-  default BatchDeleteTestCaseExecutionsResultRS convertToBatchDeleteExecutionsResponse(
+  public BatchDeleteTestCaseExecutionsResultRS convertToBatchDeleteExecutionsResponse(
       List<Long> requestedExecutionIds, List<Long> successExecutionIds,
       List<BatchDeleteTestCaseExecutionError> errors) {
     return BatchDeleteTestCaseExecutionsResultRS.builder()

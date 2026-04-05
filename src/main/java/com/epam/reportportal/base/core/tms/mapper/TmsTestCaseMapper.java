@@ -11,6 +11,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
@@ -42,10 +43,14 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Autowired
   protected TmsManualScenarioMapper tmsManualScenarioMapper;
 
+  @Autowired
+  protected TmsDisplayIdService tmsDisplayIdService;
+
   @Mapping(target = "manualScenario",
       expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
+  @Mapping(target = "displayId", source = "tmsTestCase.displayId")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
       TmsTestCaseVersion defaultCaseVersion
@@ -56,6 +61,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
   @Mapping(target = "priority", source = "tmsTestCase.priority")
+  @Mapping(target = "displayId", source = "tmsTestCase.displayId")
   @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
@@ -81,6 +87,8 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     );
   }
 
+  @Mapping(target = "project.id", source = "projectId")
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestCaseDisplayId(projectId))")
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
@@ -92,6 +100,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION
   )
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "displayId", ignore = true)
   @Mapping(target = "searchVector", ignore = true)
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
@@ -103,6 +112,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "displayId", ignore = true)
   @Mapping(target = "searchVector", ignore = true)
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "dataset", ignore = true)
@@ -134,12 +144,14 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testPlans", ignore = true)
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "externalId", ignore = true) //externalId is unique
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestCaseDisplayId(originalTestCase.getProject().getId()))")
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "name", source = "originalTestCase.name")
   @Mapping(target = "priority", source = "originalTestCase.priority")
   @Mapping(target = "description", source = "originalTestCase.description")
   @Mapping(target = "testFolder", source = "targetFolder")
+  @Mapping(target = "project", source = "originalTestCase.project")
   public abstract TmsTestCase duplicateTestCase(TmsTestCase originalTestCase,
       TmsTestFolder targetFolder);
 
@@ -166,6 +178,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "name", source = "testCase.name")
   @Mapping(target = "description", source = "testCase.description")
   @Mapping(target = "priority", source = "testCase.priority")
+  @Mapping(target = "displayId", source = "testCase.displayId")
   @Mapping(target = "externalId", source = "testCase.externalId")
   @Mapping(target = "createdAt", source = "testCase.createdAt", qualifiedByName = "instantToMillis")
   @Mapping(target = "updatedAt", source = "testCase.updatedAt", qualifiedByName = "instantToMillis")
@@ -253,15 +266,20 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   );
 
   public TmsTestCase convertFromImportRQ(long projectId, TmsTestCaseImportRQ importRQ, Long folderId) {
+    var project = new Project();
+    project.setId(projectId);
     var testCase = new TmsTestCase();
+    testCase.setProject(project);
     testCase.setName(importRQ.getName());
     testCase.setDescription(importRQ.getDescription());
     testCase.setPriority(importRQ.getPriority());
     testCase.setExternalId(importRQ.getExternalId());
+    testCase.setDisplayId(tmsDisplayIdService.generateTestCaseDisplayId(projectId));
 
     if (folderId != null) {
       var folder = new TmsTestFolder();
       folder.setId(folderId);
+      folder.setProject(project);
       testCase.setTestFolder(folder);
     }
 

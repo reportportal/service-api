@@ -4,7 +4,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
@@ -21,10 +20,13 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestIt
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.JUsersPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchRecord;
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -187,6 +189,12 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
               DSL.field(DSL.raw("'AUTOMATION'::launch_type_enum"), SQLDataType.VARCHAR))
           .asEnumDataType(JLaunchTypeEnum.class), this, "");
 
+  /**
+   * The column <code>public.launch.display_id</code>.
+   */
+  public final TableField<JLaunchRecord, String> DISPLAY_ID = createField(DSL.name("display_id"),
+      SQLDataType.VARCHAR(255), this, "");
+
   private JLaunch(Name alias, Table<JLaunchRecord> aliased) {
     this(alias, aliased, (Field<?>[]) null, null);
   }
@@ -262,7 +270,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
   @Override
   public List<Index> getIndexes() {
     return Arrays.asList(Indexes.LAUNCH_PROJECT_START_TIME_IDX, Indexes.LAUNCH_USER_IDX,
-        Indexes.MODE_IDX);
+        Indexes.MODE_IDX, Indexes.UNQ_LAUNCH_PROJECT_DISPLAY_ID);
   }
 
   @Override

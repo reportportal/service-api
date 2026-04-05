@@ -126,6 +126,9 @@ public class Launch implements Serializable {
   @JdbcType(PostgreSQLEnumJdbcType.class)
   private LaunchTypeEnum launchType;
 
+  @Column(name = "display_id")
+  private String displayId;
+
   @OneToMany(mappedBy = "launch", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   @Fetch(FetchMode.JOIN)
   private Set<ItemAttribute> attributes = Sets.newHashSet();
@@ -320,6 +323,14 @@ public class Launch implements Serializable {
     this.testPlanId = testPlanId;
   }
 
+  public String getDisplayId() {
+    return displayId;
+  }
+
+  public void setDisplayId(String displayId) {
+    this.displayId = displayId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -335,13 +346,14 @@ public class Launch implements Serializable {
         name, launch.name) && Objects.equals(description, launch.description) && Objects.equals(
         startTime, launch.startTime) && Objects.equals(endTime, launch.endTime) && Objects.equals(
         number, launch.number) && mode == launch.mode && status == launch.status
-        && retentionPolicy == launch.retentionPolicy && launchType == launch.launchType;
+        && retentionPolicy == launch.retentionPolicy && launchType == launch.launchType
+        && Objects.equals(displayId, launch.displayId);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(uuid, projectId, name, description, startTime, endTime, number, hasRetries,
-        rerun, mode, status, retentionPolicy, launchType
+        rerun, mode, status, retentionPolicy, launchType, displayId
     );
   }
 
@@ -368,6 +380,7 @@ public class Launch implements Serializable {
     sb.append(", approximateDuration=").append(approximateDuration);
     sb.append(", retentionPolicy=").append(retentionPolicy);
     sb.append(", testPlanId=").append(testPlanId);
+    sb.append(", displayId=").append(displayId);
     sb.append('}');
     return sb.toString();
   }

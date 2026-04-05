@@ -4,7 +4,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
@@ -14,6 +13,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjec
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsProductVersion.JTmsProductVersionPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsMilestoneRecord;
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -105,6 +105,11 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
      */
     public final TableField<JTmsMilestoneRecord, Long> PRODUCT_VERSION_ID = createField(DSL.name("product_version_id"), SQLDataType.BIGINT, this, "");
 
+    /**
+     * The column <code>public.tms_milestone.display_id</code>.
+     */
+    public final TableField<JTmsMilestoneRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
+
     private JTmsMilestone(Name alias, Table<JTmsMilestoneRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -174,7 +179,7 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_MILESTONE_PRODUCT_VERSION_ID, Indexes.IDX_TMS_MILESTONE_PROJECT_ID);
+        return Arrays.asList(Indexes.IDX_TMS_MILESTONE_PRODUCT_VERSION_ID, Indexes.IDX_TMS_MILESTONE_PROJECT_ID, Indexes.UNQ_TMS_MILESTONE_PROJECT_DISPLAY_ID);
     }
 
     @Override

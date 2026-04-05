@@ -3,6 +3,7 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -59,6 +60,13 @@ public class TmsTestCase implements Serializable {
 
   @Column(name = "external_id")
   private String externalId;
+
+  @Column(name = "display_id")
+  private String displayId;
+
+  @ManyToOne
+  @JoinColumn(name = "project_id", nullable = false)
+  private Project project;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false)

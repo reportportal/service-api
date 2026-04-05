@@ -44,6 +44,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSte
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentBtsTicket;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan;
@@ -207,11 +208,20 @@ public class Indexes {
       DSL.name("idx_tms_step_scenario_number"), JTmsStep.TMS_STEP,
       new OrderField[]{JTmsStep.TMS_STEP.STEPS_MANUAL_SCENARIO_ID, JTmsStep.TMS_STEP.NUMBER},
       false);
+  public static final Index IDX_TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET_COMMENT_ID = Internal.createIndex(
+      DSL.name("idx_tms_test_case_execution_comment_bts_ticket_comment_id"),
+      JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET,
+      new OrderField[]{
+          JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET.COMMENT_ID},
+      false);
   public static final Index IDX_TMS_TEST_CASE_EXECUTION_COMMENT_EXECUTION_ID = Internal.createIndex(
       DSL.name("idx_tms_test_case_execution_comment_execution_id"),
       JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT,
       new OrderField[]{JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT.EXECUTION_ID},
       false);
+  public static final Index IDX_TMS_TEST_CASE_PROJECT_ID = Internal.createIndex(
+      DSL.name("idx_tms_test_case_project_id"), JTmsTestCase.TMS_TEST_CASE,
+      new OrderField[]{JTmsTestCase.TMS_TEST_CASE.PROJECT_ID}, false);
   public static final Index IDX_TMS_TEST_CASE_SEARCH_VECTOR = Internal.createIndex(
       DSL.name("idx_tms_test_case_search_vector"), JTmsTestCase.TMS_TEST_CASE,
       new OrderField[]{JTmsTestCase.TMS_TEST_CASE.SEARCH_VECTOR}, false);
@@ -367,4 +377,19 @@ public class Indexes {
       DSL.name("unique_rule_name_per_project_rule_type"), JSenderCase.SENDER_CASE,
       new OrderField[]{JSenderCase.SENDER_CASE.RULE_NAME, JSenderCase.SENDER_CASE.PROJECT_ID,
           JSenderCase.SENDER_CASE.RULE_TYPE}, true);
+  public static final Index UNQ_LAUNCH_PROJECT_DISPLAY_ID = Internal.createIndex(
+      DSL.name("unq_launch_project_display_id"), JLaunch.LAUNCH,
+      new OrderField[]{JLaunch.LAUNCH.PROJECT_ID, JLaunch.LAUNCH.DISPLAY_ID}, true);
+  public static final Index UNQ_TMS_MILESTONE_PROJECT_DISPLAY_ID = Internal.createIndex(
+      DSL.name("unq_tms_milestone_project_display_id"), JTmsMilestone.TMS_MILESTONE,
+      new OrderField[]{JTmsMilestone.TMS_MILESTONE.PROJECT_ID,
+          JTmsMilestone.TMS_MILESTONE.DISPLAY_ID}, true);
+  public static final Index UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID = Internal.createIndex(
+      DSL.name("unq_tms_test_case_project_display_id"), JTmsTestCase.TMS_TEST_CASE,
+      new OrderField[]{JTmsTestCase.TMS_TEST_CASE.PROJECT_ID,
+          JTmsTestCase.TMS_TEST_CASE.DISPLAY_ID}, true);
+  public static final Index UNQ_TMS_TEST_PLAN_PROJECT_DISPLAY_ID = Internal.createIndex(
+      DSL.name("unq_tms_test_plan_project_display_id"), JTmsTestPlan.TMS_TEST_PLAN,
+      new OrderField[]{JTmsTestPlan.TMS_TEST_PLAN.PROJECT_ID,
+          JTmsTestPlan.TMS_TEST_PLAN.DISPLAY_ID}, true);
 }

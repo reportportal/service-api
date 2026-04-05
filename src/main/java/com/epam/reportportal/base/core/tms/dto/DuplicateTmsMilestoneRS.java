@@ -27,5 +27,7 @@ public class DuplicateTmsMilestoneRS {
 
   private Instant endDate;
 
+  private String displayId;
+
   private List<DuplicateTmsTestPlanRS> testPlans;
 }

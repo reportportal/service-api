@@ -17,22 +17,19 @@
 package com.epam.reportportal.auth.config;
 
 import com.epam.reportportal.auth.DelegatingPluginAuthenticationProvider;
+import com.epam.reportportal.auth.DelegatingPluginOAuth2UserService;
 import com.epam.reportportal.auth.OAuthSuccessHandler;
 import com.epam.reportportal.auth.ReportPortalClient;
 import com.epam.reportportal.auth.basic.BasicPasswordAuthenticationProvider;
 import com.epam.reportportal.auth.config.password.CustomCodeGrantAuthenticationConverter;
 import com.epam.reportportal.auth.config.password.OAuth2ErrorResponseHandler;
 import com.epam.reportportal.auth.config.utils.JwtReportPortalUserConverter;
-import com.epam.reportportal.auth.oauth.OAuthProvider;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
@@ -52,16 +49,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.userinfo.DelegatingOAuth2UserService;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -102,13 +95,13 @@ public class AuthorizationServerConfig {
 
   private final AuthenticationFailureHandler authenticationFailureHandler;
 
-  private final List<OAuthProvider> authProviders;
-
   private final PasswordEncoder passwordEncoder;
 
   private final UserDetailsService userDetailsService;
 
   private final DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider;
+
+  private final DelegatingPluginOAuth2UserService delegatingPluginOAuth2UserService;
 
   @Bean
   public RegisteredClientRepository registeredClientRepository() {
@@ -239,12 +232,8 @@ public class AuthorizationServerConfig {
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .oauth2Login(oauth2 -> oauth2
-            .userInfoEndpoint(userInfo -> {
-              List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> services = getUserServices(authProviders);
-              if (!services.isEmpty()) {
-                userInfo.userService(new DelegatingOAuth2UserService<>(services));
-              }
-            })
+            .userInfoEndpoint(userInfo ->
+                userInfo.userService(delegatingPluginOAuth2UserService))
             .clientRegistrationRepository(clientRegistrationRepository)
             .authorizationEndpoint(authorization -> authorization
                 .baseUri("/oauth/login")
@@ -296,13 +285,4 @@ public class AuthorizationServerConfig {
             .jwtAuthenticationConverter(new JwtReportPortalUserConverter(userDetailsService)));
   }
 
-  public List<OAuth2UserService<OAuth2UserRequest, OAuth2User>> getUserServices(List<OAuthProvider> providers) {
-    return providers.stream()
-        .map(provider -> Optional.ofNullable(
-                clientRegistrationRepository.findOAuthRegistrationResourceById(provider.getName()))
-            .map(provider::getUserService)
-            .orElse(null))
-        .filter(Objects::nonNull)
-        .toList();
-  }
 }

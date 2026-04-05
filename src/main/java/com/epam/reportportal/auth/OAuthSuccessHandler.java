@@ -49,13 +49,14 @@ public class OAuthSuccessHandler extends AuthSuccessHandler {
   protected Jwt getToken(Authentication authentication) {
     OAuth2AuthenticationToken oAuth2Authentication = ofNullable((OAuth2AuthenticationToken) authentication)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
-    RPOAuth2User principal = (RPOAuth2User) oAuth2Authentication.getPrincipal();
+    var principal = oAuth2Authentication.getPrincipal();
     return tokenServicesFacade.get().createToken(
         ReportPortalClient.ui,
         normalizeId(principal.getName()),
         authentication,
-        principal.getAccessToken() != null ? Collections.singletonMap("upstream_token",
-            principal.getAccessToken()) : Collections.emptyMap()
+        principal instanceof RPOAuth2User rpUser && rpUser.getAccessToken() != null
+            ? Collections.singletonMap("upstream_token", rpUser.getAccessToken())
+            : Collections.emptyMap()
     );
   }
 }

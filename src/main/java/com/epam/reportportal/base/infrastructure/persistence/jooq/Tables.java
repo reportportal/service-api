@@ -73,6 +73,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMan
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioRequirement;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsProductVersion;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsProjectSequence;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStep;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepExecution;
@@ -82,6 +83,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentBtsTicket;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem;
@@ -105,7 +107,7 @@ import org.jooq.Result;
 /**
  * Convenience access to all tables in public.
  */
-@SuppressWarnings({"all", "unchecked", "rawtypes", "this-escape"})
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
 
     /**
@@ -489,6 +491,11 @@ public class Tables {
     public static final JTmsProductVersion TMS_PRODUCT_VERSION = JTmsProductVersion.TMS_PRODUCT_VERSION;
 
     /**
+     * The table <code>public.tms_project_sequence</code>.
+     */
+    public static final JTmsProjectSequence TMS_PROJECT_SEQUENCE = JTmsProjectSequence.TMS_PROJECT_SEQUENCE;
+
+    /**
      * The table <code>public.tms_step</code>.
      */
     public static final JTmsStep TMS_STEP = JTmsStep.TMS_STEP;
@@ -523,15 +530,20 @@ public class Tables {
      */
     public static final JTmsTestCaseExecution TMS_TEST_CASE_EXECUTION = JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION;
 
-  /**
-   * The table <code>public.tms_test_case_execution_comment</code>.
-   */
-  public static final JTmsTestCaseExecutionComment TMS_TEST_CASE_EXECUTION_COMMENT = JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT;
+    /**
+     * The table <code>public.tms_test_case_execution_comment</code>.
+     */
+    public static final JTmsTestCaseExecutionComment TMS_TEST_CASE_EXECUTION_COMMENT = JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT;
 
-  /**
-   * The table <code>public.tms_test_case_execution_comment_attachment</code>.
-   */
-  public static final JTmsTestCaseExecutionCommentAttachment TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT = JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT;
+    /**
+     * The table <code>public.tms_test_case_execution_comment_attachment</code>.
+     */
+    public static final JTmsTestCaseExecutionCommentAttachment TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT = JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT;
+
+    /**
+     * The table <code>public.tms_test_case_execution_comment_bts_ticket</code>.
+     */
+    public static final JTmsTestCaseExecutionCommentBtsTicket TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET = JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET;
 
     /**
      * The table <code>public.tms_test_case_version</code>.

@@ -174,6 +174,20 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
         return (Long) get(10);
     }
 
+    /**
+     * Setter for <code>public.tms_test_plan.display_id</code>.
+     */
+    public void setDisplayId(String value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_plan.display_id</code>.
+     */
+    public String getDisplayId() {
+        return (String) get(11);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -197,7 +211,7 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
     /**
      * Create a detached, initialised JTmsTestPlanRecord
      */
-    public JTmsTestPlanRecord(Long id, String name, String description, Long projectId, Long environmentId, Long productVersionId, Object searchVector, Long launchId, Instant createdAt, Instant updatedAt, Long milestoneId) {
+    public JTmsTestPlanRecord(Long id, String name, String description, Long projectId, Long environmentId, Long productVersionId, Object searchVector, Long launchId, Instant createdAt, Instant updatedAt, Long milestoneId, String displayId) {
         super(JTmsTestPlan.TMS_TEST_PLAN);
 
         setId(id);
@@ -211,6 +225,7 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
         setMilestoneId(milestoneId);
+        setDisplayId(displayId);
         resetChangedOnNotNull();
     }
 }

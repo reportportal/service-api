@@ -4,10 +4,10 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsDataset.JTmsDatasetPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute.JTmsTestCaseAttributePath;
@@ -16,6 +16,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase.JTmsTestPlanTestCasePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseRecord;
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -118,6 +119,16 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      */
     public final TableField<JTmsTestCaseRecord, Instant> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
 
+    /**
+     * The column <code>public.tms_test_case.project_id</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.tms_test_case.display_id</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
+
     private JTmsTestCase(Name alias, Table<JTmsTestCaseRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -187,7 +198,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR);
+        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_PROJECT_ID, Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR, Indexes.UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID);
     }
 
     @Override
@@ -202,7 +213,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
 
     @Override
     public List<ForeignKey<JTmsTestCaseRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.TMS_TEST_CASE__TMS_TEST_CASE_FK_DATASET, Keys.TMS_TEST_CASE__TMS_TEST_CASE_FK_TEST_FOLDER);
+        return Arrays.asList(Keys.TMS_TEST_CASE__TMS_TEST_CASE_FK_DATASET, Keys.TMS_TEST_CASE__TMS_TEST_CASE_FK_PROJECT, Keys.TMS_TEST_CASE__TMS_TEST_CASE_FK_TEST_FOLDER);
     }
 
     private transient JTmsDatasetPath _tmsDataset;
@@ -215,6 +226,18 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
             _tmsDataset = new JTmsDatasetPath(this, Keys.TMS_TEST_CASE__TMS_TEST_CASE_FK_DATASET, null);
 
         return _tmsDataset;
+    }
+
+    private transient JProjectPath _project;
+
+    /**
+     * Get the implicit join path to the <code>public.project</code> table.
+     */
+    public JProjectPath project() {
+        if (_project == null)
+            _project = new JProjectPath(this, Keys.TMS_TEST_CASE__TMS_TEST_CASE_FK_PROJECT, null);
+
+        return _project;
     }
 
     private transient JTmsTestFolderPath _tmsTestFolder;

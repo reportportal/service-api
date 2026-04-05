@@ -7,6 +7,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
@@ -24,6 +25,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -33,8 +35,12 @@ import org.springframework.data.domain.Pageable;
 })
 public abstract class TmsTestPlanMapper {
 
+  @Autowired
+  protected TmsDisplayIdService tmsDisplayIdService;
+
   @Mapping(target = "attributes", source = "attributes")
   @Mapping(target = "milestoneId", source = "milestone.id")
+  @Mapping(target = "displayId", source = "displayId")
   public abstract TmsTestPlanRS convertToRS(TmsTestPlan tmsTestPlan);
 
   @Mapping(target = "id", source = "tmsTestPlan.testPlan.id")
@@ -43,6 +49,7 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "attributes", source = "tmsTestPlan.testPlan.attributes")
   @Mapping(target = "milestoneId", source = "tmsTestPlan.testPlan.milestone.id")
   @Mapping(target = "executionStatistic", source = "tmsTestPlan.executionStatistic")
+  @Mapping(target = "displayId", source = "tmsTestPlan.testPlan.displayId")
   public abstract TmsTestPlanRS convertTmsTestPlanWithStatisticToRS(
       TmsTestPlanWithStatistic tmsTestPlan);
 
@@ -75,6 +82,7 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "project.id", source = "projectId")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "milestone", source = "testPlanRQ.milestoneId", qualifiedByName = "milestoneIdToMilestone")
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestPlanDisplayId(projectId))")
   public abstract TmsTestPlan convertFromRQ(Long projectId, TmsTestPlanRQ testPlanRQ);
 
   @Named("milestoneIdToMilestone")
@@ -93,6 +101,7 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "testCases", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "displayId", ignore = true)
   public abstract void update(@MappingTarget TmsTestPlan targetTestPlan, TmsTestPlan tmsTestPlan);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
@@ -101,6 +110,7 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "testCases", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "displayId", ignore = true)
   public abstract void patch(@MappingTarget TmsTestPlan existingTestPlan,
       TmsTestPlan tmsTestPlan);
 
@@ -139,11 +149,13 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "name", source = "duplicateTestPlanRQ.name")
   @Mapping(target = "description", source = "duplicateTestPlanRQ.description")
   @Mapping(target = "milestone", source = "duplicateTestPlanRQ.milestoneId", qualifiedByName = "milestoneIdToMilestone")
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestPlanDisplayId(originalTestPlan.getProject().getId()))")
   public abstract TmsTestPlan duplicateTestPlan(TmsTestPlan originalTestPlan,
       TmsTestPlanRQ duplicateTestPlanRQ);
 
   @Mapping(target = "duplicationStatistic", ignore = true)
   @Mapping(target = "milestoneId", source = "milestone.id")
+  @Mapping(target = "displayId", source = "displayId")
   public abstract DuplicateTmsTestPlanRS toDuplicateTmsTestPlanRS(TmsTestPlan testPlan);
 
   public DuplicateTmsTestPlanRS buildDuplicateTestPlanResponse(TmsTestPlan testPlan,
@@ -204,5 +216,6 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "name", source = "name")
   @Mapping(target = "description", source = "description")
   @Mapping(target = "milestone", source = "milestone")
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestPlanDisplayId(originalTestPlan.getProject().getId()))")
   public abstract TmsTestPlan duplicateTestPlan(TmsTestPlan originalTestPlan);
 }

@@ -12,6 +12,7 @@ public class TmsTestPlanRS {
   private String name;
   private String description;
   private Long milestoneId;
+  private String displayId;
   private TmsTestPlanExecutionStatisticRS executionStatistic;
   private List<TmsTestPlanAttributeRS> attributes;
 }

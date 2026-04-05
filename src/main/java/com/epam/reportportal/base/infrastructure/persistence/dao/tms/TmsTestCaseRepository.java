@@ -15,37 +15,32 @@ import org.springframework.stereotype.Repository;
 public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCase, Long> {
 
   @Query("SELECT tc FROM TmsTestCase tc " +
-      "JOIN FETCH tc.testFolder tf " +
       "LEFT JOIN FETCH tc.attributes t " +
-      "WHERE tf.project.id = :projectId"
+      "WHERE tc.project.id = :projectId"
   )
   List<TmsTestCase> findByProjectId(Long projectId);
 
   @Query("SELECT tc.id FROM TmsTestCase tc " +
-      "JOIN tc.testFolder tf " +
-      "WHERE tf.project.id = :projectId"
+      "WHERE tc.project.id = :projectId"
   )
   List<Long> findIdsByProjectId(Long projectId);
 
   @Query("SELECT tc FROM TmsTestCase tc " +
-      "JOIN FETCH tc.testFolder tf " +
       "LEFT JOIN FETCH tc.attributes t " +
-      "WHERE tf.project.id = :projectId AND tc.id = :id"
+      "WHERE tc.project.id = :projectId AND tc.id = :id"
   )
   Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId,
       @Param("id") Long id);
 
   @Query("SELECT tc FROM TmsTestCase tc " +
-      "JOIN FETCH tc.testFolder tf " +
       "LEFT JOIN FETCH tc.attributes t " +
-      "WHERE tf.project.id = :projectId AND tc.id IN (:ids)"
+      "WHERE tc.project.id = :projectId AND tc.id IN (:ids)"
   )
   List<TmsTestCase> findByProjectIdAndIds(@Param("projectId") Long projectId,
       @Param("ids") List<Long> ids);
 
-  @Query("SELECT tc.id FROM TmsTestCase tc " +
-      "JOIN tc.testFolder tf " +
-      "WHERE tf.project.id = :projectId AND tc.id IN (:ids)"
+  @Query("SELECT tc.id FROM TmsTestCase tc "+
+      "WHERE tc.project.id = :projectId AND tc.id IN (:ids)"
   )
   List<Long> findExistingIdsByProjectIdAndIds(@Param("projectId") Long projectId,
       @Param("ids") List<Long> ids);
@@ -67,7 +62,7 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   @Query(value = "SELECT tc.id FROM tms_test_case tc "
       + "JOIN tms_test_folder tf ON tf.id = tc.test_folder_id "
       + "LEFT JOIN tms_test_plan_test_case tptc ON tptc.test_case_id = tc.id "
-      + "WHERE tf.project_id = :projectId "
+      + "WHERE tc.project_id = :projectId "
       + "AND (:testFolderId IS NULL OR tf.id = :testFolderId) "
       + "AND (:search IS NULL OR tc.search_vector @@ plainto_tsquery('simple', :search)) "
       + "AND (:testPlanId IS NULL OR tptc.test_plan_id = :testPlanId)",
@@ -184,7 +179,7 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    */
   @Query("SELECT COUNT(tc) > 0 FROM TmsTestCase tc " +
       "WHERE tc.id = :testCaseId " +
-      "AND tc.testFolder.project.id = :projectId")
+      "AND tc.project.id = :projectId")
   boolean existsByIdAndProjectId(@Param("testCaseId") Long testCaseId,
       @Param("projectId") Long projectId);
 
@@ -197,13 +192,12 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    */
   @Query("SELECT tc.id FROM TmsTestCase tc " +
       "WHERE tc.id IN :testCaseIds " +
-      "AND tc.testFolder.project.id = :projectId")
+      "AND tc.project.id = :projectId")
   List<Long> findExistingTestCaseIds(@Param("projectId") Long projectId,
       @Param("testCaseIds") List<Long> testCaseIds);
 
   @Query("SELECT tc.id FROM TmsTestCase tc " +
-      "JOIN tc.testFolder tf " +
-      "WHERE tf.project.id = :projectId AND tc.testFolder.id = :testFolderId"
+      "WHERE tc.project.id = :projectId AND tc.testFolder.id = :testFolderId"
   )
   List<Long> findIdsByProjectIdAndTestFolderId(@Param("projectId") Long projectId,
       @Param("testFolderId") Long testFolderId);

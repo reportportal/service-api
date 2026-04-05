@@ -18,6 +18,7 @@ public class DuplicateTmsTestPlanRS {
   private Long id;
   private String name;
   private String description;
+  private String displayId;
   private Long milestoneId;
   private TmsTestPlanExecutionStatisticRS executionStatistic;
   private List<TmsTestPlanAttributeRS> attributes;

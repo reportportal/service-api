@@ -28,6 +28,8 @@ public class TmsTestCaseInTestPlanRS {
 
   private Long updatedAt;
 
+  private String displayId;
+
   private TmsTestCaseTestFolderRS testFolder;
 
   private TmsManualScenarioRS manualScenario;

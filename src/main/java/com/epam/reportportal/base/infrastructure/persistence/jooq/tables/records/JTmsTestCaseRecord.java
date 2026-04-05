@@ -160,6 +160,34 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
         return (Instant) get(9);
     }
 
+    /**
+     * Setter for <code>public.tms_test_case.project_id</code>.
+     */
+    public void setProjectId(Long value) {
+        set(10, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case.project_id</code>.
+     */
+    public Long getProjectId() {
+        return (Long) get(10);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_case.display_id</code>.
+     */
+    public void setDisplayId(String value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case.display_id</code>.
+     */
+    public String getDisplayId() {
+        return (String) get(11);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -183,7 +211,7 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
     /**
      * Create a detached, initialised JTmsTestCaseRecord
      */
-    public JTmsTestCaseRecord(Long id, String name, String description, Long testFolderId, Long datasetId, String priority, Object searchVector, String externalId, Instant createdAt, Instant updatedAt) {
+    public JTmsTestCaseRecord(Long id, String name, String description, Long testFolderId, Long datasetId, String priority, Object searchVector, String externalId, Instant createdAt, Instant updatedAt, Long projectId, String displayId) {
         super(JTmsTestCase.TMS_TEST_CASE);
 
         setId(id);
@@ -196,6 +224,8 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
         setExternalId(externalId);
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
+        setProjectId(projectId);
+        setDisplayId(displayId);
         resetChangedOnNotNull();
     }
 }

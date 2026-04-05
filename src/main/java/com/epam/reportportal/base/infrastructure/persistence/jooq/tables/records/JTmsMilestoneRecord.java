@@ -134,6 +134,20 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
         return (Long) get(7);
     }
 
+    /**
+     * Setter for <code>public.tms_milestone.display_id</code>.
+     */
+    public void setDisplayId(String value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_milestone.display_id</code>.
+     */
+    public String getDisplayId() {
+        return (String) get(8);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -157,7 +171,7 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
     /**
      * Create a detached, initialised JTmsMilestoneRecord
      */
-    public JTmsMilestoneRecord(Long id, String name, Long projectId, Instant startDate, Instant endDate, JTmsMilestoneType type, JTmsMilestoneStatus status, Long productVersionId) {
+    public JTmsMilestoneRecord(Long id, String name, Long projectId, Instant startDate, Instant endDate, JTmsMilestoneType type, JTmsMilestoneStatus status, Long productVersionId, String displayId) {
         super(JTmsMilestone.TMS_MILESTONE);
 
         setId(id);
@@ -168,6 +182,7 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
         setType(type);
         setStatus(status);
         setProductVersionId(productVersionId);
+        setDisplayId(displayId);
         resetChangedOnNotNull();
     }
 }

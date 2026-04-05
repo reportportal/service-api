@@ -42,6 +42,9 @@ public class TmsMilestone {
   @Column(name = "name")
   private String name;
 
+  @Column(name = "display_id")
+  private String displayId;
+
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;

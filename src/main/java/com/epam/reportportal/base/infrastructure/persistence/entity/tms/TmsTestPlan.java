@@ -49,6 +49,9 @@ public class TmsTestPlan {
   @Column(name = "description")
   private String description;
 
+  @Column(name = "display_id")
+  private String displayId;
+
   @CreatedDate
   @Column(name = "created_at", nullable = false)
   @Convert(converter = JpaInstantConverter.class)

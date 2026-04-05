@@ -27,184 +27,185 @@ insert into tms_test_folder (id, "name", description, project_id)
 values (11, 'Test Folder 11', 'Description for test folder 11', 2);
 
 -- Test plans
-insert into tms_test_plan (id, "name", description, project_id)
-values (1, 'Test Plan 1', 'Description for test plan 1', 1);
+insert into tms_test_plan (id, "name", description, project_id, display_id)
+values (1, 'Test Plan 1', 'Description for test plan 1', 1, 'TP-1');
 
-insert into tms_test_plan (id, "name", description, project_id)
-values (2, 'Test Plan 2', 'Description for test plan 2', 1);
+insert into tms_test_plan (id, "name", description, project_id, display_id)
+values (2, 'Test Plan 2', 'Description for test plan 2', 1, 'TP-2');
 
-insert into tms_test_plan (id, "name", description, project_id)
-values (3, 'Test Plan 3', 'Description for test plan 3', 1);
+insert into tms_test_plan (id, "name", description, project_id, display_id)
+values (3, 'Test Plan 3', 'Description for test plan 3', 1, 'TP-3');
 
-insert into tms_test_plan (id, "name", description, project_id)
-values (4, 'Integration Test Plan', 'Test plan for integration tests', 1);
+insert into tms_test_plan (id, "name", description, project_id, display_id)
+values (4, 'Integration Test Plan', 'Test plan for integration tests', 1, 'TP-4');
 
-insert into tms_test_plan (id, "name", description, project_id)
-values (5, 'Regression Test Plan', 'Test plan for regression tests', 1);
+insert into tms_test_plan (id, "name", description, project_id, display_id)
+values (5, 'Regression Test Plan', 'Test plan for regression tests', 1, 'TP-5');
 
 -- Test cases
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (4, 'Test Case 4', 'Description for test case 4', 4, 'HIGH');
+-- project_id derived from folder: folders 3-8,10 -> project 1; folders 9,11 -> project 2
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (4, 'Test Case 4', 'Description for test case 4', 4, 'HIGH', 1, 'TC-1');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (5, 'Test Case 5', 'Description for test case 5', 5, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (5, 'Test Case 5', 'Description for test case 5', 5, 'MEDIUM', 1, 'TC-2');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (6, 'Test Case 6', 'Description for test case 6', 6, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (6, 'Test Case 6', 'Description for test case 6', 6, 'LOW', 1, 'TC-3');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (7, 'Test Case 7', 'Description for test case 7', 4, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (7, 'Test Case 7', 'Description for test case 7', 4, 'LOW', 1, 'TC-4');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (8, 'Test Case 8', 'Description for test case 8', 5, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (8, 'Test Case 8', 'Description for test case 8', 5, 'LOW', 1, 'TC-5');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (9, 'Test Case 9', 'Description for test case 9', 4, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (9, 'Test Case 9', 'Description for test case 9', 4, 'LOW', 1, 'TC-6');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (10, 'Test Case 10', 'Description for test case 10', 5, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (10, 'Test Case 10', 'Description for test case 10', 5, 'HIGH', 1, 'TC-7');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (11, 'Test Case 11', 'Description for test case 11', 5, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (11, 'Test Case 11', 'Description for test case 11', 5, 'MEDIUM', 1, 'TC-8');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (12, 'Test Case 12', 'Description for test case 12', 5, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (12, 'Test Case 12', 'Description for test case 12', 5, 'LOW', 1, 'TC-9');
 
 -- Search test cases
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (13, 'Search Test Case', 'This is a searchable test case', 7, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (13, 'Search Test Case', 'This is a searchable test case', 7, 'HIGH', 1, 'TC-10');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (14, 'Another Test', 'Another description for search', 7, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (14, 'Another Test', 'Another description for search', 7, 'MEDIUM', 1, 'TC-11');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (15, 'Login Test Case', 'Test case for login functionality', 7, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (15, 'Login Test Case', 'Test case for login functionality', 7, 'HIGH', 1, 'TC-12');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (16, 'API Test Case', 'Test case for API testing', 7, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (16, 'API Test Case', 'Test case for API testing', 7, 'MEDIUM', 1, 'TC-13');
 
 -- Test cases with versions and manual scenarios
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (17, 'Test Case With Version', 'Test case with default version', 6, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (17, 'Test Case With Version', 'Test case with default version', 6, 'HIGH', 1, 'TC-14');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (18, 'Complex Test Case', 'Test case with complex scenario', 6, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (18, 'Complex Test Case', 'Test case with complex scenario', 6, 'MEDIUM', 1, 'TC-15');
 
 -- Test cases for full-text searching
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (19, '3test', 'Test for full-text search 1', 8, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (19, '3test', 'Test for full-text search 1', 8, 'LOW', 1, 'TC-16');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (20, 'Test for full-text search 2', 'Test for full-text search 2', 8, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (20, 'Test for full-text search 2', 'Test for full-text search 2', 8, 'MEDIUM', 1, 'TC-17');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (21, '3test', 'Test for full-text search 3', 7, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (21, '3test', 'Test for full-text search 3', 7, 'MEDIUM', 1, 'TC-18');
 
 -- Additional test cases for batch patch testing
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (22, 'Batch Test Case 22', 'Test case for batch patch with priority', 4, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (22, 'Batch Test Case 22', 'Test case for batch patch with priority', 4, 'LOW', 1, 'TC-19');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (23, 'Batch Test Case 23', 'Test case for batch patch with priority', 4, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (23, 'Batch Test Case 23', 'Test case for batch patch with priority', 4, 'LOW', 1, 'TC-20');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (24, 'Batch Test Case 24', 'Test case for batch patch with tags only', 5, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (24, 'Batch Test Case 24', 'Test case for batch patch with tags only', 5, 'MEDIUM', 1, 'TC-21');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (25, 'Batch Test Case 25', 'Test case for batch patch with tags only', 5, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (25, 'Batch Test Case 25', 'Test case for batch patch with tags only', 5, 'MEDIUM', 1, 'TC-22');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (26, 'Batch Test Case 26', 'Test case for batch patch with null fields', 6, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (26, 'Batch Test Case 26', 'Test case for batch patch with null fields', 6, 'HIGH', 1, 'TC-23');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (27, 'Batch Test Case 27', 'Test case for batch patch with null fields', 6, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (27, 'Batch Test Case 27', 'Test case for batch patch with null fields', 6, 'HIGH', 1, 'TC-24');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (28, 'Batch Test Case 28', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (28, 'Batch Test Case 28', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM', 1, 'TC-25');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (29, 'Batch Test Case 29', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (29, 'Batch Test Case 29', 'Test case for batch patch with invalid attribute', 3, 'MEDIUM', 1, 'TC-26');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (30, 'Batch Test Case 30', 'Test case for batch patch with full attributes', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (30, 'Batch Test Case 30', 'Test case for batch patch with full attributes', 3, 'MEDIUM', 1, 'TC-27');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (31, 'Batch Test Case 31', 'Test case for batch patch with full attributes', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (31, 'Batch Test Case 31', 'Test case for batch patch with full attributes', 3, 'MEDIUM', 1, 'TC-28');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (32, 'Batch Test Case 32', 'Test case for batch patch with non existing folder 32', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (32, 'Batch Test Case 32', 'Test case for batch patch with non existing folder 32', 3, 'MEDIUM', 1, 'TC-29');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (33, 'Batch Test Case 33', 'Test case for batch patch with non existing folder 33', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (33, 'Batch Test Case 33', 'Test case for batch patch with non existing folder 33', 3, 'MEDIUM', 1, 'TC-30');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (34, 'Test Case With Version 34', 'Test case with default version 34', 6, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (34, 'Test Case With Version 34', 'Test case with default version 34', 6, 'HIGH', 1, 'TC-31');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (35, 'Test Case With Version 35', 'Test case with default version 35', 9, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (35, 'Test Case With Version 35', 'Test case with default version 35', 9, 'HIGH', 2, 'TC-1');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (36, 'Test Case With Version 36', 'Test case with default version 36', 9, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (36, 'Test Case With Version 36', 'Test case with default version 36', 9, 'HIGH', 2, 'TC-2');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (37, 'Test Case With Version 37', 'Test case with default version 37', 10, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (37, 'Test Case With Version 37', 'Test case with default version 37', 10, 'HIGH', 1, 'TC-32');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (38, 'Batch Patch New Folder Test 38', 'Test case for batch patch with new folder', 3, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (38, 'Batch Patch New Folder Test 38', 'Test case for batch patch with new folder', 3, 'LOW', 1, 'TC-33');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (39, 'Batch Patch New Folder Test 39', 'Test case for batch patch with new folder', 3, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (39, 'Batch Patch New Folder Test 39', 'Test case for batch patch with new folder', 3, 'LOW', 1, 'TC-34');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (40, 'Batch Patch Nested Folder Test 40', 'Test case for batch patch with nested folder', 4, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (40, 'Batch Patch Nested Folder Test 40', 'Test case for batch patch with nested folder', 4, 'MEDIUM', 1, 'TC-35');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (41, 'Batch Patch Nested Folder Test 41', 'Test case for batch patch with nested folder', 4, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (41, 'Batch Patch Nested Folder Test 41', 'Test case for batch patch with nested folder', 4, 'MEDIUM', 1, 'TC-36');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (42, 'Batch Patch Folder Priority Test 42', 'Test case for batch patch with folder and priority', 5, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (42, 'Batch Patch Folder Priority Test 42', 'Test case for batch patch with folder and priority', 5, 'LOW', 1, 'TC-37');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (43, 'Batch Patch Folder Priority Test 43', 'Test case for batch patch with folder and priority', 5, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (43, 'Batch Patch Folder Priority Test 43', 'Test case for batch patch with folder and priority', 5, 'LOW', 1, 'TC-38');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (44, 'Batch Patch Validation Test 44', 'Test case for batch patch validation', 6, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (44, 'Batch Patch Validation Test 44', 'Test case for batch patch validation', 6, 'MEDIUM', 1, 'TC-39');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (45, 'Batch Patch Validation Test 45', 'Test case for batch patch validation', 6, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (45, 'Batch Patch Validation Test 45', 'Test case for batch patch validation', 6, 'MEDIUM', 1, 'TC-40');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (46, 'Batch Patch Non-Existent Parent Test 46', 'Test case for non-existent parent folder', 7, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (46, 'Batch Patch Non-Existent Parent Test 46', 'Test case for non-existent parent folder', 7, 'HIGH', 1, 'TC-41');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (47, 'Batch Patch Non-Existent Parent Test 47', 'Test case for non-existent parent folder', 7, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (47, 'Batch Patch Non-Existent Parent Test 47', 'Test case for non-existent parent folder', 7, 'HIGH', 1, 'TC-42');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (48, 'Batch Patch Empty Name Test 48', 'Test case for empty folder name validation', 8, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (48, 'Batch Patch Empty Name Test 48', 'Test case for empty folder name validation', 8, 'LOW', 1, 'TC-43');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (49, 'Batch Patch Empty Name Test 49', 'Test case for empty folder name validation', 8, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (49, 'Batch Patch Empty Name Test 49', 'Test case for empty folder name validation', 8, 'LOW', 1, 'TC-44');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (50, 'Batch Patch Single TC Test 50', 'Test case for single test case batch patch', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (50, 'Batch Patch Single TC Test 50', 'Test case for single test case batch patch', 3, 'MEDIUM', 1, 'TC-45');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (51, 'Default Project Batch Test 51', 'Test case for default project batch patch', 9, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (51, 'Default Project Batch Test 51', 'Test case for default project batch patch', 9, 'LOW', 2, 'TC-3');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (52, 'Default Project Batch Test 52', 'Test case for default project batch patch', 9, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (52, 'Default Project Batch Test 52', 'Test case for default project batch patch', 9, 'LOW', 2, 'TC-4');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (100, 'Test Case with Last Execution', 'Test case that has execution data', 3, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (100, 'Test Case with Last Execution', 'Test case that has execution data', 3, 'HIGH', 1, 'TC-46');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (101, 'Test Case with Multiple Executions', 'Test case with multiple executions, should return latest', 3, 'MEDIUM');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (101, 'Test Case with Multiple Executions', 'Test case with multiple executions, should return latest', 3, 'MEDIUM', 1, 'TC-47');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (102, 'Test Case without Execution', 'Test case with no execution data', 3, 'LOW');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (102, 'Test Case without Execution', 'Test case with no execution data', 3, 'LOW', 1, 'TC-48');
 
-insert into tms_test_case (id, "name", description, test_folder_id, priority)
-values (103, 'Test Case with Single Execution', 'Test case with single execution', 3, 'HIGH');
+insert into tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
+values (103, 'Test Case with Single Execution', 'Test case with single execution', 3, 'HIGH', 1, 'TC-49');
 
 -- Test plan - test case relationships
 insert into tms_test_plan_test_case (test_plan_id, test_case_id)
@@ -259,7 +260,7 @@ values (7, 'priority', 1, NULL);
 insert into tms_attribute (id, "key", project_id, value)
 values (8, 'environment', 1, NULL);
 
--- Test case attributes (no value field, just relationship)
+-- Test case attributes
 insert into tms_test_case_attribute (test_case_id, attribute_id)
 values (4, 4);
 
@@ -776,39 +777,19 @@ insert into tms_text_manual_scenario (manual_scenario_id, instructions, expected
 values (31, 'Execute non-existing folder test', 'Non-existing folders should be handled');
 
 -- Steps manual scenarios
-insert into tms_steps_manual_scenario (manual_scenario_id)
-values (6);
+insert into tms_steps_manual_scenario (manual_scenario_id) values (6);
+insert into tms_steps_manual_scenario (manual_scenario_id) values (7);
+insert into tms_steps_manual_scenario (manual_scenario_id) values (12);
+insert into tms_steps_manual_scenario (manual_scenario_id) values (15);
+insert into tms_steps_manual_scenario (manual_scenario_id) values (28);
+insert into tms_steps_manual_scenario (manual_scenario_id) values (32);
 
-insert into tms_steps_manual_scenario (manual_scenario_id)
-values (7);
-
-insert into tms_steps_manual_scenario (manual_scenario_id)
-values (12);
-
-insert into tms_steps_manual_scenario (manual_scenario_id)
-values (15);
-
-insert into tms_steps_manual_scenario (manual_scenario_id)
-values (28);
-
-insert into tms_steps_manual_scenario (manual_scenario_id)
-values (32);
-
--- Manual scenario attributes (no value field, just relationship)
-insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id)
-values (1, 7);
-
-insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id)
-values (2, 8);
-
-insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id)
-values (10, 7);
-
-insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id)
-values (12, 8);
-
-insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id)
-values (15, 7);
+-- Manual scenario attributes
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id) values (1, 7);
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id) values (2, 8);
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id) values (10, 7);
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id) values (12, 8);
+insert into tms_manual_scenario_attribute (manual_scenario_id, attribute_id) values (15, 7);
 
 -- Steps
 insert into tms_step (id, steps_manual_scenario_id, instructions, expected_result)
@@ -866,14 +847,14 @@ insert into tms_step (id, steps_manual_scenario_id, instructions, expected_resul
 values (18, 32, 'Verify final results', 'Final results should be correct');
 
 -- Launches for execution tests
-insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
-values (100, '550e8400-e29b-41d4-a716-446655440100', 1, 1, 'Launch for TC Execution Tests', 'Launch for testing last execution functionality', '2023-10-06 10:00:00.000000', '2023-10-06 11:00:00.000000', 100, '2023-10-06 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, display_id, test_plan_id)
+values (100, '550e8400-e29b-41d4-a716-446655440100', 1, 1, 'Launch for TC Execution Tests', 'Launch for testing last execution functionality', '2023-10-06 10:00:00.000000', '2023-10-06 11:00:00.000000', 100, '2023-10-06 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', 'L-1', null);
 
-insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
-values (101, '550e8400-e29b-41d4-a716-446655440101', 1, 1, 'Launch for Multiple Executions', 'Launch for testing multiple executions', '2023-10-07 10:00:00.000000', '2023-10-07 11:00:00.000000', 101, '2023-10-07 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, display_id, test_plan_id)
+values (101, '550e8400-e29b-41d4-a716-446655440101', 1, 1, 'Launch for Multiple Executions', 'Launch for testing multiple executions', '2023-10-07 10:00:00.000000', '2023-10-07 11:00:00.000000', 101, '2023-10-07 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', 'L-2', null);
 
-insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, test_plan_id)
-values (102, '550e8400-e29b-41d4-a716-446655440102', 1, 1, 'Launch for Latest Execution', 'Launch for testing latest execution logic', '2023-10-08 10:00:00.000000', '2023-10-08 11:00:00.000000', 102, '2023-10-08 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', null);
+insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries, rerun, approximate_duration, retention_policy, display_id, test_plan_id)
+values (102, '550e8400-e29b-41d4-a716-446655440102', 1, 1, 'Launch for Latest Execution', 'Launch for testing latest execution logic', '2023-10-08 10:00:00.000000', '2023-10-08 11:00:00.000000', 102, '2023-10-08 11:00:00.000000', 'DEFAULT', 'PASSED', false, false, 0, 'REGULAR', 'L-3', null);
 
 -- Test items for execution tests
 insert into test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
@@ -901,13 +882,20 @@ values (3, 101, 101, 1011, '{"id": 101, "name": "Test Case with Multiple Executi
 insert into tms_test_case_execution (id, test_case_id, test_case_version_id, test_item_id, test_case_snapshot, launch_id)
 values (4, 103, 103, 1030, '{"id": 103, "name": "Test Case with Single Execution", "priority": "HIGH"}', 102);
 
+-- Project sequences
+insert into tms_project_sequence (project_id, entity_type, current_value)
+values (1, 'TEST_CASE', 49),
+       (2, 'TEST_CASE', 4),
+       (1, 'TEST_PLAN', 5),
+       (1, 'LAUNCH',    3);
+
 -- Set sequences to continue from highest ID
-SELECT setval('tms_test_folder_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));
-SELECT setval('tms_test_case_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case));
-SELECT setval('tms_test_plan_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_plan));
-SELECT setval('tms_attribute_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_attribute));
-SELECT setval('tms_test_case_version_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_version));
-SELECT setval('tms_manual_scenario_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario));
+SELECT setval('tms_test_folder_id_seq',                   (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));
+SELECT setval('tms_test_case_id_seq',                     (SELECT COALESCE(MAX(id), 1) FROM tms_test_case));
+SELECT setval('tms_test_plan_id_seq',                     (SELECT COALESCE(MAX(id), 1) FROM tms_test_plan));
+SELECT setval('tms_attribute_id_seq',                     (SELECT COALESCE(MAX(id), 1) FROM tms_attribute));
+SELECT setval('tms_test_case_version_id_seq',             (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_version));
+SELECT setval('tms_manual_scenario_id_seq',               (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario));
 SELECT setval('tms_manual_scenario_preconditions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_manual_scenario_preconditions));
-SELECT setval('tms_step_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_step));
-SELECT setval('tms_test_case_execution_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));
+SELECT setval('tms_step_id_seq',                          (SELECT COALESCE(MAX(id), 1) FROM tms_step));
+SELECT setval('tms_test_case_execution_id_seq',           (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));

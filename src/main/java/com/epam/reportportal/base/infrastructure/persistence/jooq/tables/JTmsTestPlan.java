@@ -4,7 +4,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
@@ -18,6 +17,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanAttribute.JTmsTestPlanAttributePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase.JTmsTestPlanTestCasePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestPlanRecord;
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -125,6 +125,11 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
      */
     public final TableField<JTmsTestPlanRecord, Long> MILESTONE_ID = createField(DSL.name("milestone_id"), SQLDataType.BIGINT, this, "");
 
+    /**
+     * The column <code>public.tms_test_plan.display_id</code>.
+     */
+    public final TableField<JTmsTestPlanRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
+
     private JTmsTestPlan(Name alias, Table<JTmsTestPlanRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -194,7 +199,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_TEST_PLAN_MILESTONE_ID, Indexes.IDX_TMS_TEST_PLAN_PROJECT_ID, Indexes.IDX_TMS_TEST_PLAN_SEARCH_VECTOR);
+        return Arrays.asList(Indexes.IDX_TMS_TEST_PLAN_MILESTONE_ID, Indexes.IDX_TMS_TEST_PLAN_PROJECT_ID, Indexes.IDX_TMS_TEST_PLAN_SEARCH_VECTOR, Indexes.UNQ_TMS_TEST_PLAN_PROJECT_DISPLAY_ID);
     }
 
     @Override

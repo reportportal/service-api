@@ -8,6 +8,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsMilestoneStatus;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,9 +21,13 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(config = CommonMapperConfig.class)
 public abstract class TmsMilestoneMapper {
+
+  @Autowired
+  protected TmsDisplayIdService tmsDisplayIdService;
 
   /**
    * Maps TmsMilestoneRQ to TmsMilestone entity.
@@ -37,6 +42,7 @@ public abstract class TmsMilestoneMapper {
   @Mapping(target = "project.id", source = "projectId")
   @Mapping(target = "status", source = "milestoneRQ.status", qualifiedByName = "mapStatusWithDefault",
       nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION)
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateMilestoneDisplayId(projectId))")
   public abstract TmsMilestone toEntity(Long projectId, TmsMilestoneRQ milestoneRQ);
 
   /**
@@ -78,6 +84,7 @@ public abstract class TmsMilestoneMapper {
   @Mapping(target = "testPlans", ignore = true)
   @Mapping(target = "project.id", source = "projectId")
   @Mapping(target = "status", source = "milestoneRQ.status", qualifiedByName = "mapStatus")
+  @Mapping(target = "displayId", ignore = true)
   public abstract void patchEntity(Long projectId, TmsMilestoneRQ milestoneRQ,
       @MappingTarget TmsMilestone milestone);
 

@@ -71,6 +71,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMan
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioRequirement;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsProductVersion;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsProjectSequence;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStep;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepExecution;
@@ -80,6 +81,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentBtsTicket;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem;
@@ -160,12 +162,14 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioRequirementRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsMilestoneRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsProductVersionRecord;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsProjectSequenceRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsStepAttachmentRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsStepExecutionRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsStepRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsStepsManualScenarioRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseAttributeRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseExecutionCommentAttachmentRecord;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseExecutionCommentBtsTicketRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseExecutionCommentRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseExecutionRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseRecord;
@@ -507,6 +511,10 @@ public class Keys {
   public static final UniqueKey<JTmsProductVersionRecord> TMS_PRODUCT_VERSION_PK = Internal.createUniqueKey(
       JTmsProductVersion.TMS_PRODUCT_VERSION, DSL.name("tms_product_version_pk"),
       new TableField[]{JTmsProductVersion.TMS_PRODUCT_VERSION.ID}, true);
+  public static final UniqueKey<JTmsProjectSequenceRecord> TMS_PROJECT_SEQUENCE_PK = Internal.createUniqueKey(
+      JTmsProjectSequence.TMS_PROJECT_SEQUENCE, DSL.name("tms_project_sequence_pk"),
+      new TableField[]{JTmsProjectSequence.TMS_PROJECT_SEQUENCE.PROJECT_ID,
+          JTmsProjectSequence.TMS_PROJECT_SEQUENCE.ENTITY_TYPE}, true);
   public static final UniqueKey<JTmsStepRecord> TMS_STEP_PK = Internal.createUniqueKey(
       JTmsStep.TMS_STEP, DSL.name("tms_step_pk"), new TableField[]{JTmsStep.TMS_STEP.ID}, true);
   public static final UniqueKey<JTmsStepAttachmentRecord> TMS_STEP_ATTACHMENT_PKEY = Internal.createUniqueKey(
@@ -547,6 +555,11 @@ public class Keys {
       DSL.name("tms_test_case_execution_comment_attachment_pkey"), new TableField[]{
           JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT.EXECUTION_COMMENT_ID,
           JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT.ATTACHMENT_ID},
+      true);
+  public static final UniqueKey<JTmsTestCaseExecutionCommentBtsTicketRecord> TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET_PK = Internal.createUniqueKey(
+      JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET,
+      DSL.name("tms_test_case_execution_comment_bts_ticket_pk"), new TableField[]{
+          JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET.ID},
       true);
   public static final UniqueKey<JTmsTestCaseVersionRecord> TMS_TEST_CASE_VERSION_PK = Internal.createUniqueKey(
       JTmsTestCaseVersion.TMS_TEST_CASE_VERSION, DSL.name("tms_test_case_version_pk"),
@@ -931,6 +944,10 @@ public class Keys {
       JTmsProductVersion.TMS_PRODUCT_VERSION, DSL.name("tms_product_version_fk_project"),
       new TableField[]{JTmsProductVersion.TMS_PRODUCT_VERSION.PROJECT_ID}, Keys.PROJECT_PK,
       new TableField[]{JProject.PROJECT.ID}, true);
+  public static final ForeignKey<JTmsProjectSequenceRecord, JProjectRecord> TMS_PROJECT_SEQUENCE__TMS_PROJECT_SEQUENCE_FK_PROJECT = Internal.createForeignKey(
+      JTmsProjectSequence.TMS_PROJECT_SEQUENCE, DSL.name("tms_project_sequence_fk_project"),
+      new TableField[]{JTmsProjectSequence.TMS_PROJECT_SEQUENCE.PROJECT_ID}, Keys.PROJECT_PK,
+      new TableField[]{JProject.PROJECT.ID}, true);
   public static final ForeignKey<JTmsStepRecord, JTmsStepsManualScenarioRecord> TMS_STEP__TMS_STEP_FK_STEPS_MANUAL_SCENARIO = Internal.createForeignKey(
       JTmsStep.TMS_STEP, DSL.name("tms_step_fk_steps_manual_scenario"),
       new TableField[]{JTmsStep.TMS_STEP.STEPS_MANUAL_SCENARIO_ID},
@@ -958,6 +975,10 @@ public class Keys {
       JTmsTestCase.TMS_TEST_CASE, DSL.name("tms_test_case_fk_dataset"),
       new TableField[]{JTmsTestCase.TMS_TEST_CASE.DATASET_ID}, Keys.TMS_DATASET_PK,
       new TableField[]{JTmsDataset.TMS_DATASET.ID}, true);
+  public static final ForeignKey<JTmsTestCaseRecord, JProjectRecord> TMS_TEST_CASE__TMS_TEST_CASE_FK_PROJECT = Internal.createForeignKey(
+      JTmsTestCase.TMS_TEST_CASE, DSL.name("tms_test_case_fk_project"),
+      new TableField[]{JTmsTestCase.TMS_TEST_CASE.PROJECT_ID}, Keys.PROJECT_PK,
+      new TableField[]{JProject.PROJECT.ID}, true);
   public static final ForeignKey<JTmsTestCaseRecord, JTmsTestFolderRecord> TMS_TEST_CASE__TMS_TEST_CASE_FK_TEST_FOLDER = Internal.createForeignKey(
       JTmsTestCase.TMS_TEST_CASE, DSL.name("tms_test_case_fk_test_folder"),
       new TableField[]{JTmsTestCase.TMS_TEST_CASE.TEST_FOLDER_ID}, Keys.TMS_TEST_FOLDER_PK,
@@ -992,6 +1013,12 @@ public class Keys {
       JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT,
       DSL.name("tms_test_case_execution_comment_attachment_fk_comment"), new TableField[]{
           JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT.EXECUTION_COMMENT_ID},
+      Keys.TMS_TEST_CASE_EXECUTION_COMMENT_PK,
+      new TableField[]{JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT.ID}, true);
+  public static final ForeignKey<JTmsTestCaseExecutionCommentBtsTicketRecord, JTmsTestCaseExecutionCommentRecord> TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET__TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET_FK_COMMENT = Internal.createForeignKey(
+      JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET,
+      DSL.name("tms_test_case_execution_comment_bts_ticket_fk_comment"), new TableField[]{
+          JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET.COMMENT_ID},
       Keys.TMS_TEST_CASE_EXECUTION_COMMENT_PK,
       new TableField[]{JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT.ID}, true);
   public static final ForeignKey<JTmsTestCaseVersionRecord, JTmsTestCaseRecord> TMS_TEST_CASE_VERSION__TMS_TEST_CASE_VERSION_FK_TEST_CASE = Internal.createForeignKey(

@@ -22,6 +22,8 @@ public class TmsTestCaseRS {
 
   private String priority;
 
+  private String displayId;
+
   private Long createdAt;
 
   private Long updatedAt;

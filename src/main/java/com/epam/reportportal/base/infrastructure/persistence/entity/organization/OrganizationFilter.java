@@ -31,7 +31,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class OrganizationFilter implements Serializable {
 
-
   private Long id;
   private Instant createdAt;
   private Instant updatedAt;
@@ -39,11 +38,5 @@ public class OrganizationFilter implements Serializable {
   private String externalId;
   private OrganizationType organizationType;
   private String slug;
-
-  private int usersQuantity;
-  private int projectsQuantity;
-  private int launchesQuantity;
-
-  private Instant lastRun;
 
 }

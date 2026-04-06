@@ -112,7 +112,6 @@ class OrganizationControllerTest extends BaseMvcTest {
       delimiter = '|',
       nullValues = "null"
   )
-  @Disabled
   void searchOrganizationsByParameter(String field, String op, String value, int rows)
       throws Exception {
     SearchCriteriaRQ rq = new SearchCriteriaRQ();

@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USER_ID;
 import static com.epam.reportportal.base.util.OffsetUtils.responseWithPageParameters;
 import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
+import static com.epam.reportportal.base.ws.converter.converters.OrganizationConverter.ORG_PROFILE_TO_BASE_ORG_INFO;
 import static com.epam.reportportal.base.ws.converter.converters.OrganizationConverter.ORG_PROFILE_TO_ORG_INFO;
 
 import com.epam.reportportal.api.model.OrganizationInfo;
@@ -82,8 +83,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
         .stream()
         .map(orgProfile -> ORG_PROFILE_TO_ORG_INFO.apply(orgProfile))
         .findFirst()
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, organizationId));
   }
 
   @Override
@@ -99,7 +99,7 @@ public class GetOrganizationHandlerImpl implements GetOrganizationHandler {
     var organizationProfiles = organizationRepositoryCustom.findByFilter(filter, pageable);
     var items = organizationProfiles.getContent()
         .stream()
-        .map(ORG_PROFILE_TO_ORG_INFO)
+        .map(ORG_PROFILE_TO_BASE_ORG_INFO)
         .toList();
 
     organizationProfilesPage.items(items);

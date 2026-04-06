@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao.util;
 
-import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter.PROJECTS_QUANTITY;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.USERS;

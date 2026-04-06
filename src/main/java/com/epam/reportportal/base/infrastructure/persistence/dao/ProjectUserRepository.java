@@ -52,18 +52,21 @@ public interface ProjectUserRepository
 
 
   /**
-   * Deletes project user records for all projects belonging to the specified organization.
+   * Deletes project user records for all projects belonging to the specified organization and returns the deleted
+   * project IDs.
    *
    * @param orgId  The organization ID
    * @param userId The user ID
+   * @return List of project IDs that were removed
    */
   @Modifying
   @Query(value =
       """
-            DELETE FROM project_user pu
-            WHERE pu.user_id = :userId AND pu.project_id IN (SELECT id FROM project WHERE organization_id = :orgId)
+            DELETE FROM project_user
+            WHERE user_id = :userId AND project_id IN (SELECT id FROM project WHERE organization_id = :orgId)
+            RETURNING project_id
           """, nativeQuery = true)
-  void deleteProjectUserByProjectOrganizationId(@Param("orgId") Long orgId, @Param("userId") Long userId);
+  List<Long> deleteProjectUserByProjectOrganizationId(@Param("orgId") Long orgId, @Param("userId") Long userId);
 
   /**
    * Deletes project user records for all projects ids from the list.

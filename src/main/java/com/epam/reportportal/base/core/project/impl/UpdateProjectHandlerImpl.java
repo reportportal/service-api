@@ -48,6 +48,7 @@ import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClien
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.base.core.analyzer.auto.indexer.IndexerStatusCache;
+import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.ChangeRoleEvent;
@@ -57,7 +58,6 @@ import com.epam.reportportal.base.core.events.domain.ProjectAnalyzerConfigEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectPatternAnalyzerUpdateEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectUpdatedEvent;
-import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.project.UpdateProjectHandler;
 import com.epam.reportportal.base.core.project.validator.attribute.OrganizationRetentionLimitValidator;
 import com.epam.reportportal.base.core.project.validator.attribute.ProjectAttributeValidator;
@@ -355,11 +355,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     project.getUsers().remove(projectUser);
     userForUnassign.getProjects().remove(projectUser);
 
-    UnassignUserEvent unassignUserEvent =
+    UnassignUserEvent unassignUserFromOrganizationEvent =
         new UnassignUserEvent(convertUserToResource(userForUnassign, projectUser),
             authorizedUser.getUserId(), authorizedUser.getUsername(), project.getOrganizationId()
         );
-    applicationEventPublisher.publishEvent(unassignUserEvent);
+    applicationEventPublisher.publishEvent(unassignUserFromOrganizationEvent);
 
     return projectUser;
   }

@@ -19,7 +19,6 @@ package com.epam.reportportal.base.core.organization.patch;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.UserOrgInfo;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
-import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
@@ -53,6 +52,8 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
   private final OrganizationRepositoryCustom organizationRepository;
   private final OrganizationUserRepository organizationUserRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
+  private final OrganizationUserService organizationUserService;
+
 
   /**
    * Constructor.
@@ -70,6 +71,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       ApplicationEventPublisher applicationEventPublisher
   ) {
     super(organizationUserService, objectMapper);
+    this.organizationUserService = organizationUserService;
     this.userRepository = userRepository;
     this.organizationRepository = organizationRepository;
     this.organizationUserRepository = organizationUserRepository;
@@ -97,13 +99,12 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     if (newUserIds.isEmpty()) {
-      unassignAllUsersFromOrganization(org.getId());
+      organizationUserService.unassignAllUsersFromOrganization(org.getId());
       return;
     } else {
       // TODO: Add OrgUser Activity Resource or extend OrganizationAttributesActivityResource
       // for publishing events when several users are unassigned from organization
-      organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(org.getId(), newUserIds);
-      log.info("Users not in {} have been removed from organization with ID {}", newUserIds, org.getId());
+      organizationUserService.deleteByOrganizationIdAndUserIdNotIn(org.getId(), newUserIds);
     }
 
     var principal = SecurityContextUtils.getPrincipal();
@@ -150,36 +151,23 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
   @Override
   public void remove(PatchOperation operation, Long orgId) {
     if (ObjectUtils.isEmpty(operation.getValue())) {
-      unassignAllUsersFromOrganization(orgId);
+      organizationUserService.unassignAllUsersFromOrganization(orgId);
       return;
     }
     var ids = readOperationValue(operation, new TypeReference<List<IdContainer>>() {
     });
 
     if (CollectionUtils.isEmpty(ids)) {
-      unassignAllUsersFromOrganization(orgId);
+      organizationUserService.unassignAllUsersFromOrganization(orgId);
       return;
     }
 
-    var principal = SecurityContextUtils.getPrincipal();
-
     ids.forEach(idContainer -> {
-      var orgUser = organizationUserRepository.findByUserIdAndOrganization_Id(idContainer.getId(), orgId)
+      organizationUserRepository.findByUserIdAndOrganization_Id(idContainer.getId(), orgId)
           .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer.getId()));
-      organizationUserRepository.deleteByUserIdAndOrganizationId(idContainer.getId(), orgId);
-      log.info("User with ID {} has been removed from organization with ID {}", idContainer.getId(), orgId);
-      applicationEventPublisher.publishEvent(
-          new UnassignUserEvent(
-              UserConverter.TO_ACTIVITY_RESOURCE.apply(orgUser.getUser(), null),
-              principal.getUserId(), principal.getUsername(), orgId
-          ));
+
+      organizationUserService.deleteByUserIdAndOrganizationId(idContainer.getId(), orgId);
     });
   }
 
-  // TODO: Add OrgUser Activity Resource or extend OrganizationAttributesActivityResource
-  // for publishing events when several users are unassigned from organization
-  private void unassignAllUsersFromOrganization(Long orgId) {
-    organizationUserRepository.deleteAllByOrganizationId(orgId);
-    log.info("All users have been removed from organization with ID {}", orgId);
-  }
 }

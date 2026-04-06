@@ -54,7 +54,6 @@ import com.epam.reportportal.base.model.project.ProjectResource;
 import com.epam.reportportal.base.model.project.UnassignUsersRQ;
 import com.epam.reportportal.base.model.project.UpdateProjectRQ;
 import com.epam.reportportal.base.model.project.email.ProjectNotificationConfigDTO;
-import com.epam.reportportal.base.model.user.SearchUserResource;
 import com.epam.reportportal.base.model.user.UserResource;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
@@ -274,17 +273,6 @@ public class ProjectController {
     return getProjectHandler.getUserNames(projectExtractor.extractMembershipDetails(user, projectKey),
         normalizeId(value)
     );
-  }
-
-  @Transactional(readOnly = true)
-  @GetMapping("/{projectKey}/usernames/search")
-  @ResponseStatus(OK)
-  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
-  public Page<SearchUserResource> searchForUser(@PathVariable String projectKey,
-      @RequestParam(value = "term") String term,
-      Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-    return getProjectHandler.getUserNames(term,
-        projectExtractor.extractMembershipDetails(user, projectKey), user.getUserRole(), pageable);
   }
 
   @Transactional

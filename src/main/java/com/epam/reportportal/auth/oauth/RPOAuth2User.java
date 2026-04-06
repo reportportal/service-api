@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.reportportal.auth.integration.github;
+
+package com.epam.reportportal.auth.oauth;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import java.util.Collections;
+import lombok.Getter;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
+@Getter
 public class RPOAuth2User extends DefaultOAuth2User {
 
   private final ReportPortalUser reportPortalUser;
@@ -29,17 +32,9 @@ public class RPOAuth2User extends DefaultOAuth2User {
 
   public RPOAuth2User(ReportPortalUser reportPortalUser, String accessToken) {
     super(reportPortalUser.getAuthorities(),
-        Collections.singletonMap("login", reportPortalUser.getUsername()),
-        "login");
+        Collections.singletonMap("login", reportPortalUser.getUsername()), "login");
     this.reportPortalUser = reportPortalUser;
     this.accessToken = accessToken;
   }
 
-  public ReportPortalUser getReportPortalUser() {
-    return reportPortalUser;
-  }
-
-  public String getAccessToken() {
-    return accessToken;
-  }
 }

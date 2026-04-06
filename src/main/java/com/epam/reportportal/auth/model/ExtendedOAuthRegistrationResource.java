@@ -15,7 +15,6 @@
  */
 package com.epam.reportportal.auth.model;
 
-import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

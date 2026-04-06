@@ -533,13 +533,6 @@ class ProjectControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void searchForUsername() throws Exception {
-    mockMvc.perform(get("/v1/project/test_project/usernames/search?term=user").with(
-            token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
-  }
-
-  @Test
   void export() throws Exception {
     final ResultActions resultActions = mockMvc.perform(
         get("/v1/project/export").with(token(oAuthHelper.getSuperadminToken())));

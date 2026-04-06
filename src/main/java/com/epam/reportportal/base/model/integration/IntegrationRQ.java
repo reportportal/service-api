@@ -19,10 +19,14 @@ package com.epam.reportportal.base.model.integration;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Setter
+@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class IntegrationRQ {
 
@@ -35,27 +39,4 @@ public class IntegrationRQ {
   @JsonProperty("enabled")
   private Boolean enabled;
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public Map<String, Object> getIntegrationParams() {
-    return integrationParams;
-  }
-
-  public void setIntegrationParams(Map<String, Object> integrationParams) {
-    this.integrationParams = integrationParams;
-  }
-
-  public Boolean getEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(Boolean enabled) {
-    this.enabled = enabled;
-  }
 }

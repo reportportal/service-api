@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.auth.integration.handler;
 
-import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
+import com.epam.reportportal.auth.model.AbstractAuthResource;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

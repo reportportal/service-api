@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.auth.endpoint;
+package com.epam.reportportal.auth.info;
 
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
-import com.epam.reportportal.auth.info.OAuthProviderInfo;
 import com.epam.reportportal.auth.oauth.OAuthProvider;
+import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
-import com.epam.reportportal.base.infrastructure.persistence.dao.OAuthRegistrationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.extension.AuthExtension;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.util.List;
@@ -43,27 +42,26 @@ public class AuthProvidersInfoContributor implements InfoContributor {
 
   public static final String SSO_LOGIN_PATH = "/oauth/login";
 
-  private final OAuthRegistrationRepository oAuthRegistrationRepository;
+  private final MutableClientRegistrationRepository clientRegistrationRepository;
   private final Pf4jPluginBox pluginBox;
   private final Map<String, OAuthProvider> providersMap;
 
   @Autowired
-  public AuthProvidersInfoContributor(OAuthRegistrationRepository oAuthRegistrationRepository,
+  public AuthProvidersInfoContributor(MutableClientRegistrationRepository clientRegistrationRepository,
       Pf4jPluginBox pluginBox,
       Map<String, OAuthProvider> providersMap) {
-    this.oAuthRegistrationRepository = oAuthRegistrationRepository;
+    this.clientRegistrationRepository = clientRegistrationRepository;
     this.pluginBox = pluginBox;
     this.providersMap = providersMap;
   }
 
   @Override
   public void contribute(Info.Builder builder) {
-    final List<OAuthRegistration> oauth2Details = oAuthRegistrationRepository.findAll();
-
+    final List<Integration> configuredOAuthProviders = clientRegistrationRepository.findAll();
     final Map<String, Object> extensions = providersMap.values()
         .stream()
-        .filter(p -> !p.isConfigDynamic() || oauth2Details.stream()
-            .anyMatch(it -> it.getId().equalsIgnoreCase(p.getName())))
+        .filter(p -> !p.isConfigDynamic() || configuredOAuthProviders.stream()
+            .anyMatch(it -> p.getName().equalsIgnoreCase(it.getType().getName())))
         .collect(Collectors.toMap(OAuthProvider::getName,
             p -> new OAuthProviderInfo(p.getButton(), p.buildPath(getAuthBasePath()))
         ));

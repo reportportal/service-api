@@ -50,7 +50,7 @@ public class ExternalJwtConverter extends AbstractJwtConverter {
     var user = findUser(externalId);
     var authorities = Optional.ofNullable(extractAuthorities(jwt))
         .filter(auths -> !auths.isEmpty())
-        .orElseGet(() -> (Collection<GrantedAuthority>) user.getAuthorities());
+        .orElseGet(() -> (Collection<GrantedAuthority>) findUser(externalId).getAuthorities());
 
     return new UsernamePasswordAuthenticationToken(user, null, authorities);
   }

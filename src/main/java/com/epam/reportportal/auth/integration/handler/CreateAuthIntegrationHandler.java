@@ -16,22 +16,29 @@
 
 package com.epam.reportportal.auth.integration.handler;
 
-import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
-import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
-import com.epam.reportportal.base.infrastructure.model.integration.auth.UpdateAuthRQ;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.model.integration.IntegrationRQ;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface CreateAuthIntegrationHandler {
 
-  AbstractAuthResource createAuthIntegration(String type, UpdateAuthRQ request,
-      ReportPortalUser user);
+  /**
+   * Creates a new authentication integration of the given type.
+   *
+   * @param type    the integration type identifier (e.g. "ldap", "saml")
+   * @param request the integration configuration request
+   * @return the created {@link Integration}
+   */
+  Integration createAuthIntegration(String type, IntegrationRQ request);
 
-  AbstractAuthResource updateAuthIntegration(String type, Long integrationId,
-      UpdateAuthRQ request, ReportPortalUser user);
-
-  OAuthRegistrationResource createOrUpdateOauthSettings(String oauthProviderId,
-      OAuthRegistrationResource clientRegistrationResource);
+  /**
+   * Updates an existing authentication integration with the provided configuration.
+   *
+   * @param integration the existing {@link Integration} to update
+   * @param request     the updated integration configuration request
+   * @return the updated {@link Integration}
+   */
+  Integration updateAuthIntegration(Integration integration, IntegrationRQ request);
 }

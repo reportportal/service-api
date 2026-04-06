@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.auth.oauth;
 
-import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
+import com.epam.reportportal.auth.model.OAuthRegistrationResource;
 import com.google.common.base.Preconditions;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;

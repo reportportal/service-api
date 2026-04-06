@@ -20,12 +20,14 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.reportportal.base.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
 
+import com.epam.reportportal.auth.event.SamlProvidersReloadEvent;
 import com.epam.reportportal.base.core.events.domain.IntegrationDeletedEvent;
 import com.epam.reportportal.base.core.integration.DeleteIntegrationHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -71,6 +73,10 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
     publishActivities(List.of(integration), user, null);
 
     integrationRepository.deleteById(integration.getId());
+
+    if (IntegrationGroupEnum.AUTH == integration.getType().getIntegrationGroup()) {
+      eventPublisher.publishEvent(new SamlProvidersReloadEvent(integration.getType()));
+    }
     return new OperationCompletionRS(
         Suppliers.formattedSupplier("Global integration with id = {} has been successfully removed",
             integration.getId()

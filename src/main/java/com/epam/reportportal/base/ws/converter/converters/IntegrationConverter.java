@@ -66,10 +66,10 @@ public final class IntegrationConverter {
         type.setEnabled(integration.getType().isEnabled());
         type.setCreationDate(integration.getType().getCreationDate());
         type.setGroupType(integration.getType().getIntegrationGroup().name());
-        ofNullable(integration.getType().getDetails()).ifPresent(
-            it -> type.setDetails(it.getDetails()));
-        ofNullable(integration.getType().getAuthFlow()).ifPresent(
-            it -> type.setAuthFlow(AuthFlowEnum.valueOf(it.name())));
+        ofNullable(integration.getType().getDetails())
+            .ifPresent(it -> type.setDetails(it.getDetails()));
+        ofNullable(integration.getType().getAuthFlow())
+            .ifPresent(it -> type.setAuthFlow(AuthFlowEnum.valueOf(it.name())));
         resource.setIntegrationType(type);
 
         return resource;

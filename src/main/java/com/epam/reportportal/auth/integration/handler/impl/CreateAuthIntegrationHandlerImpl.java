@@ -16,24 +16,16 @@
 
 package com.epam.reportportal.auth.integration.handler.impl;
 
-import com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters;
 import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
 import com.epam.reportportal.auth.integration.provider.AuthIntegrationStrategyProvider;
-import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
-import com.epam.reportportal.auth.oauth.OAuthProviderFactory;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
-import com.epam.reportportal.base.infrastructure.model.integration.auth.AbstractAuthResource;
-import com.epam.reportportal.base.infrastructure.model.integration.auth.UpdateAuthRQ;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistration;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,73 +34,37 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreateAuthIntegrationHandlerImpl implements CreateAuthIntegrationHandler {
 
-  private final MutableClientRegistrationRepository clientRegistrationRepository;
   private final AuthIntegrationStrategyProvider strategyProvider;
   private final IntegrationTypeRepository integrationTypeRepository;
 
-  @Value("${server.servlet.context-path}")
-  private String pathValue;
-
   @Autowired
-  public CreateAuthIntegrationHandlerImpl(
-      MutableClientRegistrationRepository clientRegistrationRepository,
-      AuthIntegrationStrategyProvider strategyProvider,
+  public CreateAuthIntegrationHandlerImpl(AuthIntegrationStrategyProvider strategyProvider,
       IntegrationTypeRepository integrationTypeRepository) {
-    this.clientRegistrationRepository = clientRegistrationRepository;
     this.strategyProvider = strategyProvider;
     this.integrationTypeRepository = integrationTypeRepository;
   }
 
   @Override
-  public AbstractAuthResource createAuthIntegration(String type, UpdateAuthRQ request,
-      ReportPortalUser user) {
+  public Integration createAuthIntegration(String type, IntegrationRQ request) {
     final IntegrationType integrationType = getIntegrationType(type);
     final AuthIntegrationStrategy authIntegrationStrategy = getAuthStrategy(type);
-    final Integration integration = authIntegrationStrategy.createIntegration(integrationType,
-        request, user.getUsername());
-    return authIntegrationStrategy.toResource(integration);
+    return authIntegrationStrategy.createIntegration(integrationType, request);
   }
 
   @Override
-  public AbstractAuthResource updateAuthIntegration(String type, Long integrationId,
-      UpdateAuthRQ request,
-      ReportPortalUser user) {
-    final IntegrationType integrationType = getIntegrationType(type);
-    final AuthIntegrationStrategy authIntegrationStrategy = getAuthStrategy(type);
-    final Integration integration = authIntegrationStrategy.updateIntegration(integrationType,
-        integrationId, request);
-    return authIntegrationStrategy.toResource(integration);
+  public Integration updateAuthIntegration(Integration integration, IntegrationRQ updateRequest) {
+    final AuthIntegrationStrategy authIntegrationStrategy = getAuthStrategy(integration.getType().getName());
+    return authIntegrationStrategy.updateIntegration(integration, updateRequest);
   }
 
   private IntegrationType getIntegrationType(String type) {
     return integrationTypeRepository.findByName(type)
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type));
   }
 
   private AuthIntegrationStrategy getAuthStrategy(String type) {
     return strategyProvider.provide(type)
         .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND, type));
-  }
-
-  @Override
-  public OAuthRegistrationResource createOrUpdateOauthSettings(String oauthProviderId,
-      OAuthRegistrationResource clientRegistrationResource) {
-
-    OAuthRegistration oAuthRegistration = OAuthProviderFactory.fillOAuthRegistration(
-        oauthProviderId, clientRegistrationResource, pathValue);
-
-    OAuthRegistration updatedOauthRegistration =
-        clientRegistrationRepository.findOAuthRegistrationById(oauthProviderId)
-            .map(existingRegistration -> {
-              clientRegistrationRepository.deleteById(existingRegistration.getId());
-              oAuthRegistration.setId(existingRegistration.getId());
-              return oAuthRegistration;
-            })
-            .orElse(oAuthRegistration);
-
-    return OAuthRegistrationConverters.TO_RESOURCE.apply(
-        clientRegistrationRepository.save(updatedOauthRegistration));
   }
 
 }

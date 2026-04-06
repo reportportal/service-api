@@ -25,13 +25,13 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
-import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Map;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -89,8 +89,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
-    return ofNullable(pluginInstance.getCommonCommand(command)).map(
-            it -> it.executeCommand(executionParams))
+    return ofNullable(pluginInstance.getCommonCommand(command))
+        .map(it -> it.executeCommand(executionParams))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Public command '{}' is not found in plugin {}.", command,
                 pluginName).get()

@@ -16,58 +16,63 @@
 
 package com.epam.reportportal.auth.store;
 
-import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.TO_SPRING;
+import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.INTEGRATION_TO_OAUTH_REGISTRATION;
+import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.TO_RESOURCE;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.OAuthRegistrationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistration;
+import com.epam.reportportal.auth.model.OAuthRegistrationResource;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component("mutableClientRegistrationRepository")
 public class MutableClientRegistrationRepository implements ClientRegistrationRepository {
 
-  private final OAuthRegistrationRepository oAuthRegistrationRepository;
+  public static final String ID_HAS_NOT_BEEN_FOUND = "Client registration with id = {} has not been found.";
+  private final IntegrationRepository integrationRepository;
 
   @Autowired
-  public MutableClientRegistrationRepository(
-      OAuthRegistrationRepository oAuthRegistrationRepository) {
-    this.oAuthRegistrationRepository = oAuthRegistrationRepository;
+  public MutableClientRegistrationRepository(IntegrationRepository integrationRepository) {
+    this.integrationRepository = integrationRepository;
   }
 
   @Override
   public ClientRegistration findByRegistrationId(String registrationId) {
-    return this.oAuthRegistrationRepository.findById(registrationId).map(TO_SPRING)
-        .orElseThrow(() -> new ReportPortalException(
-            ErrorType.AUTH_INTEGRATION_NOT_FOUND,
-            Suppliers.formattedSupplier("Client registration with id = {} has not been found.",
-                registrationId).get()
+    return integrationRepository.findGlobalByNameAndAuthFlowAndGroup(
+            registrationId,
+            IntegrationGroupEnum.AUTH,
+            IntegrationAuthFlowEnum.OAUTH)
+        .map(INTEGRATION_TO_OAUTH_REGISTRATION)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND,
+            Suppliers.formattedSupplier(ID_HAS_NOT_BEEN_FOUND, registrationId).get()
         ));
   }
 
-  public Optional<OAuthRegistration> findOAuthRegistrationById(String registrationId) {
-    return this.oAuthRegistrationRepository.findById(registrationId);
+  public OAuthRegistrationResource findOAuthRegistrationResourceById(String registrationId) {
+    return integrationRepository.findGlobalByNameAndAuthFlowAndGroup(
+            registrationId,
+            IntegrationGroupEnum.AUTH,
+            IntegrationAuthFlowEnum.OAUTH)
+        .map(TO_RESOURCE)
+        .orElseGet(() -> {
+          log.warn("Unable to find client registration with id = {}", registrationId);
+          return null;
+        });
   }
 
-  public boolean existsById(String oauthProviderId) {
-    return this.oAuthRegistrationRepository.existsById(oauthProviderId);
+  public List<Integration> findAll() {
+    return integrationRepository.findAllByAuthFlowAndGroup(IntegrationGroupEnum.AUTH,
+        IntegrationAuthFlowEnum.OAUTH);
   }
 
-  public OAuthRegistration save(OAuthRegistration registration) {
-    return this.oAuthRegistrationRepository.save(registration);
-  }
-
-  public void deleteById(String oauthProviderId) {
-    oAuthRegistrationRepository.deleteById(oauthProviderId);
-  }
-
-  public Collection<OAuthRegistration> findAll() {
-    return oAuthRegistrationRepository.findAll();
-  }
 }

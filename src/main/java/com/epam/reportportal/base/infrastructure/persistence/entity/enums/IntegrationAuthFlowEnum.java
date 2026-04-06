@@ -25,7 +25,8 @@ public enum IntegrationAuthFlowEnum {
   BASIC,
   TOKEN,
   FORM,
-  LDAP;
+  LDAP,
+  SAML;
 
   public static Optional<IntegrationAuthFlowEnum> findByName(String name) {
     return Arrays.stream(IntegrationAuthFlowEnum.values())

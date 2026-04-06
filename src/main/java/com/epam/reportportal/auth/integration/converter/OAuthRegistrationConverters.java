@@ -16,140 +16,149 @@
 
 package com.epam.reportportal.auth.integration.converter;
 
-import static java.util.Optional.ofNullable;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.AUTHORIZATION_URI;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.AUTH_GRANT_TYPE;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.CLIENT_AUTH_METHOD;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.CLIENT_ID;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.CLIENT_NAME;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.CLIENT_SECRET;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.JWK_SET_URI;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.ORGANIZATIONS_KEY;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.ORGANIZATION_TYPE;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.REDIRECT_URI_TEMPLATE;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.RESTRICTIONS;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.SCOPES;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.TOKEN_URI;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.USER_INFO_ENDPOINT_NAME_ATTR;
+import static com.epam.reportportal.auth.integration.converter.RegistrationParam.USER_INFO_ENDPOINT_URI;
 
-import com.epam.reportportal.auth.model.settings.OAuthRegistrationResource;
-import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistration;
-import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistrationRestriction;
-import com.epam.reportportal.base.infrastructure.persistence.entity.oauth.OAuthRegistrationScope;
+import com.epam.reportportal.auth.model.OAuthRegistrationResource;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.google.common.base.Preconditions;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 /**
- * Converter between resource, database, default Spring representation of OAuthRegistration.
+ * Converter between resource, database, and Spring representation of OAuthRegistration.
  *
  * @author Anton Machulski
  */
 public class OAuthRegistrationConverters {
 
+
   private OAuthRegistrationConverters() {
     //static only
+  }
+
+  private static String getStringParam(Map<String, Object> params, String key) {
+    Object value = params.get(key);
+    return value instanceof String ? (String) value : null;
+  }
+
+  private static String getStringParam(Map<String, Object> params, String key, String defaultValue) {
+    Object value = params.get(key);
+    return value instanceof String ? (String) value : defaultValue;
   }
 
   public static final Collector<OAuthRegistrationResource, ?,
       Map<String, OAuthRegistrationResource>> RESOURCE_KEY_MAPPER =
       Collectors.toMap(OAuthRegistrationResource::getId, r -> r);
 
-  public static final Function<String, OAuthRegistrationScope> SCOPE_FROM_RESOURCE = scope -> {
-    OAuthRegistrationScope oAuthRegistrationScope = new OAuthRegistrationScope();
-    oAuthRegistrationScope.setScope(scope);
-    return oAuthRegistrationScope;
-  };
-
-  public static final Function<OAuthRegistration, OAuthRegistrationResource> TO_RESOURCE = db -> {
-    Preconditions.checkNotNull(db);
+  public static final Function<Integration, OAuthRegistrationResource> TO_RESOURCE = integration -> {
+    Preconditions.checkNotNull(integration);
     OAuthRegistrationResource resource = new OAuthRegistrationResource();
-    resource.setId(db.getId());
-    resource.setClientId(db.getClientId());
-    resource.setClientSecret(db.getClientSecret());
-    resource.setClientAuthMethod(db.getClientAuthMethod());
-    resource.setAuthGrantType(db.getAuthGrantType());
-    resource.setRedirectUrlTemplate(db.getRedirectUrlTemplate());
-    resource.setAuthorizationUri(db.getAuthorizationUri());
-    resource.setTokenUri(db.getTokenUri());
-    resource.setUserInfoEndpointUri(db.getUserInfoEndpointUri());
-    resource.setUserInfoEndpointNameAttribute(db.getUserInfoEndpointNameAttribute());
-    resource.setJwkSetUri(db.getJwkSetUri());
-    resource.setClientName(db.getClientName());
-    ofNullable(db.getScopes()).ifPresent(scopes -> resource.setScopes(scopes.stream()
-        .map(OAuthRegistrationScope::getScope)
-        .collect(Collectors.toSet())));
-    ofNullable(db.getRestrictions()).ifPresent(
-        r -> resource.setRestrictions(OAuthRestrictionConverter.TO_RESOURCE.apply(db)));
+    resource.setId(integration.getName());
+
+    var params = integration.getParams().getParams();
+    resource.setClientId(getStringParam(params, CLIENT_ID));
+    resource.setClientSecret(getStringParam(params, CLIENT_SECRET));
+    resource.setClientAuthMethod(getStringParam(params, CLIENT_AUTH_METHOD));
+    resource.setAuthGrantType(getStringParam(params, AUTH_GRANT_TYPE));
+    resource.setRedirectUrlTemplate(getStringParam(params, REDIRECT_URI_TEMPLATE));
+    resource.setAuthorizationUri(getStringParam(params, AUTHORIZATION_URI));
+    resource.setTokenUri(getStringParam(params, TOKEN_URI));
+    resource.setUserInfoEndpointUri(getStringParam(params, USER_INFO_ENDPOINT_URI));
+    resource.setUserInfoEndpointNameAttribute(getStringParam(params, USER_INFO_ENDPOINT_NAME_ATTR));
+    resource.setJwkSetUri(getStringParam(params, JWK_SET_URI));
+    resource.setClientName(getStringParam(params, CLIENT_NAME));
+
+    Object scopesObj = params.get(SCOPES);
+    if (scopesObj instanceof Collection<?> collection) {
+      Set<String> scopes = new HashSet<>();
+      for (Object item : collection) {
+        if (item instanceof String s) {
+          scopes.add(s);
+        }
+      }
+      resource.setScopes(scopes);
+    }
+
+    Object restrictionsObj = params.get(RESTRICTIONS);
+    if (restrictionsObj instanceof List<?> list) {
+      String organizations = list.stream()
+          .filter(item -> item instanceof Map<?, ?>)
+          .map(item -> (Map<?, ?>) item)
+          .filter(r -> r.get("type") instanceof String t && ORGANIZATION_TYPE.equalsIgnoreCase(t))
+          .map(r -> r.get("value") instanceof String v ? v : null)
+          .filter(v -> v != null)
+          .collect(Collectors.joining(","));
+      Map<String, String> restrictions = new HashMap<>();
+      restrictions.put(ORGANIZATIONS_KEY, organizations);
+      resource.setRestrictions(restrictions);
+    }
     return resource;
   };
 
-  public static final Function<OAuthRegistration, ClientRegistration> TO_SPRING =
-      registration -> ClientRegistration.withRegistrationId(
-              registration.getClientName())
-          .clientId(registration.getClientId())
-          .clientSecret(registration.getClientSecret())
-          .clientAuthenticationMethod(
-              new ClientAuthenticationMethod(registration.getClientAuthMethod()))
-          .authorizationGrantType(new AuthorizationGrantType(registration.getAuthGrantType()))
-          .redirectUri(registration.getRedirectUrlTemplate())
-          .authorizationUri(registration.getAuthorizationUri())
-          .tokenUri(registration.getTokenUri())
-          .userInfoUri(registration.getUserInfoEndpointUri())
-          .userNameAttributeName(registration.getUserInfoEndpointNameAttribute())
-          .jwkSetUri(registration.getJwkSetUri())
-          .clientName(registration.getClientName())
-          .scope(ofNullable(registration.getScopes()).map(scopes -> scopes.stream()
-              .map(OAuthRegistrationScope::getScope)
-              .toArray(String[]::new)).orElse(ArrayUtils.EMPTY_STRING_ARRAY))
-          .build();
+  /**
+   * Converts an {@link Integration} (with OAUTH auth flow) to a params {@link Map} by reading the integration's params
+   * map and adding the integration name as {@code "id"}.
+   */
+  public static final Function<Integration, Map<String, Object>> FROM_INTEGRATION = integration -> {
+    Map<String, Object> params = new HashMap<>(integration.getParams().getParams());
+    params.put("id", integration.getName());
+    return params;
+  };
 
-  public static final BiFunction<OAuthRegistrationResource, ClientRegistration, OAuthRegistration> FROM_SPRING_MERGE = (registrationResource, clientResource) -> {
-    OAuthRegistration registration = new OAuthRegistration();
-    registration.setId(clientResource.getRegistrationId());
-    registration.setClientId(registrationResource.getClientId());
-    registration.setClientSecret(registrationResource.getClientSecret());
-    registration.setClientAuthMethod(
-        ofNullable(registrationResource.getClientAuthMethod()).orElseGet(
-            () -> clientResource.getClientAuthenticationMethod()
-                .getValue()));
-    registration.setClientName(
-        ofNullable(registrationResource.getClientName()).orElseGet(clientResource::getClientName));
-    registration.setAuthGrantType(ofNullable(registrationResource.getAuthGrantType()).orElseGet(
-        () -> clientResource.getAuthorizationGrantType()
-            .getValue()));
-    registration.setRedirectUrlTemplate(
-        ofNullable(registrationResource.getRedirectUrlTemplate()).orElseGet(
-            clientResource::getRedirectUri));
-    registration.setScopes(
-        ofNullable(registrationResource.getScopes()).map(scopes -> scopes.stream()
-                .map(SCOPE_FROM_RESOURCE)
-                .peek(registrationScope -> registrationScope.setRegistration(registration))
-                .collect(Collectors.toSet()))
-            .orElse(clientResource.getScopes()
-                .stream()
-                .map(SCOPE_FROM_RESOURCE)
-                .peek(registrationScope -> registrationScope.setRegistration(registration))
-                .collect(Collectors.toSet())));
+  /**
+   * Converts an {@link Integration} params directly to a Spring {@link ClientRegistration}.
+   */
+  @SuppressWarnings("unchecked")
+  public static final Function<Integration, ClientRegistration> INTEGRATION_TO_OAUTH_REGISTRATION = integration -> {
+    Map<String, Object> params = integration.getParams().getParams();
+    List<String> scopes = params.get(SCOPES) instanceof List
+        ? (List<String>) params.get(SCOPES)
+        : List.of();
 
-    List<OAuthRegistrationRestriction> registrationRestrictions =
-        OAuthRestrictionConverter.FROM_RESOURCE.apply(registrationResource);
+    String clientAuthMethod = getStringParam(params, CLIENT_AUTH_METHOD, "").trim();
+    String authGrantType = getStringParam(params, AUTH_GRANT_TYPE, "").trim();
 
-    registration.setRestrictions(registrationRestrictions.stream()
-        .peek(restriction -> restriction.setRegistration(registration))
-        .collect(Collectors.toSet()));
-
-    ClientRegistration.ProviderDetails details = clientResource.getProviderDetails();
-    registration.setAuthorizationUri(
-        ofNullable(registrationResource.getAuthorizationUri()).orElseGet(
-            details::getAuthorizationUri));
-    registration.setTokenUri(
-        ofNullable(registrationResource.getTokenUri()).orElseGet(details::getTokenUri));
-    registration.setUserInfoEndpointUri(
-        ofNullable(registrationResource.getUserInfoEndpointUri()).orElseGet(
-            () -> details.getUserInfoEndpoint()
-                .getUri()));
-    registration.setUserInfoEndpointNameAttribute(
-        ofNullable(registrationResource.getUserInfoEndpointNameAttribute()).orElseGet(() -> details
-            .getUserInfoEndpoint()
-            .getUserNameAttributeName()));
-    registration.setJwkSetUri(
-        ofNullable(registrationResource.getJwkSetUri()).orElseGet(details::getJwkSetUri));
-
-    return registration;
+    return ClientRegistration.withRegistrationId(integration.getName())
+        .clientId(getStringParam(params, CLIENT_ID))
+        .clientSecret(getStringParam(params, CLIENT_SECRET))
+        .clientAuthenticationMethod(clientAuthMethod.isEmpty()
+            ? ClientAuthenticationMethod.CLIENT_SECRET_BASIC
+            : new ClientAuthenticationMethod(clientAuthMethod))
+        .authorizationGrantType(authGrantType.isEmpty()
+            ? AuthorizationGrantType.AUTHORIZATION_CODE
+            : new AuthorizationGrantType(authGrantType))
+        .redirectUri(getStringParam(params, REDIRECT_URI_TEMPLATE, ""))
+        .authorizationUri(getStringParam(params, AUTHORIZATION_URI, ""))
+        .tokenUri(getStringParam(params, TOKEN_URI, ""))
+        .userInfoUri(getStringParam(params, USER_INFO_ENDPOINT_URI, ""))
+        .userNameAttributeName(getStringParam(params, USER_INFO_ENDPOINT_NAME_ATTR, ""))
+        .jwkSetUri(getStringParam(params, JWK_SET_URI, ""))
+        .clientName(getStringParam(params, CLIENT_NAME, integration.getName()))
+        .scope(scopes.toArray(String[]::new))
+        .build();
   };
 }

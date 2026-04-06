@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.auth.endpoint;
+package com.epam.reportportal.auth.info;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
@@ -37,6 +38,9 @@ public class MetadataContributor implements InfoContributor {
     builder
         .withDetail("metadata", ImmutableMap.builder()
             .put("project_roles", Arrays.stream(ProjectRole.values())
+                .map(Enum::name)
+                .toList())
+            .put("organization_roles", Arrays.stream(OrganizationRole.values())
                 .map(Enum::name)
                 .toList())
             .build());

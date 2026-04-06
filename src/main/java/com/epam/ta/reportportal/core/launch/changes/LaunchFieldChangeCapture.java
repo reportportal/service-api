@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.launch.changes;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.ta.reportportal.core.item.repository.TestItemLastModifiedRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.Objects;
 import java.util.Set;
@@ -34,7 +33,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LaunchFieldChangeCapture {
 
-  private final TestItemLastModifiedRepository testItemLastModifiedRepository;
+  private final AsyncLastModifiedUpdater asyncLastModifiedUpdater;
 
   /**
    * Captures the current state of tracked fields.
@@ -57,11 +56,12 @@ public class LaunchFieldChangeCapture {
 
   /**
    * Compares the current launch state against a previously taken snapshot. If any tracked field
-   * differs, updates {@code last_modified} on every test item of the launch.
+   * differs, schedules an asynchronous update of {@code last_modified} on every test item of the
+   * launch.
    */
   public void handleIfChanged(Launch launch, LaunchChangesSnapshot before) {
     if (hasChanges(launch, before)) {
-      testItemLastModifiedRepository.updateLastModifiedByLaunchId(launch.getId());
+      asyncLastModifiedUpdater.updateLastModified(launch.getId());
     }
   }
 

@@ -30,8 +30,6 @@ import org.springframework.data.domain.Pageable;
  */
 public interface UserRepositoryCustom extends FilterableRepository<User> {
 
-  Page<User> findByFilterExcludingProjects(Queryable filter, Pageable pageable);
-
   Optional<User> findRawById(Long id);
 
   /**

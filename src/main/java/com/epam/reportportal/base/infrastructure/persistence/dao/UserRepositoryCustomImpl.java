@@ -20,7 +20,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Rec
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.REPORTPORTAL_USER_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.USER_FETCHER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.USER_WITHOUT_PROJECT_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.PROJECT;
@@ -66,13 +65,6 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
   @Override
   public Page<User> findByFilter(Queryable filter, Pageable pageable) {
     return PageableExecutionUtils.getPage(USER_FETCHER.apply(dsl.fetch(
-        QueryBuilder.newBuilder(filter).with(pageable).wrap().withWrapperSort(pageable.getSort())
-            .build())), pageable, () -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build()));
-  }
-
-  @Override
-  public Page<User> findByFilterExcludingProjects(Queryable filter, Pageable pageable) {
-    return PageableExecutionUtils.getPage(USER_WITHOUT_PROJECT_FETCHER.apply(dsl.fetch(
         QueryBuilder.newBuilder(filter).with(pageable).wrap().withWrapperSort(pageable.getSort())
             .build())), pageable, () -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build()));
   }

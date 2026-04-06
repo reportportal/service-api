@@ -30,7 +30,6 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
@@ -134,26 +133,4 @@ class GetProjectHandlerImplTest {
     );
   }
 
-  @Test
-  void getUserNamesNegative() {
-    ReportPortalException exception = assertThrows(
-        ReportPortalException.class, () ->
-            handler.getUserNames("",
-                new MembershipDetails.MembershipDetailsBuilder()
-                    .withOrgId(1L)
-                    .withOrgRole(OrganizationRole.MANAGER)
-                    .withOrgName("org-name")
-                    .withProjectId(1L)
-                    .withProjectName("superadmin_personal")
-                    .withProjectKey("superadmin_personal")
-                    .withProjectRole(ProjectRole.EDITOR)
-                    .build(),
-                UserRole.ADMINISTRATOR,
-                PageRequest.of(0, 10)
-            ));
-    assertEquals(
-        "Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol",
-        exception.getMessage()
-    );
-  }
 }

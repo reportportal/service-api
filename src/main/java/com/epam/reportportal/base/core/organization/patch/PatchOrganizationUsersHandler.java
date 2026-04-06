@@ -52,7 +52,6 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
   private final OrganizationRepositoryCustom organizationRepository;
   private final OrganizationUserRepository organizationUserRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
-  private final OrganizationUserService organizationUserService;
 
 
   /**
@@ -71,7 +70,6 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       ApplicationEventPublisher applicationEventPublisher
   ) {
     super(organizationUserService, objectMapper);
-    this.organizationUserService = organizationUserService;
     this.userRepository = userRepository;
     this.organizationRepository = organizationRepository;
     this.organizationUserRepository = organizationUserRepository;

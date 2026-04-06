@@ -27,6 +27,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
+import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -57,6 +58,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
   private final TestItemRepository testItemRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final TestItemStatisticsService testItemStatisticsService;
+  private final LaunchFieldChangeCapture launchFieldChangeCapture;
 
   @Override
   public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ,
@@ -67,6 +69,8 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
     validateRoles(launch, user, projectDetails);
     validate(launch, finishLaunchRQ);
 
+    var beforeSnapshot = launchFieldChangeCapture.capture(launch);
+
     launch = new LaunchBuilder(launch).addDescription(
             ofNullable(finishLaunchRQ.getDescription()).orElse(
                 ofNullable(launch.getDescription()).orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
@@ -76,6 +80,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
         .addAttribute(new ItemAttributeResource("status", "stopped")).get();
 
     launchRepository.save(launch);
+    launchFieldChangeCapture.handleIfChanged(launch, beforeSnapshot);
     testItemRepository.interruptInProgressItems(launch.getId());
     testItemStatisticsService.addInterruptionStatistics(launch.getId());
 

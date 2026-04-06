@@ -21,6 +21,7 @@ import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -68,6 +69,8 @@ public class InterruptBrokenLaunchesJob implements Job {
   private final ProjectRepository projectRepository;
 
   private final TestItemStatisticsService statisticsService;
+
+  private final LaunchFieldChangeCapture launchFieldChangeCapture;
 
   @Override
   @Transactional
@@ -136,9 +139,11 @@ public class InterruptBrokenLaunchesJob implements Job {
 
   private void interruptLaunch(Long launchId) {
     launchRepository.findById(launchId).ifPresent(launch -> {
+      var beforeSnapshot = launchFieldChangeCapture.capture(launch);
       launch.setStatus(StatusEnum.INTERRUPTED);
       launch.setEndTime(Instant.now());
       launchRepository.save(launch);
+      launchFieldChangeCapture.handleIfChanged(launch, beforeSnapshot);
       publishFinishEvent(launch);
     });
   }

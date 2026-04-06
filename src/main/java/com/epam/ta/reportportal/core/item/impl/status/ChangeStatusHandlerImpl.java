@@ -27,6 +27,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedEvent;
+import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -53,17 +54,20 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
   private final MessageBus messageBus;
   private final LaunchRepository launchRepository;
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
+  private final LaunchFieldChangeCapture launchFieldChangeCapture;
 
   @Autowired
   public ChangeStatusHandlerImpl(TestItemRepository testItemRepository,
       IssueEntityRepository issueEntityRepository, MessageBus messageBus,
       LaunchRepository launchRepository,
-      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
+      LaunchFieldChangeCapture launchFieldChangeCapture) {
     this.testItemRepository = testItemRepository;
     this.issueEntityRepository = issueEntityRepository;
     this.messageBus = messageBus;
     this.launchRepository = launchRepository;
     this.statusChangingStrategyMapping = statusChangingStrategyMapping;
+    this.launchFieldChangeCapture = launchFieldChangeCapture;
   }
 
   @Override
@@ -125,12 +129,13 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
   public void changeLaunchStatus(Launch launch) {
     if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
       if (!launchRepository.hasItemsInStatuses(launch.getId(),
-          Lists.newArrayList(JStatusEnum.IN_PROGRESS)
-      )) {
+          Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
+        var beforeSnapshot = launchFieldChangeCapture.capture(launch);
         StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
             StatusEnum.PASSED.name(), INFO.name(), WARN.name()
         ) ? FAILED : PASSED;
         launch.setStatus(launchStatus);
+        launchFieldChangeCapture.handleIfChanged(launch, beforeSnapshot);
       }
     }
   }

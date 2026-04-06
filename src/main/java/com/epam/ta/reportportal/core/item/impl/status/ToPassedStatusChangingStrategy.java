@@ -16,17 +16,18 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.reportportal.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -57,10 +58,11 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
       IssueTypeHandler issueTypeHandler, MessageBus messageBus,
       IssueEntityRepository issueEntityRepository, LogRepository logRepository,
       LogIndexer logIndexer, TestItemRepository testItemRepository,
-      TestItemStatisticsService testItemStatisticsService) {
+      TestItemStatisticsService testItemStatisticsService,
+      LaunchFieldChangeCapture launchFieldChangeCapture) {
     super(testItemService, projectRepository, launchRepository, testItemRepository,
         issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer,
-        testItemStatisticsService
+        testItemStatisticsService, launchFieldChangeCapture
     );
   }
 

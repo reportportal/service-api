@@ -27,17 +27,43 @@ import org.springframework.data.repository.query.Param;
  */
 public interface TestItemLastModifiedRepository extends JpaRepository<TestItem, Long> {
 
+  int BATCH_SIZE = 500;
+
   /**
-   * Sets {@code last_modified = CURRENT_TIMESTAMP} on every test item that belongs to the given
-   * launch.
+   * Updates {@code last_modified} for a single batch of items belonging to the given launch.
    *
-   * @param launchId the launch whose items should be touched
+   * @param launchId  the launch whose items should be touched
+   * @param batchSize maximum number of rows to update in one statement
+   * @param offset    row offset within the ordered result set
+   * @return the number of rows actually updated
    */
   @Modifying
   @Query(value = """
       UPDATE test_item
       SET last_modified = CURRENT_TIMESTAMP
-      WHERE launch_id = :launchId
+      WHERE item_id IN (
+        SELECT item_id FROM test_item
+        WHERE launch_id = :launchId
+        ORDER BY item_id
+        LIMIT :batchSize OFFSET :offset
+      )
       """, nativeQuery = true)
-  void updateLastModifiedByLaunchId(@Param("launchId") Long launchId);
+  int updateLastModifiedBatch(@Param("launchId") Long launchId,
+      @Param("batchSize") int batchSize,
+      @Param("offset") int offset);
+
+  /**
+   * Sets {@code last_modified = CURRENT_TIMESTAMP} on every test item that belongs to the given
+   * launch, processing rows in batches of {@link #BATCH_SIZE}.
+   *
+   * @param launchId the launch whose items should be touched
+   */
+  default void updateLastModifiedByLaunchId(Long launchId) {
+    int offset = 0;
+    int updated;
+    do {
+      updated = updateLastModifiedBatch(launchId, BATCH_SIZE, offset);
+      offset += BATCH_SIZE;
+    } while (updated == BATCH_SIZE);
+  }
 }

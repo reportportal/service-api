@@ -177,7 +177,7 @@ public class FlushingDataJob implements Job {
     dataStore.deleteUserPhoto(user);
     userRepository.delete(user);
     userRepository.flush();
-    LOGGER.info("User with id = '" + user.getId() + "' has been successfully deleted.");
+    LOGGER.info("User with id = '{}' has been successfully deleted.", user.getId());
   }
 
   private void deleteProject(Project project) {

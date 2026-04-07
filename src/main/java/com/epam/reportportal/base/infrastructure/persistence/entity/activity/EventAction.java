@@ -18,7 +18,9 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.activity;
 
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Getter;
 
+@Getter
 public enum EventAction {
   CREATE("create"),
   UPDATE("update"),
@@ -50,10 +52,6 @@ public enum EventAction {
         .flatMap(str -> Arrays.stream(values())
             .filter(it -> it.value.equalsIgnoreCase(str))
             .findAny());
-  }
-
-  public String getValue() {
-    return value;
   }
 
 }

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser.OrganizationDetails;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -72,6 +73,9 @@ class OrganizationUsersHandlerImplTest {
 
   @Mock
   private OrganizationRepositoryCustom organizationRepositoryCustom;
+
+  @Mock
+  private OrganizationUserService organizationUserService;
 
   @InjectMocks
   private OrganizationUsersHandlerImpl organizationUsersHandler;
@@ -160,8 +164,7 @@ class OrganizationUsersHandlerImplTest {
 
     when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID))
         .thenReturn(Optional.of(organizationUser));
-    doNothing().when(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, USER_ID);
-    doNothing().when(organizationUserRepository).delete(organizationUser);
+    doNothing().when(organizationUserService).removeOrganizationUserEntry(organizationUser);
 
     try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
         SecurityContextUtils.class)) {
@@ -171,8 +174,7 @@ class OrganizationUsersHandlerImplTest {
       organizationUsersHandler.unassignUser(ORG_ID, USER_ID);
 
       // Then
-      verify(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, USER_ID);
-      verify(organizationUserRepository).delete(organizationUser);
+      verify(organizationUserService).removeOrganizationUserEntry(organizationUser);
     }
   }
 
@@ -212,8 +214,7 @@ class OrganizationUsersHandlerImplTest {
 
     when(organizationUserRepository.findByUserIdAndOrganization_Id(differentUserId, ORG_ID))
         .thenReturn(Optional.of(differentOrgUser));
-    doNothing().when(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, differentUserId);
-    doNothing().when(organizationUserRepository).delete(differentOrgUser);
+    doNothing().when(organizationUserService).removeOrganizationUserEntry(differentOrgUser);
 
     try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
         SecurityContextUtils.class)) {
@@ -223,8 +224,7 @@ class OrganizationUsersHandlerImplTest {
       organizationUsersHandler.unassignUser(ORG_ID, differentUserId);
 
       // Then
-      verify(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, differentUserId);
-      verify(organizationUserRepository).delete(differentOrgUser);
+      verify(organizationUserService).removeOrganizationUserEntry(differentOrgUser);
     }
   }
 
@@ -236,8 +236,7 @@ class OrganizationUsersHandlerImplTest {
 
     when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID))
         .thenReturn(Optional.of(organizationUser));
-    doNothing().when(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, USER_ID);
-    doNothing().when(organizationUserRepository).delete(organizationUser);
+    doNothing().when(organizationUserService).removeOrganizationUserEntry(organizationUser);
 
     try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
         SecurityContextUtils.class)) {
@@ -247,8 +246,7 @@ class OrganizationUsersHandlerImplTest {
       organizationUsersHandler.unassignUser(ORG_ID, USER_ID);
 
       // Then
-      verify(projectUserRepository).deleteProjectUserByProjectOrganizationId(ORG_ID, USER_ID);
-      verify(organizationUserRepository).delete(organizationUser);
+      verify(organizationUserService).removeOrganizationUserEntry(organizationUser);
     }
   }
 }

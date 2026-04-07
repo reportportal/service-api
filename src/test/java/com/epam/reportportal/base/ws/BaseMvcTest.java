@@ -18,6 +18,7 @@ package com.epam.reportportal.base.ws;
 
 import com.epam.reportportal.base.TestConfig;
 import com.epam.reportportal.base.auth.OAuthHelper;
+import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.plugin.binary.PluginFilesProvider;
@@ -95,6 +96,9 @@ public abstract class BaseMvcTest {
 
   @MockBean
   protected ExecuteIntegrationHandler executeIntegrationHandler;
+
+  @MockBean
+  protected CreateAuthIntegrationHandler createAuthIntegrationHandler;
 
   @Mock
   protected BtsExtension extension;

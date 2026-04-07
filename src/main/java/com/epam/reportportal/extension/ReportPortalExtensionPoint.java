@@ -1,6 +1,8 @@
 package com.epam.reportportal.extension;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
 import java.util.Map;
+import java.util.Optional;
 import org.pf4j.ExtensionPoint;
 
 /**
@@ -45,6 +47,10 @@ public interface ReportPortalExtensionPoint extends ExtensionPoint {
 
   default IntegrationGroupEnum getIntegrationGroup() {
     return IntegrationGroupEnum.OTHER;
+  }
+
+  default Optional<IntegrationAuthFlowEnum> getAuthFlow() {
+    return Optional.empty();
   }
 
 }

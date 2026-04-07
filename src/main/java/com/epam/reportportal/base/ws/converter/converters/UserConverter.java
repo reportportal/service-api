@@ -37,7 +37,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.model.activity.UserActivityResource;
 import com.epam.reportportal.base.model.user.CreateUserRS;
-import com.epam.reportportal.base.model.user.SearchUserResource;
 import com.epam.reportportal.base.model.user.UserResource;
 import com.google.common.collect.Lists;
 import java.net.URI;
@@ -180,18 +179,6 @@ public final class UserConverter {
 
         return resource;
       };
-
-  public static final Function<User, SearchUserResource> TO_SEARCH_RESOURCE = user -> {
-    final SearchUserResource resource = new SearchUserResource();
-    resource.setId(user.getId());
-    resource.setUuid(user.getUuid());
-    resource.setExternalId(user.getExternalId());
-    resource.setActive(user.getActive());
-    resource.setLogin(user.getLogin());
-    resource.setEmail(user.getEmail());
-    resource.setFullName(user.getFullName());
-    return resource;
-  };
 
   public static final BiFunction<User, Long, UserActivityResource> TO_ACTIVITY_RESOURCE =
       (user, projectId) -> {

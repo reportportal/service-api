@@ -2,6 +2,7 @@ package com.epam.reportportal.extension;
 
 import com.epam.reportportal.auth.integration.handler.GetAuthIntegrationStrategy;
 import com.epam.reportportal.auth.integration.handler.impl.strategy.AuthIntegrationStrategy;
+import com.epam.reportportal.auth.oauth.OAuthProvider;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -39,4 +40,23 @@ public interface AuthExtension extends ReportPortalExtensionPoint {
   default Optional<String> getAuthIntegrationType() {
     return Optional.empty();
   }
+
+  /**
+   * Returns the OAuth2 provider contributed by this plugin, if any.
+   * Used to plug in OAuth2 login user services (e.g. GitHub).
+   */
+  default Optional<OAuthProvider> getOAuthProvider() {
+    return Optional.empty();
+  }
+
+  /**
+   * Fills integration parameters for the given OAuth provider ID and configuration, if this plugin handles it.
+   * Returns a map of integration parameters to be stored in the integration table.
+   * Returns empty if this plugin does not handle the given provider ID.
+   */
+  default Optional<Map<String, Object>> fillOAuthRegistration(String oauthProviderId,
+      Map<String, Object> registrationParams, String pathValue) {
+    return Optional.empty();
+  }
+
 }

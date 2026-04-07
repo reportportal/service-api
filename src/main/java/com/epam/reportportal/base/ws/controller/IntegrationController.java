@@ -167,8 +167,7 @@ public class IntegrationController {
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Get global ReportPortal integration instance")
   @PreAuthorize(IS_ADMIN)
-  public IntegrationResource getGlobalIntegration(@PathVariable Long integrationId,
-      @AuthenticationPrincipal ReportPortalUser user) {
+  public IntegrationResource getGlobalIntegration(@PathVariable Long integrationId) {
     return getIntegrationHandler.getGlobalIntegrationById(integrationId);
   }
 

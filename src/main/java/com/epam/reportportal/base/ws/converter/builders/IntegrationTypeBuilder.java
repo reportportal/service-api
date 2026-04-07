@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.builders;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
@@ -73,6 +74,11 @@ public class IntegrationTypeBuilder implements Supplier<IntegrationType> {
 
   public IntegrationTypeBuilder setEnabled(boolean enabled) {
     integrationType.setEnabled(enabled);
+    return this;
+  }
+
+  public IntegrationTypeBuilder setAuthFlow(IntegrationAuthFlowEnum authFlow) {
+    integrationType.setAuthFlow(authFlow);
     return this;
   }
 

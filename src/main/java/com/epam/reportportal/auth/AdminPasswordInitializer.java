@@ -63,8 +63,7 @@ public class AdminPasswordInitializer implements CommandLineRunner {
     checkPasswordEnvVariable(lastLogin);
 
     boolean isMatches = passwordEncoder().matches(adminPassword, user.getPassword());
-    if (!isMatches && lastLogin.equals(INITIAL_LAST_LOGIN) && StringUtils.isNotEmpty(
-        adminPassword)) {
+    if (!isMatches && lastLogin.equals(INITIAL_LAST_LOGIN) && StringUtils.isNotEmpty(adminPassword)) {
       updatePasswordForDefaultAdmin(user);
     }
   }

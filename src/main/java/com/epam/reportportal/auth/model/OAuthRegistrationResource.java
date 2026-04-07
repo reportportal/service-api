@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.model.settings;
+package com.epam.reportportal.auth.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,19 +24,15 @@ import jakarta.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 /**
  * Settings for OAuth provider registration.
  *
  * @author Anton Machulski
  */
-@Setter
-@Getter
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@EqualsAndHashCode
 public class OAuthRegistrationResource implements Serializable {
 
   public static final String URL_PATTERN = "^(http://|https://)?(www\\.)?([a-zA-Z0-9-]+)(\\.[a-zA-Z0-9-]+)*(:[0-9]+)?(/[a-z_-]+)*$";

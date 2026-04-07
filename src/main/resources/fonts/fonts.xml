@@ -8,4 +8,12 @@
         <pdfEmbedded><![CDATA[true]]></pdfEmbedded>
         <exportFonts/>
     </fontFamily>
+    <fontFamily name="Roboto Condensed">
+        <normal>fonts/roboto/RobotoCondensed-Regular.ttf</normal>
+        <bold>fonts/roboto/RobotoCondensed-Bold.ttf</bold>
+        <italic>fonts/roboto/RobotoCondensed-Italic.ttf</italic>
+        <boldItalic>fonts/roboto/RobotoCondensed-BoldItalic.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
 </fontFamilies>

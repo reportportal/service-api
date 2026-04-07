@@ -21,7 +21,6 @@ import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
 import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.project.ProjectUserService;
 import com.epam.reportportal.base.core.user.UserService;
-import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -82,7 +81,10 @@ public class OrganizationUserService {
 
   public void deleteByOrganizationIdAndUserIdNotIn(Long orgId, List<Long> newUserIds) {
     var unassignedUsers = organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(orgId, newUserIds);
-    unassignedUsers.forEach(userId -> projectUserService.unassignUserFromProjectsByOrgId(orgId, userId));
+    unassignedUsers.forEach(userId -> {
+      sendUnassignFromOrgEvent(userId, orgId);
+      projectUserService.unassignUserFromProjectsByOrgId(orgId, userId);
+    });
 
     log.info("Users in {} have been removed from organization with ID {}", unassignedUsers, orgId);
   }

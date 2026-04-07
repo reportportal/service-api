@@ -110,7 +110,19 @@ public final class OrganizationConverter {
                   .totalCount(orgUserAccount.getProjectCount()))
           );
 
-  public static Function<OrganizationProfile, OrganizationInfo> ORG_PROFILE_TO_ORG_INFO =
+  public static final Function<OrganizationProfile, OrganizationInfo> ORG_PROFILE_TO_BASE_ORG_INFO =
+      orgProfile -> new OrganizationInfo()
+          .id(orgProfile.getId())
+          .type(OrgType.fromValue(orgProfile.getType()))
+          .name(orgProfile.getName())
+          .slug(orgProfile.getSlug())
+          .createdAt(orgProfile.getCreatedAt())
+          .updatedAt(orgProfile.getUpdatedAt())
+          .externalId(orgProfile.getExternalId())
+          .ownerId(orgProfile.getOwnerId());
+
+
+  public static final Function<OrganizationProfile, OrganizationInfo> ORG_PROFILE_TO_ORG_INFO =
       orgProfile -> new OrganizationInfo()
           .id(orgProfile.getId())
           .type(OrgType.fromValue(orgProfile.getType()))

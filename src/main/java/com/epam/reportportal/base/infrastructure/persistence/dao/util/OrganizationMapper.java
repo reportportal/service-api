@@ -16,13 +16,15 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao.util;
 
-import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter.PROJECTS_QUANTITY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.LAST_RUN;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.LAUNCHES_QUANTITY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.PROJECTS_QUANTITY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.USERS_QUANTITY;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.USERS;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserAccount;
@@ -65,7 +67,21 @@ public class OrganizationMapper {
    */
   public static final RecordMapper<? super Record, OrganizationProfile> ORGANIZATION_MAPPER = row -> {
     OrganizationProfile organization = row.into(OrganizationProfile.class);
+    mapBaseFields(row, organization);
+    return organization;
+  };
 
+  /**
+   * Maps record into {@link OrganizationProfile} object including statistics fields.
+   */
+  public static final RecordMapper<? super Record, OrganizationProfile> ORGANIZATION_PROFILE_MAPPER = row -> {
+    OrganizationProfile organization = row.into(OrganizationProfile.class);
+    mapBaseFields(row, organization);
+    mapStatisticsFields(row, organization);
+    return organization;
+  };
+
+  private static void mapBaseFields(Record row, OrganizationProfile organization) {
     organization.setId(row.get(ORGANIZATION.ID, Long.class));
     organization.setCreatedAt(row.get(ORGANIZATION.CREATED_AT, Instant.class));
     organization.setUpdatedAt(row.get(ORGANIZATION.UPDATED_AT, Instant.class));
@@ -74,14 +90,14 @@ public class OrganizationMapper {
     organization.setExternalId(row.get(ORGANIZATION.EXTERNAL_ID, String.class));
     organization.setType(row.get(ORGANIZATION.ORGANIZATION_TYPE, String.class));
     organization.setOwnerId(row.get(ORGANIZATION.OWNER_ID, Long.class));
+  }
 
-    organization.setLaunchesQuantity(row.get(OrganizationFilter.LAUNCHES_QUANTITY, Integer.class));
-    organization.setLastRun(row.get(OrganizationFilter.LAST_RUN, Instant.class));
+  private static void mapStatisticsFields(Record row, OrganizationProfile organization) {
+    organization.setLaunchesQuantity(row.get(LAUNCHES_QUANTITY, Integer.class));
+    organization.setLastRun(row.get(LAST_RUN, Instant.class));
     organization.setProjectsQuantity(row.get(PROJECTS_QUANTITY, Integer.class));
-    organization.setUsersQuantity(row.get(OrganizationFilter.USERS_QUANTITY, Integer.class));
-
-    return organization;
-  };
+    organization.setUsersQuantity(row.get(USERS_QUANTITY, Integer.class));
+  }
 
 
   public static final Function<Result<? extends Record>, List<OrganizationUserAccount>> ORGANIZATION_USERS_LIST_FETCHER = rows -> {

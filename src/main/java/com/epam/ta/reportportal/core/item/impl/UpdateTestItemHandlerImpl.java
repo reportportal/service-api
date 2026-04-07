@@ -79,6 +79,7 @@ import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -175,6 +176,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         testItem.getItemResults().setIssue(issueEntity);
         issueEntity.setTestItemResults(testItem.getItemResults());
         testItem.setAnalysisOwnerId(user.getUserId());
+        testItem.setLastModified(Instant.now());
 
         testItemRepository.save(testItem);
 

@@ -21,7 +21,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
+import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -66,7 +66,7 @@ class InterruptBrokenLaunchesJobTest {
   private TestItemStatisticsService statisticsService;
 
   @Mock
-  private LaunchFieldChangeCapture launchFieldChangeCapture;
+  private LaunchChangesHandler launchChangesHandler;
 
   @InjectMocks
   private InterruptBrokenLaunchesJob interruptBrokenLaunchesJob;

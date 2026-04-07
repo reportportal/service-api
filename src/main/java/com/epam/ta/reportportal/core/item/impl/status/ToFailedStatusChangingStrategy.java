@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -57,11 +56,10 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer,
-      TestItemStatisticsService testItemStatisticsService,
-      LaunchFieldChangeCapture launchFieldChangeCapture) {
+      TestItemStatisticsService testItemStatisticsService) {
     super(testItemService, projectRepository, launchRepository, testItemRepository,
         issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer,
-        testItemStatisticsService, launchFieldChangeCapture
+        testItemStatisticsService
     );
   }
 

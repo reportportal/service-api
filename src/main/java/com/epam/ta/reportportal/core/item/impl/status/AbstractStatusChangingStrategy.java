@@ -38,7 +38,6 @@ import com.epam.ta.reportportal.core.events.activity.item.TestItemStatusChangedE
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
-import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -77,15 +76,13 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 
   private final TestItemStatisticsService testItemStatisticsService;
 
-  private final LaunchFieldChangeCapture launchFieldChangeCapture;
 
   protected AbstractStatusChangingStrategy(TestItemService testItemService,
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       MessageBus messageBus, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer,
-      TestItemStatisticsService testItemStatisticsService,
-      LaunchFieldChangeCapture launchFieldChangeCapture) {
+      TestItemStatisticsService testItemStatisticsService) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.launchRepository = launchRepository;
@@ -96,7 +93,6 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     this.logRepository = logRepository;
     this.logIndexer = logIndexer;
     this.testItemStatisticsService = testItemStatisticsService;
-    this.launchFieldChangeCapture = launchFieldChangeCapture;
   }
 
   protected abstract void updateStatus(Project project, Launch launch, TestItem testItem,
@@ -176,12 +172,10 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     }
 
     if (launch.getStatus() != IN_PROGRESS) {
-      var beforeSnapshot = launchFieldChangeCapture.capture(launch);
       launch.setStatus(
           launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED.name(),
               INFO.name(), WARN.name()
           ) ? FAILED : PASSED);
-      launchFieldChangeCapture.handleIfChanged(launch, beforeSnapshot);
     }
 
     return updatedParents;

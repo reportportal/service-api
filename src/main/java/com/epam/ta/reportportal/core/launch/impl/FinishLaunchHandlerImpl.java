@@ -27,7 +27,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
+import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -57,19 +57,19 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
   private final ApplicationEventPublisher eventPublisher;
   private final LinkGenerator linkGenerator;
-  private final LaunchFieldChangeCapture launchFieldChangeCapture;
+  private final LaunchChangesHandler launchChangesHandler;
 
   @Autowired
   public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
       @Qualifier("finishLaunchHierarchyHandler")
       FinishHierarchyHandler<Launch> finishHierarchyHandler,
       ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator,
-      LaunchFieldChangeCapture launchFieldChangeCapture) {
+      LaunchChangesHandler launchChangesHandler) {
     this.launchRepository = launchRepository;
     this.finishHierarchyHandler = finishHierarchyHandler;
     this.eventPublisher = eventPublisher;
     this.linkGenerator = linkGenerator;
-    this.launchFieldChangeCapture = launchFieldChangeCapture;
+    this.launchChangesHandler = launchChangesHandler;
   }
 
   @Override
@@ -84,7 +84,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
     Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
 
     Long id = launch.getId();
-    var beforeSnapshot = launchFieldChangeCapture.capture(launch);
+    var beforeSnapshot = launchChangesHandler.captureSnapshot(launch);
 
     final int finishedCount =
         finishHierarchyHandler.finishDescendants(launch, status.orElse(StatusEnum.INTERRUPTED),
@@ -106,7 +106,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         .addAttributes(finishLaunchRQ.getAttributes()).addEndTime(finishLaunchRQ.getEndTime())
         .get();
 
-    launchFieldChangeCapture.handleIfChanged(launch, beforeSnapshot);
+    launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
 
     String launchLink = linkGenerator.generateLaunchLink(baseUrl, projectDetails.getProjectName(),
         String.valueOf(launch.getId())

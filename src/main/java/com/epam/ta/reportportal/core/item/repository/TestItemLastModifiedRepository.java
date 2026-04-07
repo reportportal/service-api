@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.repository;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -30,40 +31,34 @@ public interface TestItemLastModifiedRepository extends JpaRepository<TestItem, 
   int BATCH_SIZE = 500;
 
   /**
-   * Updates {@code last_modified} for a single batch of items belonging to the given launch.
-   *
-   * @param launchId  the launch whose items should be touched
-   * @param batchSize maximum number of rows to update in one statement
-   * @param offset    row offset within the ordered result set
-   * @return the number of rows actually updated
+   * Returns the next batch of leaf item IDs using cursor-style pagination. Only rows with
+   * {@code item_id > afterItemId} are considered, ordered ascending.
+   */
+  @Query(value = """
+      SELECT ti.item_id
+      FROM   test_item ti
+      WHERE  ti.launch_id = :launchId
+        AND  ti.has_children = FALSE
+        AND  ti.has_stats = TRUE
+        AND  ti.type NOT IN ('SUITE', 'TEST')
+        AND  ti.item_id > :afterItemId
+      ORDER BY ti.item_id
+      LIMIT :batchSize
+      """, nativeQuery = true)
+  List<Long> findNextLeafItemBatch(@Param("launchId") Long launchId,
+      @Param("afterItemId") Long afterItemId,
+      @Param("batchSize") int batchSize);
+
+  /**
+   * Updates {@code last_modified} for items with the given IDs. Uses {@code clock_timestamp()} so
+   * that each row gets a distinct wall-clock value, preventing Logstash's {@code LIMIT}-based
+   * polling from losing rows that share a timestamp.
    */
   @Modifying
   @Query(value = """
       UPDATE test_item
-      SET last_modified = CURRENT_TIMESTAMP
-      WHERE item_id IN (
-        SELECT item_id FROM test_item
-        WHERE launch_id = :launchId
-        ORDER BY item_id
-        LIMIT :batchSize OFFSET :offset
-      )
+      SET last_modified = clock_timestamp()
+      WHERE item_id IN (:itemIds)
       """, nativeQuery = true)
-  int updateLastModifiedBatch(@Param("launchId") Long launchId,
-      @Param("batchSize") int batchSize,
-      @Param("offset") int offset);
-
-  /**
-   * Sets {@code last_modified = CURRENT_TIMESTAMP} on every test item that belongs to the given
-   * launch, processing rows in batches of {@link #BATCH_SIZE}.
-   *
-   * @param launchId the launch whose items should be touched
-   */
-  default void updateLastModifiedByLaunchId(Long launchId) {
-    int offset = 0;
-    int updated;
-    do {
-      updated = updateLastModifiedBatch(launchId, BATCH_SIZE, offset);
-      offset += BATCH_SIZE;
-    } while (updated == BATCH_SIZE);
-  }
+  void updateLastModifiedByItemIds(@Param("itemIds") List<Long> itemIds);
 }

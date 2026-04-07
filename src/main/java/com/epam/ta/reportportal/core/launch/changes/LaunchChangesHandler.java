@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.launch.changes;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.UpdateTrackingConfiguration.EXCHANGE_UPDATE_TRACKING;
+import static com.epam.ta.reportportal.core.configs.rabbit.UpdateTrackingConfiguration.LAUNCH_MODIFIED_ROUTING_KEY;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
@@ -23,29 +25,31 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Detects changes in tracked {@link Launch} fields and triggers {@code test_item.last_modified}
- * updates for all items belonging to that launch.
+ * Detects changes in tracked {@link Launch} fields and sends event to queue if needed
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class LaunchFieldChangeCapture {
+public class LaunchChangesHandler {
 
-  private final AsyncLastModifiedUpdater asyncLastModifiedUpdater;
+  private final RabbitTemplate rabbitTemplate;
 
   /**
    * Captures the current state of tracked fields.
    */
-  public LaunchChangesSnapshot capture(Launch launch) {
+  public LaunchFieldsSnapshot captureSnapshot(Launch launch) {
     Set<AttributeSnapshot> attrs = ofNullable(launch.getAttributes())
         .map(a -> a.stream()
             .map(ia -> new AttributeSnapshot(ia.getKey(), ia.getValue(), ia.isSystem()))
             .collect(toSet()))
         .orElse(Set.of());
 
-    return new LaunchChangesSnapshot(
+    return new LaunchFieldsSnapshot(
         launch.getDescription(),
         launch.getMode(),
         launch.getStatus(),
@@ -59,23 +63,22 @@ public class LaunchFieldChangeCapture {
    * differs, schedules an asynchronous update of {@code last_modified} on every test item of the
    * launch.
    */
-  public void handleIfChanged(Launch launch, LaunchChangesSnapshot before) {
+  public void handleIfChanged(Launch launch, LaunchFieldsSnapshot before) {
     if (hasChanges(launch, before)) {
-      asyncLastModifiedUpdater.updateLastModified(launch.getId());
+      log.info("Publishing last_modified update request for launch {}", launch.getId());
+      rabbitTemplate.convertAndSend(
+          EXCHANGE_UPDATE_TRACKING,
+          LAUNCH_MODIFIED_ROUTING_KEY,
+          new LaunchModifiedMessage(launch.getId())
+      );
     }
   }
 
-  private boolean hasChanges(Launch launch, LaunchChangesSnapshot before) {
+  private boolean hasChanges(Launch launch, LaunchFieldsSnapshot before) {
     if (!Objects.equals(before.description(), launch.getDescription())) {
       return true;
     }
     if (!Objects.equals(before.mode(), launch.getMode())) {
-      return true;
-    }
-    if (!Objects.equals(before.status(), launch.getStatus())) {
-      return true;
-    }
-    if (!Objects.equals(before.retentionPolicy(), launch.getRetentionPolicy())) {
       return true;
     }
     Set<AttributeSnapshot> currentAttrs = ofNullable(launch.getAttributes())

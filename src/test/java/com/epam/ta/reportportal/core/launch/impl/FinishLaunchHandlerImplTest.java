@@ -31,7 +31,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
-import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
+import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -85,7 +85,7 @@ class FinishLaunchHandlerImplTest {
   LinkGenerator linkGenerator;
 
   @Mock
-  private LaunchFieldChangeCapture launchFieldChangeCapture;
+  private LaunchChangesHandler launchChangesHandler;
 
   @InjectMocks
   private FinishLaunchHandlerImpl handler;

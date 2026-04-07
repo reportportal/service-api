@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
-import com.epam.ta.reportportal.core.launch.changes.LaunchFieldChangeCapture;
+import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
@@ -98,7 +98,7 @@ class UpdateLaunchHandlerImplTest {
   private TestItemStatisticsService statisticsService;
 
   @Mock
-  private LaunchFieldChangeCapture launchFieldChangeCapture;
+  private LaunchChangesHandler launchChangesHandler;
 
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;

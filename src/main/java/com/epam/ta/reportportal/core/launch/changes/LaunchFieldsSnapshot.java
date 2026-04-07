@@ -5,7 +5,7 @@ import com.epam.ta.reportportal.entity.enums.RetentionPolicyEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import java.util.Set;
 
-public record LaunchChangesSnapshot(
+public record LaunchFieldsSnapshot(
     String description,
     LaunchModeEnum mode,
     StatusEnum status,

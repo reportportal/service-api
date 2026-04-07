@@ -68,8 +68,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationProfile;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplateTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectAttribute;
@@ -488,9 +488,9 @@ public class ResultFetchers {
       projectProfile.setSlug(row.get(PROJECT.SLUG));
       projectProfile.setName(row.get(PROJECT.NAME, String.class));
 
-      projectProfile.setLaunchesQuantity(row.get(OrganizationFilter.LAUNCHES_QUANTITY, Integer.class));
-      projectProfile.setLastRun(row.get(OrganizationFilter.LAST_RUN, Instant.class));
-      projectProfile.setUsersQuantity(row.get(OrganizationFilter.USERS_QUANTITY, Integer.class));
+      projectProfile.setLaunchesQuantity(row.get(OrganizationStatisticsFields.LAUNCHES_QUANTITY, Integer.class));
+      projectProfile.setLastRun(row.get(OrganizationStatisticsFields.LAST_RUN, Instant.class));
+      projectProfile.setUsersQuantity(row.get(OrganizationStatisticsFields.USERS_QUANTITY, Integer.class));
 
       projectProfiles.add(projectProfile);
 

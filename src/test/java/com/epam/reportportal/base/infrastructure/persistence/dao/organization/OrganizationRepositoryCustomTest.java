@@ -80,13 +80,7 @@ class OrganizationRepositoryCustomTest extends BaseMvcTest {
   @ParameterizedTest
   @CsvSource(value = {
       "slug|eq|my-organization|1",
-      "slug|eq|notexists|0",
-      "users|eq|1|1",
-      "users|eq|845|0",
-      "launches|gt|-1|1",
-      "launches|gt|999|0",
-      "projects|eq|2|1",
-      "projects|eq|999|0"
+      "slug|eq|notexists|0"
   }, delimiter = '|')
   void findOrganizationByFilterWithUser(String field, String condition, String value, int rows) {
     Filter filter = new Filter(OrganizationFilter.class,
@@ -107,17 +101,10 @@ class OrganizationRepositoryCustomTest extends BaseMvcTest {
       "name|eq|My organization|1",
       "slug|eq|my-organization|1",
       "slug|eq|notexists|0",
-      "users|eq|2|1",
-      "users|eq|845|0",
       "org_user_id|eq|1|1",
       "org_user_id|eq|3|0",
-      "launches|gt|-1|1",
-      "launches|gt|999|0",
-      "projects|eq|2|1",
-      "projects|eq|999|0",
       "created_at|gt|2024-08-01T12:42:30.758055Z|1",
-      "updated_at|gt|2024-08-01T12:42:30.758055Z|1",
-      "last_launch_occurred|lt|2024-08-01T12:42:30.758055Z|0"
+      "updated_at|gt|2024-08-01T12:42:30.758055Z|1"
   }, delimiter = '|')
   void findOrganizationByFilter(String field, String condition, String value, int rows) {
     final List<OrganizationProfile> orgs = organizationRepositoryCustom.findByFilter(

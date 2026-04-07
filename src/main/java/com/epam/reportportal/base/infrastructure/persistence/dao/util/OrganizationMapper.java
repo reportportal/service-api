@@ -25,7 +25,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.USERS;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserAccount;
@@ -90,6 +89,24 @@ public class OrganizationMapper {
    * Maps record into {@link Organization} object
    */
   public static final RecordMapper<? super Record, OrganizationProfile> ORGANIZATION_MAPPER = row -> {
+    OrganizationProfile organization = row.into(OrganizationProfile.class);
+
+    organization.setId(row.get(ORGANIZATION.ID, Long.class));
+    organization.setCreatedAt(row.get(ORGANIZATION.CREATED_AT, Instant.class));
+    organization.setUpdatedAt(row.get(ORGANIZATION.UPDATED_AT, Instant.class));
+    organization.setName(row.get(ORGANIZATION.NAME, String.class));
+    organization.setSlug(row.get(ORGANIZATION.SLUG, String.class));
+    organization.setExternalId(row.get(ORGANIZATION.EXTERNAL_ID, String.class));
+    organization.setType(row.get(ORGANIZATION.ORGANIZATION_TYPE, String.class));
+    organization.setOwnerId(row.get(ORGANIZATION.OWNER_ID, Long.class));
+
+    return organization;
+  };
+
+  /**
+   * Maps record into {@link Organization} object
+   */
+  public static final RecordMapper<? super Record, OrganizationProfile> ORGANIZATION_PROFILE_MAPPER = row -> {
     OrganizationProfile organization = row.into(OrganizationProfile.class);
 
     organization.setId(row.get(ORGANIZATION.ID, Long.class));

@@ -30,6 +30,8 @@ public interface OrganizationRepositoryCustom extends FilterableRepository<Organ
 
   Optional<Organization> findById(Long orgId);
 
+  Optional<OrganizationProfile> findOrganizationByIdAndUserId(Long orgId, Long userId);
+
   Optional<Organization> findOrganizationByName(String name);
 
   Optional<Organization> findOrganizationBySlug(String slug);

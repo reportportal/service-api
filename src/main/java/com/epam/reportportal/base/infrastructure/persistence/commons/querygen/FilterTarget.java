@@ -1519,61 +1519,6 @@ public enum FilterTarget {
     }
   },
 
-  ORGANIZATION_LIST(OrganizationFilter.class, Arrays.asList(
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ID, ORGANIZATION.ID, Long.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_NAME, ORGANIZATION.NAME, String.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_SLUG, ORGANIZATION.SLUG, String.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_CREATED_AT, ORGANIZATION.CREATED_AT,
-          Timestamp.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_UPDATED_AT, ORGANIZATION.UPDATED_AT,
-          Timestamp.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_TYPE, ORGANIZATION.ORGANIZATION_TYPE,
-          String.class).get(),
-      new CriteriaHolderBuilder()
-          .newBuilder(CRITERIA_ORG_USER_ID, ORGANIZATION_USER.USER_ID, Long.class)
-          .get()
-  )) {
-    @Override
-    public QuerySupplier getQuery() {
-      SelectQuery<? extends Record> query = DSL.select(selectFields()).getQuery();
-      addFrom(query);
-      query.addGroupBy(ORGANIZATION.ID);
-      QuerySupplier querySupplier = new QuerySupplier(query);
-      joinTables(querySupplier);
-      return querySupplier;
-    }
-
-    @Override
-    protected Collection<? extends SelectField> selectFields() {
-      return Lists.newArrayList(ORGANIZATION.ID,
-          ORGANIZATION.NAME,
-          ORGANIZATION.SLUG,
-          ORGANIZATION.CREATED_AT,
-          ORGANIZATION.UPDATED_AT,
-          ORGANIZATION.EXTERNAL_ID,
-          ORGANIZATION.ORGANIZATION_TYPE,
-          ORGANIZATION.OWNER_ID
-      );
-    }
-
-    @Override
-    protected void addFrom(SelectQuery<? extends Record> query) {
-      query.addFrom(ORGANIZATION);
-    }
-
-    @Override
-    protected void joinTables(QuerySupplier query) {
-      query.addJoin(ORGANIZATION_USER, JoinType.LEFT_OUTER_JOIN, ORGANIZATION_USER.ORGANIZATION_ID.eq(ORGANIZATION.ID));
-
-    }
-
-    @Override
-    protected Field<Long> idField() {
-      return ORGANIZATION.ID.cast(Long.class);
-    }
-
-  },
-
   ORGANIZATION_TARGET(OrganizationFilter.class, Arrays.asList(
       new CriteriaHolderBuilder().newBuilder(CRITERIA_ID, ORGANIZATION.ID, Long.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_NAME, ORGANIZATION.NAME, String.class).get(),

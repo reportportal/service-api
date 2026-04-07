@@ -1,6 +1,10 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.organization;
 
-public class OrganizationStatisticsFields {
+/**
+ * Constants holder for organization statistics field names used in JSON/persistence mappings. Defines keys for
+ * {@code USERS_QUANTITY}, {@code LAUNCHES_QUANTITY}, {@code PROJECTS_QUANTITY}, and {@code LAST_RUN}.
+ */
+public final class OrganizationStatisticsFields {
 
   private OrganizationStatisticsFields() {
   }

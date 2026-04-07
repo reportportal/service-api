@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.OrganizationUtil.TEST_PROJECT_KEY;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
+import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
@@ -35,6 +37,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attribute.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -49,7 +52,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -92,6 +97,9 @@ class DeleteProjectHandlerImplTest {
 
   @Mock
   private AttachmentBinaryDataService attachmentBinaryDataService;
+
+  @Mock
+  private ProjectUserRepository projectUserRepository;
 
   @InjectMocks
   private DeleteProjectHandlerImpl handler;
@@ -213,6 +221,7 @@ class DeleteProjectHandlerImplTest {
   void deleteProjectTest() {
     String projectName = TEST_PROJECT_KEY;
     Long projectId = 1L;
+    List<Long> userIds = List.of(10L, 20L);
     Project project = getProjectWithAnalyzerAttributes(projectId, false);
     project.setName(projectName);
     ReportPortalUser user =
@@ -220,6 +229,7 @@ class DeleteProjectHandlerImplTest {
 
     when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
     when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+    when(projectUserRepository.findUserIdsByProjectId(1L)).thenReturn(userIds);
     when(logRepository.deleteByProjectId(1L)).thenReturn(10);
 
     OperationCompletionRS response = handler.deleteProject(1L, user);
@@ -227,11 +237,14 @@ class DeleteProjectHandlerImplTest {
     verify(projectContentRemover, times(1)).remove(project);
     verify(logIndexer, times(1)).deleteIndex(projectId);
     verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
-    verify(projectContentRemover, times(1)).remove(any(Project.class));
+
+    ArgumentCaptor<ProjectDeletedEvent> eventCaptor =
+        ArgumentCaptor.forClass(ProjectDeletedEvent.class);
+    verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+    assertThat(eventCaptor.getValue().getUserIds()).containsExactlyElementsOf(userIds);
 
     assertEquals(response.getResultMessage(),
         "Project with id = '" + project.getId() + "' has been successfully deleted.");
-
   }
 
   private Project getProjectWithAnalyzerAttributes(Long projectId, boolean indexingRunning) {

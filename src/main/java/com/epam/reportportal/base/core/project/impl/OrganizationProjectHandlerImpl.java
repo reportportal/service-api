@@ -62,6 +62,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SlugifyUtils;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -204,9 +205,10 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     expect(project.getOrganizationId(), equalTo(orgId))
         .verify(NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
 
+    List<Long> userIds = projectUserRepository.findUserIdsByProjectId(projectId);
     deleteProjectWithDependants(project);
 
-    publishSpecialProjectDeletedEvent(getPrincipal(), project);
+    publishSpecialProjectDeletedEvent(getPrincipal(), project, userIds);
   }
 
 
@@ -255,17 +257,16 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     applicationEventPublisher.publishEvent(event);
   }
 
-  private void publishSpecialProjectDeletedEvent(ReportPortalUser user, Project project) {
+  private void publishSpecialProjectDeletedEvent(ReportPortalUser user, Project project, List<Long> userIds) {
     if (Objects.nonNull(user)) {
       Long userId = user.getUserId();
       String username = user.getUsername();
       applicationEventPublisher.publishEvent(
-          new ProjectDeletedEvent(userId, username, project.getId(), project.getName(),
-              project.getOrganizationId()));
+          new ProjectDeletedEvent(userId, username, project.getId(), project.getName(), project.getOrganizationId(),
+              userIds));
     } else {
       applicationEventPublisher.publishEvent(
-          new ProjectDeletedEvent(project.getId(), "personal_project",
-              project.getOrganizationId()));
+          new ProjectDeletedEvent(project.getId(), "personal_project", project.getOrganizationId(), userIds));
     }
   }
 

@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.events.domain;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,6 +30,7 @@ import lombok.NoArgsConstructor;
 public class ProjectDeletedEvent extends AbstractEvent<Void> {
 
   private String projectName;
+  private List<Long> userIds;
 
   /**
    * Constructs a ProjectDeletedEvent.
@@ -38,13 +40,15 @@ public class ProjectDeletedEvent extends AbstractEvent<Void> {
    * @param projectId      The ID of the deleted project
    * @param projectName    The name of the deleted project
    * @param organizationId The organization ID
+   * @param userIds        The IDs of users unassigned after the project deletion
    */
   public ProjectDeletedEvent(Long userId, String userLogin, Long projectId, String projectName,
-      Long organizationId) {
+      Long organizationId, List<Long> userIds) {
     super(userId, userLogin);
     this.projectId = projectId;
     this.projectName = projectName;
     this.organizationId = organizationId;
+    this.userIds = userIds;
   }
 
   /**
@@ -53,12 +57,14 @@ public class ProjectDeletedEvent extends AbstractEvent<Void> {
    * @param projectId      The ID of the deleted project
    * @param projectName    The name of the deleted project
    * @param organizationId The organization ID
+   * @param userIds        The IDs of users unassigned after the project deletion
    */
-  public ProjectDeletedEvent(Long projectId, String projectName, Long organizationId) {
+  public ProjectDeletedEvent(Long projectId, String projectName, Long organizationId, List<Long> userIds) {
     super();
     this.projectId = projectId;
     this.projectName = projectName;
     this.organizationId = organizationId;
+    this.userIds = userIds;
   }
 
 }

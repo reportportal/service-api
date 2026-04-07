@@ -16,6 +16,9 @@
 
 package com.epam.reportportal.base.ws.rabbit.activity.converter;
 
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.USERS;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.processList;
+
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.builder.ActivityBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
@@ -24,6 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
+import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
@@ -45,10 +49,10 @@ public class ProjectDeletedEventConverter implements EventToActivityConverter<Pr
         .addObjectName(event.getProjectName())
         .addObjectType(EventObject.PROJECT)
         .addSubjectId(event.getUserId())
-        .addSubjectType(
-            Objects.isNull(event.getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)
+        .addSubjectType(Objects.isNull(event.getUserId()) ? EventSubject.APPLICATION : EventSubject.USER)
         .addOrganizationId(event.getOrganizationId())
         .addSubjectName(event.getUserLogin())
+        .addHistoryField(processList(USERS, event.getUserIds(), List.of()))
         .get();
   }
 

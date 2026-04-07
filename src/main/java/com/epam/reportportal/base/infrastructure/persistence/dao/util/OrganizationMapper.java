@@ -67,25 +67,21 @@ public class OrganizationMapper {
    */
   public static final RecordMapper<? super Record, OrganizationProfile> ORGANIZATION_MAPPER = row -> {
     OrganizationProfile organization = row.into(OrganizationProfile.class);
-
-    organization.setId(row.get(ORGANIZATION.ID, Long.class));
-    organization.setCreatedAt(row.get(ORGANIZATION.CREATED_AT, Instant.class));
-    organization.setUpdatedAt(row.get(ORGANIZATION.UPDATED_AT, Instant.class));
-    organization.setName(row.get(ORGANIZATION.NAME, String.class));
-    organization.setSlug(row.get(ORGANIZATION.SLUG, String.class));
-    organization.setExternalId(row.get(ORGANIZATION.EXTERNAL_ID, String.class));
-    organization.setType(row.get(ORGANIZATION.ORGANIZATION_TYPE, String.class));
-    organization.setOwnerId(row.get(ORGANIZATION.OWNER_ID, Long.class));
-
+    mapBaseFields(row, organization);
     return organization;
   };
 
   /**
-   * Maps record into {@link Organization} object
+   * Maps record into {@link OrganizationProfile} object including statistics fields.
    */
   public static final RecordMapper<? super Record, OrganizationProfile> ORGANIZATION_PROFILE_MAPPER = row -> {
     OrganizationProfile organization = row.into(OrganizationProfile.class);
+    mapBaseFields(row, organization);
+    mapStatisticsFields(row, organization);
+    return organization;
+  };
 
+  private static void mapBaseFields(Record row, OrganizationProfile organization) {
     organization.setId(row.get(ORGANIZATION.ID, Long.class));
     organization.setCreatedAt(row.get(ORGANIZATION.CREATED_AT, Instant.class));
     organization.setUpdatedAt(row.get(ORGANIZATION.UPDATED_AT, Instant.class));
@@ -94,14 +90,14 @@ public class OrganizationMapper {
     organization.setExternalId(row.get(ORGANIZATION.EXTERNAL_ID, String.class));
     organization.setType(row.get(ORGANIZATION.ORGANIZATION_TYPE, String.class));
     organization.setOwnerId(row.get(ORGANIZATION.OWNER_ID, Long.class));
+  }
 
+  private static void mapStatisticsFields(Record row, OrganizationProfile organization) {
     organization.setLaunchesQuantity(row.get(LAUNCHES_QUANTITY, Integer.class));
     organization.setLastRun(row.get(LAST_RUN, Instant.class));
     organization.setProjectsQuantity(row.get(PROJECTS_QUANTITY, Integer.class));
     organization.setUsersQuantity(row.get(USERS_QUANTITY, Integer.class));
-
-    return organization;
-  };
+  }
 
 
   public static final Function<Result<? extends Record>, List<OrganizationUserAccount>> ORGANIZATION_USERS_LIST_FETCHER = rows -> {

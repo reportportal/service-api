@@ -48,7 +48,6 @@ public class OrganizationUserService {
    * user-organization assignments and their roles.
    */
   private final OrganizationUserRepository organizationUserRepository;
-  private final UserRepository userRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final ProjectUserService projectUserService;
   private final UserService userService;
@@ -83,7 +82,7 @@ public class OrganizationUserService {
 
   public void deleteByOrganizationIdAndUserIdNotIn(Long orgId, List<Long> newUserIds) {
     var unassignedUsers = organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(orgId, newUserIds);
-    newUserIds.forEach(userId -> projectUserService.unassignUserFromProjectsByOrgId(orgId, userId));
+    unassignedUsers.forEach(userId -> projectUserService.unassignUserFromProjectsByOrgId(orgId, userId));
 
     log.info("Users in {} have been removed from organization with ID {}", unassignedUsers, orgId);
   }

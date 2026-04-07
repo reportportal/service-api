@@ -91,6 +91,7 @@ public interface OrganizationUserRepository extends
    * @param userIds The list of user IDs to retain.
    * @return List of user IDs that were removed
    */
+  @Modifying
   @Query(value =
       "DELETE FROM organization_user WHERE organization_id = :orgId AND user_id NOT IN (:userIds) RETURNING user_id",
       nativeQuery = true)
@@ -104,6 +105,7 @@ public interface OrganizationUserRepository extends
    * @param orgId The ID of the organization whose user associations should be deleted.
    * @return List of user IDs that were removed
    */
+  @Modifying
   @Query(value = "DELETE FROM organization_user WHERE organization_id = :orgId RETURNING user_id", nativeQuery = true)
   List<Long> unassignAllUsersByOrgId(@Param(value = "orgId") Long orgId);
 }

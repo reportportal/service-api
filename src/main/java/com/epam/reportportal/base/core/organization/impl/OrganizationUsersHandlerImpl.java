@@ -41,6 +41,7 @@ import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
+import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.core.organization.OrganizationUsersHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -69,6 +70,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,6 +80,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   private final OrganizationUsersRepositoryCustom organizationUsersRepositoryCustom;
@@ -89,22 +92,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   private final ProjectUserRepository projectUserRepository;
   private final OrganizationUserRepository organizationUserRepository;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
+  private final OrganizationUserService organizationUserService;
 
-
-  public OrganizationUsersHandlerImpl(
-      OrganizationUsersRepositoryCustom organizationUsersRepositoryCustom,
-      ProjectRepository projectRepository, UserRepository userRepository,
-      ProjectUserRepository projectUserRepository,
-      OrganizationUserRepository organizationUserRepository,
-      OrganizationRepositoryCustom organizationRepositoryCustom) {
-    this.organizationUsersRepositoryCustom = organizationUsersRepositoryCustom;
-    this.projectRepository = projectRepository;
-    this.userRepository = userRepository;
-    this.projectUserRepository = projectUserRepository;
-    this.organizationUserRepository = organizationUserRepository;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
-
-  }
 
   @Override
   @Transactional(readOnly = true)
@@ -180,8 +169,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     validateUserType(organizationUser.getOrganization(), organizationUser.getUser());
     validatePersonalOrganization(organizationUser.getOrganization(), organizationUser.getUser());
 
-    projectUserRepository.deleteProjectUserByProjectOrganizationId(orgId, unassignUserId);
-    organizationUserRepository.delete(organizationUser);
+    organizationUserService.removeOrganizationUserEntry(organizationUser);
   }
 
   @Override

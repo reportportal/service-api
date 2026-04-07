@@ -84,25 +84,28 @@ public interface OrganizationUserRepository extends
   void deleteByUserIdAndOrganizationId(@Param("userId") Long userId, @Param("orgId") Long orgId);
 
   /**
-   * Deletes all entries from the organization_user table for the specified organization ID,
-   * except for those with user IDs in the provided list.
+   * Deletes all entries from the organization_user table for the specified organization ID, except for those with user
+   * IDs in the provided list, and returns the deleted user IDs.
    *
    * @param orgId   The ID of the organization whose user associations should be deleted.
    * @param userIds The list of user IDs to retain.
+   * @return List of user IDs that were removed
    */
   @Modifying
   @Query(value =
-      "DELETE FROM organization_user WHERE organization_id = :orgId AND user_id NOT IN (:userIds)",
+      "DELETE FROM organization_user WHERE organization_id = :orgId AND user_id NOT IN (:userIds) RETURNING user_id",
       nativeQuery = true)
-  void deleteByOrganizationIdAndUserIdNotIn(@Param("orgId") Long orgId, @Param("userIds") List<Long> userIds);
+  List<Long> deleteByOrganizationIdAndUserIdNotIn(@Param("orgId") Long orgId, @Param("userIds") List<Long> userIds);
 
 
   /**
-   * Deletes all entries from the organization_user table for the specified organization ID.
+   * Deletes all entries from the organization_user table for the specified organization ID and returns the deleted user
+   * IDs.
    *
    * @param orgId The ID of the organization whose user associations should be deleted.
+   * @return List of user IDs that were removed
    */
   @Modifying
-  @Query(value = "DELETE FROM organization_user WHERE organization_id = :orgId", nativeQuery = true)
-  void deleteAllByOrganizationId(@Param(value = "orgId") Long orgId);
+  @Query(value = "DELETE FROM organization_user WHERE organization_id = :orgId RETURNING user_id", nativeQuery = true)
+  List<Long> unassignAllUsersByOrgId(@Param(value = "orgId") Long orgId);
 }

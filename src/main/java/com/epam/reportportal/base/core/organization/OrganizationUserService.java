@@ -16,18 +16,30 @@
 
 package com.epam.reportportal.base.core.organization;
 
+import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
+
+import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
+import com.epam.reportportal.base.core.project.ProjectUserService;
+import com.epam.reportportal.base.core.user.UserService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.ws.converter.converters.UserConverter;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
  * Service for managing user-organization relationships in the Report Portal system. Provides functionality for creating
  * and managing user assignments within organizations, including role management and persistence operations.
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrganizationUserService {
 
   /**
@@ -35,15 +47,10 @@ public class OrganizationUserService {
    * user-organization assignments and their roles.
    */
   private final OrganizationUserRepository organizationUserRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
+  private final ProjectUserService projectUserService;
+  private final UserService userService;
 
-  /**
-   * Constructs a new OrganizationUserService instance.
-   *
-   * @param organizationUserRepository the repository for managing organization user entities
-   */
-  public OrganizationUserService(OrganizationUserRepository organizationUserRepository) {
-    this.organizationUserRepository = organizationUserRepository;
-  }
 
   /**
    * Creates and persists a new organization user relationship.
@@ -60,4 +67,57 @@ public class OrganizationUserService {
     organizationUser.setOrganizationRole(OrganizationRole.valueOf(role));
     return organizationUserRepository.save(organizationUser);
   }
+
+
+  public void removeOrganizationUserEntry(OrganizationUser organizationUser) {
+    long orgId = organizationUser.getOrganization().getId();
+    long userId = organizationUser.getUser().getId();
+    organizationUserRepository.delete(organizationUser);
+
+    sendUnassignFromOrgEvent(userId, orgId);
+    projectUserService.unassignUserFromProjectsByOrgId(orgId, userId);
+  }
+
+
+  public void deleteByOrganizationIdAndUserIdNotIn(Long orgId, List<Long> newUserIds) {
+    var unassignedUsers = organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(orgId, newUserIds);
+    unassignedUsers.forEach(userId -> {
+      sendUnassignFromOrgEvent(userId, orgId);
+      projectUserService.unassignUserFromProjectsByOrgId(orgId, userId);
+    });
+
+    log.info("Users in {} have been removed from organization with ID {}", unassignedUsers, orgId);
+  }
+
+  public void deleteByUserIdAndOrganizationId(Long userId, Long orgId) {
+    organizationUserRepository.deleteByUserIdAndOrganizationId(userId, orgId);
+    sendUnassignFromOrgEvent(userId, orgId);
+
+    projectUserService.unassignUserFromProjectsByOrgId(orgId, userId);
+
+    log.info("User with ID {} has been removed from organization with ID {}", userId, orgId);
+  }
+
+  public void unassignAllUsersFromOrganization(Long orgId) {
+    organizationUserRepository.unassignAllUsersByOrgId(orgId)
+        .forEach(unassignedUserId -> {
+          sendUnassignFromOrgEvent(unassignedUserId, orgId);
+          projectUserService.unassignUserFromProjectsByOrgId(orgId, unassignedUserId);
+        });
+    log.info("All users have been removed from organization with ID {}", orgId);
+
+  }
+
+
+  private void sendUnassignFromOrgEvent(Long userId, Long orgId) {
+    User user = userService.findById(userId);
+    applicationEventPublisher.publishEvent(
+        new UnassignUserEvent(
+            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
+            getPrincipal().getUserId(),
+            getPrincipal().getUsername(),
+            orgId
+        ));
+  }
+
 }

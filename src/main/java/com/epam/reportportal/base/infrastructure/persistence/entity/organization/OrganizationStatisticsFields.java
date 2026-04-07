@@ -2,6 +2,9 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.organizatio
 
 public class OrganizationStatisticsFields {
 
+  private OrganizationStatisticsFields() {
+  }
+
   public static final String USERS_QUANTITY = "usersQuantity";
   public static final String LAUNCHES_QUANTITY = "launchesQuantity";
   public static final String PROJECTS_QUANTITY = "projectsQuantity";

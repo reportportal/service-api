@@ -1074,13 +1074,12 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
-
+    when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
+    
     var result = sut.importFromFile(projectId, testFolderId, null, file);
-
+    
     assertNotNull(result);
-    assertEquals(1, result.getCreatedTestCaseIds().size());
-    assertEquals(100L, result.getCreatedTestCaseIds().getFirst());
-    assertEquals(1, result.getTotalRows());
+    assertEquals(1, result.size());
     verify(importerFactory).getImporter("test.csv");
     verify(importer).parse(any(InputStream.class));
     verify(tmsTestCaseRepository).saveAll(anyList());
@@ -1130,11 +1129,12 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(resolvedFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
-
+    when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
+    
     var result = sut.importFromFile(projectId, null, null, file);
-
+    
     assertNotNull(result);
-    assertEquals(1, result.getCreatedTestCaseIds().size());
+    assertEquals(1, result.size());
     verify(tmsTestFolderService).resolveFolderPathsBatch(eq(projectId), eq(null), anyList());
   }
 
@@ -1288,12 +1288,12 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase2);
     when(tmsTestCaseRepository.saveAll(anyList()))
         .thenReturn(List.of(savedTestCase1, savedTestCase2));
-
+    when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS(), new TmsTestFolderRS()));
+    
     var result = sut.importFromFile(projectId, testFolderId, null, file);
-
+    
     assertNotNull(result);
-    assertEquals(2, result.getCreatedTestCaseIds().size());
-    assertEquals(2, result.getTotalRows());
+    assertEquals(2, result.size());
   }
 
   @Test

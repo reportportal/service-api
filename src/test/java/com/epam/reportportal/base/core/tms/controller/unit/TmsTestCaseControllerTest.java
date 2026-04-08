@@ -24,9 +24,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
@@ -758,64 +758,64 @@ public class TmsTestCaseControllerTest {
   void importTestCasesWithTestFolderIdTest() throws Exception {
     var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var testFolderId = 3L;
-    var importResult = TmsTestCaseImportRS.of(List.of(1L, 2L), 3L, 2);
+    var importResult = List.of(new TmsTestFolderRS());
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(testFolderId), eq(null), eq(file)))
         .willReturn(importResult);
-
+  
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
                 .param("testFolderId", String.valueOf(testFolderId))
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
-
+  
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).importFromFile(eq(projectId), eq(testFolderId), eq(null), eq(file));
   }
-
+  
   @Test
   void importTestCasesWithTestFolderNameTest() throws Exception {
     var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var testFolderName = "Test Folder";
-    var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
+    var importResult = List.of(new TmsTestFolderRS());
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(testFolderName), eq(file)))
         .willReturn(importResult);
-
+  
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
                 .param("testFolderName", testFolderName)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
-
+  
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(testFolderName),
         eq(file));
   }
-
+  
   @Test
   void importTestCasesWithoutFolderParametersTest() throws Exception {
     var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
-    var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
+    var importResult = List.of(new TmsTestFolderRS());
     given(tmsTestCaseService.importFromFile(eq(projectId), eq(null), eq(null), eq(file)))
         .willReturn(importResult);
-
+  
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
-
+  
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).importFromFile(eq(projectId), eq(null), eq(null), eq(file));
   }
-
+  
   @Test
   void importTestCasesWithBothFolderParametersTest() throws Exception {
     var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var testFolderId = 3L;
     var testFolderName = "Test Folder";
-    var importResult = TmsTestCaseImportRS.of(List.of(1L), 3L, 1);
+    var importResult = List.of(new TmsTestFolderRS());
     given(tmsTestCaseService.importFromFile(
         eq(projectId), eq(testFolderId), eq(testFolderName), eq(file)))
         .willReturn(importResult);

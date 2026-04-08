@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller;
 
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
@@ -292,7 +292,7 @@ public class TestCaseController {
       tags = {"Import/Export"}
   )
   @ApiResponse(responseCode = "200", description = "Test cases imported successfully")
-  public TmsTestCaseImportRS importTestCases(@PathVariable("projectKey") String projectKey,
+  public List<TmsTestFolderRS> importTestCases(@PathVariable("projectKey") String projectKey,
       @RequestPart("file") MultipartFile file,
       @RequestParam(value = "testFolderId", required = false) Long testFolderId,
       @RequestParam(value = "testFolderName", required = false) String testFolderName,

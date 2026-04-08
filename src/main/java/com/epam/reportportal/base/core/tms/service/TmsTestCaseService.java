@@ -1,9 +1,9 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
@@ -55,7 +55,7 @@ public interface TmsTestCaseService {
 
   BatchPatchTestCasesRS patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
 
-  TmsTestCaseImportRS importFromFile(
+  List<TmsTestFolderRS> importFromFile(
       long projectId,
       Long testFolderId,
       String testFolderName,

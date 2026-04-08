@@ -16,19 +16,29 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao.organization;
 
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.OrganizationMapper.ORGANIZATION_PROFILE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils.collectJoinFields;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.ORGANIZATION_FETCHER;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.LAST_RUN;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.LAUNCHES_QUANTITY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.PROJECTS_QUANTITY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.USERS_QUANTITY;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.PROJECT;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationProfile;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectQuery;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +87,34 @@ public class OrganizationRepositoryCustomImpl implements OrganizationRepositoryC
         pageable,
         () -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build())
     );
+  }
+
+  @Override
+  public Optional<OrganizationProfile> findOrganizationByIdAndUserId(Long orgId, Long userId) {
+    var condition = ORGANIZATION.ID.eq(orgId);
+    if (userId != null) {
+      condition = condition.and(ORGANIZATION_USER.USER_ID.eq(userId));
+    }
+    return dsl.select(
+            ORGANIZATION.ID,
+            ORGANIZATION.NAME,
+            ORGANIZATION.SLUG,
+            ORGANIZATION.CREATED_AT,
+            ORGANIZATION.UPDATED_AT,
+            ORGANIZATION.EXTERNAL_ID,
+            ORGANIZATION.ORGANIZATION_TYPE,
+            ORGANIZATION.OWNER_ID,
+            DSL.countDistinct(ORGANIZATION_USER.USER_ID).as(USERS_QUANTITY),
+            DSL.countDistinct(PROJECT.ID).as(PROJECTS_QUANTITY),
+            DSL.countDistinct(LAUNCH.ID).as(LAUNCHES_QUANTITY),
+            DSL.max(LAUNCH.START_TIME).as(LAST_RUN))
+        .from(ORGANIZATION)
+        .leftJoin(ORGANIZATION_USER).on(ORGANIZATION_USER.ORGANIZATION_ID.eq(ORGANIZATION.ID))
+        .leftJoin(PROJECT).on(PROJECT.ORGANIZATION_ID.eq(ORGANIZATION.ID))
+        .leftJoin(LAUNCH).on(PROJECT.ID.eq(LAUNCH.PROJECT_ID).and(LAUNCH.STATUS.ne(JStatusEnum.IN_PROGRESS)))
+        .where(condition)
+        .groupBy(ORGANIZATION.ID)
+        .fetchOptional(ORGANIZATION_PROFILE_MAPPER);
   }
 
   @Override

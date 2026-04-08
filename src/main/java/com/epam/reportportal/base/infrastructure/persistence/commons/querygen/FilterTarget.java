@@ -159,7 +159,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_UPDATED_AT;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.USER_ID;
-import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter.PROJECTS_QUANTITY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationStatisticsFields.PROJECTS_QUANTITY;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo.LAST_RUN;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo.LAUNCHES_QUANTITY;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo.USERS_QUANTITY;

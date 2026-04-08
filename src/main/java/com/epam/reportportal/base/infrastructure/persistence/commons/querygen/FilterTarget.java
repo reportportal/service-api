@@ -564,6 +564,7 @@ public enum FilterTarget {
       new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, LAUNCH.PROJECT_ID, Long.class)
           .get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_USER_ID, LAUNCH.USER_ID, Long.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_TEST_PLAN_ID, LAUNCH.TEST_PLAN_ID, Long.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_LAUNCH_NUMBER, LAUNCH.NUMBER, Integer.class)
           .get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_LAST_MODIFIED, LAUNCH.LAST_MODIFIED,
@@ -616,9 +617,7 @@ public enum FilterTarget {
               JoinEntity.of(USERS, JoinType.LEFT_OUTER_JOIN, LAUNCH.USER_ID.eq(USERS.ID)))
       ).withAggregateCriteria(DSL.max(USERS.LOGIN).toString()).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_LAUNCH_TYPE, LAUNCH.LAUNCH_TYPE,
-          JLaunchTypeEnum.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_TEST_PLAN_ID, LAUNCH.TEST_PLAN_ID,
-          Long.class).get()
+          JLaunchTypeEnum.class).get()
   )) {
     @Override
     protected Collection<? extends SelectField> selectFields() {
@@ -680,6 +679,7 @@ public enum FilterTarget {
           LAUNCH.RERUN,
           LAUNCH.APPROXIMATE_DURATION,
           LAUNCH.RETENTION_POLICY,
+          LAUNCH.TEST_PLAN_ID,
           STATISTICS.S_COUNTER,
           STATISTICS_FIELD.NAME,
           USERS.ID,

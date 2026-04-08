@@ -90,6 +90,8 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
   public void replace(PatchOperation operation, Long orgId) {
     var userOrgInfos = readOperationValue(operation, new TypeReference<List<UserOrgInfo>>() {
     });
+    validateUserOrgInfos(userOrgInfos);
+
     var principal = getPrincipal();
     var org = findOrganizationOrThrow(orgId);
 
@@ -103,7 +105,6 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
 
     var newUserIds = userOrgInfos.stream()
         .map(UserOrgInfo::getId)
-        .filter(Objects::nonNull)
         .toList();
 
     // Remove users not in new list
@@ -221,6 +222,20 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     }
 
     return newlyAssignedUserIds;
+  }
+
+  private void validateUserOrgInfos(List<UserOrgInfo> userOrgInfos) {
+    if (CollectionUtils.isEmpty(userOrgInfos)) {
+      return;
+    }
+    for (var info : userOrgInfos) {
+      if (info.getId() == null) {
+        throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required");
+      }
+      if (info.getOrgRole() == null) {
+        throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required");
+      }
+    }
   }
 
   private void validateUsersExistInOrganization(List<Long> userIds, Long orgId) {

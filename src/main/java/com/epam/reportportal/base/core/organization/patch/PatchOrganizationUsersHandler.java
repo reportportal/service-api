@@ -35,8 +35,8 @@ import com.epam.reportportal.base.model.IdContainer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -169,8 +169,12 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       return List.of();
     }
     return ids.stream()
-        .map(IdContainer::getId)
-        .filter(Objects::nonNull)
+        .map(idContainer -> {
+          if (idContainer == null || idContainer.getId() == null) {
+            throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required");
+          }
+          return idContainer.getId();
+        })
         .toList();
   }
 
@@ -228,9 +232,16 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     if (CollectionUtils.isEmpty(userOrgInfos)) {
       return;
     }
+    var seenUserIds = new HashSet<Long>();
     for (var info : userOrgInfos) {
+      if (info == null) {
+        throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "User entry must not be null");
+      }
       if (info.getId() == null) {
         throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required");
+      }
+      if (!seenUserIds.add(info.getId())) {
+        throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Duplicate user id: " + info.getId());
       }
       if (info.getOrgRole() == null) {
         throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required");

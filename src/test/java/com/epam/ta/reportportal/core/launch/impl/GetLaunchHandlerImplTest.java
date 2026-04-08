@@ -273,7 +273,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, "pdf", false, null, user, projectDetails)
+        () -> handler.exportLaunch(launchId, "pdf", false, false, null, user, projectDetails)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -291,7 +291,7 @@ class GetLaunchHandlerImplTest {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, "pdf", false, null, user, projectDetails)
+        () -> handler.exportLaunch(launchId, "pdf", false, false, null, user, projectDetails)
     );
     assertEquals("User '1' not found.", exception.getMessage());
   }

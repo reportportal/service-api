@@ -16,11 +16,10 @@
 
 package com.epam.reportportal.base.core.organization;
 
-import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
-
 import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.project.ProjectUserService;
 import com.epam.reportportal.base.core.user.UserService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -34,8 +33,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
- * Service for managing user-organization relationships in the Report Portal system. Provides functionality for creating
- * and managing user assignments within organizations, including role management and persistence operations.
+ * Service for managing user-organization relationships. Handles persistence and cascade operations without event
+ * publishing. Events should be published by the calling handler.
  */
 @Slf4j
 @Service
@@ -47,8 +46,8 @@ public class OrganizationUserService {
    * user-organization assignments and their roles.
    */
   private final OrganizationUserRepository organizationUserRepository;
-  private final ApplicationEventPublisher applicationEventPublisher;
   private final ProjectUserService projectUserService;
+  private final ApplicationEventPublisher eventPublisher;
   private final UserService userService;
 
 
@@ -68,56 +67,49 @@ public class OrganizationUserService {
     return organizationUserRepository.save(organizationUser);
   }
 
+  /**
+   * Removes single user from organization. Used by DELETE /organizations/{org_id}/users/{user_id}. Publishes individual
+   * UnassignUserEvent.
+   */
+  public void removeOrganizationUserEntry(OrganizationUser organizationUser, ReportPortalUser principal) {
+    var orgId = organizationUser.getOrganization().getId();
+    var userId = organizationUser.getUser().getId();
 
-  public void removeOrganizationUserEntry(OrganizationUser organizationUser) {
-    long orgId = organizationUser.getOrganization().getId();
-    long userId = organizationUser.getUser().getId();
     organizationUserRepository.delete(organizationUser);
 
-    sendUnassignFromOrgEvent(userId, orgId);
-    projectUserService.unassignUserFromProjectsByOrgId(orgId, userId);
+    eventPublisher.publishEvent(new UnassignUserEvent(
+        UserConverter.TO_ACTIVITY_RESOURCE.apply(organizationUser.getUser(), null),
+        principal.getUserId(),
+        principal.getUsername(),
+        orgId
+    ));
+
+    projectUserService.unassignUserFromProjectsByOrgId(orgId, userId, principal);
   }
 
-
-  public void deleteByOrganizationIdAndUserIdNotIn(Long orgId, List<Long> newUserIds) {
-    var unassignedUsers = organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(orgId, newUserIds);
-    unassignedUsers.forEach(userId -> {
-      sendUnassignFromOrgEvent(userId, orgId);
-      projectUserService.unassignUserFromProjectsByOrgId(orgId, userId);
-    });
-
-    log.info("Users in {} have been removed from organization with ID {}", unassignedUsers, orgId);
+  /**
+   * Bulk delete specific users. Used by PATCH remove operation. Does NOT publish events - caller handles bulk events.
+   */
+  public void deleteByUserIdsAndOrganizationId(List<Long> userIds, Long orgId) {
+    organizationUserRepository.deleteByOrganizationIdAndUserIdIn(orgId, userIds);
+    projectUserService.unassignUsersFromProjectsByOrgId(orgId, userIds);
   }
 
-  public void deleteByUserIdAndOrganizationId(Long userId, Long orgId) {
-    organizationUserRepository.deleteByUserIdAndOrganizationId(userId, orgId);
-    sendUnassignFromOrgEvent(userId, orgId);
-
-    projectUserService.unassignUserFromProjectsByOrgId(orgId, userId);
-
-    log.info("User with ID {} has been removed from organization with ID {}", userId, orgId);
+  /**
+   * Bulk delete users not in list. Used by PATCH replace operation. Does NOT publish events - caller handles bulk
+   * events.
+   */
+  public List<Long> deleteByOrganizationIdAndUserIdNotIn(Long orgId, List<Long> userIdsToKeep) {
+    var removedUserIds = organizationUserRepository.deleteByOrganizationIdAndUserIdNotIn(orgId, userIdsToKeep);
+    projectUserService.unassignUsersFromProjectsByOrgId(orgId, removedUserIds);
+    return removedUserIds;
   }
 
+  /**
+   * Bulk delete all users.
+   */
   public void unassignAllUsersFromOrganization(Long orgId) {
-    organizationUserRepository.unassignAllUsersByOrgId(orgId)
-        .forEach(unassignedUserId -> {
-          sendUnassignFromOrgEvent(unassignedUserId, orgId);
-          projectUserService.unassignUserFromProjectsByOrgId(orgId, unassignedUserId);
-        });
-    log.info("All users have been removed from organization with ID {}", orgId);
-
+    var removedUserIds = organizationUserRepository.unassignAllUsersByOrgId(orgId);
+    projectUserService.unassignUsersFromProjectsByOrgId(orgId, removedUserIds);
   }
-
-
-  private void sendUnassignFromOrgEvent(Long userId, Long orgId) {
-    User user = userService.findById(userId);
-    applicationEventPublisher.publishEvent(
-        new UnassignUserEvent(
-            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
-            getPrincipal().getUserId(),
-            getPrincipal().getUsername(),
-            orgId
-        ));
-  }
-
 }

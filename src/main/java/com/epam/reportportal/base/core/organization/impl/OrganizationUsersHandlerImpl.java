@@ -72,6 +72,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -84,15 +85,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   private final OrganizationUsersRepositoryCustom organizationUsersRepositoryCustom;
-
   private final ProjectRepository projectRepository;
-
   private final UserRepository userRepository;
-
   private final ProjectUserRepository projectUserRepository;
   private final OrganizationUserRepository organizationUserRepository;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final OrganizationUserService organizationUserService;
+  private final ApplicationEventPublisher eventPublisher;
 
 
   @Override
@@ -162,14 +161,16 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   @Override
   @Transactional
   public void unassignUser(Long orgId, Long unassignUserId) {
+    var principal = getPrincipal();
+
     OrganizationUser organizationUser = organizationUserRepository.findByUserIdAndOrganization_Id(unassignUserId, orgId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "User %s assignment".formatted(unassignUserId)));
 
-    validateUserRoles(getPrincipal(), organizationUser);
+    validateUserRoles(principal, organizationUser);
     validateUserType(organizationUser.getOrganization(), organizationUser.getUser());
     validatePersonalOrganization(organizationUser.getOrganization(), organizationUser.getUser());
 
-    organizationUserService.removeOrganizationUserEntry(organizationUser);
+    organizationUserService.removeOrganizationUserEntry(organizationUser, principal);
   }
 
   @Override

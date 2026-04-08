@@ -43,17 +43,6 @@ public interface OrganizationUserRepository extends
    */
   Optional<OrganizationUser> findByUserIdAndOrganization_Id(Long userId, Long orgId);
 
-
-  /**
-   * This method is used to find a list of organization IDs associated with a specific user ID. It executes a native SQL
-   * query to retrieve the organization IDs.
-   *
-   * @param userId The ID of the user.
-   * @return A list of organization IDs associated with the specified user ID.
-   */
-  @Query(value = "SELECT ou.organization_id FROM organization_user ou WHERE ou.user_id = :userId", nativeQuery = true)
-  List<Long> findOrganizationIdsByUserId(@Param("userId") Long userId);
-
   @Query(value = """
       SELECT ou.organization_id FROM organization_user ou
       JOIN public.organization o ON o.id = ou.organization_id
@@ -71,17 +60,19 @@ public interface OrganizationUserRepository extends
   @Query(value = "SELECT ou.user_id FROM organization_user ou WHERE ou.organization_id = :orgId", nativeQuery = true)
   List<Long> findUserIdsByOrganizationId(@Param("orgId") Long orgId);
 
-  /**
-   * Deletes all entries from the organization_user table for the specified user ID and organization ID.
-   *
-   * @param userId The ID of the user whose associations should be deleted.
-   * @param orgId  The ID of the organization whose user associations should be deleted.
-   */
+  @Query(value = """
+      SELECT * FROM organization_user
+      WHERE organization_id = :orgId AND user_id IN (:userIds)
+      """, nativeQuery = true)
+  List<OrganizationUser> findAllByOrganizationIdAndUserIdIn(@Param("orgId") Long orgId,
+      @Param("userIds") List<Long> userIds);
+
   @Modifying
-  @Query(value =
-      "DELETE FROM organization_user WHERE user_id = :userId AND organization_id = :orgId",
-      nativeQuery = true)
-  void deleteByUserIdAndOrganizationId(@Param("userId") Long userId, @Param("orgId") Long orgId);
+  @Query(value = """
+      DELETE FROM organization_user
+      WHERE organization_id = :orgId AND user_id IN (:userIds)
+      """, nativeQuery = true)
+  void deleteByOrganizationIdAndUserIdIn(@Param("orgId") Long orgId, @Param("userIds") List<Long> userIds);
 
   /**
    * Deletes all entries from the organization_user table for the specified organization ID, except for those with user

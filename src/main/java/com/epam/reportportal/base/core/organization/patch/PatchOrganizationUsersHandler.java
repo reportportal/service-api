@@ -178,6 +178,9 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
         .map(info -> Optional.ofNullable(info.getId())
             .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required")))
         .toList();
+    if (CollectionUtils.isEmpty(userIds)) {
+      return List.of();
+    }
 
     var usersById = userRepository.findAllById(userIds).stream()
         .collect(Collectors.toMap(User::getId, Function.identity()));

@@ -115,8 +115,7 @@ public interface ProjectUserRepository
           DELETE FROM project_user
           WHERE project_id = :projectId AND user_id IN :userIds
           """, nativeQuery = true)
-  void deleteByProjectIdAndUserIdsReturningUserIds(@Param("projectId") Long projectId,
-      @Param("userIds") List<Long> userIds);
+  void deleteByProjectIdAndUserIds(@Param("projectId") Long projectId, @Param("userIds") List<Long> userIds);
 
   @Query(value = """
       SELECT pu.project_id, pu.user_id

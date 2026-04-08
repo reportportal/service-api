@@ -150,7 +150,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     }
 
     validateUsersExistInProject(userIdsToRemove, projectId);
-    projectUserRepository.deleteByProjectIdAndUserIdsReturningUserIds(projectId, userIdsToRemove);
+    projectUserRepository.deleteByProjectIdAndUserIds(projectId, userIdsToRemove);
 
     var afterUserIds = beforeUserIds.stream()
         .filter(id -> !userIdsToRemove.contains(id))
@@ -192,6 +192,9 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
         .map(info -> Optional.ofNullable(info.getId())
             .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required")))
         .toList();
+    if (CollectionUtils.isEmpty(userIds)) {
+      return List.of();
+    }
 
     var usersById = userRepository.findAllById(userIds).stream()
         .collect(Collectors.toMap(User::getId, Function.identity()));

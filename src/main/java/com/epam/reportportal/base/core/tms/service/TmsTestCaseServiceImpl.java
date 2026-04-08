@@ -11,11 +11,11 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportParseResult;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCasePreparationForImportResult;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -349,7 +350,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public TmsTestCaseImportRS importFromFile(
+  public List<TmsTestFolderRS> importFromFile(
       long projectId,
       Long testFolderId,
       String testFolderName,
@@ -362,12 +363,17 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     // 2. Resolve base folder
     var baseFolderId = resolveBaseFolderIdForImport(projectId, testFolderId, testFolderName);
 
+    var affectedFolderIds = new HashSet<Long>();
+    affectedFolderIds.add(baseFolderId);
+
     // 3. Single pass: collect paths, keys, and validate
     var preparationResult = prepareTestCasesForImport(parseResult.getTestCases(), baseFolderId);
 
     // 4. Batch resolve folders and attributes
     var pathToFolderId = tmsTestFolderService.resolveFolderPathsBatch(
         projectId, baseFolderId, preparationResult.getUniquePaths());
+    affectedFolderIds.addAll(pathToFolderId.values());
+    
     var keyToAttributeId = tmsAttributeService.resolveAttributes(
         projectId, preparationResult.getUniqueAttributeKeys());
 
@@ -378,10 +384,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     validateFolderAssignment(preparationResult.getPreparedTestCases());
 
     // 7. Batch create all test cases
-    var createdIds = importTestCases(projectId, preparationResult.getPreparedTestCases(),
+    importTestCases(projectId, preparationResult.getPreparedTestCases(),
         keyToAttributeId);
-
-    return TmsTestCaseImportRS.of(createdIds, baseFolderId, parseResult.getTotalRows());
+    
+    return tmsTestFolderService.getFoldersWithCountByIds(projectId, affectedFolderIds);
   }
 
   private TmsTestCasePreparationForImportResult prepareTestCasesForImport(

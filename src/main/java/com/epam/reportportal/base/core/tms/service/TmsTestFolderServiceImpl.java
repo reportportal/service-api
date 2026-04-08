@@ -17,7 +17,9 @@ import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistic
 import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.validation.TestFolderIdValidator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.enhanced.TmsTestFolderWithTestCaseCountRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -27,11 +29,13 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -470,7 +474,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   @Transactional
   public Map<String, Long> resolveFolderPathsBatch(Long projectId, Long parentFolderId,
       List<List<String>> pathHierarchies) {
-    Map<String, Long> pathToFolderIdCache = new HashMap<>();
+    Map<String, Long> pathToFolderIdCache = new HashMap<String, Long>();
 
     for (var pathHierarchy : pathHierarchies) {
       if (CollectionUtils.isEmpty(pathHierarchy)) {
@@ -503,6 +507,30 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     }
 
     return pathToFolderIdCache;
+  }
+
+  @Override
+  public List<TmsTestFolderRS> getFoldersWithCountByIds(Long projectId, Set<Long> folderIds) {
+    if (folderIds == null || folderIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    return tmsTestFolderWithTestCaseCountRepository
+        .findAllByProjectIdAndFilterWithCountOfTestCases(
+            projectId,
+            Filter.builder()
+                .withTarget(TmsTestFolder.class)
+                .withCondition(FilterCondition.builder()
+                    .in("id", folderIds.stream()
+                        .map(String::valueOf)
+                        .toList())
+                    .build())
+                .build(),
+            Pageable.unpaged())
+        .getContent()
+        .stream()
+        .map(tmsTestFolderMapper::convertFromTmsTestFolderWithCountOfTestCasesToRS)
+        .toList();
   }
 
   /**

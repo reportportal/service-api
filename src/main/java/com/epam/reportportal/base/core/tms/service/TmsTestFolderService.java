@@ -14,6 +14,7 @@ import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,4 +161,13 @@ public interface TmsTestFolderService {
    */
   Map<String, Long> resolveFolderPathsBatch(Long projectId, Long parentFolderId,
       List<List<String>> pathHierarchies);
+
+  /**
+   * Retrieves test folders with their test case counts by a set of folder IDs.
+   *
+   * @param projectId Project ID
+   * @param folderIds Set of folder IDs to retrieve
+   * @return List of TmsTestFolderRS
+   */
+  List<TmsTestFolderRS> getFoldersWithCountByIds(Long projectId, Set<Long> folderIds);
 }

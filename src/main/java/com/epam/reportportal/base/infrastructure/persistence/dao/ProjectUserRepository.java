@@ -100,6 +100,15 @@ public interface ProjectUserRepository
   void deleteAllByProjectId(@Param(value = "projectId") Long projectId);
 
   /**
+   * Finds all user IDs associated with a specific project ID.
+   *
+   * @param projectId The ID of the project.
+   * @return A list of user IDs associated with the specified project ID.
+   */
+  @Query(value = "SELECT pu.user_id FROM project_user pu WHERE pu.project_id = :projectId", nativeQuery = true)
+  List<Long> findUserIdsByProjectId(@Param("projectId") Long projectId);
+
+  /**
    * Finds all ProjectUser entries for the specified project ID.
    *
    * @param projectId The project ID

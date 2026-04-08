@@ -35,12 +35,12 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
-import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.DeleteBulkRS;
@@ -56,7 +56,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private final ProjectRepository projectRepository;
@@ -88,49 +89,29 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private final AttachmentBinaryDataService attachmentBinaryDataService;
 
-  private final FeatureFlagHandler featureFlagHandler;
-
-  @Autowired
-  public DeleteProjectHandlerImpl(ProjectRepository projectRepository,
-      UserRepository userRepository, LogIndexer logIndexer,
-      AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache,
-      ApplicationEventPublisher applicationEventPublisher,
-      AttachmentBinaryDataService attachmentBinaryDataService,
-      IssueTypeRepository issueTypeRepository, ContentRemover<Project> projectContentRemover,
-      LogRepository logRepository, FeatureFlagHandler featureFlagHandler) {
-    this.projectRepository = projectRepository;
-    this.userRepository = userRepository;
-    this.logIndexer = logIndexer;
-    this.analyzerServiceClient = analyzerServiceClient;
-    this.analyzerStatusCache = analyzerStatusCache;
-    this.applicationEventPublisher = applicationEventPublisher;
-    this.issueTypeRepository = issueTypeRepository;
-    this.projectContentRemover = projectContentRemover;
-    this.logRepository = logRepository;
-    this.featureFlagHandler = featureFlagHandler;
-    this.attachmentBinaryDataService = attachmentBinaryDataService;
-  }
+  private final ProjectUserRepository projectUserRepository;
 
   @Override
   public OperationCompletionRS deleteProject(Long projectId, ReportPortalUser user) {
     Project project = getProjectById(projectId);
+    List<Long> userIds = projectUserRepository.findUserIdsByProjectId(projectId);
     OperationCompletionRS operationCompletionRs = deleteProject(project);
 
-    publishSpecialProjectDeletedEvent(user, project);
+    publishSpecialProjectDeletedEvent(user, project, userIds);
     return operationCompletionRs;
   }
 
-  private void publishSpecialProjectDeletedEvent(ReportPortalUser user, Project project) {
+  private void publishSpecialProjectDeletedEvent(ReportPortalUser user, Project project, List<Long> userIds) {
     if (Objects.nonNull(user)) {
       Long userId = user.getUserId();
       String username = user.getUsername();
       applicationEventPublisher.publishEvent(
           new ProjectDeletedEvent(userId, username, project.getId(), project.getName(),
-              project.getOrganizationId()));
+              project.getOrganizationId(), userIds));
     } else {
       applicationEventPublisher.publishEvent(
           new ProjectDeletedEvent(project.getId(), "personal_project",
-              project.getOrganizationId()));
+              project.getOrganizationId(), userIds));
     }
   }
 

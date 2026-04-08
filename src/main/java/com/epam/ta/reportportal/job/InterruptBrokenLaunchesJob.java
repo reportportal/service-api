@@ -154,6 +154,7 @@ public class InterruptBrokenLaunchesJob implements Job {
   }
 
   private void interruptItems(Long launchId) {
+    statisticsService.acquireAdvisoryLock(launchId);
     testItemRepository.interruptInProgressItems(launchId);
     statisticsService.addInterruptionStatistics(launchId);
     interruptLaunch(launchId);

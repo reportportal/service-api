@@ -81,6 +81,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
     launchRepository.save(launch);
     launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
+    testItemStatisticsService.acquireAdvisoryLock(launch.getId());
     testItemRepository.interruptInProgressItems(launch.getId());
     testItemStatisticsService.addInterruptionStatistics(launch.getId());
 

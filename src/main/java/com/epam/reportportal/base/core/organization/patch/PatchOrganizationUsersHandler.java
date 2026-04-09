@@ -134,6 +134,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     var org = findOrganizationOrThrow(orgId);
 
     var beforeUserIds = organizationUserRepository.findUserIdsByOrganizationId(orgId);
+    var beforeUserIdsSet = new HashSet<>(beforeUserIds);
     var userIdsToRemove = extractUserIdsToRemove(operation);
 
     if (CollectionUtils.isEmpty(userIdsToRemove)) {
@@ -142,7 +143,12 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       return;
     }
 
-    validateUsersExistInOrganization(userIdsToRemove, orgId);
+    var missingUserIds = userIdsToRemove.stream()
+        .filter(id -> !beforeUserIdsSet.contains(id))
+        .toList();
+    if (!missingUserIds.isEmpty()) {
+      throw new ReportPortalException(ErrorType.USER_NOT_FOUND, missingUserIds.getFirst());
+    }
     organizationUserService.deleteByUserIdsAndOrganizationId(userIdsToRemove, orgId);
 
     var afterUserIds = beforeUserIds.stream()
@@ -259,17 +265,6 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
       if (info.getOrgRole() == null) {
         throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'orgRole' is required");
       }
-    }
-  }
-
-  private void validateUsersExistInOrganization(List<Long> userIds, Long orgId) {
-    var existingUserIds = organizationUserRepository.findUserIdsByOrganizationId(orgId);
-    var missingUserIds = userIds.stream()
-        .filter(id -> !existingUserIds.contains(id))
-        .toList();
-
-    if (!missingUserIds.isEmpty()) {
-      throw new ReportPortalException(ErrorType.USER_NOT_FOUND, missingUserIds.getFirst());
     }
   }
 

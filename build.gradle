@@ -117,6 +117,9 @@ dependencies {
     implementation 'org.springframework:spring-context-support'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
+    // CVE-2025-70952 (Zip Slip in Unzip); transitive from commons was < 3.14.1
+    implementation 'org.pf4j:pf4j:3.15.0'
+
     implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.20'
     implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.20'
     implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.20'

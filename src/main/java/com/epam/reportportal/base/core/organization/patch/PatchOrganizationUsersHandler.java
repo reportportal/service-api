@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -106,6 +107,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     var newUserIds = userOrgInfos.stream()
         .map(UserOrgInfo::getId)
         .toList();
+    var usersById = loadAndValidateUsersById(newUserIds);
 
     // Remove users not in new list
     var removedUserIds = organizationUserService.deleteByOrganizationIdAndUserIdNotIn(orgId, newUserIds);
@@ -117,7 +119,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     publishEvent(principal, org, beforeUserIds, afterRemovalUserIds, EventAction.UNASSIGN);
 
     // Process assignments
-    var assignedUserIds = processUserAssignments(userOrgInfos, org);
+    var assignedUserIds = processUserAssignments(userOrgInfos, org, usersById);
 
     if (!assignedUserIds.isEmpty()) {
       var afterAssignUserIds = new ArrayList<>(afterRemovalUserIds);
@@ -178,7 +180,8 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
         .toList();
   }
 
-  private List<Long> processUserAssignments(List<UserOrgInfo> userOrgInfos, Organization org) {
+  private List<Long> processUserAssignments(List<UserOrgInfo> userOrgInfos, Organization org,
+      Map<Long, User> usersById) {
     var userIds = userOrgInfos.stream()
         .map(info -> Optional.ofNullable(info.getId())
             .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required")))
@@ -186,9 +189,6 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     if (CollectionUtils.isEmpty(userIds)) {
       return List.of();
     }
-
-    var usersById = userRepository.findAllById(userIds).stream()
-        .collect(Collectors.toMap(User::getId, Function.identity()));
 
     var existingOrgUsersById = organizationUserRepository
         .findAllByOrganizationIdAndUserIdIn(org.getId(), userIds)
@@ -226,6 +226,19 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     }
 
     return newlyAssignedUserIds;
+  }
+
+  private Map<Long, User> loadAndValidateUsersById(List<Long> userIds) {
+    var usersById = userRepository.findAllById(userIds).stream()
+        .collect(Collectors.toMap(User::getId, Function.identity()));
+
+    var missingUserIds = userIds.stream()
+        .filter(id -> !usersById.containsKey(id))
+        .toList();
+    if (!missingUserIds.isEmpty()) {
+      throw new ReportPortalException(ErrorType.USER_NOT_FOUND, missingUserIds.getFirst());
+    }
+    return usersById;
   }
 
   private void validateUserOrgInfos(List<UserOrgInfo> userOrgInfos) {

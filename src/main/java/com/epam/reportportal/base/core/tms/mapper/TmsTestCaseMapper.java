@@ -92,6 +92,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
+  @Mapping(target = "priority", expression = "java(tmsTestCaseRQ.getPriority() != null ? tmsTestCaseRQ.getPriority().toUpperCase() : null)")
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 

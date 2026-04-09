@@ -16,28 +16,27 @@
 
 package com.epam.ta.reportportal.core.launch.changes;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.UpdateTrackingConfiguration.EXCHANGE_UPDATE_TRACKING;
-import static com.epam.ta.reportportal.core.configs.rabbit.UpdateTrackingConfiguration.LAUNCH_MODIFIED_ROUTING_KEY;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
+import com.epam.ta.reportportal.core.launch.repository.LaunchModifiedRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Detects changes in tracked {@link Launch} fields and sends event to queue if needed
+ * Detects changes in tracked {@link Launch} fields and records the launch for external
+ * synchronisation (e.g. Logstash → OpenSearch) via the {@code launches_modified} table.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class LaunchChangesHandler {
 
-  private final RabbitTemplate rabbitTemplate;
+  private final LaunchModifiedRepository launchModifiedRepository;
 
   /**
    * Captures the current state of tracked fields.
@@ -60,24 +59,17 @@ public class LaunchChangesHandler {
 
   /**
    * Compares the current launch state against a previously taken snapshot. If any tracked field
-   * differs, schedules an asynchronous update of {@code last_modified} on every test item of the
-   * launch.
+   * differs, inserts the launch ID into {@code launches_modified} so that an external pipeline
+   * (Logstash) can pick it up and re-sync test items in OpenSearch.
    */
   public void handleIfChanged(Launch launch, LaunchFieldsSnapshot before) {
     if (hasChanges(launch, before)) {
-      log.info("Publishing last_modified update request for launch {}", launch.getId());
-      rabbitTemplate.convertAndSend(
-          EXCHANGE_UPDATE_TRACKING,
-          LAUNCH_MODIFIED_ROUTING_KEY,
-          new LaunchModifiedMessage(launch.getId())
-      );
+      log.debug("Recording launch {} into launches_modified for re-sync", launch.getId());
+      launchModifiedRepository.insertIfAbsent(launch.getId());
     }
   }
 
   private boolean hasChanges(Launch launch, LaunchFieldsSnapshot before) {
-    if (!Objects.equals(before.description(), launch.getDescription())) {
-      return true;
-    }
     if (!Objects.equals(before.mode(), launch.getMode())) {
       return true;
     }

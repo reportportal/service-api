@@ -10,7 +10,6 @@ public record LaunchFieldsSnapshot(
     LaunchModeEnum mode,
     StatusEnum status,
     RetentionPolicyEnum retentionPolicy,
-    Set<AttributeSnapshot> attributes
-) {
+    Set<AttributeSnapshot> attributes) {
 
 }

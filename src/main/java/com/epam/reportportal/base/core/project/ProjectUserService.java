@@ -1,5 +1,7 @@
 package com.epam.reportportal.base.core.project;
 
+import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
+
 import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.user.UserService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -38,7 +40,9 @@ public class ProjectUserService {
         .forEach(projectId -> {
           UserActivityResource userActivityResource =
               UserConverter.TO_ACTIVITY_RESOURCE.apply(unassignedUser, projectId);
-          applicationEventPublisher.publishEvent(new UnassignUserEvent(userActivityResource, orgId));
+          applicationEventPublisher.publishEvent(
+              new UnassignUserEvent(userActivityResource, getPrincipal().getUserId(), getPrincipal().getUsername(),
+                  orgId));
         });
   }
 }

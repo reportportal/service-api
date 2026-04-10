@@ -1,6 +1,7 @@
 package com.epam.reportportal.base.core.tms.service;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
@@ -98,4 +99,6 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   void addTestPlanMilestone(Long projectId, Long milestoneId, Long testPlanId);
 
   void removeTestPlansFromMilestone(Long projectId, Long milestoneId);
+
+  Page<TmsManualLaunchTestPlanRS> getTestPlanNames(Long projectId, String search, Pageable pageable);
 }

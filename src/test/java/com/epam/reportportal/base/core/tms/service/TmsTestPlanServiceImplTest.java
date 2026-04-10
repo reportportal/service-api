@@ -32,6 +32,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlan
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestPlanFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projection.TmsTestPlanName;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -1716,11 +1717,51 @@ class TmsTestPlanServiceImplTest {
   }
 
   @Test
-  void removeTestPlansFromMilestone_ShouldCallRepository() {
-    // Given/When
-    assertDoesNotThrow(() -> sut.removeTestPlansFromMilestone(projectId, milestoneId));
+  void getTestPlanNames_ShouldReturnPagedNames() {
+    // Given
+    var search = "test";
+
+    TmsTestPlanName projection = mock(TmsTestPlanName.class);
+    when(projection.getId()).thenReturn(1L);
+    when(projection.getName()).thenReturn("test plan");
+
+    org.springframework.data.domain.Page<TmsTestPlanName> springPage = new PageImpl<>(List.of(projection), pageable, 1);
+
+    when(testPlanRepository.findIdAndNameByProjectIdAndSearch(projectId, search, pageable))
+        .thenReturn(springPage);
+
+    // When
+    var result = sut.getTestPlanNames(projectId, search, pageable);
 
     // Then
-    verify(testPlanRepository).removeTestPlansFromMilestone(milestoneId, projectId);
+    assertNotNull(result);
+    assertEquals(1, result.getContent().size());
+    var rs = result.getContent().iterator().next();
+    assertEquals(1L, rs.getId());
+    assertEquals("test plan", rs.getName());
+    assertEquals(1, result.getPage().getTotalElements());
+
+    verify(testPlanRepository).findIdAndNameByProjectIdAndSearch(projectId, search, pageable);
+  }
+
+  @Test
+  void getTestPlanNames_WhenEmpty_ShouldReturnEmptyPage() {
+    // Given
+    var search = "nonexistent";
+
+    org.springframework.data.domain.Page<TmsTestPlanName> springPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(testPlanRepository.findIdAndNameByProjectIdAndSearch(projectId, search, pageable))
+        .thenReturn(springPage);
+
+    // When
+    var result = sut.getTestPlanNames(projectId, search, pageable);
+
+    // Then
+    assertNotNull(result);
+    assertTrue(result.getContent().isEmpty());
+    assertEquals(0, result.getPage().getTotalElements());
+
+    verify(testPlanRepository).findIdAndNameByProjectIdAndSearch(projectId, search, pageable);
   }
 }

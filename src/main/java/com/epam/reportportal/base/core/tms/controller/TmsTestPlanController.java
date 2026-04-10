@@ -1,6 +1,7 @@
 package com.epam.reportportal.base.core.tms.controller;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
@@ -320,5 +321,25 @@ public class TmsTestPlanController {
             .getProjectId(),
         testPlanId,
         duplicateTestPlanRQ);
+  }
+
+  @GetMapping("/name")
+  @Operation(
+      summary = "Get test plan names",
+      description = "Get a paginated list of test plan IDs and names with optional search by name or display ID."
+  )
+  @ApiResponse(responseCode = "200", description = "Test plan names retrieved successfully")
+  public Page<TmsManualLaunchTestPlanRS> getTestPlanNames(
+      @PathVariable String projectKey,
+      @RequestParam(required = false) String search,
+      @PagingOffset(sortable = TmsTestPlan.class) OffsetRequest offsetRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return tmsTestPlanService.getTestPlanNames(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        search,
+        offsetRequest
+    );
   }
 }

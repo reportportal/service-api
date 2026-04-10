@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.service;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
@@ -534,5 +535,20 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     }
 
     return duplicationResult;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<TmsManualLaunchTestPlanRS> getTestPlanNames(Long projectId, String search,
+      Pageable pageable) {
+    var page = testPlanRepository
+        .findIdAndNameByProjectIdAndSearch(projectId, search, pageable)
+        .map(info -> TmsManualLaunchTestPlanRS.builder()
+            .id(info.getId())
+            .name(info.getName())
+            .build());
+    return PagedResourcesAssembler
+        .<TmsManualLaunchTestPlanRS>pageConverter()
+        .apply(page);
   }
 }

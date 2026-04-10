@@ -37,9 +37,14 @@ public class JasperDataProvider {
   private final TestItemRepository testItemRepository;
 
   public Map<Long, TestItemPojo> getTestItemsOfLaunch(Launch launch, boolean includeAttachments) {
+    return getTestItemsOfLaunch(launch, includeAttachments, false);
+  }
+
+  public Map<Long, TestItemPojo> getTestItemsOfLaunch(Launch launch, boolean includeAttachments,
+      boolean flatAttachments) {
     return testItemRepository.selectTestItemsProjection(launch.getId())
         .stream()
-        .map(item -> TestItemPojo.build(item, includeAttachments))
+        .map(item -> TestItemPojo.build(item, includeAttachments, flatAttachments))
         .collect(Collectors.toMap(TestItemPojo::getId, it -> it, (oldValue, newValue) -> oldValue,
             LinkedHashMap::new));
   }

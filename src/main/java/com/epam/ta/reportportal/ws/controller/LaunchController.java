@@ -20,7 +20,6 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_R
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -35,6 +34,7 @@ import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.model.BulkRQ;
@@ -470,10 +470,11 @@ public class LaunchController {
       @Parameter(schema = @Schema(allowableValues = {"pdf", "xls", "html"}))
       @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
       @RequestParam(value = "includeAttachments", required = false, defaultValue = "false") boolean includeAttachments,
+      @RequestParam(value = "flatAttachments", required = false, defaultValue = "false") boolean flatAttachments,
       @AuthenticationPrincipal ReportPortalUser user,
       HttpServletResponse response) {
-    getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)));
+    getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, flatAttachments,
+        response, user, projectExtractor.extractProjectDetails(user, normalizeId(projectName)));
   }
 
   @Transactional

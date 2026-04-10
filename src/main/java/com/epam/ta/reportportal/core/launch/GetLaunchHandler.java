@@ -150,14 +150,19 @@ public interface GetLaunchHandler {
    * or HTML).
    * </p>
    *
-   * @param launchId           ID of the launch to export.
-   * @param reportFormat       Format of the report to export. Supported values: "pdf", "xls", "html".
-   * @param includeAttachments Whether to include all attachments related to the launch in a ZIP archive.
-   * @param response           {@link HttpServletResponse} used to write the report (or archive) to the output stream.
-   * @param user               Authenticated user requesting the export.
+   * @param launchId              ID of the launch to export.
+   * @param reportFormat          Format of the report to export. Supported values: "pdf", "xls", "html".
+   * @param includeAttachments    Whether to include all attachments related to the launch in a ZIP archive.
+   * @param flatAttachments       If {@code true}, all attachments are placed in a single flat
+   *                              {@code attachments/} directory with names {@code <id>_<name>.ext}.
+   *                              If {@code false}, attachments are organized in a hierarchical directory
+   *                              structure mirroring the test item tree.
+   * @param response              {@link HttpServletResponse} used to write the report (or archive) to the output stream.
+   * @param user                  Authenticated user requesting the export.
    * @throws ReportPortalException if the report or archive could not be written to the output stream.
    */
-  void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
+  void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
+      boolean flatAttachments, HttpServletResponse response,
       ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 
   /**

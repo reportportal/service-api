@@ -309,7 +309,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
   @Override
   public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
-      HttpServletResponse response,
+      boolean flatAttachments, HttpServletResponse response,
       ReportPortalUser user, ProjectDetails projectDetails) {
     var launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
@@ -323,7 +323,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
 
     if (includeAttachments) {
-      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat, response);
+      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat,
+          flatAttachments, response);
     } else {
       launchExportService.exportLaunch(launch, userFullName, reportFormat, response);
     }

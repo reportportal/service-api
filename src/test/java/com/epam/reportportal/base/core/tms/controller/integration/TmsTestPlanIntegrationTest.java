@@ -1551,4 +1551,42 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content.length()").value(1))
         .andExpect(jsonPath("$.content[0].id").value(FOLDER_303_ID));
   }
+  
+  @Test
+  void getTestPlanNamesIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/name")
+            .param("offset", "0")
+            .param("limit", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].id").exists())
+        .andExpect(jsonPath("$.content[0].name").exists())
+        .andExpect(jsonPath("$.page.totalElements").isNumber());
+  }
+
+  @Test
+  void getTestPlanNamesWithSearchIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/name")
+            .param("search", "name")
+            .param("offset", "0")
+            .param("limit", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.page.totalElements").isNumber());
+  }
+
+  @Test
+  void getTestPlanNamesWithNonExistentSearchIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/name")
+            .param("search", "nonexistent_plan_name")
+            .param("offset", "0")
+            .param("limit", "10")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(0))
+        .andExpect(jsonPath("$.page.totalElements").value(0));
+  }
 }

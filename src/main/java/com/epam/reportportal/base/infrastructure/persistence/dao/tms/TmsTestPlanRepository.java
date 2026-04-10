@@ -2,6 +2,7 @@ package com.epam.reportportal.base.infrastructure.persistence.dao.tms;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.ReportPortalRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projection.TmsTestPlanName;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -105,4 +106,16 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
       nativeQuery = true)
   void removeTestPlansFromMilestone(@Param("milestoneId") Long milestoneId,
       @Param("projectId") Long projectId);
+
+  @Query(value = "SELECT id, name FROM tms_test_plan " +
+      "WHERE project_id = :projectId " +
+      "AND (:search IS NULL OR name ILIKE '%' || CAST(:search AS varchar) || '%' OR display_id ILIKE '%' || CAST(:search AS varchar) || '%')",
+      countQuery = "SELECT COUNT(id) FROM tms_test_plan " +
+      "WHERE project_id = :projectId " +
+      "AND (:search IS NULL OR name ILIKE '%' || CAST(:search AS varchar) || '%' OR display_id ILIKE '%' || CAST(:search AS varchar) || '%')",
+      nativeQuery = true)
+  Page<TmsTestPlanName> findIdAndNameByProjectIdAndSearch(
+      @Param("projectId") Long projectId,
+      @Param("search") String search,
+      Pageable pageable);
 }

@@ -99,7 +99,9 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
         log.trace("Mapped test case attribute - key: '{}' -> ItemAttribute(key='tag', value='{}')",
             testCaseAttribute.getKey(), testCaseAttribute.getKey());
       }
-
+      
+      savedTestItem.getAttributes().addAll(itemAttributes);
+      
       // Save all item attributes
       itemAttributeRepository.saveAll(itemAttributes);
 

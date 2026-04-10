@@ -43,6 +43,7 @@ import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.core.organization.OrganizationUsersHandler;
+import com.epam.reportportal.base.core.project.ProjectUserService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -90,6 +91,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   private final UserRepository userRepository;
 
   private final ProjectUserRepository projectUserRepository;
+  private final ProjectUserService projectUserService;
   private final OrganizationUserRepository organizationUserRepository;
   private final OrganizationRepositoryCustom organizationRepositoryCustom;
   private final OrganizationUserService organizationUserService;
@@ -264,7 +266,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
         .filter(projectId -> !projectsId.contains(projectId))
         .toList();
 
-    projectUserRepository.deleteByUserIdAndProjectIds(userId, projectIdsToUnassign);
+    projectUserService.deleteByUserIdAndProjectIds(orgId, userId, projectIdsToUnassign);
   }
 
   private void assignToProjects(List<UserProjectInfo> projects, User user, boolean isManager) {

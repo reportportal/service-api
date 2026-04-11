@@ -36,7 +36,8 @@ public final class ActivityCriteriaConstant {
   public static final String CRITERIA_ACTIVITY_PROJECT_NAME = "projectName";
   public static final String CRITERIA_ACTIVITY_ORG_ID = "organizationId";
   public static final String CRITERIA_ACTIVITY_ORG_NAME = "organizationName";
-
+  public static final String CRITERIA_DETAILS = "details";
+  
   private ActivityCriteriaConstant() {
     //static only
   }

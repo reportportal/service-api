@@ -22,6 +22,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTIVITY_ORG_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTIVITY_PROJECT_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_DETAILS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_EVENT_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_NAME;
@@ -1273,7 +1274,8 @@ public enum FilterTarget {
       new CriteriaHolderBuilder().newBuilder(CRITERIA_USER, USERS.LOGIN, String.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_EVENT_NAME, ACTIVITY.EVENT_NAME, String.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_ACTIVITY_ORG_ID, ORGANIZATION.ID, Long.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ACTIVITY_ORG_NAME, ORGANIZATION.NAME, String.class).get()
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ACTIVITY_ORG_NAME, ORGANIZATION.NAME, String.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_DETAILS, ACTIVITY.DETAILS + "::text", String.class).get()
 
   )) {
     @Override

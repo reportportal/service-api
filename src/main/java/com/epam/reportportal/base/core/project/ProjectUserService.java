@@ -1,5 +1,7 @@
 package com.epam.reportportal.base.core.project;
 
+import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
+
 import com.epam.reportportal.base.core.events.domain.ProjectUsersUpdatedEvent;
 import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.user.UserService;
@@ -84,5 +86,21 @@ public class ProjectUserService {
                 EventAction.UNASSIGN));
       }
     });
+  }
+
+  public void deleteByUserIdAndProjectIds(Long orgId, Long userId, List<Long> projectIdsToUnassign) {
+    if (CollectionUtils.isEmpty(projectIdsToUnassign)) {
+      return;
+    }
+
+    var unassignedUser = userService.findById(userId);
+    var principal = getPrincipal();
+    projectUserRepository.deleteByUserIdAndProjectIds(userId, projectIdsToUnassign)
+        .forEach(projectId -> {
+          eventPublisher.publishEvent(
+              new UnassignUserEvent(UserConverter.TO_ACTIVITY_RESOURCE.apply(unassignedUser, projectId),
+                  principal.getUserId(), principal.getUsername(),
+                  orgId));
+        });
   }
 }

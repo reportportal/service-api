@@ -197,14 +197,14 @@ public class MailServiceFactory {
         .map(IntegrationType::getId)
         .collect(Collectors.toList());
 
-    Integration globalIntegration = integrationRepository.findAllGlobalInIntegrationTypeIds(
-            integrationTypeIds).stream()
+    Integration globalIntegration = integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
+        .stream()
         .filter(integration -> integration.isEnabled() && integration.getType().isEnabled())
         .findFirst()
         .orElseThrow(() -> emailConfigurationFail(null));
 
-    EmailService emailService = getEmailService(globalIntegration).orElseThrow(
-        () -> emailConfigurationFail(null));
+    EmailService emailService = getEmailService(globalIntegration)
+        .orElseThrow(() -> emailConfigurationFail(null));
 
     if (checkConnection) {
       checkConnection(emailService);

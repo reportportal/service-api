@@ -73,6 +73,9 @@ public class LaunchChangesHandler {
     if (!Objects.equals(before.mode(), launch.getMode())) {
       return true;
     }
+    if (!Objects.equals(before.status(), launch.getStatus())) {
+      return true;
+    }
     Set<AttributeSnapshot> currentAttrs = ofNullable(launch.getAttributes())
         .map(a -> a.stream()
             .map(ia -> new AttributeSnapshot(ia.getKey(), ia.getValue(), ia.isSystem()))

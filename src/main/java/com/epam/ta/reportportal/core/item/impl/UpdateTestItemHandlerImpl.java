@@ -175,7 +175,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         testItem.getItemResults().setIssue(issueEntity);
         issueEntity.setTestItemResults(testItem.getItemResults());
         testItem.setAnalysisOwnerId(user.getUserId());
-//        testItem.setLastModified(Instant.now());
 
         testItemRepository.save(testItem);
 
@@ -248,7 +247,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     }
     testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes())
         .addDescription(rq.getDescription()).get();
-//    testItem.setLastModified(Instant.now());
     testItemRepository.save(testItem);
 
     return COMPOSE_UPDATE_RESPONSE.apply(itemId);
@@ -341,7 +339,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           ))).addIssueType(issueType).addAutoAnalyzedFlag(false).get();
       issueEntityRepository.save(issueEntity);
       item.getItemResults().setIssue(issueEntity);
-//      item.setLastModified(Instant.now());
       testItemStatisticsService.changeDefectStatistics(item, beforeIssue, issueType);
 
       TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);
@@ -364,7 +361,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     items.forEach(
         it -> {
           validate(projectDetails, user, it);
-//          it.setLastModified(Instant.now());
           ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
               .ifPresent(it::setDescription);
         });

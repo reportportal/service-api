@@ -199,7 +199,6 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
           testItemStatisticsService.changeDefectStatistics(testItem, beforeIssue,
               testItem.getItemResults().getIssue().getIssueType());
-//          testItem.setLastModified(Instant.now());
           testItemRepository.save(testItem);
 
           messageBus.publishActivity(

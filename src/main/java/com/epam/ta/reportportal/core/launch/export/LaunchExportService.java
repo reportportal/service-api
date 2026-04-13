@@ -58,9 +58,7 @@ public class LaunchExportService {
       HttpServletResponse response) {
     ReportFormat format = reportService.resolveFormat(reportFormat);
     byte[] report = reportService.generateReport(launch,
-        dataProvider.getTestItemsOfLaunch(launch, false).values(),
-        username,
-        format);
+        dataProvider.getTestItemsOfLaunch(launch, false).values(), username, format);
 
     response.setContentType(format.getContentType());
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
@@ -81,8 +79,8 @@ public class LaunchExportService {
    * @param username        the username (used as fallback if owner's name is not found)
    * @param reportFormat    the format of the report inside the ZIP archive
    * @param flatAttachments if {@code true}, all attachments are placed in a flat
-   *                        {@code attachments/} directory named {@code <id>_<name>.ext};
-   *                        if {@code false}, attachments are organized in a hierarchical directory
+   *                        {@code attachments/} directory named {@code <id>_<name>.ext}; if
+   *                        {@code false}, attachments are organized in a hierarchical directory
    *                        structure
    * @param response        the HTTP response to write the ZIP archive to
    */
@@ -92,8 +90,8 @@ public class LaunchExportService {
     prepareZipResponseHeaders(launch, response);
 
     try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
-      Map<Long, TestItemPojo> testItems =
-          dataProvider.getTestItemsOfLaunch(launch, true, flatAttachments);
+      Map<Long, TestItemPojo> testItems = dataProvider.getTestItemsOfLaunch(launch, true,
+          flatAttachments);
 
       writeTestItemsAttachmentsToZip(launch, testItems, flatAttachments, zipOut);
       writeLaunchLogAttachmentsToZip(launch, flatAttachments, zipOut);
@@ -119,15 +117,15 @@ public class LaunchExportService {
     Map<Long, String> idNameMapping = buildIdNameMapping(testItems);
     Set<String> uniquePaths = new HashSet<>();
     for (TestItemPojo item : testItems.values()) {
-      String itemPathNames = flatAttachments
-          ? null : pathService.buildItemPath(idNameMapping, item.getPath());
+      String itemPathNames =
+          flatAttachments ? null : pathService.buildItemPath(idNameMapping, item.getPath());
       writeItemAttachmentsToZip(item, itemPathNames, flatAttachments, uniquePaths, zipOut);
 
       if (item.isHasChildren()) {
         continue;
       }
-      writeNestedStepsAttachmentsToZip(launch, item, idNameMapping, flatAttachments,
-          uniquePaths, zipOut);
+      writeNestedStepsAttachmentsToZip(launch, item, idNameMapping, flatAttachments, uniquePaths,
+          zipOut);
     }
   }
 
@@ -137,11 +135,11 @@ public class LaunchExportService {
       return;
     }
     for (AttachmentPojo attachment : item.getAttachmentPojoList()) {
-      String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
-          attachment.getFileName(), attachment.getContentType());
-      String fullPath = flatAttachments
-          ? buildFlatAttachmentPath(attachment.getId(), fileNameWithExtension)
-          : pathService.buildAttachmentPath(itemPathNames, fileNameWithExtension);
+      String attachmentFullName =
+          attachment.getId() + "_" + FileExtensionUtils.getFileNameWithExtension(
+              attachment.getFileName(), attachment.getContentType());
+      String fullPath = flatAttachments ? buildFlatAttachmentPath(attachmentFullName)
+          : pathService.buildAttachmentPath(itemPathNames, attachmentFullName);
       writeToZipIfUnique(attachment.getFileId(), fullPath, uniquePaths, zipOut);
     }
   }
@@ -161,15 +159,15 @@ public class LaunchExportService {
       if (!StringUtils.hasText(attachment.getFileId())) {
         continue;
       }
-      String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
-          attachment.getFileName(), attachment.getContentType());
+      String attachmentFullName =
+          attachment.getAttachmentId() + "_" + FileExtensionUtils.getFileNameWithExtension(
+              attachment.getFileName(), attachment.getContentType());
       String fullPath;
       if (flatAttachments) {
-        fullPath = buildFlatAttachmentPath(attachment.getAttachmentId(), fileNameWithExtension);
+        fullPath = buildFlatAttachmentPath(attachmentFullName);
       } else {
-        String nestedItemPathNames = pathService.buildItemPath(idNameMapping,
-            attachment.getPath());
-        fullPath = pathService.buildAttachmentPath(nestedItemPathNames, fileNameWithExtension);
+        String nestedItemPathNames = pathService.buildItemPath(idNameMapping, attachment.getPath());
+        fullPath = pathService.buildAttachmentPath(nestedItemPathNames, attachmentFullName);
       }
 
       if (writeToZipIfUnique(attachment.getFileId(), fullPath, uniquePaths, zipOut)) {
@@ -185,11 +183,11 @@ public class LaunchExportService {
       if (log.getAttachment() == null) {
         continue;
       }
-      String fileNameWithExtension = FileExtensionUtils.getFileNameWithExtension(
-          log.getAttachment().getFileName(), log.getAttachment().getContentType());
-      String path = flatAttachments
-          ? buildFlatAttachmentPath(log.getAttachment().getId(), fileNameWithExtension)
-          : fileNameWithExtension;
+      String attachmentFullName =
+          log.getAttachment().getId() + "_" + FileExtensionUtils.getFileNameWithExtension(
+              log.getAttachment().getFileName(), log.getAttachment().getContentType());
+      String path =
+          flatAttachments ? buildFlatAttachmentPath(attachmentFullName) : attachmentFullName;
       writeToZipIfUnique(log.getAttachment().getFileId(), path, uniquePaths, zipOut);
     }
   }
@@ -215,8 +213,8 @@ public class LaunchExportService {
 
   private static final String FLAT_ATTACHMENTS_DIR = "attachments/";
 
-  private String buildFlatAttachmentPath(Long attachmentId, String fileNameWithExtension) {
-    return FLAT_ATTACHMENTS_DIR + attachmentId + "_" + fileNameWithExtension;
+  private String buildFlatAttachmentPath(String fileNameWithExtension) {
+    return FLAT_ATTACHMENTS_DIR + fileNameWithExtension;
   }
 
   private void appendZipFileNameToItemType(TestItemPojo item, String fullPath) {

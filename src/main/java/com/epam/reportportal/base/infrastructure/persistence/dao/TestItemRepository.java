@@ -39,6 +39,20 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
     TestItemRepositoryCustom {
 
   /**
+   * Sets {@code last_modified = CURRENT_TIMESTAMP} on every test item that belongs to the given
+   * launch.
+   *
+   * @param launchId the launch whose items should be touched
+   */
+  @Modifying
+  @Query(value = """
+      UPDATE test_item
+      SET last_modified = CURRENT_TIMESTAMP
+      WHERE launch_id = :launchId
+      """, nativeQuery = true)
+  void updateLastModifiedByLaunchId(@Param("launchId") Long launchId);
+
+  /**
    * Among the provided parent test item and its retries, finds the parent item whose direct child steps have the
    * longest continuous sequence of non-failed nested steps from the start until the first failure occurs.
    *

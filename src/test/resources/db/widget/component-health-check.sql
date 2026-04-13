@@ -208,3 +208,6 @@ INSERT INTO public.widget (id, name, description, widget_type, items_count, widg
 ]}}');
 
 INSERT INTO public.widget_filter (widget_id, filter_id) VALUES (2, 1);
+
+-- Statistics for launch 6 (aggregated: 18 total, 7 passed, 9 failed, 2 skipped from test_item_results)
+INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (18, 1, 6), (7, 2, 6), (9, 4, 6), (2, 3, 6);

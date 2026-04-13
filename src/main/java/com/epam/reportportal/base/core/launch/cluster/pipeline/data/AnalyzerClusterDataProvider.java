@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.core.launch.cluster.pipeline.data;
 
-import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
-
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.reportportal.base.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
@@ -25,9 +23,7 @@ import com.epam.reportportal.base.core.launch.cluster.config.ClusterEntityContex
 import com.epam.reportportal.base.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -44,11 +40,10 @@ public abstract class AnalyzerClusterDataProvider implements ClusterDataProvider
 
   @Override
   public Optional<ClusterData> provide(GenerateClustersConfig config) {
-    expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(
-        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-        "There are no analyzer services are deployed."
-    );
-    return getGenerateRq(config).map(analyzerServiceClient::generateClusters);
+    if (analyzerServiceClient.hasClients()) {
+      return getGenerateRq(config).map(analyzerServiceClient::generateClusters);
+    }
+    return Optional.empty();
   }
 
   private Optional<GenerateClustersRq> getGenerateRq(GenerateClustersConfig config) {

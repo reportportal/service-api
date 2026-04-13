@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.hierarchy.FinishHierarchyHandler;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -76,6 +77,9 @@ class FinishLaunchHandlerImplTest {
 
   @Mock
   private ApplicationEventPublisher publisher;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
 
   @Mock
   LinkGenerator linkGenerator;
@@ -148,6 +152,7 @@ class FinishLaunchHandlerImplTest {
     );
     assertNotNull(response);
     assertEquals("Launch with ID = '1' successfully stopped.", response.getResultMessage());
+    verify(statisticsService, times(1)).addInterruptionStatistics(1L);
   }
 
   @Test
@@ -174,6 +179,7 @@ class FinishLaunchHandlerImplTest {
     );
     assertNotNull(response);
     assertEquals(1, response.size());
+    verify(statisticsService, times(1)).addInterruptionStatistics(1L);
   }
 
   @Test

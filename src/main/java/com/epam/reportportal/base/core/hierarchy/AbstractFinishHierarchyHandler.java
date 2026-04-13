@@ -27,6 +27,7 @@ import static com.epam.reportportal.base.infrastructure.rules.commons.validation
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
@@ -41,7 +42,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
 import com.epam.reportportal.base.job.PageUtil;
 import java.time.Instant;
 import java.util.List;
@@ -71,13 +71,15 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   private final RetryHandler retryHandler;
   private final IssueTypeHandler issueTypeHandler;
   private final ChangeStatusHandler changeStatusHandler;
+  private final TestItemStatisticsService statisticsService;
 
   public AbstractFinishHierarchyHandler(LaunchRepository launchRepository,
       TestItemRepository testItemRepository,
       ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
       RetryHandler retryHandler,
       IssueTypeHandler issueTypeHandler,
-      ChangeStatusHandler changeStatusHandler) {
+      ChangeStatusHandler changeStatusHandler,
+      TestItemStatisticsService statisticsService) {
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
     this.itemAttributeRepository = itemAttributeRepository;
@@ -85,6 +87,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     this.retryHandler = retryHandler;
     this.issueTypeHandler = issueTypeHandler;
     this.changeStatusHandler = changeStatusHandler;
+    this.statisticsService = statisticsService;
   }
 
   protected abstract boolean isIssueRequired(StatusEnum status, T entity);
@@ -125,7 +128,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     return withoutChildren + withChildren;
   }
 
-  private int updateDescendantsWithoutChildren(T entity, MembershipDetails membershipDetails, StatusEnum status,
+  private int updateDescendantsWithoutChildren(T entity, MembershipDetails membershipDetails,
+      StatusEnum status,
       Instant endTime, ReportPortalUser user) {
     Long projectId = membershipDetails.getProjectId();
     AtomicInteger updatedCount = new AtomicInteger(0);
@@ -134,7 +138,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
         TO_INVESTIGATE.getLocator()
     ).ifPresentOrElse(issueType -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
             getItemIdsFunction(false, entity, IN_PROGRESS),
-            itemIdsWithoutChildrenHandler(issueType, status, endTime, membershipDetails, user, updatedCount)
+            itemIdsWithoutChildrenHandler(issueType, status, endTime, membershipDetails, user,
+                updatedCount)
         ),
         () -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
             getItemIdsFunction(false, entity, IN_PROGRESS),
@@ -152,6 +157,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
       itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
         finishItem(testItem, status, endTime);
         attachIssue(testItem, issueType);
+        statisticsService.addStatistics(testItem);
         changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
       }));
       updatedCount.addAndGet(itemIds.size());
@@ -165,6 +171,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
       Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
       itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
         finishItem(testItem, status, endTime);
+        statisticsService.addStatistics(testItem);
         changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
       }));
       updatedCount.addAndGet(itemIds.size());
@@ -228,7 +235,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     interruptedAttribute.setTestItem(testItem);
     testItem.getAttributes().add(interruptedAttribute);
     if (testItem.isHasRetries()) {
-      retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(status.name()), endTime);
+      retryHandler.finishRetries(testItem, status, endTime);
     }
   }
 }

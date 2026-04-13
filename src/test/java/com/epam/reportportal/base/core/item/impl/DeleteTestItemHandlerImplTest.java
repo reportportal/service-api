@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -36,6 +37,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepositor
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemPathContext;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -81,12 +83,16 @@ class DeleteTestItemHandlerImplTest {
   @Mock
   private LogService logService;
 
+  @Mock
+  private TestItemStatisticsService statisticsService;
+
   @InjectMocks
   private DeleteTestItemHandlerImpl handler;
 
   @Test
   void testItemNotFound() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
 
     when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -99,7 +105,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteInProgressItem() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.PASSED);
@@ -124,7 +131,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemWithInProgressLaunch() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.IN_PROGRESS);
@@ -146,7 +154,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemFromAnotherProject() {
-    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
 
     Launch launch = new Launch();
     launch.setStatus(StatusEnum.PASSED);
@@ -166,7 +175,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteNotOwnTestItem() {
-    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         1L);
     rpUser.setUserId(2L);
 
@@ -188,7 +198,8 @@ class DeleteTestItemHandlerImplTest {
 
   @Test
   void deleteTestItemWithParent() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         1L);
 
     TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, "owner");
@@ -215,12 +226,14 @@ class DeleteTestItemHandlerImplTest {
     handler.deleteTestItem(1L, rpUserToMembership(rpUser), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
+    verify(statisticsService, times(1)).deleteItemStatistics(any(TestItemPathContext.class));
     assertFalse(parent.isHasChildren());
   }
 
   @Test
   void deleteItemPositive() {
-    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER,
+    ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
         1L);
     TestItem item = getTestItem(StatusEnum.FAILED, StatusEnum.FAILED, 1L, "owner");
 
@@ -236,6 +249,7 @@ class DeleteTestItemHandlerImplTest {
         rpUserToMembership(rpUser), rpUser);
 
     verify(itemContentRemover, times(1)).remove(anyLong());
+    verify(statisticsService, times(1)).deleteItemStatistics(any(TestItemPathContext.class));
     assertEquals("Test Item with ID = '1' has been successfully deleted.",
         response.getResultMessage());
 

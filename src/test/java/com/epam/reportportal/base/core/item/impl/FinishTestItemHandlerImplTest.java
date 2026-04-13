@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.item.IssueResolvedEvent;
+import com.epam.reportportal.base.core.item.TestItemStatisticsService;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
 import com.epam.reportportal.base.core.item.impl.status.StatusChangingStrategy;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -65,7 +66,7 @@ import org.springframework.context.ApplicationEventPublisher;
 class FinishTestItemHandlerImplTest {
 
   @Mock
-  private TestItemRepository repository;
+  private TestItemRepository testItemRepository;
 
   @Mock
   private LaunchRepository launchRepository;
@@ -88,6 +89,9 @@ class FinishTestItemHandlerImplTest {
   @Mock
   private ApplicationEventPublisher eventPublisher;
 
+  @Mock
+  private TestItemStatisticsService statisticsService;
+
   @InjectMocks
   private FinishTestItemHandlerImpl handler;
 
@@ -95,7 +99,7 @@ class FinishTestItemHandlerImplTest {
   void finishNotExistedTestItem() {
     final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
         ProjectRole.VIEWER, 1L);
-    when(repository.findByUuid("1")).thenReturn(Optional.empty());
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.empty());
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
             new FinishTestItemRQ()
@@ -115,7 +119,7 @@ class FinishTestItemHandlerImplTest {
     results.setStatus(StatusEnum.IN_PROGRESS);
     item.setItemResults(results);
     item.setItemId(1L);
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1",
@@ -140,7 +144,7 @@ class FinishTestItemHandlerImplTest {
     item.setItemId(1L);
     item.setLaunchId(launch.getId());
     item.setHasChildren(false);
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.IN_PROGRESS);
     item.setItemResults(results);
@@ -174,7 +178,7 @@ class FinishTestItemHandlerImplTest {
     launch.setProjectId(1L);
     item.setLaunchId(launch.getId());
     item.setHasChildren(false);
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
     when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
     doNothing().when(changeStatusHandler).changeLaunchStatus(any());
     doNothing().when(changeStatusHandler).changeParentStatus(any(), any(), any());
@@ -191,6 +195,7 @@ class FinishTestItemHandlerImplTest {
         ProjectRole.VIEWER, 1L);
     TestItem item = new TestItem();
     item.setItemId(1L);
+    item.setLaunchId(1L);
     TestItemResults results = new TestItemResults();
     results.setStatus(StatusEnum.PASSED);
     item.setItemResults(results);
@@ -203,10 +208,8 @@ class FinishTestItemHandlerImplTest {
     item.setType(TestItemTypeEnum.STEP);
     item.setHasStats(true);
     item.setHasChildren(false);
-    when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
-    when(repository.findByUuid("1")).thenReturn(Optional.of(item));
-    when(repository.findIdByUuidForUpdate(any())).thenReturn(Optional.of(item.getItemId()));
-    when(repository.findById(item.getItemId())).thenReturn(Optional.of(item));
+    when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 
     IssueType issueType = new IssueType();
     issueType.setLocator("123");
@@ -233,5 +236,6 @@ class FinishTestItemHandlerImplTest {
     verify(statusChangingStrategy, times(1)).changeStatus(any(), any(), any(), eq(false));
     verify(issueEntityRepository, times(1)).save(any());
     verify(eventPublisher, times(1)).publishEvent(any(IssueResolvedEvent.class));
+    verify(statisticsService, times(1)).addStatistics(any(TestItem.class));
   }
 }

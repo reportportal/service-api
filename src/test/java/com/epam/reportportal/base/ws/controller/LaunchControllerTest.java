@@ -39,7 +39,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepositor
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.BulkRQ;
 import com.epam.reportportal.base.model.DeleteBulkRQ;
 import com.epam.reportportal.base.model.launch.AnalyzeLaunchRQ;
@@ -105,12 +104,7 @@ class LaunchControllerTest extends BaseMvcTest {
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/analyze").with(
                 token(oAuthHelper.getDefaultToken()))
             .content(objectMapper.writeValueAsBytes(analyzeLaunchRQ)).contentType(APPLICATION_JSON))
-        .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
-        .andExpect(result -> assertEquals(
-            "Impossible interact with integration. There are no analyzer services are deployed.",
-            result.getResolvedException().getMessage()
-        ));
+        .andExpect(status().is(200));
   }
 
   @Test

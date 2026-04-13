@@ -19,7 +19,7 @@ package com.epam.reportportal.base.core.organization.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,11 +28,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser.OrganizationDetails;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUsersRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -60,19 +56,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 class OrganizationUsersHandlerImplTest {
 
   @Mock
-  private OrganizationUsersRepositoryCustom organizationUsersRepositoryCustom;
-
-  @Mock
-  private ProjectUserRepository projectUserRepository;
-
-  @Mock
-  private UserRepository userRepository;
-
-  @Mock
   private OrganizationUserRepository organizationUserRepository;
-
-  @Mock
-  private OrganizationRepositoryCustom organizationRepositoryCustom;
 
   @Mock
   private OrganizationUserService organizationUserService;
@@ -150,8 +134,8 @@ class OrganizationUsersHandlerImplTest {
       assertEquals("You do not have enough permissions. User 100 cannot be unassigned from personal organization",
           exception.getMessage());
 
-      verify(projectUserRepository, never()).deleteProjectUserByProjectOrganizationId(anyLong(), anyLong());
-      verify(organizationUserRepository, never()).delete(any(OrganizationUser.class));
+      verify(organizationUserService, never()).removeOrganizationUserEntry(any(OrganizationUser.class),
+          any(ReportPortalUser.class));
     }
   }
 
@@ -164,7 +148,8 @@ class OrganizationUsersHandlerImplTest {
 
     when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID))
         .thenReturn(Optional.of(organizationUser));
-    doNothing().when(organizationUserService).removeOrganizationUserEntry(organizationUser);
+    doNothing().when(organizationUserService)
+        .removeOrganizationUserEntry(eq(organizationUser), any(ReportPortalUser.class));
 
     try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
         SecurityContextUtils.class)) {
@@ -174,7 +159,7 @@ class OrganizationUsersHandlerImplTest {
       organizationUsersHandler.unassignUser(ORG_ID, USER_ID);
 
       // Then
-      verify(organizationUserService).removeOrganizationUserEntry(organizationUser);
+      verify(organizationUserService).removeOrganizationUserEntry(eq(organizationUser), eq(reportPortalUser));
     }
   }
 
@@ -214,7 +199,8 @@ class OrganizationUsersHandlerImplTest {
 
     when(organizationUserRepository.findByUserIdAndOrganization_Id(differentUserId, ORG_ID))
         .thenReturn(Optional.of(differentOrgUser));
-    doNothing().when(organizationUserService).removeOrganizationUserEntry(differentOrgUser);
+    doNothing().when(organizationUserService)
+        .removeOrganizationUserEntry(eq(differentOrgUser), any(ReportPortalUser.class));
 
     try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
         SecurityContextUtils.class)) {
@@ -224,7 +210,7 @@ class OrganizationUsersHandlerImplTest {
       organizationUsersHandler.unassignUser(ORG_ID, differentUserId);
 
       // Then
-      verify(organizationUserService).removeOrganizationUserEntry(differentOrgUser);
+      verify(organizationUserService).removeOrganizationUserEntry(eq(differentOrgUser), eq(managerUser));
     }
   }
 
@@ -236,7 +222,8 @@ class OrganizationUsersHandlerImplTest {
 
     when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID))
         .thenReturn(Optional.of(organizationUser));
-    doNothing().when(organizationUserService).removeOrganizationUserEntry(organizationUser);
+    doNothing().when(organizationUserService)
+        .removeOrganizationUserEntry(eq(organizationUser), any(ReportPortalUser.class));
 
     try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
         SecurityContextUtils.class)) {
@@ -246,7 +233,7 @@ class OrganizationUsersHandlerImplTest {
       organizationUsersHandler.unassignUser(ORG_ID, USER_ID);
 
       // Then
-      verify(organizationUserService).removeOrganizationUserEntry(organizationUser);
+      verify(organizationUserService).removeOrganizationUserEntry(eq(organizationUser), eq(reportPortalUser));
     }
   }
 }

@@ -20,6 +20,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.Project
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUserId;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -108,20 +109,49 @@ public interface ProjectUserRepository
   @Query(value = "SELECT pu.user_id FROM project_user pu WHERE pu.project_id = :projectId", nativeQuery = true)
   List<Long> findUserIdsByProjectId(@Param("projectId") Long projectId);
 
-  /**
-   * Finds all ProjectUser entries for the specified project ID.
-   *
-   * @param projectId The project ID
-   * @return List of ProjectUser entries
-   */
-  List<ProjectUser> findAllByProject_Id(Long projectId);
+  @Modifying
+  @Query(value =
+      """
+          DELETE FROM project_user
+          WHERE project_id = :projectId AND user_id IN :userIds
+          """, nativeQuery = true)
+  void deleteByProjectIdAndUserIds(@Param("projectId") Long projectId, @Param("userIds") List<Long> userIds);
 
-  /**
-   * Finds all ProjectUser entries for the specified project ID where the user ID is not in the provided list.
-   *
-   * @param projectId The project ID
-   * @param userIds   The list of user IDs to exclude
-   * @return List of ProjectUser entries
-   */
-  List<ProjectUser> findAllByProject_IdAndUser_IdNotIn(Long projectId, List<Long> userIds);
+  @Query(value = """
+      SELECT pu.project_id, pu.user_id
+      FROM project_user pu
+      JOIN project p ON p.id = pu.project_id
+      WHERE p.organization_id = :orgId
+      """, nativeQuery = true)
+  List<Object[]> findProjectIdAndUserIdByOrgId(@Param("orgId") Long orgId);
+
+  @Modifying
+  @Query(value = """
+      DELETE FROM project_user
+      WHERE user_id IN (:userIds)
+      AND project_id IN (SELECT id FROM project WHERE organization_id = :orgId)
+      """, nativeQuery = true)
+  void deleteByOrgIdAndUserIds(@Param("orgId") Long orgId, @Param("userIds") List<Long> userIds);
+
+  @Query(value = """
+      SELECT * FROM project_user
+      WHERE project_id = :projectId AND user_id IN (:userIds)
+      """, nativeQuery = true)
+  List<ProjectUser> findAllByProjectIdAndUserIdIn(@Param("projectId") Long projectId,
+      @Param("userIds") List<Long> userIds);
+
+  @Query(value = """
+      SELECT user_id FROM project_user
+      WHERE project_id = :projectId AND user_id IN (:userIds)
+      """, nativeQuery = true)
+  Set<Long> findUserIdsByProjectIdAndUserIdIn(@Param("projectId") Long projectId, @Param("userIds") List<Long> userIds);
+
+  @Modifying
+  @Query(value = """
+            DELETE FROM project_user
+            WHERE project_id = :projectId AND user_id NOT IN (:userIdsToKeep)
+            RETURNING user_id
+      """, nativeQuery = true)
+  List<Long> deleteByProjectIdAndUserIdNotInReturningUserIds(@Param("projectId") Long projectId,
+      @Param("userIdsToKeep") List<Long> userIdsToKeep);
 }

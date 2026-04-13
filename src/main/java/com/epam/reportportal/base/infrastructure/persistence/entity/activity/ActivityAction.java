@@ -82,6 +82,9 @@ public enum ActivityAction {
   DELETE_NOTIFICATION_RULE("deleteNotificationRule"),
   UPDATE_NOTIFICATION_SETTINGS("updateNotificationSettings"),
 
+  UPDATE_ORGANIZATION_USERS("updateOrganizationUsers"),
+  UPDATE_PROJECT_USERS("updateProjectUsers"),
+
   UPDATE_INSTANCE("updateInstance"),
 
   CREATE_LOG_TYPE("createLogType"),

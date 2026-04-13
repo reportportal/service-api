@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,44 +21,40 @@ import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetails
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectType;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.processList;
 
-import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
+import com.epam.reportportal.base.core.events.domain.OrganizationUsersUpdatedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.builder.ActivityBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityAction;
-import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
-import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for ProjectDeletedEvent to Activity.
- *
+ * Converter for OrganizationUsersUpdatedEvent to Activity.
  */
 @Component
-public class ProjectDeletedEventConverter implements EventToActivityConverter<ProjectDeletedEvent> {
+public class OrganizationUsersUpdatedEventConverter implements EventToActivityConverter<OrganizationUsersUpdatedEvent> {
 
   @Override
-  public Activity convert(ProjectDeletedEvent event) {
+  public Activity convert(OrganizationUsersUpdatedEvent event) {
     return new ActivityBuilder()
         .addCreatedAt(event.getOccurredAt())
-        .addAction(EventAction.DELETE)
-        .addEventName(ActivityAction.DELETE_PROJECT.getValue())
-        .addPriority(EventPriority.CRITICAL)
-        .addObjectId(event.getProjectId())
-        .addObjectName(event.getProjectName())
-        .addObjectType(EventObject.PROJECT)
-        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
-        .addSubjectType(getSubjectType(event))
+        .addAction(event.getAction())
+        .addEventName(ActivityAction.UPDATE_ORGANIZATION_USERS.getValue())
+        .addPriority(EventPriority.MEDIUM)
+        .addObjectId(event.getOrganizationId())
+        .addObjectName(event.getOrganizationName())
+        .addObjectType(EventObject.ORGANIZATION)
         .addOrganizationId(event.getOrganizationId())
+        .addSubjectId(event.getUserId())
         .addSubjectName(getSubjectName(event))
-        .addHistoryField(processList(USERS, event.getUserIds(), List.of()))
+        .addSubjectType(getSubjectType(event))
+        .addHistoryField(processList(USERS, event.getBefore(), event.getAfter()))
         .get();
   }
 
   @Override
-  public Class<ProjectDeletedEvent> getEventClass() {
-    return ProjectDeletedEvent.class;
+  public Class<OrganizationUsersUpdatedEvent> getEventClass() {
+    return OrganizationUsersUpdatedEvent.class;
   }
 }
-

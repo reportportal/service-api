@@ -46,7 +46,7 @@ public class ItemIssueTypeDefinedEventConverter implements
     return new ActivityBuilder()
         .addCreatedAt(event.getOccurredAt())
         .addAction(EventAction.ANALYZE)
-        .addEventName(event.isSystemEvent()
+        .addEventName(event.getAfter().isAutoAnalyzed()
             ? ActivityAction.ANALYZE_ITEM.getValue()
             : ActivityAction.UPDATE_ITEM.getValue())
         .addPriority(EventPriority.LOW)

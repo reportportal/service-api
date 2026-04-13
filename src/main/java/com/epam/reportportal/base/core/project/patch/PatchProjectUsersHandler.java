@@ -21,38 +21,46 @@ import static java.util.function.Predicate.isEqual;
 
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.UserProjectInfo;
+import com.epam.reportportal.base.core.events.domain.ProjectUsersUpdatedEvent;
 import com.epam.reportportal.base.core.project.ProjectService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.IdContainer;
-import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Handler for patch operations related to project users. Extends {@link BasePatchProjectHandler} to provide
- * user-specific patch logic.
+ * Handler for patch operations related to project users. Supports bulk assign/unassign operations with corresponding
+ * bulk events.
  */
 @Service
-@Slf4j
 public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   private final UserRepository userRepository;
   private final OrganizationRepositoryCustom organizationRepository;
   private final ProjectRepository projectRepository;
   private final ProjectUserRepository projectUserRepository;
+  private final ApplicationEventPublisher eventPublisher;
   private final ProjectUserAssignmentHelper assignmentHelper;
 
   /**
@@ -62,16 +70,21 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
    * @param projectUserRepository The repository for project users.
    * @param objectMapper          The object mapper for JSON conversion.
    */
-  @Autowired
-  protected PatchProjectUsersHandler(UserRepository userRepository, ProjectService projectService,
-      ProjectUserRepository projectUserRepository, ObjectMapper objectMapper,
-      OrganizationRepositoryCustom organizationRepository, ProjectRepository projectRepository,
+  protected PatchProjectUsersHandler(
+      UserRepository userRepository,
+      ProjectService projectService,
+      ProjectUserRepository projectUserRepository,
+      ObjectMapper objectMapper,
+      OrganizationRepositoryCustom organizationRepository,
+      ProjectRepository projectRepository,
+      ApplicationEventPublisher eventPublisher,
       ProjectUserAssignmentHelper assignmentHelper) {
     super(projectService, objectMapper);
     this.userRepository = userRepository;
     this.projectUserRepository = projectUserRepository;
     this.organizationRepository = organizationRepository;
     this.projectRepository = projectRepository;
+    this.eventPublisher = eventPublisher;
     this.assignmentHelper = assignmentHelper;
   }
 
@@ -87,83 +100,159 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
     var prjUsersInfo = readOperationValue(operation, new TypeReference<List<UserProjectInfo>>() {
     });
-
-    var principal = SecurityContextUtils.getPrincipal();
-
-    var newUserIds = prjUsersInfo.stream().map(UserProjectInfo::getId).toList();
+    var principal = getPrincipal();
 
     var org = organizationRepository.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+    var project = findAndValidateProject(orgId, projectId);
 
-    var project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+    var beforeUserIds = projectUserRepository.findUserIdsByProjectId(projectId);
 
-    expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
-
-    if (newUserIds.isEmpty()) {
-      unassignAllUsersFromProject(project.getId(), orgId);
+    if (CollectionUtils.isEmpty(prjUsersInfo)) {
+      projectUserRepository.deleteAllByProjectId(projectId);
+      publishEvent(principal, project, orgId, beforeUserIds, List.of(), EventAction.UNASSIGN);
       return;
-    } else {
-      var usersToRemove = projectUserRepository.findAllByProject_IdAndUser_IdNotIn(project.getId(), newUserIds);
-      var removeIds = usersToRemove.stream().map(pu -> pu.getUser().getId()).toList();
-      projectUserRepository.deleteByProject_IdAndUser_IdIn(project.getId(), removeIds);
-      log.info("Users {} have been removed from project with ID {}", removeIds, project.getId());
-      usersToRemove.forEach(
-          pu -> assignmentHelper.publishUserUnassignEvent(principal, pu.getUser(), orgId, project.getId()));
     }
 
-    prjUsersInfo.forEach(info -> {
-      var userId = Optional.ofNullable(info.getId())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required"));
+    var newUserIds = prjUsersInfo.stream()
+        .map(UserProjectInfo::getId)
+        .filter(Objects::nonNull)
+        .toList();
 
-      var user = userRepository.findById(userId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+    // Remove users not in new list
+    var removedUserIds = projectUserRepository.deleteByProjectIdAndUserIdNotInReturningUserIds(projectId, newUserIds);
+    var afterRemovalUserIds = beforeUserIds.stream()
+        .filter(id -> !removedUserIds.contains(id))
+        .toList();
+    publishEvent(principal, project, orgId, beforeUserIds, afterRemovalUserIds, EventAction.UNASSIGN);
 
-      assignmentHelper.validateUserAssignment(org, principal, user);
-
-      var orgUser = assignmentHelper.getOrganizationUser(org, principal, user);
-
-      var projectRole = assignmentHelper.evaluateProjectRole(orgUser, info);
-
-      var prjUser = projectUserRepository.findProjectUserByUserIdAndProjectId(user.getId(), project.getId())
-          .orElseGet(() -> new ProjectUser().withUser(user).withProject(project));
-      prjUser.setProjectRole(projectRole);
-      projectUserRepository.save(prjUser);
-
-      assignmentHelper.publishUserAssignEvent(principal, user, orgId, projectId, projectRole);
-    });
+    // Process assignments
+    var assignedUserIds = processUserAssignments(prjUsersInfo, org, project, principal);
+    if (!assignedUserIds.isEmpty()) {
+      var afterAssignUserIds = new ArrayList<>(afterRemovalUserIds);
+      afterAssignUserIds.addAll(assignedUserIds);
+      publishEvent(principal, project, orgId, afterRemovalUserIds, afterAssignUserIds, EventAction.ASSIGN);
+    }
   }
 
   @Override
   public void remove(PatchOperation operation, Long orgId, Long projectId) {
-    if (ObjectUtils.isEmpty(operation.getValue())) {
-      unassignAllUsersFromProject(projectId, orgId);
+    var principal = getPrincipal();
+    var project = findAndValidateProject(orgId, projectId);
+
+    var beforeUserIds = projectUserRepository.findUserIdsByProjectId(projectId);
+    var userIdsToRemove = extractUserIdsToRemove(operation);
+
+    if (CollectionUtils.isEmpty(userIdsToRemove)) {
+      projectUserRepository.deleteAllByProjectId(projectId);
+      publishEvent(principal, project, orgId, beforeUserIds, List.of(), EventAction.UNASSIGN);
       return;
+    }
+
+    validateUsersExistInProject(userIdsToRemove, projectId);
+    projectUserRepository.deleteByProjectIdAndUserIds(projectId, userIdsToRemove);
+
+    var afterUserIds = beforeUserIds.stream()
+        .filter(id -> !userIdsToRemove.contains(id))
+        .toList();
+
+    publishEvent(principal, project, orgId, beforeUserIds, afterUserIds, EventAction.UNASSIGN);
+  }
+
+  private ReportPortalUser getPrincipal() {
+    return (ReportPortalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+  }
+
+  private Project findAndValidateProject(Long orgId, Long projectId) {
+    var project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+    expect(project.getOrganizationId(), isEqual(orgId)).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
+    return project;
+  }
+
+  private List<Long> extractUserIdsToRemove(PatchOperation operation) {
+    if (operation.getValue() == null) {
+      return List.of();
     }
     var ids = readOperationValue(operation, new TypeReference<List<IdContainer>>() {
     });
-
     if (CollectionUtils.isEmpty(ids)) {
-      unassignAllUsersFromProject(projectId, orgId);
-      return;
+      return List.of();
     }
-
-    var principal = SecurityContextUtils.getPrincipal();
-    ids.forEach(idContainer -> {
-      var projectUser = projectUserRepository.findProjectUserByUserIdAndProjectId(idContainer.getId(), projectId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, idContainer.getId()));
-      projectUserRepository.deleteByUserIdAndProjectIds(idContainer.getId(), List.of(projectId));
-      log.info("User with ID {} has been removed from project with ID {}", idContainer.getId(), projectId);
-      assignmentHelper.publishUserUnassignEvent(principal, projectUser.getUser(), orgId, projectId);
-    });
+    return ids.stream()
+        .map(IdContainer::getId)
+        .filter(Objects::nonNull)
+        .toList();
   }
 
-  private void unassignAllUsersFromProject(Long projectId, Long orgId) {
-    var principal = SecurityContextUtils.getPrincipal();
-    var usersToRemove = projectUserRepository.findAllByProject_Id(projectId);
-    projectUserRepository.deleteAllByProjectId(projectId);
-    log.info("All users have been removed from project with ID {}", projectId);
-    usersToRemove
-        .forEach(pu -> assignmentHelper.publishUserUnassignEvent(principal, pu.getUser(), orgId, projectId));
+  private List<Long> processUserAssignments(List<UserProjectInfo> prjUsersInfo, Organization org, Project project,
+      ReportPortalUser principal) {
+
+    var userIds = prjUsersInfo.stream()
+        .map(info -> Optional.ofNullable(info.getId())
+            .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Field 'id' is required")))
+        .toList();
+    if (CollectionUtils.isEmpty(userIds)) {
+      return List.of();
+    }
+
+    var usersById = userRepository.findAllById(userIds).stream()
+        .collect(Collectors.toMap(User::getId, Function.identity()));
+
+    var existingProjectUsersById = projectUserRepository
+        .findAllByProjectIdAndUserIdIn(project.getId(), userIds)
+        .stream()
+        .collect(Collectors.toMap(pu -> pu.getUser().getId(), Function.identity()));
+
+    var projectUsersToSave = new ArrayList<ProjectUser>();
+    var newlyAssignedUserIds = new ArrayList<Long>();
+
+    for (var info : prjUsersInfo) {
+      var user = Optional.ofNullable(usersById.get(info.getId()))
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, info.getId()));
+
+      assignmentHelper.validateUserAssignment(org, principal, user);
+      var orgUser = assignmentHelper.getOrganizationUser(org, principal, user);
+      var projectRole = assignmentHelper.evaluateProjectRole(orgUser, info);
+
+      var existingProjectUser = existingProjectUsersById.get(user.getId());
+      if (existingProjectUser == null) {
+        projectUsersToSave.add(new ProjectUser()
+            .withUser(user)
+            .withProject(project)
+            .withProjectRole(projectRole));
+        newlyAssignedUserIds.add(user.getId());
+      } else {
+        existingProjectUser.withProjectRole(projectRole);
+        projectUsersToSave.add(existingProjectUser);
+      }
+    }
+
+    if (!projectUsersToSave.isEmpty()) {
+      projectUserRepository.saveAll(projectUsersToSave);
+    }
+
+    return newlyAssignedUserIds;
+  }
+
+  private void validateUsersExistInProject(List<Long> userIds, Long projectId) {
+    var existingUserIds = projectUserRepository.findUserIdsByProjectIdAndUserIdIn(projectId, userIds);
+    var missingUserIds = userIds.stream()
+        .filter(id -> !existingUserIds.contains(id))
+        .toList();
+
+    if (!missingUserIds.isEmpty()) {
+      throw new ReportPortalException(ErrorType.USER_NOT_FOUND, missingUserIds.getFirst());
+    }
+  }
+
+  private void publishEvent(ReportPortalUser principal, Project project, Long orgId, List<Long> beforeUserIds,
+      List<Long> afterUserIds, EventAction action) {
+    if (beforeUserIds.equals(afterUserIds)) {
+      return;
+    }
+    eventPublisher.publishEvent(
+        new ProjectUsersUpdatedEvent(principal.getUserId(), principal.getUsername(), project.getId(), project.getName(),
+            orgId, beforeUserIds, afterUserIds, action));
   }
 }

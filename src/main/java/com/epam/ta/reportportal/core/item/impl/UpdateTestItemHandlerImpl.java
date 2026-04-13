@@ -176,7 +176,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         testItem.getItemResults().setIssue(issueEntity);
         issueEntity.setTestItemResults(testItem.getItemResults());
         testItem.setAnalysisOwnerId(user.getUserId());
-        testItem.setLastModified(Instant.now());
+//        testItem.setLastModified(Instant.now());
 
         testItemRepository.save(testItem);
 
@@ -249,7 +249,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     }
     testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes())
         .addDescription(rq.getDescription()).get();
-    testItem.setLastModified(Instant.now());
+//    testItem.setLastModified(Instant.now());
     testItemRepository.save(testItem);
 
     return COMPOSE_UPDATE_RESPONSE.apply(itemId);

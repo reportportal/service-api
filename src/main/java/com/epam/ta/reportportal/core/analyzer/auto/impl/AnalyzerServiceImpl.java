@@ -48,7 +48,6 @@ import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +199,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
           testItemStatisticsService.changeDefectStatistics(testItem, beforeIssue,
               testItem.getItemResults().getIssue().getIssueType());
-          testItem.setLastModified(Instant.now());
+//          testItem.setLastModified(Instant.now());
           testItemRepository.save(testItem);
 
           messageBus.publishActivity(

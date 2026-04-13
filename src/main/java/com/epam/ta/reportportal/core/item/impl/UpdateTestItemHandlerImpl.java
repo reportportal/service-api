@@ -79,7 +79,6 @@ import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.reporting.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.reporting.Issue;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -342,7 +341,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           ))).addIssueType(issueType).addAutoAnalyzedFlag(false).get();
       issueEntityRepository.save(issueEntity);
       item.getItemResults().setIssue(issueEntity);
-      item.setLastModified(Instant.now());
+//      item.setLastModified(Instant.now());
       testItemStatisticsService.changeDefectStatistics(item, beforeIssue, issueType);
 
       TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);
@@ -365,7 +364,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     items.forEach(
         it -> {
           validate(projectDetails, user, it);
-          it.setLastModified(Instant.now());
+//          it.setLastModified(Instant.now());
           ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
               .ifPresent(it::setDescription);
         });

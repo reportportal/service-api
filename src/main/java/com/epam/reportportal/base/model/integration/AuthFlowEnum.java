@@ -24,5 +24,6 @@ public enum AuthFlowEnum {
   BASIC,
   TOKEN,
   FORM,
-  LDAP
+  LDAP,
+  SAML
 }

@@ -119,19 +119,13 @@ public class TestItemPojo {
   }
 
   public static TestItemPojo build(TestItem input, boolean includeAttachments) {
-    return build(input, includeAttachments, false);
-  }
-
-  public static TestItemPojo build(TestItem input, boolean includeAttachments,
-      boolean flatAttachments) {
     var testItemPojo = new TestItemPojo(input);
     if (includeAttachments) {
       input.getAttachments().stream().filter(Objects::nonNull)
           .forEach(attachment -> {
-            String displayName = flatAttachments
-                ? attachment.getId() + "_" + FileExtensionUtils.getFileNameWithExtension(
-                attachment.getFileName(), attachment.getContentType())
-                : attachment.getFileName();
+            String displayName = AttachmentExportNaming.prefixedFileName(attachment.getId(),
+                attachment.getFileName(),
+                attachment.getContentType());
             testItemPojo.setType(testItemPojo.getType() + "\n" + displayName);
           });
     }

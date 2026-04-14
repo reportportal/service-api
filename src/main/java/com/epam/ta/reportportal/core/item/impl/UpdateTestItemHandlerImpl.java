@@ -271,7 +271,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
     List<TestItemActivityResource> before =
         testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
-            .collect(Collectors.toList());
+            .toList();
 
     if (LinkExternalIssueRQ.class.equals(request.getClass())) {
       LinkExternalIssueRQ linkRequest = (LinkExternalIssueRQ) request;
@@ -288,7 +288,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     testItemRepository.saveAll(testItems);
     List<TestItemActivityResource> after =
         testItems.stream().map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
-            .collect(Collectors.toList());
+            .toList();
 
     before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
         after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
@@ -339,7 +339,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           ))).addIssueType(issueType).addAutoAnalyzedFlag(false).get();
       issueEntityRepository.save(issueEntity);
       item.getItemResults().setIssue(issueEntity);
-
       testItemStatisticsService.changeDefectStatistics(item, beforeIssue, issueType);
 
       TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);

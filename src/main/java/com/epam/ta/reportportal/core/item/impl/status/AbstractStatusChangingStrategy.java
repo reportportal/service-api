@@ -76,6 +76,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 
   private final TestItemStatisticsService testItemStatisticsService;
 
+
   protected AbstractStatusChangingStrategy(TestItemService testItemService,
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,

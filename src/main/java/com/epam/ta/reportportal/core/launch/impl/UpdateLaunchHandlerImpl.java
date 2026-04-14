@@ -26,6 +26,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
@@ -39,6 +40,8 @@ import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
 import com.epam.ta.reportportal.core.launch.attribute.LaunchAttributeHandlerService;
+import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
+import com.epam.ta.reportportal.core.launch.changes.LaunchFieldsSnapshot;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
@@ -93,6 +96,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
+  private final LaunchChangesHandler launchChangesHandler;
+
   @Autowired
   public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, LaunchAccessValidator launchAccessValidator,
@@ -100,7 +105,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
       Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
       @Qualifier("uniqueErrorAnalysisStarterAsync")
       UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
-      LaunchAttributeHandlerService launchAttributeHandlerService) {
+      LaunchAttributeHandlerService launchAttributeHandlerService,
+      LaunchChangesHandler launchChangesHandler) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.launchAccessValidator = launchAccessValidator;
@@ -109,6 +115,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     this.logIndexer = logIndexer;
     this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
     this.launchAttributeHandlerService = launchAttributeHandlerService;
+    this.launchChangesHandler = launchChangesHandler;
   }
 
   @Override
@@ -120,11 +127,14 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     validate(launch, user, projectDetails, rq);
 
     LaunchModeEnum previousMode = launch.getMode();
+    var beforeSnapshot = launchChangesHandler.captureSnapshot(launch);
 
     launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription())
         .overwriteAttributes(rq.getAttributes()).get();
     launchAttributeHandlerService.handleLaunchUpdate(launch, user);
     launchRepository.save(launch);
+
+    launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
 
     if (!previousMode.equals(launch.getMode())) {
       reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
@@ -188,6 +198,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
+    Map<Long, LaunchFieldsSnapshot> snapshots = launches.stream()
+        .collect(toMap(Launch::getId, launchChangesHandler::captureSnapshot));
+
     launches.forEach(
         it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
             .ifPresent(it::setDescription));
@@ -219,6 +232,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         }
       }
     });
+
+    launches.forEach(launch ->
+        launchChangesHandler.handleIfChanged(launch, snapshots.get(launch.getId())));
 
     return new OperationCompletionRS("Attributes successfully updated");
   }

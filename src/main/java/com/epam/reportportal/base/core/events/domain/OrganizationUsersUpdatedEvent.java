@@ -25,4 +25,17 @@ public class OrganizationUsersUpdatedEvent extends AbstractEvent<List<Long>> {
     this.organizationName = organizationName;
     this.action = action;
   }
+
+  /**
+   * Constructor for system-initiated events (no user context).
+   */
+  public OrganizationUsersUpdatedEvent(Long organizationId, String organizationName,
+      List<Long> beforeUserIds, List<Long> afterUserIds, EventAction action) {
+    super();
+    this.organizationId = organizationId;
+    this.organizationName = organizationName;
+    this.before = beforeUserIds;
+    this.after = afterUserIds;
+    this.action = action;
+  }
 }

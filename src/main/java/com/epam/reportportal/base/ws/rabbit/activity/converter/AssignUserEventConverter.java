@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.ws.rabbit.activity.converter;
 
 import static com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityAction.ASSIGN_USER;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectId;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectName;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectType;
 
@@ -47,7 +48,7 @@ public class AssignUserEventConverter implements EventToActivityConverter<Assign
         .addObjectType(EventObject.USER)
         .addProjectId(event.getUserActivityResource().getDefaultProjectId())
         .addOrganizationId(event.getOrganizationId())
-        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectId(getSubjectId(event))
         .addSubjectName(getSubjectName(event))
         .addSubjectType(getSubjectType(event))
         .get();

@@ -22,7 +22,6 @@ import static java.util.function.Predicate.not;
 
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
-import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
@@ -36,6 +35,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserTyp
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.ws.converter.converters.UserConverter;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,37 +50,41 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ProjectUserAssignmentHelper {
 
+  public record OrgUserResult(OrganizationUser orgUser, boolean newlyCreated) {
+
+  }
+
   private final OrganizationUserRepository organizationUserRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   /**
-   * Gets or creates an OrganizationUser for the given user and organization.
+   * Gets or creates an OrganizationUser for the given user and organization. Returns an {@link OrgUserResult}
+   * indicating whether the membership was newly created.
    */
-  public OrganizationUser getOrganizationUser(Organization org, ReportPortalUser principal, User user) {
-    return organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
-        .orElseGet(() -> {
-          try {
-            OrganizationUser organizationUser = new OrganizationUser();
-            organizationUser.setOrganization(org);
-            organizationUser.setUser(user);
-            organizationUser.setOrganizationRole(OrganizationRole.MEMBER);
-            organizationUserRepository.save(organizationUser);
-            log.info("User with ID {} has been added to organization with ID {} with role MEMBER",
-                user.getId(), org.getId());
-            applicationEventPublisher.publishEvent(
-                new AssignUserEvent(
-                    UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
-                    principal.getUserId(), principal.getUsername(), org.getId()
-                ));
-            return organizationUser;
-          } catch (DataIntegrityViolationException e) {
-            log.debug("Race condition occurred while adding user with ID {} to organization with ID {}",
-                user.getId(), org.getId(), e);
-            return organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
-                .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-                    "User with ID '{}' not found in organization with ID '{}'", user.getId(), org.getId()));
-          }
-        });
+  public OrgUserResult getOrCreateOrgUser(Organization org, User user) {
+    var existing = organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId());
+    if (existing.isPresent()) {
+      return new OrgUserResult(existing.get(), false);
+    }
+    try {
+      OrganizationUser organizationUser = new OrganizationUser();
+      organizationUser.setOrganization(org);
+      organizationUser.setUser(user);
+      organizationUser.setOrganizationRole(OrganizationRole.MEMBER);
+      organizationUserRepository.save(organizationUser);
+      log.info("User with ID {} has been added to organization with ID {} with role MEMBER",
+          user.getId(), org.getId());
+      return new OrgUserResult(organizationUser, true);
+    } catch (DataIntegrityViolationException e) {
+      log.debug("Race condition occurred while adding user with ID {} to organization with ID {}",
+          user.getId(), org.getId(), e);
+      return new OrgUserResult(
+          organizationUserRepository.findByUserIdAndOrganization_Id(user.getId(), org.getId())
+              .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
+                  "User with ID '{}' not found in organization with ID '{}'", user.getId(), org.getId())),
+          false
+      );
+    }
   }
 
   /**
@@ -132,14 +136,19 @@ public class ProjectUserAssignmentHelper {
   }
 
   /**
-   * Publishes user unassignment event and logs the action.
+   * Returns all user IDs currently assigned to the given organization.
    */
-  public void publishUserUnassignEvent(ReportPortalUser principal, User user, Long orgId, Long projectId) {
-    log.info("User with ID {} has been unassigned from project with ID {}", user.getId(), projectId);
+  public List<Long> getOrgUserIds(Long orgId) {
+    return organizationUserRepository.findUserIdsByOrganizationId(orgId);
+  }
 
+  /**
+   * Publishes an organization-level user assignment event (single user).
+   */
+  public void publishOrgUserAssignedEvent(ReportPortalUser principal, User user, Long orgId) {
     applicationEventPublisher.publishEvent(
-        new UnassignUserEvent(
-            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId),
+        new AssignUserEvent(
+            UserConverter.TO_ACTIVITY_RESOURCE.apply(user, null),
             principal.getUserId(), principal.getUsername(), orgId
         )
     );

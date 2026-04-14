@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.ws.rabbit.activity.converter;
 
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectId;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectName;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectType;
 
@@ -45,7 +46,7 @@ public class UserCreatedEventConverter implements EventToActivityConverter<UserC
         .addObjectId(event.getUserActivityResource().getId())
         .addObjectName(event.getUserActivityResource().getFullName())
         .addObjectType(EventObject.USER)
-        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectId(getSubjectId(event))
         .addSubjectName(getSubjectName(event))
         .addSubjectType(getSubjectType(event))
         .get();

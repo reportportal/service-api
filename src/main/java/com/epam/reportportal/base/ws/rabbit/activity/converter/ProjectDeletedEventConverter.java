@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.ws.rabbit.activity.converter;
 
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.USERS;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectId;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectName;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectType;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.processList;
@@ -48,7 +49,7 @@ public class ProjectDeletedEventConverter implements EventToActivityConverter<Pr
         .addObjectId(event.getProjectId())
         .addObjectName(event.getProjectName())
         .addObjectType(EventObject.PROJECT)
-        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectId(getSubjectId(event))
         .addSubjectType(getSubjectType(event))
         .addOrganizationId(event.getOrganizationId())
         .addSubjectName(getSubjectName(event))

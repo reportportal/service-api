@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.ws.rabbit.activity.converter;
 
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.TICKET_ID;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectId;
 
 import com.epam.reportportal.base.core.events.domain.LinkTicketEvent;
 import com.epam.reportportal.base.infrastructure.persistence.builder.ActivityBuilder;
@@ -49,7 +50,7 @@ public class LinkTicketEventConverter implements EventToActivityConverter<LinkTi
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(event.getAfter().getProjectId())
         .addOrganizationId(event.getOrganizationId())
-        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectId(getSubjectId(event))
         .addSubjectName(event.getUserLogin())
         .addSubjectType(event.isSystemEvent() ? EventSubject.APPLICATION : EventSubject.USER);
 

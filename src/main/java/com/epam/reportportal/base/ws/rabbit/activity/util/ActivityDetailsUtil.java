@@ -272,4 +272,17 @@ public class ActivityDetailsUtil {
         ? EventSubject.APPLICATION
         : EventSubject.USER;
   }
+
+  /**
+   * Returns the appropriate subject id for an event based on whether it's a system event. System events have no user
+   * subject id and return null; user events return the user id.
+   *
+   * @param event The domain event
+   * @return Subject id for activity logging, or null for system events
+   */
+  public static Long getSubjectId(AbstractEvent<?> event) {
+    return event.isSystemEvent()
+        ? null
+        : event.getUserId();
+  }
 }

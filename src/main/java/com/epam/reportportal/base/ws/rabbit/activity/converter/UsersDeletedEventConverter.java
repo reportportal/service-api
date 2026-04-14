@@ -44,7 +44,7 @@ public class UsersDeletedEventConverter implements EventToActivityConverter<User
         .addEventName(ActivityAction.BULK_DELETE_USERS.getValue())
         .addObjectName(formatObjectName(event.getCount()))
         .addObjectType(EventObject.USER)
-        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectId(ActivityDetailsUtil.getSubjectId(event))
         .addSubjectName(ActivityDetailsUtil.getSubjectName(event))
         .addSubjectType(ActivityDetailsUtil.getSubjectType(event))
         .addPriority(determinePriority(event))

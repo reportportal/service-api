@@ -21,6 +21,7 @@ import static java.util.function.Predicate.isEqual;
 
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.api.model.UserProjectInfo;
+import com.epam.reportportal.base.core.events.domain.OrganizationUsersUpdatedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectUsersUpdatedEvent;
 import com.epam.reportportal.base.core.project.ProjectService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -204,16 +205,23 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
         .stream()
         .collect(Collectors.toMap(pu -> pu.getUser().getId(), Function.identity()));
 
+    var beforeOrgUserIds = assignmentHelper.getOrgUserIds(org.getId());
+
     var projectUsersToSave = new ArrayList<ProjectUser>();
     var newlyAssignedUserIds = new ArrayList<Long>();
+    var newlyOrgAssignedUserIds = new ArrayList<Long>();
 
     for (var info : prjUsersInfo) {
       var user = Optional.ofNullable(usersById.get(info.getId()))
           .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, info.getId()));
 
       assignmentHelper.validateUserAssignment(org, principal, user);
-      var orgUser = assignmentHelper.getOrganizationUser(org, principal, user);
-      var projectRole = assignmentHelper.evaluateProjectRole(orgUser, info);
+      var orgUserResult = assignmentHelper.getOrCreateOrgUser(org, user);
+      if (orgUserResult.newlyCreated()) {
+        newlyOrgAssignedUserIds.add(user.getId());
+      }
+
+      var projectRole = assignmentHelper.evaluateProjectRole(orgUserResult.orgUser(), info);
 
       var existingProjectUser = existingProjectUsersById.get(user.getId());
       if (existingProjectUser == null) {
@@ -230,6 +238,15 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
     if (!projectUsersToSave.isEmpty()) {
       projectUserRepository.saveAll(projectUsersToSave);
+    }
+
+    if (!newlyOrgAssignedUserIds.isEmpty()) {
+      var afterOrgUserIds = new ArrayList<>(beforeOrgUserIds);
+      afterOrgUserIds.addAll(newlyOrgAssignedUserIds);
+      eventPublisher.publishEvent(new OrganizationUsersUpdatedEvent(
+          org.getId(), org.getName(),
+          beforeOrgUserIds, afterOrgUserIds,
+          EventAction.ASSIGN));
     }
 
     return newlyAssignedUserIds;

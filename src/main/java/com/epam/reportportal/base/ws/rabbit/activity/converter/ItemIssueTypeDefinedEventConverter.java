@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetails
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.IGNORE_ANALYZER;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.ISSUE_TYPE;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.RELEVANT_ITEM;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectId;
 
 import com.epam.reportportal.base.core.events.domain.ItemIssueTypeDefinedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.builder.ActivityBuilder;
@@ -55,7 +56,7 @@ public class ItemIssueTypeDefinedEventConverter implements
         .addObjectType(EventObject.ITEM_ISSUE)
         .addProjectId(event.getAfter().getProjectId())
         .addOrganizationId(event.getOrganizationId())
-        .addSubjectId(event.isSystemEvent() ? null : event.getUserId())
+        .addSubjectId(getSubjectId(event))
         .addSubjectName(event.getUserLogin())
         .addSubjectType(event.isSystemEvent() ? EventSubject.APPLICATION : EventSubject.USER)
         .addHistoryField(processIssueDescription(event.getBefore().getIssueDescription(),

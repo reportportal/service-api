@@ -104,9 +104,9 @@ public class PatchProjectUserHandler extends BasePatchProjectHandler {
           throw new ReportPortalException(ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, user.getId());
         });
 
-    var orgUser = assignmentHelper.getOrganizationUser(org, principal, user);
+    var orgUserResult = assignmentHelper.getOrCreateOrgUser(org, user);
 
-    var projectRole = assignmentHelper.evaluateProjectRole(orgUser, userPrjInfo);
+    var projectRole = assignmentHelper.evaluateProjectRole(orgUserResult.orgUser(), userPrjInfo);
 
     var prjUser = new ProjectUser()
         .withUser(user)
@@ -116,5 +116,8 @@ public class PatchProjectUserHandler extends BasePatchProjectHandler {
     projectUserRepository.save(prjUser);
 
     assignmentHelper.publishUserAssignEvent(principal, user, orgId, projectId, projectRole);
+    if (orgUserResult.newlyCreated()) {
+      assignmentHelper.publishOrgUserAssignedEvent(principal, user, orgId);
+    }
   }
 }

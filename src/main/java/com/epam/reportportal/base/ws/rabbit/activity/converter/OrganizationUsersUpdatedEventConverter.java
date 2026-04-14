@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.ws.rabbit.activity.converter;
 
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.USERS;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectId;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectName;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.getSubjectType;
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.processList;
@@ -46,7 +47,7 @@ public class OrganizationUsersUpdatedEventConverter implements EventToActivityCo
         .addObjectName(event.getOrganizationName())
         .addObjectType(EventObject.ORGANIZATION)
         .addOrganizationId(event.getOrganizationId())
-        .addSubjectId(event.getUserId())
+        .addSubjectId(getSubjectId(event))
         .addSubjectName(getSubjectName(event))
         .addSubjectType(getSubjectType(event))
         .addHistoryField(processList(USERS, event.getBefore(), event.getAfter()))

@@ -412,7 +412,8 @@ public class RecordMappers {
     launch.setId(r.get(LAUNCH.ID));
     launch.setName(r.get(LAUNCH.NAME));
     launch.setUserId(r.get(LAUNCH.USER_ID));
-    launch.setTestPlanId(r.get(LAUNCH.TEST_PLAN_ID));
+    launch.setTestPlanId((r.get(LAUNCH.TEST_PLAN_ID) != null) ? r.get(LAUNCH.TEST_PLAN_ID) : null);
+    launch.setDisplayId((r.get(LAUNCH.DISPLAY_ID) != null) ? r.get(LAUNCH.DISPLAY_ID) : null);
     launch.setRetentionPolicy(r.into(LAUNCH.RETENTION_POLICY).into(RetentionPolicyEnum.class));
     return launch;
   };

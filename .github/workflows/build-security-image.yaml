@@ -66,5 +66,7 @@ jobs:
     with:
       service: ${{ github.event.repository.name }}
       gcr-region: ${{ vars.GCR_REGION || 'europe-docker.pkg.dev' }}
+      gcp-project: ${{ vars.GCP_PROJECT }}
       image-tag: ${{ needs.extract-image-tag.outputs.image-tag }}
+      aws-region: ${{ vars.AWS_REGION || 'eu-central-1' }}
     secrets: inherit

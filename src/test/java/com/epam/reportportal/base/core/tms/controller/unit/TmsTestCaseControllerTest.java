@@ -126,7 +126,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // GET — без изменений
+  // GET — no changes
   // -------------------------------------------------------------------------
 
   @Test
@@ -276,7 +276,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // POST create — membership + user вместо projectId
+  // POST create — membership + user instead of projectId
   // -------------------------------------------------------------------------
 
   @Test
@@ -393,7 +393,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // PUT update — membership + user вместо projectId
+  // PUT update — membership + user instead of projectId
   // -------------------------------------------------------------------------
 
   @Test
@@ -484,7 +484,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // PATCH single — membership + user вместо projectId
+  // PATCH single — membership + user instead of projectId
   // -------------------------------------------------------------------------
 
   @Test
@@ -570,7 +570,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // DELETE single — membership + user вместо projectId
+  // DELETE single — membership + user instead of projectId
   // -------------------------------------------------------------------------
 
   @Test
@@ -587,7 +587,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // DELETE batch — membership + user вместо projectId
+  // DELETE batch — membership + user instead of projectId
   // -------------------------------------------------------------------------
 
   @Test
@@ -623,7 +623,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // PATCH batch — без изменений (projectId)
+  // PATCH batch — no changes (projectId)
   // -------------------------------------------------------------------------
 
   @Test
@@ -751,7 +751,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // Import / Export — без изменений
+  // Import / Export — no changes
   // -------------------------------------------------------------------------
 
   @Test
@@ -876,7 +876,7 @@ public class TmsTestCaseControllerTest {
   }
 
   // -------------------------------------------------------------------------
-  // Tags / Attributes / Duplicate — без изменений
+  // Tags / Attributes / Duplicate — no changes
   // -------------------------------------------------------------------------
 
   @Test

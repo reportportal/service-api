@@ -295,7 +295,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   // -------------------------------------------------------------------------
-  // GET — не используют membershipDetails, getProjectId() не нужен
+  // GET — do not use membershipDetails, getProjectId() is not needed
   // -------------------------------------------------------------------------
 
   @Test
@@ -343,7 +343,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   // -------------------------------------------------------------------------
-  // CREATE — membershipDetails.getProjectId() вызывается внутри сервиса
+  // CREATE — membershipDetails.getProjectId() is called inside service
   // -------------------------------------------------------------------------
 
   @Test
@@ -516,7 +516,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   // -------------------------------------------------------------------------
-  // UPDATE — membershipDetails.getProjectId() вызывается внутри сервиса
+  // UPDATE — membershipDetails.getProjectId() is called inside service
   // -------------------------------------------------------------------------
 
   @Test
@@ -640,7 +640,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   // -------------------------------------------------------------------------
-  // PATCH single — membershipDetails.getProjectId() вызывается внутри сервиса
+  // PATCH single — membershipDetails.getProjectId() is called inside service
   // -------------------------------------------------------------------------
 
   @Test

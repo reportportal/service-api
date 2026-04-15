@@ -384,7 +384,7 @@ public class TmsAttachmentControllerTest {
   void uploadAttachmentWithSpecialCharactersInNameTest() throws Exception {
     // Given
     var fileContent = "test content";
-    var fileName = "тест файл с русскими символами.txt";
+    var fileName = "test file with russian characters.txt";
     var file = new MockMultipartFile("file", fileName, "text/plain", fileContent.getBytes());
 
     var uploadResponse = UploadAttachmentRS.builder()
@@ -414,7 +414,7 @@ public class TmsAttachmentControllerTest {
   void downloadAttachmentWithSpecialCharactersInNameTest() throws Exception {
     // Given
     var attachmentId = 1L;
-    var fileName = "тест файл с русскими символами.txt";
+    var fileName = "test file with russian characters.txt";
     var attachment = new TmsAttachment();
     attachment.setId(attachmentId);
     attachment.setFileName(fileName);

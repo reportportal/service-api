@@ -3,18 +3,31 @@ package com.epam.reportportal.base.core.tms.controller.unit;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsManualLaunchController;
+import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
+import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRQ;
+import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRS;
+import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.service.TmsManualLaunchService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.util.ProjectExtractor;
+import com.epam.reportportal.base.ws.resolver.FilterCriteriaResolver;
+import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +64,7 @@ public class TmsManualLaunchControllerTest {
   private TmsManualLaunchController controller;
 
   private MockMvc mockMvc;
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
   private ReportPortalUser user;
 
   @BeforeEach
@@ -78,7 +91,7 @@ public class TmsManualLaunchControllerTest {
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return user;
           }
-        })
+        }, new OffsetArgumentResolver(), new FilterCriteriaResolver())
         .build();
 
     // Use Builder for MembershipDetails
@@ -92,6 +105,95 @@ public class TmsManualLaunchControllerTest {
   }
 
   @Test
+  void createManualLaunchTest() throws Exception {
+    CreateTmsManualLaunchRQ request = new CreateTmsManualLaunchRQ();
+    request.setName("Test Launch");
+    CreateTmsManualLaunchRS response = new CreateTmsManualLaunchRS();
+    response.setId(launchId);
+  
+    given(tmsManualLaunchService.create(eq(projectId), eq(user), any())).willReturn(response);
+  
+    mockMvc.perform(post("/v1/project/{projectKey}/launch/manual", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).create(eq(projectId), eq(user), any());
+  }
+  
+  @Test
+  void getManualLaunchesTest() throws Exception {
+    var emptyPage = mock(com.epam.reportportal.base.model.Page.class);
+  
+    given(tmsManualLaunchService.getManualLaunches(eq(projectId), any(), any()))
+        .willReturn(emptyPage);
+  
+    mockMvc.perform(get("/v1/project/{projectKey}/launch/manual", projectKey))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).getManualLaunches(eq(projectId), any(), any());
+  }
+  
+  @Test
+  void getManualLaunchByIdTest() throws Exception {
+    given(tmsManualLaunchService.getById(projectId, launchId)).willReturn(new TmsManualLaunchRS());
+  
+    mockMvc.perform(get("/v1/project/{projectKey}/launch/manual/{launchId}", projectKey, launchId))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).getById(projectId, launchId);
+  }
+  
+  @Test
+  void deleteManualLaunchTest() throws Exception {
+    mockMvc.perform(delete("/v1/project/{projectKey}/launch/manual/{launchId}", projectKey, launchId))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).delete(any(), eq(launchId), eq(user));
+  }
+  
+  @Test
+  void patchManualLaunchTest() throws Exception {
+    TmsManualLaunchRQ request = new TmsManualLaunchRQ();
+    request.setName("Patched Name");
+  
+    given(tmsManualLaunchService.patch(eq(projectId), eq(launchId), any())).willReturn(new TmsManualLaunchRS());
+  
+    mockMvc.perform(patch("/v1/project/{projectKey}/launch/manual/{launchId}", projectKey, launchId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).patch(eq(projectId), eq(launchId), any());
+  }
+  
+  @Test
+  void addTestCaseToLaunchTest() throws Exception {
+    AddTestCaseToLaunchRQ request = new AddTestCaseToLaunchRQ();
+    request.setTestCaseId(200L);
+  
+    mockMvc.perform(post("/v1/project/{projectKey}/launch/manual/{launchId}/test-case", projectKey, launchId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).addTestCaseToLaunch(eq(projectId), eq(launchId), any());
+  }
+  
+  @Test
+  void putTestCaseExecutionCommentTest() throws Exception {
+    TmsTestCaseExecutionCommentRQ request = new TmsTestCaseExecutionCommentRQ();
+    request.setComment("New comment");
+  
+    mockMvc.perform(put("/v1/project/{projectKey}/launch/manual/{launchId}/test-case/execution/{executionId}/comment", projectKey, launchId, 400L)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).putTestCaseExecutionComment(eq(projectId), eq(launchId), eq(400L), any());
+  }
+  
+  @Test
   void batchDeleteTestCaseExecutions() throws Exception {
     BatchDeleteTestCaseExecutionsRQ request = new BatchDeleteTestCaseExecutionsRQ(List.of(1L, 2L));
     BatchDeleteTestCaseExecutionsResultRS response = new BatchDeleteTestCaseExecutionsResultRS();
@@ -104,5 +206,13 @@ public class TmsManualLaunchControllerTest {
         .andExpect(status().isOk());
 
     verify(tmsManualLaunchService).batchDeleteTestCaseExecutions(any(), any(), any());
+  }
+
+  @Test
+  void deleteTestCaseExecutionCommentTest() throws Exception {
+    mockMvc.perform(delete("/v1/project/{projectKey}/launch/manual/{launchId}/test-case/execution/{executionId}/comment", projectKey, launchId, 400L))
+        .andExpect(status().isOk());
+
+    verify(tmsManualLaunchService).deleteTestCaseExecutionComment(projectId, launchId, 400L);
   }
 }

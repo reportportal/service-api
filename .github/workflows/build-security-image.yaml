@@ -1,0 +1,70 @@
+name: Build and Promote Security Image
+
+on:
+  push:
+    branches:
+      - 'security/*-r*'
+  create:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  # ── Trigger 1: Build ──────────────────────────────────────────────────────
+  # Runs on every push to a security/*-r* branch, OR when such a branch is
+  # first created (create event). The push filter already handles the branch
+  # pattern; for the create event we verify the ref explicitly.
+  build-security-image:
+    name: Build security Docker image
+    if: >-
+      github.event_name == 'push' ||
+      (
+        github.event_name == 'create' &&
+        github.event.ref_type == 'branch' &&
+        startsWith(github.ref_name, 'security/') &&
+        contains(github.ref_name, '-r')
+      )
+    uses: reportportal/.github/.github/workflows/build-docker-image.yaml@main
+    with:
+      aws-region: ${{ vars.AWS_REGION }}
+      build-platforms: ${{ vars.BUILD_PLATFORMS || 'linux/amd64,linux/arm64' }}
+      additional-tag: 'secure-latest'
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+  # ── Trigger 2: Promote ────────────────────────────────────────────────────
+  # Runs when a PR from a security/*-r* branch to main receives an approval.
+  # Extracts the semantic version tag (e.g. 5.15.5-r1) from the PR title.
+  extract-image-tag:
+    name: Extract image tag from PR title
+    if: >-
+      github.event_name == 'pull_request_review' &&
+      github.event.review.state == 'approved' &&
+      github.event.pull_request.base.ref == 'main' &&
+      startsWith(github.event.pull_request.head.ref, 'security/') &&
+      contains(github.event.pull_request.head.ref, '-r')
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.extract.outputs.image-tag }}
+    steps:
+      - name: Extract image tag from PR title
+        id: extract
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          IMAGE_TAG=$(echo "${PR_TITLE}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-r[0-9]+' | head -1)
+          if [ -z "${IMAGE_TAG}" ]; then
+            echo "::error::Could not extract a version tag (x.x.x-rx) from PR title: '${PR_TITLE}'"
+            exit 1
+          fi
+          echo "image-tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Extracted image tag: ${IMAGE_TAG}"
+
+  promote-to-gcr:
+    name: Promote ${{ github.event.repository.name }} to GCP Artifact Registry
+    needs: extract-image-tag
+    uses: reportportal/.github/.github/workflows/promote-ecr-to-gcr.yaml@main
+    with:
+      service: ${{ github.event.repository.name }}
+      gcr-region: ${{ vars.GCR_REGION || 'europe-docker.pkg.dev' }}
+      image-tag: ${{ needs.extract-image-tag.outputs.image-tag }}
+    secrets: inherit

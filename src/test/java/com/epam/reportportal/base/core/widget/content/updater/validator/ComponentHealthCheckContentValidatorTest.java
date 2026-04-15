@@ -20,18 +20,18 @@ import org.junit.jupiter.api.Test;
  */
 class ComponentHealthCheckContentValidatorTest {
 
-  private MultilevelValidatorStrategy сomponentHealthCheckContentValidator;
+  private MultilevelValidatorStrategy componentHealthCheckContentValidator;
 
   @BeforeEach
   public void setUp() {
-    сomponentHealthCheckContentValidator = new ComponentHealthCheckContentValidator();
+    componentHealthCheckContentValidator = new ComponentHealthCheckContentValidator();
   }
 
   @Test
   public void testValidateWithException() {
     WidgetOptions widgetOptions = new WidgetOptions(getWidgetOptionsContentWithBlankKey());
     Exception exception = assertThrows(ReportPortalException.class,
-        () -> сomponentHealthCheckContentValidator.validate(Collections.singletonList("test"),
+        () -> componentHealthCheckContentValidator.validate(Collections.singletonList("test"),
             new HashMap<>(),
             widgetOptions,
             new String[]{"v1"},
@@ -45,7 +45,7 @@ class ComponentHealthCheckContentValidatorTest {
     assertTrue(actualMessage.contains(expectedMessage));
 
     WidgetOptions wo = new WidgetOptions(getWidgetOptionsContent());
-    сomponentHealthCheckContentValidator.validate(Collections.singletonList("test"),
+    componentHealthCheckContentValidator.validate(Collections.singletonList("test"),
         new HashMap<>(),
         wo,
         new String[]{"v1"},

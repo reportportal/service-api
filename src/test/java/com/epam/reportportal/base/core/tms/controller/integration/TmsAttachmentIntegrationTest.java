@@ -214,7 +214,7 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
   @Test
   void uploadAttachmentWithSpecialCharacters_ShouldPreserveFileName() throws Exception {
     // Given file with special characters in name
-    var specialFileName = "тест файл с пробелами & символами (1).txt";
+    var specialFileName = "test file with spaces & symbols (1).txt";
     var file = new MockMultipartFile(
         "file",
         specialFileName,

@@ -49,11 +49,11 @@ VALUES
 
 -- =====================================================
 -- TMS TEST CASES
--- project_id берётся из соответствующей папки:
+-- project_id is taken from the corresponding folder:
 --   folders 1,2,3,4,6,7,8,10 → project_id=1
 --   folders 5,9,11            → project_id=2
 --
--- display_id нумеруется независимо по каждому проекту:
+-- display_id is numbered independently for each project:
 --   project 1: TC-1..TC-32
 --   project 2: TC-1..TC-6
 -- =====================================================
@@ -457,7 +457,7 @@ VALUES
 
 -- =====================================================
 -- LAUNCHES
--- MANUAL launches получают display_id (L-N, нумерация per project)
+-- MANUAL launches get display_id (L-N, per project numbering)
 -- AUTOMATION launches: display_id = NULL
 --
 -- project 1 MANUAL: 100→L-1, 101→L-2, 102→L-3, 200→L-4, 201→L-5, 202→L-6, 203→L-7
@@ -664,17 +664,17 @@ UPDATE tms_attachment SET expires_at = NULL WHERE id IN (1000, 1001, 1002);
 
 -- =====================================================
 -- TMS PROJECT SEQUENCES
--- Фиксируем текущие значения счётчиков display_id
+-- Fix current display_id counter values
 -- =====================================================
 
 INSERT INTO tms_project_sequence (project_id, entity_type, current_value)
 VALUES
-    (1, 'TEST_CASE', 32),  -- TC-1..TC-32 для project 1
-    (2, 'TEST_CASE', 6),   -- TC-1..TC-6  для project 2
-    (1, 'TEST_PLAN', 5),   -- TP-1..TP-5  для project 1
-    (2, 'TEST_PLAN', 1),   -- TP-1        для project 2
-    (1, 'LAUNCH',    7),   -- L-1..L-7    для project 1 (только MANUAL)
-    (2, 'LAUNCH',    1);   -- L-1         для project 2
+    (1, 'TEST_CASE', 32),  -- TC-1..TC-32 for project 1
+    (2, 'TEST_CASE', 6),   -- TC-1..TC-6  for project 2
+    (1, 'TEST_PLAN', 5),   -- TP-1..TP-5  for project 1
+    (2, 'TEST_PLAN', 1),   -- TP-1        for project 2
+    (1, 'LAUNCH',    7),   -- L-1..L-7    for project 1 (only MANUAL)
+    (2, 'LAUNCH',    1);   -- L-1         for project 2
 
 -- =====================================================
 -- RESET SEQUENCES

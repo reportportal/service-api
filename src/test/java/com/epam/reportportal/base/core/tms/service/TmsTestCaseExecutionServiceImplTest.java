@@ -271,9 +271,12 @@ class TmsTestCaseExecutionServiceImplTest {
     // Given
     var testCaseIds = Arrays.asList(1L, 5L, 10L, 15L, 20L);
     var executions = Arrays.asList(
-        TmsTestCaseExecution.builder().id(1L).testCaseId(1L).testItem(testItem1).testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(2L).testCaseId(5L).testItem(testItem2).testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(3L).testCaseId(10L).testItem(testItem3).testCaseSnapshot("{}").build()
+        TmsTestCaseExecution.builder().id(1L).testCaseId(1L).testItem(testItem1)
+            .testCaseSnapshot("{}").build(),
+        TmsTestCaseExecution.builder().id(2L).testCaseId(5L).testItem(testItem2)
+            .testCaseSnapshot("{}").build(),
+        TmsTestCaseExecution.builder().id(3L).testCaseId(10L).testItem(testItem3)
+            .testCaseSnapshot("{}").build()
     );
 
     when(tmsTestCaseExecutionRepository.findLastExecutionsByTestCaseIds(testCaseIds))
@@ -301,7 +304,8 @@ class TmsTestCaseExecutionServiceImplTest {
         .testCaseId(testCaseId1)
         .testCaseVersionId(5L)
         .testItem(testItem1)
-        .testCaseSnapshot("{\"name\": \"Complete Test Case\", \"description\": \"Full description\"}")
+        .testCaseSnapshot(
+            "{\"name\": \"Complete Test Case\", \"description\": \"Full description\"}")
         .build();
 
     when(tmsTestCaseExecutionRepository.findLastExecutionByTestCaseId(testCaseId1))
@@ -326,9 +330,12 @@ class TmsTestCaseExecutionServiceImplTest {
     // Given - test with large number of IDs
     var largeTestCaseIdsList = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
     var executions = Arrays.asList(
-        TmsTestCaseExecution.builder().id(1L).testCaseId(1L).testItem(testItem1).testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(2L).testCaseId(2L).testItem(testItem2).testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(3L).testCaseId(3L).testItem(testItem3).testCaseSnapshot("{}").build()
+        TmsTestCaseExecution.builder().id(1L).testCaseId(1L).testItem(testItem1)
+            .testCaseSnapshot("{}").build(),
+        TmsTestCaseExecution.builder().id(2L).testCaseId(2L).testItem(testItem2)
+            .testCaseSnapshot("{}").build(),
+        TmsTestCaseExecution.builder().id(3L).testCaseId(3L).testItem(testItem3)
+            .testCaseSnapshot("{}").build()
     );
 
     when(tmsTestCaseExecutionRepository.findLastExecutionsByTestCaseIds(largeTestCaseIdsList))
@@ -456,5 +463,35 @@ class TmsTestCaseExecutionServiceImplTest {
     assertNotNull(result);
     assertTrue(result.isEmpty());
     verify(tmsTestCaseExecutionRepository).findByTestCaseIdAndTestPlanId(testCaseId1, testPlanId);
+  }
+
+  @Test
+  void addTestCasesToLaunch_WithEmptyList_ShouldReturnEmptyResult() {
+    // Given
+    var launch = new com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch();
+    launch.setId(10L);
+
+    // When
+    var result = sut.addTestCasesToLaunch(1L, launch, Collections.emptyList());
+
+    // Then
+    assertNotNull(result);
+    assertEquals(0, result.getTotalCount());
+    assertTrue(result.getSuccessTestCaseIds().isEmpty());
+    assertTrue(result.getErrors().isEmpty());
+  }
+
+  @Test
+  void isTestCaseInLaunch_WhenExists_ShouldReturnTrue() {
+    // Given
+    when(tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(testCaseId1, 10L)).thenReturn(
+        true);
+
+    // When
+    var result = sut.isTestCaseInLaunch(testCaseId1, 10L);
+
+    // Then
+    assertTrue(result);
+    verify(tmsTestCaseExecutionRepository).existsByTestCaseIdAndLaunchId(testCaseId1, 10L);
   }
 }

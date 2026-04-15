@@ -252,6 +252,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
         LAUNCH.APPROXIMATE_DURATION,
         LAUNCH.RETENTION_POLICY,
         LAUNCH.TEST_PLAN_ID,
+        LAUNCH.DISPLAY_ID,
         STATISTICS.S_COUNTER,
         STATISTICS_FIELD.NAME,
         USERS.ID,

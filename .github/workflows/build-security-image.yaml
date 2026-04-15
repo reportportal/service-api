@@ -7,11 +7,9 @@ on:
   create:
 
 jobs:
-  build-security-image:
-    name: Build security Docker image
-    # For 'push': branch filter in 'on:' already restricts to secure/*.
-    # For 'create': no branch filter is available in the on: block, so guard here
-    # to skip tag creations and branches outside secure/*.
+  variables-setup:
+    name: Setting variables for docker build
+    runs-on: ubuntu-latest
     if: >-
       github.event_name == 'push' ||
       (
@@ -19,10 +17,25 @@ jobs:
         github.event.ref_type == 'branch' &&
         startsWith(github.ref_name, 'secure/')
       )
+    steps:
+      - name: Create variables
+        id: vars
+        run: |
+          echo "image-tag=$(echo '${{ github.ref_name }}' | sed 's|secure/||')" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+    outputs:
+      image-tag: ${{ steps.vars.outputs.image-tag }}
+      date: ${{ steps.vars.outputs.date }}
+
+  build-security-image:
+    name: Build security Docker image
+    needs: variables-setup
     uses: reportportal/.github/.github/workflows/build-docker-image.yaml@main
     with:
       aws-region: ${{ vars.AWS_REGION }}
       build-platforms: ${{ vars.BUILD_PLATFORMS || 'linux/amd64,linux/arm64' }}
+      image-tag: ${{ needs.variables-setup.outputs.image-tag }}
       additional-tag: 'secure-latest'
+      date: ${{ needs.variables-setup.outputs.date }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}

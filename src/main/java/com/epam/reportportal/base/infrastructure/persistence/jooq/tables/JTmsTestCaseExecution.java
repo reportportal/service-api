@@ -95,6 +95,11 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
      * The column <code>public.tms_test_case_execution.priority</code>.
      */
     public final TableField<JTmsTestCaseExecutionRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255), this, "");
+    
+    /**
+     * The column <code>public.tms_test_case_execution.display_id</code>.
+     */
+    public final TableField<JTmsTestCaseExecutionRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>public.tms_test_case_execution.name</code>.

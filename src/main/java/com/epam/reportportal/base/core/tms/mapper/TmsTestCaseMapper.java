@@ -209,6 +209,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "name", source = "testCase.name")
   @Mapping(target = "description", source = "testCase.description")
   @Mapping(target = "priority", source = "testCase.priority")
+  @Mapping(target = "displayId", source = "testCase.displayId")
   @Mapping(target = "externalId", source = "testCase.externalId")
   @Mapping(target = "createdAt", source = "testCase.createdAt", qualifiedByName = "instantToMillis")
   @Mapping(target = "updatedAt", source = "testCase.updatedAt", qualifiedByName = "instantToMillis")

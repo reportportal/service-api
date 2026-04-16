@@ -15,6 +15,7 @@ public class TmsTestCaseSnapshotDTO {
   private String name;
   private String description;
   private String priority;
+  private String displayId;
   private TmsTestCaseTestFolderRS testFolder;
   private TmsManualScenarioRS manualScenario;
   private Set<TmsTestCaseExecutionAttributeRS> attributes;

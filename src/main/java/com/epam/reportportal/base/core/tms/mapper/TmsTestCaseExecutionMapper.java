@@ -52,6 +52,7 @@ public abstract class TmsTestCaseExecutionMapper {
     builder.testCaseId(execution.getTestCaseId());
     builder.testCaseVersionId(execution.getTestCaseVersionId());
     builder.testCasePriority(execution.getPriority());
+    builder.displayId(execution.getDisplayId());
     builder.testItemId(
         execution.getTestItem() != null ? execution.getTestItem().getItemId() : null);
 
@@ -144,7 +145,8 @@ public abstract class TmsTestCaseExecutionMapper {
     execution.setPriority(testCase.getPriority());
     execution.setTestCaseVersionId(defaultVersionId);
     execution.setTestCaseSnapshot(snapshot);
-
+    execution.setDisplayId(testCase.getDisplayId());
+    
     return execution;
   }
 

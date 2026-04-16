@@ -147,6 +147,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_SEARCH;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_UPDATED_AT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_DISPLAY_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_LAUNCH_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseExecutionCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXECUTION_NAME;
@@ -2199,6 +2200,11 @@ public enum FilterTarget {
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_FOLDER_ID,
               TEST_ITEM.PARENT_ID, Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_CASE_EXECUTION_DISPLAY_ID,
+              TMS_TEST_CASE_EXECUTION.DISPLAY_ID,
+              String.class
+          ).get(),
+          new CriteriaHolderBuilder().newBuilder(
               CRITERIA_TMS_TEST_CASE_EXECUTION_TEST_CASE_ATTRIBUTE_KEY,
               ITEM_ATTRIBUTE.VALUE, // Filter by VALUE
               List.class,
@@ -2226,15 +2232,16 @@ public enum FilterTarget {
           TEST_ITEM.PARENT_ID,
           TEST_ITEM_RESULTS.RESULT_ID,
           TEST_ITEM_RESULTS.STATUS,
-          TEST_ITEM_RESULTS.END_TIME
+          TEST_ITEM_RESULTS.END_TIME,
+          TMS_TEST_CASE_EXECUTION.DISPLAY_ID
       );
     }
-
+    
     @Override
     protected void addFrom(SelectQuery<? extends Record> query) {
       query.addFrom(TMS_TEST_CASE_EXECUTION);
     }
-
+    
     @Override
     protected void joinTables(QuerySupplier query) {
       query.addJoin(TEST_ITEM, JoinType.LEFT_OUTER_JOIN,

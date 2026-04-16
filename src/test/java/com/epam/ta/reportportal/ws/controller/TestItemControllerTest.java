@@ -259,7 +259,7 @@ class TestItemControllerTest extends BaseMvcTest {
             token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message").value(
-            "Provide either 'filter.has.compositeAttribute' or 'filter.swt.name'."));
+            "Error in handled Request. Please, check specified parameters: 'Provide either 'filter.has.compositeAttribute' or 'filter.swt.name'.'"));
   }
 
   @Test

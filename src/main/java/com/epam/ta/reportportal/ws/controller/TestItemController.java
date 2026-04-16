@@ -539,7 +539,7 @@ public class TestItemController {
   @Operation(summary = "Search test items by either name or attribute")
   public Page<TestItemResource> getTestItems(@PathVariable String projectName,
       @AuthenticationPrincipal ReportPortalUser user,
-      @RequestParam(value = DEFAULT_FILTER_PREFIX + CNT
+      @RequestParam(value = DEFAULT_FILTER_PREFIX + "swt."
           + CRITERIA_NAME, required = false) String name,
       @RequestParam(value = "filter.has.compositeAttribute", required = false) String attribute,
       @RequestParam(value = "filter.in.status", required = false) String status,

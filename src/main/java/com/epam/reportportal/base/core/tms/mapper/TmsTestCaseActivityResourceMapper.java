@@ -34,7 +34,8 @@ public abstract class TmsTestCaseActivityResourceMapper {
        builder.attributes(
           tc.getAttributes()
               .stream()
-              .map(a -> a.getAttribute().getKey() + ": " + a.getAttribute().getValue())
+              .map(a -> a.getAttribute().getKey() +
+                  (a.getAttribute().getValue() == null ? "" : ": " + a.getAttribute().getValue()))
               .collect(Collectors.toList())
        );
     }

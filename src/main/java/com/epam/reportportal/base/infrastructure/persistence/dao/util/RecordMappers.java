@@ -833,7 +833,9 @@ public class RecordMappers {
     execution.setTestCaseVersionId(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID));
     execution.setPriority(r.get(TMS_TEST_CASE_EXECUTION.PRIORITY, String.class));
     execution.setTestCaseSnapshot(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT, String.class));
-
+    ofNullable(r.field(TMS_TEST_CASE_EXECUTION.DISPLAY_ID)).flatMap(f -> ofNullable(r.get(f, String.class)))
+        .ifPresent(execution::setDisplayId);
+    
     //Create TestItem with id, if test_item_id exists
     ofNullable(r.get(TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID)).ifPresent(testItemId -> {
       TestItem testItem = new TestItem();

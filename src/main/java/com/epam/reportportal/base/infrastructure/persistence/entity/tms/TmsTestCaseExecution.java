@@ -63,4 +63,7 @@ public class TmsTestCaseExecution implements Serializable {
   @OneToOne(mappedBy = "execution")
   @ToString.Exclude
   private TmsTestCaseExecutionComment executionComment;
+
+  @Column(name = "display_id")
+  private String displayId;
 }

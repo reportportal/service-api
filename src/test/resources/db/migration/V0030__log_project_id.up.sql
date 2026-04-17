@@ -1,2 +1,0 @@
-ALTER TABLE log
-    ADD COLUMN project_id BIGINT;

@@ -121,31 +121,31 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
     }
 
     /**
-     * Setter for <code>public.tms_milestone.product_version_id</code>.
-     */
-    public void setProductVersionId(Long value) {
-        set(7, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_milestone.product_version_id</code>.
-     */
-    public Long getProductVersionId() {
-        return (Long) get(7);
-    }
-
-    /**
      * Setter for <code>public.tms_milestone.display_id</code>.
      */
     public void setDisplayId(String value) {
-        set(8, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>public.tms_milestone.display_id</code>.
      */
     public String getDisplayId() {
-        return (String) get(8);
+        return (String) get(7);
+    }
+
+    /**
+     * Setter for <code>public.tms_milestone.product_version_id</code>.
+     */
+    public void setProductVersionId(Long value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_milestone.product_version_id</code>.
+     */
+    public Long getProductVersionId() {
+        return (Long) get(8);
     }
 
     // -------------------------------------------------------------------------
@@ -171,7 +171,7 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
     /**
      * Create a detached, initialised JTmsMilestoneRecord
      */
-    public JTmsMilestoneRecord(Long id, String name, Long projectId, Instant startDate, Instant endDate, JTmsMilestoneType type, JTmsMilestoneStatus status, Long productVersionId, String displayId) {
+    public JTmsMilestoneRecord(Long id, String name, Long projectId, Instant startDate, Instant endDate, JTmsMilestoneType type, JTmsMilestoneStatus status, String displayId, Long productVersionId) {
         super(JTmsMilestone.TMS_MILESTONE);
 
         setId(id);
@@ -181,8 +181,8 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
         setEndDate(endDate);
         setType(type);
         setStatus(status);
-        setProductVersionId(productVersionId);
         setDisplayId(displayId);
+        setProductVersionId(productVersionId);
         resetChangedOnNotNull();
     }
 }

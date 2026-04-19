@@ -4,15 +4,19 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttachment.JTmsAttachmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStep.JTmsStepPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsStepAttachmentRecord;
+
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -66,6 +70,11 @@ public class JTmsStepAttachment extends TableImpl<JTmsStepAttachmentRecord> {
      * The column <code>public.tms_step_attachment.attachment_id</code>.
      */
     public final TableField<JTmsStepAttachmentRecord, Long> ATTACHMENT_ID = createField(DSL.name("attachment_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.tms_step_attachment.created_at</code>.
+     */
+    public final TableField<JTmsStepAttachmentRecord, Instant> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
 
     private JTmsStepAttachment(Name alias, Table<JTmsStepAttachmentRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

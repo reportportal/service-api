@@ -82,7 +82,7 @@ public class JTmsStepExecution extends TableImpl<JTmsStepExecutionRecord> {
     /**
      * The column <code>public.tms_step_execution.tms_step_id</code>.
      */
-    public final TableField<JTmsStepExecutionRecord, Long> TMS_STEP_ID = createField(DSL.name("tms_step_id"), SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<JTmsStepExecutionRecord, Long> TMS_STEP_ID = createField(DSL.name("tms_step_id"), SQLDataType.BIGINT, this, "");
 
     private JTmsStepExecution(Name alias, Table<JTmsStepExecutionRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

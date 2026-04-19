@@ -18,6 +18,10 @@ package com.epam.reportportal.base.ws.converter.converters;
 
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.CreateOrgIntegrationRequest;
+import com.epam.reportportal.api.model.OrganizationIntegration;
+import com.epam.reportportal.api.model.OrganizationIntegrationIntegrationType;
+import com.epam.reportportal.api.model.UpdateOrgIntegrationRequest;
 import com.epam.reportportal.base.core.integration.util.property.AuthProperties;
 import com.epam.reportportal.base.core.integration.util.property.BtsProperties;
 import com.epam.reportportal.base.core.integration.util.property.SauceLabsProperties;
@@ -26,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.epam.reportportal.base.model.activity.IntegrationActivityResource;
 import com.epam.reportportal.base.model.integration.AuthFlowEnum;
+import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.model.integration.IntegrationResource;
 import com.epam.reportportal.base.model.integration.IntegrationTypeResource;
 import java.util.HashMap;
@@ -83,6 +88,30 @@ public final class IntegrationConverter {
         ));
   }
 
+  public static final Function<Integration, OrganizationIntegration> TO_ORGANIZATION_INTEGRATION =
+      integration -> {
+        OrganizationIntegration result = new OrganizationIntegration();
+        result.setId(integration.getId());
+        result.setName(integration.getName());
+        result.setCreator(integration.getCreator());
+        result.setEnabled(integration.isEnabled());
+        result.setCreatedAt(integration.getCreationDate());
+        result.setParameters(
+            ofNullable(integration.getParams())
+                .flatMap(IntegrationConverter::convertToResourceParams)
+                .orElseGet(HashMap::new));
+        ofNullable(integration.getType()).ifPresent(t -> {
+          OrganizationIntegrationIntegrationType type = new OrganizationIntegrationIntegrationType();
+          type.setName(t.getName());
+          type.setType(t.getIntegrationGroup().name());
+          type.setEnabled(t.isEnabled());
+          ofNullable(t.getAuthFlow()).ifPresent(flow ->
+              type.setAuthFlow(OrganizationIntegrationIntegrationType.AuthFlowEnum.valueOf(flow.name())));
+          result.setIntegrationType(type);
+        });
+        return result;
+      };
+
   public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE =
       integration -> {
         IntegrationActivityResource resource = new IntegrationActivityResource();
@@ -94,6 +123,24 @@ public final class IntegrationConverter {
         });
         resource.setTypeName(integration.getType().getName());
         return resource;
+      };
+
+  public static final Function<CreateOrgIntegrationRequest, IntegrationRQ> CREATE_REQUEST_TO_RQ =
+      request -> {
+        IntegrationRQ rq = new IntegrationRQ();
+        rq.setName(request.getName());
+        rq.setIntegrationParams(request.getParameters());
+        rq.setEnabled(request.getEnabled());
+        return rq;
+      };
+
+  public static final Function<UpdateOrgIntegrationRequest, IntegrationRQ> UPDATE_REQUEST_TO_RQ =
+      request -> {
+        IntegrationRQ rq = new IntegrationRQ();
+        rq.setName(request.getName());
+        rq.setIntegrationParams(request.getParameters());
+        rq.setEnabled(request.getEnabled());
+        return rq;
       };
 
   private IntegrationConverter() {

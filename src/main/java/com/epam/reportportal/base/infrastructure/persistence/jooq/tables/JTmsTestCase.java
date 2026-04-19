@@ -4,6 +4,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
@@ -16,7 +17,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase.JTmsTestPlanTestCasePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseRecord;
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -75,6 +75,16 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
     public final TableField<JTmsTestCaseRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
+     * The column <code>public.tms_test_case.created_at</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, Instant> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
+
+    /**
+     * The column <code>public.tms_test_case.updated_at</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, Instant> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
+
+    /**
      * The column <code>public.tms_test_case.name</code>.
      */
     public final TableField<JTmsTestCaseRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(255), this, "");
@@ -83,16 +93,6 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      * The column <code>public.tms_test_case.description</code>.
      */
     public final TableField<JTmsTestCaseRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.CLOB, this, "");
-
-    /**
-     * The column <code>public.tms_test_case.test_folder_id</code>.
-     */
-    public final TableField<JTmsTestCaseRecord, Long> TEST_FOLDER_ID = createField(DSL.name("test_folder_id"), SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.tms_test_case.dataset_id</code>.
-     */
-    public final TableField<JTmsTestCaseRecord, Long> DATASET_ID = createField(DSL.name("dataset_id"), SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.tms_test_case.priority</code>.
@@ -107,17 +107,12 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
     /**
      * The column <code>public.tms_test_case.external_id</code>.
      */
-    public final TableField<JTmsTestCaseRecord, String> EXTERNAL_ID = createField(DSL.name("external_id"), SQLDataType.VARCHAR(50), this, "");
+    public final TableField<JTmsTestCaseRecord, String> EXTERNAL_ID = createField(DSL.name("external_id"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>public.tms_test_case.created_at</code>.
+     * The column <code>public.tms_test_case.display_id</code>.
      */
-    public final TableField<JTmsTestCaseRecord, Instant> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
-
-    /**
-     * The column <code>public.tms_test_case.updated_at</code>.
-     */
-    public final TableField<JTmsTestCaseRecord, Instant> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
+    public final TableField<JTmsTestCaseRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>public.tms_test_case.project_id</code>.
@@ -125,9 +120,14 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
     public final TableField<JTmsTestCaseRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>public.tms_test_case.display_id</code>.
+     * The column <code>public.tms_test_case.test_folder_id</code>.
      */
-    public final TableField<JTmsTestCaseRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsTestCaseRecord, Long> TEST_FOLDER_ID = createField(DSL.name("test_folder_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>public.tms_test_case.dataset_id</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, Long> DATASET_ID = createField(DSL.name("dataset_id"), SQLDataType.BIGINT, this, "");
 
     private JTmsTestCase(Name alias, Table<JTmsTestCaseRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -198,7 +198,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_PROJECT_ID, Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR, Indexes.UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID);
+        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_PROJECT_ID, Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR, Indexes.IDX_TMS_TEST_CASE_TEST_FOLDER_ID, Indexes.UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID);
     }
 
     @Override

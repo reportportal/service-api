@@ -22,6 +22,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSte
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution.JTmsTestCaseExecutionPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem.JTmsTestFolderTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTestItemRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -161,7 +162,7 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
     /**
      * The column <code>public.test_item.test_case_hash</code>.
      */
-    public final TableField<JTestItemRecord, Integer> TEST_CASE_HASH = createField(DSL.name("test_case_hash"), SQLDataType.INTEGER, this, "");
+    public final TableField<JTestItemRecord, Integer> TEST_CASE_HASH = createField(DSL.name("test_case_hash"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>public.test_item.analysis_owner_id</code>.
@@ -237,7 +238,7 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TEST_ITEM_NAME_TRGM, Indexes.ITEM_TEST_CASE_ID_LAUNCH_ID_IDX, Indexes.PATH_GIST_IDX, Indexes.TEST_CASE_HASH_LAUNCH_ID_IDX, Indexes.TEST_ITEM_START_TIME_IDX, Indexes.TEST_ITEM_UNIQUE_ID_LAUNCH_ID_IDX, Indexes.TI_LAUNCH_IDX, Indexes.TI_PARENT_IDX, Indexes.TI_RETRY_OF_IDX);
+        return Arrays.asList(Indexes.IDX_TEST_ITEM_NAME_TRGM, Indexes.ITEM_TEST_CASE_ID_LAUNCH_ID_IDX, Indexes.PATH_GIST_IDX, Indexes.TEST_CASE_HASH_LAUNCH_ID_IDX, Indexes.TEST_ITEM_LAST_MODIFIED_IDX, Indexes.TEST_ITEM_START_TIME_IDX, Indexes.TEST_ITEM_UNIQUE_ID_LAUNCH_ID_IDX, Indexes.TI_LAUNCH_IDX, Indexes.TI_PARENT_IDX, Indexes.TI_RETRY_OF_IDX);
     }
 
     @Override

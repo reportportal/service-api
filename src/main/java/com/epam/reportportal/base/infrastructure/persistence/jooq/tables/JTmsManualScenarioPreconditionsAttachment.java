@@ -4,15 +4,19 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttachment.JTmsAttachmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions.JTmsManualScenarioPreconditionsPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioPreconditionsAttachmentRecord;
+
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -69,6 +73,12 @@ public class JTmsManualScenarioPreconditionsAttachment extends TableImpl<JTmsMan
      * <code>public.tms_manual_scenario_preconditions_attachment.attachment_id</code>.
      */
     public final TableField<JTmsManualScenarioPreconditionsAttachmentRecord, Long> ATTACHMENT_ID = createField(DSL.name("attachment_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column
+     * <code>public.tms_manual_scenario_preconditions_attachment.created_at</code>.
+     */
+    public final TableField<JTmsManualScenarioPreconditionsAttachmentRecord, Instant> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
 
     private JTmsManualScenarioPreconditionsAttachment(Name alias, Table<JTmsManualScenarioPreconditionsAttachmentRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

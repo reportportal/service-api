@@ -61,45 +61,45 @@ public class JTmsTestFolderRecord extends UpdatableRecordImpl<JTmsTestFolderReco
     }
 
     /**
-     * Setter for <code>public.tms_test_folder.parent_id</code>.
-     */
-    public void setParentId(Long value) {
-        set(3, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_folder.parent_id</code>.
-     */
-    public Long getParentId() {
-        return (Long) get(3);
-    }
-
-    /**
-     * Setter for <code>public.tms_test_folder.project_id</code>.
-     */
-    public void setProjectId(Long value) {
-        set(4, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_folder.project_id</code>.
-     */
-    public Long getProjectId() {
-        return (Long) get(4);
-    }
-
-    /**
      * Setter for <code>public.tms_test_folder.index</code>.
      */
     public void setIndex(Integer value) {
-        set(5, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.tms_test_folder.index</code>.
      */
     public Integer getIndex() {
-        return (Integer) get(5);
+        return (Integer) get(3);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_folder.parent_id</code>.
+     */
+    public void setParentId(Long value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_folder.parent_id</code>.
+     */
+    public Long getParentId() {
+        return (Long) get(4);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_folder.project_id</code>.
+     */
+    public void setProjectId(Long value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_folder.project_id</code>.
+     */
+    public Long getProjectId() {
+        return (Long) get(5);
     }
 
     // -------------------------------------------------------------------------
@@ -125,15 +125,15 @@ public class JTmsTestFolderRecord extends UpdatableRecordImpl<JTmsTestFolderReco
     /**
      * Create a detached, initialised JTmsTestFolderRecord
      */
-    public JTmsTestFolderRecord(Long id, String name, String description, Long parentId, Long projectId, Integer index) {
+    public JTmsTestFolderRecord(Long id, String name, String description, Integer index, Long parentId, Long projectId) {
         super(JTmsTestFolder.TMS_TEST_FOLDER);
 
         setId(id);
         setName(name);
         setDescription(description);
+        setIndex(index);
         setParentId(parentId);
         setProjectId(projectId);
-        setIndex(index);
         resetChangedOnNotNull();
     }
 }

@@ -10,9 +10,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTmsData
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsDataset.JTmsDatasetPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsEnvironment.JTmsEnvironmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsEnvironmentDatasetRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

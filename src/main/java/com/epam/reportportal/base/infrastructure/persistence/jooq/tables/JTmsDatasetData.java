@@ -8,9 +8,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsDataset.JTmsDatasetPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsDatasetDataRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

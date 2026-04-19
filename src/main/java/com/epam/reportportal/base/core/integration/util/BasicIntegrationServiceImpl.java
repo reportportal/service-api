@@ -20,9 +20,6 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.plugin.PluginBox;
-import com.epam.reportportal.extension.CommonPluginCommand;
-import com.epam.reportportal.extension.PluginCommand;
-import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
@@ -30,6 +27,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.ws.converter.builders.IntegrationBuilder;
+import com.epam.reportportal.extension.CommonPluginCommand;
+import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -61,10 +61,11 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   public Integration createIntegration(IntegrationRQ integrationRq,
       IntegrationType integrationType) {
     return new IntegrationBuilder().withCreationDate(Instant.now()).withType(integrationType)
-        .withEnabled(integrationRq.getEnabled()).withName(integrationRq.getName()).withParams(
-            new IntegrationParams(retrieveCreateParams(integrationType.getName(),
-                integrationRq.getIntegrationParams()
-            ))).get();
+        .withEnabled(integrationRq.getEnabled())
+        .withName(integrationRq.getName())
+        .withParams(new IntegrationParams(
+            retrieveCreateParams(integrationType.getName(), integrationRq.getIntegrationParams())))
+        .get();
   }
 
   @Override
@@ -114,20 +115,18 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
   private Optional<PluginCommand<?>> getIntegrationCommand(String integration, String commandName) {
     ReportPortalExtensionPoint pluginInstance =
-        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class).orElseThrow(
-            () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed",
-                integration
-            ));
+        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
+            .orElseThrow(
+                () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
     return ofNullable(pluginInstance.getIntegrationCommand(commandName));
   }
 
   private Optional<CommonPluginCommand<?>> getCommonCommand(String integration,
       String commandName) {
     ReportPortalExtensionPoint pluginInstance =
-        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class).orElseThrow(
-            () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed",
-                integration
-            ));
+        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
+            .orElseThrow(
+                () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
     return ofNullable(pluginInstance.getCommonCommand(commandName));
   }
 

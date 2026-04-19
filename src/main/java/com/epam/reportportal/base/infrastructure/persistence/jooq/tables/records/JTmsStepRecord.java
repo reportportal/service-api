@@ -61,31 +61,31 @@ public class JTmsStepRecord extends UpdatableRecordImpl<JTmsStepRecord> {
     }
 
     /**
-     * Setter for <code>public.tms_step.steps_manual_scenario_id</code>.
-     */
-    public void setStepsManualScenarioId(Long value) {
-        set(3, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_step.steps_manual_scenario_id</code>.
-     */
-    public Long getStepsManualScenarioId() {
-        return (Long) get(3);
-    }
-
-    /**
      * Setter for <code>public.tms_step.number</code>.
      */
     public void setNumber(Integer value) {
-        set(4, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.tms_step.number</code>.
      */
     public Integer getNumber() {
-        return (Integer) get(4);
+        return (Integer) get(3);
+    }
+
+    /**
+     * Setter for <code>public.tms_step.steps_manual_scenario_id</code>.
+     */
+    public void setStepsManualScenarioId(Long value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_step.steps_manual_scenario_id</code>.
+     */
+    public Long getStepsManualScenarioId() {
+        return (Long) get(4);
     }
 
     // -------------------------------------------------------------------------
@@ -111,14 +111,14 @@ public class JTmsStepRecord extends UpdatableRecordImpl<JTmsStepRecord> {
     /**
      * Create a detached, initialised JTmsStepRecord
      */
-    public JTmsStepRecord(Long id, String instructions, String expectedResult, Long stepsManualScenarioId, Integer number) {
+    public JTmsStepRecord(Long id, String instructions, String expectedResult, Integer number, Long stepsManualScenarioId) {
         super(JTmsStep.TMS_STEP);
 
         setId(id);
         setInstructions(instructions);
         setExpectedResult(expectedResult);
-        setStepsManualScenarioId(stepsManualScenarioId);
         setNumber(number);
+        setStepsManualScenarioId(stepsManualScenarioId);
         resetChangedOnNotNull();
     }
 }

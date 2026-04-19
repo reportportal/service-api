@@ -10,9 +10,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjec
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMilestone.JTmsMilestonePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsProductVersionRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

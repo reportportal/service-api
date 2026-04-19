@@ -13,7 +13,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JAttrib
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JClusters;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JClustersTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JContentField;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JCounterDecrease;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JDashboard;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JDashboardWidget;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JFilter;
@@ -35,9 +34,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNames;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNumber;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOauthRegistration;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOauthRegistrationRestriction;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOauthRegistrationScope;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLogType;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganizationSettings;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganizationUser;
@@ -58,6 +55,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStaleM
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatisticsField;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItemDeleted;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTicket;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttachment;
@@ -155,15 +153,10 @@ public class Tables {
      */
     public static final JContentField CONTENT_FIELD = JContentField.CONTENT_FIELD;
 
-  /**
-   * The table <code>public.counter_decrease</code>.
-   */
-  public static final JCounterDecrease COUNTER_DECREASE = JCounterDecrease.COUNTER_DECREASE;
-
-  /**
-   * The table <code>public.dashboard</code>.
-   */
-  public static final JDashboard DASHBOARD = JDashboard.DASHBOARD;
+    /**
+     * The table <code>public.dashboard</code>.
+     */
+    public static final JDashboard DASHBOARD = JDashboard.DASHBOARD;
 
     /**
      * The table <code>public.dashboard_widget</code>.
@@ -266,19 +259,9 @@ public class Tables {
     public static final JLog LOG = JLog.LOG;
 
     /**
-     * The table <code>public.oauth_registration</code>.
+     * The table <code>public.log_type</code>.
      */
-    public static final JOauthRegistration OAUTH_REGISTRATION = JOauthRegistration.OAUTH_REGISTRATION;
-
-    /**
-     * The table <code>public.oauth_registration_restriction</code>.
-     */
-    public static final JOauthRegistrationRestriction OAUTH_REGISTRATION_RESTRICTION = JOauthRegistrationRestriction.OAUTH_REGISTRATION_RESTRICTION;
-
-    /**
-     * The table <code>public.oauth_registration_scope</code>.
-     */
-    public static final JOauthRegistrationScope OAUTH_REGISTRATION_SCOPE = JOauthRegistrationScope.OAUTH_REGISTRATION_SCOPE;
+    public static final JLogType LOG_TYPE = JLogType.LOG_TYPE;
 
     /**
      * The table <code>public.organization</code>.
@@ -327,7 +310,7 @@ public class Tables {
           Configuration configuration
         , String __1
     ) {
-        return configuration.dsl().selectFrom(com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return configuration.dsl().selectFrom(JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
               __1
         )).fetch();
     }
@@ -338,7 +321,7 @@ public class Tables {
     public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
           String __1
     ) {
-        return com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
             __1
         );
     }
@@ -349,7 +332,7 @@ public class Tables {
     public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
           Field<String> __1
     ) {
-        return com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
             __1
         );
     }
@@ -413,6 +396,11 @@ public class Tables {
      * The table <code>public.test_item</code>.
      */
     public static final JTestItem TEST_ITEM = JTestItem.TEST_ITEM;
+
+    /**
+     * The table <code>public.test_item_deleted</code>.
+     */
+    public static final JTestItemDeleted TEST_ITEM_DELETED = JTestItemDeleted.TEST_ITEM_DELETED;
 
     /**
      * The table <code>public.test_item_results</code>.

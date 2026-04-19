@@ -4,6 +4,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
@@ -18,6 +19,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.JSONB;
 import org.jooq.Name;
@@ -65,9 +67,19 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
     public final TableField<JTmsTestCaseExecutionRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
+     * The column <code>public.tms_test_case_execution.name</code>.
+     */
+    public final TableField<JTmsTestCaseExecutionRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(255), this, "");
+
+    /**
      * The column <code>public.tms_test_case_execution.test_item_id</code>.
      */
     public final TableField<JTmsTestCaseExecutionRecord, Long> TEST_ITEM_ID = createField(DSL.name("test_item_id"), SQLDataType.BIGINT, this, "");
+
+    /**
+     * The column <code>public.tms_test_case_execution.priority</code>.
+     */
+    public final TableField<JTmsTestCaseExecutionRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>public.tms_test_case_execution.test_case_id</code>.
@@ -92,19 +104,9 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
     public final TableField<JTmsTestCaseExecutionRecord, JSONB> TEST_CASE_SNAPSHOT = createField(DSL.name("test_case_snapshot"), SQLDataType.JSONB.nullable(false), this, "");
 
     /**
-     * The column <code>public.tms_test_case_execution.priority</code>.
-     */
-    public final TableField<JTmsTestCaseExecutionRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255), this, "");
-    
-    /**
      * The column <code>public.tms_test_case_execution.display_id</code>.
      */
     public final TableField<JTmsTestCaseExecutionRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
-
-    /**
-     * The column <code>public.tms_test_case_execution.name</code>.
-     */
-    public final TableField<JTmsTestCaseExecutionRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(255), this, "");
 
     private JTmsTestCaseExecution(Name alias, Table<JTmsTestCaseExecutionRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -173,6 +175,11 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
     @Override
     public Schema getSchema() {
         return aliased() ? null : JPublic.PUBLIC;
+    }
+
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_EXECUTION_LAUNCH_CASE, Indexes.IDX_TMS_TEST_CASE_EXECUTION_LAUNCH_ID, Indexes.IDX_TMS_TEST_CASE_EXECUTION_SNAPSHOT, Indexes.IDX_TMS_TEST_CASE_EXECUTION_TEST_CASE_ID, Indexes.IDX_TMS_TEST_CASE_EXECUTION_TEST_ITEM_ID, Indexes.IDX_TMS_TEST_CASE_EXECUTION_VERSION_ID);
     }
 
     @Override

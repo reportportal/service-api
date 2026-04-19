@@ -34,45 +34,73 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
     }
 
     /**
+     * Setter for <code>public.tms_test_case_execution.name</code>.
+     */
+    public void setName(String value) {
+        set(1, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case_execution.name</code>.
+     */
+    public String getName() {
+        return (String) get(1);
+    }
+
+    /**
      * Setter for <code>public.tms_test_case_execution.test_item_id</code>.
      */
     public void setTestItemId(Long value) {
-        set(1, value);
+        set(2, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case_execution.test_item_id</code>.
      */
     public Long getTestItemId() {
-        return (Long) get(1);
+        return (Long) get(2);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_case_execution.priority</code>.
+     */
+    public void setPriority(String value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case_execution.priority</code>.
+     */
+    public String getPriority() {
+        return (String) get(3);
     }
 
     /**
      * Setter for <code>public.tms_test_case_execution.test_case_id</code>.
      */
     public void setTestCaseId(Long value) {
-        set(2, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case_execution.test_case_id</code>.
      */
     public Long getTestCaseId() {
-        return (Long) get(2);
+        return (Long) get(4);
     }
 
     /**
      * Setter for <code>public.tms_test_case_execution.launch_id</code>.
      */
     public void setLaunchId(Long value) {
-        set(3, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case_execution.launch_id</code>.
      */
     public Long getLaunchId() {
-        return (Long) get(3);
+        return (Long) get(5);
     }
 
     /**
@@ -80,7 +108,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
      * <code>public.tms_test_case_execution.test_case_version_id</code>.
      */
     public void setTestCaseVersionId(Long value) {
-        set(4, value);
+        set(6, value);
     }
 
     /**
@@ -88,7 +116,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
      * <code>public.tms_test_case_execution.test_case_version_id</code>.
      */
     public Long getTestCaseVersionId() {
-        return (Long) get(4);
+        return (Long) get(6);
     }
 
     /**
@@ -96,7 +124,7 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
      * <code>public.tms_test_case_execution.test_case_snapshot</code>.
      */
     public void setTestCaseSnapshot(JSONB value) {
-        set(5, value);
+        set(7, value);
     }
 
     /**
@@ -104,21 +132,21 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
      * <code>public.tms_test_case_execution.test_case_snapshot</code>.
      */
     public JSONB getTestCaseSnapshot() {
-        return (JSONB) get(5);
+        return (JSONB) get(7);
     }
 
     /**
-     * Setter for <code>public.tms_test_case_execution.priority</code>.
+     * Setter for <code>public.tms_test_case_execution.display_id</code>.
      */
-    public void setPriority(String value) {
-        set(6, value);
+    public void setDisplayId(String value) {
+        set(8, value);
     }
 
     /**
-     * Getter for <code>public.tms_test_case_execution.priority</code>.
+     * Getter for <code>public.tms_test_case_execution.display_id</code>.
      */
-    public String getPriority() {
-        return (String) get(6);
+    public String getDisplayId() {
+        return (String) get(8);
     }
 
     // -------------------------------------------------------------------------
@@ -144,16 +172,18 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
     /**
      * Create a detached, initialised JTmsTestCaseExecutionRecord
      */
-    public JTmsTestCaseExecutionRecord(Long id, Long testItemId, Long testCaseId, Long launchId, Long testCaseVersionId, JSONB testCaseSnapshot, String priority) {
+    public JTmsTestCaseExecutionRecord(Long id, String name, Long testItemId, String priority, Long testCaseId, Long launchId, Long testCaseVersionId, JSONB testCaseSnapshot, String displayId) {
         super(JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION);
 
         setId(id);
+        setName(name);
         setTestItemId(testItemId);
+        setPriority(priority);
         setTestCaseId(testCaseId);
         setLaunchId(launchId);
         setTestCaseVersionId(testCaseVersionId);
         setTestCaseSnapshot(testCaseSnapshot);
-        setPriority(priority);
+        setDisplayId(displayId);
         resetChangedOnNotNull();
     }
 }

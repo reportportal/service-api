@@ -5,6 +5,9 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
+
+import java.time.Instant;
+
 import org.jooq.Record2;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -45,6 +48,20 @@ public class JTmsStepAttachmentRecord extends UpdatableRecordImpl<JTmsStepAttach
         return (Long) get(1);
     }
 
+    /**
+     * Setter for <code>public.tms_step_attachment.created_at</code>.
+     */
+    public void setCreatedAt(Instant value) {
+        set(2, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_step_attachment.created_at</code>.
+     */
+    public Instant getCreatedAt() {
+        return (Instant) get(2);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -68,11 +85,12 @@ public class JTmsStepAttachmentRecord extends UpdatableRecordImpl<JTmsStepAttach
     /**
      * Create a detached, initialised JTmsStepAttachmentRecord
      */
-    public JTmsStepAttachmentRecord(Long stepId, Long attachmentId) {
+    public JTmsStepAttachmentRecord(Long stepId, Long attachmentId, Instant createdAt) {
         super(JTmsStepAttachment.TMS_STEP_ATTACHMENT);
 
         setStepId(stepId);
         setAttachmentId(attachmentId);
+        setCreatedAt(createdAt);
         resetChangedOnNotNull();
     }
 }

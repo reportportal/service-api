@@ -4,6 +4,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
@@ -16,6 +17,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueT
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueTypeProject.JIssueTypeProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.JLaunchPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNumber.JLaunchNumberPath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLogType.JLogTypePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization.JOrganizationPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOwnedEntity.JOwnedEntityPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPatternTemplate.JPatternTemplatePath;
@@ -34,7 +36,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUserPreference.JUserPreferencePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.JUsersPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JProjectRecord;
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -120,7 +121,7 @@ public class JProject extends TableImpl<JProjectRecord> {
     /**
      * The column <code>public.project.organization_id</code>.
      */
-    public final TableField<JProjectRecord, Long> ORGANIZATION_ID = createField(DSL.name("organization_id"), SQLDataType.BIGINT, this, "");
+    public final TableField<JProjectRecord, Long> ORGANIZATION_ID = createField(DSL.name("organization_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.project.slug</code>.
@@ -317,6 +318,19 @@ public class JProject extends TableImpl<JProjectRecord> {
             _launch = new JLaunchPath(this, null, Keys.LAUNCH__LAUNCH_PROJECT_ID_FKEY.getInverseKey());
 
         return _launch;
+    }
+
+    private transient JLogTypePath _logType;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.log_type</code>
+     * table
+     */
+    public JLogTypePath logType() {
+        if (_logType == null)
+            _logType = new JLogTypePath(this, null, Keys.LOG_TYPE__LOG_TYPE_PROJECT_ID_FKEY.getInverseKey());
+
+        return _logType;
     }
 
     private transient JPatternTemplatePath _patternTemplate;

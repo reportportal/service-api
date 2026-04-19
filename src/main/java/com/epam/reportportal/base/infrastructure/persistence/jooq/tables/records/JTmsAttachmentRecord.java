@@ -5,7 +5,9 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttachment;
+
 import java.time.Instant;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -89,17 +91,17 @@ public class JTmsAttachmentRecord extends UpdatableRecordImpl<JTmsAttachmentReco
     }
 
     /**
-     * Setter for <code>public.tms_attachment.environment_id</code>.
+     * Setter for <code>public.tms_attachment.thumbnail_path</code>.
      */
-    public void setEnvironmentId(Long value) {
+    public void setThumbnailPath(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>public.tms_attachment.environment_id</code>.
+     * Getter for <code>public.tms_attachment.thumbnail_path</code>.
      */
-    public Long getEnvironmentId() {
-        return (Long) get(5);
+    public String getThumbnailPath() {
+        return (String) get(5);
     }
 
     /**
@@ -130,6 +132,20 @@ public class JTmsAttachmentRecord extends UpdatableRecordImpl<JTmsAttachmentReco
         return (Instant) get(7);
     }
 
+    /**
+     * Setter for <code>public.tms_attachment.environment_id</code>.
+     */
+    public void setEnvironmentId(Long value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_attachment.environment_id</code>.
+     */
+    public Long getEnvironmentId() {
+        return (Long) get(8);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -153,7 +169,7 @@ public class JTmsAttachmentRecord extends UpdatableRecordImpl<JTmsAttachmentReco
     /**
      * Create a detached, initialised JTmsAttachmentRecord
      */
-    public JTmsAttachmentRecord(Long id, String fileName, String fileType, Long fileSize, String pathToFile, Long environmentId, Instant createdAt, Instant expiresAt) {
+    public JTmsAttachmentRecord(Long id, String fileName, String fileType, Long fileSize, String pathToFile, String thumbnailPath, Instant createdAt, Instant expiresAt, Long environmentId) {
         super(JTmsAttachment.TMS_ATTACHMENT);
 
         setId(id);
@@ -161,9 +177,10 @@ public class JTmsAttachmentRecord extends UpdatableRecordImpl<JTmsAttachmentReco
         setFileType(fileType);
         setFileSize(fileSize);
         setPathToFile(pathToFile);
-        setEnvironmentId(environmentId);
+        setThumbnailPath(thumbnailPath);
         setCreatedAt(createdAt);
         setExpiresAt(expiresAt);
+        setEnvironmentId(environmentId);
         resetChangedOnNotNull();
     }
 }

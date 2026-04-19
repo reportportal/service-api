@@ -93,6 +93,7 @@ project.ext {
             (migrationsUrl + '/migrations/210_organization_settings_table.up.sql')     : 'V210__organization_settings_table.sql',
             (migrationsUrl + '/migrations/212_update_default_users.up.sql')            : 'V212__update_default_users.sql',
             (migrationsUrl + '/migrations/1000_tms_initial.up.sql')                    : 'V1000__tms_initial.up.sql',
+            (migrationsUrl + '/migrations/1001_migrate_auth_integrations.up.sql')      : 'V1001__migrate_auth_integrations.up.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

@@ -192,7 +192,7 @@ public class ProjectSettingsController {
   @PostMapping("/notification")
   @ResponseStatus(CREATED)
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-  @Operation(summary = "Creates notification for specified project", description = "Only for users with PROJECT_MANAGER or ADMIN roles")
+  @Operation(summary = "Creates notification for specified project", description = "Create notification rule on the project.\n\n### Authority\n\n- `ADMINISTRATOR`\n- `MANAGER`\n- `EDITOR`")
   public EntryCreatedRS createNotification(@PathVariable String projectKey,
       @RequestBody @Validated SenderCaseDTO createNotificationRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -204,7 +204,7 @@ public class ProjectSettingsController {
   @PutMapping("/notification")
   @ResponseStatus(CREATED)
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-  @Operation(summary = "Updates notification for specified project", description = "Only for users with PROJECT_MANAGER or ADMIN roles")
+  @Operation(summary = "Updates notification for specified project", description = "Update notification rule on the project.\n\n### Authority\n\n- `ADMINISTRATOR`\n- `MANAGER`\n- `EDITOR`")
   public OperationCompletionRS updateNotification(@PathVariable String projectKey,
       @RequestBody @Validated SenderCaseDTO updateNotificationRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -216,7 +216,7 @@ public class ProjectSettingsController {
   @DeleteMapping("/notification/{notificationId:\\d+}")
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-  @Operation(summary = "Deletes notification for specified project", description = "Only for users with PROJECT_MANAGER or ADMIN roles")
+  @Operation(summary = "Deletes notification for specified project", description = "Delete notification rule on the project.\n\n### Authority\n\n- `ADMINISTRATOR`\n- `MANAGER`\n- `EDITOR`")
   public OperationCompletionRS deleteNotification(@PathVariable String projectKey,
       @PathVariable Long notificationId, @AuthenticationPrincipal ReportPortalUser user) {
     return deleteNotificationHandler.deleteNotification(

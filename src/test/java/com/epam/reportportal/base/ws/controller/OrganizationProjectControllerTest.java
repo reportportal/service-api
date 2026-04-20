@@ -484,7 +484,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   @Test
   void patchUserRoleHimself() throws Exception {
     var values = List.of(
-        new UserProjectInfo(104L, ProjectRole.EDITOR)
+        new UserProjectInfo(105L, ProjectRole.EDITOR)
     );
     PatchOperation patchOperation = new PatchOperation()
         .op(OperationType.REPLACE)
@@ -493,7 +493,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
 
     mockMvc.perform(patch("/organizations/201/projects/301")
             .contentType(MediaType.APPLICATION_JSON)
-            .with(token(managerToken))
+            .with(token(editorToken))
             .content(objectMapper.writeValueAsString(Collections.singletonList(patchOperation))))
         .andExpect(status().isForbidden());
   }

@@ -7,7 +7,6 @@ on:
       - main
 
 jobs:
-  # Filters: PR must be approved, targeting main, from a secure/* branch.
   extract-image-tag:
     name: Extract image tag from PR title
     if: >-
@@ -36,8 +35,10 @@ jobs:
     uses: reportportal/.github/.github/workflows/promote-ecr-to-gcr.yaml@main
     with:
       service: ${{ github.event.repository.name }}
-      gcr-region: ${{ vars.GCR_REGION || 'europe-docker.pkg.dev' }}
-      gcp-project: ${{ vars.GCP_PROJECT }}
       image-tag: ${{ needs.extract-image-tag.outputs.image-tag }}
-      aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
-    secrets: inherit
+      aws-region: ${{ vars.AWS_REGION }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      GCR_SA_KEY: ${{ secrets.GCR_SA_KEY }}
+      GCR_REGION: ${{ secrets.GCR_REGION }}
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT }}

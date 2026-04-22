@@ -104,8 +104,15 @@ public class ProjectUserAssignmentHelper {
       return;
     }
 
-    expect(user.getId(), not(isEqual(principal.getUserId())))
-        .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
+    var principalIsOrgManager = organizationUserRepository
+        .findByUserIdAndOrganization_Id(principal.getUserId(), org.getId())
+        .map(ou -> OrganizationRole.MANAGER.equals(ou.getOrganizationRole()))
+        .orElse(false);
+
+    if (!principalIsOrgManager) {
+      expect(user.getId(), not(isEqual(principal.getUserId())))
+          .verify(ErrorType.ACCESS_DENIED, "Self project role change is not allowed");
+    }
 
     if (OrganizationType.EXTERNAL.equals(org.getOrganizationType()) && UserType.UPSA.equals(user.getUserType())) {
       throw new ReportPortalException(ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,

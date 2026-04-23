@@ -10,7 +10,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManua
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 
 @Mapper(config = CommonMapperConfig.class)
@@ -28,19 +33,20 @@ public abstract class TmsTestCaseActivityResourceMapper {
         .description(tc.getDescription())
         .priority(tc.getPriority())
         .externalId(tc.getExternalId())
-        .testFolderId(tc.getTestFolder().getId())
-        .build();
+        .testFolderId(tc.getTestFolder().getId());
 
-    mapAttributes(builder, tc);
+    mapTags(builder, tc);
     mapManualScenario(builder, version);
 
-    return builder;
+    return builder.build();
   }
 
-  private void mapAttributes(TestCaseActivityResource builder, TmsTestCase tc) {
+  private void mapTags(TestCaseActivityResource.TestCaseActivityResourceBuilder builder,
+      TmsTestCase tc) {
     if (CollectionUtils.isNotEmpty(tc.getAttributes())) {
-      builder.setAttributes(
-          tc.getAttributes().stream()
+      builder.tags(
+          tc.getAttributes()
+              .stream()
               .map(a -> a.getAttribute().getKey()
                   + (a.getAttribute().getValue() == null ? "" : ": " + a.getAttribute().getValue()))
               .toList()
@@ -48,39 +54,60 @@ public abstract class TmsTestCaseActivityResourceMapper {
     }
   }
 
-  private void mapManualScenario(TestCaseActivityResource builder, TmsTestCaseVersion version) {
+  private void mapManualScenario(TestCaseActivityResource.TestCaseActivityResourceBuilder builder,
+      TmsTestCaseVersion version) {
     if (version == null || version.getManualScenario() == null) {
       return;
     }
     var scenario = version.getManualScenario();
-    builder.setExecutionEstimationTime(scenario.getExecutionEstimationTime());
+    builder.executionEstimationTime(scenario.getExecutionEstimationTime());
     if (scenario.getType() != null) {
-      builder.setType(scenario.getType().name());
+      builder.type(scenario.getType().name());
     }
     if (scenario.getPreconditions() != null) {
-      builder.setPreconditions(scenario.getPreconditions().getValue());
+      builder.preconditions(appendAttachments(
+          scenario.getPreconditions().getValue(),
+          scenario.getPreconditions().getAttachments()));
     }
     if (scenario.getRequirements() != null) {
-      builder.setRequirements(
+      builder.requirements(
           scenario
               .getRequirements()
               .stream()
               .map(TmsManualScenarioRequirement::getValue)
-              .toList());
+              .collect(java.util.stream.Collectors.joining("\n")));
     }
     if (scenario.getTextScenario() != null) {
-      builder.setInstructions(scenario.getTextScenario().getInstructions());
-      builder.setExpectedResult(scenario.getTextScenario().getExpectedResult());
+      builder.instructions(scenario.getTextScenario().getInstructions());
+      builder.expectedResult(appendAttachments(
+          scenario.getTextScenario().getExpectedResult(),
+          scenario.getTextScenario().getAttachments()));
     }
     if (scenario.getStepsScenario() != null
         && CollectionUtils.isNotEmpty(scenario.getStepsScenario().getSteps())) {
-      builder
-          .setSteps(scenario.getStepsScenario().getSteps().stream().map(
-                  s -> "Step " + s.getNumber()
-                      + ": instructions: " + s.getInstructions()
-                      + ": expectedResult: " + s.getExpectedResult())
-              .toList());
+      builder.steps(
+          scenario.getStepsScenario().getSteps().stream()
+              .sorted(Comparator.comparing(TmsStep::getNumber))
+              .map(s -> {
+                String stepStr = "Step " + s.getNumber() + "\n"
+                    + "Instructions: " + (s.getInstructions() != null ? s.getInstructions() : "") + "\n"
+                    + "Expected Result: " + (s.getExpectedResult() != null ? s.getExpectedResult() : "");
+                return appendAttachments(stepStr, s.getAttachments());
+              })
+              .collect(Collectors.joining("\n\n"))
+      );
     }
+  }
+
+  private String appendAttachments(String text, java.util.Set<TmsAttachment> attachments) {
+    if (CollectionUtils.isEmpty(attachments)) {
+      return text;
+    }
+    String attachmentsStr = "Attachments: " + attachments.stream()
+        .map(TmsAttachment::getFileName)
+        .filter(StringUtils::isNotBlank)
+        .collect(Collectors.joining(", "));
+    return StringUtils.isBlank(text) ? attachmentsStr : text + "\n" + attachmentsStr;
   }
 
   public TestCaseDeletedEvent buildTestCaseDeletedEvent(MembershipDetails membershipDetails,

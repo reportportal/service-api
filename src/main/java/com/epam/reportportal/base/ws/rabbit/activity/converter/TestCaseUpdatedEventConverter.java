@@ -54,14 +54,14 @@ public class TestCaseUpdatedEventConverter implements EventToActivityConverter<T
         .addHistoryField(processString("priority", event.getBefore().getPriority(), event.getAfter().getPriority()))
         .addHistoryField(processString("externalId", event.getBefore().getExternalId(), event.getAfter().getExternalId()))
         .addHistoryField(processField("testFolderId", event.getBefore().getTestFolderId(), event.getAfter().getTestFolderId()))
-        .addHistoryField(processList("attributes", event.getBefore().getAttributes(), event.getAfter().getAttributes()))
+        .addHistoryField(processList("tags", event.getBefore().getTags(), event.getAfter().getTags()))
         .addHistoryField(processField("executionEstimationTime", event.getBefore().getExecutionEstimationTime(), event.getAfter().getExecutionEstimationTime()))
         .addHistoryField(processString("type", event.getBefore().getType(), event.getAfter().getType()))
         .addHistoryField(processString("instructions", event.getBefore().getInstructions(), event.getAfter().getInstructions()))
         .addHistoryField(processString("expectedResult", event.getBefore().getExpectedResult(), event.getAfter().getExpectedResult()))
         .addHistoryField(processString("preconditions", event.getBefore().getPreconditions(), event.getAfter().getPreconditions()))
-        .addHistoryField(processList("steps", event.getBefore().getSteps(), event.getAfter().getSteps()))
-        .addHistoryField(processList("requirements", event.getBefore().getRequirements(), event.getAfter().getRequirements()))
+        .addHistoryField(processString("steps", event.getBefore().getSteps(), event.getAfter().getSteps()))
+        .addHistoryField(processString("requirements", event.getBefore().getRequirements(), event.getAfter().getRequirements()))
         .get();
   }
 

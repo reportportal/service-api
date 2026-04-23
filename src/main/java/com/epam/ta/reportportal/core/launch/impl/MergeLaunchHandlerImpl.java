@@ -160,6 +160,11 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
         );
       }
     });
+
+    long distinctLaunchTypes =
+        launches.stream().map(Launch::getLaunchType).distinct().count();
+    expect(distinctLaunchTypes, equalTo(1L)).verify(ErrorType.BAD_REQUEST_ERROR,
+        "Launches with different launch types cannot be merged.");
   }
 
 }

@@ -244,7 +244,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
 
-          tmsTestCaseAttributeService.updateTestCaseAttributes(projectId, existingTestCase,
+          tmsTestCaseAttributeService.patchTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
 
           var defaultVersion = tmsTestCaseVersionService.patchDefaultTestCaseVersion(

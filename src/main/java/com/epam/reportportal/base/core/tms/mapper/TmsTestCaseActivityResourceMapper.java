@@ -13,6 +13,7 @@ import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -98,8 +99,8 @@ public abstract class TmsTestCaseActivityResourceMapper {
       );
     }
   }
-
-  private String appendAttachments(String text, java.util.Set<TmsAttachment> attachments) {
+  
+  private String appendAttachments(String text, Set<TmsAttachment> attachments) {
     if (CollectionUtils.isEmpty(attachments)) {
       return text;
     }

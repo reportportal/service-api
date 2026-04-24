@@ -73,44 +73,11 @@ public class TmsStepServiceImpl implements TmsStepService {
   @Transactional
   public void patchSteps(TmsStepsManualScenario tmsManualScenario,
       TmsStepsManualScenarioRQ testCaseManualScenarioRQ) {
-    if (testCaseManualScenarioRQ == null || CollectionUtils.isEmpty(
-        testCaseManualScenarioRQ.getSteps())) {
+    if (testCaseManualScenarioRQ == null || testCaseManualScenarioRQ.getSteps() == null) {
       return;
     }
-
-    var stepsRQs = testCaseManualScenarioRQ.getSteps();
-    if (CollectionUtils.isEmpty(stepsRQs)) {
-      return;
-    }
-
-    var existingSteps = tmsManualScenario.getSteps();
-
-    if (existingSteps == null) {
-      existingSteps = new HashSet<>();
-      tmsManualScenario.setSteps(existingSteps);
-    }
-
-    // Find the maximum number in existing steps to continue numbering
-    var maxNumber = existingSteps
-        .stream()
-        .map(TmsStep::getNumber)
-        .max(Integer::compareTo)
-        .orElse(-1);
-
-    var newSteps = new HashSet<TmsStep>();
-    for (var i = 0; i < stepsRQs.size(); i++) {
-      var stepRQ = stepsRQs.get(i);
-      var tmsStep = tmsStepMapper.convertToTmsStep(stepRQ);
-
-      tmsStep.setNumber(maxNumber + 1 + i); // Continue numbering from max + 1
-      tmsStep.setStepsManualScenario(tmsManualScenario);
-
-      tmsStepAttachmentService.createAttachments(tmsStep, stepRQ);
-      newSteps.add(tmsStep);
-    }
-
-    tmsStepRepository.saveAll(newSteps);
-    existingSteps.addAll(newSteps);
+  
+    updateSteps(tmsManualScenario, testCaseManualScenarioRQ);
   }
 
   @Override

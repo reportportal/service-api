@@ -31,6 +31,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Resolves test items for a unique-error cluster widget.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DelegatingClusterDataProviderHandler implements DataProviderHandler {

@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.analyzer.auto.client.model.cluster;
 import java.util.List;
 
 /**
+ * Cluster list returned for a launch from the cluster service.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ClusterData {

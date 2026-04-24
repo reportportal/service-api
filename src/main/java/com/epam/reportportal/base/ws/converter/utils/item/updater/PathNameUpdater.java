@@ -25,6 +25,9 @@ import com.epam.reportportal.base.ws.converter.utils.ResourceUpdater;
 import java.util.Map;
 
 /**
+ * Applies computed {@link com.epam.reportportal.base.infrastructure.persistence.entity.item.PathName} values to a test
+ * item resource.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PathNameUpdater implements ResourceUpdater<TestItemResource> {
@@ -35,13 +38,13 @@ public class PathNameUpdater implements ResourceUpdater<TestItemResource> {
     this.pathNamesMapping = pathNamesMapping;
   }
 
+  public static PathNameUpdater of(Map<Long, PathName> pathNameMapping) {
+    return new PathNameUpdater(pathNameMapping);
+  }
+
   @Override
   public void updateResource(TestItemResource resource) {
     ofNullable(pathNamesMapping.get(resource.getItemId())).ifPresent(
         pathName -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pathName)));
-  }
-
-  public static PathNameUpdater of(Map<Long, PathName> pathNameMapping) {
-    return new PathNameUpdater(pathNameMapping);
   }
 }

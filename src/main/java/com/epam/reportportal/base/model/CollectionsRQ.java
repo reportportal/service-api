@@ -23,6 +23,9 @@ import java.util.List;
 import lombok.Getter;
 
 /**
+ * List-based bulk request (superseded by map-based {@link BulkRQ}).
+ *
+ * @param <T> element type
  * @deprecated use {@link BulkRQ} instead
  */
 @Getter

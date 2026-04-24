@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Tabular launch widget: attributes and dynamic value columns.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

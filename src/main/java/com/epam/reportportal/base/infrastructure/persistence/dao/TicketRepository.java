@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Spring Data repository for BTS issue ticket links.
+ *
  * @author Pavel Bortnik
  */
 public interface TicketRepository extends ReportPortalRepository<Ticket, Long>,

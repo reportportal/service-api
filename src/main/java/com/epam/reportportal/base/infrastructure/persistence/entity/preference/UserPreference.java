@@ -29,6 +29,8 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 
 /**
+ * Per-user UI preferences and tutorial flags stored in jsonb.
+ *
  * @author Pavel Bortnik
  */
 @Entity

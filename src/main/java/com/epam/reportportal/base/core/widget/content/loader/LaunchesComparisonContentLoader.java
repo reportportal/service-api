@@ -36,6 +36,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads content for the Launches Comparison widget, comparing execution statistics across selected launches.
+ *
  * @author Pavel Bortnik
  */
 @Service

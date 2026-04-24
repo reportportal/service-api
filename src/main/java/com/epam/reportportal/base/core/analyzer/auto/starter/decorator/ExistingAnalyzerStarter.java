@@ -25,6 +25,8 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import java.util.function.Predicate;
 
 /**
+ * Skips analysis when a duplicate analyzer is already in progress.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ExistingAnalyzerStarter implements LaunchAutoAnalysisStarter {

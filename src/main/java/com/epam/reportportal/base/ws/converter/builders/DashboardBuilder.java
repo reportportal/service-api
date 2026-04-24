@@ -28,6 +28,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
+ * Creates dashboard and widget graph structures from request models.
+ *
  * @author Pavel Bortnik
  */
 public class DashboardBuilder implements Supplier<Dashboard> {

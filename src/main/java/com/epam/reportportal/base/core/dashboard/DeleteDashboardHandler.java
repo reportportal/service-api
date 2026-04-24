@@ -16,12 +16,14 @@
 
 package com.epam.reportportal.base.core.dashboard;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Removes a project dashboard.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface DeleteDashboardHandler {

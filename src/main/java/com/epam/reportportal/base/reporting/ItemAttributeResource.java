@@ -27,6 +27,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * REST resource representing a key-value attribute associated with a test item or launch.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Setter

@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
 /**
+ * Triggers unique-error cluster generation for a launch or item.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -19,6 +19,8 @@ package com.epam.reportportal.base.info;
 import java.util.Map;
 
 /**
+ * Exposes a fragment of the actuator {@code /info} map for a plugin.
+ *
  * @author Pavel_Bortnik
  */
 public interface ExtensionContributor {

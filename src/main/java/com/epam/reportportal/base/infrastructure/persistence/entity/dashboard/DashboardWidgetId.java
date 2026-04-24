@@ -23,6 +23,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Embeddable composite id (dashboard id, widget id) for {@link DashboardWidget}.
+ *
  * @author Pavel Bortnik
  */
 @Getter

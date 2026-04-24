@@ -21,6 +21,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Removes a project email notification rule.
+ *
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 public interface DeleteProjectNotificationHandler {

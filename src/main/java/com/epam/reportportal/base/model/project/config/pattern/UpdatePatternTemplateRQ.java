@@ -27,6 +27,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Request to change an existing pattern template.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Data

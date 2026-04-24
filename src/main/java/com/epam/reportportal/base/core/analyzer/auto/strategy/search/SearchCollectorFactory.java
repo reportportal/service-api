@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.analyzer.auto.strategy.search;
 import java.util.Map;
 
 /**
+ * Resolves a search collector for the selected mode.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class SearchCollectorFactory {

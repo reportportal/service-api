@@ -22,6 +22,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
+ * Base Spring Data repository with jOOQ filter existence checks and JPA {@code refresh}.
+ *
+ * @param <T>  entity type
+ * @param <ID> primary key type
  * @author Pavel Bortnik
  */
 @NoRepositoryBean

@@ -22,6 +22,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
+ * Search scope limited to the current launch only.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component

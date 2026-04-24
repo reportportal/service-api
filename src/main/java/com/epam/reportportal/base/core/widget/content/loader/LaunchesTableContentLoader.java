@@ -35,6 +35,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads tabular launch statistics content for the Launches Table widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.core.jasper.constants;
 
 /**
+ * Field labels for the project Jasper report template.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class ProjectReportConstants {

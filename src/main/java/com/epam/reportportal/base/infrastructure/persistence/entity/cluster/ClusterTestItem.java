@@ -24,6 +24,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
+ * Association between an analyzer cluster and a test item belonging to that cluster.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Entity

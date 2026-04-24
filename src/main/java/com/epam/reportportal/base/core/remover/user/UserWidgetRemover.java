@@ -28,6 +28,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
+ * Removes widgets owned by a {@link com.epam.reportportal.base.infrastructure.persistence.entity.user.User} when the
+ * user is deleted.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

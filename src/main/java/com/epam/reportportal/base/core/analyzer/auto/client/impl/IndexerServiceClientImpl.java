@@ -42,18 +42,20 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 /**
+ * Publishes indexer requests over Rabbit to the correct exchange.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
 public class IndexerServiceClientImpl implements IndexerServiceClient {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IndexerServiceClient.class);
-  private static final String INDEX_ROUTE = "index";
   static final String DEFECT_UPDATE_ROUTE = "defect_update";
   static final String ITEM_REMOVE_ROUTE = "item_remove";
   static final String LAUNCH_REMOVE_ROUTE = "launch_remove";
-  private static final String NAMESPACE_FINDER_ROUTE = "namespace_finder";
   static final String DELETE_ROUTE = "delete";
+  private static final Logger LOGGER = LoggerFactory.getLogger(IndexerServiceClient.class);
+  private static final String INDEX_ROUTE = "index";
+  private static final String NAMESPACE_FINDER_ROUTE = "namespace_finder";
   private static final String CLEAN_ROUTE = "clean";
   private static final Integer DELETE_INDEX_SUCCESS_CODE = 1;
 

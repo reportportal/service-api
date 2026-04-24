@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
+ * Recomputes launch statistics when merging source launches.
+ *
  * @author Ivan Budaev
  */
 public interface StatisticsCalculationStrategy {

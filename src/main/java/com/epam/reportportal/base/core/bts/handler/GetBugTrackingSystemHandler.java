@@ -21,6 +21,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import java.util.Optional;
 
 /**
+ * Resolves the project BTS integration for ticket operations.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface GetBugTrackingSystemHandler {

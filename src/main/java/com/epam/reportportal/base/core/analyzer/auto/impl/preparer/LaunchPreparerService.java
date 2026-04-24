@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Builds an indexable launch snapshot with items for the analyzer service.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface LaunchPreparerService {

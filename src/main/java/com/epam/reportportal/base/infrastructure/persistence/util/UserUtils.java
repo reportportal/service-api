@@ -20,6 +20,8 @@ import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 
 /**
+ * User-related helpers, such as email format validation.
+ *
  * @author Reingold Shekhtel
  */
 public final class UserUtils {

@@ -35,6 +35,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 
 /**
+ * Traces incoming Rabbit message handling for operations.
+ *
  * @author Konstantin Antipin
  */
 @Aspect

@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.launch.cluster;
 import com.epam.reportportal.base.core.analyzer.auto.client.model.cluster.ClusterData;
 
 /**
+ * Persists generated cluster data.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface CreateClusterHandler {

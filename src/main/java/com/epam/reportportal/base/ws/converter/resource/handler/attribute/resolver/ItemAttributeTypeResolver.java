@@ -21,6 +21,9 @@ import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAt
 import java.util.Optional;
 
 /**
+ * Resolves a logical {@link com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType} for a
+ * stored attribute.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ItemAttributeTypeResolver {

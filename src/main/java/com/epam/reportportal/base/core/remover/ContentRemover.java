@@ -17,6 +17,9 @@
 package com.epam.reportportal.base.core.remover;
 
 /**
+ * Generic interface for removing content associated with an entity of type {@code T}.
+ *
+ * @param <T> the type of the entity whose content is to be removed
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ContentRemover<T> {

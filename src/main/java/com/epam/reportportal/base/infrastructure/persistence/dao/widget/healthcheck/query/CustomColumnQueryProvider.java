@@ -22,14 +22,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 /**
+ * jOOQ query extension for a user-defined or custom health check column.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component
 public class CustomColumnQueryProvider extends AbstractHealthCheckTableQueryProvider {
 
-  private final DSLContext dsl;
-
   public static final String UNNESTED_ARRAY = "unnested_array";
+  private final DSLContext dsl;
 
   public CustomColumnQueryProvider(DSLContext dslContext) {
     super(Sets.newHashSet(CUSTOM_COLUMN_SORTING));

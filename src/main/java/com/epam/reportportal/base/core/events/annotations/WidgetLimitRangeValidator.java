@@ -28,6 +28,8 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 
 /**
+ * Validator for the {@code WidgetLimitRange} constraint.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class WidgetLimitRangeValidator

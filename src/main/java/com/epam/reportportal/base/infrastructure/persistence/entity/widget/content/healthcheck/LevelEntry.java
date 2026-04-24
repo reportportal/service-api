@@ -1,6 +1,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck;
 
 /**
+ * A drill-down key/value pair in the health check level hierarchy.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LevelEntry {

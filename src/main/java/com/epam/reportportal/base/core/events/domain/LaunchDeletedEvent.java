@@ -22,6 +22,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Fired when a launch is removed from a project.
+ *
  * @author Andrei Varabyeu
  */
 @Getter

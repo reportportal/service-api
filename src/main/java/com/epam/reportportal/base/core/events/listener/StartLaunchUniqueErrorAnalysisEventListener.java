@@ -27,6 +27,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
+ * Starts unique error analysis in response to a start-launch event.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

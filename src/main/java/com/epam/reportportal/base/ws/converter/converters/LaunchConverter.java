@@ -41,26 +41,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Maps launch entities to reporting launch resources and related metadata.
+ *
  * @author Pavel Bortnik
  */
 @Service
 public class LaunchConverter {
 
-  @Autowired
-  private AnalyzerStatusCache analyzerStatusCache;
-
-  @Autowired
-  private UserRepository userRepository;
-
-  @Autowired
-  private ItemAttributeTypeResolver itemAttributeTypeResolver;
-
-  @Autowired
-  private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>
-      resourceAttributeUpdaterMapping;
-
   public static final String DELETED_USER = "deleted_user";
-
   public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
     LaunchActivityResource resource = new LaunchActivityResource();
     resource.setId(launch.getId());
@@ -68,7 +56,37 @@ public class LaunchConverter {
     resource.setName(launch.getName() + " #" + launch.getNumber());
     return resource;
   };
-
+  public Function<LaunchResource, LaunchResourceOld> TO_RESOURCE_OLD = resource -> {
+    LaunchResourceOld old = new LaunchResourceOld();
+    old.setLaunchId(resource.getLaunchId());
+    old.setUuid(resource.getUuid());
+    old.setName(resource.getName());
+    old.setNumber(resource.getNumber());
+    old.setDescription(resource.getDescription());
+    old.setStatus(resource.getStatus());
+    old.setStartTime(resource.getStartTime());
+    old.setEndTime(resource.getEndTime());
+    old.setLastModified(resource.getLastModified());
+    old.setAttributes(resource.getAttributes());
+    old.setMode(resource.getMode());
+    old.setRetentionPolicy(resource.getRetentionPolicy());
+    old.setAnalyzers(resource.getAnalyzers());
+    old.setStatisticsResource(resource.getStatisticsResource());
+    old.setApproximateDuration(resource.getApproximateDuration());
+    old.setHasRetries(resource.isHasRetries());
+    old.setOwner(resource.getOwner());
+    old.setRerun(resource.isRerun());
+    return old;
+  };
+  @Autowired
+  private AnalyzerStatusCache analyzerStatusCache;
+  @Autowired
+  private UserRepository userRepository;
+  @Autowired
+  private ItemAttributeTypeResolver itemAttributeTypeResolver;
+  @Autowired
+  private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>
+      resourceAttributeUpdaterMapping;
   public Function<Launch, LaunchResource> TO_RESOURCE = db -> {
 
     Preconditions.checkNotNull(db);
@@ -99,30 +117,6 @@ public class LaunchConverter {
     resource.setRerun(db.isRerun());
     return resource;
   };
-
-  public Function<LaunchResource, LaunchResourceOld> TO_RESOURCE_OLD = resource -> {
-    LaunchResourceOld old = new LaunchResourceOld();
-    old.setLaunchId(resource.getLaunchId());
-    old.setUuid(resource.getUuid());
-    old.setName(resource.getName());
-    old.setNumber(resource.getNumber());
-    old.setDescription(resource.getDescription());
-    old.setStatus(resource.getStatus());
-    old.setStartTime(resource.getStartTime());
-    old.setEndTime(resource.getEndTime());
-    old.setLastModified(resource.getLastModified());
-    old.setAttributes(resource.getAttributes());
-    old.setMode(resource.getMode());
-    old.setRetentionPolicy(resource.getRetentionPolicy());
-    old.setAnalyzers(resource.getAnalyzers());
-    old.setStatisticsResource(resource.getStatisticsResource());
-    old.setApproximateDuration(resource.getApproximateDuration());
-    old.setHasRetries(resource.isHasRetries());
-    old.setOwner(resource.getOwner());
-    old.setRerun(resource.isRerun());
-    return old;
-  };
-
 
   private void updateAttributes(LaunchResource resource, Set<ItemAttribute> attributes) {
     final Map<ItemAttributeType, Set<ItemAttribute>> attributeMapping =

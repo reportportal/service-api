@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.constant;
 
 /**
+ * Alias and field names for log jOOQ queries and CTEs.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class LogRepositoryConstants {

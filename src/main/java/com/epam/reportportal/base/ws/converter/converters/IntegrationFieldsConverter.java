@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 
 /**
+ * Maps stored integration type fields to and from DTOs.
+ *
  * @author Pavel Bortnik
  */
 public final class IntegrationFieldsConverter {

@@ -24,6 +24,8 @@ import com.epam.reportportal.base.pipeline.PipelinePart;
 import com.epam.reportportal.base.pipeline.PipelinePartProvider;
 
 /**
+ * Pipeline step that removes existing clusters before regeneration.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DeleteClustersPartProvider implements PipelinePartProvider<GenerateClustersConfig> {

@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.ForwardedHeaderUtils;
 
 /**
+ * Builds UI and deep links to launches and test items.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service

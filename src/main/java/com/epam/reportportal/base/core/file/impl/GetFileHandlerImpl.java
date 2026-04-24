@@ -42,6 +42,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
 /**
+ * Default implementation of {@link com.epam.reportportal.base.core.file.GetFileHandler} that retrieves files from MinIO
+ * storage.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

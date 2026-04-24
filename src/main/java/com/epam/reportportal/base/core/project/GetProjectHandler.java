@@ -31,6 +31,8 @@ import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Loads project details and lists for a user.
+ *
  * @author Andrei_Ramanchuk
  */
 public interface GetProjectHandler {

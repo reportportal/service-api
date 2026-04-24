@@ -29,6 +29,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
+ * JPA supertype for entities with an {@code owner} and optional {@link Project} link.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Entity

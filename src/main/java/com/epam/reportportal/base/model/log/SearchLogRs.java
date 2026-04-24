@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Enriched result for a log line found during search.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -58,37 +60,6 @@ public class SearchLogRs {
 
   @JsonProperty(value = "logs")
   private List<LogEntry> logs;
-
-  public static class LogEntry {
-
-    private String message;
-    private String level;
-
-    public String getMessage() {
-      return message;
-    }
-
-    public void setMessage(String message) {
-      this.message = message;
-    }
-
-    public String getLevel() {
-      return level;
-    }
-
-    public void setLevel(String level) {
-      this.level = level;
-    }
-
-    @Override
-    public String toString() {
-      final StringBuilder sb = new StringBuilder("LogEntry{");
-      sb.append("message='").append(message).append('\'');
-      sb.append(", level='").append(level).append('\'');
-      sb.append('}');
-      return sb.toString();
-    }
-  }
 
   public Long getLaunchId() {
     return launchId;
@@ -185,5 +156,36 @@ public class SearchLogRs {
     sb.append(", logs=").append(logs);
     sb.append('}');
     return sb.toString();
+  }
+
+  public static class LogEntry {
+
+    private String message;
+    private String level;
+
+    public String getMessage() {
+      return message;
+    }
+
+    public void setMessage(String message) {
+      this.message = message;
+    }
+
+    public String getLevel() {
+      return level;
+    }
+
+    public void setLevel(String level) {
+      this.level = level;
+    }
+
+    @Override
+    public String toString() {
+      final StringBuilder sb = new StringBuilder("LogEntry{");
+      sb.append("message='").append(message).append('\'');
+      sb.append(", level='").append(level).append('\'');
+      sb.append('}');
+      return sb.toString();
+    }
   }
 }

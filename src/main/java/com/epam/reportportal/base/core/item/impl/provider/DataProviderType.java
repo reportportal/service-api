@@ -21,6 +21,8 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
+ * How widget data is backed (e.g. filter, launch, cluster).
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public enum DataProviderType {
@@ -37,12 +39,12 @@ public enum DataProviderType {
     this.type = type;
   }
 
-  public String getType() {
-    return this.type;
-  }
-
   public static Optional<DataProviderType> findByName(@Nullable String name) {
     return Arrays.stream(DataProviderType.values())
         .filter(type -> type.getType().equalsIgnoreCase(name)).findAny();
+  }
+
+  public String getType() {
+    return this.type;
   }
 }

@@ -22,10 +22,22 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Interface for generating materialized view state entries for a widget.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ViewGenerator {
 
+  /**
+   * Builds or refreshes the materialized view backing the widget and stored options.
+   *
+   * @param refresh        whether to drop and recreate the view
+   * @param viewName       target database view name
+   * @param widget         widget owning the materialized snapshot
+   * @param launchesFilter launch scope filter
+   * @param launchesSort   order for launch input set
+   * @param params         additional widget options
+   */
   void generate(boolean refresh, String viewName, Widget widget, Filter launchesFilter,
       Sort launchesSort,
       MultiValueMap<String, String> params);

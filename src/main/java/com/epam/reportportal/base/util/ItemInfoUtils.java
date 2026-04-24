@@ -19,8 +19,6 @@ package com.epam.reportportal.base.util;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.base.util.Predicates.ITEM_ATTRIBUTE_EQUIVALENCE;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
@@ -33,9 +31,9 @@ import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 
 /**
+ * Bulk updates to launch and test item attributes and descriptions.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
- * <p>
- * Util class. Contains methods for updating {@link Launch}/{@link TestItem} attributes and description.
  */
 public class ItemInfoUtils {
 

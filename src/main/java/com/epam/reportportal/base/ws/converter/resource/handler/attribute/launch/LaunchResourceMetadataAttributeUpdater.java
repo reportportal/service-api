@@ -28,6 +28,8 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Updates a launch resource with metadata fields derived from a filtered attribute subset.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LaunchResourceMetadataAttributeUpdater implements

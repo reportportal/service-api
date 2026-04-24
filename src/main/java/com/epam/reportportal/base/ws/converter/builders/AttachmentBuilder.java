@@ -21,6 +21,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.A
 import java.util.function.Supplier;
 
 /**
+ * Populates {@link com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment} entities for
+ * persistence.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class AttachmentBuilder implements Supplier<Attachment> {

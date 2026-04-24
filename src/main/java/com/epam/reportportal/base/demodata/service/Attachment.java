@@ -26,6 +26,8 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import org.springframework.core.io.ClassPathResource;
 
 /**
+ * Classpath demo attachment files used when generating sample log attachments.
+ *
  * @author Pavel_Bortnik
  */
 public enum Attachment {
@@ -47,17 +49,15 @@ public enum Attachment {
   RAR("rar.rar", "demo/attachments/rar.rar", "application/x-rar-compressed"),
   TAR("tar.tar", "demo/attachments/tar.tar", "application/tar");
 
+  private final String name;
+  private final String resource;
+  private final String contentType;
+
   Attachment(String name, String resource, String contentType) {
     this.name = name;
     this.resource = resource;
     this.contentType = contentType;
   }
-
-  private final String name;
-
-  private final String resource;
-
-  private final String contentType;
 
   public String getName() {
     return name;

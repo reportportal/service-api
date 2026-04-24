@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
 
 /**
+ * Request body to verify connectivity to a bug tracking system.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

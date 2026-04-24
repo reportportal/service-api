@@ -26,6 +26,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * Jsonb per-rule options for a notification {@link SenderCase}.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Getter

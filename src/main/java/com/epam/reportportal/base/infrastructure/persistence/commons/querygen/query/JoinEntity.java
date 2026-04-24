@@ -22,6 +22,8 @@ import org.jooq.Record;
 import org.jooq.TableLike;
 
 /**
+ * Declares an extra jOOQ table join (type, table, and on-condition).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class JoinEntity {

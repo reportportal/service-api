@@ -25,15 +25,17 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 /**
+ * Converts a validated JWT into a Spring Security
+ * {@link org.springframework.security.authentication.AbstractAuthenticationToken} backed by a
+ * {@link org.springframework.security.core.userdetails.UserDetails} loaded from the application.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class JwtReportPortalUserConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
-  private final UserDetailsService userDetailsService;
-
-  private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
-
   private final static String PRINCIPAL_CLAIM_NAME = "user_name";
+  private final UserDetailsService userDetailsService;
+  private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
 
   public JwtReportPortalUserConverter(UserDetailsService userDetailsService) {
     this.userDetailsService = userDetailsService;

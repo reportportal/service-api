@@ -28,6 +28,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * EAV value for a project: links to {@link Attribute} with an optional value and system flag.
+ *
  * @author Andrey Plisunov
  */
 @Entity

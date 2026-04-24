@@ -28,6 +28,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 /**
+ * Triggers auto analysis when a launch finishes, if enabled.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

@@ -41,6 +41,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads trend line chart data for the Line Chart widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

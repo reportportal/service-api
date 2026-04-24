@@ -22,6 +22,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Base REST resource for authentication integration responses, carrying common fields shared by all auth integration
+ * types.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Setter

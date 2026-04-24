@@ -24,6 +24,10 @@ import java.time.Instant;
 import java.util.HashMap;
 
 /**
+ * Builder for constructing and populating
+ * {@link com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration} entities for
+ * authentication integrations.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class AuthIntegrationBuilder {

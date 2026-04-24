@@ -28,6 +28,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Validates integration requests and type-specific fields.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class IntegrationValidator {

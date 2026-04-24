@@ -17,6 +17,9 @@
 package com.epam.reportportal.base.util.message;
 
 /**
+ * Produces a localized or formatted message for a value.
+ *
+ * @param <T> value type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface MessageProvider<T> {

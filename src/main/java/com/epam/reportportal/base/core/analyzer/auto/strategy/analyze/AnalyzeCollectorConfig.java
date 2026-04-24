@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Registers analyze collectors for each mode in the application context.
+ *
  * @author Pavel Bortnik
  */
 @Configuration

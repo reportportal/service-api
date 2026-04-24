@@ -26,6 +26,9 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 /**
+ * Abstract base for OAuth2 providers, encapsulating the registration resource and user service required for OAuth2
+ * authentication.
+ *
  * @author Andrei Varabyeu
  */
 @Getter

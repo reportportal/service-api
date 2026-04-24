@@ -23,6 +23,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
+ * Multicast dispatch for test item finished subscribers.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class TestItemFinishedEventListener {

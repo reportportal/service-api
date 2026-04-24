@@ -19,6 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.project;
 import java.io.Serializable;
 
 /**
+ * Per-project auto-analysis toggles, modes, and indexing options.
+ *
  * @author Pavel Bortnik
  */
 public class ProjectAnalyzerConfig implements Serializable {

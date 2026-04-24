@@ -29,6 +29,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Validates content fields and filter mappings for the Overall Statistics widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

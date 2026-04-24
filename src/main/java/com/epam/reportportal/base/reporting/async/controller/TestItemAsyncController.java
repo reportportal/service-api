@@ -24,8 +24,8 @@ import static org.springframework.http.HttpStatus.OK;
 import com.epam.reportportal.base.core.item.FinishTestItemHandler;
 import com.epam.reportportal.base.core.item.StartTestItemHandler;
 import com.epam.reportportal.base.core.logging.HttpLogging;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.reporting.EntryCreatedAsyncRS;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
@@ -47,8 +47,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller implementation for async reporting client API for {@link TestItem} entity
- * <p>
+ * Controller implementation for async reporting client API for {@link TestItem} entity.
  *
  * @author Konstantin Antipin
  */

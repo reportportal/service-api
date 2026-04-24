@@ -23,6 +23,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Default jsonb form metadata for an {@link IntegrationType} (field definitions, help text).
+ *
  * @author Yauheni_Martynau
  */
 @Setter

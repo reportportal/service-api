@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Authentication and identity: login, OAuth, and security integration (Spring Modulith slice).
+ */
 @ApplicationModule(id = "auth", type = Type.OPEN) // TODO: close module later
 package com.epam.reportportal.auth;
 

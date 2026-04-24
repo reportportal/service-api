@@ -26,6 +26,8 @@ import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
 /**
+ * Assembles {@link com.epam.reportportal.base.reporting.TestItemResource} from test item entities.
+ *
  * @author Pavel Bortnik
  */
 @Component

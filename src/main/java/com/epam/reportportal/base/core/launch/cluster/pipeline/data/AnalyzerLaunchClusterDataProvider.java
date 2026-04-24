@@ -24,6 +24,8 @@ import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
 import java.util.Optional;
 
 /**
+ * Cluster data from analyzer scoped to a launch.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class AnalyzerLaunchClusterDataProvider extends AnalyzerClusterDataProvider {

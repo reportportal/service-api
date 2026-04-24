@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Log response with page boundary markers for navigation.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class PagedLogResource extends LogResource {

@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ErrorHandler;
 
 /**
+ * Logs listener failures for async event processing.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

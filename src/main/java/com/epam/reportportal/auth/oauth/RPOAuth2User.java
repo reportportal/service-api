@@ -22,6 +22,9 @@ import lombok.Getter;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
 /**
+ * OAuth2 user principal that wraps a
+ * {@link com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser} and the OAuth2 access token.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Getter

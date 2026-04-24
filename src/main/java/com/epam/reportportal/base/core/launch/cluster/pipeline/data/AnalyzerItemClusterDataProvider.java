@@ -30,6 +30,8 @@ import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
+ * Cluster data from analyzer scoped to a test item.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class AnalyzerItemClusterDataProvider extends AnalyzerClusterDataProvider {

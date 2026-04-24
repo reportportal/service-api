@@ -34,6 +34,8 @@ import org.jooq.impl.DSL;
 import org.springframework.data.domain.Sort;
 
 /**
+ * jOOQ query building helpers (latest launches, filter wiring).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class QueryUtils {

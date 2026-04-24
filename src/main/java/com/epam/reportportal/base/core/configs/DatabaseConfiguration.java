@@ -52,6 +52,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.Assert;
 
 /**
+ * JPA repositories, auditing, and transaction management.
+ *
  * @author Pavel Bortnik
  */
 @Configuration

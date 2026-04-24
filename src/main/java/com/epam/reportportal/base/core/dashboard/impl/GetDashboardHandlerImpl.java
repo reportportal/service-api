@@ -36,6 +36,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads a dashboard with widgets and sharing rules.
+ *
  * @author Pavel Bortnik
  */
 @Service

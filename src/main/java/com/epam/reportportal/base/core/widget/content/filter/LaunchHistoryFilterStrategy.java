@@ -35,6 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
+ * Filter strategy that builds the launch history filter set for history-based widgets.
+ *
  * @author Pavel Bortnik
  */
 @Service("launchHistoryFilterStrategy")

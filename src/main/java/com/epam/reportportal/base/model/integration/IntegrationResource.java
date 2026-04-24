@@ -25,6 +25,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Integration configuration returned to the UI (id, name, type, fields).
+ *
  * @author Pavel Bortnik
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

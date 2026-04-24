@@ -9,6 +9,9 @@ import java.util.function.Predicate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
+ * Abstract plugin command restricted to users with the {@code ADMINISTRATOR} role.
+ *
+ * @param <T> the return type of the command
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public abstract class AdminCommand<T> extends AbstractRoleBasedCommand<T> {

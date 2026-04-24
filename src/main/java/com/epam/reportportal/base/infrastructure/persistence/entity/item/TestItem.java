@@ -17,8 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.item;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
-import com.epam.reportportal.base.infrastructure.persistence.entity.LTreeType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.LTreeType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
@@ -56,6 +56,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
+ * A test, suite, or step in a launch tree, with type, path, and status.
+ *
  * @author Pavel Bortnik
  */
 @Entity

@@ -23,6 +23,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
+ * Parameters for the log search dialog (search mode and optional filter).
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Data

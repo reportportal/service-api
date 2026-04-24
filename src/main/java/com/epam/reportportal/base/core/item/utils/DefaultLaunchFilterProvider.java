@@ -40,6 +40,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Default paging and sort for launch-level test item views.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DefaultLaunchFilterProvider {

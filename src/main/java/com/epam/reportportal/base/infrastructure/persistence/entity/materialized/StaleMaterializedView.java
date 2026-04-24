@@ -3,6 +3,8 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.materialize
 import java.time.Instant;
 
 /**
+ * Bookkeeping row: a materialized view that needs to be refreshed or is dirty.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class StaleMaterializedView {

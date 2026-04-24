@@ -24,6 +24,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * REST resource representing SAML identity provider configuration.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 

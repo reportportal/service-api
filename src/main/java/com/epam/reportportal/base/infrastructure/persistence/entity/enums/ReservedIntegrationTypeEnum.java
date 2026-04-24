@@ -5,6 +5,8 @@ import java.util.Optional;
 import lombok.Getter;
 
 /**
+ * System integration type names (email, BTS) that are reserved and always available.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Getter

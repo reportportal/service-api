@@ -27,6 +27,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for log lines.
+ *
  * @author Pavel Bortnik
  */
 public interface LogRepository extends ReportPortalRepository<Log, Long>, LogRepositoryCustom {

@@ -22,6 +22,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
+ * Counts by statistics field name for the overall-statistics widget.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

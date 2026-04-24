@@ -23,6 +23,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
+ * Sends a reminder when a user account is nearing expiration.
+ *
  * @author Andrei Piankouski
  */
 @Service

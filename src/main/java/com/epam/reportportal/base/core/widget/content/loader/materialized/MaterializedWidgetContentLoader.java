@@ -21,6 +21,8 @@ import java.util.Map;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Content loader interface for widgets backed by materialized database views.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface MaterializedWidgetContentLoader {

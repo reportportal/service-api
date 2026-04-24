@@ -22,6 +22,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Repository that runs dynamic filters and returns paged or full results.
+ *
+ * @param <T> entity or projection type
  * @author Yauheni_Martynau
  */
 public interface FilterableRepository<T> {

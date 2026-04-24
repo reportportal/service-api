@@ -51,14 +51,15 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Maintenance job to truncate and reset reporting tables when a full data flush is required.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class FlushingDataJob implements Job {
 
-  private final Logger LOGGER = LoggerFactory.getLogger(this.getClass().getName());
   private static final String SUPERADMIN_PERSONAL = "superadmin_personal";
   private static final String SUPERADMIN = "admin@reportportal.internal";
-
+  private final Logger LOGGER = LoggerFactory.getLogger(this.getClass().getName());
   @Autowired
   private JdbcTemplate jdbcTemplate;
 

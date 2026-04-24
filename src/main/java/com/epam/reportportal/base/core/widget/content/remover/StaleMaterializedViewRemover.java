@@ -24,6 +24,8 @@ import java.time.Instant;
 import org.springframework.stereotype.Service;
 
 /**
+ * Marks the materialized view of a widget as stale so it can be refreshed asynchronously on deletion.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

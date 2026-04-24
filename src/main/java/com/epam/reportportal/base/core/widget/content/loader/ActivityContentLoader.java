@@ -51,6 +51,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads activity feed content for the Activity widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

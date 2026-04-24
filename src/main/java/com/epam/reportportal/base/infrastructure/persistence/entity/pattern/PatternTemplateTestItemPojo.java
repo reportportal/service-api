@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Lightweight DTO for pattern-to-test-item matches in widgets and search.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PatternTemplateTestItemPojo implements Serializable {

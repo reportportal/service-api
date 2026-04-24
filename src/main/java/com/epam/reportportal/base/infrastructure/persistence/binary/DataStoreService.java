@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Service facade for resolving the correct binary store for a use case.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface DataStoreService {

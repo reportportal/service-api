@@ -56,6 +56,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
+ * Shared steps for building a merged launch and tree.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy {
@@ -67,6 +69,15 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   private final AttachmentRepository attachmentRepository;
   private final TestItemUniqueIdGenerator identifierGenerator;
 
+  /**
+   * Supplies merge dependencies.
+   *
+   * @param launchRepository     launch persistence
+   * @param testItemRepository   test item tree persistence
+   * @param logRepository        log line persistence
+   * @param attachmentRepository attachment storage metadata
+   * @param identifierGenerator  unique test item id generator for merged items
+   */
   protected AbstractLaunchMergeStrategy(LaunchRepository launchRepository,
       TestItemRepository testItemRepository, LogRepository logRepository,
       AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator) {
@@ -77,6 +88,15 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     this.identifierGenerator = identifierGenerator;
   }
 
+  /**
+   * Materializes a new launch row and re-parents child items from source launches.
+   *
+   * @param membershipDetails project context
+   * @param user              current user
+   * @param rq                merge request
+   * @param launchesList      sources to merge
+   * @return the new launch
+   */
   protected Launch createNewLaunch(MembershipDetails membershipDetails,
       ReportPortalUser user, MergeLaunchesRQ rq, List<Launch> launchesList) {
     Launch newLaunch =

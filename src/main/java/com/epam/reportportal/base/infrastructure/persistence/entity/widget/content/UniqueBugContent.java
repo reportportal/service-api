@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Unique bug table row: sub-type, launch, URL, and statistics link.
+ *
  * @author Ivan Budayeu
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

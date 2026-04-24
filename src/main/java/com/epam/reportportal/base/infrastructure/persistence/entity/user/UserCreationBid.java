@@ -38,6 +38,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
+ * Pending invitation / self-signup token for creating a new user.
+ *
  * @author Ivan Budaev
  */
 @Entity

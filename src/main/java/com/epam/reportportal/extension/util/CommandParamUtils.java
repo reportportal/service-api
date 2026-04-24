@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Utility class providing helper methods for extracting and validating plugin command parameters.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class CommandParamUtils {

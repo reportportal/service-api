@@ -34,6 +34,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
+ * Resolves project, integration, test item, and log entities for {@link com.epam.reportportal.base.ws.rabbit.QueryRQ}
+ * lookups.
+ *
  * @author Yauheni_Martynau
  */
 @Service

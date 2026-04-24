@@ -21,6 +21,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.model.launch.AnalyzeLaunchRQ;
 
 /**
+ * Triggers a launch-level analysis (auto- or pattern-based).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface LaunchAnalysisStrategy {

@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
+ * Contract for storing TMS file attachments.
+ *
  * @author Dzianis_Shybeka
  */
 public interface TmsDataStore {

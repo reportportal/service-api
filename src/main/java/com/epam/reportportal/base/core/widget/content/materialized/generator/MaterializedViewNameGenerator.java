@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widge
 import org.springframework.stereotype.Component;
 
 /**
+ * Generates the materialized view name for a given widget.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component

@@ -28,6 +28,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for {@link Cluster} (unique-error groups).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ClusterRepository extends ReportPortalRepository<Cluster, Long>,

@@ -21,6 +21,8 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
+ * Request to send a templated email to a user.
+ *
  * @author Andrei Piankouski
  */
 public class EmailNotificationRQ {

@@ -19,6 +19,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
+ * OAuth2 registration resource extended with an error code field for error response scenarios.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @EqualsAndHashCode(callSuper = true)

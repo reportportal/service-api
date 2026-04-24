@@ -25,6 +25,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
+ * Common {@link Predicate} factory helpers (null checks, first-match, and stream utilities).
+ *
  * @author dzmitry_kavalets
  */
 public class Predicates {

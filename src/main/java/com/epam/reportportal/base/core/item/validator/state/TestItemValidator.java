@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.util.message.MessageProvider;
 
 /**
+ * State validation and error messaging for a test item update.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface TestItemValidator extends MessageProvider<TestItem> {

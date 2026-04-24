@@ -25,13 +25,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * Transforms test item issue (defect) entities for REST responses.
+ *
  * @author Pavel Bortnik
  */
 public final class IssueConverter {
-
-  private IssueConverter() {
-    //static only
-  }
 
   public static final Function<Issue, IssueEntity> TO_ISSUE = from -> {
     IssueEntity issue = new IssueEntity();
@@ -40,7 +38,6 @@ public final class IssueConverter {
     issue.setIssueDescription(from.getComment());
     return issue;
   };
-
   /**
    * Converts external system from db to model
    */
@@ -70,4 +67,7 @@ public final class IssueConverter {
     });
     return issue;
   };
+  private IssueConverter() {
+    //static only
+  }
 }

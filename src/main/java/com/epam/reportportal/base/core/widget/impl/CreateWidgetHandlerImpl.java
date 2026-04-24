@@ -43,6 +43,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
+ * Default implementation of {@link com.epam.reportportal.base.core.widget.CreateWidgetHandler} that persists new
+ * widgets and runs post-processing steps.
+ *
  * @author Pavel Bortnik
  */
 @Service

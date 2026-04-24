@@ -20,6 +20,8 @@ import com.epam.reportportal.base.reporting.LaunchResource;
 import java.util.Collection;
 
 /**
+ * Updates launch resource metadata.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class MetadataUpdater implements ResourceUpdater<LaunchResource> {

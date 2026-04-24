@@ -31,6 +31,8 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import org.springframework.stereotype.Service;
 
 /**
+ * Checks project and launch access for the current user.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

@@ -34,6 +34,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads not-passed test statistics for the Not Passed Tests widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

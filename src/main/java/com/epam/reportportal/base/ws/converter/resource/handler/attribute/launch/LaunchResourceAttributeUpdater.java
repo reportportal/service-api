@@ -25,6 +25,8 @@ import com.epam.reportportal.base.ws.converter.resource.handler.attribute.Resour
 import java.util.Collection;
 
 /**
+ * Copies item attributes from persistence onto {@link com.epam.reportportal.base.reporting.LaunchResource} models.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LaunchResourceAttributeUpdater implements ResourceAttributeHandler<LaunchResource> {

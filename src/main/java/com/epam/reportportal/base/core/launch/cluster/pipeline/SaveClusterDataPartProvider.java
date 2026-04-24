@@ -25,6 +25,8 @@ import com.epam.reportportal.base.pipeline.PipelinePartProvider;
 import java.util.Optional;
 
 /**
+ * Pipeline step that loads and stores cluster data from the analyzer.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class SaveClusterDataPartProvider implements PipelinePartProvider<GenerateClustersConfig> {

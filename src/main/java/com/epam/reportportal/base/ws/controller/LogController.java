@@ -88,6 +88,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * REST API for log entries, pages, and attachment uploads.
+ *
  * @author Pavel Bortnik
  */
 @RestController

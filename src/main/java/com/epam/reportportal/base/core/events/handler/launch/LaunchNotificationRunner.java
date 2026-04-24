@@ -29,7 +29,6 @@ import com.epam.reportportal.base.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
-import com.epam.reportportal.extension.event.LaunchFinishedNotificationEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogicalOperator;
@@ -47,6 +46,7 @@ import com.epam.reportportal.base.reporting.ItemAttributeResource;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
 import com.epam.reportportal.base.ws.converter.converters.NotificationConfigConverter;
+import com.epam.reportportal.extension.event.LaunchFinishedNotificationEvent;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Objects;
@@ -63,6 +63,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Sends project email notifications for a completed launch.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
@@ -96,6 +98,88 @@ public class LaunchNotificationRunner
     this.userRepository = userRepository;
     this.eventPublisher = eventPublisher;
     this.linkGenerator = linkGenerator;
+  }
+
+  /**
+   * @param launch launch to be evaluated
+   * @return success rate of provided launch in %
+   */
+  private static double getSuccessRate(Launch launch) {
+    double ti =
+        extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()).doubleValue();
+    double pb =
+        extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, launch.getStatistics()).doubleValue();
+    double si =
+        extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL, launch.getStatistics()).doubleValue();
+    double ab =
+        extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, launch.getStatistics()).doubleValue();
+    double total = extractStatisticsCount(EXECUTIONS_TOTAL, launch.getStatistics()).doubleValue();
+    return total == 0 ? total : (ti + pb + si + ab) / total;
+  }
+
+  /**
+   * Validate matching of finished launch name and project settings for emailing
+   *
+   * @param launch  Launch to be evaluated
+   * @param oneCase Mail case
+   * @return TRUE if launch name matched
+   */
+  private static boolean isLaunchNameMatched(Launch launch, SenderCase oneCase) {
+    Set<String> configuredNames = oneCase.getLaunchNames();
+    return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(
+        launch.getName());
+  }
+
+  /**
+   * Validate matching of finished launch tags and project settings for emailing
+   *
+   * @param launch Launch to be evaluated
+   * @return TRUE if tags matched
+   */
+  @VisibleForTesting
+  private static boolean isAttributesMatched(Launch launch,
+      Set<LaunchAttributeRule> launchAttributeRules, LogicalOperator logicalOperator) {
+
+    if (CollectionUtils.isEmpty(launchAttributeRules)) {
+      return true;
+    }
+
+    Set<ItemAttributeResource> itemAttributesResource =
+        launchAttributeRules.stream().map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
+            .collect(Collectors.toSet());
+
+    Set<ItemAttributeResource> itemAttributes =
+        launch.getAttributes().stream().filter(attribute -> !attribute.isSystem())
+            .map(attribute -> {
+              ItemAttributeResource attributeResource = new ItemAttributeResource();
+              attributeResource.setKey(attribute.getKey());
+              attributeResource.setValue(attribute.getValue());
+              return attributeResource;
+            }).collect(Collectors.toSet());
+
+    if (LogicalOperator.AND.equals(logicalOperator)) {
+      return itemAttributesResource.stream().allMatch(resourceAttr -> itemAttributes.stream()
+          .anyMatch(attr -> areAttributesMatched(attr, resourceAttr)));
+    }
+
+    return itemAttributes.stream().anyMatch(attr -> itemAttributesResource.stream()
+        .anyMatch(resourceAttr -> areAttributesMatched(attr, resourceAttr)));
+  }
+
+  private static boolean areAttributesMatched(ItemAttributeResource itemAttribute,
+      ItemAttributeResource itemAttributeResource) {
+    // Case 1: Key and Value are the same
+    boolean isEqual =
+        Objects.equals(itemAttribute.getKey(), itemAttributeResource.getKey()) && Objects.equals(
+            itemAttribute.getValue(), itemAttributeResource.getValue());
+
+    // Case 2: Key is null in itemAttributesResource and the Value is the same
+    boolean isValueEqualWithKeyNull =
+        itemAttributeResource.getKey() == null && Objects.equals(itemAttribute.getValue(),
+            itemAttributeResource.getValue()
+        );
+
+    return isEqual || isValueEqualWithKeyNull;
   }
 
   @Override
@@ -181,23 +265,6 @@ public class LaunchNotificationRunner
   }
 
   /**
-   * @param launch launch to be evaluated
-   * @return success rate of provided launch in %
-   */
-  private static double getSuccessRate(Launch launch) {
-    double ti =
-        extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()).doubleValue();
-    double pb =
-        extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, launch.getStatistics()).doubleValue();
-    double si =
-        extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL, launch.getStatistics()).doubleValue();
-    double ab =
-        extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, launch.getStatistics()).doubleValue();
-    double total = extractStatisticsCount(EXECUTIONS_TOTAL, launch.getStatistics()).doubleValue();
-    return total == 0 ? total : (ti + pb + si + ab) / total;
-  }
-
-  /**
    * @param launch Launch to be evaluated
    * @param option SendCase option
    * @return TRUE of success rate is enough for notification
@@ -219,71 +286,6 @@ public class LaunchNotificationRunner
       default:
         return false;
     }
-  }
-
-  /**
-   * Validate matching of finished launch name and project settings for emailing
-   *
-   * @param launch  Launch to be evaluated
-   * @param oneCase Mail case
-   * @return TRUE if launch name matched
-   */
-  private static boolean isLaunchNameMatched(Launch launch, SenderCase oneCase) {
-    Set<String> configuredNames = oneCase.getLaunchNames();
-    return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(
-        launch.getName());
-  }
-
-  /**
-   * Validate matching of finished launch tags and project settings for emailing
-   *
-   * @param launch Launch to be evaluated
-   * @return TRUE if tags matched
-   */
-  @VisibleForTesting
-  private static boolean isAttributesMatched(Launch launch,
-      Set<LaunchAttributeRule> launchAttributeRules, LogicalOperator logicalOperator) {
-
-    if (CollectionUtils.isEmpty(launchAttributeRules)) {
-      return true;
-    }
-
-    Set<ItemAttributeResource> itemAttributesResource =
-        launchAttributeRules.stream().map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
-            .collect(Collectors.toSet());
-
-    Set<ItemAttributeResource> itemAttributes =
-        launch.getAttributes().stream().filter(attribute -> !attribute.isSystem())
-            .map(attribute -> {
-              ItemAttributeResource attributeResource = new ItemAttributeResource();
-              attributeResource.setKey(attribute.getKey());
-              attributeResource.setValue(attribute.getValue());
-              return attributeResource;
-            }).collect(Collectors.toSet());
-
-    if (LogicalOperator.AND.equals(logicalOperator)) {
-      return itemAttributesResource.stream().allMatch(resourceAttr -> itemAttributes.stream()
-          .anyMatch(attr -> areAttributesMatched(attr, resourceAttr)));
-    }
-
-    return itemAttributes.stream().anyMatch(attr -> itemAttributesResource.stream()
-        .anyMatch(resourceAttr -> areAttributesMatched(attr, resourceAttr)));
-  }
-
-  private static boolean areAttributesMatched(ItemAttributeResource itemAttribute,
-      ItemAttributeResource itemAttributeResource) {
-    // Case 1: Key and Value are the same
-    boolean isEqual =
-        Objects.equals(itemAttribute.getKey(), itemAttributeResource.getKey()) && Objects.equals(
-            itemAttribute.getValue(), itemAttributeResource.getValue());
-
-    // Case 2: Key is null in itemAttributesResource and the Value is the same
-    boolean isValueEqualWithKeyNull =
-        itemAttributeResource.getKey() == null && Objects.equals(itemAttribute.getValue(),
-            itemAttributeResource.getValue()
-        );
-
-    return isEqual || isValueEqualWithKeyNull;
   }
 
   private void sendNotificationEvent(LaunchFinishedEvent launchFinishedEvent) {

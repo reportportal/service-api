@@ -23,6 +23,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
+ * Notifies a user that an administrator removed their account.
+ *
  * @author Andrei Piankouski
  */
 @Service

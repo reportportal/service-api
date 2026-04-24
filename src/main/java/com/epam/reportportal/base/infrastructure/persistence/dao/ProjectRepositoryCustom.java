@@ -17,7 +17,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
-import com.epam.reportportal.base.infrastructure.persistence.entity.attribute.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo;
@@ -27,6 +26,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Project and organization listing, counts, and filters.
+ *
  * @author Pavel Bortnik
  */
 public interface ProjectRepositoryCustom extends FilterableRepository<Project> {
@@ -73,10 +74,10 @@ public interface ProjectRepositoryCustom extends FilterableRepository<Project> {
   List<Project> findAllByUserLogin(String login);
 
   /**
-   * Get {@link Page} of {@link Project#getId()} with attributes
+   * Get {@link Page} of {@code Project#getId()} with attributes
    *
    * @param pageable {@link Pageable}
-   * @return {@link Page} of {@link Project}s that contain only {@link Project#getId()}, {@link Attribute#getName()} and
+   * @return {@link Page} of {@link Project}s that contain only {@code Project#getId()}, {@code Attribute#getName()} and
    * {@link ProjectAttribute#getValue()}
    */
   Page<Project> findAllIdsAndProjectAttributes(Pageable pageable);

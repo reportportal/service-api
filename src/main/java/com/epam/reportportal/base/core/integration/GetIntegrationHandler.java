@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Handler for retrieving project and global integration configurations.
+ *
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 public interface GetIntegrationHandler {

@@ -28,6 +28,8 @@ import java.util.function.Supplier;
 import org.jooq.Operator;
 
 /**
+ * Condition for to-investigate items in pattern analysis.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ToInvestigatePatternConditionProvider extends AbstractPatternConditionProvider {

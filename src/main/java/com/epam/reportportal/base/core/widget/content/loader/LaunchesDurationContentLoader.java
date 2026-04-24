@@ -36,6 +36,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads content for the Launches Duration widget, providing duration data for selected launches.
+ *
  * @author Pavel Bortnik
  */
 @Service

@@ -22,6 +22,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Composite key (project id, user id) for {@link ProjectUser}.
+ *
  * @author Andrei Varabyeu
  */
 @Embeddable

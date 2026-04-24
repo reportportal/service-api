@@ -23,7 +23,8 @@ import org.springframework.http.HttpStatus;
 /**
  * Rest Error representation. Contains rest error template and real exception data.
  *
- * @param httpStatus HTTP Status
+ * @param httpStatus HTTP status for the error response
+ * @param errorRs    serialized error body returned to the client
  * @author Andrei Varabyeu
  */
 public record RestError(HttpStatus httpStatus, ErrorRS errorRs) {

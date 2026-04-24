@@ -21,11 +21,11 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.base.core.item.ExternalTicketHandler;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TicketRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.bts.Ticket;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.model.item.UnlinkExternalIssueRQ;
 import com.epam.reportportal.base.reporting.Issue;
 import com.epam.reportportal.base.reporting.Issue.ExternalSystemIssue;
@@ -41,6 +41,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
+ * Links external BTS issues to test items in bulk.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component

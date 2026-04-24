@@ -27,6 +27,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Many-to-many link: which test items matched a given {@link PatternTemplate} during analysis.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Entity

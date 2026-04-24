@@ -22,8 +22,10 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
- * @param <K> Type of Key
- * @param <T> Type of Entity
+ * JSON body for a bulk map of entities keyed by identifier.
+ *
+ * @param <K> map key type
+ * @param <T> entity type
  * @author Dzmitry_Kavalets
  */
 public class BulkRQ<K, T> {

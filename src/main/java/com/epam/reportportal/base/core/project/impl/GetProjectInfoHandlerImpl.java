@@ -97,6 +97,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Assembles project dashboard and widget data.
+ *
  * @author Pavel Bortnik
  */
 @Service

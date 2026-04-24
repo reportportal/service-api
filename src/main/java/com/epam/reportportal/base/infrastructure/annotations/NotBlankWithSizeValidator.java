@@ -21,6 +21,8 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Bean Validation implementation for {@link NotBlankWithSize}.
+ *
  * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
  */
 public class NotBlankWithSizeValidator implements ConstraintValidator<NotBlankWithSize, String> {

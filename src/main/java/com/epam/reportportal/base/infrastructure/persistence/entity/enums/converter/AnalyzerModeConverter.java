@@ -22,6 +22,8 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 /**
+ * JPA attribute converter: {@link AnalyzeMode} to database string.
+ *
  * @author Ivan Budayeu
  */
 @Converter(autoApply = true)

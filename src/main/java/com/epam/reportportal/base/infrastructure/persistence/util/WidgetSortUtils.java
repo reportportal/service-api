@@ -45,6 +45,8 @@ import org.jooq.impl.DSL;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Maps Spring {@link Sort} to jOOQ sort fields for widget queries and statistics.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class WidgetSortUtils {

@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Batch update of issue type text for indexed test items.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class IndexDefectsUpdate {

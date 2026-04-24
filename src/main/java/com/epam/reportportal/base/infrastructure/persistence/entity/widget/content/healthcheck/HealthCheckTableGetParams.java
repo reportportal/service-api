@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Query parameters for loading a health check table (view, sort, level chain).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class HealthCheckTableGetParams {

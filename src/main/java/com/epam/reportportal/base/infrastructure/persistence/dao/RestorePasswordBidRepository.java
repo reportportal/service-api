@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.Restore
 import java.util.Optional;
 
 /**
+ * Token rows for password reset e-mails.
+ *
  * @author Ivan Budaev
  */
 public interface RestorePasswordBidRepository extends

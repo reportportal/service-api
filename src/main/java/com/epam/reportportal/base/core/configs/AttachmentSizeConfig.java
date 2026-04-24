@@ -41,6 +41,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.StreamUtils;
 
 /**
+ * Optional batch to recalculate stored attachment sizes.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Configuration

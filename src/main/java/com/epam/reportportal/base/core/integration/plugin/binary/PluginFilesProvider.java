@@ -31,6 +31,8 @@ import java.util.Objects;
 import org.apache.commons.io.FileUtils;
 
 /**
+ * Resolves plugin JAR and metadata file paths on disk.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PluginFilesProvider {

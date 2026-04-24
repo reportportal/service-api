@@ -32,6 +32,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 /**
+ * jOOQ query for per-status counters and rates in the health check table.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component

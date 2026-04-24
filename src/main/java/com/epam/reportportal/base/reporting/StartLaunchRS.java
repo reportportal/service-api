@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Response object returned after successfully starting a launch, containing the generated ID and launch number.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Setter

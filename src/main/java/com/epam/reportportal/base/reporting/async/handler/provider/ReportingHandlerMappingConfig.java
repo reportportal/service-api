@@ -32,6 +32,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Configuration that builds the mapping between {@link com.epam.reportportal.base.reporting.async.config.RequestType}
+ * and the corresponding {@link com.epam.reportportal.base.reporting.async.handler.ReportingMessageHandler} beans.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Configuration

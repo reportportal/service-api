@@ -24,9 +24,9 @@ import java.util.Iterator;
 import lombok.Getter;
 
 /**
- * Paged response  representation Re-implementation of Spring's HATEAOS Page implementation to get rid of Spring's deps
- * in model package
+ * Paged response: re-implementation of Spring HATEOAS-style page without those dependencies in the model layer.
  *
+ * @param <T> page content element type
  * @author Andrei Varabyeu
  */
 public class Page<T> implements Iterable<T> {

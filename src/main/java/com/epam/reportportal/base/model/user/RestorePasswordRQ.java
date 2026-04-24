@@ -28,6 +28,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * Initiates password restore using email or user id.
+ *
  * @author Dzmitry_Kavalets
  */
 @Setter

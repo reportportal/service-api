@@ -25,6 +25,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 /**
+ * Shared constants and helpers for routing to analyzer exchanges.
+ *
  * @author Pavel Bortnik
  */
 public final class AnalyzerUtils {

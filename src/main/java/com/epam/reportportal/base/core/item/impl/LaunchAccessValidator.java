@@ -21,6 +21,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 
 /**
+ * Ensures a user may access a launch for test item operations.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface LaunchAccessValidator {

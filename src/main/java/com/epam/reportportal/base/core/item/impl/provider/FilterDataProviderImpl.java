@@ -41,6 +41,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 /**
+ * Test item listing driven by a saved or ad-hoc filter.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component

@@ -39,6 +39,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for user accounts and assignments.
+ *
  * @author Ivan Budayeu
  */
 public interface UserRepository extends ReportPortalRepository<User, Long>, UserRepositoryCustom {
@@ -281,6 +283,7 @@ public interface UserRepository extends ReportPortalRepository<User, Long>, User
 
   /**
    * Find users by their IDs
+   *
    * @param userIds list of user IDs
    * @return list of users
    */

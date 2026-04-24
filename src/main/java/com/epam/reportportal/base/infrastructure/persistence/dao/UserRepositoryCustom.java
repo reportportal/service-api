@@ -26,6 +26,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * User search, projections, and org/project membership helpers.
+ *
  * @author Pavel Bortnik
  */
 public interface UserRepositoryCustom extends FilterableRepository<User> {

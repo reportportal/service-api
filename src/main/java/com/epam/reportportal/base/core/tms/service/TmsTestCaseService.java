@@ -113,14 +113,13 @@ public interface TmsTestCaseService {
       List<Long> originalTestCaseIds);
 
   /**
-   * Retrieves test cases added to a test plan with pagination. Returns test cases with last
-   * execution only (without full execution history).
+   * Retrieves test cases added to a test plan with pagination. Returns test cases with last execution only (without
+   * full execution history).
    *
-   * @param projectId    the project ID
-   * @param testPlanId   the test plan ID
-   * @param testFolderId test folder ID
-   * @param filter       the filter parameters
-   * @param pageable     pagination parameters
+   * @param projectId  the project ID
+   * @param testPlanId the test plan ID
+   * @param filter     the filter parameters
+   * @param pageable   pagination parameters
    * @return page of test cases added to the test plan
    */
   Page<TmsTestCaseInTestPlanRS> getTestCasesInTestPlan(Long projectId, Long testPlanId,

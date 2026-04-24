@@ -22,6 +22,8 @@ import java.util.Set;
 import lombok.Getter;
 
 /**
+ * Input for starting auto-analysis when a launch begins.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Getter

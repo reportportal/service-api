@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Width and height for UI dimensions (e.g. widgets, thumbnails).
+ *
  * @author Pavel Bortnik
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

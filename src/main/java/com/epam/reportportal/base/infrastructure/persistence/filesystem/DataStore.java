@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
+ * Abstraction for read, write, and delete in binary storage backends.
+ *
  * @author Dzianis_Shybeka
  */
 public interface DataStore {

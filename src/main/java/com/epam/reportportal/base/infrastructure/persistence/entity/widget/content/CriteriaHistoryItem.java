@@ -31,6 +31,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * History row when launch selection criteria or filters change over time in a trend widget.
+ *
  * @author Ivan Budaev
  */
 @Getter

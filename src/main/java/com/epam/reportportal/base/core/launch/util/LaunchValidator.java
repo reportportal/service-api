@@ -42,6 +42,8 @@ import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import java.util.function.Predicate;
 
 /**
+ * Validations for launch access and state before operations.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class LaunchValidator {

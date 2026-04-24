@@ -22,6 +22,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Key-value entry in server or instance settings responses.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data

@@ -33,6 +33,8 @@ import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Resolves user profiles and preferences for the API.
+ *
  * @author Andrei_Ramanchuk
  */
 public interface GetUserHandler {
@@ -119,6 +121,7 @@ public interface GetUserHandler {
 
   /**
    * Get users map by user IDs
+   *
    * @param userIds list of user IDs
    * @return map where key is user ID and value is User entity
    */
@@ -126,6 +129,7 @@ public interface GetUserHandler {
 
   /**
    * Get user by ID
+   *
    * @param userId user ID
    * @return user entity or null if not found
    */

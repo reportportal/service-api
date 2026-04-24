@@ -47,6 +47,8 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 
 /**
+ * E-mail notification rule: event type, launch filter, and recipients.
+ *
  * @author Ivan Budayeu
  */
 @Entity

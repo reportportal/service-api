@@ -25,6 +25,8 @@ import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 
 /**
+ * Streams binary attachment data and headers into servlet responses.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class BinaryDataResponseWriter {

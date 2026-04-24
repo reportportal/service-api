@@ -27,6 +27,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * BTS defect type linked to a project (JIRA-style locator and short name).
+ *
  * @author Pavel Bortnik
  */
 @Entity

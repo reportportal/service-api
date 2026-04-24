@@ -16,19 +16,17 @@
 
 package com.epam.reportportal.base.ws.converter.converters;
 
-import com.epam.reportportal.base.model.project.config.pattern.PatternTemplateResource;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.model.activity.PatternTemplateActivityResource;
+import com.epam.reportportal.base.model.project.config.pattern.PatternTemplateResource;
 import java.util.function.Function;
 
 /**
+ * Converts pattern-matching template entities for API consumers.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PatternTemplateConverter {
-
-  private PatternTemplateConverter() {
-    //static only
-  }
 
   public static final Function<PatternTemplate, PatternTemplateResource> TO_RESOURCE =
       patternTemplate -> {
@@ -41,7 +39,6 @@ public class PatternTemplateConverter {
 
         return resource;
       };
-
   public static final Function<PatternTemplate, PatternTemplateActivityResource>
       TO_ACTIVITY_RESOURCE = patternTemplate -> {
     PatternTemplateActivityResource resource = new PatternTemplateActivityResource();
@@ -51,4 +48,8 @@ public class PatternTemplateConverter {
     resource.setProjectId(patternTemplate.getProjectId());
     return resource;
   };
+
+  private PatternTemplateConverter() {
+    //static only
+  }
 }

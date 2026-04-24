@@ -45,6 +45,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads investigated defect statistics content for the Chart Investigated widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

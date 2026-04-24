@@ -60,6 +60,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * REST controller for asynchronous log creation endpoints.
+ *
  * @author Pavel Bortnik
  */
 @RestController

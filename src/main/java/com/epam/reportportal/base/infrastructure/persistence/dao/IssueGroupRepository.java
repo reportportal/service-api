@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestIt
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueGroup;
 
 /**
+ * Spring Data repository for issue group definitions.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface IssueGroupRepository extends ReportPortalRepository<IssueGroup, Long> {

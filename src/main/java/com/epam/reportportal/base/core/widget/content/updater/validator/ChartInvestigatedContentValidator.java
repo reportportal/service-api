@@ -29,6 +29,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Validates filter mappings and content fields for the Chart Investigated widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

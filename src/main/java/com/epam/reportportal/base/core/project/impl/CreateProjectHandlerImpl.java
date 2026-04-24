@@ -52,6 +52,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
+ * Creates projects and default settings in an organization.
+ *
  * @author Pavel Bortnik
  */
 @Service

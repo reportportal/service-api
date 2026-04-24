@@ -57,6 +57,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Loads content for the Component Health Check Table widget when the materialized view is in a READY state.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service(value = "healthCheckTableReadyContentLoader")

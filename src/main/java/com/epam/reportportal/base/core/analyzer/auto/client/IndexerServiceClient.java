@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Client for the external log-indexer (index, clean, defect updates).
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface IndexerServiceClient {

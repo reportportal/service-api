@@ -34,13 +34,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * Converts user filter entities to filter request/response resources.
+ *
  * @author Pavel Bortnik
  */
 public final class UserFilterConverter {
-
-  private UserFilterConverter() {
-    //static only
-  }
 
   public static final Function<UserFilter, OwnedEntityResource> TO_OWNED_ENTITY_RESOURCE =
       filter -> {
@@ -49,15 +47,6 @@ public final class UserFilterConverter {
         ownedEntity.setDescription(filter.getDescription());
         return ownedEntity;
       };
-
-  public static final Function<Set<UserFilter>, List<UserFilterResource>>
-      FILTER_SET_TO_FILTER_RESOURCE =
-      filters -> filters.stream().map(UserFilterConverter::buildFilterResource)
-          .collect(Collectors.toList());
-
-  public static final Function<UserFilter, UserFilterResource> TO_FILTER_RESOURCE =
-      UserFilterConverter::buildFilterResource;
-
   public static final Function<UserFilter, UserFilterActivityResource> TO_ACTIVITY_RESOURCE =
       filter -> {
         UserFilterActivityResource resource = new UserFilterActivityResource();
@@ -67,7 +56,6 @@ public final class UserFilterConverter {
         resource.setProjectId(filter.getProject().getId());
         return resource;
       };
-
   private static final Function<FilterCondition, UserFilterCondition> TO_FILTER_CONDITION =
       filterCondition -> {
         UserFilterCondition condition = new UserFilterCondition();
@@ -83,13 +71,22 @@ public final class UserFilterConverter {
 
         return condition;
       };
-
   private static final Function<FilterSort, Order> TO_FILTER_ORDER = filterSort -> {
     Order order = new Order();
     order.setSortingColumnName(filterSort.getField());
     order.setIsAsc(filterSort.getDirection().isAscending());
     return order;
   };
+  public static final Function<Set<UserFilter>, List<UserFilterResource>>
+      FILTER_SET_TO_FILTER_RESOURCE =
+      filters -> filters.stream().map(UserFilterConverter::buildFilterResource)
+          .collect(Collectors.toList());
+  public static final Function<UserFilter, UserFilterResource> TO_FILTER_RESOURCE =
+      UserFilterConverter::buildFilterResource;
+
+  private UserFilterConverter() {
+    //static only
+  }
 
   private static UserFilterResource buildFilterResource(UserFilter filter) {
     UserFilterResource userFilterResource = new UserFilterResource();

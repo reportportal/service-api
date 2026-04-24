@@ -17,17 +17,19 @@
 
 package com.epam.reportportal.base.core.activity;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.model.ActivityResource;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.model.ActivityEventResource;
 import com.epam.reportportal.base.model.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Handler for retrieving activity records for projects, launches, and test items.
+ *
  * @author Ihar Kahadouski
  */
 public interface ActivityHandler {

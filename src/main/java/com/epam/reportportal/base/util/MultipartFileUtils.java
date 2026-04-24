@@ -26,6 +26,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * Detects content type and builds multipart test fixtures from the classpath.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class MultipartFileUtils {

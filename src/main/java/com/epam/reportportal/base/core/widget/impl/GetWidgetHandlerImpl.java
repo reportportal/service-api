@@ -53,6 +53,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Default implementation of {@link com.epam.reportportal.base.core.widget.GetWidgetHandler} that loads widget content
+ * using configurable content-loading strategies.
+ *
  * @author Pavel Bortnik
  */
 @Service

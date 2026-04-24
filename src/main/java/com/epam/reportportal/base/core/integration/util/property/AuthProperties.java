@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.core.integration.util.property;
 
 /**
+ * Typed OAuth-style auth fields for an integration.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum AuthProperties {

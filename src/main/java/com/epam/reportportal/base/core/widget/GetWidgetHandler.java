@@ -24,6 +24,8 @@ import java.util.Map;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Handler for retrieving widget data and building preview content.
+ *
  * @author Pavel Bortnik
  */
 public interface GetWidgetHandler {

@@ -33,10 +33,16 @@ public class AccessibleField {
     this.f = f;
   }
 
+  /**
+   * @return the declared type of the wrapped field
+   */
   public Class<?> getType() {
     return this.f.getType();
   }
 
+  /**
+   * @return the field value on the bound bean
+   */
   public Object getValue() {
     try {
       return this.f.get(this.bean);
@@ -50,6 +56,9 @@ public class AccessibleField {
     }
   }
 
+  /**
+   * @param value the value to write (may be null)
+   */
   public void setValue(Object value) {
     try {
       this.f.set(this.bean, value);

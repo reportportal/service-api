@@ -27,6 +27,8 @@ import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 
 /**
+ * Filter strategy that applies a project-scoped filter for project-level widgets.
+ *
  * @author Pavel Bortnik
  */
 @Service("projectFilterStrategy")

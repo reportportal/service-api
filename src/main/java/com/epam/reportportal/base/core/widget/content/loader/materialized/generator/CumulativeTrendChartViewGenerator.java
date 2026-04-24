@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Generates the materialized view state entry for the Cumulative Trend Chart widget.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service

@@ -35,6 +35,8 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Internal bus queues and template wiring for the API process.
+ *
  * @author Pavel Bortnik
  */
 @Configuration

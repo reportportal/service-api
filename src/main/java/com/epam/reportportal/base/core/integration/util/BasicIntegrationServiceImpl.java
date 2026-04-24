@@ -20,9 +20,6 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.plugin.PluginBox;
-import com.epam.reportportal.extension.CommonPluginCommand;
-import com.epam.reportportal.extension.PluginCommand;
-import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
@@ -30,6 +27,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.ws.converter.builders.IntegrationBuilder;
+import com.epam.reportportal.extension.CommonPluginCommand;
+import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Default integration service for common, non-BTS integration types.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service

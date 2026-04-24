@@ -35,6 +35,8 @@ import lombok.Setter;
 
 
 /**
+ * Project-level configuration for the ML analyzer (similarity, log line limits, and related tuning).
+ *
  * @author Pavel Bortnik
  */
 @Setter

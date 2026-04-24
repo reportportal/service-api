@@ -21,6 +21,8 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
+ * Request to delete many entities by id in one call.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DeleteBulkRQ {

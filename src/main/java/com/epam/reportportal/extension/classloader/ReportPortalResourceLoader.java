@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
 
 /**
+ * Application context resource loader that delegates class loading to {@link DelegatingClassLoader} so that plugin
+ * classes are resolvable within the Spring context.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

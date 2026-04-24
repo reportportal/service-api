@@ -23,6 +23,8 @@ import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import java.util.List;
 
 /**
+ * Merges several launches into one with strategy-specific item handling.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface LaunchMergeStrategy {

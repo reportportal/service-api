@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * Valid plugin archive file extensions in the plugin loader.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum PluginFileExtension {

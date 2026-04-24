@@ -23,6 +23,8 @@ import java.util.Map;
 import lombok.Data;
 
 /**
+ * Activity details when project attributes are modified.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Data

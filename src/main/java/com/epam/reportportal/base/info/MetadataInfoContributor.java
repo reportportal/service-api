@@ -27,6 +27,8 @@ import org.springframework.boot.actuate.info.MapInfoContributor;
 import org.springframework.stereotype.Component;
 
 /**
+ * Publishes enum-driven metadata (events, objects) under the info endpoint.
+ *
  * @author Andrei Varabyeu
  */
 @Component

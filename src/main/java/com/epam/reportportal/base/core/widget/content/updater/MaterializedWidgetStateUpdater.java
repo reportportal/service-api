@@ -22,6 +22,8 @@ import com.epam.reportportal.base.ws.converter.builders.WidgetBuilder;
 import org.springframework.stereotype.Component;
 
 /**
+ * Updates the materialized view state stored in widget options.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component

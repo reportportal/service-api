@@ -32,6 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 
 /**
+ * Throttling and toggles for automatic launch analysis.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Configuration

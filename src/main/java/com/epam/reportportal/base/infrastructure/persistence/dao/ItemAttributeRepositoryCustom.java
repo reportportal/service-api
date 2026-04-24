@@ -18,15 +18,17 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.ItemAttributePojo;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * jOOQ attribute listing and search by keys and patterns.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface ItemAttributeRepositoryCustom {

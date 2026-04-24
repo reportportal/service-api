@@ -22,13 +22,11 @@ import com.epam.reportportal.base.model.activity.ProjectAttributesActivityResour
 import java.util.function.Function;
 
 /**
+ * Maps project activity records to activity history resources.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public final class ProjectActivityConverter {
-
-  private ProjectActivityConverter() {
-    //static only
-  }
 
   public static final Function<Project, ProjectAttributesActivityResource> TO_ACTIVITY_RESOURCE =
       project -> {
@@ -38,5 +36,9 @@ public final class ProjectActivityConverter {
         resource.setConfig(ProjectUtils.getConfigParameters(project.getProjectAttributes()));
         return resource;
       };
+
+  private ProjectActivityConverter() {
+    //static only
+  }
 
 }

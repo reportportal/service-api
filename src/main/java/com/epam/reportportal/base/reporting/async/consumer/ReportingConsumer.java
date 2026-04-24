@@ -26,6 +26,9 @@ import org.springframework.amqp.core.MessageListener;
 import org.springframework.stereotype.Component;
 
 /**
+ * RabbitMQ message listener that receives reporting messages and dispatches them to the appropriate
+ * {@link com.epam.reportportal.base.reporting.async.handler.ReportingMessageHandler}.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component

@@ -28,6 +28,8 @@ import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import java.util.List;
 
 /**
+ * Preserves nested structure when merging into a new launch.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DeepLaunchMergeStrategy extends AbstractLaunchMergeStrategy {

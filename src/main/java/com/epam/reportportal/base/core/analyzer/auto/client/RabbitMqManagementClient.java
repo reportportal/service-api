@@ -20,6 +20,8 @@ import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.List;
 
 /**
+ * HTTP management API for listing analyzer-related RabbitMQ exchanges.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface RabbitMqManagementClient {

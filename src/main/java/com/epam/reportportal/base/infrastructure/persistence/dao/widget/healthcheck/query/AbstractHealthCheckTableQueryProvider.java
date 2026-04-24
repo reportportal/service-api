@@ -16,6 +16,8 @@ import org.jooq.Select;
 import org.jooq.impl.DSL;
 
 /**
+ * Base jOOQ query builder for health check materialized views and drill-down levels.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractHealthCheckTableQueryProvider implements
@@ -23,10 +25,22 @@ public abstract class AbstractHealthCheckTableQueryProvider implements
 
   private final Set<String> supportedSorting;
 
+  /**
+   * Stores sort keys supported by the concrete provider.
+   *
+   * @param supportedSorting allowed order-by keys for this provider
+   */
   protected AbstractHealthCheckTableQueryProvider(Set<String> supportedSorting) {
     this.supportedSorting = supportedSorting;
   }
 
+  /**
+   * Builds the data {@link Select} for the health check view with the given level filters.
+   *
+   * @param params          request parameters
+   * @param levelConditions drill-down level predicates
+   * @return jOOQ select
+   */
   protected abstract Select<? extends Record> contentQuery(HealthCheckTableGetParams params,
       List<Condition> levelConditions);
 

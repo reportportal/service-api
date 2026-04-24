@@ -20,6 +20,8 @@ import com.epam.reportportal.base.model.integration.IntegrationTypeResource;
 import java.util.List;
 
 /**
+ * Returns installed plugins and integration types.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface GetPluginHandler {

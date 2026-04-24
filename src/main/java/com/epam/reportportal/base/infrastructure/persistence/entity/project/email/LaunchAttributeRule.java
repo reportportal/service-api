@@ -28,6 +28,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * When to run a {@link SenderCase} (match on launch attribute).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Entity

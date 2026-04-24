@@ -30,6 +30,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
+ * Handles OAuth2 authentication errors and access-denied exceptions by writing a JSON error response to the client.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class OAuth2ErrorResponseHandler implements AuthenticationEntryPoint, AccessDeniedHandler {

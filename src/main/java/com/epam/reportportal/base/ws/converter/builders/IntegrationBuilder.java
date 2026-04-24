@@ -24,6 +24,9 @@ import java.time.Instant;
 import java.util.function.Supplier;
 
 /**
+ * Assembles {@link com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration} domain objects
+ * from request DTOs.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class IntegrationBuilder implements Supplier<Integration> {

@@ -16,6 +16,9 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import java.util.Map.Entry;
 
 /**
+ * Abstract plugin command that requires at least project manager (editor) role for execution.
+ *
+ * @param <T> the return type of the command
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class ProjectManagerCommand<T> extends ProjectMemberCommand<T> {

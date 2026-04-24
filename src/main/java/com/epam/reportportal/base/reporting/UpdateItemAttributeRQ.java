@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Request object for updating item attributes, carrying the original and replacement attribute values.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Setter

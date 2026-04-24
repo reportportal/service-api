@@ -71,6 +71,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Creates initial per-project general settings.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
@@ -106,6 +108,11 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
     this.issueTypeRepository = issueTypeRepository;
     this.createPatternTemplateMapping = createPatternTemplateMapping;
     this.eventPublisher = eventPublisher;
+  }
+
+  private static String shortUUID() {
+    long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(Charsets.UTF_8)).getLong();
+    return Long.toString(l, Character.MAX_RADIX);
   }
 
   @Override
@@ -191,10 +198,5 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
         project.getOrganizationId()
     ));
     return new EntryCreatedRS(patternTemplate.getId());
-  }
-
-  private static String shortUUID() {
-    long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(Charsets.UTF_8)).getLong();
-    return Long.toString(l, Character.MAX_RADIX);
   }
 }

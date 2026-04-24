@@ -28,6 +28,8 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
+ * Asynchronous unique-error cluster generation.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

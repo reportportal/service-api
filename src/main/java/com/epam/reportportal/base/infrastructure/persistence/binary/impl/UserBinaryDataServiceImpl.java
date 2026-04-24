@@ -50,6 +50,9 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * {@link com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService} implementation for user
+ * photos and related binary data.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service

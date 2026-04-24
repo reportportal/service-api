@@ -21,6 +21,8 @@ import com.epam.reportportal.base.core.launch.cluster.pipeline.data.ClusterDataP
 import java.util.function.Predicate;
 
 /**
+ * Decides which cluster data provider applies to a configuration.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ClusterDataProviderEvaluator {

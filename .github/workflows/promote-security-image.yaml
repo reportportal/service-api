@@ -5,6 +5,7 @@ on:
     types: [submitted]
     branches:
       - main
+      - master
 
 jobs:
   extract-image-tag:
@@ -21,7 +22,7 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          IMAGE_TAG=$(echo "${PR_TITLE}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-r[0-9]+' | head -1)
+          IMAGE_TAG=$(echo "${PR_TITLE}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-rc?[0-9]+' | tail -1)
           if [ -z "${IMAGE_TAG}" ]; then
             echo "::error::Could not extract a version tag (x.x.x-rx) from PR title: '${PR_TITLE}'"
             exit 1
@@ -39,6 +40,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
     secrets:
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-      GCR_SA_KEY: ${{ secrets.GCR_SA_KEY }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCR_REGION: ${{ secrets.GCR_REGION }}
       GCP_PROJECT: ${{ secrets.GCP_PROJECT }}

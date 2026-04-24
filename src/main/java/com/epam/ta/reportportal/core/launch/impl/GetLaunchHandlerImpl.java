@@ -72,6 +72,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
+import com.epam.ta.reportportal.model.launch.LaunchViewModel;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
@@ -120,7 +121,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
+  public LaunchViewModel getLaunch(String launchId,
+      ReportPortalUser.ProjectDetails projectDetails) {
     final Launch launch = findLaunch(launchId, projectDetails);
     return getLaunchResource(launch);
   }
@@ -138,8 +140,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter,
-      String username) {
+  public LaunchViewModel getLaunchByProjectName(String projectName, Pageable pageable,
+      Filter filter, String username) {
     Project project = projectRepository.findByName(projectName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
@@ -149,15 +151,15 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
     return getLaunchResource(launches.iterator().next());
   }
 
-  private LaunchResource getLaunchResource(Launch launch) {
-    final LaunchResource launchResource = launchConverter.TO_RESOURCE.apply(launch);
+  private LaunchViewModel getLaunchResource(Launch launch) {
+    LaunchViewModel launchResource = launchConverter.TO_RESOURCE.apply(launch);
     applicationEventPublisher.publishEvent(
         new GetLaunchResourceCollectionEvent(Collections.singletonList(launchResource)));
     return launchResource;
   }
 
   @Override
-  public com.epam.ta.reportportal.model.Page<LaunchResource> getProjectLaunches(
+  public com.epam.ta.reportportal.model.Page<LaunchViewModel> getProjectLaunches(
       ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable, String userName) {
     validateModeConditions(filter);
@@ -177,7 +179,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
    * project users, for specified user or only owner
    */
   @Override
-  public com.epam.ta.reportportal.model.Page<LaunchResource> getDebugLaunches(
+  public com.epam.ta.reportportal.model.Page<LaunchViewModel> getDebugLaunches(
       ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable) {
     validateModeConditions(filter);
@@ -206,7 +208,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public com.epam.ta.reportportal.model.Page<LaunchResource> getLatestLaunches(
+  public com.epam.ta.reportportal.model.Page<LaunchViewModel> getLatestLaunches(
       ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable) {
 
@@ -237,12 +239,13 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
     return testItemRepository.hasItemsWithIssueByLaunch(launch.getId());
   }
 
-  private com.epam.ta.reportportal.model.Page<LaunchResource> getLaunchResources(
+  private com.epam.ta.reportportal.model.Page<LaunchViewModel> getLaunchResources(
       Page<Launch> launches) {
-    final com.epam.ta.reportportal.model.Page<LaunchResource> launchResourcePage =
+    final com.epam.ta.reportportal.model.Page<LaunchViewModel> launchResourcePage =
         PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
-    applicationEventPublisher.publishEvent(
-        new GetLaunchResourceCollectionEvent(launchResourcePage.getContent()));
+    applicationEventPublisher.publishEvent(new GetLaunchResourceCollectionEvent(
+        launchResourcePage.getContent().stream().map(it -> (LaunchResource) it)
+            .collect(Collectors.toList())));
     return launchResourcePage;
   }
 

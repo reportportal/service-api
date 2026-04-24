@@ -46,8 +46,8 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.model.launch.LaunchViewModel;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
@@ -104,8 +104,8 @@ class GetLaunchHandlerImplTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    Function<Launch, LaunchResource> toResourceFunction = (l -> {
-      LaunchResource launchResource = new LaunchResource();
+    Function<Launch, LaunchViewModel> toResourceFunction = (l -> {
+      LaunchViewModel launchResource = new LaunchViewModel();
       launchResource.setLaunchId(1L);
       return launchResource;
     });
@@ -135,7 +135,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(1L)).thenReturn(launch);
 
     // when
-    LaunchResource result = handler.getLaunch("1",
+    LaunchViewModel result = handler.getLaunch("1",
         extractProjectDetails(rpUser, "test_project"));
 
     // then
@@ -309,7 +309,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
 
     // when
-    LaunchResource result = handler.getLaunch("1",
+    LaunchViewModel result = handler.getLaunch("1",
         extractProjectDetails(user, "test_project"));
 
     // then

@@ -76,10 +76,10 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
       var existingStepsManualScenario = manualScenario.getStepsScenario();
       if (Objects.nonNull(existingStepsManualScenario)) {
-
+  
         tmsStepService.patchSteps(existingStepsManualScenario,
             (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
-
+  
         tmsStepsManualScenarioRepository.save(existingStepsManualScenario);
       } else {
         throw new ReportPortalException(

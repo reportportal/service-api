@@ -669,7 +669,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseMapper).patch(testCase, convertedTestCase);
-    verify(tmsTestCaseAttributeService).updateTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
@@ -708,7 +708,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseWithFolderIdRQ, testFolderId);
     verify(tmsTestCaseMapper).patch(testCase, convertedTestCase);
-    verify(tmsTestCaseAttributeService).updateTestCaseAttributes(projectId, testCase, attributes);
+    verify(tmsTestCaseAttributeService).patchTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
@@ -856,7 +856,7 @@ class TmsTestCaseServiceImplTest {
     sut.patch(projectId, patchRequest);
 
     verify(tmsTestCaseRepository, never()).findAllById(any());
-    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(eq(projectId), any(), any());
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, null);
     verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(testFolderId, patchRequest);
@@ -876,7 +876,7 @@ class TmsTestCaseServiceImplTest {
     sut.patch(projectId, patchRequest);
 
     verify(tmsTestCaseRepository, never()).findAllById(any());
-    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(eq(projectId), any(), any());
     verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, null, priority);
     verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(null, patchRequest);
@@ -895,7 +895,7 @@ class TmsTestCaseServiceImplTest {
     sut.patch(projectId, patchRequest);
 
     verify(tmsTestCaseRepository, never()).findAllById(any());
-    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(eq(projectId), any(), any());
     verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
     verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
     verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(null, patchRequest);
@@ -921,7 +921,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
     verify(tmsTestCaseRepository, never()).findAllById(any());
-    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(anyList(), any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(eq(projectId), any(), any());
   }
 
   @Test

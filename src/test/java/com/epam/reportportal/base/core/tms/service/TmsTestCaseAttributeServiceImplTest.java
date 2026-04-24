@@ -380,152 +380,21 @@ class TmsTestCaseAttributeServiceImplTest {
     var attributeRQ = new TmsTestCaseAttributeRQ();
     attributeRQ.setKey("new-tag");
     var attributeRQsWithKey = List.of(attributeRQ);
-
+  
     when(tmsAttributeService.findOrCreateTag(PROJECT_ID, "new-tag")).thenReturn(tmsAttribute);
     when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
         .thenReturn(testCaseAttributes.iterator().next());
-
+  
     // When
     sut.updateTestCaseAttributes(PROJECT_ID, testCase, attributeRQsWithKey);
-
+  
     // Then
     verify(tmsTestCaseAttributeRepository).deleteAll(any());
     verify(tmsAttributeService).findOrCreateTag(PROJECT_ID, "new-tag");
     verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, tmsAttribute);
     verify(tmsTestCaseAttributeRepository).saveAll(any(Set.class));
   }
-
-  @Test
-  void patchTestCaseAttributes_MultipleTestCases_ShouldAddAttributesToAllTestCases() {
-    // Given
-    var testCaseAttribute1 = new TmsTestCaseAttribute();
-    var testCaseAttribute2 = new TmsTestCaseAttribute();
-
-    when(tmsAttributeService.getEntityById(PROJECT_ID, 2L)).thenReturn(tmsAttribute);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
-        .thenReturn(testCaseAttribute1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase2, tmsAttribute))
-        .thenReturn(testCaseAttribute2);
-
-    // Store initial states
-    var initialAttributesTestCase1Size = testCase.getAttributes().size();
-    var initialAttributesTestCase2Size = testCase2.getAttributes().size();
-
-    // When
-    sut.patchTestCaseAttributes(testCases, attributeRQs);
-
-    // Then
-    verify(tmsAttributeService, times(2)).getEntityById(PROJECT_ID, 2L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, tmsAttribute);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase2, tmsAttribute);
-    // saveAll should be called once for each test case
-    verify(tmsTestCaseAttributeRepository, times(2)).saveAll(any(Set.class));
-
-    // Assert that both test cases have the new attributes added
-    assertEquals(initialAttributesTestCase1Size + 1, testCase.getAttributes().size());
-    assertEquals(initialAttributesTestCase2Size + 1, testCase2.getAttributes().size());
-  }
-
-  @Test
-  void patchTestCaseAttributes_MultipleTestCases_WithNullAttributes_ShouldReturnEarly() {
-    // Given
-    var initialAttributesTestCase1 = new HashSet<>(testCase.getAttributes());
-    var initialAttributesTestCase2 = new HashSet<>(testCase2.getAttributes());
-
-    // When
-    sut.patchTestCaseAttributes(testCases, null);
-
-    // Then
-    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper,
-        tmsTestCaseAttributeRepository);
-
-    // Assert that both test cases' attributes are unchanged
-    assertEquals(initialAttributesTestCase1, testCase.getAttributes());
-    assertEquals(initialAttributesTestCase2, testCase2.getAttributes());
-  }
-
-  @Test
-  void patchTestCaseAttributes_MultipleTestCases_WithEmptyAttributes_ShouldReturnEarly() {
-    // Given
-    var initialAttributesTestCase1 = new HashSet<>(testCase.getAttributes());
-    var initialAttributesTestCase2 = new HashSet<>(testCase2.getAttributes());
-
-    // When
-    sut.patchTestCaseAttributes(testCases, Collections.emptyList());
-
-    // Then
-    verifyNoInteractions(tmsAttributeService, tmsTestCaseAttributeMapper,
-        tmsTestCaseAttributeRepository);
-
-    // Assert that both test cases' attributes are unchanged
-    assertEquals(initialAttributesTestCase1, testCase.getAttributes());
-    assertEquals(initialAttributesTestCase2, testCase2.getAttributes());
-  }
-
-  @Test
-  void patchTestCaseAttributes_MultipleTestCases_WithSingleTestCase_ShouldWorkCorrectly() {
-    // Given
-    var singleTestCaseList = Collections.singletonList(testCase);
-    var testCaseAttribute = new TmsTestCaseAttribute();
-
-    when(tmsAttributeService.getEntityById(PROJECT_ID, 2L)).thenReturn(tmsAttribute);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
-        .thenReturn(testCaseAttribute);
-
-    var initialSize = testCase.getAttributes().size();
-
-    // When
-    sut.patchTestCaseAttributes(singleTestCaseList, attributeRQs);
-
-    // Then
-    verify(tmsAttributeService).getEntityById(PROJECT_ID, 2L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, tmsAttribute);
-    verify(tmsTestCaseAttributeRepository, times(1)).saveAll(any(Set.class));
-
-    // Assert the final state
-    assertEquals(initialSize + 1, testCase.getAttributes().size());
-  }
-
-  @Test
-  void patchTestCaseAttributes_MultipleTestCases_WithEmptyTestCasesList_ShouldNotCallRepository() {
-    // Given
-    var emptyTestCasesList = Collections.<TmsTestCase>emptyList();
-
-    // When
-    sut.patchTestCaseAttributes(emptyTestCasesList, attributeRQs);
-
-    // Then
-    verifyNoInteractions(tmsAttributeService);
-    verifyNoInteractions(tmsTestCaseAttributeMapper);
-    verifyNoInteractions(tmsTestCaseAttributeRepository);
-  }
-
-  @Test
-  void patchTestCaseAttributes_MultipleTestCases_WithKeyAttribute_ShouldAddToAllTestCases() {
-    // Given
-    var attributeRQ = new TmsTestCaseAttributeRQ();
-    attributeRQ.setKey("shared-tag");
-    var attributeRQsWithKey = List.of(attributeRQ);
-
-    var testCaseAttribute1 = new TmsTestCaseAttribute();
-    var testCaseAttribute2 = new TmsTestCaseAttribute();
-
-    when(tmsAttributeService.findOrCreateTag(PROJECT_ID, "shared-tag")).thenReturn(tmsAttribute);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
-        .thenReturn(testCaseAttribute1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase2, tmsAttribute))
-        .thenReturn(testCaseAttribute2);
-
-    // When
-    sut.patchTestCaseAttributes(testCases, attributeRQsWithKey);
-
-    // Then
-    verify(tmsAttributeService, times(2)).findOrCreateTag(PROJECT_ID, "shared-tag");
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, tmsAttribute);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase2, tmsAttribute);
-    verify(tmsTestCaseAttributeRepository, times(2)).saveAll(any(Set.class));
-  }
-
+  
   @Test
   void deleteAllByTestCaseId_ShouldCallRepositoryDelete() {
     // Given

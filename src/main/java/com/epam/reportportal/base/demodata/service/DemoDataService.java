@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Orchestrates demo dashboard and launch generation from API requests.
+ *
  * @author Ihar Kahadouski
  */
 @Service

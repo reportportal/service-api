@@ -38,6 +38,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads overall execution and issue statistics for the Overall Statistics widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

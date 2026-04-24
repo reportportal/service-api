@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.item.impl.merge.strategy;
 import java.util.Arrays;
 
 /**
+ * How a merged launch tree and statistics are built.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum MergeStrategyType {

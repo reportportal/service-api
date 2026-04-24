@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.attribute.At
 import java.util.Set;
 
 /**
+ * Global attribute de-duplication and name lookup.
+ *
  * @author Ivan Budaev
  */
 public interface AttributeRepositoryCustom {

@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * Launch import / execution mode (e.g. default) for API and importers.
+ *
  * @author Pavel Bortnik
  */
 public enum LaunchModeEnum {

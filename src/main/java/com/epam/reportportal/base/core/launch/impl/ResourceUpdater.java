@@ -19,6 +19,9 @@ package com.epam.reportportal.base.core.launch.impl;
 import java.util.Collection;
 
 /**
+ * Utility component for updating launch and test item resource references.
+ *
+ * @param <T> resource type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ResourceUpdater<T> {

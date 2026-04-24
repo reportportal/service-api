@@ -25,6 +25,8 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 
 /**
+ * A unique-error cluster in the analyzer index, scoped to a launch and message pattern.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Entity

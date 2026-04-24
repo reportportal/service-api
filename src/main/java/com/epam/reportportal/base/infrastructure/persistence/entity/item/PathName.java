@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * Hierarchical name path to a test item: ordered pair of name and type per level.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PathName implements Serializable {

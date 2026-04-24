@@ -19,6 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
 
 /**
+ * jOOQ filter and linked widget cleanup.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface UserFilterRepositoryCustom extends FilterableRepository<UserFilter> {

@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 import java.util.function.Supplier;
 
 /**
+ * Assembles issue (defect) entities linked to test items.
+ *
  * @author Pavel Bortnik
  */
 public class IssueEntityBuilder implements Supplier<IssueEntity> {

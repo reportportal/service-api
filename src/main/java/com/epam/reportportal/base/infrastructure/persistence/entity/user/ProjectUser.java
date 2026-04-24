@@ -33,6 +33,8 @@ import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 /**
+ * Project membership: user, project role, and when assigned.
+ *
  * @author Andrei Varabyeu
  */
 @Entity

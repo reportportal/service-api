@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 /**
  * REST Error template. Created to be able to configure error templates in Spring's IoC container
  *
+ * @param <T> exception type associated with this definition
  * @author Andrei Varabyeu
  */
 public class RestErrorDefinition<T extends Exception> {

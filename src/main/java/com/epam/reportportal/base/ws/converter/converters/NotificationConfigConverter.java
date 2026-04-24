@@ -38,17 +38,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * Maps email and notification rules to their API representation.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class NotificationConfigConverter {
-
-  private NotificationConfigConverter() {
-    //static only
-  }
-
-  public final static Function<Set<SenderCase>, List<SenderCaseDTO>> TO_RESOURCE =
-      senderCaseSet -> senderCaseSet.stream().map(NotificationConfigConverter.TO_CASE_RESOURCE)
-          .collect(Collectors.toList());
 
   public static final Function<LaunchAttributeRule, ItemAttributeResource>
       TO_ATTRIBUTE_RULE_RESOURCE = model -> {
@@ -57,7 +51,6 @@ public final class NotificationConfigConverter {
     attributeResource.setValue(model.getValue());
     return attributeResource;
   };
-
   public final static Function<SenderCase, SenderCaseDTO> TO_CASE_RESOURCE = model -> {
     Preconditions.checkNotNull(model);
     SenderCaseDTO resource = new SenderCaseDTO();
@@ -78,7 +71,9 @@ public final class NotificationConfigConverter {
         .ifPresent(resource::setRuleDetails);
     return resource;
   };
-
+  public final static Function<Set<SenderCase>, List<SenderCaseDTO>> TO_RESOURCE =
+      senderCaseSet -> senderCaseSet.stream().map(NotificationConfigConverter.TO_CASE_RESOURCE)
+          .collect(Collectors.toList());
   public static final Function<ItemAttributeResource, LaunchAttributeRule> TO_ATTRIBUTE_RULE_MODEL =
       resource -> {
         LaunchAttributeRule launchAttributeRule = new LaunchAttributeRule();
@@ -87,18 +82,6 @@ public final class NotificationConfigConverter {
         launchAttributeRule.setValue(resource.getValue());
         return launchAttributeRule;
       };
-
-  private static void cutAttributeToMaxLength(ItemAttributeResource entity) {
-    String key = entity.getKey();
-    String value = entity.getValue();
-    if (key != null && key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
-      entity.setKey(key.trim().substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
-    }
-    if (value != null && value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
-      entity.setValue(value.trim().substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
-    }
-  }
-
   public final static Function<SenderCaseDTO, SenderCase> TO_CASE_MODEL = resource -> {
     SenderCase senderCase = new SenderCase();
     ofNullable(resource.getAttributes()).ifPresent(
@@ -124,4 +107,19 @@ public final class NotificationConfigConverter {
         .ifPresent(senderCase::setRuleDetails);
     return senderCase;
   };
+
+  private NotificationConfigConverter() {
+    //static only
+  }
+
+  private static void cutAttributeToMaxLength(ItemAttributeResource entity) {
+    String key = entity.getKey();
+    String value = entity.getValue();
+    if (key != null && key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+      entity.setKey(key.trim().substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
+    }
+    if (value != null && value.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {
+      entity.setValue(value.trim().substring(0, ValidationConstraints.MAX_ATTRIBUTE_LENGTH));
+    }
+  }
 }

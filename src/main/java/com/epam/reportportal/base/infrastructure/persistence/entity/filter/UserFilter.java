@@ -34,8 +34,9 @@ import java.util.Set;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
-
 /**
+ * Saved filter: target object (launches, items, etc.), name, and jsonb conditions.
+ *
  * @author Pavel Bortnik
  */
 @Entity

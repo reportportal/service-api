@@ -27,6 +27,8 @@ import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
+ * Coordinates unique-error analysis run and cluster generation.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class UniqueErrorAnalysisStarter {

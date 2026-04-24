@@ -17,6 +17,10 @@
 package com.epam.reportportal.base.ws.converter.utils;
 
 /**
+ * Factory for {@link ResourceUpdater} instances based on update context.
+ *
+ * @param <C> update request content type
+ * @param <R> resource type being updated
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ResourceUpdaterProvider<C extends ResourceUpdaterContent, R> {

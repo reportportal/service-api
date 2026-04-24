@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Validates that each string in a collection is one of the allowed values.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class InCollectionValidator implements ConstraintValidator<In, Collection<String>> {

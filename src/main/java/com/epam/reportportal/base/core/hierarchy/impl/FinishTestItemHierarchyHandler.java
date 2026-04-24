@@ -35,6 +35,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
+ * Handles finishing a hierarchy of test items by propagating finish requests up the hierarchy.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service("finishTestItemHierarchyHandler")

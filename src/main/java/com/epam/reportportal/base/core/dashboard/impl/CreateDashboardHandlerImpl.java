@@ -36,6 +36,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
+ * Creates a project dashboard from a user request.
+ *
  * @author Pavel Bortnik
  */
 @Service

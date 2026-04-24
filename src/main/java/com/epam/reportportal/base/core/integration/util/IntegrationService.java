@@ -22,6 +22,8 @@ import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import java.util.Map;
 
 /**
+ * Service interface for performing integration-type-specific operations.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface IntegrationService {

@@ -24,6 +24,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for user creation bid rows.
+ *
  * @author Ivan Budaev
  */
 public interface UserCreationBidRepository extends ReportPortalRepository<UserCreationBid, String>,

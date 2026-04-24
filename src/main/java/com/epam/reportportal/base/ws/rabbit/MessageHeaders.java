@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.ws.rabbit;
 
 /**
+ * Amqp / RabbitMQ custom header name constants for ReportPortal service messages.
+ *
  * @author Pavel Bortnik
  */
 public final class MessageHeaders {

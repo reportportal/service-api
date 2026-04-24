@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Base filter strategy for statistics-based widgets, providing common launch filter building logic.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStrategy {
@@ -42,6 +44,13 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
     return buildFilterSortMap(widget, widget.getProject().getId());
   }
 
+  /**
+   * Merges the widget's default filter with any linked user filters and their sorts.
+   *
+   * @param widget    widget
+   * @param projectId project id
+   * @return map of filter to sort
+   */
   protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {
     Map<Filter, Sort> filterSortMap = Maps.newLinkedHashMap();
     Set<UserFilter> userFilters = Optional.ofNullable(widget.getFilters())
@@ -64,5 +73,12 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
     return filterSortMap;
   }
 
+  /**
+   * Baseline filter applied when the widget has no or empty user filter selection.
+   *
+   * @param widget    widget
+   * @param projectId project id
+   * @return default filter or null
+   */
   protected abstract Filter buildDefaultFilter(Widget widget, Long projectId);
 }

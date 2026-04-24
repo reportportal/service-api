@@ -23,6 +23,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Persistence for global {@link IssueType} definitions and custom sub-types.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface IssueTypeRepository extends ReportPortalRepository<IssueType, Long>,

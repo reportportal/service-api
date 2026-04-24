@@ -44,6 +44,8 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
 /**
+ * Request and response logging for the HTTP API.
+ *
  * @author Konstantin Antipin
  */
 @Aspect

@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Keys in the global {@code server_settings} table (registration, base URL, analytics, etc.).
+ *
  * @author Ivan Budaev
  */
 public enum ServerSettingsEnum {

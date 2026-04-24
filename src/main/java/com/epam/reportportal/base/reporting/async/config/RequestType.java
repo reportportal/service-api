@@ -17,6 +17,9 @@
 package com.epam.reportportal.base.reporting.async.config;
 
 /**
+ * Enum identifying the type of reporting request carried by a RabbitMQ message (launch start/finish, test item
+ * start/finish, log).
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public enum RequestType {

@@ -22,6 +22,8 @@ import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Handler for updating widget metadata, content options, and linked filters.
+ *
  * @author Pavel Bortnik
  */
 public interface UpdateWidgetHandler {

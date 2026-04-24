@@ -22,10 +22,18 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
+ * Builds a query filter for which items participate in pattern analysis.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 //TODO should be updated according to the nested steps' logs retrieving logic
 public interface PatternConditionProvider {
 
+  /**
+   * Returns an optional extra filter for the current analysis run.
+   *
+   * @param analyzeItemsModes active analysis modes for the run
+   * @return non-empty if this provider applies a filter for the current selection
+   */
   Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes);
 }

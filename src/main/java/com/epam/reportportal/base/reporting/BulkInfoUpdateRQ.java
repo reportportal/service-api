@@ -24,6 +24,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Request object for bulk updating metadata (attributes and description) on multiple test items or launches.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Setter

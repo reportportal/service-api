@@ -21,6 +21,8 @@ import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAt
 import java.util.function.Predicate;
 
 /**
+ * {@link ItemAttributeTypeMatcher} backed by a custom predicate.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PredicateItemAttributeTypeMatcher implements ItemAttributeTypeMatcher {

@@ -33,6 +33,8 @@ import java.util.function.Supplier;
 
 
 /**
+ * Maps Java types to OpenAPI schema models for custom documentation.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class SchemaFactory {

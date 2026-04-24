@@ -23,6 +23,8 @@ import com.epam.reportportal.base.model.integration.IntegrationTypeResource;
 import java.util.function.Function;
 
 /**
+ * Serializes available integration type definitions for the UI and API.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class IntegrationTypeConverter {

@@ -23,6 +23,8 @@ import com.epam.reportportal.base.model.dashboard.UpdateDashboardRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Updates dashboard metadata and widget layout.
+ *
  * @author Pavel Bortnik
  */
 public interface UpdateDashboardHandler {

@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * Context for the entity a cluster build applies to.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ClusterEntityContext {
@@ -41,6 +43,14 @@ public class ClusterEntityContext {
     this.itemIds = itemIds;
   }
 
+  public static ClusterEntityContext of(Long launchId, Long projectId) {
+    return new ClusterEntityContext(launchId, projectId);
+  }
+
+  public static ClusterEntityContext of(Long launchId, Long projectId, List<Long> itemIds) {
+    return new ClusterEntityContext(launchId, projectId, itemIds);
+  }
+
   public Long getLaunchId() {
     return launchId;
   }
@@ -51,13 +61,5 @@ public class ClusterEntityContext {
 
   public List<Long> getItemIds() {
     return itemIds;
-  }
-
-  public static ClusterEntityContext of(Long launchId, Long projectId) {
-    return new ClusterEntityContext(launchId, projectId);
-  }
-
-  public static ClusterEntityContext of(Long launchId, Long projectId, List<Long> itemIds) {
-    return new ClusterEntityContext(launchId, projectId, itemIds);
   }
 }

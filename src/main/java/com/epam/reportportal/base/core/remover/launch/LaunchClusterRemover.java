@@ -23,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Removes cluster data associated with a
+ * {@link com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch} when the launch is deleted.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.util.email.constant;
 
 /**
+ * Property path regex patterns for issue statistics in email rules.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class IssueRegexConstant {

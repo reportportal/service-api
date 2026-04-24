@@ -27,6 +27,8 @@ import jakarta.persistence.Column;
 import java.io.Serializable;
 
 /**
+ * One launch row in the passing-rate / quality widget (totals and rates).
+ *
  * @author Ivan Budayeu
  */
 public class PassingRateStatisticsResult implements Serializable {

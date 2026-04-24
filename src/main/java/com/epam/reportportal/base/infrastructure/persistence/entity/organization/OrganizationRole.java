@@ -21,6 +21,8 @@ import java.util.Optional;
 import lombok.Getter;
 
 /**
+ * Organization-level roles (e.g. member, manager) and their ordering.
+ *
  * @author Siarhei Hrabko
  */
 @Getter
@@ -38,6 +40,12 @@ public enum OrganizationRole implements Comparable<OrganizationRole> {
     this.roleName = roleName;
   }
 
+  public static Optional<OrganizationRole> forName(final String name) {
+    return Arrays.stream(OrganizationRole.values())
+        .filter(role -> role.name().equalsIgnoreCase(name))
+        .findAny();
+  }
+
   public boolean higherThan(OrganizationRole other) {
     return this.roleLevel > other.roleLevel;
   }
@@ -52,12 +60,6 @@ public enum OrganizationRole implements Comparable<OrganizationRole> {
 
   public boolean sameOrLowerThan(OrganizationRole other) {
     return this.roleLevel <= other.roleLevel;
-  }
-
-  public static Optional<OrganizationRole> forName(final String name) {
-    return Arrays.stream(OrganizationRole.values())
-        .filter(role -> role.name().equalsIgnoreCase(name))
-        .findAny();
   }
 
 }

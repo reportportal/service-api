@@ -22,6 +22,8 @@ import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Updates a project email notification rule.
+ *
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 public interface UpdateProjectNotificationHandler {

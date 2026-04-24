@@ -23,6 +23,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
+ * Provides the appropriate {@link ReportingMessageHandler} for a given
+ * {@link com.epam.reportportal.base.reporting.async.config.RequestType}.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service

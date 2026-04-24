@@ -26,6 +26,8 @@ import com.epam.reportportal.base.reporting.StartTestItemRQ;
 import java.util.Optional;
 
 /**
+ * Reruns a launch or a subset of failed tests.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface RerunHandler {

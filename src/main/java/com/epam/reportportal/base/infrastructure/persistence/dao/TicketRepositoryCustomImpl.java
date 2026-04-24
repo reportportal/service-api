@@ -30,6 +30,8 @@ import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Implements {@link TicketRepositoryCustom}.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class TicketRepositoryCustomImpl implements TicketRepositoryCustom {

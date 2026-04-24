@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Composite id (pattern id, test item id) for {@link PatternTemplateTestItem}.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PatternTemplateTestItemKey implements Serializable {

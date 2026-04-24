@@ -26,6 +26,8 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Builds pattern template domain objects from request data.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PatternTemplateBuilder implements Supplier<PatternTemplate> {

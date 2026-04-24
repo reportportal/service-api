@@ -26,6 +26,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Structured list of field-level diffs for an {@link Activity} log row.
+ *
  * @author Ihar Kahadouski
  */
 @Getter

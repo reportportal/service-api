@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.launch.cluster;
 
-import com.epam.reportportal.extension.event.GetClusterResourcesEvent;
 import com.epam.reportportal.base.infrastructure.model.launch.cluster.ClusterInfoResource;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ClusterRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;
@@ -24,6 +23,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import com.epam.reportportal.extension.event.GetClusterResourcesEvent;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,6 +32,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
+ * Retrieves clusters and their test item content.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

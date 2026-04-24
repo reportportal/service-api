@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Resolves the active cluster data provider for a run.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ClusterDataProviderResolver {

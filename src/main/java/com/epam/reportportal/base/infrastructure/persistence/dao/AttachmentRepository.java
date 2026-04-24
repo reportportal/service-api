@@ -25,6 +25,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for attachments and metadata rows.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface AttachmentRepository extends ReportPortalRepository<Attachment, Long>,

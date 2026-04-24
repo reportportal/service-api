@@ -29,6 +29,8 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
+ * Stored file metadata (path, size, type) for logs and binary uploads.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Entity

@@ -34,6 +34,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * Request object for saving a log entry associated with a test item or launch.
+ *
  * @author Henadzi_Vrubleuski
  * @author Andrei Varabyeu
  */

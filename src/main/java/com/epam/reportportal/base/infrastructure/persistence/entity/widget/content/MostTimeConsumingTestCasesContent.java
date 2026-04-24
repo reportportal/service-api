@@ -28,6 +28,8 @@ import jakarta.persistence.Column;
 import java.io.Serializable;
 
 /**
+ * Slowest test cases for the "most time consuming" widget, with duration and item link.
+ *
  * @author Ivan Budaev
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

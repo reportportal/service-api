@@ -21,6 +21,8 @@ import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisCo
 import org.springframework.core.task.TaskExecutor;
 
 /**
+ * Triggers the analysis step on an async executor.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class AsyncAutoAnalysisStarter implements LaunchAutoAnalysisStarter {

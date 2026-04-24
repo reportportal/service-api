@@ -21,6 +21,8 @@ import com.epam.reportportal.base.core.launch.cluster.config.GenerateClustersCon
 import java.util.Optional;
 
 /**
+ * Supplies cluster data for a generation run.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ClusterDataProvider {

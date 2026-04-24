@@ -16,13 +16,15 @@
 
 package com.epam.reportportal.base.core.integration.plugin;
 
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStore;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.integration.UpdatePluginStateRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Command handler to update a loaded plugin.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface UpdatePluginHandler {

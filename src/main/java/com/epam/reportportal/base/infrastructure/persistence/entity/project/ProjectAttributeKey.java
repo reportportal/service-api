@@ -25,6 +25,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
+ * Key part of a project attribute: attribute id, project id, and system flag.
+ *
  * @author Andrey Plisunov
  */
 public class ProjectAttributeKey implements Serializable {

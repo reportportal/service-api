@@ -22,6 +22,9 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * {@link com.epam.reportportal.base.infrastructure.annotations.NotBlankWithSize} implementation combining not-blank and
+ * length rules.
+ *
  * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
  */
 public class NotBlankWithSizeValidator implements ConstraintValidator<NotBlankWithSize, String> {

@@ -32,6 +32,9 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 
 /**
+ * Utility class for reading and validating option values from
+ * {@link com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions}.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class WidgetOptionUtil {

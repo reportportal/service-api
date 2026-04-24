@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ErrorHandler;
 
 /**
+ * Error handler for RabbitMQ reporting listeners that decides whether a failed message should be retried or discarded.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j

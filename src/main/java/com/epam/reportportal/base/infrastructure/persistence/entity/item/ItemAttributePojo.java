@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * JSON-friendly copy of a key/value/system item attribute.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ItemAttributePojo implements Serializable {

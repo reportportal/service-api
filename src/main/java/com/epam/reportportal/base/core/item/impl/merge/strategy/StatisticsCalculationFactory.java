@@ -20,6 +20,8 @@ import com.epam.reportportal.base.core.item.merge.StatisticsCalculationStrategy;
 import java.util.Map;
 
 /**
+ * Selects statistics aggregation for a merge strategy type.
+ *
  * @author Ivan Budaev
  */
 public class StatisticsCalculationFactory {

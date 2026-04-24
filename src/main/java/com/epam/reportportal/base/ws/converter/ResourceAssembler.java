@@ -22,6 +22,10 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
+ * Maps domain entities to API resources, including batch conversion helpers.
+ *
+ * @param <T> source entity type
+ * @param <R> target resource type
  * @author Andrei Varabyeu
  */
 public abstract class ResourceAssembler<T, R> implements Function<T, R> {

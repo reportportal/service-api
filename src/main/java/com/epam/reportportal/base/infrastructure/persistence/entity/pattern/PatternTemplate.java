@@ -30,6 +30,8 @@ import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 /**
+ * A string or regex pattern definition for auto-analysis (per project, type, enabled flag).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Entity

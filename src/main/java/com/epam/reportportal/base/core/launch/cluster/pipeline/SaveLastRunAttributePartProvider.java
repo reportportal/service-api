@@ -24,6 +24,8 @@ import com.epam.reportportal.base.pipeline.PipelinePartProvider;
 import java.time.Instant;
 
 /**
+ * Updates last-run attributes after cluster processing.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class SaveLastRunAttributePartProvider implements

@@ -29,6 +29,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
+ * Removes widgets belonging to a {@link com.epam.reportportal.base.infrastructure.persistence.entity.project.Project}
+ * when the project is deleted.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

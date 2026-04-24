@@ -45,6 +45,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 /**
+ * Implements {@link ItemAttributeRepositoryCustom}.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Repository

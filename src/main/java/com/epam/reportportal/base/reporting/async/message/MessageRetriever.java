@@ -30,6 +30,9 @@ import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Component;
 
 /**
+ * Deserializes raw RabbitMQ {@link org.springframework.amqp.core.Message} payloads into typed reporting request
+ * objects.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component

@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
 /**
+ * A test item reference produced by the analyzer (for UI or BTS post).
+ *
  * @author Pavel Bortnik
  */
 public class AnalyzedItemRs {

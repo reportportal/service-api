@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.constant;
 
 /**
+ * Field names and keys for widget content materialization.
+ *
  * @author Ivan Budaev
  */
 public class WidgetContentRepositoryConstants {

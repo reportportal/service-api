@@ -26,6 +26,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Global attribute definition (name) stored in the {@code attribute} table.
+ *
  * @author Andrey Plisunov
  */
 @Entity

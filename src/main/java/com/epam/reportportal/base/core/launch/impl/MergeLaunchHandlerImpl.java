@@ -56,6 +56,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Merges launches according to the selected merge strategy.
+ *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  * @author Pavel_Bortnik

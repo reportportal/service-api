@@ -16,15 +16,17 @@
 
 package com.epam.reportportal.base.core.project.settings;
 
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.reportportal.base.model.project.config.IssueSubTypeCreatedRS;
 import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
 
 /**
+ * Creates initial per-project general settings.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface CreateProjectSettingsHandler {

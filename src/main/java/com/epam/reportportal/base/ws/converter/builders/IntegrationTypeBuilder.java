@@ -27,6 +27,9 @@ import java.time.Instant;
 import java.util.function.Supplier;
 
 /**
+ * Builds {@link com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType} instances for
+ * API layers.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class IntegrationTypeBuilder implements Supplier<IntegrationType> {

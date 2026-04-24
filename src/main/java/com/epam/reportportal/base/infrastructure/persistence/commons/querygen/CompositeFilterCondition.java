@@ -26,6 +26,8 @@ import org.jooq.Operator;
 import org.jooq.impl.DSL;
 
 /**
+ * Combines several filter conditions with AND or OR.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class CompositeFilterCondition implements ConvertibleCondition {

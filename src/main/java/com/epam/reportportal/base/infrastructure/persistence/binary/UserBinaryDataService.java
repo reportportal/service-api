@@ -22,6 +22,8 @@ import java.io.InputStream;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * Persists and loads user profile photos and related binary data.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface UserBinaryDataService {

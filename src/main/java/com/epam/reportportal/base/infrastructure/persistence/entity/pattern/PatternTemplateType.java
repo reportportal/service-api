@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * Kind of match (string contains vs. regular expression) for a {@link PatternTemplate}.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum PatternTemplateType {

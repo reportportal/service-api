@@ -22,6 +22,8 @@ import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.dashboard.CreateDashboardRQ;
 
 /**
+ * Creates a project dashboard from a user request.
+ *
  * @author Pavel Bortnik
  */
 public interface CreateDashboardHandler {

@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.pipeline;
 
 /**
+ * A single executable step in a processing pipeline.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface PipelinePart {

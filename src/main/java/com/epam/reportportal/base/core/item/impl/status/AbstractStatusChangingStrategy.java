@@ -55,23 +55,36 @@ import java.util.Optional;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
+ * Default propagation rules for a target terminal status.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public abstract class AbstractStatusChangingStrategy implements StatusChangingStrategy {
 
+  protected final TestItemRepository testItemRepository;
+  protected final IssueEntityRepository issueEntityRepository;
+  protected final LogRepository logRepository;
+  protected final LogIndexer logIndexer;
   private final TestItemService testItemService;
-
   private final ProjectRepository projectRepository;
   private final LaunchRepository launchRepository;
   private final IssueTypeHandler issueTypeHandler;
   private final ApplicationEventPublisher eventPublisher;
 
-  protected final TestItemRepository testItemRepository;
-  protected final IssueEntityRepository issueEntityRepository;
-  protected final LogRepository logRepository;
-  protected final LogIndexer logIndexer;
-
+  /**
+   * Assembles the strategy with repositories and support services.
+   *
+   * @param testItemService       domain service for items and launches
+   * @param projectRepository     project access
+   * @param launchRepository      launch access
+   * @param testItemRepository    test item persistence
+   * @param issueTypeHandler      issue type resolution
+   * @param eventPublisher        for domain events
+   * @param issueEntityRepository defect persistence
+   * @param logRepository         log persistence
+   * @param logIndexer            search index updates
+   */
   protected AbstractStatusChangingStrategy(TestItemService testItemService,
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
@@ -88,9 +101,26 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     this.logIndexer = logIndexer;
   }
 
+  /**
+   * Persists the new status and any side effects (issues, parent updates, events).
+   *
+   * @param project        owning project
+   * @param launch         launch the item belongs to
+   * @param testItem       item whose status is being set
+   * @param providedStatus new terminal (or other) status to apply
+   * @param user           current user for activities and issue handling
+   * @param updateParents  whether to propagate to ancestors
+   */
   protected abstract void updateStatus(Project project, Launch launch, TestItem testItem,
       StatusEnum providedStatus, ReportPortalUser user, boolean updateParents);
 
+  /**
+   * Resolves the parent item's new aggregate status from its current and updated child.
+   *
+   * @param parentItem the ancestor whose status is derived
+   * @param childItem  the descendant that was just updated
+   * @return the status the parent should take
+   */
   protected abstract StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem);
 
   @Override
@@ -115,6 +145,12 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     updateStatus(project, launch, testItem, providedStatus, user, updateParents);
   }
 
+  /**
+   * Attaches a "To Investigate" issue when a terminal status requires it.
+   *
+   * @param testItem  item receiving the defect
+   * @param projectId project id for issue type resolution
+   */
   protected void addToInvestigateIssue(TestItem testItem, Long projectId) {
     IssueEntity issueEntity = new IssueEntity();
     IssueType toInvestigate =
@@ -125,6 +161,16 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     testItem.getItemResults().setIssue(issueEntity);
   }
 
+  /**
+   * Walks the ancestor chain, updating each parent's derived status; returns updated parent ids.
+   *
+   * @param testItem      the item whose change triggered the walk
+   * @param launch        launch context for activity and final launch status
+   * @param issueRequired whether parents may get a to-investigate issue
+   * @param user          user for published activities
+   * @param project       project and organization context
+   * @return id of each parent that was materialized/updated, in walk order
+   */
   protected List<Long> changeParentsStatuses(TestItem testItem, Launch launch,
       boolean issueRequired, ReportPortalUser user, Project project) {
     List<Long> updatedParents = Lists.newArrayList();

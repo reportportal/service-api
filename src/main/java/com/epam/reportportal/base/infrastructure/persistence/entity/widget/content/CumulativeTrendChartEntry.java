@@ -17,9 +17,11 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.widget.content;
 
 /**
+ * In-memory DTO (not a JPA entity) pairing an attribute value with its cumulative trend data.
+ *
+ * <p>Used only for widget response serialization, not ORM.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
- * <p>
- * Not a database entity. It is used to represent widget data
  */
 public class CumulativeTrendChartEntry {
 

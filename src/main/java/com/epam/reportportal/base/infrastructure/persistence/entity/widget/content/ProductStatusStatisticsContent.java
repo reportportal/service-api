@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Product / release status column counts for a component-scoped quality widget.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

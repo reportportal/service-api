@@ -19,6 +19,10 @@ package com.epam.reportportal.base.core.events.handler;
 import com.epam.reportportal.base.core.events.domain.AbstractEvent;
 
 /**
+ * Handles a domain event using handler-specific configuration.
+ *
+ * @param <T> event type
+ * @param <C> config type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ConfigurableEventHandler<T extends AbstractEvent<?>, C> {

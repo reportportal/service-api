@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.item.impl.filter.updater;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 
 /**
+ * In-place update of a filter query (e.g. after issue type changes).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface FilterUpdater {

@@ -31,6 +31,8 @@ import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
 
 /**
+ * Handles RabbitMQ messages for starting a test item.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service

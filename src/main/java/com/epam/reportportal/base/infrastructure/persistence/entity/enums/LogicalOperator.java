@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * AND/OR combinator for nested filter or query conditions.
+ *
  * @author Andrei Piankouski
  */
 public enum LogicalOperator {

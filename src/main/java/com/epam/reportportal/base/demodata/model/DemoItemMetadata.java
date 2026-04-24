@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Status
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 
 /**
+ * Describes a demo test item: name, hierarchy, type, and status for generation.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class DemoItemMetadata {

@@ -25,6 +25,8 @@ import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
 /**
+ * Merges plugin extension info keys into a single info contributor.
+ *
  * @author Pavel Bortnik
  */
 

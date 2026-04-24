@@ -35,6 +35,8 @@ import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 
 /**
+ * A batch of product analytics events and metadata (storage id, type, and payload reference).
+ *
  * @author Siarhei Hrabko
  */
 @Entity

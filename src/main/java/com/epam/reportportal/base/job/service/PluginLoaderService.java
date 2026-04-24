@@ -21,6 +21,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import java.util.List;
 
 /**
+ * Exposes which plugin archives are on disk but not yet loaded in the system.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface PluginLoaderService {

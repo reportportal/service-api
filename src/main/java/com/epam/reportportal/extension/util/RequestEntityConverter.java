@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
 /**
+ * Converts raw plugin command parameter maps into typed request entity objects using Jackson.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class RequestEntityConverter {

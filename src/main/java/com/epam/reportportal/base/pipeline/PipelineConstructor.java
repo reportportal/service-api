@@ -20,6 +20,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Builds an ordered list of {@link PipelinePart} instances from a set of {@link PipelinePartProvider}s for a given
+ * source object.
+ *
+ * @param <T> the type of the source object used to construct pipeline parts
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PipelineConstructor<T> {

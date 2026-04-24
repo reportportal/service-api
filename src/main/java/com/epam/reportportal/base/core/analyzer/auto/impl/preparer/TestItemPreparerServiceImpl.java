@@ -37,6 +37,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 /**
+ * Default implementation building index test item payloads.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service("legacyTestItemPreparerService")

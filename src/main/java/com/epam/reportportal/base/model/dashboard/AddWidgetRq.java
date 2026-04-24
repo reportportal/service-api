@@ -25,6 +25,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Adds a widget to a dashboard with type and content parameters.
+ *
  * @author Pavel Bortnik
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

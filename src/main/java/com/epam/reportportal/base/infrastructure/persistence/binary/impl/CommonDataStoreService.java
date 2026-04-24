@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
+ * Base implementation wiring {@link DataStore} and {@link DataEncoder} for a binary use case.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public abstract class CommonDataStoreService implements DataStoreService {

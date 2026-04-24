@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
+ * Request body to delete launch documents from the log index.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class IndexLaunchRemove {

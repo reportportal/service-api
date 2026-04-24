@@ -22,6 +22,8 @@ import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 
 /**
+ * Handler for creating new widgets within a project.
+ *
  * @author Pavel Bortnik
  */
 public interface CreateWidgetHandler {

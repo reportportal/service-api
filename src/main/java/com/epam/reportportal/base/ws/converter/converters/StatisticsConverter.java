@@ -28,13 +28,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Maps execution statistics from domain models to API statistics DTOs.
+ *
  * @author Pavel Bortnik
  */
 public final class StatisticsConverter {
-
-  private StatisticsConverter() {
-    //static only
-  }
 
   public static final Function<Set<Statistics>, StatisticsResource> TO_RESOURCE = statistics -> {
     StatisticsResource statisticsResource = new StatisticsResource();
@@ -59,4 +57,8 @@ public final class StatisticsConverter {
     return statisticsResource;
 
   };
+
+  private StatisticsConverter() {
+    //static only
+  }
 }

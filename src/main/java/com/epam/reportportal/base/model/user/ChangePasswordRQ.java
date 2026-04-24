@@ -22,6 +22,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
+ * Changes the password for a logged-in user.
+ *
  * @author Dzmitry_Kavalets
  */
 

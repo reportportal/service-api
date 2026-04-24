@@ -23,6 +23,8 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * Per-attribute breakdown of the most frequent pattern template matches.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

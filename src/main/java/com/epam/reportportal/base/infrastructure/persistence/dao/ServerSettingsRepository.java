@@ -21,6 +21,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 
 /**
+ * Access to key/value server instance settings rows.
+ *
  * @author Ivan Budaev
  */
 public interface ServerSettingsRepository extends ReportPortalRepository<ServerSettings, Long>,

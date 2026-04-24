@@ -31,6 +31,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
+ * Widget definition returned to the UI (type, name, content, position).
+ *
  * @author Dzmitry_Kavalets
  */
 @Data

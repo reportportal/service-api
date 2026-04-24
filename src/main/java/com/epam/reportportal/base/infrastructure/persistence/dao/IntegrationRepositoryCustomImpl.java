@@ -36,6 +36,8 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Implements {@link IntegrationRepositoryCustom}.
+ *
  * @author Yauheni_Martynau
  */
 @Repository

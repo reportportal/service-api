@@ -20,6 +20,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribut
 import java.util.Collection;
 
 /**
+ * Applies or merges {@link com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute} collections onto
+ * a resource.
+ *
+ * @param <T> resource type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ResourceAttributeHandler<T> {

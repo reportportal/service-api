@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.model.integration;
 
 /**
+ * Auth mode supported by an integration type (OAuth vs basic).
+ *
  * @author Pavel Bortnik
  */
 public enum AuthFlowEnum {

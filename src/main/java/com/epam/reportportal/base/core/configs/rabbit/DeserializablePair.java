@@ -17,8 +17,10 @@
 package com.epam.reportportal.base.core.configs.rabbit;
 
 /**
- * Jackson's crazy to deserialize class w/o default constructor To avoid mixins, we will create our own pair container
+ * JSON-deserializable pair without relying on a library pair type.
  *
+ * @param <L> left value type
+ * @param <R> right value type
  * @author Konstantin Antipin
  */
 public class DeserializablePair<L, R> {
@@ -35,15 +37,15 @@ public class DeserializablePair<L, R> {
     this.right = right;
   }
 
+  public static <L, R> DeserializablePair<L, R> of(L left, R right) {
+    return new DeserializablePair(left, right);
+  }
+
   public L getLeft() {
     return left;
   }
 
   public R getRight() {
     return right;
-  }
-
-  public static <L, R> DeserializablePair<L, R> of(L left, R right) {
-    return new DeserializablePair(left, right);
   }
 }

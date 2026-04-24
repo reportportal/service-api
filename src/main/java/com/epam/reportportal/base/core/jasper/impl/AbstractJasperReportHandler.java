@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
  * Jasper Reports provider. Basic implementation of
  * {@link com.epam.reportportal.base.core.jasper.GetJasperReportHandler}
  *
+ * @param <T> report data model type
  * @author Andrei_Ramanchuk
  */
 public abstract class AbstractJasperReportHandler<T> implements GetJasperReportHandler<T> {

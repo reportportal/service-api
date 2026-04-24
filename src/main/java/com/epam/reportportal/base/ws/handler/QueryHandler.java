@@ -19,6 +19,8 @@ package com.epam.reportportal.base.ws.handler;
 import com.epam.reportportal.base.ws.rabbit.QueryRQ;
 
 /**
+ * Resolves read-only queries from asynchronous {@link com.epam.reportportal.base.ws.rabbit.QueryRQ} messages.
+ *
  * @author Yauheni_Martynau
  */
 public interface QueryHandler {

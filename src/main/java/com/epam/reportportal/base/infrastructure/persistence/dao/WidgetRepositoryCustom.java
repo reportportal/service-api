@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserF
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 
 /**
+ * Custom {@link Widget} repository operations (filters and project-scoped search).
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface WidgetRepositoryCustom extends FilterableRepository<Widget> {

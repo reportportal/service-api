@@ -19,6 +19,8 @@ package com.epam.reportportal.auth.integration.handler;
 import com.epam.reportportal.auth.model.AbstractAuthResource;
 
 /**
+ * Strategy interface for retrieving an authentication integration resource representation.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface GetAuthIntegrationStrategy {

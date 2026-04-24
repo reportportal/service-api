@@ -17,6 +17,9 @@
 package com.epam.reportportal.base.ws.converter.utils;
 
 /**
+ * Applies in-place updates to a prepared REST resource of type {@code R}.
+ *
+ * @param <R> resource type to update
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ResourceUpdater<R> {

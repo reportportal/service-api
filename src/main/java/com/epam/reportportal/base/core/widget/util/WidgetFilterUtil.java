@@ -29,13 +29,11 @@ import java.util.function.Function;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Utility class for grouping and transforming widget filter sets.
+ *
  * @author Pavel Bortnik
  */
 public class WidgetFilterUtil {
-
-  private WidgetFilterUtil() {
-    //static only
-  }
 
   public static final Function<Set<Filter>, Filter> GROUP_FILTERS = filters -> {
     Filter filter = ofNullable(filters).map(Collection::stream)
@@ -50,10 +48,13 @@ public class WidgetFilterUtil {
 
     return filter;
   };
-
   public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(
       ofNullable(sorts).map(s -> s.stream()
           .flatMap(sortStream -> Lists.newArrayList(sortStream.iterator()).stream())
           .collect(toList())).orElseGet(Lists::newArrayList));
+
+  private WidgetFilterUtil() {
+    //static only
+  }
 
 }

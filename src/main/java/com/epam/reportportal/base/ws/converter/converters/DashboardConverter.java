@@ -23,13 +23,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * Maps dashboard and widget graph entities to response DTOs.
+ *
  * @author Pavel Bortnik
  */
 public final class DashboardConverter {
-
-  private DashboardConverter() {
-    //static only
-  }
 
   public static final Function<Dashboard, DashboardResource> TO_RESOURCE = dashboard -> {
     DashboardResource resource = new DashboardResource();
@@ -42,7 +40,6 @@ public final class DashboardConverter {
     resource.setOwner(dashboard.getOwner());
     return resource;
   };
-
   public static final Function<Dashboard, DashboardActivityResource> TO_ACTIVITY_RESOURCE =
       dashboard -> {
         DashboardActivityResource resource = new DashboardActivityResource();
@@ -52,5 +49,9 @@ public final class DashboardConverter {
         resource.setDescription(dashboard.getDescription());
         return resource;
       };
+
+  private DashboardConverter() {
+    //static only
+  }
 
 }

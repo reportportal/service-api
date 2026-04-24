@@ -24,6 +24,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Filter DTO for the organization list API.
+ *
  * @author Siarhei Hrabko
  */
 @Getter

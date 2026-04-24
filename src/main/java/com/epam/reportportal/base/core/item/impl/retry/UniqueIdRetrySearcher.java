@@ -28,6 +28,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
+ * Finds an original test item to retry by unique id.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service("uniqueIdRetrySearcher")

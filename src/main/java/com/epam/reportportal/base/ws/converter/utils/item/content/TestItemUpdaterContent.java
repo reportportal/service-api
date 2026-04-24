@@ -21,6 +21,8 @@ import com.epam.reportportal.base.ws.converter.utils.ResourceUpdaterContent;
 import java.util.List;
 
 /**
+ * Holds a batch of test items for resource enrichment within a project.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class TestItemUpdaterContent implements ResourceUpdaterContent {
@@ -33,15 +35,15 @@ public final class TestItemUpdaterContent implements ResourceUpdaterContent {
     this.testItems = testItems;
   }
 
+  public static TestItemUpdaterContent of(Long projectId, List<TestItem> testItems) {
+    return new TestItemUpdaterContent(projectId, testItems);
+  }
+
   public Long getProjectId() {
     return projectId;
   }
 
   public List<TestItem> getTestItems() {
     return testItems;
-  }
-
-  public static TestItemUpdaterContent of(Long projectId, List<TestItem> testItems) {
-    return new TestItemUpdaterContent(projectId, testItems);
   }
 }

@@ -19,6 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.bts;
 import java.io.Serializable;
 
 /**
+ * JIRA-style allowed option for a select or multi-value defect field.
+ *
  * @author Pavel Bortnik
  */
 public class DefectFieldAllowedValue implements Serializable {

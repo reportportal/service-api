@@ -19,6 +19,8 @@ package com.epam.reportportal.base.model.analyzer;
 import java.io.Serializable;
 
 /**
+ * Minimal test item and launch identifiers returned from analyzer search.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class RelevantItemInfo implements Serializable {

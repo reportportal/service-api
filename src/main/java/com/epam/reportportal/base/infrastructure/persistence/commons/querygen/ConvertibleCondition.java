@@ -22,6 +22,8 @@ import org.jooq.Condition;
 import org.jooq.Operator;
 
 /**
+ * A filter part that can be turned into jOOQ {@code Condition} maps and merged with an operator.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ConvertibleCondition {

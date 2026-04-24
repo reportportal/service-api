@@ -29,14 +29,16 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
+ * Supplies AWS (or compatible) credentials for the data store client.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class IAMCredentialSupplier implements Supplier<Credentials> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IAMCredentialSupplier.class);
+  private final Lock lock = new ReentrantLock();
   private volatile SessionCredentials cachedCredentials;
   private volatile Instant expirationTime;
-  private final Lock lock = new ReentrantLock();
 
   @Override
   public Credentials get() {

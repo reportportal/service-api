@@ -34,6 +34,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads execution and issue statistics content for the Launch Execution and Issue Statistics widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

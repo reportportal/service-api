@@ -35,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Base class for materialized view state generators, providing common view name resolution.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractViewGenerator implements ViewGenerator {
@@ -45,10 +47,25 @@ public abstract class AbstractViewGenerator implements ViewGenerator {
 
   private final WidgetRepository widgetRepository;
 
+  /**
+   * Creates a view generator with widget state persistence.
+   *
+   * @param widgetRepository persistence for post-generation widget state
+   */
   public AbstractViewGenerator(WidgetRepository widgetRepository) {
     this.widgetRepository = widgetRepository;
   }
 
+  /**
+   * Populates the backing SQL for the materialized view (implementation-specific).
+   *
+   * @param refresh        whether to drop and recreate the view
+   * @param viewName       target database object name
+   * @param widget         widget being materialized
+   * @param launchesFilter filter on launches feeding the view
+   * @param launchesSort   sort of launches in scope
+   * @param params         free-form widget and generator options
+   */
   protected abstract void generateView(boolean refresh, String viewName, Widget widget,
       Filter launchesFilter, Sort launchesSort,
       MultiValueMap<String, String> params);

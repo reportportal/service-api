@@ -27,6 +27,8 @@ import org.springframework.stereotype.Service;
 
 
 /**
+ * Content loader that returns an empty result, used as a no-op placeholder for unsupported widget types.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service

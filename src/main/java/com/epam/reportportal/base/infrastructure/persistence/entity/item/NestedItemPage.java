@@ -1,6 +1,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.item;
 
 /**
+ * A page of nested test items, including the total count and children list.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class NestedItemPage extends NestedItem {

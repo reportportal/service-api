@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.ws.converter.utils;
 
 /**
+ * Marker for update-context payloads used by {@link ResourceUpdaterProvider}.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ResourceUpdaterContent {

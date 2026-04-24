@@ -36,6 +36,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 /**
+ * Request parsing, validation, and multipart helpers for REST controllers.
+ *
  * @author Konstantin Antipin
  */
 public class ControllerUtils {

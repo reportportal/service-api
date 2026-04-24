@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.model.activity.IntegrationActivityResource;
 
 /**
+ * Resolves event priority for integration activity messages (project vs global scope).
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class IntegrationActivityPriorityResolver {

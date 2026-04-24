@@ -17,6 +17,9 @@
 package com.epam.reportportal.base.pipeline;
 
 /**
+ * Factory interface for creating a {@link PipelinePart} from a given source object.
+ *
+ * @param <T> the type of the source object used to create the pipeline part
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface PipelinePartProvider<T> {

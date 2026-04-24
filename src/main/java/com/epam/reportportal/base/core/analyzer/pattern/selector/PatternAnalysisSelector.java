@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Finds test items whose logs match a pattern for a launch.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface PatternAnalysisSelector {

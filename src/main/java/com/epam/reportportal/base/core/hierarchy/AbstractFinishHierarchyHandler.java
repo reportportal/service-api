@@ -55,6 +55,9 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Abstract base handler for finishing a hierarchy of test items or launches.
+ *
+ * @param <T> the finish request type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarchyHandler<T> {
@@ -72,6 +75,17 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   private final IssueTypeHandler issueTypeHandler;
   private final ChangeStatusHandler changeStatusHandler;
 
+  /**
+   * Wires repositories and services used to finish child items.
+   *
+   * @param launchRepository        launch persistence
+   * @param testItemRepository      test item persistence
+   * @param itemAttributeRepository item attribute persistence
+   * @param issueEntityRepository   issue / defect link persistence
+   * @param retryHandler            retry propagation helper
+   * @param issueTypeHandler        project issue type resolution
+   * @param changeStatusHandler     status transition service
+   */
   public AbstractFinishHierarchyHandler(LaunchRepository launchRepository,
       TestItemRepository testItemRepository,
       ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
@@ -87,11 +101,33 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     this.changeStatusHandler = changeStatusHandler;
   }
 
+  /**
+   * Returns whether a defect type must be assigned for the target status and parent.
+   *
+   * @param status target status for children
+   * @param entity parent (launch or item) context
+   * @return whether an issue type must be assigned when moving to the given status
+   */
   protected abstract boolean isIssueRequired(StatusEnum status, T entity);
 
+  /**
+   * Paged id loader for all descendants to finish under the parent.
+   *
+   * @param hasChildren whether the parent has children
+   * @param entity      parent (launch or item) context
+   * @param status      target child status
+   * @return function mapping page to ids to update
+   */
   protected abstract Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren,
       T entity, StatusEnum status);
 
+  /**
+   * Whether a skipped run should be treated as interrupted for the given launch (from attributes).
+   *
+   * @param status   target child status
+   * @param launchId launch to read attributes for
+   * @return true if interrupted should apply
+   */
   protected boolean evaluateSkippedAttributeValue(StatusEnum status, Long launchId) {
     if (SKIPPED.equals(status)) {
       return itemAttributeRepository.findByLaunchIdAndKeyAndSystem(launchId, SKIPPED_ISSUE_KEY,
@@ -103,6 +139,14 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     }
   }
 
+  /**
+   * Resolves an issue type when required.
+   *
+   * @param isIssueRequired when true, resolve the type
+   * @param projectId       project scope
+   * @param locator         issue type locator
+   * @return issue type if required
+   */
   protected Optional<IssueType> getIssueType(boolean isIssueRequired, Long projectId,
       String locator) {
     if (isIssueRequired) {

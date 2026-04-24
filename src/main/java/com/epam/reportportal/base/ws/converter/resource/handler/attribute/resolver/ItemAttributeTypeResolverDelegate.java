@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Delegates attribute classification to a chain of matchers, returning the first match.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ItemAttributeTypeResolverDelegate implements ItemAttributeTypeResolver {

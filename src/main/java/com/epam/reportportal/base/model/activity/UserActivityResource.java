@@ -24,6 +24,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * Activity payload for user profile and assignment changes.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Setter

@@ -42,6 +42,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
+ * Spring application event listener that triggers reporting operations (launch start/finish, item start/finish, log
+ * save) in response to domain events.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j

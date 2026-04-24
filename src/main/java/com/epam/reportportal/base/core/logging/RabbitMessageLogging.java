@@ -22,6 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Opt-in logging of Rabbit message headers and body on a method.
+ *
  * @author Konstantin Antipin
  */
 @Retention(RetentionPolicy.RUNTIME)

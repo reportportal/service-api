@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Strips disallowed email recipients from sender cases.
+ *
  * @author Ivan Budaev
  */
 @Service

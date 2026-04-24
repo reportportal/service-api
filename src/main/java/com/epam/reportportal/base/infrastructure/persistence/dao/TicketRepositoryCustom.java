@@ -21,6 +21,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
+ * Ticket queries beyond default CRUD.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface TicketRepositoryCustom {
@@ -37,7 +39,7 @@ public interface TicketRepositoryCustom {
   /**
    * Find tickets that contains a term as a part inside for specified project
    *
-   * @param projectId {@link Project#getId()}
+   * @param projectId {@code Project#getId()}
    * @param term      A part of ticket id
    * @return List of ticket ids
    */

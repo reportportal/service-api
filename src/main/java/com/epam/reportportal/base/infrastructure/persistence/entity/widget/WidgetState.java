@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * Precomputed widget lifecycle on the server (created, rendering, ready, failed).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum WidgetState {

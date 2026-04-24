@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.core.jasper.constants;
 
 /**
+ * JRXML parameter names and labels for the launch report.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class LaunchReportConstants {

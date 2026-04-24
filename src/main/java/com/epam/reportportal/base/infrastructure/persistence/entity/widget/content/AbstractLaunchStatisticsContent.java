@@ -27,6 +27,8 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
+ * Common fields (id, number, timestamps) for launch-scoped widget statistics.
+ *
  * @author Ivan Budayeu
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -49,37 +51,80 @@ public abstract class AbstractLaunchStatisticsContent implements Serializable {
   @Convert(converter = JpaInstantConverter.class)
   private Instant startTime;
 
+  /**
+   * JPA / JSON default constructor.
+   */
   public AbstractLaunchStatisticsContent() {
   }
 
+  /**
+   * Returns the row id.
+   *
+   * @return id value
+   */
   public Long getId() {
     return id;
   }
 
+  /**
+   * Sets the row id.
+   *
+   * @param id id value
+   */
   public void setId(Long id) {
     this.id = id;
   }
 
+  /**
+   * Returns the launch or bucket number.
+   *
+   * @return number value
+   */
   public Integer getNumber() {
     return number;
   }
 
+  /**
+   * Sets the number.
+   *
+   * @param number value
+   */
   public void setNumber(Integer number) {
     this.number = number;
   }
 
+  /**
+   * Returns the display name.
+   *
+   * @return name value
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Sets the name.
+   *
+   * @param name value
+   */
   public void setName(String name) {
     this.name = name;
   }
 
+  /**
+   * Returns the start time.
+   *
+   * @return start time
+   */
   public Instant getStartTime() {
     return startTime;
   }
 
+  /**
+   * Sets the start time.
+   *
+   * @param startTime value
+   */
   public void setStartTime(Instant startTime) {
     this.startTime = startTime;
   }

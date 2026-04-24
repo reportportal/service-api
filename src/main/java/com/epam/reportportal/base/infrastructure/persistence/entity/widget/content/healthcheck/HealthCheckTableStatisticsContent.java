@@ -4,6 +4,8 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 
 /**
+ * Aggregated passing rate and per-status counts for a health check cell.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class HealthCheckTableStatisticsContent {

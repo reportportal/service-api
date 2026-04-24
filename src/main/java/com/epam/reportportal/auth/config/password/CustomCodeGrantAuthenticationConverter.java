@@ -23,6 +23,9 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 
 /**
+ * {@link org.springframework.security.web.authentication.AuthenticationConverter} that extracts password-grant
+ * credentials from an HTTP request for custom OAuth2 code grant processing.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class CustomCodeGrantAuthenticationConverter implements AuthenticationConverter {

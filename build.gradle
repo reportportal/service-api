@@ -272,5 +272,3 @@ springBoot {
 tasks.preTagCommit.enabled = false
 tasks.updateVersion.enabled = false
 tasks.commitNewVersion.enabled = false
-
-javadoc.enabled = false

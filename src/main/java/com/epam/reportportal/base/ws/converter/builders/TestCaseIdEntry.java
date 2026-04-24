@@ -19,6 +19,8 @@ package com.epam.reportportal.base.ws.converter.builders;
 import java.util.Objects;
 
 /**
+ * Single test case id entry for bulk import or mapping operations.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class TestCaseIdEntry {
@@ -26,14 +28,6 @@ public class TestCaseIdEntry {
   private String id;
 
   private int hash;
-
-  public String getId() {
-    return id;
-  }
-
-  public int getHash() {
-    return hash;
-  }
 
   TestCaseIdEntry(String id, int hash) {
     this.id = isCropNeeded(id) ? cropTestCaseId(id) : id;
@@ -54,6 +48,14 @@ public class TestCaseIdEntry {
 
   private static String cropTestCaseId(String testCaseId) {
     return testCaseId.substring(0, 1011) + "[" + testCaseId.substring(1011).hashCode() + "]";
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public int getHash() {
+    return hash;
   }
 
 }

@@ -24,6 +24,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Widget configuration block (options and filters) for API responses.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data

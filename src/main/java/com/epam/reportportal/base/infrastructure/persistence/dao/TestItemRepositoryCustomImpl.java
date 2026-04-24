@@ -131,6 +131,8 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Implements {@link TestItemRepositoryCustom}.
+ *
  * @author Pavel Bortnik
  */
 @Repository

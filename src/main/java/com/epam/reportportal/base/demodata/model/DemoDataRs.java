@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
+ * API response with identifiers of demo dashboard and launches created for a project.
+ *
  * @author Ihar Kahadouski
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

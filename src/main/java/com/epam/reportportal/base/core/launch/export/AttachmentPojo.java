@@ -20,6 +20,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * Export model for a launch attachment line.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data

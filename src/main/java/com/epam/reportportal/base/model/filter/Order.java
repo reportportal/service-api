@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
 /**
+ * Sorting column and ascending/descending flag for a filter.
+ *
  * @author Pavel Bortnik
  */
 public class Order {

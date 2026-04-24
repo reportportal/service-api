@@ -52,6 +52,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
+ * Default implementation of {@link com.epam.reportportal.base.core.widget.UpdateWidgetHandler} that updates widget
+ * metadata and content options.
+ *
  * @author Pavel Bortnik
  */
 @Service

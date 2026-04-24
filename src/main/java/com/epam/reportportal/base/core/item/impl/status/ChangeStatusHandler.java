@@ -22,6 +22,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 
 /**
+ * Drives parent status recalculation for finished children.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ChangeStatusHandler {

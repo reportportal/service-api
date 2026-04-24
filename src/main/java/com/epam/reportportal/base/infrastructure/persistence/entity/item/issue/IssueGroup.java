@@ -31,6 +31,8 @@ import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 /**
+ * Groups built-in and custom issue types (e.g. to investigate vs product bug).
+ *
  * @author Pavel Bortnik
  */
 @Entity

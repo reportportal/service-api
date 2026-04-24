@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Optional;
 
 /**
+ * Enum of standard Bug Tracking System configuration parameter keys used in
+ * {@link com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams}.
+ *
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 public enum BtsConstants {

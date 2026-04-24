@@ -46,7 +46,7 @@ public interface UpdateProjectHandler {
   /**
    * Update specified project(projectName, customer and addInfo)
    *
-   * @param projectName     {@link Project#getName()}
+   * @param projectName     {@code Project#getName()}
    * @param updateProjectRQ Project data
    * @param user            ReportPortal user
    * @return Operation result

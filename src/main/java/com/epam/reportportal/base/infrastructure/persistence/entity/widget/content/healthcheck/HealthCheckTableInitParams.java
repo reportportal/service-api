@@ -4,6 +4,8 @@ import jakarta.annotation.Nullable;
 import java.util.List;
 
 /**
+ * Initial configuration for a health check table (materialized view and attribute keys).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class HealthCheckTableInitParams {

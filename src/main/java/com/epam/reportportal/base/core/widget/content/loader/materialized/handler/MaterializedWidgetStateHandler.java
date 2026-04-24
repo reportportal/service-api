@@ -21,6 +21,8 @@ import java.util.Map;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Handles content loading for a widget in a specific materialized view state.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface MaterializedWidgetStateHandler {

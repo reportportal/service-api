@@ -19,6 +19,8 @@ package com.epam.reportportal.base.ws.rabbit;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 
 /**
+ * Payload for asynchronous read queries routed over Rabbit (entity + filter).
+ *
  * @author Yauheni_Martynau
  */
 public class QueryRQ {

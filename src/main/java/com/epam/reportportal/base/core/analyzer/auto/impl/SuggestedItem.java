@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Set;
 
 /**
+ * Suggested test item, logs, and match info from the auto-analyzer.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

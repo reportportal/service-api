@@ -22,8 +22,9 @@ import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 
 /**
- * Get export reports utilities
+ * Renders a Jasper report for a given data model and parameters.
  *
+ * @param <T> report data model type
  * @author Andrei_Ramanchuk
  */
 public interface GetJasperReportHandler<T> {
@@ -50,6 +51,7 @@ public interface GetJasperReportHandler<T> {
    *
    * @param format      Report format
    * @param jasperPrint Report Data
+   * @return serialized report bytes
    */
   byte[] exportReportBytes(ReportFormat format, JasperPrint jasperPrint);
 

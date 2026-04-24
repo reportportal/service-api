@@ -17,11 +17,10 @@
 package com.epam.reportportal.base.core.project.settings.notification;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.email.SenderCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 
 /**
- * Interface to work with project {@link SenderCase#getRecipients()}
+ * Interface to work with project {@code SenderCase#getRecipients()}
  *
  * @author Ivan Budaev
  */

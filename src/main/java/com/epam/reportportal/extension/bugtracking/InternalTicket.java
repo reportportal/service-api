@@ -23,6 +23,8 @@ import java.util.Map;
 import org.apache.tika.mime.MediaType;
 
 /**
+ * Internal representation of a bug tracking ticket to be posted to an external Bug Tracking System.
+ *
  * @author Andrei Varabyeu
  */
 public class InternalTicket {

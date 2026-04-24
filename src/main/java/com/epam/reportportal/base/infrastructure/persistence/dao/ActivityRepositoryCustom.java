@@ -23,6 +23,8 @@ import java.util.List;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Complex activity list queries with jOOQ.
+ *
  * @author Ihar Kahadouski
  */
 public interface ActivityRepositoryCustom extends FilterableRepository<Activity> {

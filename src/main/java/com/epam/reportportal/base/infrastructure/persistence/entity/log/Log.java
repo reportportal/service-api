@@ -40,6 +40,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
+ * A log line or attachment ref under a test item, with time, level, and message.
+ *
  * @author Pavel Bortnik
  */
 

@@ -19,16 +19,18 @@ package com.epam.reportportal.base.core.analyzer.pattern.service.impl;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 
 import com.epam.reportportal.base.core.analyzer.pattern.service.CreatePatternTemplateHandler;
-import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.PatternTemplateRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.reportportal.base.ws.converter.builders.PatternTemplateBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Base handler persisting a pattern template from a create request.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class CreatePatternTemplateHandlerImpl implements CreatePatternTemplateHandler {

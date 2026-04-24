@@ -45,6 +45,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 /**
+ * Default {@link com.epam.reportportal.base.demodata.service.DemoDataFacade} that generates demo launches and logs
+ * asynchronously.
+ *
  * @author Ihar Kahadouski
  */
 @Service

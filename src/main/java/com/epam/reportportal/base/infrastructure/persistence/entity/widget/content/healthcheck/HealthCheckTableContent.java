@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * One row in the health check table widget (attribute, rate, and statistics map).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class HealthCheckTableContent implements Serializable {

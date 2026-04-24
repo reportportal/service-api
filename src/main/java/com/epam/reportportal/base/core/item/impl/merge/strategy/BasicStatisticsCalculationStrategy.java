@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Sums and merges launch statistics for the basic merge strategy.
+ *
  * @author Ivan Budaev
  */
 public class BasicStatisticsCalculationStrategy implements StatisticsCalculationStrategy {

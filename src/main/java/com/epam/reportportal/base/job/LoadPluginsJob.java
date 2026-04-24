@@ -42,6 +42,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
+ * Polls the plugins directory and loads or updates installed plugins.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Conditional(Conditions.NotTestCondition.class)

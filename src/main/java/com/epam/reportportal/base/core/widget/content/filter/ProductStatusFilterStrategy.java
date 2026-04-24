@@ -36,6 +36,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Filter strategy that builds the launch filter set for the Product Status widget.
+ *
  * @author Pavel Bortnik
  */
 @Service("productStatusFilterStrategy")

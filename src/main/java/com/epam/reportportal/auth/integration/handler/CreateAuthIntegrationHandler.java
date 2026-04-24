@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 
 /**
+ * Handler for creating or updating authentication integrations (e.g., SAML, LDAP, OAuth2).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface CreateAuthIntegrationHandler {

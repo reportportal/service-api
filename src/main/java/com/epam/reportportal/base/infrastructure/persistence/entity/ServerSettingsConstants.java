@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity;
 
 /**
+ * Property name prefixes for analytics and instance details in server settings.
+ *
  * @author Ivan Budaev
  */
 public final class ServerSettingsConstants {

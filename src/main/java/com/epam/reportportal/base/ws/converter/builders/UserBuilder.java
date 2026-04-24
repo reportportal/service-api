@@ -35,6 +35,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
+ * Transforms user-related request DTOs into user entities and credentials.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class UserBuilder implements Supplier<User> {

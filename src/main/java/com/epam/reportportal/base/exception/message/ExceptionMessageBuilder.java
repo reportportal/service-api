@@ -20,6 +20,7 @@ package com.epam.reportportal.base.exception.message;
  * Builds custom exception strings from Exception. Lots of exceptions have custom data which should be shown to the
  * clients in a custom way.
  *
+ * @param <T> exception type this builder formats
  * @author Andrei Varabyeu
  */
 public interface ExceptionMessageBuilder<T extends Exception> {

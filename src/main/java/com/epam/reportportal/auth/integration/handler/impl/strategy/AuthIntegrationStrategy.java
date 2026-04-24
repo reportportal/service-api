@@ -28,6 +28,8 @@ import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.time.Instant;
 
 /**
+ * Abstract strategy for creating or updating a specific type of authentication integration.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public abstract class AuthIntegrationStrategy {

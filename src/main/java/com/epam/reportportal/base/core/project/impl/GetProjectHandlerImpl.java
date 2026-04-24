@@ -60,6 +60,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * Fetches project resources and user assignments.
+ *
  * @author Pavel Bortnik
  */
 @Service

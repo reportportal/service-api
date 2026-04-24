@@ -40,6 +40,8 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * {@link Launch} access, retention, streams, and bulk updates.
+ *
  * @author Pavel Bortnik
  */
 public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,

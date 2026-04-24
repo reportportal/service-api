@@ -35,6 +35,12 @@ public abstract class AbstractEmailNotificationStrategy implements EmailNotifica
   protected final MailServiceFactory mailServiceFactory;
   protected final ThreadPoolTaskExecutor emailExecutorService;
 
+  /**
+   * Creates a strategy with mail and executor dependencies.
+   *
+   * @param mailServiceFactory   mail service factory
+   * @param emailExecutorService thread pool for async email dispatch
+   */
   @Autowired
   public AbstractEmailNotificationStrategy(MailServiceFactory mailServiceFactory,
       ThreadPoolTaskExecutor emailExecutorService) {

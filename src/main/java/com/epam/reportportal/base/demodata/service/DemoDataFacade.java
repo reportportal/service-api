@@ -23,6 +23,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import java.util.List;
 
 /**
+ * Entry point for generating demo data (launches, dashboard) for a project.
+ *
  * @author Pavel Bortnik
  */
 public interface DemoDataFacade {

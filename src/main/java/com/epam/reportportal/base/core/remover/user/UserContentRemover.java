@@ -21,6 +21,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import java.util.List;
 
 /**
+ * Composite remover that delegates user content removal to a list of specialized {@link ContentRemover}
+ * implementations.
+ *
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 public class UserContentRemover implements ContentRemover<User> {

@@ -33,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Local file-system implementation of the TMS data store.
+ *
  * @author Dzianis_Shybeka
  */
 public class LocalTmsDataStore implements TmsDataStore {

@@ -26,6 +26,8 @@ import org.springframework.core.Ordered;
 import org.springframework.stereotype.Service;
 
 /**
+ * Ensures a test item path string stays within the limit.
+ *
  * @author Andrei Piankouski
  */
 @Service

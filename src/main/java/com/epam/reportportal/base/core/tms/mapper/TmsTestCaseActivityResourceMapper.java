@@ -28,20 +28,19 @@ public abstract class TmsTestCaseActivityResourceMapper {
         .description(tc.getDescription())
         .priority(tc.getPriority())
         .externalId(tc.getExternalId())
-        .testFolderId(tc.getTestFolder().getId());
+        .testFolderId(tc.getTestFolder().getId())
+        .build();
 
     mapAttributes(builder, tc);
     mapManualScenario(builder, version);
 
-    return builder.build();
+    return builder;
   }
 
-  private void mapAttributes(TestCaseActivityResource.TestCaseActivityResourceBuilder builder,
-      TmsTestCase tc) {
+  private void mapAttributes(TestCaseActivityResource builder, TmsTestCase tc) {
     if (CollectionUtils.isNotEmpty(tc.getAttributes())) {
-      builder.attributes(
-          tc.getAttributes()
-              .stream()
+      builder.setAttributes(
+          tc.getAttributes().stream()
               .map(a -> a.getAttribute().getKey()
                   + (a.getAttribute().getValue() == null ? "" : ": " + a.getAttribute().getValue()))
               .toList()
@@ -49,21 +48,20 @@ public abstract class TmsTestCaseActivityResourceMapper {
     }
   }
 
-  private void mapManualScenario(TestCaseActivityResource.TestCaseActivityResourceBuilder builder,
-      TmsTestCaseVersion version) {
+  private void mapManualScenario(TestCaseActivityResource builder, TmsTestCaseVersion version) {
     if (version == null || version.getManualScenario() == null) {
       return;
     }
     var scenario = version.getManualScenario();
-    builder.executionEstimationTime(scenario.getExecutionEstimationTime());
+    builder.setExecutionEstimationTime(scenario.getExecutionEstimationTime());
     if (scenario.getType() != null) {
-      builder.type(scenario.getType().name());
+      builder.setType(scenario.getType().name());
     }
     if (scenario.getPreconditions() != null) {
-      builder.preconditions(scenario.getPreconditions().getValue());
+      builder.setPreconditions(scenario.getPreconditions().getValue());
     }
     if (scenario.getRequirements() != null) {
-      builder.requirements(
+      builder.setRequirements(
           scenario
               .getRequirements()
               .stream()
@@ -71,13 +69,13 @@ public abstract class TmsTestCaseActivityResourceMapper {
               .toList());
     }
     if (scenario.getTextScenario() != null) {
-      builder.instructions(scenario.getTextScenario().getInstructions());
-      builder.expectedResult(scenario.getTextScenario().getExpectedResult());
+      builder.setInstructions(scenario.getTextScenario().getInstructions());
+      builder.setExpectedResult(scenario.getTextScenario().getExpectedResult());
     }
     if (scenario.getStepsScenario() != null
         && CollectionUtils.isNotEmpty(scenario.getStepsScenario().getSteps())) {
       builder
-          .steps(scenario.getStepsScenario().getSteps().stream().map(
+          .setSteps(scenario.getStepsScenario().getSteps().stream().map(
                   s -> "Step " + s.getNumber()
                       + ": instructions: " + s.getInstructions()
                       + ": expectedResult: " + s.getExpectedResult())

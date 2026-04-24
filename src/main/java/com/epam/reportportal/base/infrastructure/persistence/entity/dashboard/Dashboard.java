@@ -36,6 +36,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
+ * Named dashboard in a project: description, share flags, and widget placements.
+ *
  * @author Pavel Bortnik
  */
 @Entity

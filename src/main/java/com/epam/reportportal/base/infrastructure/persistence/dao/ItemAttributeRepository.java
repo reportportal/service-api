@@ -25,6 +25,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * {@link ItemAttribute} rows for launches, items, and other entities.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface ItemAttributeRepository extends ReportPortalRepository<ItemAttribute, Long>,

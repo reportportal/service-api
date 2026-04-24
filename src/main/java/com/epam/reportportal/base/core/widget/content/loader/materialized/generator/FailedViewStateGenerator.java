@@ -30,6 +30,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Generates the widget state entry indicating a materialized view build failure.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class FailedViewStateGenerator implements ViewGenerator {

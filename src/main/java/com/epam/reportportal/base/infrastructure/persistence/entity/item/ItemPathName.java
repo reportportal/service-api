@@ -19,6 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.item;
 import java.io.Serializable;
 
 /**
+ * {@link PathName} plus a test item id, used in API responses and trees.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ItemPathName implements Serializable {

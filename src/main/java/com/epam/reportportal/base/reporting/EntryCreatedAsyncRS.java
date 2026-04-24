@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Async response returned after an entry (launch, test item, log) has been created, providing the generated ID.
+ *
  * @author Konstantin Antipin
  */
 @Setter

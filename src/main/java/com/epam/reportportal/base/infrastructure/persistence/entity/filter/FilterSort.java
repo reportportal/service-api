@@ -35,6 +35,8 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Per-column default sort for a user filter.
+ *
  * @author Pavel Bortnik
  */
 @Entity

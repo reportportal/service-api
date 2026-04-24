@@ -47,6 +47,8 @@ import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
 /**
+ * A ReportPortal project: name, key, org link, and allocation settings.
+ *
  * @author Ivan Budayeu
  */
 @Entity

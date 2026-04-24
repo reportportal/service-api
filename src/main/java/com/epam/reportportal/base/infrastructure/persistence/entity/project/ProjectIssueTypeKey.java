@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Composite key (project, issue type id) for {@link ProjectIssueType}.
+ *
  * @author Pavel Bortnik
  */
 public class ProjectIssueTypeKey implements Serializable {

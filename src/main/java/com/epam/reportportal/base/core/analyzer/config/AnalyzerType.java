@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
+ * Analyzer feature keys in project settings.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum AnalyzerType {

@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Base class for replicating external OAuth2/SAML identity provider users into the ReportPortal user store.
+ *
  * @author Andrei Varabyeu
  */
 public class AbstractUserReplicator {
@@ -49,9 +51,18 @@ public class AbstractUserReplicator {
   protected final UserRepository userRepository;
   protected final ProjectRepository projectRepository;
   protected final PersonalProjectService personalProjectService;
-  protected UserBinaryDataService userBinaryDataService;
   private final ContentTypeResolver contentTypeResolver;
+  protected UserBinaryDataService userBinaryDataService;
 
+  /**
+   * Wires user, project, and content-type dependencies for IdP user replication.
+   *
+   * @param userRepository         user persistence
+   * @param projectRepository      project persistence
+   * @param personalProjectService default personal project helper
+   * @param userBinaryDataService  binary storage for avatars
+   * @param contentTypeResolver    content-type sniffing for uploaded bytes
+   */
   public AbstractUserReplicator(UserRepository userRepository, ProjectRepository projectRepository,
       PersonalProjectService personalProjectService, UserBinaryDataService userBinaryDataService,
       ContentTypeResolver contentTypeResolver) {
@@ -111,6 +122,12 @@ public class AbstractUserReplicator {
     }
   }
 
+  /**
+   * Normalizes email for login and enforces that it is present.
+   *
+   * @param email raw email from the IdP; must be non-blank
+   * @return normalized lower-case email
+   */
   protected String validateEmail(String email) {
     if (isNullOrEmpty(email)) {
       throw new UserSynchronizationException(EMAIL_NOT_PROVIDED_MSG);
@@ -118,10 +135,22 @@ public class AbstractUserReplicator {
     return email.toLowerCase();
   }
 
+  /**
+   * Stores the user's avatar from prepared binary.
+   *
+   * @param user the user whose photo is updated
+   * @param data binary payload and content metadata
+   */
   protected void uploadPhoto(User user, BinaryData data) {
     userBinaryDataService.saveUserPhoto(user, data);
   }
 
+  /**
+   * Sniffs content type and stores the photo from raw bytes.
+   *
+   * @param user the user whose photo is updated
+   * @param data raw image or avatar bytes
+   */
   protected void uploadPhoto(User user, byte[] data) {
     uploadPhoto(user, new BinaryData(resolveContentType(data), (long) data.length,
         new ByteArrayInputStream(data)));

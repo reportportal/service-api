@@ -39,6 +39,8 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 /**
+ * A submitted defect: locator, BTS type, and comment, linked to a test item.
+ *
  * @author Pavel Bortnik
  */
 @Entity

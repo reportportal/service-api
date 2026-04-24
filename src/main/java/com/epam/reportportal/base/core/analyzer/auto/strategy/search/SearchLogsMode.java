@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * How wide to search when loading logs (current launch, filter, name, …).
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public enum SearchLogsMode {
@@ -34,11 +36,11 @@ public enum SearchLogsMode {
     this.value = value;
   }
 
-  public String getValue() {
-    return value;
-  }
-
   public static Optional<SearchLogsMode> fromString(String mode) {
     return Arrays.stream(values()).filter(it -> it.getValue().equalsIgnoreCase(mode)).findFirst();
+  }
+
+  public String getValue() {
+    return value;
   }
 }

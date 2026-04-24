@@ -32,6 +32,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * Root multi-tenant organization entity.
+ *
  * @author Siarhei Hrabko
  */
 @Entity

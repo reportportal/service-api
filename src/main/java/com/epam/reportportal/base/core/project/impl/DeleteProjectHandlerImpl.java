@@ -62,6 +62,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Removes a project and related data.
+ *
  * @author Pavel Bortnik
  */
 @Service

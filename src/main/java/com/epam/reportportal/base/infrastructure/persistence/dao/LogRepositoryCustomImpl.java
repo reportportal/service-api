@@ -97,6 +97,8 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Implements {@link LogRepositoryCustom}.
+ *
  * @author Pavel Bortnik
  */
 @Repository

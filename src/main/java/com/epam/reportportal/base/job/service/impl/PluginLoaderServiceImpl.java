@@ -16,19 +16,19 @@
 
 package com.epam.reportportal.base.job.service.impl;
 
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum.EXTENSION;
 import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_ID;
 import static com.epam.reportportal.extension.common.IntegrationTypeProperties.FILE_NAME;
 import static com.epam.reportportal.extension.common.IntegrationTypeProperties.VERSION;
-import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum.EXTENSION;
 
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.job.service.PluginLoaderService;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.io.IOException;
@@ -46,6 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Compares the plugins directory to the in-memory spring plugin list.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

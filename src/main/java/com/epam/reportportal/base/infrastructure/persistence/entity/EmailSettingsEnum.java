@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Keys in server or project email integration configuration.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum EmailSettingsEnum {

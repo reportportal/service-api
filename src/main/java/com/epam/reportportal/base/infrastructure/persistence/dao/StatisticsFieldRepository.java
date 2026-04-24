@@ -19,6 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 
 /**
+ * Spring Data repository for statistics field definitions.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface StatisticsFieldRepository extends ReportPortalRepository<StatisticsField, Long> {

@@ -21,13 +21,11 @@ import com.epam.reportportal.base.model.activity.IssueTypeActivityResource;
 import java.util.function.Function;
 
 /**
+ * Converts issue type entities to response models.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class IssueTypeConverter {
-
-  private IssueTypeConverter() {
-    //static only
-  }
 
   public static final Function<IssueType, IssueTypeActivityResource> TO_ACTIVITY_RESOURCE =
       issueType -> {
@@ -36,4 +34,8 @@ public class IssueTypeConverter {
         resource.setLongName(issueType.getLongName());
         return resource;
       };
+
+  private IssueTypeConverter() {
+    //static only
+  }
 }

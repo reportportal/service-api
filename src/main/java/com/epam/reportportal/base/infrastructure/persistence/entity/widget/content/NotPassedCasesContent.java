@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
+ * Widget payload: not-passed (failed) cases with per-key string values.
+ *
  * @author Ivan Budayeu
  */
 public class NotPassedCasesContent extends AbstractLaunchStatisticsContent {

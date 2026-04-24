@@ -23,6 +23,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import java.util.function.Supplier;
 
 /**
+ * Builds or updates per-user UI preference payloads.
+ *
  * @author Pavel Bortnik
  */
 public class UserPreferenceBuilder implements Supplier<UserPreference> {

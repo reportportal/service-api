@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * Built-in widget kinds and their capabilities (e.g. supports filters, multi-launch).
+ *
  * @author Pavel Bortnik
  */
 public enum WidgetType {

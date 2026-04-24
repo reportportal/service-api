@@ -20,6 +20,8 @@ import com.epam.reportportal.base.core.analyzer.auto.starter.LaunchAutoAnalysisS
 import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 
 /**
+ * Proceeds only when the project has auto analysis enabled in settings.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class AutoAnalysisEnabledStarter implements LaunchAutoAnalysisStarter {

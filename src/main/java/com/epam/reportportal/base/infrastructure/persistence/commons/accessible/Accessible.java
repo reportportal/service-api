@@ -28,19 +28,43 @@ public class Accessible {
 
   private final Object object;
 
+  /**
+   * Binds a helper to the given instance for method and field access.
+   *
+   * @param object target to reflect on
+   */
   private Accessible(Object object) {
     this.object = object;
 
   }
 
+  /**
+   * Wraps the object for subsequent {@link #method(java.lang.reflect.Method)} or
+   * {@link #field(java.lang.reflect.Field)} access.
+   *
+   * @param object object whose members will be wrapped
+   * @return reflect helper for the instance
+   */
   public static Accessible on(Object object) {
     return new Accessible(object);
   }
 
+  /**
+   * Exposes a method for reflective invocation, lifting accessibility as needed.
+   *
+   * @param m method to wrap for invocation
+   * @return method accessor bound to the same instance
+   */
   public AccessibleMethod method(Method m) {
     return new AccessibleMethod(object, m);
   }
 
+  /**
+   * Exposes a field for get/set, lifting accessibility as needed.
+   *
+   * @param f field to wrap for get/set
+   * @return field accessor bound to the same instance
+   */
   public AccessibleField field(Field f) {
     return new AccessibleField(object, f);
   }

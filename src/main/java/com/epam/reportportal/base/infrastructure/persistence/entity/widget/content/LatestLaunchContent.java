@@ -26,6 +26,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 /**
+ * Widget payload summarizing a single (latest) launch: id, name, number, attributes.
+ *
  * @author Ivan Budaev
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

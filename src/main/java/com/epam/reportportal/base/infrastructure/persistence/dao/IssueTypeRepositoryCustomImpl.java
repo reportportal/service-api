@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Implements {@link IssueTypeRepositoryCustom}.
+ *
  * @author Pavel Bortnik
  */
 @Repository

@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * Project-level roles, ordered for permission checks (e.g. OPERATOR &lt; CUSTOMER &lt; ADMIN).
+ *
  * @author Ivan Budayeu
  */
 public enum ProjectRole implements Comparable<ProjectRole> {
@@ -33,6 +35,11 @@ public enum ProjectRole implements Comparable<ProjectRole> {
   ProjectRole(int level, String roleName) {
     this.roleLevel = level;
     this.roleName = roleName;
+  }
+
+  public static Optional<ProjectRole> forName(final String name) {
+    return Arrays.stream(ProjectRole.values()).filter(role -> role.name().equalsIgnoreCase(name))
+        .findAny();
   }
 
   public boolean higherThan(ProjectRole other) {
@@ -49,11 +56,6 @@ public enum ProjectRole implements Comparable<ProjectRole> {
 
   public boolean sameOrLowerThan(ProjectRole other) {
     return this.roleLevel <= other.roleLevel;
-  }
-
-  public static Optional<ProjectRole> forName(final String name) {
-    return Arrays.stream(ProjectRole.values()).filter(role -> role.name().equalsIgnoreCase(name))
-        .findAny();
   }
 
   public String getRoleName() {

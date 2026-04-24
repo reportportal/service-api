@@ -33,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * File-system backed data store for local and development use.
+ *
  * @author Dzianis_Shybeka
  */
 public class LocalDataStore implements DataStore {

@@ -46,5 +46,8 @@ public class TestCaseActivityResource {
     
     private String steps;
     private String preconditions;
+    private String preconditionsAttachments;
     private String requirements;
+    private String manualScenarioAttachments;
+    private String manualScenarioStepAttachments;
 }

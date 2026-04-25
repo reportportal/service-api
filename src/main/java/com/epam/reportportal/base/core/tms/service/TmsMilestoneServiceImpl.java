@@ -3,15 +3,18 @@ package com.epam.reportportal.base.core.tms.service;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRS;
-import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsMilestoneMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsMilestoneFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
@@ -28,6 +31,7 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
 
   private final TmsMilestoneMapper tmsMilestoneMapper;
   private final TmsMilestoneRepository tmsMilestoneRepository;
+  private final TmsMilestoneFilterableRepository tmsMilestoneFilterableRepository;
   private final TmsTestPlanService tmsTestPlanService;
 
   @Override
@@ -54,33 +58,48 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsMilestoneRS> getAll(Long projectId, Pageable pageable) {
-    var milestonesPage = tmsMilestoneRepository.findAllByProjectId(projectId, pageable);
+  public Page<TmsMilestoneRS> getAll(Long projectId, Filter filter, Pageable pageable) {
+    var milestoneIdsPage = tmsMilestoneFilterableRepository.findIdsByProjectIdAndFilter(projectId,
+        filter, pageable);
+
+    if (milestoneIdsPage.isEmpty()) {
+      return PagedResourcesAssembler
+          .<TmsMilestoneRS>pageConverter()
+          .apply(new PageImpl<>(Collections.emptyList(), pageable, 0));
+    }
+
+    var milestones = tmsMilestoneRepository.findAllById(milestoneIdsPage.getContent());
 
     var testPlansByMilestones = tmsTestPlanService.getByMilestoneIds(
         projectId,
-        milestonesPage
-            .getContent()
+        milestones
             .stream()
             .map(TmsMilestone::getId)
             .collect(Collectors.toList())
     );
 
-    var milestones = milestonesPage
+    // Reorder milestones according to the paged IDs
+    var milestoneMap = milestones
+        .stream()
+        .collect(Collectors.toMap(TmsMilestone::getId, Function.identity()));
+
+    var milestonesRS = milestoneIdsPage
         .getContent()
         .stream()
+        .map(milestoneMap::get)
+        .filter(Objects::nonNull)
         .map(milestone -> {
-           var testPlans = testPlansByMilestones.get(milestone.getId());
-           return tmsMilestoneMapper.convert(milestone, testPlans);
+          var testPlans = testPlansByMilestones.get(milestone.getId());
+          return tmsMilestoneMapper.convert(milestone, testPlans);
         })
         .toList();
 
     return PagedResourcesAssembler
         .<TmsMilestoneRS>pageConverter()
         .apply(new PageImpl<>(
-            milestones,
+            milestonesRS,
             pageable,
-            milestonesPage.getTotalElements()
+            milestoneIdsPage.getTotalElements()
         ));
   }
 

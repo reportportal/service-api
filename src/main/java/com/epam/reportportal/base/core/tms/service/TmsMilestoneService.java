@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.service;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRS;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.model.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -33,10 +34,11 @@ public interface TmsMilestoneService {
    * Retrieves milestones by criteria with pagination.
    *
    * @param projectId     the project ID
-   * @param pageable pagination details
+   * @param filter        the filter
+   * @param pageable      pagination details
    * @return paginated list of milestones
    */
-  Page<TmsMilestoneRS> getAll(Long projectId, Pageable pageable);
+  Page<TmsMilestoneRS> getAll(Long projectId, Filter filter, Pageable pageable);
 
   /**
    * Applies partial updates to an existing milestone.

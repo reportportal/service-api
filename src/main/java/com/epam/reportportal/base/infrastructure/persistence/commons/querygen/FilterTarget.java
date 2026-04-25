@@ -133,6 +133,14 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsAttributeCriteriaConstant.CRITERIA_TMS_ATTRIBUTE_VALUE;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_DISPLAY_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_END_DATE;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_PROJECT_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_START_DATE;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_STATUS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsMilestoneCriteriaConstant.CRITERIA_TMS_MILESTONE_TYPE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ATTRIBUTES;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ATTRIBUTE_VALUE;
@@ -221,6 +229,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TEST_ITEM_RESULTS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TICKET;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_MILESTONE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
@@ -252,6 +261,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
@@ -2254,8 +2264,59 @@ public enum FilterTarget {
     protected Field<Long> idField() {
       return TMS_TEST_CASE_EXECUTION.ID;
     }
+  },
+  
+  TMS_MILESTONE_TARGET(TmsMilestone.class,
+      Arrays.asList(
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_ID, TMS_MILESTONE.ID,
+              Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_NAME, TMS_MILESTONE.NAME,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_DISPLAY_ID, TMS_MILESTONE.DISPLAY_ID,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_START_DATE, TMS_MILESTONE.START_DATE,
+              Timestamp.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_END_DATE, TMS_MILESTONE.END_DATE,
+              Timestamp.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_TYPE, TMS_MILESTONE.TYPE,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_STATUS, TMS_MILESTONE.STATUS,
+              String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_PROJECT_ID, TMS_MILESTONE.PROJECT_ID,
+              Long.class).get()
+      )
+  ) {
+    @Override
+    protected Collection<? extends SelectField> selectFields() {
+      return Lists.newArrayList(
+          TMS_MILESTONE.ID,
+          TMS_MILESTONE.NAME,
+          TMS_MILESTONE.DISPLAY_ID,
+          TMS_MILESTONE.PROJECT_ID,
+          TMS_MILESTONE.START_DATE,
+          TMS_MILESTONE.END_DATE,
+          TMS_MILESTONE.TYPE,
+          TMS_MILESTONE.STATUS,
+          TMS_MILESTONE.PRODUCT_VERSION_ID
+      );
+    }
+  
+    @Override
+    protected void addFrom(SelectQuery<? extends Record> query) {
+      query.addFrom(TMS_MILESTONE);
+    }
+  
+    @Override
+    protected void joinTables(QuerySupplier query) {
+      // No joins needed for basic fields
+    }
+  
+    @Override
+    protected Field<Long> idField() {
+      return TMS_MILESTONE.ID;
+    }
   };
-
+  
   public static final String FILTERED_QUERY = "filtered";
   public static final String ATTRIBUTE_ALIAS = "attribute";
   public static final String FILTERED_ID = "id";

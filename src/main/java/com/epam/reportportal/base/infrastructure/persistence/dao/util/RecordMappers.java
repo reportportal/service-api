@@ -45,6 +45,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TICKET;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_MILESTONE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION_COMMENT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
@@ -104,6 +105,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.S
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
@@ -135,6 +139,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -741,6 +746,30 @@ public class RecordMappers {
     return integration;
   };
 
+  /**
+   * Maps record into {@link TmsMilestone} object
+   */
+  public static final RecordMapper<? super Record, TmsMilestone> TMS_MILESTONE_MAPPER = r -> {
+    TmsMilestone milestone = new TmsMilestone();
+    milestone.setId(r.get(TMS_MILESTONE.ID));
+    milestone.setName(r.get(TMS_MILESTONE.NAME));
+    milestone.setDisplayId(r.get(TMS_MILESTONE.DISPLAY_ID));
+  
+    ofNullable(r.get(TMS_MILESTONE.START_DATE)).ifPresent(d -> milestone.setStartDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
+    ofNullable(r.get(TMS_MILESTONE.END_DATE)).ifPresent(d -> milestone.setEndDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
+  
+    ofNullable(r.get(TMS_MILESTONE.TYPE)).ifPresent(t -> milestone.setType(TmsMilestoneType.valueOf(t.name())));
+    ofNullable(r.get(TMS_MILESTONE.STATUS)).ifPresent(s -> milestone.setStatus(TmsMilestoneStatus.valueOf(s.name())));
+  
+    ofNullable(r.get(TMS_MILESTONE.PROJECT_ID)).ifPresent(projectId -> {
+      Project project = new Project();
+      project.setId(projectId);
+      milestone.setProject(project);
+    });
+  
+    return milestone;
+  };
+  
   /**
    * Maps record into {@link TmsTestCase} object
    */

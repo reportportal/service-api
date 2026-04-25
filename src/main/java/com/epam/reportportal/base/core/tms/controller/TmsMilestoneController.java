@@ -10,6 +10,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMiles
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.ws.resolver.FilterFor;
 import com.epam.reportportal.base.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -102,12 +104,13 @@ public class TmsMilestoneController {
   @ApiResponse(responseCode = "200", description = "Milestones retrieved successfully")
   public Page<TmsMilestoneRS> getMilestonesByCriteria(
       @PathVariable String projectKey,
+      @FilterFor(TmsMilestone.class) Filter filter,
       @PagingOffset(sortable = TmsMilestone.class) OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
     var projectId = projectExtractor
         .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
         .getProjectId();
-    return tmsMilestoneService.getAll(projectId, offsetRequest);
+    return tmsMilestoneService.getAll(projectId, filter, offsetRequest);
   }
 
   /**

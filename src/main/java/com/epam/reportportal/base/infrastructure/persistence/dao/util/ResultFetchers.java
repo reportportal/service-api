@@ -32,6 +32,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Rec
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_ATTRIBUTE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_CASE_EXECUTION_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_CASE_MAPPER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_MILESTONE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_TEST_ITEM_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_PLAN_MAPPER;
@@ -48,6 +49,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PROJECT_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_MILESTONE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER_TEST_ITEM;
@@ -80,6 +82,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
@@ -505,6 +508,20 @@ public class ResultFetchers {
     return projectProfiles;
   };
 
+  /**
+   * Fetches records from db results into list of {@link TmsMilestone} objects.
+   */
+  public static final Function<Result<? extends Record>, List<TmsMilestone>> TMS_MILESTONE_FETCHER = rows -> {
+    Map<Long, TmsMilestone> milestones = Maps.newLinkedHashMap();
+    rows.forEach(row -> {
+      Long id = row.get(TMS_MILESTONE.ID);
+      if (!milestones.containsKey(id)) {
+        milestones.put(id, TMS_MILESTONE_MAPPER.map(row));
+      }
+    });
+    return new ArrayList<>(milestones.values());
+  };
+  
   /**
    * Fetches records from db results into list of {@link TmsTestCase} objects.
    */

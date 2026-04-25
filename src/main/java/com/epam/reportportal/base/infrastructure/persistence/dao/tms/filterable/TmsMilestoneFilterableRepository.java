@@ -1,7 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.TMS_TEST_CASE_FETCHER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.TMS_MILESTONE_FETCHER;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;
@@ -10,30 +10,29 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.dao.FilterableRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jooq.DSLContext;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class TmsTestCaseFilterableRepository implements FilterableRepository<TmsTestCase> {
+public class TmsMilestoneFilterableRepository implements FilterableRepository<TmsMilestone> {
 
   private final DSLContext dsl;
 
-  public TmsTestCaseFilterableRepository(DSLContext dsl) {
+  public TmsMilestoneFilterableRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 
   @Override
-  public List<TmsTestCase> findByFilter(Queryable filter) {
+  public List<TmsMilestone> findByFilter(Queryable filter) {
     Set<String> fields = filter.getFilterConditions()
         .stream()
         .map(ConvertibleCondition::getAllConditions)
@@ -41,12 +40,12 @@ public class TmsTestCaseFilterableRepository implements FilterableRepository<Tms
         .map(FilterCondition::getSearchCriteria)
         .collect(Collectors.toSet());
 
-    return TMS_TEST_CASE_FETCHER.apply(
+    return TMS_MILESTONE_FETCHER.apply(
         dsl.fetch(QueryBuilder.newBuilder(filter, fields).wrap().build()));
   }
 
   @Override
-  public Page<TmsTestCase> findByFilter(Queryable filter, Pageable pageable) {
+  public Page<TmsMilestone> findByFilter(Queryable filter, Pageable pageable) {
     Set<String> fields = filter.getFilterConditions()
         .stream()
         .map(ConvertibleCondition::getAllConditions)
@@ -59,7 +58,7 @@ public class TmsTestCaseFilterableRepository implements FilterableRepository<Tms
         .collect(Collectors.toSet()));
 
     return PageableExecutionUtils.getPage(
-        TMS_TEST_CASE_FETCHER.apply(
+        TMS_MILESTONE_FETCHER.apply(
             dsl.fetch(QueryBuilder.newBuilder(filter, fields)
                 .with(pageable)
                 .wrap()
@@ -97,6 +96,6 @@ public class TmsTestCaseFilterableRepository implements FilterableRepository<Tms
         String.valueOf(projectId),
         CRITERIA_PROJECT_ID
     ));
-   return findIdsByFilter(filter, pageable);
+    return findIdsByFilter(filter, pageable);
   }
 }

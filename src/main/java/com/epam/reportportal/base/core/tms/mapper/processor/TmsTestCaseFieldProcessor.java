@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.core.events.domain.tms;
+package com.epam.reportportal.base.core.tms.mapper.processor;
 
-import com.epam.reportportal.base.core.events.domain.AbstractEvent;
+import com.epam.reportportal.base.core.events.domain.tms.TestCaseFieldChangedEvent;
 import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@Getter
-@NoArgsConstructor
-public class TestCaseUpdatedEvent extends AbstractEvent<TestCaseActivityResource> {
+import java.util.Optional;
 
-  public TestCaseUpdatedEvent(TestCaseActivityResource before, TestCaseActivityResource after, Long userId, String userLogin, Long organizationId) {
-    super(userId, userLogin, before, after);
-    this.organizationId = organizationId;
-  }
+public interface TmsTestCaseFieldProcessor {
+    Optional<TestCaseFieldChangedEvent> process(TestCaseActivityResource before, TestCaseActivityResource after);
 }

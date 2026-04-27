@@ -48,13 +48,12 @@ java {
 }
 
 ext['spring-boot.version'] = "${springBootVersion}"
-// Override Spring Boot BOM's Spring Security line (e.g. 6.4.x -> 6.5.9) for newer security fixes; not the default
+// Override Spring Boot BOM's Spring Security line (e.g. 6.4.x -> 6.5.10) for newer security fixes; not the default
 // stack Boot 3.4.x is built against, so re-verify auth (OAuth2, filters, ACL) after bumps.
-ext['spring-security.version'] = '6.5.9'
+ext['spring-security.version'] = '6.5.10'
 // SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551 (jackson-core): align whole Jackson stack via BOM (was 2.18.6)
 ext['jackson-bom.version'] = '2.21.2'
-// Spring Framework 6.2.17+ patches spring-web / spring-webmvc issues reported on 6.2.15 (transitive from commons, etc.)
-ext['spring-framework.version'] = '6.2.17'
+// Let Spring Framework align with the Spring Boot BOM line to pick up latest patched 6.2.x.
 // CVE-2026-1225 (logback-core): минимум 1.5.25
 ext['logback.version'] = '1.5.25'
 
@@ -88,7 +87,7 @@ configurations.configureEach {
 println("Release mode: $releaseMode")
 dependencies {
     implementation 'com.github.reportportal:commons:5.15.1'
-    implementation 'com.github.reportportal:commons-dao:feature~sigV4-SNAPSHOT'
+    implementation 'com.github.reportportal:commons-dao:5.15.1'
     implementation('com.github.reportportal:plugin-api:5.15.0') {
         exclude group: 'com.github.reportportal', module: 'commons-dao'
         exclude group: 'com.github.reportportal', module: 'commons'
@@ -148,7 +147,7 @@ dependencies {
     implementation 'com.sun.mail:jakarta.mail:2.0.2'
 
     implementation 'xerces:xercesImpl:2.12.2'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.82'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.84'
     implementation 'com.google.api-client:google-api-client:2.8.1'
 
     implementation('commons-validator:commons-validator:1.10.0') {

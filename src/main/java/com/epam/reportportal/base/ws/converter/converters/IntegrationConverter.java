@@ -47,6 +47,11 @@ import java.util.function.Predicate;
  */
 public final class IntegrationConverter {
 
+  private IntegrationConverter() {
+    //static only
+  }
+
+
   public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE =
       integration -> {
         IntegrationActivityResource resource = new IntegrationActivityResource();
@@ -59,13 +64,19 @@ public final class IntegrationConverter {
         resource.setTypeName(integration.getType().getName());
         return resource;
       };
+
+
   private static final List<String> IGNORE_FIELDS =
       List.of(EmailSettingsEnum.PASSWORD.getAttribute(), SauceLabsProperties.ACCESS_TOKEN.getName(),
           BtsProperties.OAUTH_ACCESS_KEY.getName(), BtsProperties.API_TOKEN.getName(),
           AuthProperties.MANAGER_PASSWORD.getName()
       );
+
+
   private static final Predicate<Map.Entry<String, Object>> IGNORE_FIELDS_CONDITION =
       entry -> IGNORE_FIELDS.stream().noneMatch(field -> field.equalsIgnoreCase(entry.getKey()));
+
+
   public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE =
       integration -> {
         IntegrationResource resource = new IntegrationResource();
@@ -92,9 +103,6 @@ public final class IntegrationConverter {
         return resource;
       };
 
-  private IntegrationConverter() {
-    //static only
-  }
 
   private static Optional<Map<String, Object>> convertToResourceParams(IntegrationParams it) {
     return ofNullable(it.getParams()).map(p -> p.entrySet().stream().filter(IGNORE_FIELDS_CONDITION)
@@ -128,18 +136,6 @@ public final class IntegrationConverter {
         return result;
       };
 
-  public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE =
-      integration -> {
-        IntegrationActivityResource resource = new IntegrationActivityResource();
-        resource.setId(integration.getId());
-        resource.setName(integration.getName());
-        ofNullable(integration.getProject()).ifPresent(p -> {
-          resource.setProjectId(p.getId());
-          resource.setProjectName(p.getName());
-        });
-        resource.setTypeName(integration.getType().getName());
-        return resource;
-      };
 
   public static final Function<CreateOrgIntegrationRequest, IntegrationRQ> CREATE_REQUEST_TO_RQ =
       request -> {
@@ -149,6 +145,7 @@ public final class IntegrationConverter {
         rq.setEnabled(request.getEnabled());
         return rq;
       };
+
 
   public static final Function<UpdateOrgIntegrationRequest, IntegrationRQ> UPDATE_REQUEST_TO_RQ =
       request -> {

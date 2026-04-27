@@ -7,7 +7,8 @@ on:
 jobs:
   release:
     if: >
-      github.event.review.state == 'approved'
+      github.event.review.state == 'approved' &&
+      (startsWith(github.event.pull_request.head.ref, 'rc/') || startsWith(github.event.pull_request.head.ref, 'hotfix/'))
     # TODO: Pin reusable workflow to a version tag once v1 is released
     uses: reportportal/.github/.github/workflows/dockerhub-release.yaml@main
     secrets:

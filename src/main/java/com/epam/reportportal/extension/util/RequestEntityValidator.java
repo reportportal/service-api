@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Utility class for validating request entities using Bean Validation, throwing
+ * {@link com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException} on constraint violations.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class RequestEntityValidator {

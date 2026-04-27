@@ -45,6 +45,8 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Implements {@link UserRepositoryCustom}.
+ *
  * @author Pavel Bortnik
  */
 @Repository

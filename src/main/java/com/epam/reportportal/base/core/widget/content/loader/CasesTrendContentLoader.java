@@ -41,6 +41,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads test case trend data for the Cases Trend widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

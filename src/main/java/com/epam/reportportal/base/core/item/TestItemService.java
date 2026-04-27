@@ -13,7 +13,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Test item list operations, counts, and attributes for the API layer.
+ *
  * @author Konstantin Antipin
  */
 @Slf4j

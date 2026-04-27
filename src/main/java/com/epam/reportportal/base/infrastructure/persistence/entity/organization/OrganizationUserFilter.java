@@ -23,6 +23,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Filter DTO for listing members of an organization.
+ *
  * @author Siarhei Hrabko
  */
 @Getter

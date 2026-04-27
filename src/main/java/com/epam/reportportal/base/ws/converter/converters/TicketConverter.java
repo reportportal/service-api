@@ -22,13 +22,11 @@ import com.google.common.base.Preconditions;
 import java.util.function.Function;
 
 /**
+ * Converts external BTS ticket links to and from DTOs.
+ *
  * @author Pavel Bortnik
  */
 public final class TicketConverter {
-
-  private TicketConverter() {
-    //static only
-  }
 
   public static final Function<Issue.ExternalSystemIssue, Ticket> TO_TICKET = issue -> {
     Preconditions.checkNotNull(issue);
@@ -40,4 +38,8 @@ public final class TicketConverter {
     ticket.setPluginName(issue.getPluginName());
     return ticket;
   };
+
+  private TicketConverter() {
+    //static only
+  }
 }

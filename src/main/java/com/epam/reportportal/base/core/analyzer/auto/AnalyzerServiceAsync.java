@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * Non-blocking analyzer entry points returning futures.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface AnalyzerServiceAsync {

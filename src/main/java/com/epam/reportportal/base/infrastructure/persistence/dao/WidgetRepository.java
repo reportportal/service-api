@@ -24,6 +24,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for project widgets.
+ *
  * @author Pavel Bortnik
  */
 public interface WidgetRepository extends ReportPortalRepository<Widget, Long>,

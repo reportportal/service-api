@@ -26,6 +26,8 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
+ * Shared log scanning logic for pattern selectors.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractPatternAnalysisSelector implements PatternAnalysisSelector {
@@ -33,14 +35,35 @@ public abstract class AbstractPatternAnalysisSelector implements PatternAnalysis
   protected final TestItemRepository testItemRepository;
   protected final LogService logService;
 
+  /**
+   * Creates a selector with repositories.
+   *
+   * @param testItemRepository repository for item ids and tree queries
+   * @param logService         service to scan log messages
+   */
   public AbstractPatternAnalysisSelector(TestItemRepository testItemRepository,
       LogService logService) {
     this.testItemRepository = testItemRepository;
     this.logService = logService;
   }
 
+  /**
+   * Item ids in {@code itemIds} whose own logs match the pattern.
+   *
+   * @param pattern text pattern
+   * @param itemIds candidate item ids
+   * @return matching item ids
+   */
   protected abstract List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds);
 
+  /**
+   * Item ids whose nested steps' logs match the pattern for the given launch.
+   *
+   * @param launchId             launch id
+   * @param pattern              text pattern
+   * @param itemsWithNestedSteps items with descendants
+   * @return matching item ids
+   */
   protected abstract List<Long> getItemsWithNestedStepsMatches(Long launchId, String pattern,
       List<Long> itemsWithNestedSteps);
 

@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.model;
 
 /**
+ * API response that may carry a non-fatal warning string.
+ *
  * @author Andrei Varabyeu
  */
 public class WarningAwareRS {

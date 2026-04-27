@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
+ * Stream encoding and decoding helpers for stored binaries.
+ *
  * @author Dzianis_Shybeka
  * <p>
  * Class to encode/decode values to url compatible format

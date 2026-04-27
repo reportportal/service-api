@@ -61,9 +61,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * REST API for user-defined filters (saved search criteria) within a project.
+ *
  * @author Pavel Bortnik
  */
-
 @RestController
 @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @RequestMapping("/v1/{projectKey}/filter")

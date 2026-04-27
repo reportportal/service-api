@@ -26,6 +26,8 @@ import jakarta.validation.constraints.Size;
 import java.util.Set;
 
 /**
+ * Patch-style update for a test item (e.g. description, attributes, status).
+ *
  * @author Dzmitry_Kavalets
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

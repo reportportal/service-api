@@ -33,6 +33,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * File and metadata for importing an external report into a launch.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data

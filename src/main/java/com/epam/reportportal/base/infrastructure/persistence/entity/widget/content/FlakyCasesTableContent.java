@@ -30,6 +30,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
+ * A flaky test case row: statuses over time, counts, and name.
+ *
  * @author Ivan Budayeu
  */
 public class FlakyCasesTableContent implements Serializable {

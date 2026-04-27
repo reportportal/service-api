@@ -26,6 +26,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Hierarchical test step in a test item, including time range and type.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(Include.NON_NULL)

@@ -21,6 +21,8 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Collection;
 
 /**
+ * Bean Validation implementation for {@link NotBlankStringCollection}.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class NotBlankStringCollectionValidator implements

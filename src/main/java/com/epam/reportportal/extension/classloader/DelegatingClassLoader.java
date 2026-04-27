@@ -25,6 +25,9 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 /**
+ * {@link ClassLoader} that delegates class loading to an ordered set of registered child class loaders, enabling
+ * dynamic plugin class resolution at runtime.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

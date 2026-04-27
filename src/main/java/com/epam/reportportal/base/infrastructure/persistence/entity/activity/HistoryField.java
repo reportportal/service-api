@@ -21,6 +21,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Single field change in an activity log (field name, old and new value).
+ *
  * @author Ihar Kahadouski
  */
 public class HistoryField extends JsonbUserType implements Serializable {

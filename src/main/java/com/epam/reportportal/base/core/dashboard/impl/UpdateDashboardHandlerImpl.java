@@ -50,6 +50,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
+ * Updates dashboard metadata and widget layout.
+ *
  * @author Pavel Bortnik
  */
 @Service

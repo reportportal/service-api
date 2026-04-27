@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
 
 /**
+ * Builds project-scoped file paths for binary and attachment storage.
+ *
  * @author Dzianis_Shybeka
  */
 @Component

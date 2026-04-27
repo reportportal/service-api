@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * How items are chosen when running auto-analyzer (all launches, by name, current only, etc.).
+ *
  * @author Pavel Bortnik
  */
 public enum AnalyzeMode {

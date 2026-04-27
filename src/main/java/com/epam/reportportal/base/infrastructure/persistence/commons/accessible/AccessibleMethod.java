@@ -34,6 +34,12 @@ public class AccessibleMethod {
     this.method = method;
   }
 
+  /**
+   * Invokes the wrapped method on the bound instance, widening accessibility on first failure.
+   *
+   * @param args arguments to pass; length and types must match the method
+   * @return the method return value, or {@code null} for void
+   */
   public Object invoke(Object... args) throws Throwable {
     try {
       return invoke(this.bean, this.method, args);

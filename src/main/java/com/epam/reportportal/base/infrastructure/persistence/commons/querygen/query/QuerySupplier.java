@@ -30,6 +30,8 @@ import org.jooq.SortField;
 import org.jooq.TableLike;
 
 /**
+ * Supplies a jOOQ select with optional join graph applied before execution.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class QuerySupplier implements Supplier<SelectQuery<? extends Record>> {

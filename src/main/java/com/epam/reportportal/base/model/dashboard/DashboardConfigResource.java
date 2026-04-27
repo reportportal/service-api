@@ -25,6 +25,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * JSON representation of dashboard layout and configuration.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data

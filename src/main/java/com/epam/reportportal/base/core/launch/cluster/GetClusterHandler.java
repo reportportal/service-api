@@ -23,6 +23,8 @@ import com.epam.reportportal.base.model.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Load operations for test failure clusters.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface GetClusterHandler {

@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Debug logger that reports launch attributes as they are processed.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LaunchResourceAttributeLogger implements ResourceAttributeHandler<LaunchResource> {

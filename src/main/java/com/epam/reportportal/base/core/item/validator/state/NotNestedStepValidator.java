@@ -22,6 +22,8 @@ import org.springframework.core.Ordered;
 import org.springframework.stereotype.Service;
 
 /**
+ * Rejects status changes on nested step items.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
 /**
+ * A single result row from a cluster / analyzer search (e.g. linked log and item id).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class SearchRs {

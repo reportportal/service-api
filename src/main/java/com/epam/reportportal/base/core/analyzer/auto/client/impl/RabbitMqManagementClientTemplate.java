@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Rabbit management client filtered to analyzer exchange metadata.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class RabbitMqManagementClientTemplate implements RabbitMqManagementClient {

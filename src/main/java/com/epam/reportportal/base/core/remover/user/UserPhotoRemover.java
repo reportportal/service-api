@@ -31,6 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Removes the profile photo attachment of a
+ * {@link com.epam.reportportal.base.infrastructure.persistence.entity.user.User} when the user is deleted.
+ *
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 @Service

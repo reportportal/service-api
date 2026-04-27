@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
+ * String codes for user-visible actions (dashboard, widget, user, BTS, etc.).
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public enum ActivityAction {

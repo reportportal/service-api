@@ -19,6 +19,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 
 /**
+ * jOOQ dashboard and widget link queries.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface DashboardRepositoryCustom extends FilterableRepository<Dashboard> {

@@ -24,6 +24,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Ensures logs are indexed before running analysis on a launch.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class IndexingAutoAnalysisStarter implements LaunchAutoAnalysisStarter {

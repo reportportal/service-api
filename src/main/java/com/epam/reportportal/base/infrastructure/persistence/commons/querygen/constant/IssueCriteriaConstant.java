@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant;
 
 /**
+ * Field names for test item issue / defect filters.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public final class IssueCriteriaConstant {

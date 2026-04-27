@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Binary storage operations for test management (TMS) data.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface TmsDataStoreService {

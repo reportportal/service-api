@@ -22,6 +22,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
+ * Sends the email when a user removes their own account.
+ *
  * @author Andrei Piankouski
  */
 @Service

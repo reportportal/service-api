@@ -26,6 +26,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
+ * Builds full log representations including nested data for API responses.
+ *
  * @author Pavel Bortnik
  */
 public class LogFullBuilder implements Supplier<LogFull> {

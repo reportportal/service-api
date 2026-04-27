@@ -22,6 +22,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Composite key (organization id, user id) for {@link OrganizationUser}.
+ *
  * @author Siarhei Hrabko
  */
 @Embeddable

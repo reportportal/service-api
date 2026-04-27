@@ -39,6 +39,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Global defect or issue sub-type (product bug, auto bug, to investigate, and similar).
+ *
  * @author Pavel Bortnik
  */
 @Entity

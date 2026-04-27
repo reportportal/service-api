@@ -19,6 +19,9 @@ import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
+ * Abstract plugin command that validates the caller has at least project member access before execution.
+ *
+ * @param <T> the return type of the command
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class ProjectMemberCommand<T> extends AbstractRoleBasedCommand<T> {
@@ -34,6 +37,22 @@ public abstract class ProjectMemberCommand<T> extends AbstractRoleBasedCommand<T
       OrganizationRepositoryCustom organizationRepository) {
     this.projectRepository = projectRepository;
     this.organizationRepository = organizationRepository;
+  }
+
+  public static Long retrieveLong(Map<String, Object> params, String param) {
+    return ofNullable(params.get(param)).map(String::valueOf)
+        .map(ProjectMemberCommand::safeParseLong)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            Suppliers.formattedSupplier("Parameter '{}' was not provided", param).get()
+        ));
+  }
+
+  public static Long safeParseLong(String param) {
+    try {
+      return Long.parseLong(param);
+    } catch (NumberFormatException ex) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, ex.getMessage());
+    }
   }
 
   @Override
@@ -72,21 +91,5 @@ public abstract class ProjectMemberCommand<T> extends AbstractRoleBasedCommand<T
         .filter(details -> details.getProjectId().equals(project.getId()))
         .findFirst()
         .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
-  }
-
-  public static Long retrieveLong(Map<String, Object> params, String param) {
-    return ofNullable(params.get(param)).map(String::valueOf)
-        .map(ProjectMemberCommand::safeParseLong)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            Suppliers.formattedSupplier("Parameter '{}' was not provided", param).get()
-        ));
-  }
-
-  public static Long safeParseLong(String param) {
-    try {
-      return Long.parseLong(param);
-    } catch (NumberFormatException ex) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, ex.getMessage());
-    }
   }
 }

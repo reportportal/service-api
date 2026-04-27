@@ -45,6 +45,8 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.data.annotation.CreatedDate;
 
 /**
+ * Global integration plugin type definition (BTS, mail, auth, and metadata).
+ *
  * @author Yauheni_Martynau
  */
 @Entity

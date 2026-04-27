@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.model.widget;
 
 /**
+ * Predefined materialized widget kinds for the widget framework.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public enum MaterializedWidgetType {

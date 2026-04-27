@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Links or updates external BTS issues on test items.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface ExternalTicketHandler {

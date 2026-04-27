@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
+ * User-scoped file storage that extends the common data store for uploads and thumbnails.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service("userDataStoreService")

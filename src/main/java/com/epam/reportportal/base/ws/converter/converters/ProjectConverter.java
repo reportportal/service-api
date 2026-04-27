@@ -37,6 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Transforms project entities to project information resources.
+ *
  * @author Pavel Bortnik
  */
 @Service

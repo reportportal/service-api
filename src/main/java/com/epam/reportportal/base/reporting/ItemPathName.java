@@ -25,6 +25,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * REST resource representing a test item node in the path hierarchy, used for breadcrumb navigation in test results.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Setter

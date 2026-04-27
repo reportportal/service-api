@@ -36,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
+ * Seeds default dashboard widgets for new projects.
+ *
  * @author Pavel Bortnik
  */
 @Service

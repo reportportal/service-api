@@ -29,6 +29,8 @@ import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
 
 /**
+ * Handles RabbitMQ messages for finishing a launch.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service

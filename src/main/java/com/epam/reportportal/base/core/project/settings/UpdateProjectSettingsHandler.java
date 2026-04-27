@@ -16,14 +16,16 @@
 
 package com.epam.reportportal.base.core.project.settings;
 
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.model.project.config.pattern.UpdatePatternTemplateRQ;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.reportportal.base.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Persists changes to project general settings.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface UpdateProjectSettingsHandler {

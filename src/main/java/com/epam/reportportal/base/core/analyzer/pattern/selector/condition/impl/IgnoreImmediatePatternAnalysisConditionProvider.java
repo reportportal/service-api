@@ -25,6 +25,8 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 
 /**
+ * Excludes the latest run from immediate pattern re-analysis.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class IgnoreImmediatePatternAnalysisConditionProvider extends

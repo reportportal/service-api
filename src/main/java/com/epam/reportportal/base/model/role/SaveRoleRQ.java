@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
 /**
+ * Create or update a custom role (name, description, permissions).
  *
  * @author Siarhei_Kharlanau
- *
  */
 @JsonInclude(Include.NON_NULL)
 public class SaveRoleRQ {

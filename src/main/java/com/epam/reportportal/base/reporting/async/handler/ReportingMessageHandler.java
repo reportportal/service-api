@@ -19,6 +19,8 @@ package com.epam.reportportal.base.reporting.async.handler;
 import org.springframework.amqp.core.Message;
 
 /**
+ * Handler for processing incoming RabbitMQ reporting messages (launch start/finish, item start/finish, logs).
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface ReportingMessageHandler {

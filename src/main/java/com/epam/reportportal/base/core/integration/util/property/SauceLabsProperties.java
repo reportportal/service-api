@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Sauce Labs account fields parsed from integration parameters.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public enum SauceLabsProperties {

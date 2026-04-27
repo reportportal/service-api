@@ -24,13 +24,11 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
+ * Maps activity entities to activity event resources.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public final class ActivityConverter {
-
-  private ActivityConverter() {
-    //static only
-  }
 
   public static final Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
     ActivityResource resource = new ActivityResource();
@@ -45,10 +43,13 @@ public final class ActivityConverter {
     resource.setDetails(activity.getDetails());
     return resource;
   };
-
   public static final BiFunction<Activity, String, ActivityResource> TO_RESOURCE_WITH_USER = (activity, username) -> {
     ActivityResource resource = TO_RESOURCE.apply(activity);
     resource.setUser(username);
     return resource;
   };
+
+  private ActivityConverter() {
+    //static only
+  }
 }

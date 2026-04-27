@@ -22,13 +22,11 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Clus
 import java.util.function.Function;
 
 /**
+ * Maps similar failure clusters to cluster resources for a launch.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ClusterConverter {
-
-  private ClusterConverter() {
-    //static only
-  }
 
   public static final Function<ClusterInfoRs, Cluster> TO_CLUSTER = rs -> {
     final Cluster cluster = new Cluster();
@@ -36,7 +34,6 @@ public class ClusterConverter {
     cluster.setMessage(rs.getClusterMessage());
     return cluster;
   };
-
   public static final Function<Cluster, ClusterInfoResource> TO_CLUSTER_INFO = c -> {
     final ClusterInfoResource resource = new ClusterInfoResource();
     resource.setId(c.getId());
@@ -45,4 +42,8 @@ public class ClusterConverter {
     resource.setMessage(c.getMessage());
     return resource;
   };
+
+  private ClusterConverter() {
+    //static only
+  }
 }

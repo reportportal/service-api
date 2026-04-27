@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
+ * Which test items to include in an analyze run.
+ *
  * @author Pavel Bortnik
  */
 public enum AnalyzeItemsMode {

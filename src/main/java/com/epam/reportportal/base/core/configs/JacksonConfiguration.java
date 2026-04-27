@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * ObjectMapper and Jackson modules for API and events.
+ *
  * @author Andrei Varabyeu
  */
 @Configuration

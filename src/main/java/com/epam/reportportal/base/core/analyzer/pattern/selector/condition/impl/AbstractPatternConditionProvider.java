@@ -24,12 +24,19 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
+ * Base for SQL conditions filtering items by analysis mode.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractPatternConditionProvider implements PatternConditionProvider {
 
   private final AnalyzeItemsMode analyzeItemsMode;
 
+  /**
+   * Binds this provider to one analysis mode.
+   *
+   * @param analyzeItemsMode mode this provider contributes conditions for
+   */
   public AbstractPatternConditionProvider(AnalyzeItemsMode analyzeItemsMode) {
     this.analyzeItemsMode = analyzeItemsMode;
   }
@@ -42,10 +49,21 @@ public abstract class AbstractPatternConditionProvider implements PatternConditi
     return Optional.empty();
   }
 
+  /**
+   * Whether the requested mode set includes this provider's mode.
+   *
+   * @param analyzeItemsModes active modes
+   * @return true if this mode is selected
+   */
   protected boolean isModificationRequired(Set<AnalyzeItemsMode> analyzeItemsModes) {
     return CollectionUtils.isNotEmpty(analyzeItemsModes) && analyzeItemsModes.contains(
         analyzeItemsMode);
   }
 
+  /**
+   * Concrete jOOQ / filter fragment for this analysis mode.
+   *
+   * @return condition
+   */
   protected abstract ConvertibleCondition provideCondition();
 }

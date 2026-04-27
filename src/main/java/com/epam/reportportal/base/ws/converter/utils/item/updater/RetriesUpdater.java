@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * Fills in retry-related data on a {@link com.epam.reportportal.base.reporting.TestItemResource} from a lookup map.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class RetriesUpdater implements ResourceUpdater<TestItemResource> {
@@ -37,13 +39,13 @@ public class RetriesUpdater implements ResourceUpdater<TestItemResource> {
     this.retriesMapping = retriesMapping;
   }
 
+  public static RetriesUpdater of(Map<Long, List<TestItem>> retriesMapping) {
+    return new RetriesUpdater(retriesMapping);
+  }
+
   @Override
   public void updateResource(TestItemResource resource) {
     ofNullable(retriesMapping.get(resource.getItemId())).ifPresent(retries -> resource.setRetries(
         retries.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList())));
-  }
-
-  public static RetriesUpdater of(Map<Long, List<TestItem>> retriesMapping) {
-    return new RetriesUpdater(retriesMapping);
   }
 }

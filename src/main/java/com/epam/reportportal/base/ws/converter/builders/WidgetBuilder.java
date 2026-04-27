@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
+ * Creates dashboard widget entities from incoming widget definitions.
+ *
  * @author Pavel Bortnik
  */
 public class WidgetBuilder implements Supplier<Widget> {

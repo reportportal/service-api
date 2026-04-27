@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Spring Data repository for project dashboards.
+ *
  * @author Pavel Bortnik
  */
 public interface DashboardRepository extends ReportPortalRepository<Dashboard, Long>,

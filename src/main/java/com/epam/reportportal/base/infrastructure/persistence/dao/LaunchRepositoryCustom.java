@@ -34,6 +34,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * jOOQ-based launch search, name lookup, and analyzer index helpers.
+ *
  * @author Pavel Bortnik
  */
 public interface LaunchRepositoryCustom extends FilterableRepository<Launch> {

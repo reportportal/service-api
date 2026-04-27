@@ -21,6 +21,8 @@ import java.io.Serializable;
 import java.util.Set;
 
 /**
+ * Describes one field in a BTS defect submission form (id, type, required, allowed values).
+ *
  * @author Pavel Bortnik
  */
 public class DefectFormField implements Serializable {

@@ -22,6 +22,8 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 /**
+ * JPA attribute converter: {@link ProjectRole} to database string (enum name).
+ *
  * @author Ivan Budayeu
  */
 @Converter(autoApply = true)

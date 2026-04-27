@@ -40,6 +40,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 /**
+ * Resolves launches from a user filter for log search.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component

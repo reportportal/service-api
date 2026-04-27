@@ -4,6 +4,9 @@ import com.epam.reportportal.api.model.PluginCommandRQ;
 import java.util.Map;
 
 /**
+ * Plugin command that can be executed without an existing integration instance.
+ *
+ * @param <T> the return type of the command
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface CommonPluginCommand<T> extends NamedPluginCommand {

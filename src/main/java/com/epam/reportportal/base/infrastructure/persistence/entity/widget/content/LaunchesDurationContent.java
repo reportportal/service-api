@@ -26,6 +26,8 @@ import jakarta.persistence.Convert;
 import java.time.Instant;
 
 /**
+ * Launch duration widget: min/max/avg and related time fields.
+ *
  * @author Ivan Budayeu
  */
 public class LaunchesDurationContent extends AbstractLaunchStatisticsContent {

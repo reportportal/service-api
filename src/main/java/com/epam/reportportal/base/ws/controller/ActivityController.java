@@ -26,7 +26,6 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.model.ActivityEventResource;
@@ -55,6 +54,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Lists and searches project activity events.
+ *
  * @author Ihar_Kahadouski
  */
 @RestController

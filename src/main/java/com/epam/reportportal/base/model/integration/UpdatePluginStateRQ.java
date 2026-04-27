@@ -21,6 +21,8 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
+ * Enable or disable a plugin instance for a project.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

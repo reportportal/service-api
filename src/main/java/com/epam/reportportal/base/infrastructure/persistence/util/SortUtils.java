@@ -40,6 +40,8 @@ import org.jooq.SortOrder;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Maps Spring {@link Sort} to jOOQ order expressions for filter queries.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public final class SortUtils {
@@ -80,6 +82,10 @@ public final class SortUtils {
               .collect(toList()))
           .orElse(Collections.emptyList());
 
+  private SortUtils() {
+    //static only
+  }
+
   private static Field<?> findFieldInQuery(SelectQuery<?> query, String property) {
     return query.getSelect().stream()
         .filter(f -> matchesField(f, property))
@@ -91,9 +97,5 @@ public final class SortUtils {
     String fieldName = field.getName();
 
     return property.equalsIgnoreCase(fieldName);
-  }
-
-  private SortUtils() {
-    //static only
   }
 }

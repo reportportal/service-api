@@ -25,7 +25,6 @@ import com.epam.reportportal.auth.config.password.CustomCodeGrantAuthenticationC
 import com.epam.reportportal.auth.config.password.OAuth2ErrorResponseHandler;
 import com.epam.reportportal.auth.config.utils.JwtReportPortalUserConverter;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
-import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
@@ -71,6 +70,9 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.util.StringUtils;
 
 /**
+ * Spring Security configuration that sets up the OAuth2 authorization server, JWT token support, and security filter
+ * chains.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Configuration
@@ -79,29 +81,19 @@ import org.springframework.util.StringUtils;
 public class AuthorizationServerConfig {
 
   private static final String SECRET_KEY = "secret.key";
-
+  private final ServerSettingsRepository serverSettingsRepository;
+  private final MutableClientRegistrationRepository clientRegistrationRepository;
+  private final AuthenticationFailureHandler authenticationFailureHandler;
+  private final PasswordEncoder passwordEncoder;
+  private final UserDetailsService userDetailsService;
+  private final DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider;
+  private final DelegatingPluginOAuth2UserService delegatingPluginOAuth2UserService;
   @Value("${rp.jwt.signing-key}")
   private String signingKey;
-
   @Value("${rp.jwt.token.validity-period}")
   private Integer tokenValidity;
-
   @Value("${rp.jwt.issuer}")
   private String jwtIssuer;
-
-  private final ServerSettingsRepository serverSettingsRepository;
-
-  private final MutableClientRegistrationRepository clientRegistrationRepository;
-
-  private final AuthenticationFailureHandler authenticationFailureHandler;
-
-  private final PasswordEncoder passwordEncoder;
-
-  private final UserDetailsService userDetailsService;
-
-  private final DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider;
-
-  private final DelegatingPluginOAuth2UserService delegatingPluginOAuth2UserService;
 
   @Bean
   public RegisteredClientRepository registeredClientRepository() {

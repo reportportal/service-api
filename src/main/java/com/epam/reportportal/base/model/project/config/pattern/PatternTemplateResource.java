@@ -21,6 +21,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * Pattern template as returned in project settings API.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Data

@@ -26,6 +26,10 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Default implementation of {@link ReportPortalRepository} (refresh and filter-based exists).
+ *
+ * @param <T>  entity type
+ * @param <ID> primary key type
  * @author Pavel Bortnik
  */
 public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends

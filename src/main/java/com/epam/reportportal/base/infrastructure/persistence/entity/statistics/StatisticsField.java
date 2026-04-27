@@ -26,6 +26,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Named statistics column definition (e.g. total, passed) used in widgets and reports.
+ *
  * @author Ivan Budaev
  */
 @Entity

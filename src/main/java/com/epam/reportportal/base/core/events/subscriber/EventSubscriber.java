@@ -19,6 +19,9 @@ package com.epam.reportportal.base.core.events.subscriber;
 import com.epam.reportportal.base.core.events.domain.AbstractEvent;
 
 /**
+ * Synchronous callback for a published event type.
+ *
+ * @param <T> event type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface EventSubscriber<T extends AbstractEvent<?>> {

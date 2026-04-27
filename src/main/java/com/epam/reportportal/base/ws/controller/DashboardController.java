@@ -62,6 +62,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * CRUD and query endpoints for project dashboards and embedded widgets.
+ *
  * @author Pavel Bortnik
  */
 @RequiredArgsConstructor

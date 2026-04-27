@@ -30,6 +30,8 @@ import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.util.ErrorHandler;
 
 /**
+ * Publishes domain events to the internal bus with JSON conversion.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Configuration

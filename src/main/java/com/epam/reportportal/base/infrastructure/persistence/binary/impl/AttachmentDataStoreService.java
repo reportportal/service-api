@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
+ * Persists attachment files and optional thumbnails through the common data store.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service("attachmentDataStoreService")

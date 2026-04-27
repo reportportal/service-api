@@ -27,6 +27,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
+ * Handles authentication failures by redirecting the client with an appropriate error response.
+ *
  * @author Yevgeniy Svalukhin
  */
 

@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import java.util.List;
 
 /**
+ * Resolves which launches to include for log search.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface SearchLaunchesCollector {

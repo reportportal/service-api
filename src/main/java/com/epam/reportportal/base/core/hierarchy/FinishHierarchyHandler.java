@@ -22,11 +22,16 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import java.time.Instant;
 
 /**
+ * Handler for finishing a hierarchy of test items or launches.
+ *
+ * @param <T> the finish request type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface FinishHierarchyHandler<T> {
 
   /**
+   * Recursively finishes all descendants under a parent, applying the given status and time.
+   *
    * @param parentEntity      Parent entity which descendants should be finished
    * @param status            {@link StatusEnum} that should be assigned to descendants
    * @param endDate           {@link java.time.Instant} finish date for descendants

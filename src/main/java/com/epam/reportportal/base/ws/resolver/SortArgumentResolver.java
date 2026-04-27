@@ -34,6 +34,9 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
+ * Resolves and validates {@link org.springframework.data.domain.Sort} for repository queries against a
+ * {@link com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget}.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {

@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.widget.content.loader;
 import com.epam.reportportal.base.core.widget.content.LoadContentStrategy;
 
 /**
+ * Content loader that delegates product-status data loading to a grouped strategy (filter or launch).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ProductStatusContentLoader extends LoadContentStrategy {

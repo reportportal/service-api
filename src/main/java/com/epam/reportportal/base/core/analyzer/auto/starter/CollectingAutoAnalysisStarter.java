@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Gathers test item candidates and invokes the analysis service.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class CollectingAutoAnalysisStarter implements LaunchAutoAnalysisStarter {

@@ -24,13 +24,15 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Helpers for formatting launch export text and reading statistics.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class ExportUtils {
 
-  private static final String SHIFT_PREFIX = "    ";
   public static final String COMMENT_PREFIX = "\r\n" + " DEFECT COMMENT: ";
   public static final String DESCRIPTION_PREFIX = "\r\n" + " ITEM DESCRIPTION: ";
+  private static final String SHIFT_PREFIX = "    ";
 
   public static int getStatisticsCounter(Set<Statistics> statistics, String statisticsFieldName) {
     return statistics.stream()

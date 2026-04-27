@@ -23,6 +23,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Registers AOP advices (logging, validation).
+ *
  * @author Konstantin Antipin
  */
 @Configuration

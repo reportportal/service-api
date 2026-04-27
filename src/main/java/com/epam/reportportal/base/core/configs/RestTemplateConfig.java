@@ -22,6 +22,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 /**
+ * Shared HTTP client beans and timeouts.
+ *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 @Configuration

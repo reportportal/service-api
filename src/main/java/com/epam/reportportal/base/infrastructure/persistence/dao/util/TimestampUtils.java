@@ -21,6 +21,8 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
+ * SQL timestamp utilities relative to the current time.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class TimestampUtils {

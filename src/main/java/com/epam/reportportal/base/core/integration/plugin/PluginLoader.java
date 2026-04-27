@@ -17,10 +17,10 @@
 package com.epam.reportportal.base.core.integration.plugin;
 
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStore;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -28,6 +28,8 @@ import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginWrapper;
 
 /**
+ * Loads and unloads PF4J plugin jars at runtime.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface PluginLoader {

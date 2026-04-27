@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Free-form key/value store on entities, persisted as jsonb.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class Metadata extends JsonbUserType<Metadata> implements Serializable {

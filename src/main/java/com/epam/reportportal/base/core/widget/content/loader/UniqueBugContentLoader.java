@@ -36,6 +36,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads unique bug data for the Unique Bug widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

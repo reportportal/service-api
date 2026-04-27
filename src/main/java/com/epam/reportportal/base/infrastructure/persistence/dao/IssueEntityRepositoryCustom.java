@@ -21,6 +21,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.I
 import java.util.List;
 
 /**
+ * Batched issue and ticket linking operations.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface IssueEntityRepositoryCustom {

@@ -33,6 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
+ * External BTS issue key linked to a test item (plugin id, URL, and ticket id string).
+ *
  * @author Pavel Bortnik
  */
 

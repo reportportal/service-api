@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Integration listing and jOOQ-backed queries by project and group.
+ *
  * @author Yauheni_Martynau
  */
 public interface IntegrationRepositoryCustom extends FilterableRepository<Integration> {

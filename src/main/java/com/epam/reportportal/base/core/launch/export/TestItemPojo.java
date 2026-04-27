@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.launch.export;
 
-import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static com.epam.reportportal.base.core.jasper.util.ExportUtils.COMMENT_PREFIX;
 import static com.epam.reportportal.base.core.jasper.util.ExportUtils.DESCRIPTION_PREFIX;
 import static com.epam.reportportal.base.core.jasper.util.ExportUtils.adjustName;
@@ -30,6 +29,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_SKIPPED;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
+import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -44,6 +44,8 @@ import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * Export model for a test item row in a launch report.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Data

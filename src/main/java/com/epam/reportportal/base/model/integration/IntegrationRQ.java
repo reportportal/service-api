@@ -23,6 +23,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Create or update a project or global plugin integration.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Setter

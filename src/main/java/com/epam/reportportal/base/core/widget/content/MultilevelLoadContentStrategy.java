@@ -24,6 +24,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Content-loading strategy for multi-level (drill-down) widgets that support attribute-based filtering.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface MultilevelLoadContentStrategy {

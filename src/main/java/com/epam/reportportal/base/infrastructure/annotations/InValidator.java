@@ -20,6 +20,8 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 /**
+ * Bean Validation implementation for {@link In} on a single string value.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class InValidator implements ConstraintValidator<In, String> {

@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.reporting.async.config;
 
 /**
+ * Constants for RabbitMQ message header keys used in the reporting topology.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public final class MessageHeaders {

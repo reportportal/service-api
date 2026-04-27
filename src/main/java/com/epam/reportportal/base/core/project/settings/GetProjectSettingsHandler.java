@@ -20,6 +20,8 @@ package com.epam.reportportal.base.core.project.settings;
 import com.epam.reportportal.base.model.project.config.ProjectSettingsResource;
 
 /**
+ * Returns general project settings for the UI.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface GetProjectSettingsHandler {

@@ -50,6 +50,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.util.Pair;
 
 /**
+ * jOOQ-heavy test item tree, history, and BTS post queries.
+ *
  * @author Pavel Bortnik
  */
 public interface TestItemRepositoryCustom extends FilterableRepository<TestItem> {
@@ -91,7 +93,7 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
    *
    * @param filter       {@link Queryable}
    * @param pageable     {@link Pageable}
-   * @param projectId    {@link Project#getId()}
+   * @param projectId    {@code Project#getId()}
    * @param historyDepth max {@link TestItemHistory} group size
    * @return {@link Page} with {@link TestItemHistory} as content
    */
@@ -106,7 +108,7 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
    *
    * @param filter       {@link Queryable}
    * @param pageable     {@link Pageable}
-   * @param projectId    {@link Project#getId()}
+   * @param projectId    {@code Project#getId()}
    * @param launchName   Name of the {@link Launch} which {@link TestItem} should be retrieved
    * @param historyDepth Max {@link TestItemHistory} group size
    * @return {@link Page} with {@link TestItemHistory} as content
@@ -123,7 +125,7 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
    *
    * @param filter       {@link Queryable}
    * @param pageable     {@link Pageable}
-   * @param projectId    {@link Project#getId()}
+   * @param projectId    {@code Project#getId()}
    * @param launchIds    IDs of the {@link Launch}es which {@link TestItem} should be retrieved
    * @param historyDepth Max {@link TestItemHistory} group size
    * @return {@link Page} with {@link TestItemHistory} as content
@@ -143,7 +145,7 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
    * @param testItemFilter   {@link Queryable} for {@link TestItem} query
    * @param launchPageable   {@link Pageable} for {@link Launch} query
    * @param testItemPageable {@link Pageable} for {@link TestItem} query
-   * @param projectId        {@link Project#getId()}
+   * @param projectId        {@code Project#getId()}
    * @param historyDepth     Max {@link TestItemHistory} group size
    * @return {@link Page} with {@link TestItemHistory} as content
    */
@@ -163,7 +165,7 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
    * @param testItemFilter   {@link Queryable} for {@link TestItem} query
    * @param launchPageable   {@link Pageable} for {@link Launch} query
    * @param testItemPageable {@link Pageable} for {@link TestItem} query
-   * @param projectId        {@link Project#getId()}
+   * @param projectId        {@code Project#getId()}
    * @param launchName       Name of the {@link Launch} which {@link TestItem} should be retrieved
    * @param historyDepth     Max {@link TestItemHistory} group size
    * @return {@link Page} with {@link TestItemHistory} as content
@@ -247,7 +249,7 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
   List<TestItem> selectTestItemsProjection(Long launchId);
 
   /**
-   * Select all {@link TestItem#getItemId()} of {@link TestItem} with attached {@link Issue} and
+   * Select all {@code TestItem#getItemId()} of {@link TestItem} with attached {@link IssueEntity} and
    * {@link TestItem#getLaunchId()} equal to provided `launchId`
    *
    * @param launchId {@link TestItem#getLaunchId()}
@@ -320,10 +322,10 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
    * {@link Log#getLogLevel()} greater than or equal to {@link LogLevel#ERROR_INT} excluding {@link TestItem} that has
    * {@link IssueEntity} with {@link IssueEntity#getIssueType()} from excluded types
    *
-   * @param autoAnalyzed       {@link Issue#getAutoAnalyzed()}
+   * @param autoAnalyzed       {@code IssueEntity#autoAnalyzed}
    * @param launchId           {@link TestItem#getLaunchId()}
    * @param logLevel           {@link Log#getLogLevel()}
-   * @param excludedIssueTypes {@link Collection} of {@link IssueType#getId()} to exclude {@link TestItem} with provided
+   * @param excludedIssueTypes {@link Collection} of {@code IssueType#getId()} to exclude {@link TestItem} with provided
    *                           type id
    * @return The {@link List} of the {@link TestItem#getItemId()}
    */

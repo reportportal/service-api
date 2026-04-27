@@ -36,6 +36,8 @@ import java.util.function.Supplier;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Constructs user filter entities from create/update request payloads.
+ *
  * @author Pavel Bortnik
  */
 public class UserFilterBuilder implements Supplier<UserFilter> {

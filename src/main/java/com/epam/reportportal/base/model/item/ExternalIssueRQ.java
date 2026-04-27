@@ -23,6 +23,8 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**
+ * Base fields for requests that link, post, or search external BTS issues.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

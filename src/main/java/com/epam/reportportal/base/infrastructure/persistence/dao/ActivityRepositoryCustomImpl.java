@@ -35,6 +35,8 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Implements {@link ActivityRepositoryCustom}.
+ *
  * @author Ihar Kahadouski
  */
 @Repository

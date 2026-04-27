@@ -36,6 +36,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 
 /**
+ * Facade for generating and managing JWT access tokens for authenticated ReportPortal users.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 @Component

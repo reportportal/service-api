@@ -23,9 +23,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * In-memory DTO (not a JPA entity) for the cumulative trend chart widget: launches and per-field counts.
+ *
+ * <p>Used only for widget response serialization, not ORM.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
- * <p>
- * Not a database entity. It is used to represent widget data
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CumulativeTrendChartContent {

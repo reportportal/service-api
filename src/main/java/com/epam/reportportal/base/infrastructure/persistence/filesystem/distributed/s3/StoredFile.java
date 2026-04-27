@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.filesystem.distributed.s3;
 
 /**
+ * Immutable reference to a blob in S3 (bucket, id, name).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class StoredFile {

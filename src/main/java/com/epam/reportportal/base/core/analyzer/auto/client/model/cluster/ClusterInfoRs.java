@@ -21,6 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
+ * One cluster with message and member test item ids.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ClusterInfoRs {

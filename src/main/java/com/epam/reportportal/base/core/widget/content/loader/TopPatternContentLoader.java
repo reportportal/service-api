@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Loads top pattern analysis data for the Top Pattern widget.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

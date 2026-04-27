@@ -25,6 +25,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Jsonb map of non-secret connection parameters for an {@link Integration}.
+ *
  * @author Yauheni_Martynau
  */
 @Setter

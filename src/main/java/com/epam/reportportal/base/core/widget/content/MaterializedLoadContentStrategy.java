@@ -21,6 +21,8 @@ import java.util.Map;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Content-loading strategy for materialized-view-based widgets.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface MaterializedLoadContentStrategy {

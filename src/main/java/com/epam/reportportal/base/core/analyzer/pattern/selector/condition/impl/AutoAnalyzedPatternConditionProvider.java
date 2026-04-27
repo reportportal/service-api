@@ -24,6 +24,8 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import org.jooq.Operator;
 
 /**
+ * Condition for auto-analyzed items in pattern analysis.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class AutoAnalyzedPatternConditionProvider extends AbstractPatternConditionProvider {

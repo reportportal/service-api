@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.analyzer.auto.client.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
+ * Scores and match details from the suggest response.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

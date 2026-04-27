@@ -21,6 +21,8 @@ import java.util.function.Predicate;
 import org.jooq.Field;
 
 /**
+ * Helpers for jOOQ record field selection predicates.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class RecordMapperUtils {

@@ -19,8 +19,8 @@ package com.epam.reportportal.base.plugin;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
-import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.google.common.collect.Lists;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -42,6 +42,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
+ * Optional download and load of default plugins on application startup.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j
@@ -49,15 +51,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PluginStartUpService {
 
+  private final PluginManager pluginManager;
+  private final Pf4jPluginBox pluginBox;
+  private final IntegrationTypeRepository integrationTypeRepository;
   @Value("${rp.plugins.default.load}")
   private boolean defaultPluginsLoad;
-
-  private final PluginManager pluginManager;
-
-  private final Pf4jPluginBox pluginBox;
-
-  private final IntegrationTypeRepository integrationTypeRepository;
-
 
   @PostConstruct
   public void loadPlugins() {

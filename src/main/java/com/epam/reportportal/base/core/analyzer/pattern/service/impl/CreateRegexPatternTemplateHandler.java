@@ -16,17 +16,19 @@
 
 package com.epam.reportportal.base.core.analyzer.pattern.service.impl;
 
-import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.PatternTemplateRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
 import jakarta.persistence.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Creates regex-type pattern templates with additional validation.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

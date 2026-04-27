@@ -16,12 +16,14 @@
 
 package com.epam.reportportal.base.core.integration.plugin;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.model.EntryCreatedRS;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * Command handler to upload and register a plugin.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface CreatePluginHandler {

@@ -25,6 +25,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
+ * Completes password reset with a one-time token.
+ *
  * @author Dzmitry_Kavalets
  */
 @Data

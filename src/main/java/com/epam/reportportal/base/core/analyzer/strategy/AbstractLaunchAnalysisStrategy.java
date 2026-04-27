@@ -29,6 +29,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 
 /**
+ * Common validation and project loading for analysis strategies.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractLaunchAnalysisStrategy implements LaunchAnalysisStrategy {
@@ -36,12 +38,24 @@ public abstract class AbstractLaunchAnalysisStrategy implements LaunchAnalysisSt
   protected final ProjectRepository projectRepository;
   protected final LaunchRepository launchRepository;
 
+  /**
+   * Supplies project and launch repositories.
+   *
+   * @param projectRepository project data access
+   * @param launchRepository  launch data access
+   */
   protected AbstractLaunchAnalysisStrategy(ProjectRepository projectRepository,
       LaunchRepository launchRepository) {
     this.projectRepository = projectRepository;
     this.launchRepository = launchRepository;
   }
 
+  /**
+   * Verifies the launch belongs to the membership and is not a debug launch.
+   *
+   * @param launch            launch to validate
+   * @param membershipDetails current membership
+   */
   protected void validateLaunch(Launch launch, MembershipDetails membershipDetails) {
 
     expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(

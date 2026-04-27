@@ -16,13 +16,15 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 /**
+ * Spring Data repository for user filters (saved search).
+ *
  * @author Pavel Bortnik
  */
 public interface UserFilterRepository extends ReportPortalRepository<UserFilter, Long>,

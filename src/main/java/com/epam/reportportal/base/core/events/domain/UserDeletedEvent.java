@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
+ * Fired when a user account is deleted.
+ *
  * @author Andrei Varabyeu
  */
 @Getter

@@ -42,6 +42,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
+ * Main application RabbitMQ exchanges, queues, and listeners.
+ *
  * @author Pavel Bortnik
  */
 @EnableRabbit

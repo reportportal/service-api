@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Maps test items and logs into payloads sent to the log indexer.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface TestItemPreparerService {

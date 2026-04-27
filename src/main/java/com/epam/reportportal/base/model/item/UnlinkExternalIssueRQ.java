@@ -26,6 +26,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
+ * Unlinks a test item from a ticket in the external BTS.
+ *
  * @author Pavel Bortnik
  */
 @Data

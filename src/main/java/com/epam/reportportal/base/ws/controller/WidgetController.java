@@ -53,6 +53,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Standalone widget CRUD under a project (reusable content definitions).
+ *
  * @author Pavel Bortnik
  */
 @RestController

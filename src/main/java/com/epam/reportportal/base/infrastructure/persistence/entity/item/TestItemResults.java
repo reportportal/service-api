@@ -45,6 +45,8 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 
 /**
+ * Execution outcome for a test item: status, end time, duration, issue, and statistics.
+ *
  * @author Pavel Bortnik
  */
 @Entity

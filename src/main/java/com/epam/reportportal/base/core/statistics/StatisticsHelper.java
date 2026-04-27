@@ -31,6 +31,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
+ * Utility class providing helper methods for building test execution and defect statistics queries.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class StatisticsHelper {
@@ -39,15 +41,6 @@ public final class StatisticsHelper {
   private static final String PASSED = "statistics$executions$passed";
   private static final String SKIPPED = "statistics$executions$skipped";
   private static final String FAILED = "statistics$executions$failed";
-
-  private StatisticsHelper() {
-    //static only
-  }
-
-  public static StatusEnum getStatusFromStatistics(Set<Statistics> statistics) {
-    return statistics.stream().anyMatch(FAILED_PREDICATE) ? StatusEnum.FAILED : StatusEnum.PASSED;
-  }
-
   private final static Predicate<Statistics> FAILED_PREDICATE = statistics -> {
     StatisticsField statisticsField = ofNullable(statistics.getStatisticsField()).orElseThrow(
         () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
@@ -59,6 +52,14 @@ public final class StatisticsHelper {
         (field.contains("failed") || field.contains("skipped") || field.contains("to_investigate"))
             && counter > 0;
   };
+
+  private StatisticsHelper() {
+    //static only
+  }
+
+  public static StatusEnum getStatusFromStatistics(Set<Statistics> statistics) {
+    return statistics.stream().anyMatch(FAILED_PREDICATE) ? StatusEnum.FAILED : StatusEnum.PASSED;
+  }
 
   public static Integer extractStatisticsCount(String statisticsField, Set<Statistics> statistics) {
     return statistics.stream()

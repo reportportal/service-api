@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
+ * Bar or line chart widget: string key to numeric string values.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

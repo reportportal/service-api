@@ -38,6 +38,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
+ * Supported image MIME types for thumbnails and avatars.
+ *
  * @author Dzmitry_Kavalets
  */
 public enum ImageFormat {

@@ -30,6 +30,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * A counter row (pass/fail/etc.) for a test item, launch, or other aggregate.
+ *
  * @author Ivan Budayeu
  */
 @Entity

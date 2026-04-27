@@ -28,6 +28,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
+ * Optional flags when deleting a project (e.g. reassign data).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Data

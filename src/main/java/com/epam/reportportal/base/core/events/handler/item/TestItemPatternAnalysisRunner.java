@@ -26,6 +26,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
+ * Runs pattern analysis when a test item is finished.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
@@ -40,17 +42,17 @@ public class TestItemPatternAnalysisRunner implements
     this.patternsAnalyzer = patternsAnalyzer;
   }
 
+  private static boolean isImmediatePaProvided(TestItemFinishedEvent event) {
+    Optional<ItemAttribute> immediatePa = event.getTestItem().getAttributes().stream()
+        .filter(it -> IMMEDIATE_PATTERN_ANALYSIS.equals(it.getKey())).findAny();
+    return immediatePa.isPresent() && Boolean.parseBoolean(immediatePa.get().getValue());
+  }
+
   @Override
   public void handle(TestItemFinishedEvent event, Map<String, String> config) {
     if (isImmediatePaProvided(event)) {
       patternsAnalyzer.analyze(event.getProjectId(), event.getTestItem().getLaunchId(),
           Collections.singletonList(event.getTestItem().getItemId()));
     }
-  }
-
-  private static boolean isImmediatePaProvided(TestItemFinishedEvent event) {
-    Optional<ItemAttribute> immediatePa = event.getTestItem().getAttributes().stream()
-        .filter(it -> IMMEDIATE_PATTERN_ANALYSIS.equals(it.getKey())).findAny();
-    return immediatePa.isPresent() && Boolean.parseBoolean(immediatePa.get().getValue());
   }
 }

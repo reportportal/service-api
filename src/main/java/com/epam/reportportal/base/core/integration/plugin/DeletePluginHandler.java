@@ -16,11 +16,13 @@
 
 package com.epam.reportportal.base.core.integration.plugin;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Removes a plugin from the runtime and database.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface DeletePluginHandler {

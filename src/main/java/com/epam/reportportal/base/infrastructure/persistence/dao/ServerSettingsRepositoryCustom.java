@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettin
 import java.util.List;
 
 /**
+ * Bulk and typed updates for server settings map.
+ *
  * @author Ivan Budaev
  */
 public interface ServerSettingsRepositoryCustom {

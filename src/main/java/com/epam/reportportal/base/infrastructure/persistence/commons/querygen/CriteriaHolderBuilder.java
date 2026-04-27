@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 import org.jooq.Field;
 
 /**
+ * Fluent builder for {@link CriteriaHolder} entries used in dynamic filters.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 

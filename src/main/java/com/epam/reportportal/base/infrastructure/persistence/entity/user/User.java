@@ -46,6 +46,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 /**
+ * Application user account, credentials, type, and default project/photo metadata.
+ *
  * @author Andrei Varabyeu
  */
 @Getter

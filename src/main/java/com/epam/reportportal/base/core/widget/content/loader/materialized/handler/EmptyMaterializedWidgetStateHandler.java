@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * Handles content loading for widgets whose materialized view is in an EMPTY state.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

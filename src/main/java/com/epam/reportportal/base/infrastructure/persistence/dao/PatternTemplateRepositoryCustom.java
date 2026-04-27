@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.Patt
 import java.util.List;
 
 /**
+ * Custom pattern-template queries (project-scoped and bulk operations).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface PatternTemplateRepositoryCustom {

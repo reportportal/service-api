@@ -22,6 +22,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Request to search the analyzer index for a given test item and launch context.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Getter

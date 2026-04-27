@@ -48,8 +48,6 @@ import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClien
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.base.core.analyzer.auto.indexer.IndexerStatusCache;
-import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
-import com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.ChangeRoleEvent;
 import com.epam.reportportal.base.core.events.domain.NotificationSettingsUpdatedEvent;
@@ -58,6 +56,7 @@ import com.epam.reportportal.base.core.events.domain.ProjectAnalyzerConfigEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectPatternAnalyzerUpdateEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectUpdatedEvent;
+import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.project.UpdateProjectHandler;
 import com.epam.reportportal.base.core.project.validator.attribute.OrganizationRetentionLimitValidator;
 import com.epam.reportportal.base.core.project.validator.attribute.ProjectAttributeValidator;
@@ -105,6 +104,7 @@ import com.epam.reportportal.base.util.email.MailServiceFactory;
 import com.epam.reportportal.base.ws.converter.converters.NotificationConfigConverter;
 import com.epam.reportportal.base.ws.converter.converters.ProjectConverter;
 import com.epam.reportportal.base.ws.converter.converters.UserConverter;
+import com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -123,6 +123,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
+ * Updates project metadata, users, and indexing.
+ *
  * @author Pavel Bortnik
  */
 @Service

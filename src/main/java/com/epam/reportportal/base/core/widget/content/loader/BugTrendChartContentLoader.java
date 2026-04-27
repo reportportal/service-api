@@ -34,6 +34,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Loads bug trend data for the Bug Trend Chart widget.
+ *
  * @author Pavel Bortnik
  */
 @Service

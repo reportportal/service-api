@@ -17,15 +17,17 @@
 package com.epam.reportportal.base.core.analyzer.pattern.service;
 
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplateTestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.Set;
 
 /**
+ * Applies pattern rules to a launch and records matches on test items.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface LaunchPatternAnalyzer {

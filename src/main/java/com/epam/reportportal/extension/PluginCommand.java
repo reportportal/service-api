@@ -5,6 +5,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import java.util.Map;
 
 /**
+ * Plugin command that is executed against an existing
+ * {@link com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration}.
+ *
+ * @param <T> the return type of the command
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface PluginCommand<T> extends NamedPluginCommand {
@@ -24,6 +28,7 @@ public interface PluginCommand<T> extends NamedPluginCommand {
   /**
    * Executes plugin command with provided PluginCommandRQ.
    *
+   * @param integration     Configured ReportPortal integration
    * @param pluginCommandRq Plugin command request object
    * @return Result
    */

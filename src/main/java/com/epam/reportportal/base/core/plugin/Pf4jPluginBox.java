@@ -24,6 +24,8 @@ import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
 /**
+ * PF4J lifecycle and file access for a ReportPortal plugin.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface Pf4jPluginBox extends PluginBox {
@@ -60,7 +62,7 @@ public interface Pf4jPluginBox extends PluginBox {
   /**
    * Delete plugin by id
    *
-   * @param pluginId {@link IntegrationType#getName()}
+   * @param pluginId {@code IntegrationType#getName()}
    * @return 'true' if a plugin was successfully deleted, else 'false'
    */
   boolean deletePlugin(String pluginId);

@@ -52,92 +52,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
+ * S3 and binary data access beans for attachments and avatars.
+ *
  * @author Dzianis_Shybeka
  */
 @Configuration
 public class DataStoreConfiguration {
-
-  /**
-   * Amazon has a general work flow they publish that allows clients to always find the correct URL endpoint for a given
-   * bucket: 1) ask s3.amazonaws.com for the bucket location 2) use the url returned to make the container specific
-   * request (get/put, etc.) Jclouds cache the results from the first getBucketLocation call and use that
-   * region-specific URL, as needed. In this custom implementation of {@link AWSS3HttpApiModule} we are providing
-   * location from environment variable, so that we don't need to make getBucketLocation call
-   */
-  @ConfiguresHttpApi
-  private static class CustomBucketToRegionModule extends AWSS3HttpApiModule {
-
-    private final String region;
-
-    public CustomBucketToRegionModule(String region) {
-      this.region = region;
-    }
-
-    @Override
-    @SuppressWarnings("Guava")
-    protected CacheLoader<String, Optional<String>> bucketToRegion(
-        Supplier<Set<String>> regionSupplier, S3Client client) {
-      Set<String> regions = regionSupplier.get();
-      if (regions.isEmpty()) {
-        return new CacheLoader<>() {
-
-          @Override
-          @SuppressWarnings({"Guava", "NullableProblems"})
-          public Optional<String> load(String bucket) {
-            if (CustomBucketToRegionModule.this.region != null) {
-              return Optional.of(CustomBucketToRegionModule.this.region);
-            }
-            return Optional.absent();
-          }
-
-          @Override
-          public String toString() {
-            return "noRegions()";
-          }
-        };
-      } else if (regions.size() == 1) {
-        final String onlyRegion = Iterables.getOnlyElement(regions);
-        return new CacheLoader<>() {
-          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-          final Optional<String> onlyRegionOption = Optional.of(onlyRegion);
-
-          @Override
-          @SuppressWarnings("NullableProblems")
-          public Optional<String> load(String bucket) {
-            if (CustomBucketToRegionModule.this.region != null) {
-              return Optional.of(CustomBucketToRegionModule.this.region);
-            }
-            return onlyRegionOption;
-          }
-
-          @Override
-          public String toString() {
-            return "onlyRegion(" + onlyRegion + ")";
-          }
-        };
-      } else {
-        return new CacheLoader<>() {
-          @Override
-          @SuppressWarnings("NullableProblems")
-          public Optional<String> load(String bucket) {
-            if (CustomBucketToRegionModule.this.region != null) {
-              return Optional.of(CustomBucketToRegionModule.this.region);
-            }
-            try {
-              return Optional.fromNullable(client.getBucketLocation(bucket));
-            } catch (ContainerNotFoundException e) {
-              return Optional.absent();
-            }
-          }
-
-          @Override
-          public String toString() {
-            return "bucketToRegion()";
-          }
-        };
-      }
-    }
-  }
 
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "filesystem")
@@ -298,5 +218,87 @@ public class DataStoreConfiguration {
   @Bean
   public ContentTypeResolver contentTypeResolver() {
     return new TikaContentTypeResolver();
+  }
+
+  /**
+   * Amazon has a general work flow they publish that allows clients to always find the correct URL endpoint for a given
+   * bucket: 1) ask s3.amazonaws.com for the bucket location 2) use the url returned to make the container specific
+   * request (get/put, etc.) Jclouds cache the results from the first getBucketLocation call and use that
+   * region-specific URL, as needed. In this custom implementation of {@link AWSS3HttpApiModule} we are providing
+   * location from environment variable, so that we don't need to make getBucketLocation call
+   */
+  @ConfiguresHttpApi
+  private static class CustomBucketToRegionModule extends AWSS3HttpApiModule {
+
+    private final String region;
+
+    public CustomBucketToRegionModule(String region) {
+      this.region = region;
+    }
+
+    @Override
+    @SuppressWarnings("Guava")
+    protected CacheLoader<String, Optional<String>> bucketToRegion(
+        Supplier<Set<String>> regionSupplier, S3Client client) {
+      Set<String> regions = regionSupplier.get();
+      if (regions.isEmpty()) {
+        return new CacheLoader<>() {
+
+          @Override
+          @SuppressWarnings({"Guava", "NullableProblems"})
+          public Optional<String> load(String bucket) {
+            if (CustomBucketToRegionModule.this.region != null) {
+              return Optional.of(CustomBucketToRegionModule.this.region);
+            }
+            return Optional.absent();
+          }
+
+          @Override
+          public String toString() {
+            return "noRegions()";
+          }
+        };
+      } else if (regions.size() == 1) {
+        final String onlyRegion = Iterables.getOnlyElement(regions);
+        return new CacheLoader<>() {
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+          final Optional<String> onlyRegionOption = Optional.of(onlyRegion);
+
+          @Override
+          @SuppressWarnings("NullableProblems")
+          public Optional<String> load(String bucket) {
+            if (CustomBucketToRegionModule.this.region != null) {
+              return Optional.of(CustomBucketToRegionModule.this.region);
+            }
+            return onlyRegionOption;
+          }
+
+          @Override
+          public String toString() {
+            return "onlyRegion(" + onlyRegion + ")";
+          }
+        };
+      } else {
+        return new CacheLoader<>() {
+          @Override
+          @SuppressWarnings("NullableProblems")
+          public Optional<String> load(String bucket) {
+            if (CustomBucketToRegionModule.this.region != null) {
+              return Optional.of(CustomBucketToRegionModule.this.region);
+            }
+            try {
+              return Optional.fromNullable(client.getBucketLocation(bucket));
+            } catch (ContainerNotFoundException e) {
+              return Optional.absent();
+            }
+          }
+
+          @Override
+          public String toString() {
+            return "bucketToRegion()";
+          }
+        };
+      }
+    }
   }
 }

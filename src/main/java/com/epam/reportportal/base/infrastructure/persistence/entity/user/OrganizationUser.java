@@ -33,6 +33,8 @@ import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 /**
+ * Join of a user to an organization and org-level role.
+ *
  * @author Siarhei Hrabko
  */
 @Entity

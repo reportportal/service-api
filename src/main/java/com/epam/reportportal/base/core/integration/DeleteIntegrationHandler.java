@@ -16,11 +16,13 @@
 
 package com.epam.reportportal.base.core.integration;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 
 /**
+ * Handler for deleting project or global integrations.
+ *
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 public interface DeleteIntegrationHandler {

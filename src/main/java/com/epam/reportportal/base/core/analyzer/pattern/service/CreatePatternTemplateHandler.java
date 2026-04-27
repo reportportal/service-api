@@ -16,11 +16,13 @@
 
 package com.epam.reportportal.base.core.analyzer.pattern.service;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
-import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 
 /**
+ * Persists a new string or regex pattern for a project.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface CreatePatternTemplateHandler {

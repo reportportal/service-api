@@ -21,13 +21,11 @@ import com.epam.reportportal.base.model.OwnedEntityResource;
 import java.util.function.Function;
 
 /**
+ * Shared base mappings for JPA auditable or common column fields.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public final class BaseEntityConverter {
-
-  private BaseEntityConverter() {
-    //static only
-  }
 
   public static final Function<? super OwnedEntity, OwnedEntityResource> TO_OWNED_ENTITY =
       shareable -> {
@@ -36,4 +34,8 @@ public final class BaseEntityConverter {
         ownedEntity.setOwner(shareable.getOwner());
         return ownedEntity;
       };
+
+  private BaseEntityConverter() {
+    //static only
+  }
 }

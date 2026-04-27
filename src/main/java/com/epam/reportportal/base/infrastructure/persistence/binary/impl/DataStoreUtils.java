@@ -29,27 +29,21 @@ import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * Path and validation helpers for binary data keys.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class DataStoreUtils {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataStoreUtils.class);
-
-  private static final String THUMBNAIL_PREFIX = "thumbnail-";
-
-  private static final String DOT = ".";
-
-  static final String ROOT_USER_PHOTO_DIR = "users";
-
   public static final String ATTACHMENT_CONTENT_TYPE = "attachmentContentType";
-
-  static final String PROJECT_PATH = "project-data";
-
-  static final String USER_DATA_PATH = "user-data";
-
-  static final String PHOTOS_PATH = "photos";
-
   public static final String INTEGRATION_SECRETS_PATH = "integration-secrets";
+  static final String ROOT_USER_PHOTO_DIR = "users";
+  static final String PROJECT_PATH = "project-data";
+  static final String USER_DATA_PATH = "user-data";
+  static final String PHOTOS_PATH = "photos";
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataStoreUtils.class);
+  private static final String THUMBNAIL_PREFIX = "thumbnail-";
+  private static final String DOT = ".";
 
   private DataStoreUtils() {
     //static only

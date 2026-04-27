@@ -39,6 +39,8 @@ import org.hibernate.annotations.Type;
 
 
 /**
+ * User-defined or system widget: type, filters, and links to content and shared filters.
+ *
  * @author Pavel Bortnik
  */
 @Entity

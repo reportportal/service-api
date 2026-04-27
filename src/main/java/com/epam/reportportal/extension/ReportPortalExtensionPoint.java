@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.pf4j.ExtensionPoint;
 
 /**
+ * PF4J extension point that every ReportPortal plugin must implement to expose its commands and parameters.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface ReportPortalExtensionPoint extends ExtensionPoint {

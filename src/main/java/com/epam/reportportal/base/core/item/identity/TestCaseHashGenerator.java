@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import java.util.List;
 
 /**
+ * Produces a stable test case id hash from a test item and parents.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface TestCaseHashGenerator {

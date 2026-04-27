@@ -28,6 +28,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
+ * Requires a non-blank string within min/max length; empty string is valid if min is 0.
+ *
  * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
  */
 @Target({FIELD, METHOD})

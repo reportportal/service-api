@@ -29,6 +29,8 @@ import java.util.Objects;
 import org.springframework.data.annotation.LastModifiedDate;
 
 /**
+ * One-time token row for the forgot-password e-mail flow.
+ *
  * @author Ivan Budaev
  */
 @Entity

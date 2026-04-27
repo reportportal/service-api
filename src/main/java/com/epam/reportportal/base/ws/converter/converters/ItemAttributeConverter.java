@@ -25,16 +25,13 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
+ * Converts key/value item attributes for launches, items, and logs.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class ItemAttributeConverter {
 
   public static final int MAX_ATTRIBUTE_LENGTH = 512;
-
-  private ItemAttributeConverter() {
-    //static only
-  }
-
   public static final Function<ItemAttributeResource, ItemAttribute> FROM_RESOURCE = it -> {
     ItemAttribute itemAttribute = new ItemAttribute();
 
@@ -56,16 +53,18 @@ public class ItemAttributeConverter {
     }
     return itemAttribute;
   };
-
   public static final BiFunction<ItemAttributesRQ, Launch, ItemAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
     ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
     itemAttribute.setLaunch(launch);
     return itemAttribute;
   };
-
   public static final BiFunction<ItemAttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
     ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
     itemAttribute.setTestItem(item);
     return itemAttribute;
   };
+
+  private ItemAttributeConverter() {
+    //static only
+  }
 }

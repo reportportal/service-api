@@ -25,15 +25,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Helpers to consume paged data by iterating with {@code Page} or list suppliers.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class PageUtil {
 
+  private static final int DEFAULT_PAGE_SIZE = 50;
+
   private PageUtil() {
     //static only
   }
-
-  private static final int DEFAULT_PAGE_SIZE = 50;
 
   /**
    * Iterates over all pages found

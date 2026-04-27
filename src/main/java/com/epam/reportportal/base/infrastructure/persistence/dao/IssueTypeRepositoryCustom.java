@@ -19,10 +19,10 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import java.util.Collection;
 import java.util.List;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 /**
+ * jOOQ for project-scoped issue type CRUD and locator checks.
+ *
  * @author Pavel Bortnik
  */
 public interface IssueTypeRepositoryCustom {

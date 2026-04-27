@@ -25,6 +25,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Response after creating a user (id, login, email, optional message).
+ *
  * @author Aliaksandr_Kazantsau
  */
 

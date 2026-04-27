@@ -20,16 +20,16 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.TOTAL;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
+import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
+ * Constants class holding compiled regex patterns for validating {@link Widget#contentFields}.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
- * <p>
- * Regex patterns for @{@link Widget#contentFields} validation
  */
 public final class ContentFieldPatternConstants {
 

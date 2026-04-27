@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
+ * Server-side state for a user's onboarding and tutorial progress (jsonb).
+ *
  * @author Antonov Maksim
  */
 public class Onboarding implements Serializable {

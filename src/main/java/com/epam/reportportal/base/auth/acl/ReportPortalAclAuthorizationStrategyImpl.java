@@ -26,6 +26,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
+ * Custom ACL change authorization allowing registered users per ReportPortal rules.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ReportPortalAclAuthorizationStrategyImpl extends AclAuthorizationStrategyImpl {

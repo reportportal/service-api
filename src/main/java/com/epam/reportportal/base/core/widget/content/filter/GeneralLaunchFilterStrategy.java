@@ -29,6 +29,8 @@ import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 
 /**
+ * General-purpose filter strategy that builds a launch filter from the widget's linked user filter.
+ *
  * @author Pavel Bortnik
  */
 @Service("generalLaunchFilterStrategy")

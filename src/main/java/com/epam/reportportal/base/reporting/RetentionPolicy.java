@@ -17,6 +17,9 @@
 package com.epam.reportportal.base.reporting;
 
 /**
+ * Defines the retention policy for test items, distinguishing between important and regular items for cleanup
+ * purposes.
+ *
  * @author Ivan Kustau
  */
 public enum RetentionPolicy {

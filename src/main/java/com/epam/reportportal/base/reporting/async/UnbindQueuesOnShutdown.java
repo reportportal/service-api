@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
+ * Unbinds RabbitMQ queues from exchanges on application shutdown to prevent message routing to stopping instances.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component

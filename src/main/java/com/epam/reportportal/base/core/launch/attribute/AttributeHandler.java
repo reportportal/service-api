@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 
 /**
+ * Applies a launch attribute such as retention policy.
+ *
  * @author Ivan Kustau
  */
 public interface AttributeHandler {

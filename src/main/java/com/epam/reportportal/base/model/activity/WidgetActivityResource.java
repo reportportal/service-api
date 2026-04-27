@@ -25,6 +25,8 @@ import java.util.Set;
 import lombok.Data;
 
 /**
+ * Activity payload for widget changes on a dashboard.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Data

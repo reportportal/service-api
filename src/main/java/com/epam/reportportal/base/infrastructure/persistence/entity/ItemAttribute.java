@@ -31,6 +31,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * Name/value (and system flag) attribute attached to a test item, launch, or other entity.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Entity

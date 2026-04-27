@@ -40,9 +40,16 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.MapUtils;
 
 /**
+ * Base content loader providing common statistics querying logic for statistics-based widget implementations.
+ *
  * @author Andrei_Ramanchuk
  */
 public abstract class AbstractStatisticsContentLoader {
+
+  private static String instantToFormattedString(Instant date, String pattern) {
+    return date.atOffset(ZoneOffset.UTC).toLocalDateTime()
+        .format(DateTimeFormatter.ofPattern(pattern));
+  }
 
   /**
    * Return lists of objects grouped by specified period
@@ -83,6 +90,14 @@ public abstract class AbstractStatisticsContentLoader {
     return chart;
   }
 
+  /**
+   * Groups chart rows and keeps the max value per bucket for {@code contentField} within the period.
+   *
+   * @param statisticsContents input points
+   * @param period             time bucket
+   * @param contentField       value key to compare
+   * @return max-by-date map
+   */
   protected Map<String, ChartStatisticsContent> maxByDate(
       List<ChartStatisticsContent> statisticsContents, Period period,
       String contentField) {
@@ -156,11 +171,6 @@ public abstract class AbstractStatisticsContentLoader {
 
   }
 
-  private static String instantToFormattedString(Instant date, String pattern) {
-    return date.atOffset(ZoneOffset.UTC).toLocalDateTime()
-        .format(DateTimeFormatter.ofPattern(pattern));
-  }
-
   private void proceedMonthlyChart(Map<String, ChartStatisticsContent> chart, Instant intermediate,
       Instant end,
       List<ChartStatisticsContent> statisticsContents) {
@@ -208,17 +218,34 @@ public abstract class AbstractStatisticsContentLoader {
       this.value = value;
     }
 
-    public int getValue() {
-      return value;
-    }
-
+    /**
+     * Whether a period constant exists for the name.
+     *
+     * @param name case-insensitive constant name
+     * @return true if found
+     */
     public static boolean isPresent(String name) {
       return findByName(name).isPresent();
     }
 
+    /**
+     * Resolves a period by name.
+     *
+     * @param name case-insensitive constant name
+     * @return matching period if any
+     */
     public static Optional<Period> findByName(String name) {
       return Arrays.stream(Period.values()).filter(time -> time.name().equalsIgnoreCase(name))
           .findAny();
+    }
+
+    /**
+     * Returns the period scale.
+     *
+     * @return numeric value
+     */
+    public int getValue() {
+      return value;
     }
   }
 }

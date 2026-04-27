@@ -5,9 +5,9 @@ on:
     types: [submitted]
     branches:
       - main
+      - master
 
 jobs:
-  # Filters: PR must be approved, targeting main, from a secure/* branch.
   extract-image-tag:
     name: Extract image tag from PR title
     if: >-
@@ -22,7 +22,7 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          IMAGE_TAG=$(echo "${PR_TITLE}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-r[0-9]+' | head -1)
+          IMAGE_TAG=$(echo "${PR_TITLE}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-rc?[0-9]+' | tail -1)
           if [ -z "${IMAGE_TAG}" ]; then
             echo "::error::Could not extract a version tag (x.x.x-rx) from PR title: '${PR_TITLE}'"
             exit 1
@@ -36,8 +36,11 @@ jobs:
     uses: reportportal/.github/.github/workflows/promote-ecr-to-gcr.yaml@main
     with:
       service: ${{ github.event.repository.name }}
-      gcr-region: ${{ vars.GCR_REGION || 'europe-docker.pkg.dev' }}
-      gcp-project: ${{ vars.GCP_PROJECT }}
       image-tag: ${{ needs.extract-image-tag.outputs.image-tag }}
-      aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
-    secrets: inherit
+      aws-region: ${{ vars.AWS_REGION }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCR_REGION: ${{ secrets.GCR_REGION }}
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT }}

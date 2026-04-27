@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * Historical snapshot mapping for a retried or copied test item (id chain).
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class TestItemHistory implements Serializable {

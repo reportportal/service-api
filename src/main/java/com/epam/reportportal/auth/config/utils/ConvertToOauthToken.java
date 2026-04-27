@@ -43,6 +43,9 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Refr
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
 
 /**
+ * Converts an OAuth2 authentication request into a ReportPortal OAuth2 access token using
+ * {@link com.epam.reportportal.auth.TokenServicesFacade}.
+ *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class ConvertToOauthToken {

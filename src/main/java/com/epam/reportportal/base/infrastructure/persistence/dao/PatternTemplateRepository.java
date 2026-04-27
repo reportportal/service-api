@@ -23,6 +23,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for string and regex pattern templates.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface PatternTemplateRepository extends ReportPortalRepository<PatternTemplate, Long>,

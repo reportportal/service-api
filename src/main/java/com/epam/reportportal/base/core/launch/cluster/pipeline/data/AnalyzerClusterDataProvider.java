@@ -30,6 +30,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
+ * Base provider that fetches cluster data from the analyzer service.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AnalyzerClusterDataProvider implements ClusterDataProvider {

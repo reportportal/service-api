@@ -19,11 +19,26 @@ package com.epam.reportportal.extension;
 import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 
-
+/**
+ * Plugin command that validates the caller's role, then runs {@link #invokeCommand(PluginCommandRQ)}.
+ *
+ * @param <T> command return type
+ */
 public abstract class AbstractContextBasedCommand<T> implements CommonPluginCommand<T> {
 
+  /**
+   * Ensures the current principal may run this command in the given context.
+   *
+   * @param commandContext request context (project, user, etc.)
+   */
   protected abstract void validateRole(PluginCommandContext commandContext);
 
+  /**
+   * Runs the command body after role validation.
+   *
+   * @param pluginCommandRq full request payload
+   * @return command result
+   */
   protected abstract T invokeCommand(PluginCommandRQ pluginCommandRq);
 
   @Override

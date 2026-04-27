@@ -35,6 +35,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
+ * Handles the retention policy launch attribute.
+ *
  * @author Ivan Kustau
  */
 @Component

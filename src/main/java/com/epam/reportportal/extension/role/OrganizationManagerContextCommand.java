@@ -24,6 +24,9 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 
 /**
+ * Abstract context-based plugin command that requires at least the {@code MANAGER} organization role.
+ *
+ * @param <T> the return type of the command
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class OrganizationManagerContextCommand<T> extends OrganizationMemberContextCommand<T> {

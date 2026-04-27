@@ -27,6 +27,9 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import org.springframework.stereotype.Component;
 
 /**
+ * Resolves the current {@link com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetState} from
+ * widget options.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component

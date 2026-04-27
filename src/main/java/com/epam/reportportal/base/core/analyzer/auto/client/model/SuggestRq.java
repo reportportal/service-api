@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Set;
 
 /**
+ * Request to the auto-analyzer suggest service for a test item.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

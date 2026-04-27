@@ -43,6 +43,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
+ * Scheduled job that removes old plugin JARs from the plugins storage location.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Conditional(Conditions.NotTestCondition.class)

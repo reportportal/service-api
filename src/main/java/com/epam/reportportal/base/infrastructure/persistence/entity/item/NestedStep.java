@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
+ * A nested test step: type, has children, and duration metadata for tree views.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class NestedStep implements Serializable {

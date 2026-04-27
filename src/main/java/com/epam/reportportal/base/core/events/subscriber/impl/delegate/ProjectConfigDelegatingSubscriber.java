@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Subscriber that delegates event handling to configured handlers with project-specific configuration. Events must
- * override {@link AbstractEvent#getProjectId()} to provide the project ID.
+ * override {@code AbstractEvent#getProjectId()} to provide the project ID.
  *
  * @param <T> Event type that has a projectId
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

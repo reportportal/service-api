@@ -25,6 +25,7 @@ import lombok.Getter;
  * Paged response  representation Re-implementation of Spring's HATEAOS Page implementation to get rid of Spring's deps
  * in model package
  *
+ * @param <T> type of items in the page
  * @author Andrei Varabyeu
  */
 @Getter
@@ -55,9 +56,24 @@ public class Page<T> implements Iterable<T> {
     this.page = new PageMetadata(size, number, totalElements);
   }
 
+  private static void checkArgument(boolean expression, String errorMessage) {
+    if (!expression) {
+      throw new IllegalArgumentException(errorMessage);
+    }
+  }
+
   @Override
   public Iterator<T> iterator() {
     return content.iterator();
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("Page{");
+    sb.append("content=").append(content);
+    sb.append(", page=").append(page);
+    sb.append('}');
+    return sb.toString();
   }
 
   @Getter
@@ -101,21 +117,6 @@ public class Page<T> implements Iterable<T> {
       sb.append(", totalPages=").append(totalPages);
       sb.append('}');
       return sb.toString();
-    }
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("Page{");
-    sb.append("content=").append(content);
-    sb.append(", page=").append(page);
-    sb.append('}');
-    return sb.toString();
-  }
-
-  private static void checkArgument(boolean expression, String errorMessage) {
-    if (!expression) {
-      throw new IllegalArgumentException(errorMessage);
     }
   }
 }

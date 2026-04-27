@@ -41,6 +41,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Server-wide admin settings (storage, features, and related configuration).
+ *
  * @author Andrei_Ramanchuk
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */

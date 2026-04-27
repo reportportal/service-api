@@ -30,13 +30,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * Serializes project-level settings (defect, analyzer, email) to API models.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public final class ProjectSettingsConverter {
-
-  private ProjectSettingsConverter() {
-    //static only
-  }
 
   public static final Function<ProjectInfo, ProjectInfoResource> TO_PROJECT_INFO_RESOURCE =
       project -> {
@@ -54,7 +52,6 @@ public final class ProjectSettingsConverter {
         resource.setOrganizationId(project.getOrganizationId());
         return resource;
       };
-
   public static final Function<IssueType, IssueSubTypeResource> TO_SUBTYPE_RESOURCE = issueType -> {
     IssueSubTypeResource issueSubTypeResource = new IssueSubTypeResource();
     issueSubTypeResource.setId(issueType.getId());
@@ -65,14 +62,12 @@ public final class ProjectSettingsConverter {
     issueSubTypeResource.setTypeRef(issueType.getIssueGroup().getTestItemIssueGroup().getValue());
     return issueSubTypeResource;
   };
-
   public static final Function<List<IssueType>, Map<String, List<IssueSubTypeResource>>>
       TO_PROJECT_SUB_TYPES_RESOURCE =
       issueTypes -> issueTypes.stream().collect(Collectors.groupingBy(
           it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
           Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
       ));
-
   public static final Function<Project, ProjectSettingsResource> TO_PROJECT_SETTINGS_RESOURCE =
       project -> {
         ProjectSettingsResource resource = new ProjectSettingsResource();
@@ -82,5 +77,9 @@ public final class ProjectSettingsConverter {
                 .collect(Collectors.toList())));
         return resource;
       };
+
+  private ProjectSettingsConverter() {
+    //static only
+  }
 
 }

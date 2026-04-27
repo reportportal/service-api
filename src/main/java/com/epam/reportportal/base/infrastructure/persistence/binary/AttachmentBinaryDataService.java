@@ -25,6 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 /**
+ * Per-attachment read and write to binary storage.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface AttachmentBinaryDataService {

@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.ws.converter.resource.handler.attribute;
 
 /**
+ * Classification of item attributes (public, system, or unresolved) for resource handling.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum ItemAttributeType {

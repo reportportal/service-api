@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Da
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.DashboardWidgetId;
 
 /**
+ * Junction of dashboards and placed widgets.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public interface DashboardWidgetRepository extends

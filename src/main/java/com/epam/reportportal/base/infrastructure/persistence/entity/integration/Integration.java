@@ -39,6 +39,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
+ * A configured instance of an integration (plugin) for a project, with name and group.
+ *
  * @author Yauheni_Martynau
  */
 @Entity

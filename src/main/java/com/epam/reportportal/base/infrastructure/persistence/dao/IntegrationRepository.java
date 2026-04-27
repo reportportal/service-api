@@ -30,6 +30,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
+ * Spring Data repository for integration plugin instances.
+ *
  * @author Ivan Budayeu
  * @author Andrei Varabyeu
  */
@@ -50,15 +52,15 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
   Optional<Integration> findByIdAndProjectId(Long id, Long projectId);
 
   /**
-   * @param name              {@link Integration#getName()}
-   * @param integrationTypeId {@link Integration#getType()}#{@link IntegrationType#getId()}
+   * @param name              {@code Integration#getName()}
+   * @param integrationTypeId {@code Integration#getType()}#{@code IntegrationType#getId()}
    * @return {@link Optional} with {@link Integration}
    */
   Optional<Integration> findByNameAndTypeIdAndProjectIdIsNull(String name, Long integrationTypeId);
 
   /**
-   * @param id                {@link Integration#getId()} ()}
-   * @param integrationTypeId {@link Integration#getType()}#{@link IntegrationType#getId()}
+   * @param id                {@code Integration#getId()}
+   * @param integrationTypeId {@code Integration#getType()}#{@code IntegrationType#getId()}
    * @return {@link Optional} with {@link Integration}
    */
   Optional<Integration> findByIdAndTypeIdAndProjectIdIsNull(Long id, Long integrationTypeId);

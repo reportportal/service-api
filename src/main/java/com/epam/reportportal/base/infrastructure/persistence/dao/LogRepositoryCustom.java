@@ -33,6 +33,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
+ * Paged and nested log search, statistics, and streams.
+ *
  * @author Pavel Bortnik
  */
 public interface LogRepositoryCustom extends FilterableRepository<Log> {
@@ -215,10 +217,6 @@ public interface LogRepositoryCustom extends FilterableRepository<Log> {
    */
   List<LogPageEntry> findLogIdsWithPage(Queryable filter, Pageable pageable);
 
-  record LogPageEntry(Long id, Integer pageNumber, Integer logLevel) {
-
-  }
-
   /**
    * Retrieves log message id of specified test item with log level greater or equals than {@code level}
    *
@@ -232,4 +230,8 @@ public interface LogRepositoryCustom extends FilterableRepository<Log> {
       Integer level);
 
   int deleteByProjectId(Long projectId);
+
+  record LogPageEntry(Long id, Integer pageNumber, Integer logLevel) {
+
+  }
 }

@@ -28,6 +28,8 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 
 /**
+ * Instantiates PF4J extension classes with Spring autowiring support.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ReportPortalExtensionFactory extends DefaultExtensionFactory {

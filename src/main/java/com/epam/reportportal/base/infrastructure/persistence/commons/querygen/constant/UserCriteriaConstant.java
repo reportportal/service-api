@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant;
 
 /**
+ * Field names for user/assignment filtering (criteria keys).
+ *
  * @author Ivan Budaev
  */
 public final class UserCriteriaConstant {

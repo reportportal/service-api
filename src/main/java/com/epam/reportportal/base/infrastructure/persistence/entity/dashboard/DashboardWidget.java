@@ -29,6 +29,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Placement of a {@link Widget} on a {@link Dashboard} (order, size, and position in layout).
+ *
  * @author Pavel Bortnik
  */
 @Setter

@@ -78,6 +78,8 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 /**
+ * {@link LaunchRepositoryCustom} jOOQ implementation.
+ *
  * @author Pavel Bortnik
  */
 @Repository

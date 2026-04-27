@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Lists project email notification rules.
+ *
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 @Service

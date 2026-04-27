@@ -22,6 +22,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import java.util.function.Supplier;
 
 /**
+ * Maps issue type request models to persistent issue type entities.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class IssueTypeBuilder implements Supplier<IssueType> {

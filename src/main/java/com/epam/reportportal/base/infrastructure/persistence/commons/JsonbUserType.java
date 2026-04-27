@@ -39,6 +39,9 @@ import org.postgresql.util.PGobject;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * Hibernate user type mapping PostgreSQL {@code jsonb} to a Java object.
+ *
+ * @param <T> JSON value type
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public abstract class JsonbUserType<T> implements UserType<T> {

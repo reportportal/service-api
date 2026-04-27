@@ -21,6 +21,8 @@ import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 
 /**
+ * Key/value parameter for a data-driven or parameterized test, embedded in {@link TestItem}.
+ *
  * @author Pavel Bortnik
  */
 @Embeddable

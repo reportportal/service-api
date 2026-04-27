@@ -24,6 +24,8 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.util.Assert;
 
 /**
+ * Class loader helper for scheduled job classes in the ReportPortal package.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ReportPortalClassLoadHelper extends ResourceLoaderClassLoadHelper {

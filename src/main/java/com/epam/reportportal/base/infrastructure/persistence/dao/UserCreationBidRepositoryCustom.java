@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 /**
+ * Token cleanup and custom lookup for self-registration bids.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface UserCreationBidRepositoryCustom {

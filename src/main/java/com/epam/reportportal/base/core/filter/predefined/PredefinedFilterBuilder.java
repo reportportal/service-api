@@ -21,6 +21,8 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 
 /**
+ * Builds a query for built-in filter shortcuts (e.g. latest, collapsed).
+ *
  * @author Andrei Varabyeu
  */
 public abstract class PredefinedFilterBuilder {

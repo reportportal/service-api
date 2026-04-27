@@ -20,6 +20,8 @@ import com.epam.reportportal.base.core.item.merge.LaunchMergeStrategy;
 import java.util.Map;
 
 /**
+ * Produces a merge strategy for the requested type.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LaunchMergeFactory {

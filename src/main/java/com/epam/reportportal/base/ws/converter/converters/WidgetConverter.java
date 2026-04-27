@@ -33,6 +33,8 @@ import com.google.common.collect.Sets;
 import java.util.function.Function;
 
 /**
+ * Serializes widget definitions and their content to reporting models.
+ *
  * @author Pavel Bortnik
  */
 public class WidgetConverter {

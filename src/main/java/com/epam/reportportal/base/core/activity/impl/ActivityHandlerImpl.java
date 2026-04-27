@@ -63,6 +63,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
+ * Default implementation of {@link com.epam.reportportal.base.core.activity.ActivityHandler} that queries the activity
+ * store.
+ *
  * @author Ihar Kahadouski
  */
 @Service

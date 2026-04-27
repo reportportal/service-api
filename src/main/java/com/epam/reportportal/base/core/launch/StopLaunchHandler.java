@@ -24,6 +24,8 @@ import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import java.util.List;
 
 /**
+ * Handler for stopping (force-finishing) a running launch.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface StopLaunchHandler {

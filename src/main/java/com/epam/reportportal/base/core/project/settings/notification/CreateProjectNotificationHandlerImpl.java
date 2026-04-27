@@ -39,6 +39,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
+ * Creates a project email notification rule.
+ *
  * @author <a href="mailto:chingiskhan_kalanov@epam.com">Chingiskhan Kalanov</a>
  */
 @Service

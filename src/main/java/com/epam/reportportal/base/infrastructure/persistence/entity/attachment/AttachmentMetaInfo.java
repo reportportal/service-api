@@ -20,6 +20,8 @@ import com.google.common.base.Preconditions;
 import java.time.Instant;
 
 /**
+ * MinIO or binary-store coordinates for an attachment without loading full JPA state.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class AttachmentMetaInfo {

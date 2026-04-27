@@ -16,11 +16,11 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
-import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
 import com.epam.reportportal.base.infrastructure.model.ActivityResource;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.pattern.PatternTemplate;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.ChartStatisticsContent;
@@ -46,6 +46,8 @@ import java.util.Map;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Fetches and aggregates precomputed widget content for dashboard widgets.
+ *
  * @author Pavel Bortnik
  */
 public interface WidgetContentRepository {

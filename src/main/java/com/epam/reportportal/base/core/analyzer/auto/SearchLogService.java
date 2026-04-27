@@ -21,6 +21,8 @@ import com.epam.reportportal.base.model.log.SearchLogRq;
 import com.epam.reportportal.base.model.log.SearchLogRs;
 
 /**
+ * Searches logs of a test item for display and issue linking.
+ *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface SearchLogService {

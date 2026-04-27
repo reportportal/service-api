@@ -39,14 +39,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Returns user-owned filters for a project.
+ *
  * @author Pavel Bortnik
  */
 @Service
 @Transactional(readOnly = true)
 public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
-  private UserFilterRepository filterRepository;
   private final ProjectExtractor projectExtractor;
+  private UserFilterRepository filterRepository;
 
   @Autowired
   public GetUserFilterHandlerImpl(ProjectExtractor projectExtractor) {

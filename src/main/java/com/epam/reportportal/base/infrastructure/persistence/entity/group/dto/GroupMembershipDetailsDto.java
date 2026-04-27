@@ -19,6 +19,9 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.group.dto;
 /**
  * Group project details DTO.
  *
+ * @param projectId    project identifier
+ * @param projectKey   project key / slug
+ * @param projectRoles project role names the user has in the project
  * @author <a href="mailto:Reingold_Shekhtel@epam.com">Reingold Shekhtel</a>
  */
 public record GroupMembershipDetailsDto(

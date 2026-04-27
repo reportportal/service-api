@@ -261,102 +261,100 @@ class TmsStepServiceImplTest {
     // Given
     var existingSteps = createExistingStepsWithNumbers();
     stepsManualScenario.setSteps(existingSteps);
-
+  
     var stepRQList = stepsScenarioRQ.getSteps();
     var step1 = steps.stream().findFirst().orElseThrow();
     var step2 = steps.stream().skip(1).findFirst().orElseThrow();
-
+  
     when(tmsStepMapper.convertToTmsStep(stepRQList.get(0))).thenReturn(step1);
     when(tmsStepMapper.convertToTmsStep(stepRQList.get(1))).thenReturn(step2);
-
+  
     // When
     tmsStepService.patchSteps(stepsManualScenario, stepsScenarioRQ);
-
+  
     // Then
+    verify(tmsStepAttachmentService).deleteAllBySteps(existingSteps);
+    verify(tmsStepRepository).deleteAll(existingSteps);
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
-    verify(tmsStepRepository).saveAll(steps);
-
-    // Verify that numbers are set correctly (continuing from max existing number)
-    // existingSteps have numbers 0 and 1, so new steps should start from 2
-    assertThat(step1.getNumber()).isEqualTo(2);
-    assertThat(step2.getNumber()).isEqualTo(3);
-
-    // Verify existing steps are still there and new ones are added
-    var allSteps = new HashSet<>(existingSteps);
-    allSteps.addAll(steps);
-    assertThat(stepsManualScenario.getSteps()).isEqualTo(allSteps);
-
-    for (var step : steps) {
-      assertThat(step.getStepsManualScenario()).isEqualTo(stepsManualScenario);
-    }
+    verify(tmsStepRepository).save(step1);
+    verify(tmsStepRepository).save(step2);
+  
+    // Verify that numbers are set correctly (starting from 0 after replace)
+    assertThat(step1.getNumber()).isEqualTo(0);
+    assertThat(step2.getNumber()).isEqualTo(1);
+  
+    assertThat(stepsManualScenario.getSteps()).isNotEqualTo(existingSteps);
+    assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
   }
-
+  
   @Test
   void shouldPatchStepsWhenExistingStepsIsNull() {
     // Given
     stepsManualScenario.setSteps(null);
-
+  
     var stepRQList = stepsScenarioRQ.getSteps();
     var step1 = steps.stream().findFirst().orElseThrow();
     var step2 = steps.stream().skip(1).findFirst().orElseThrow();
-
+  
     when(tmsStepMapper.convertToTmsStep(stepRQList.get(0))).thenReturn(step1);
     when(tmsStepMapper.convertToTmsStep(stepRQList.get(1))).thenReturn(step2);
-
+  
     // When
     tmsStepService.patchSteps(stepsManualScenario, stepsScenarioRQ);
-
+  
     // Then
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
-    verify(tmsStepRepository).saveAll(steps);
-
+    verify(tmsStepRepository).save(step1);
+    verify(tmsStepRepository).save(step2);
+  
     // Verify that numbers are set correctly (starting from 0 when no existing steps)
     assertThat(step1.getNumber()).isEqualTo(0);
     assertThat(step2.getNumber()).isEqualTo(1);
-
+  
     // Verify that steps set was initialized
     assertThat(stepsManualScenario.getSteps()).isNotNull();
     assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
-
+  
     for (var step : steps) {
       assertThat(step.getStepsManualScenario()).isEqualTo(stepsManualScenario);
     }
   }
-
+  
   @Test
   void shouldPatchStepsWhenExistingStepsIsEmpty() {
     // Given
     stepsManualScenario.setSteps(new HashSet<>());
-
+  
     var stepRQList = stepsScenarioRQ.getSteps();
     var step1 = steps.stream().findFirst().orElseThrow();
     var step2 = steps.stream().skip(1).findFirst().orElseThrow();
-
+  
     when(tmsStepMapper.convertToTmsStep(stepRQList.get(0))).thenReturn(step1);
     when(tmsStepMapper.convertToTmsStep(stepRQList.get(1))).thenReturn(step2);
-
+  
     // When
     tmsStepService.patchSteps(stepsManualScenario, stepsScenarioRQ);
-
+  
     // Then
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
     verify(tmsStepAttachmentService).createAttachments(step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(step2, stepRQList.get(1));
-    verify(tmsStepRepository).saveAll(steps);
-
+    verify(tmsStepRepository).save(step1);
+    verify(tmsStepRepository).save(step2);
+  
     // Verify that numbers are set correctly (starting from 0 when existing steps is empty)
     assertThat(step1.getNumber()).isEqualTo(0);
     assertThat(step2.getNumber()).isEqualTo(1);
-
+  
     assertThat(stepsManualScenario.getSteps()).containsExactlyInAnyOrder(step1, step2);
-
+  
     for (var step : steps) {
       assertThat(step.getStepsManualScenario()).isEqualTo(stepsManualScenario);
     }

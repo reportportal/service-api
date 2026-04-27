@@ -89,10 +89,70 @@ public enum ActivityAction {
 
   UPDATE_INSTANCE("updateInstance"),
 
-  CREATE_TEST_CASE("createTestCase"),
-  UPDATE_TEST_CASE("updateTestCase"),
-  DELETE_TEST_CASE("deleteTestCase"),
-
+  //TMS
+  CREATE_TEST_CASE("Created Test Case"),
+  DELETE_TEST_CASE("Deleted Test Case"),
+  // --- Name ---
+  UPDATE_TEST_CASE_NAME("Updated name"),
+  // --- Description ---
+  CREATE_TEST_CASE_DESCRIPTION("Added description"),
+  UPDATE_TEST_CASE_DESCRIPTION("Updated description"),
+  DELETE_TEST_CASE_DESCRIPTION("Deleted description"),
+  // --- Priority ---
+  CREATE_TEST_CASE_PRIORITY("Added priority"),
+  UPDATE_TEST_CASE_PRIORITY("Updated priority"),
+  DELETE_TEST_CASE_PRIORITY("Deleted priority"),
+  // --- Tags (attributes) ---
+  CREATE_TEST_CASE_TAGS("Added tags"),
+  UPDATE_TEST_CASE_TAGS("Updated tags"),
+  DELETE_TEST_CASE_TAGS("Deleted tags"),
+  // --- External ID ---
+  CREATE_TEST_CASE_EXTERNAL_ID("Created external ID"),
+  UPDATE_TEST_CASE_EXTERNAL_ID("Updated external ID"),
+  DELETE_TEST_CASE_EXTERNAL_ID("Deleted external ID"),
+  // --- Test Folder (moving of the test case) ---
+  UPDATE_TEST_CASE_TEST_FOLDER_ID("Updated test folder"),
+  // --- Execution Estimation Time ---
+  CREATE_TEST_CASE_EXECUTION_ESTIMATION_TIME("Added execution estimation time"),
+  UPDATE_TEST_CASE_EXECUTION_ESTIMATION_TIME("Updated execution estimation time"),
+  DELETE_TEST_CASE_EXECUTION_ESTIMATION_TIME("Deleted execution estimation time"),
+  // --- Type ---
+  CREATE_TEST_CASE_TYPE("Added type"),
+  UPDATE_TEST_CASE_TYPE("Updated type"),
+  DELETE_TEST_CASE_TYPE("Deleted type"),
+  // --- Instructions (Manual Scenario) ---
+  CREATE_TEST_CASE_INSTRUCTIONS("Added instructions"),
+  UPDATE_TEST_CASE_INSTRUCTIONS("Updated instructions"),
+  DELETE_TEST_CASE_INSTRUCTIONS("Deleted instructions"),
+  // --- Expected Result (Manual Scenario) ---
+  CREATE_TEST_CASE_EXPECTED_RESULT("Added expected result"),
+  UPDATE_TEST_CASE_EXPECTED_RESULT("Updated expected result"),
+  DELETE_TEST_CASE_EXPECTED_RESULT("Deleted expected result"),
+  // --- Preconditions ---
+  CREATE_TEST_CASE_PRECONDITIONS("Added preconditions"),
+  UPDATE_TEST_CASE_PRECONDITIONS("Updated preconditions"),
+  DELETE_TEST_CASE_PRECONDITIONS("Deleted preconditions"),
+  // --- Preconditions Attachments ---
+  CREATE_TEST_CASE_PRECONDITIONS_ATTACHMENTS("Added preconditions attachments"),
+  UPDATE_TEST_CASE_PRECONDITIONS_ATTACHMENTS("Updated preconditions attachments"),
+  DELETE_TEST_CASE_PRECONDITIONS_ATTACHMENTS("Deleted preconditions attachments"),
+  // --- Steps ---
+  CREATE_TEST_CASE_STEPS("Added steps"),
+  UPDATE_TEST_CASE_STEPS("Updated steps"),
+  DELETE_TEST_CASE_STEPS("Deleted steps"),
+  // --- Requirements ---
+  CREATE_TEST_CASE_REQUIREMENTS("Added requirements"),
+  UPDATE_TEST_CASE_REQUIREMENTS("Updated requirements"),
+  DELETE_TEST_CASE_REQUIREMENTS("Deleted requirements"),
+  // --- Attachments (Manual Scenario) ---
+  CREATE_TEST_CASE_MANUAL_SCENARIO_ATTACHMENTS("Added manual scenario attachments"),
+  UPDATE_TEST_CASE_MANUAL_SCENARIO_ATTACHMENTS("Updated manual scenario attachments"),
+  DELETE_TEST_CASE_MANUAL_SCENARIO_ATTACHMENTS("Deleted manual scenario attachments"),
+  // --- Attachments (Manual Scenario Step) ---
+  CREATE_TEST_CASE_MANUAL_SCENARIO_STEP_ATTACHMENTS("Added manual scenario step attachments"),
+  UPDATE_TEST_CASE_MANUAL_SCENARIO_STEP_ATTACHMENTS("Updated manual scenario step attachments"),
+  DELETE_TEST_CASE_MANUAL_SCENARIO_STEP_ATTACHMENTS("Deleted manual scenario step attachments"),
+  
   CREATE_LOG_TYPE("createLogType"),
   UPDATE_LOG_TYPE("updateLogType"),
   DELETE_LOG_TYPE("deleteLogType");

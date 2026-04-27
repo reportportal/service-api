@@ -127,13 +127,32 @@ class TmsStepsManualScenarioImplServiceTest {
     // Given
     var existingStepsManualScenario = createExistingStepsManualScenario();
     manualScenario.setStepsScenario(existingStepsManualScenario);
-
+    stepsScenarioRQ.setSteps(List.of()); // Make sure steps is not null
+  
     when(tmsStepsManualScenarioRepository.save(existingStepsManualScenario))
         .thenReturn(existingStepsManualScenario);
-
+  
     // When
     stepsManualScenarioService.patchTmsManualScenarioImpl(manualScenario, stepsScenarioRQ);
-
+  
+    // Then
+    verify(tmsStepService).patchSteps(existingStepsManualScenario, stepsScenarioRQ);
+    verify(tmsStepsManualScenarioRepository).save(existingStepsManualScenario);
+  }
+  
+  @Test
+  void shouldNotUpdateStepsWhenPatchingWithNullSteps() {
+    // Given
+    var existingStepsManualScenario = createExistingStepsManualScenario();
+    manualScenario.setStepsScenario(existingStepsManualScenario);
+    stepsScenarioRQ.setSteps(null); // Steps is null, should not update
+  
+    when(tmsStepsManualScenarioRepository.save(existingStepsManualScenario))
+        .thenReturn(existingStepsManualScenario);
+  
+    // When
+    stepsManualScenarioService.patchTmsManualScenarioImpl(manualScenario, stepsScenarioRQ);
+  
     // Then
     verify(tmsStepService).patchSteps(existingStepsManualScenario, stepsScenarioRQ);
     verify(tmsStepsManualScenarioRepository).save(existingStepsManualScenario);

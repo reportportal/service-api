@@ -210,16 +210,15 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
           var after = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               defaultVersion);
-
-          eventPublisher.publishEvent(
-              tmsTestCaseActivityResourceMapper.buildTestCaseUpdatedEvent(
+          
+          tmsTestCaseActivityResourceMapper
+              .buildTestCaseFieldChangedEvents(
                   membershipDetails,
                   user,
                   before,
-                  after
-              )
-          );
-
+                  after)
+              .forEach(eventPublisher::publishEvent);
+          
           return tmsTestCaseMapper.convert(
               existingTestCase, defaultVersion, lastTestCaseExecution
           );
@@ -244,7 +243,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
 
-          tmsTestCaseAttributeService.updateTestCaseAttributes(projectId, existingTestCase,
+          tmsTestCaseAttributeService.patchTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
 
           var defaultVersion = tmsTestCaseVersionService.patchDefaultTestCaseVersion(
@@ -258,16 +257,15 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
           var after = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               defaultVersion);
-
-          eventPublisher.publishEvent(
-              tmsTestCaseActivityResourceMapper.buildTestCaseUpdatedEvent(
+          
+          tmsTestCaseActivityResourceMapper
+              .buildTestCaseFieldChangedEvents(
                   membershipDetails,
                   user,
                   before,
-                  after
-              )
-          );
-
+                  after)
+              .forEach(eventPublisher::publishEvent);
+          
           return tmsTestCaseMapper.convert(
               existingTestCase, defaultVersion, lastTestCaseExecution
           );

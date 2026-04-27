@@ -36,15 +36,18 @@ public class TestCaseActivityResource {
     private String externalId;
 
     private Long testFolderId;
-    private List<String> attributes;
-
+    private List<String> tags;
+    
     private Integer executionEstimationTime;
     private String type;
     
     private String instructions;
     private String expectedResult;
     
-    private List<String> steps;
+    private String steps;
     private String preconditions;
-    private List<String> requirements;
+    private String preconditionsAttachments;
+    private String requirements;
+    private String manualScenarioAttachments;
+    private String manualScenarioStepAttachments;
 }

@@ -4,7 +4,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
-import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttachment.JTmsAttachmentPath;
@@ -20,7 +19,6 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
-import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.Name;
 import org.jooq.Path;
@@ -77,14 +75,14 @@ public class JTmsStep extends TableImpl<JTmsStepRecord> {
     public final TableField<JTmsStepRecord, String> EXPECTED_RESULT = createField(DSL.name("expected_result"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>public.tms_step.steps_manual_scenario_id</code>.
-     */
-    public final TableField<JTmsStepRecord, Long> STEPS_MANUAL_SCENARIO_ID = createField(DSL.name("steps_manual_scenario_id"), SQLDataType.BIGINT, this, "");
-
-    /**
      * The column <code>public.tms_step.number</code>.
      */
     public final TableField<JTmsStepRecord, Integer> NUMBER = createField(DSL.name("number"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
+    /**
+     * The column <code>public.tms_step.steps_manual_scenario_id</code>.
+     */
+    public final TableField<JTmsStepRecord, Long> STEPS_MANUAL_SCENARIO_ID = createField(DSL.name("steps_manual_scenario_id"), SQLDataType.BIGINT, this, "");
 
     private JTmsStep(Name alias, Table<JTmsStepRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -151,11 +149,6 @@ public class JTmsStep extends TableImpl<JTmsStepRecord> {
     @Override
     public Schema getSchema() {
         return aliased() ? null : JPublic.PUBLIC;
-    }
-
-    @Override
-    public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_STEP_SCENARIO_NUMBER);
     }
 
     @Override

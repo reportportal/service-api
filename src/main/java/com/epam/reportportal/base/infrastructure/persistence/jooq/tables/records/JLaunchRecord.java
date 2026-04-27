@@ -249,31 +249,31 @@ public class JLaunchRecord extends UpdatableRecordImpl<JLaunchRecord> {
     }
 
     /**
-     * Setter for <code>public.launch.test_plan_id</code>.
-     */
-    public void setTestPlanId(Long value) {
-        set(16, value);
-    }
-
-    /**
-     * Getter for <code>public.launch.test_plan_id</code>.
-     */
-    public Long getTestPlanId() {
-        return (Long) get(16);
-    }
-
-    /**
      * Setter for <code>public.launch.launch_type</code>.
      */
     public void setLaunchType(JLaunchTypeEnum value) {
-        set(17, value);
+        set(16, value);
     }
 
     /**
      * Getter for <code>public.launch.launch_type</code>.
      */
     public JLaunchTypeEnum getLaunchType() {
-        return (JLaunchTypeEnum) get(17);
+        return (JLaunchTypeEnum) get(16);
+    }
+
+    /**
+     * Setter for <code>public.launch.test_plan_id</code>.
+     */
+    public void setTestPlanId(Long value) {
+        set(17, value);
+    }
+
+    /**
+     * Getter for <code>public.launch.test_plan_id</code>.
+     */
+    public Long getTestPlanId() {
+        return (Long) get(17);
     }
 
     /**
@@ -313,7 +313,7 @@ public class JLaunchRecord extends UpdatableRecordImpl<JLaunchRecord> {
     /**
      * Create a detached, initialised JLaunchRecord
      */
-    public JLaunchRecord(Long id, String uuid, Long projectId, Long userId, String name, String description, Instant startTime, Instant endTime, Integer number, Instant lastModified, JLaunchModeEnum mode, JStatusEnum status, Boolean hasRetries, Boolean rerun, Double approximateDuration, JRetentionPolicyEnum retentionPolicy, Long testPlanId, JLaunchTypeEnum launchType, String displayId) {
+    public JLaunchRecord(Long id, String uuid, Long projectId, Long userId, String name, String description, Instant startTime, Instant endTime, Integer number, Instant lastModified, JLaunchModeEnum mode, JStatusEnum status, Boolean hasRetries, Boolean rerun, Double approximateDuration, JRetentionPolicyEnum retentionPolicy, JLaunchTypeEnum launchType, Long testPlanId, String displayId) {
         super(JLaunch.LAUNCH);
 
         setId(id);
@@ -332,8 +332,8 @@ public class JLaunchRecord extends UpdatableRecordImpl<JLaunchRecord> {
         setRerun(rerun);
         setApproximateDuration(approximateDuration);
         setRetentionPolicy(retentionPolicy);
-        setTestPlanId(testPlanId);
         setLaunchType(launchType);
+        setTestPlanId(testPlanId);
         setDisplayId(displayId);
         resetChangedOnNotNull();
     }

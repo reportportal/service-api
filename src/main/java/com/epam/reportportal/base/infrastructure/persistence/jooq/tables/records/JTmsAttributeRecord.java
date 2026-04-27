@@ -5,6 +5,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttribute;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -46,31 +47,31 @@ public class JTmsAttributeRecord extends UpdatableRecordImpl<JTmsAttributeRecord
     }
 
     /**
-     * Setter for <code>public.tms_attribute.project_id</code>.
-     */
-    public void setProjectId(Long value) {
-        set(2, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_attribute.project_id</code>.
-     */
-    public Long getProjectId() {
-        return (Long) get(2);
-    }
-
-    /**
      * Setter for <code>public.tms_attribute.value</code>.
      */
     public void setValue(String value) {
-        set(3, value);
+        set(2, value);
     }
 
     /**
      * Getter for <code>public.tms_attribute.value</code>.
      */
     public String getValue() {
-        return (String) get(3);
+        return (String) get(2);
+    }
+
+    /**
+     * Setter for <code>public.tms_attribute.project_id</code>.
+     */
+    public void setProjectId(Long value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_attribute.project_id</code>.
+     */
+    public Long getProjectId() {
+        return (Long) get(3);
     }
 
     // -------------------------------------------------------------------------
@@ -96,13 +97,13 @@ public class JTmsAttributeRecord extends UpdatableRecordImpl<JTmsAttributeRecord
     /**
      * Create a detached, initialised JTmsAttributeRecord
      */
-    public JTmsAttributeRecord(Long id, String key, Long projectId, String value) {
+    public JTmsAttributeRecord(Long id, String key, String value, Long projectId) {
         super(JTmsAttribute.TMS_ATTRIBUTE);
 
         setId(id);
         setKey(key);
-        setProjectId(projectId);
         setValue(value);
+        setProjectId(projectId);
         resetChangedOnNotNull();
     }
 }

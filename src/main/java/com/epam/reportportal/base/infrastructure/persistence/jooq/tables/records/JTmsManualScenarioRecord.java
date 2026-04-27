@@ -6,6 +6,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTmsManualScenarioType;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenario;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 

@@ -11,9 +11,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAtt
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment.JTmsManualScenarioPreconditionsAttachmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsManualScenarioPreconditionsRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

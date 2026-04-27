@@ -4,11 +4,11 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder.JTmsTestFolderPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestFolderRecord;
 
 import java.util.Arrays;
@@ -19,6 +19,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.Name;
 import org.jooq.Path;
@@ -75,6 +76,11 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
     public final TableField<JTmsTestFolderRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(255), this, "");
 
     /**
+     * The column <code>public.tms_test_folder.index</code>.
+     */
+    public final TableField<JTmsTestFolderRecord, Integer> INDEX = createField(DSL.name("index"), SQLDataType.INTEGER.defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
+    /**
      * The column <code>public.tms_test_folder.parent_id</code>.
      */
     public final TableField<JTmsTestFolderRecord, Long> PARENT_ID = createField(DSL.name("parent_id"), SQLDataType.BIGINT, this, "");
@@ -83,11 +89,6 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
      * The column <code>public.tms_test_folder.project_id</code>.
      */
     public final TableField<JTmsTestFolderRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
-     * The column <code>public.tms_test_folder.index</code>.
-     */
-    public final TableField<JTmsTestFolderRecord, Integer> INDEX = createField(DSL.name("index"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
 
     private JTmsTestFolder(Name alias, Table<JTmsTestFolderRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -154,6 +155,11 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
     @Override
     public Schema getSchema() {
         return aliased() ? null : JPublic.PUBLIC;
+    }
+
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.asList(Indexes.IDX_TMS_TEST_FOLDER_PARENT_ID, Indexes.IDX_TMS_TEST_FOLDER_PARENT_INDEX, Indexes.IDX_TMS_TEST_FOLDER_PROJECT_ID, Indexes.IDX_TMS_TEST_FOLDER_PROJECT_NAME, Indexes.IDX_TMS_TEST_FOLDER_PROJECT_PARENT);
     }
 
     @Override

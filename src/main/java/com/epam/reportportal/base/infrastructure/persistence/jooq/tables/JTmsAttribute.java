@@ -76,14 +76,14 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
     public final TableField<JTmsAttributeRecord, String> KEY = createField(DSL.name("key"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
-     * The column <code>public.tms_attribute.project_id</code>.
-     */
-    public final TableField<JTmsAttributeRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
-
-    /**
      * The column <code>public.tms_attribute.value</code>.
      */
     public final TableField<JTmsAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(255), this, "");
+
+    /**
+     * The column <code>public.tms_attribute.project_id</code>.
+     */
+    public final TableField<JTmsAttributeRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     private JTmsAttribute(Name alias, Table<JTmsAttributeRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -154,7 +154,7 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_ATTRIBUTE_KEY, Indexes.IDX_TMS_ATTRIBUTE_KEY_TRGM, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_ID, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_KEY, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_VALUE, Indexes.IDX_TMS_ATTRIBUTE_VALUE_TRGM, Indexes.TMS_ATTRIBUTE_PROJECT_KEY_NULL_UNIQUE_IDX, Indexes.TMS_ATTRIBUTE_PROJECT_KEY_VALUE_UNIQUE_IDX);
+        return Arrays.asList(Indexes.IDX_TMS_ATTRIBUTE_KEY_TRGM, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_ID, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_KEY, Indexes.IDX_TMS_ATTRIBUTE_PROJECT_VALUE, Indexes.IDX_TMS_ATTRIBUTE_VALUE_TRGM);
     }
 
     @Override
@@ -165,6 +165,11 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
     @Override
     public UniqueKey<JTmsAttributeRecord> getPrimaryKey() {
         return Keys.TMS_ATTRIBUTE_PK;
+    }
+
+    @Override
+    public List<UniqueKey<JTmsAttributeRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.TMS_ATTRIBUTE_PROJECT_KEY_VALUE_UNIQUE);
     }
 
     @Override

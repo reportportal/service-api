@@ -5,6 +5,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.enums;
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
+
 import org.jooq.Catalog;
 import org.jooq.EnumType;
 import org.jooq.Schema;

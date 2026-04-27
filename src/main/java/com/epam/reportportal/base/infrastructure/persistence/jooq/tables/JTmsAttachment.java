@@ -18,10 +18,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTextManualScenario.JTmsTextManualScenarioPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTextManualScenarioAttachment.JTmsTextManualScenarioAttachmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsAttachmentRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -93,9 +95,9 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
     public final TableField<JTmsAttachmentRecord, String> PATH_TO_FILE = createField(DSL.name("path_to_file"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
-     * The column <code>public.tms_attachment.environment_id</code>.
+     * The column <code>public.tms_attachment.thumbnail_path</code>.
      */
-    public final TableField<JTmsAttachmentRecord, Long> ENVIRONMENT_ID = createField(DSL.name("environment_id"), SQLDataType.BIGINT, this, "");
+    public final TableField<JTmsAttachmentRecord, String> THUMBNAIL_PATH = createField(DSL.name("thumbnail_path"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>public.tms_attachment.created_at</code>.
@@ -106,6 +108,11 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
      * The column <code>public.tms_attachment.expires_at</code>.
      */
     public final TableField<JTmsAttachmentRecord, Instant> EXPIRES_AT = createField(DSL.name("expires_at"), SQLDataType.LOCALDATETIME(6), this, "", new JooqInstantConverter());
+
+    /**
+     * The column <code>public.tms_attachment.environment_id</code>.
+     */
+    public final TableField<JTmsAttachmentRecord, Long> ENVIRONMENT_ID = createField(DSL.name("environment_id"), SQLDataType.BIGINT, this, "");
 
     private JTmsAttachment(Name alias, Table<JTmsAttachmentRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -282,6 +289,7 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
     public JTmsTestCaseExecutionCommentPath tmsTestCaseExecutionComment() {
         return tmsTestCaseExecutionCommentAttachment().tmsTestCaseExecutionComment();
     }
+
     /**
      * Get the implicit many-to-many join path to the
      * <code>public.tms_text_manual_scenario</code> table

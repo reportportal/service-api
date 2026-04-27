@@ -63,101 +63,101 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
     }
 
     /**
-     * Setter for <code>public.tms_test_plan.project_id</code>.
-     */
-    public void setProjectId(Long value) {
-        set(3, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_plan.project_id</code>.
-     */
-    public Long getProjectId() {
-        return (Long) get(3);
-    }
-
-    /**
-     * Setter for <code>public.tms_test_plan.environment_id</code>.
-     */
-    public void setEnvironmentId(Long value) {
-        set(4, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_plan.environment_id</code>.
-     */
-    public Long getEnvironmentId() {
-        return (Long) get(4);
-    }
-
-    /**
-     * Setter for <code>public.tms_test_plan.product_version_id</code>.
-     */
-    public void setProductVersionId(Long value) {
-        set(5, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_plan.product_version_id</code>.
-     */
-    public Long getProductVersionId() {
-        return (Long) get(5);
-    }
-
-    /**
-     * Setter for <code>public.tms_test_plan.search_vector</code>.
-     */
-    public void setSearchVector(Object value) {
-        set(6, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_plan.search_vector</code>.
-     */
-    public Object getSearchVector() {
-        return get(6);
-    }
-
-    /**
-     * Setter for <code>public.tms_test_plan.launch_id</code>.
-     */
-    public void setLaunchId(Long value) {
-        set(7, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_plan.launch_id</code>.
-     */
-    public Long getLaunchId() {
-        return (Long) get(7);
-    }
-
-    /**
      * Setter for <code>public.tms_test_plan.created_at</code>.
      */
     public void setCreatedAt(Instant value) {
-        set(8, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.tms_test_plan.created_at</code>.
      */
     public Instant getCreatedAt() {
-        return (Instant) get(8);
+        return (Instant) get(3);
     }
 
     /**
      * Setter for <code>public.tms_test_plan.updated_at</code>.
      */
     public void setUpdatedAt(Instant value) {
-        set(9, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.tms_test_plan.updated_at</code>.
      */
     public Instant getUpdatedAt() {
-        return (Instant) get(9);
+        return (Instant) get(4);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_plan.search_vector</code>.
+     */
+    public void setSearchVector(Object value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_plan.search_vector</code>.
+     */
+    public Object getSearchVector() {
+        return get(5);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_plan.display_id</code>.
+     */
+    public void setDisplayId(String value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_plan.display_id</code>.
+     */
+    public String getDisplayId() {
+        return (String) get(6);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_plan.project_id</code>.
+     */
+    public void setProjectId(Long value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_plan.project_id</code>.
+     */
+    public Long getProjectId() {
+        return (Long) get(7);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_plan.environment_id</code>.
+     */
+    public void setEnvironmentId(Long value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_plan.environment_id</code>.
+     */
+    public Long getEnvironmentId() {
+        return (Long) get(8);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_plan.product_version_id</code>.
+     */
+    public void setProductVersionId(Long value) {
+        set(9, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_plan.product_version_id</code>.
+     */
+    public Long getProductVersionId() {
+        return (Long) get(9);
     }
 
     /**
@@ -172,20 +172,6 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
      */
     public Long getMilestoneId() {
         return (Long) get(10);
-    }
-
-    /**
-     * Setter for <code>public.tms_test_plan.display_id</code>.
-     */
-    public void setDisplayId(String value) {
-        set(11, value);
-    }
-
-    /**
-     * Getter for <code>public.tms_test_plan.display_id</code>.
-     */
-    public String getDisplayId() {
-        return (String) get(11);
     }
 
     // -------------------------------------------------------------------------
@@ -211,21 +197,20 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
     /**
      * Create a detached, initialised JTmsTestPlanRecord
      */
-    public JTmsTestPlanRecord(Long id, String name, String description, Long projectId, Long environmentId, Long productVersionId, Object searchVector, Long launchId, Instant createdAt, Instant updatedAt, Long milestoneId, String displayId) {
+    public JTmsTestPlanRecord(Long id, String name, String description, Instant createdAt, Instant updatedAt, Object searchVector, String displayId, Long projectId, Long environmentId, Long productVersionId, Long milestoneId) {
         super(JTmsTestPlan.TMS_TEST_PLAN);
 
         setId(id);
         setName(name);
         setDescription(description);
+        setCreatedAt(createdAt);
+        setUpdatedAt(updatedAt);
+        setSearchVector(searchVector);
+        setDisplayId(displayId);
         setProjectId(projectId);
         setEnvironmentId(environmentId);
         setProductVersionId(productVersionId);
-        setSearchVector(searchVector);
-        setLaunchId(launchId);
-        setCreatedAt(createdAt);
-        setUpdatedAt(updatedAt);
         setMilestoneId(milestoneId);
-        setDisplayId(displayId);
         resetChangedOnNotNull();
     }
 }

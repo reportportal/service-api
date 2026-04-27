@@ -10,6 +10,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttachment.JTmsAttachmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution.JTmsTestCaseExecutionPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment.JTmsTestCaseExecutionCommentAttachmentPath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentBtsTicket.JTmsTestCaseExecutionCommentBtsTicketPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestCaseExecutionCommentRecord;
 
 import java.util.Arrays;
@@ -77,12 +78,6 @@ public class JTmsTestCaseExecutionComment extends TableImpl<JTmsTestCaseExecutio
      * The column <code>public.tms_test_case_execution_comment.comment</code>.
      */
     public final TableField<JTmsTestCaseExecutionCommentRecord, String> COMMENT = createField(DSL.name("comment"), SQLDataType.CLOB, this, "");
-
-    /**
-     * The column
-     * <code>public.tms_test_case_execution_comment.bts_ticket_id</code>.
-     */
-    public final TableField<JTmsTestCaseExecutionCommentRecord, Long> BTS_TICKET_ID = createField(DSL.name("bts_ticket_id"), SQLDataType.BIGINT, this, "");
 
     private JTmsTestCaseExecutionComment(Name alias, Table<JTmsTestCaseExecutionCommentRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -203,6 +198,19 @@ public class JTmsTestCaseExecutionComment extends TableImpl<JTmsTestCaseExecutio
             _tmsTestCaseExecutionCommentAttachment = new JTmsTestCaseExecutionCommentAttachmentPath(this, null, Keys.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT__TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT_FK_COMMENT.getInverseKey());
 
         return _tmsTestCaseExecutionCommentAttachment;
+    }
+
+    private transient JTmsTestCaseExecutionCommentBtsTicketPath _tmsTestCaseExecutionCommentBtsTicket;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_test_case_execution_comment_bts_ticket</code> table
+     */
+    public JTmsTestCaseExecutionCommentBtsTicketPath tmsTestCaseExecutionCommentBtsTicket() {
+        if (_tmsTestCaseExecutionCommentBtsTicket == null)
+            _tmsTestCaseExecutionCommentBtsTicket = new JTmsTestCaseExecutionCommentBtsTicketPath(this, null, Keys.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET__TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET_FK_COMMENT.getInverseKey());
+
+        return _tmsTestCaseExecutionCommentBtsTicket;
     }
 
     /**

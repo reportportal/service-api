@@ -4,10 +4,10 @@
 package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 
 
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.JLaunchPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsEnvironment.JTmsEnvironmentPath;
@@ -17,7 +17,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanAttribute.JTmsTestPlanAttributePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase.JTmsTestPlanTestCasePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestPlanRecord;
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -86,6 +85,26 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
     public final TableField<JTmsTestPlanRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(255), this, "");
 
     /**
+     * The column <code>public.tms_test_plan.created_at</code>.
+     */
+    public final TableField<JTmsTestPlanRecord, Instant> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
+
+    /**
+     * The column <code>public.tms_test_plan.updated_at</code>.
+     */
+    public final TableField<JTmsTestPlanRecord, Instant> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
+
+    /**
+     * The column <code>public.tms_test_plan.search_vector</code>.
+     */
+    public final TableField<JTmsTestPlanRecord, Object> SEARCH_VECTOR = createField(DSL.name("search_vector"), DefaultDataType.getDefaultDataType("\"pg_catalog\".\"tsvector\""), this, "");
+
+    /**
+     * The column <code>public.tms_test_plan.display_id</code>.
+     */
+    public final TableField<JTmsTestPlanRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
+
+    /**
      * The column <code>public.tms_test_plan.project_id</code>.
      */
     public final TableField<JTmsTestPlanRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
@@ -101,34 +120,9 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
     public final TableField<JTmsTestPlanRecord, Long> PRODUCT_VERSION_ID = createField(DSL.name("product_version_id"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>public.tms_test_plan.search_vector</code>.
-     */
-    public final TableField<JTmsTestPlanRecord, Object> SEARCH_VECTOR = createField(DSL.name("search_vector"), DefaultDataType.getDefaultDataType("\"pg_catalog\".\"tsvector\""), this, "");
-
-    /**
-     * The column <code>public.tms_test_plan.launch_id</code>.
-     */
-    public final TableField<JTmsTestPlanRecord, Long> LAUNCH_ID = createField(DSL.name("launch_id"), SQLDataType.BIGINT, this, "");
-
-    /**
-     * The column <code>public.tms_test_plan.created_at</code>.
-     */
-    public final TableField<JTmsTestPlanRecord, Instant> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
-
-    /**
-     * The column <code>public.tms_test_plan.updated_at</code>.
-     */
-    public final TableField<JTmsTestPlanRecord, Instant> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
-
-    /**
      * The column <code>public.tms_test_plan.milestone_id</code>.
      */
     public final TableField<JTmsTestPlanRecord, Long> MILESTONE_ID = createField(DSL.name("milestone_id"), SQLDataType.BIGINT, this, "");
-
-    /**
-     * The column <code>public.tms_test_plan.display_id</code>.
-     */
-    public final TableField<JTmsTestPlanRecord, String> DISPLAY_ID = createField(DSL.name("display_id"), SQLDataType.VARCHAR(255), this, "");
 
     private JTmsTestPlan(Name alias, Table<JTmsTestPlanRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -213,13 +207,8 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
     }
 
     @Override
-    public List<UniqueKey<JTmsTestPlanRecord>> getUniqueKeys() {
-        return Arrays.asList(Keys.TMS_TEST_PLAN_LAUNCH_ID_KEY);
-    }
-
-    @Override
     public List<ForeignKey<JTmsTestPlanRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_ENVIRONMENT, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_LAUNCH, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_MILESTONE, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PRODUCT_VERSION, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PROJECT);
+        return Arrays.asList(Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_ENVIRONMENT, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_MILESTONE, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PRODUCT_VERSION, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_PROJECT);
     }
 
     private transient JTmsEnvironmentPath _tmsEnvironment;
@@ -233,18 +222,6 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
             _tmsEnvironment = new JTmsEnvironmentPath(this, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_ENVIRONMENT, null);
 
         return _tmsEnvironment;
-    }
-
-    private transient JLaunchPath _launch;
-
-    /**
-     * Get the implicit join path to the <code>public.launch</code> table.
-     */
-    public JLaunchPath launch() {
-        if (_launch == null)
-            _launch = new JLaunchPath(this, Keys.TMS_TEST_PLAN__TMS_TEST_PLAN_FK_LAUNCH, null);
-
-        return _launch;
     }
 
     private transient JTmsMilestonePath _tmsMilestone;

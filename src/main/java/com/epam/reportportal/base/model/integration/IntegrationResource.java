@@ -40,6 +40,9 @@ public class IntegrationResource implements Serializable {
   @JsonProperty("projectId")
   private Long projectId;
 
+  @JsonProperty("organizationId")
+  private Long organizationId;
+
   @JsonProperty("name")
   private String name;
 
@@ -57,6 +60,5 @@ public class IntegrationResource implements Serializable {
 
   @JsonProperty("creationDate")
   private Instant creationDate;
-
 
 }

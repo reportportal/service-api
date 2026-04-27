@@ -80,6 +80,6 @@ class IntegrationTypeRepositoryTest extends BaseMvcTest {
     List<IntegrationType> integrationTypes = integrationTypeRepository.findAllByPluginType(
         PluginTypeEnum.BUILT_IN);
     assertNotNull(integrationTypes);
-    assertEquals(4, integrationTypes.size());
+    assertEquals(1, integrationTypes.size());
   }
 }

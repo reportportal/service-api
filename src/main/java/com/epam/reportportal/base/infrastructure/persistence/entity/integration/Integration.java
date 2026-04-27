@@ -63,6 +63,9 @@ public class Integration implements Serializable {
   @JoinColumn(name = "project_id")
   private Project project;
 
+  @Column(name = "organization_id")
+  private Long organizationId;
+
   @ManyToOne
   @JoinColumn(name = "type")
   private IntegrationType type;

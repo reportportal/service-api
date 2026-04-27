@@ -9,9 +9,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStep.JTmsStepPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsStepsManualScenarioRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

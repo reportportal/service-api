@@ -23,6 +23,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -150,7 +152,7 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @return The {@link Integration} wrapped in the {@link Optional}
    */
   @Query(value =
-      "SELECT i.id, i.name, i.enabled, i.project_id, i.creator, i.creation_date, i.params, i.type, 0 AS clazz_ FROM integration i"
+      "SELECT i.id, i.name, i.enabled,  i.organization_id, i.project_id, i.creator, i.creation_date, i.params, i.type, 0 AS clazz_ FROM integration i"
           + " WHERE (params->'params'->>'url' = :url AND params->'params'->>'project' = :btsProject"
           + " AND i.project_id = :projectId) LIMIT 1", nativeQuery = true)
   Optional<Integration> findProjectBtsByUrlAndLinkedProject(@Param("url") String url,
@@ -165,7 +167,7 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @return The {@link Integration} wrapped in the {@link Optional}
    */
   @Query(value =
-      "SELECT i.id, i.name, i.enabled, i.project_id, i.creator, i.creation_date, i.params, i.type, 0 AS clazz_ FROM integration i "
+      "SELECT i.id, i.name, i.enabled, i.project_id, i.organization_id, i.creator, i.creation_date, i.params, i.type, 0 AS clazz_ FROM integration i "
           + " WHERE params->'params'->>'url' = :url AND i.params->'params'->>'project' = :btsProject AND i.project_id IS NULL LIMIT 1", nativeQuery = true)
   Optional<Integration> findGlobalBtsByUrlAndLinkedProject(@Param("url") String url,
       @Param("btsProject") String btsProject);
@@ -229,4 +231,45 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
   @Query("SELECT i FROM Integration i JOIN i.type t WHERE i.project IS NULL AND t.integrationGroup = :group AND t.authFlow = :authFlow order by i.creationDate desc")
   List<Integration> findAllGlobalByGroupAndAuthFlow(@Param("group") IntegrationGroupEnum group,
       @Param("authFlow") IntegrationAuthFlowEnum authFlow);
+
+  @Query("""
+      SELECT CASE WHEN COUNT(i) > 0 THEN TRUE
+            ELSE FALSE END
+      FROM Integration i
+      WHERE LOWER(i.name) = LOWER(:name)
+        AND i.type.id = :typeId
+        AND i.organizationId = :organizationId
+      """)
+  boolean existsByNameIgnoreCaseAndTypeIdAndOrganizationId(@Param("name") String name,
+      @Param("typeId") Long typeId, @Param("organizationId") Long organizationId);
+
+  /**
+   * Retrieve integrations for the given organization with pagination and sorting.
+   *
+   * @param orgId    Organization ID
+   * @param pageable Pagination and sort parameters
+   * @return Page of integrations
+   */
+  @Query("SELECT i FROM Integration i WHERE i.organizationId = :orgId")
+  Page<Integration> findAllByOrganizationId(@Param("orgId") Long orgId, Pageable pageable);
+
+  /**
+   * Retrieve an integration by ID scoped to the given organization.
+   *
+   * @param id    Integration ID
+   * @param orgId Organization ID
+   * @return Optional integration
+   */
+  @Query("SELECT i FROM Integration i WHERE i.id = :id AND i.organizationId = :orgId")
+  Optional<Integration> findByIdAndOrganizationId(@Param("id") Long id, @Param("orgId") Long orgId);
+
+  /**
+   * Delete all integrations of a given type within the given organization.
+   *
+   * @param orgId  Organization ID
+   * @param typeId Integration type ID
+   */
+  @Modifying
+  @Query("DELETE FROM Integration i WHERE i.organizationId = :orgId AND i.type.id = :typeId")
+  int deleteAllByOrganizationIdAndTypeId(@Param("orgId") Long orgId, @Param("typeId") Long typeId);
 }

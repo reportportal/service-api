@@ -5,6 +5,9 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment;
+
+import java.time.Instant;
+
 import org.jooq.Record2;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -49,6 +52,22 @@ public class JTmsManualScenarioPreconditionsAttachmentRecord extends UpdatableRe
         return (Long) get(1);
     }
 
+    /**
+     * Setter for
+     * <code>public.tms_manual_scenario_preconditions_attachment.created_at</code>.
+     */
+    public void setCreatedAt(Instant value) {
+        set(2, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.tms_manual_scenario_preconditions_attachment.created_at</code>.
+     */
+    public Instant getCreatedAt() {
+        return (Instant) get(2);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -73,11 +92,12 @@ public class JTmsManualScenarioPreconditionsAttachmentRecord extends UpdatableRe
      * Create a detached, initialised
      * JTmsManualScenarioPreconditionsAttachmentRecord
      */
-    public JTmsManualScenarioPreconditionsAttachmentRecord(Long preconditionsId, Long attachmentId) {
+    public JTmsManualScenarioPreconditionsAttachmentRecord(Long preconditionsId, Long attachmentId, Instant createdAt) {
         super(JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT);
 
         setPreconditionsId(preconditionsId);
         setAttachmentId(attachmentId);
+        setCreatedAt(createdAt);
         resetChangedOnNotNull();
     }
 }

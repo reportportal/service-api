@@ -19,6 +19,8 @@ package com.epam.reportportal.base.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
  * Response when some entry has been created and we need to return ID
@@ -26,7 +28,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Andrei Varabyeu
  *
  */
+@Data
 @JsonInclude(Include.NON_NULL)
+@AllArgsConstructor
 public class EntryCreatedRS {
 
   @JsonProperty("id")
@@ -34,26 +38,6 @@ public class EntryCreatedRS {
 
   public EntryCreatedRS() {
 
-  }
-
-  public EntryCreatedRS(Long id) {
-    this.id = id;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("EntryCreatedRS{");
-    sb.append("id='").append(id).append('\'');
-    sb.append('}');
-    return sb.toString();
   }
 
 }

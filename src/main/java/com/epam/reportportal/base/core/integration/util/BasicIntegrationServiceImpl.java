@@ -63,10 +63,11 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   public Integration createIntegration(IntegrationRQ integrationRq,
       IntegrationType integrationType) {
     return new IntegrationBuilder().withCreationDate(Instant.now()).withType(integrationType)
-        .withEnabled(integrationRq.getEnabled()).withName(integrationRq.getName()).withParams(
-            new IntegrationParams(retrieveCreateParams(integrationType.getName(),
-                integrationRq.getIntegrationParams()
-            ))).get();
+        .withEnabled(integrationRq.getEnabled())
+        .withName(integrationRq.getName())
+        .withParams(new IntegrationParams(
+            retrieveCreateParams(integrationType.getName(), integrationRq.getIntegrationParams())))
+        .get();
   }
 
   @Override
@@ -116,20 +117,18 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
   private Optional<PluginCommand<?>> getIntegrationCommand(String integration, String commandName) {
     ReportPortalExtensionPoint pluginInstance =
-        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class).orElseThrow(
-            () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed",
-                integration
-            ));
+        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
+            .orElseThrow(
+                () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
     return ofNullable(pluginInstance.getIntegrationCommand(commandName));
   }
 
   private Optional<CommonPluginCommand<?>> getCommonCommand(String integration,
       String commandName) {
     ReportPortalExtensionPoint pluginInstance =
-        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class).orElseThrow(
-            () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed",
-                integration
-            ));
+        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
+            .orElseThrow(
+                () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
     return ofNullable(pluginInstance.getCommonCommand(commandName));
   }
 

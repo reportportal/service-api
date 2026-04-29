@@ -152,6 +152,10 @@ public class OrganizationController extends BaseController implements Organizati
   @PreAuthorize(IS_ADMIN)
   @Transactional
   public ResponseEntity<OrganizationInfo> postOrganizations(CreateOrganizationRequest request) {
+    if (CreateOrganizationRequest.TypeEnum.EXTERNAL == request.getType()) {
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+          "Creating organizations with type 'EXTERNAL' is not allowed.");
+    }
     var principal = SecurityContextUtils.getPrincipal();
     var org = getOrgExtension().createOrganization(request, principal);
     var location = ServletUriComponentsBuilder.fromCurrentRequest()

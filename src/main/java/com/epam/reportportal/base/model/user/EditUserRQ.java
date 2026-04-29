@@ -18,6 +18,8 @@ package com.epam.reportportal.base.model.user;
 
 
 import com.epam.reportportal.base.infrastructure.annotations.In;
+import com.epam.reportportal.base.infrastructure.annotations.NotBlankString;
+import com.epam.reportportal.base.infrastructure.annotations.NotBlankStringCollection;
 import com.epam.reportportal.base.infrastructure.model.ValidationConstraints;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -39,7 +41,7 @@ import lombok.Data;
 @JsonInclude(Include.NON_NULL)
 public class EditUserRQ {
 
-  @NotBlank
+  @NotBlankString
   @JsonProperty(value = "email")
   private String email;
 
@@ -58,7 +60,7 @@ public class EditUserRQ {
   @Schema(requiredMode = RequiredMode.NOT_REQUIRED, allowableValues = "INTERNAL, SCIM")
   private String accountType;
 
-  @NotBlank
+  @NotBlankString
   @Size(min = ValidationConstraints.MIN_USER_NAME_LENGTH, max = ValidationConstraints.MAX_USER_NAME_LENGTH)
   @Pattern(regexp = ValidationConstraints.USER_FULL_NAME_REGEXP)
   @JsonProperty(value = "fullName")

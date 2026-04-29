@@ -31,10 +31,14 @@ public class CreateInvitationLinkEvent extends AbstractEvent<Void> {
   /**
    * Constructs a CreateInvitationLinkEvent.
    *
-   * @param userId    The ID of the user who created the invitation link
-   * @param userLogin The login of the user who created the invitation link
+   * @param userId         The ID of the user who created the invitation link
+   * @param userLogin      The login of the user who created the invitation link
+   * @param projectId      The ID of the project the invitation was created for
+   * @param organizationId The ID of the organization the invitation was created for
    */
-  public CreateInvitationLinkEvent(Long userId, String userLogin) {
+  public CreateInvitationLinkEvent(Long userId, String userLogin, Long projectId, Long organizationId) {
     super(userId, userLogin);
+    this.projectId = projectId;
+    this.organizationId = organizationId;
   }
 }

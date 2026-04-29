@@ -47,6 +47,8 @@ public class CreateInvitationLinkEventConverter implements
         .addSubjectId(event.getUserId())
         .addSubjectName(event.getUserLogin())
         .addSubjectType(EventSubject.USER)
+        .addProjectId(event.getProjectId())
+        .addOrganizationId(event.getOrganizationId())
         .get();
   }
 

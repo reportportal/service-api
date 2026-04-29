@@ -1570,21 +1570,9 @@ public enum FilterTarget {
           Timestamp.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_TYPE, ORGANIZATION.ORGANIZATION_TYPE,
           String.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_USERS, USERS_QUANTITY, Long.class)
-          .withAggregateCriteria(DSL.countDistinct(ORGANIZATION_USER.USER_ID).toString())
-          .get(),
       new CriteriaHolderBuilder()
           .newBuilder(CRITERIA_ORG_USER_ID, ORGANIZATION_USER.USER_ID, Long.class)
-          .get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_PROJECTS, PROJECTS_QUANTITY, Long.class)
-          .withAggregateCriteria(DSL.countDistinct(PROJECT.ID).toString()).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_LAST_LAUNCH_RUN, LAST_RUN, Timestamp.class)
-          .withAggregateCriteria(DSL.max(LAUNCH.START_TIME).toString())
-          .get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_LAUNCHES, LAUNCHES_QUANTITY, Long.class)
-          .withAggregateCriteria(DSL.countDistinct(LAUNCH.ID).toString())
           .get()
-
   )) {
     @Override
     public QuerySupplier getQuery() {
@@ -1605,11 +1593,7 @@ public enum FilterTarget {
           ORGANIZATION.UPDATED_AT,
           ORGANIZATION.EXTERNAL_ID,
           ORGANIZATION.ORGANIZATION_TYPE,
-          ORGANIZATION.OWNER_ID,
-          DSL.countDistinct(ORGANIZATION_USER.USER_ID).as(USERS_QUANTITY),
-          DSL.countDistinct(PROJECT.ID).as(PROJECTS_QUANTITY),
-          DSL.countDistinct(LAUNCH.ID).as(LAUNCHES_QUANTITY),
-          DSL.max(LAUNCH.START_TIME).as(LAST_RUN)
+          ORGANIZATION.OWNER_ID
       );
     }
 
@@ -1623,14 +1607,6 @@ public enum FilterTarget {
       query.addJoin(ORGANIZATION_USER,
           JoinType.LEFT_OUTER_JOIN,
           ORGANIZATION_USER.ORGANIZATION_ID.eq(ORGANIZATION.ID));
-
-      query.addJoin(PROJECT,
-          JoinType.LEFT_OUTER_JOIN,
-          PROJECT.ORGANIZATION_ID.eq(ORGANIZATION.ID));
-
-      query.addJoin(LAUNCH,
-          JoinType.LEFT_OUTER_JOIN,
-          PROJECT.ID.eq(LAUNCH.PROJECT_ID).and(LAUNCH.STATUS.ne(JStatusEnum.IN_PROGRESS)));
     }
 
     @Override

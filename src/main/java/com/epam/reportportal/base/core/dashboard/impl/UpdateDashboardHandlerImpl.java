@@ -42,6 +42,7 @@ import com.epam.reportportal.base.model.dashboard.UpdateDashboardRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.ws.converter.builders.DashboardBuilder;
 import com.epam.reportportal.base.ws.converter.converters.WidgetConverter;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -148,7 +149,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   }
 
   private void lockDashboardChildEntities(Long dashboardId, Boolean locked) {
-    if (locked) {
+    if (Boolean.TRUE.equals(locked)) {
       dashboardRepository.lockDashboard(dashboardId);
     }
   }
@@ -228,7 +229,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             projectDetails.getProjectName()
         ));
 
-    if (currentDashboard.getLocked() != isLocked) {
+    if (!Objects.equals(currentDashboard.getLocked(), isLocked)) {
       this.toggleDashboardLock(dashboardId, isLocked);
       var currentDashboardActivity = TO_ACTIVITY_RESOURCE.apply(currentDashboard);
 
@@ -261,7 +262,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   }
 
   private void toggleDashboardLock(Long dashboardId, Boolean locked) {
-    if (locked) {
+    if (Boolean.TRUE.equals(locked)) {
       dashboardRepository.lockDashboard(dashboardId);
     } else {
       dashboardRepository.unlockDashboard(dashboardId);

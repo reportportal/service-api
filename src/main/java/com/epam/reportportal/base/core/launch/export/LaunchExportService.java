@@ -162,8 +162,7 @@ public class LaunchExportService {
     }
   }
 
-  private void writeLaunchLogAttachmentsToZip(Launch launch, ZipOutputStream zipOut)
-      throws IOException {
+  private void writeLaunchLogAttachmentsToZip(Launch launch, ZipOutputStream zipOut) {
     Set<String> uniquePaths = new HashSet<>();
     for (Log log : launch.getLogs()) {
       if (log.getAttachment() == null) {

@@ -63,7 +63,7 @@ public class PathBuilderService {
     return Arrays.stream(currentPath.split("\\."))
         .map(Long::parseLong)
         .map(names::get)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

@@ -18,7 +18,7 @@ package com.epam.reportportal.base.ws.rabbit.activity.converter;
 
 import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil.processBoolean;
 
-import com.epam.reportportal.base.core.events.domain.DashboardUpdatedEvent;
+import com.epam.reportportal.base.core.events.domain.DashboardUpdatedStateEvent;
 import com.epam.reportportal.base.infrastructure.persistence.builder.ActivityBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityAction;
@@ -29,14 +29,14 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for DashboardUpdatedEvent to Activity.
+ * Converter for DashboardUpdatedStateEvent to Activity (lock/unlock).
  */
 @Component
 public class DashboardUpdatedStateEventConverter implements
-    EventToActivityConverter<DashboardUpdatedEvent> {
+    EventToActivityConverter<DashboardUpdatedStateEvent> {
 
   @Override
-  public Activity convert(DashboardUpdatedEvent event) {
+  public Activity convert(DashboardUpdatedStateEvent event) {
     return new ActivityBuilder()
         .addCreatedNow()
         .addAction(event.getAfter().isLocked() ? EventAction.LOCK : EventAction.UNLOCK)
@@ -54,7 +54,7 @@ public class DashboardUpdatedStateEventConverter implements
   }
 
   @Override
-  public Class<DashboardUpdatedEvent> getEventClass() {
-    return DashboardUpdatedEvent.class;
+  public Class<DashboardUpdatedStateEvent> getEventClass() {
+    return DashboardUpdatedStateEvent.class;
   }
 }

@@ -21,10 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.base.core.events.domain.DashboardUpdatedStateEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.DashboardRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 import com.epam.reportportal.base.model.EntryCreatedRS;
@@ -36,9 +38,11 @@ import com.epam.reportportal.base.model.dashboard.DashboardResource;
 import com.epam.reportportal.base.model.dashboard.UpdateDashboardRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -53,6 +57,9 @@ class DashboardControllerTest extends BaseMvcTest {
 
   @Autowired
   private DashboardRepository dashboardRepository;
+
+  @Autowired
+  private ApplicationEvents applicationEvents;
 
   @Test
   void createDashboardPositive() throws Exception {
@@ -107,7 +114,9 @@ class DashboardControllerTest extends BaseMvcTest {
                 .contentType(APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(messageBus, times(1)).publishActivity(any(DashboardUpdatedStateEvent.class));
+    List<DashboardUpdatedStateEvent> lockEvents =
+        applicationEvents.stream(DashboardUpdatedStateEvent.class).toList();
+    assertEquals(1, lockEvents.size());
   }
 
   @Test
@@ -121,7 +130,9 @@ class DashboardControllerTest extends BaseMvcTest {
                 .contentType(APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    verify(messageBus, times(0)).publishActivity(any(DashboardUpdatedStateEvent.class));
+    List<DashboardUpdatedStateEvent> lockEvents =
+        applicationEvents.stream(DashboardUpdatedStateEvent.class).toList();
+    assertEquals(0, lockEvents.size());
   }
 
   @Test

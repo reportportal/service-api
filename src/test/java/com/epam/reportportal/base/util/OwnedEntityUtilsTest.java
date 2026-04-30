@@ -65,7 +65,7 @@ class OwnedEntityUtilsTest {
     memberUser = mock(ReportPortalUser.class);
     memberProjectDetails = mock(MembershipDetails.class);
     when(memberUser.getUserRole()).thenReturn(UserRole.USER);
-    when(memberProjectDetails.getProjectRole()).thenReturn(ProjectRole.EDITOR);
+    when(memberProjectDetails.getProjectRole()).thenReturn(ProjectRole.VIEWER);
   }
 
   @Test

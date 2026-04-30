@@ -34,7 +34,7 @@ public interface WidgetRepository extends ReportPortalRepository<Widget, Long>,
   /**
    * Finds widget by 'id' and 'project id'
    *
-   * @param id        {@link Widget#id}
+   * @param id        {@link Widget#getId()}
    * @param projectId Id of the {@link Project} whose widget will be extracted
    * @return {@link Widget} wrapped in the {@link Optional}
    */
@@ -49,8 +49,8 @@ public interface WidgetRepository extends ReportPortalRepository<Widget, Long>,
   /**
    * Checks the existence of the {@link Widget} with specified name for a user on a project
    *
-   * @param name      {@link Widget#name}
-   * @param owner     {@link Widget#owner}
+   * @param name      {@link Widget#getName()}
+   * @param owner     {@link Widget#getOwner()}
    * @param projectId Id of the {@link Project} on which widget existence will be checked
    * @return if exists 'true' else 'false'
    */

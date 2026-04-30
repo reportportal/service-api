@@ -94,6 +94,7 @@ public final class UserFilterConverter {
     userFilterResource.setName(filter.getName());
     userFilterResource.setDescription(filter.getDescription());
     userFilterResource.setOwner(filter.getOwner());
+    userFilterResource.setLocked(filter.getLocked());
     ofNullable(filter.getTargetClass()).ifPresent(
         tc -> userFilterResource.setObjectType(tc.getClassObject().getSimpleName()));
     ofNullable(filter.getFilterCondition()).ifPresent(fcs -> userFilterResource.setConditions(

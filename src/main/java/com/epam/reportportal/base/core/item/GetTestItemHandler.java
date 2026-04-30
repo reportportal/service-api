@@ -16,10 +16,9 @@
 
 package com.epam.reportportal.base.core.item;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.bts.Ticket;
@@ -27,6 +26,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserF
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.reporting.StatisticsResource;
 import com.epam.reportportal.base.reporting.TestItemResource;
@@ -46,7 +46,7 @@ public interface GetTestItemHandler {
   /**
    * Get {@link TestItem} instance
    *
-   * @param testItemId        {@link TestItem#uuid}
+   * @param testItemId        {@link TestItem#getUuid()}
    * @param membershipDetails {@link MembershipDetails}
    * @param user              {@link ReportPortalUser}
    * @return {@link TestItemResource}
@@ -99,9 +99,9 @@ public interface GetTestItemHandler {
   /**
    * Get tickets that contains a term as a part inside for specified launch
    *
-   * @param launchId {@link Launch#id}
-   * @param term     part of {@link Ticket#ticketId} to search
-   * @return {@link List} of {@link Ticket#ticketId}
+   * @param launchId {@link Launch#getId()}
+   * @param term     part of {@link Ticket#getTicketId()} to search
+   * @return {@link List} of {@link Ticket#getTicketId()}
    */
   List<String> getTicketIds(Long launchId, String term);
 
@@ -160,10 +160,10 @@ public interface GetTestItemHandler {
   /**
    * Get specified attribute values
    *
-   * @param launchId {@link Launch#id}
+   * @param launchId {@link Launch#getId()}
    * @param key      Attribute key to search
-   * @param value    part of the {@link ItemAttribute#value} to search
-   * @return {@link List} of the {@link ItemAttribute#value}
+   * @param value    part of the {@link ItemAttribute#getValue()} to search
+   * @return {@link List} of the {@link ItemAttribute#getValue()}
    */
   List<String> getAttributeValues(Long launchId, String key, String value);
 
@@ -193,7 +193,7 @@ public interface GetTestItemHandler {
       String key, String valuePart);
 
   /**
-   * @param ids               array of the {@link Launch#id}
+   * @param ids               array of the {@link Launch#getId()}
    * @param membershipDetails {@link MembershipDetails}
    * @param user              {@link ReportPortalUser}
    * @return {@link List} of the {@link TestItemResource}
@@ -201,15 +201,21 @@ public interface GetTestItemHandler {
   List<TestItemResource> getTestItems(Long[] ids, MembershipDetails membershipDetails,
       ReportPortalUser user);
 
+  /**
+   * Get {@link TestItem} instances by list of IDs filtered by project ID
+   *
+   * @param ids            List of {@link TestItem#getItemId()}
+   * @param projectDetails {@link MembershipDetails}
+   * @return {@link List} of the {@link TestItemResource}
+   */
+  List<TestItemResource> getTestItemsByIds(List<Long> ids, MembershipDetails projectDetails);
 
   /**
    * Get {@link TestItem} instances by list of IDs filtered by project ID
    *
-   * @param ids               List of {@link TestItem#itemId}
-   * @param membershipDetails {@link MembershipDetails}
-   * @param user              {@link ReportPortalUser}
+   * @param ids       List of {@link TestItem#getItemId()}
+   * @param projectId Project ID
    * @return {@link List} of the {@link TestItemResource}
    */
-  List<TestItemResource> getTestItemsByIds(List<Long> ids, MembershipDetails membershipDetails, ReportPortalUser user);
+  List<TestItemResource> getTestItemsByIds(List<Long> ids, Long projectId);
 }
-

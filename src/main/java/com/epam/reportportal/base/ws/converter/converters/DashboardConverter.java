@@ -38,8 +38,10 @@ public final class DashboardConverter {
         dashboard.getWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL)
             .collect(Collectors.toList()));
     resource.setOwner(dashboard.getOwner());
+    resource.setLocked(dashboard.getLocked());
     return resource;
   };
+
   public static final Function<Dashboard, DashboardActivityResource> TO_ACTIVITY_RESOURCE =
       dashboard -> {
         DashboardActivityResource resource = new DashboardActivityResource();
@@ -47,6 +49,7 @@ public final class DashboardConverter {
         resource.setName(dashboard.getName());
         resource.setProjectId(dashboard.getProject().getId());
         resource.setDescription(dashboard.getDescription());
+        resource.setLocked(dashboard.getLocked());
         return resource;
       };
 

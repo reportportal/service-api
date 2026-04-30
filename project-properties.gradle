@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'EPMRPP-114707-merge-feature-upcoming')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -94,6 +94,9 @@ project.ext {
             (migrationsUrl + '/migrations/212_update_default_users.up.sql')            : 'V212__update_default_users.sql',
             (migrationsUrl + '/migrations/1000_tms_initial.up.sql')                    : 'V1000__tms_initial.up.sql',
             (migrationsUrl + '/migrations/1001_migrate_auth_integrations.up.sql')      : 'V1001__migrate_auth_integrations.up.sql',
+            (migrationsUrl + '/migrations/1002_retention_non_null.up.sql')             : 'V1002__retention_non_null.up.sql',
+            (migrationsUrl + '/migrations/1003_update_retry_functions.up.sql')         : 'V1003_update_retry_functions.up.sql',
+            (migrationsUrl + '/migrations/1004_lock_dashboard.up.sql')                 : '1004_lock_dashboard.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

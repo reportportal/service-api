@@ -111,7 +111,7 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
         itemsToReindex = changeParentsStatuses(testItem, launch, true, user, project);
       }
       itemsToReindex.add(testItem.getItemId());
-      logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
+      logIndexer.indexItemsRemoveAsync(project.getId(), itemsToReindex);
 
       if (!issueRequired) {
         itemsToReindex.remove(itemsToReindex.size() - 1);

@@ -70,8 +70,8 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
         LogLevel.ERROR.toInt(),
         excludedTypes
     );
-    int deletedLogsCount = logIndexer.indexItemsRemove(projectId, itemIds);
-    LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
+    logIndexer.indexItemsRemoveAsync(projectId, itemIds);
+    LOGGER.debug("Async request sent to remove {} items from analyzer index", itemIds.size());
     updateTestItemHandler.resetItemsIssue(itemIds, projectId, userId, userLogin);
     return itemIds;
   }

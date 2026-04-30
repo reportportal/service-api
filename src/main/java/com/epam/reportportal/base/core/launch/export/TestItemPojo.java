@@ -69,6 +69,7 @@ public class TestItemPojo {
   private Integer noDefect;
   private Integer toInvestigate;
   private Instant startTime;
+  private boolean hasChildren;
   private Set<AttachmentPojo> attachmentPojoList;
 
   public TestItemPojo(TestItem input) {
@@ -76,6 +77,7 @@ public class TestItemPojo {
     this.type = input.getType().name();
     this.itemName = input.getName();
     this.path = input.getPath();
+    this.hasChildren = input.isHasChildren();
     Optional<String> issueDescription = Optional.empty();
     if (input.getItemResults().getIssue() != null) {
       issueDescription = ofNullable(input.getItemResults().getIssue().getIssueDescription()).map(
@@ -122,7 +124,8 @@ public class TestItemPojo {
     var testItemPojo = new TestItemPojo(input);
     if (includeAttachments) {
       input.getAttachments().stream().filter(Objects::nonNull)
-          .forEach(attachment -> testItemPojo.setType(testItemPojo.getType() + "\n" + attachment.getFileName()));
+          .forEach(attachment -> testItemPojo.setType(
+              testItemPojo.getType() + "\n" + attachment.getFileName()));
     }
     return testItemPojo;
   }

@@ -46,23 +46,23 @@ public class PathBuilderService {
   /**
    * Constructs a full hierarchical path for a test item based on its parent chain.
    *
-   * @param items the full map of test item IDs to test items
-   * @param item  the test item whose path should be built
+   * @param names       the map of test item IDs to test item names
+   * @param currentPath the test item path whose path should be built
    * @return a sanitized path for the item (e.g., "Suite/TestCase/Step")
    */
-  public String buildItemPath(Map<Long, TestItemPojo> items, TestItemPojo item) {
-    return getPathNames(items, item).stream()
+  public String buildItemPath(Map<Long, String> names, String currentPath) {
+    return getPathNames(names, currentPath).stream()
         .map(this::sanitize)
         .collect(Collectors.joining("/"));
   }
 
-  private List<String> getPathNames(Map<Long, TestItemPojo> items, TestItemPojo current) {
-    if (Strings.isBlank(current.getPath())) {
+  private List<String> getPathNames(Map<Long, String> names, String currentPath) {
+    if (Strings.isBlank(currentPath)) {
       return Collections.emptyList();
     }
-    return Arrays.stream(current.getPath().split("\\."))
+    return Arrays.stream(currentPath.split("\\."))
         .map(Long::parseLong)
-        .map(id -> items.get(id).getItemName())
+        .map(names::get)
         .collect(Collectors.toList());
   }
 

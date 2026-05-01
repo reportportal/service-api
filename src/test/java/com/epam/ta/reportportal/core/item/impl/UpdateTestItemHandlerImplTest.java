@@ -389,6 +389,7 @@ class UpdateTestItemHandlerImplTest {
     TestItem item = new TestItem();
     item.setItemId(itemId);
     item.setType(TestItemTypeEnum.STEP);
+    item.setLaunchId(1L);
     TestItemResults itemResults = new TestItemResults();
     itemResults.setStatus(StatusEnum.FAILED);
     IssueEntity issueEntity = new IssueEntity();
@@ -437,6 +438,7 @@ class UpdateTestItemHandlerImplTest {
     long itemId = 1L;
     TestItem item = new TestItem();
     item.setItemId(itemId);
+    item.setLaunchId(1L);
     TestItemResults itemResults = new TestItemResults();
     itemResults.setStatus(StatusEnum.FAILED);
     IssueEntity issueEntity = new IssueEntity();

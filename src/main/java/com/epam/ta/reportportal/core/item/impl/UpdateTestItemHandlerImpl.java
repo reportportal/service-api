@@ -431,6 +431,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         )
     ).verify();
 
+    expect(item.getRetryOf(), equalTo(null),
+        formattedSupplier("Test item = {} is a retry", item.getItemId())).verify();
+
+    expect(item.getLaunchId(), notNull(),
+        formattedSupplier("Test item = {} is a retry", item.getItemId())).verify();
+
     expect(item.getItemResults().getStatus(),
         not(status -> Stream.of(StatusEnum.values()).filter(StatusEnum::isPositive)
             .anyMatch(s -> s == status)), formattedSupplier(

@@ -104,6 +104,9 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
     StatusEnum status = StatusEnum.FAILED;
 
     for (var item : items) {
+      if (item.getPath() == null) {
+        continue;
+      }
       Long[] pathIds = parsePathIds(item.getPath());
       if (statisticsRepository.canHaveExecutionStats(item.getItemId())) {
         String execField = executionFieldName(status);
@@ -144,6 +147,9 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
   @Transactional
   public void changeDefectStatistics(TestItem item, IssueType oldIssueType,
       IssueType newIssueType) {
+    if (item.getLaunchId() == null || item.getPath() == null) {
+      return;
+    }
     Long launchId = item.getLaunchId();
     Long[] pathIds = parsePathIds(item.getPath());
 

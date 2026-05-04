@@ -72,7 +72,7 @@ public class PathBuilderService {
    * @param name the original name
    * @return the sanitized version
    */
-  private String sanitize(String name) {
+  public String sanitize(String name) {
     if (name == null || name.isBlank()) {
       return "unknown";
     }

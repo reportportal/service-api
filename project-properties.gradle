@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'EPMRPP-114707-merge-feature-upcoming')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -80,6 +80,9 @@ project.ext {
             (migrationsUrl + '/migrations/98_add_plugin_type.up.sql')                  : 'V098__add_plugin_type.up.sql',
             (migrationsUrl + '/migrations/106_create_log_type_table.up.sql')           : 'V106__create_log_type_table.sql',
             (migrationsUrl + '/migrations/107_add_analysis_owner.up.sql')              : 'V107__add_analysis_owner.sql',
+            (migrationsUrl + '/migrations/110_retention_non_null.up.sql')              : 'V110__retention_non_null.up.sql',
+            (migrationsUrl + '/migrations/111_update_retry_functions.up.sql')          : 'V111__update_retry_functions.up.sql',
+            (migrationsUrl + '/migrations/112_lock_dashboard.up.sql')                  : 'V112__lock_dashboard.up.sql',
             (migrationsUrl + '/migrations/198_add_slugify_function.up.sql')            : 'V198__add_slugify_function.sql',
             (migrationsUrl + '/migrations/199_organization_tables.up.sql')             : 'V199__organization_tables.sql',
             (migrationsUrl + '/migrations/200_migrate_org_roles.up.sql')               : 'V200__migrate_org_roles.sql',
@@ -94,9 +97,6 @@ project.ext {
             (migrationsUrl + '/migrations/212_update_default_users.up.sql')            : 'V212__update_default_users.sql',
             (migrationsUrl + '/migrations/1000_tms_initial.up.sql')                    : 'V213__tms_initial.up.sql',
             (migrationsUrl + '/migrations/1001_migrate_auth_integrations.up.sql')      : 'V214__migrate_auth_integrations.up.sql',
-            (migrationsUrl + '/migrations/1002_retention_non_null.up.sql')             : 'V215__retention_non_null.up.sql',
-            (migrationsUrl + '/migrations/1003_update_retry_functions.up.sql')         : 'V216__update_retry_functions.up.sql',
-            (migrationsUrl + '/migrations/1004_lock_dashboard.up.sql')                 : 'V217__lock_dashboard.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

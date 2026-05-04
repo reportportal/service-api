@@ -36,6 +36,7 @@ import com.epam.reportportal.base.model.dashboard.CreateDashboardRQ;
 import com.epam.reportportal.base.model.dashboard.DashboardConfigResource;
 import com.epam.reportportal.base.model.dashboard.DashboardPreconfiguredRq;
 import com.epam.reportportal.base.model.dashboard.DashboardResource;
+import com.epam.reportportal.base.model.dashboard.PatchDashboardRQ;
 import com.epam.reportportal.base.model.dashboard.UpdateDashboardRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.reporting.ValidationConstraints;
@@ -53,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -137,6 +139,21 @@ public class DashboardController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return updateDashboardHandler.updateDashboard(
         projectExtractor.extractMembershipDetails(user, projectKey), updateRQ, dashboardId, user);
+  }
+
+  @Transactional
+  @PatchMapping(value = "/{dashboardId}")
+  @ResponseStatus(OK)
+  @Operation(summary = "Patch specified dashboard for specified project")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  public OperationCompletionRS patchDashboard(
+      @PathVariable String projectKey,
+      @PathVariable Long dashboardId,
+      @RequestBody @Validated PatchDashboardRQ patchRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return updateDashboardHandler.toggleDashboardLock(
+        projectExtractor.extractMembershipDetails(user, projectKey), dashboardId, patchRQ.getLocked(), user);
+
   }
 
   @Transactional

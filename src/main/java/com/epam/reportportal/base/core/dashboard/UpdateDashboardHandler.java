@@ -68,4 +68,19 @@ public interface UpdateDashboardHandler {
       MembershipDetails membershipDetails,
       ReportPortalUser user);
 
+  /**
+   * Toggle lock state for the specified dashboard.
+   *
+   * @param membershipDetails Membership details
+   * @param dashboardId       Dashboard id
+   * @param isLocked          true to lock the dashboard, false to unlock
+   * @param user              Action performer
+   * @return OperationCompletionRS result of the operation
+   */
+  OperationCompletionRS toggleDashboardLock(
+      MembershipDetails membershipDetails,
+      Long dashboardId,
+      Boolean isLocked,
+      ReportPortalUser user);
+
 }

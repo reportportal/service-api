@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Base entity for sharable resources. This resource should contains owner in response.
@@ -34,6 +35,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @JsonInclude(Include.NON_NULL)
+@ToString
 public class OwnedResource {
 
   @JsonProperty(value = "owner")
@@ -42,10 +44,7 @@ public class OwnedResource {
   @Size(min = MIN_DESCRIPTION, max = MAX_ENTITY_DESCRIPTION)
   private String description;
 
-  @Override
-  public String toString() {
-    return "OwnedResource{" + "owner='" + owner + '\''
-        + ", description='" + description + '\''
-        + '}';
-  }
+  @JsonProperty(value = "locked")
+  private Boolean locked;
+
 }

@@ -27,6 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 import com.epam.reportportal.base.ws.BaseMvcTest;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -44,32 +45,38 @@ import org.springframework.test.context.jdbc.Sql;
 class DashboardRepositoryTest extends BaseMvcTest {
 
   @Autowired
-  private DashboardRepository repository;
+  private DashboardRepository dashboardRepository;
+
+  @Autowired
+  private UserFilterRepository filterRepository;
+
+  @Autowired
+  private EntityManager entityManager;
 
   @Test
   public void shouldFindByIdAndProjectIdWhenExists() {
-    Optional<Dashboard> dashboard = repository.findByIdAndProjectId(13L, 1L);
+    Optional<Dashboard> dashboard = dashboardRepository.findByIdAndProjectId(13L, 1L);
 
     assertTrue(dashboard.isPresent());
   }
 
   @Test
   public void shouldNotFindByIdAndProjectIdWhenIdNotExists() {
-    Optional<Dashboard> dashboard = repository.findByIdAndProjectId(55L, 1L);
+    Optional<Dashboard> dashboard = dashboardRepository.findByIdAndProjectId(55L, 1L);
 
     assertFalse(dashboard.isPresent());
   }
 
   @Test
   public void shouldNotFindByIdAndProjectIdWhenProjectIdNotExists() {
-    Optional<Dashboard> dashboard = repository.findByIdAndProjectId(5L, 11L);
+    Optional<Dashboard> dashboard = dashboardRepository.findByIdAndProjectId(5L, 11L);
 
     assertFalse(dashboard.isPresent());
   }
 
   @Test
   public void shouldNotFindByIdAndProjectIdWhenIdAndProjectIdNotExist() {
-    Optional<Dashboard> dashboard = repository.findByIdAndProjectId(55L, 11L);
+    Optional<Dashboard> dashboard = dashboardRepository.findByIdAndProjectId(55L, 11L);
 
     assertFalse(dashboard.isPresent());
   }
@@ -78,7 +85,7 @@ class DashboardRepositoryTest extends BaseMvcTest {
   void findAllByProjectId() {
     final long superadminProjectId = 1L;
 
-    final List<Dashboard> dashboards = repository.findAllByProjectId(superadminProjectId);
+    final List<Dashboard> dashboards = dashboardRepository.findAllByProjectId(superadminProjectId);
 
     assertNotNull(dashboards, "Dashboards should not be null");
     assertEquals(4, dashboards.size(), "Unexpected dashboards size");
@@ -88,7 +95,7 @@ class DashboardRepositoryTest extends BaseMvcTest {
 
   @Test
   void shouldFindBySpecifiedNameAndProjectId() {
-    assertTrue(repository.existsByNameAndProjectId("test admin dashboard", 1L));
+    assertTrue(dashboardRepository.existsByNameAndProjectId("test admin dashboard", 1L));
   }
 
   private Filter buildDefaultFilter() {
@@ -100,17 +107,39 @@ class DashboardRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void shouldFindByFilterAndPage() {
+  void shouldFindByFilterAndSortByLocked() {
     Filter filter = buildDefaultFilter();
-    Pageable pageable = PageRequest.of(1, 50, Sort.sort(Dashboard.class));
-    Page<Dashboard> page = repository.findByFilter(filter, pageable);
+    Pageable pageable = PageRequest.of(1, 50, Sort.by("locked"));
+    Page<Dashboard> page = dashboardRepository.findByFilter(filter, pageable);
     assertEquals(1, page.getTotalElements());
   }
 
   @Test
   void shouldFindByFilter() {
     Filter filter = buildDefaultFilter();
-    List<Dashboard> byFilter = repository.findByFilter(filter);
+    List<Dashboard> byFilter = dashboardRepository.findByFilter(filter);
     assertEquals(1, byFilter.size());
   }
+
+  @Test
+  void toggleDashboardLock() {
+    dashboardRepository.lockDashboard(13L);
+    Dashboard dashboard = dashboardRepository.findById(13L).get();
+    assertTrue(dashboard.getLocked());
+  }
+
+  @Test
+  void lockDashboardShouldNotLockFilters() {
+    dashboardRepository.lockDashboard(13L);
+    entityManager.flush();
+    entityManager.clear();
+
+    // Dashboard should be locked
+    Dashboard dashboard = dashboardRepository.findById(13L).get();
+    assertTrue(dashboard.getLocked());
+
+    // Filters should NOT be locked
+    assertFalse(filterRepository.findById(2L).get().getLocked());
+  }
+
 }

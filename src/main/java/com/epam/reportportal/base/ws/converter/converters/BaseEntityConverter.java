@@ -32,6 +32,7 @@ public final class BaseEntityConverter {
         OwnedEntityResource ownedEntity = new OwnedEntityResource();
         ownedEntity.setId(String.valueOf(shareable.getId()));
         ownedEntity.setOwner(shareable.getOwner());
+        ownedEntity.setLocked(shareable.getLocked());
         return ownedEntity;
       };
 

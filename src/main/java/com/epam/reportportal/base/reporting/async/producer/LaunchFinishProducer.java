@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.reporting.async.producer;
 
+import static com.epam.reportportal.base.reporting.async.config.RabbitManagementConfiguration.REPLY_TIMEOUT_MS;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
@@ -28,7 +29,7 @@ import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.config.RequestType;
 import java.util.Map;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -40,12 +41,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class LaunchFinishProducer implements FinishLaunchHandler {
 
-  private final AmqpTemplate amqpTemplate;
+  private final RabbitTemplate rabbitTemplate;
   private final LinkGenerator linkGenerator;
 
-  public LaunchFinishProducer(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate,
+  public LaunchFinishProducer(@Qualifier(value = "rabbitTemplate") RabbitTemplate rabbitTemplate,
       LinkGenerator linkGenerator) {
-    this.amqpTemplate = amqpTemplate;
+    this.rabbitTemplate = rabbitTemplate;
     this.linkGenerator = linkGenerator;
   }
 
@@ -53,17 +54,22 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request,
       MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
 
-    amqpTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY, request,
-        message -> {
-          Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, launchId);
-          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
-          headers.put(MessageHeaders.USERNAME, user.getUsername());
-          headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
-          headers.put(MessageHeaders.LAUNCH_ID, launchId);
-          headers.put(MessageHeaders.BASE_URL, baseUrl);
-          return message;
-        });
+    rabbitTemplate.invoke(operations -> {
+      rabbitTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
+          request,
+          message -> {
+            Map<String, Object> headers = message.getMessageProperties().getHeaders();
+            headers.put(MessageHeaders.HASH_ON, launchId);
+            headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
+            headers.put(MessageHeaders.USERNAME, user.getUsername());
+            headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
+            headers.put(MessageHeaders.LAUNCH_ID, launchId);
+            headers.put(MessageHeaders.BASE_URL, baseUrl);
+            return message;
+          });
+      operations.waitForConfirms(REPLY_TIMEOUT_MS);
+      return null;
+    });
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);

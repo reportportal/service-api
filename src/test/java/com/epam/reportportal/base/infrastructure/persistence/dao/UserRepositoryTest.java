@@ -159,17 +159,18 @@ class UserRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void findFullNamesByIds() {
+  void findDisplayNamesByIds() {
     // given
     List<Long> userIds = List.of(1L, 2L);
 
     // when
-    List<UserIdDisplayNameProjection> fullNamesByIds = userRepository.findDisplayNamesByIds(userIds);
+    List<UserIdDisplayNameProjection> displayNamesByIds = userRepository.findDisplayNamesByIds(
+        userIds);
 
     // then
-    assertEquals(2, fullNamesByIds.size());
-    assertEquals("tester", fullNamesByIds.get(0).displayName());
-    assertEquals("tester", fullNamesByIds.get(1).displayName());
+    assertEquals(2, displayNamesByIds.size());
+    assertEquals("tester", displayNamesByIds.get(0).displayName());
+    assertEquals("tester", displayNamesByIds.get(1).displayName());
   }
 
   @Test

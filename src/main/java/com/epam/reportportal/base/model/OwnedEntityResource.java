@@ -19,6 +19,9 @@ package com.epam.reportportal.base.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Shared entity can used for sending information to client about shared resource. Contains only information about name
@@ -27,6 +30,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Aliaksei_Makayed
  *
  */
+@Setter
+@Getter
+@ToString
 @JsonInclude(Include.NON_NULL)
 public class OwnedEntityResource {
 
@@ -42,45 +48,7 @@ public class OwnedEntityResource {
   @JsonProperty(value = "description")
   private String description;
 
-  public String getId() {
-    return id;
-  }
+  @JsonProperty(value = "locked")
+  private boolean locked;
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getOwner() {
-    return owner;
-  }
-
-  public void setOwner(String owner) {
-    this.owner = owner;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("OwnedEntity{");
-    sb.append("name='").append(name).append('\'');
-    sb.append(", owner='").append(owner).append('\'');
-    sb.append(", description='").append(description).append('\'');
-    sb.append('}');
-    return sb.toString();
-  }
 }

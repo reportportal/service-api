@@ -203,7 +203,9 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
   public void deleteAllByProjectId(Long projectId) {
     if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       dataStoreService.deleteAll(
-          attachmentRepository.findAllByProjectId(projectId).stream().map(Attachment::getFileId)
+          attachmentRepository.findAllByProjectId(projectId)
+              .stream()
+              .map(Attachment::getFileId)
               .collect(Collectors.toList()), projectId.toString());
     } else {
       dataStoreService.deleteContainer(projectId.toString());

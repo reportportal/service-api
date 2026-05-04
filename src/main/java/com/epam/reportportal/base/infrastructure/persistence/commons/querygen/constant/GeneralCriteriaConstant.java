@@ -27,6 +27,7 @@ public final class GeneralCriteriaConstant {
 
   public static final String CRITERIA_UUID = "uuid";
   public static final String CRITERIA_NAME = "name";
+  public static final String CRITERIA_LOCKED = "locked";
   public static final String CRITERIA_SHARED = "shared";
   public static final String CRITERIA_OWNER = "owner";
   public static final String CRITERIA_PROJECT_ID = "projectId";

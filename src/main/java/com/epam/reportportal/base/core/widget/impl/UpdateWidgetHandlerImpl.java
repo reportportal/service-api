@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.widget.impl;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.reportportal.base.util.OwnedEntityUtils.validateOwnedEntityLocked;
 import static com.epam.reportportal.base.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.base.core.events.domain.WidgetUpdatedEvent;
@@ -31,11 +32,13 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetRepositor
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
+import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.activity.WidgetActivityResource;
+import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.ws.converter.builders.WidgetBuilder;
@@ -43,6 +46,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
@@ -77,6 +84,9 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
                 membershipDetails.getProjectName()
             ));
 
+    if (!isEligibleForLockBypass(widget, updateRQ)) {
+      validateOwnedEntityLocked(widget, membershipDetails, user);
+    }
     widgetContentFieldsValidator.validate(widget);
 
     if (!widget.getName().equals(updateRQ.getName())) {
@@ -88,11 +98,13 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
     WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
-    List<UserFilter> userFilter =
-        getUserFilters(updateRQ.getFilterIds(), membershipDetails.getProjectId());
+    List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), membershipDetails.getProjectId());
     String widgetOptionsBefore = parseWidgetOptions(widget);
 
-    widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
+    widget = new WidgetBuilder(widget)
+        .addWidgetRq(updateRQ)
+        .addFilters(userFilter)
+        .get();
     widgetRepository.save(widget);
 
     eventPublisher.publishEvent(
@@ -122,5 +134,40 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, Suppliers.formattedSupplier(
           "Error during parsing new widget options of widget with id = ", widget.getId()));
     }
+  }
+
+  private boolean isEligibleForLockBypass(Widget widget, WidgetRQ request) {
+    return isMetadataUnchanged(widget, request)
+        && isContentUnchanged(widget, request.getContentParameters());
+  }
+
+  private boolean isMetadataUnchanged(Widget widget, WidgetRQ request) {
+    return Objects.equals(widget.getName(), request.getName())
+        && Objects.equals(widget.getDescription(), request.getDescription())
+        && Objects.equals(widget.getWidgetType(), request.getWidgetType());
+  }
+
+  private boolean isContentUnchanged(Widget widget, ContentParameters params) {
+    if (params == null) {
+      return true;
+    }
+
+    return widget.getItemsCount() == params.getItemsCount()
+        && contentFieldsMatch(widget.getContentFields(), params.getContentFields())
+        && widgetOptionsMatch(widget.getWidgetOptions(), params.getWidgetOptions());
+  }
+
+  private boolean contentFieldsMatch(Set<String> existing, List<String> incoming) {
+    var incomingAsSet = Optional.ofNullable(incoming)
+        .map(Set::copyOf)
+        .orElse(null);
+    return Objects.equals(existing, incomingAsSet);
+  }
+
+  private boolean widgetOptionsMatch(WidgetOptions existing, Map<String, Object> incoming) {
+    var existingOptions = Optional.ofNullable(existing)
+        .map(WidgetOptions::getOptions)
+        .orElse(null);
+    return Objects.equals(existingOptions, incoming);
   }
 }

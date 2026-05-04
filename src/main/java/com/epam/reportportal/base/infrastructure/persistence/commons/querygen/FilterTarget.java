@@ -37,6 +37,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAST_MODIFIED;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LOCKED;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
@@ -77,7 +78,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_LAST_LAUNCH_RUN;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_LAUNCHES;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_NAME;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_PROJECTS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_SLUG;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_TYPE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_UPDATED_AT;
@@ -499,7 +499,8 @@ public enum FilterTarget {
           .withAggregateCriteria(DSL.arrayAgg(PROJECT.NAME).toString())
           .get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_KEY, PROJECT.KEY, String.class).get(),
-      new CriteriaHolderBuilder().newBuilder(CRITERIA_USER_ORGANIZATION_ID, ORGANIZATION_USER.ORGANIZATION_ID, Long.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_USER_ORGANIZATION_ID, ORGANIZATION_USER.ORGANIZATION_ID,
+          Long.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_LAST_LOGIN,
           "(" + USERS.METADATA + "-> 'metadata' ->> 'last_login')::DOUBLE PRECISION ",
           Long.class
@@ -1416,6 +1417,9 @@ public enum FilterTarget {
 
       new CriteriaHolderBuilder().newBuilder(CRITERIA_ID, DASHBOARD.ID, Long.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_NAME, DASHBOARD.NAME, String.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_LOCKED, OWNED_ENTITY.LOCKED, Boolean.class)
+          .withAggregateCriteria(DSL.max(DSL.cast(OWNED_ENTITY.LOCKED, Integer.class)).toString())
+          .get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_CREATION_DATE, DASHBOARD.CREATION_DATE,
           Timestamp.class).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, OWNED_ENTITY.PROJECT_ID,
@@ -1443,7 +1447,8 @@ public enum FilterTarget {
           DASHBOARD_WIDGET.WIDGET_POSITION_Y,
           WIDGET.WIDGET_OPTIONS,
           OWNED_ENTITY.PROJECT_ID,
-          OWNED_ENTITY.OWNER
+          OWNED_ENTITY.OWNER,
+          OWNED_ENTITY.LOCKED
       );
     }
 
@@ -1472,6 +1477,9 @@ public enum FilterTarget {
       new CriteriaHolderBuilder().newBuilder(CRITERIA_NAME, WIDGET.NAME, String.class)
           .withAggregateCriteria(DSL.max(WIDGET.NAME).toString())
           .get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_LOCKED, OWNED_ENTITY.LOCKED, Boolean.class)
+          .withAggregateCriteria(DSL.max(DSL.cast(OWNED_ENTITY.LOCKED, Integer.class)).toString())
+          .get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_DESCRIPTION, WIDGET.DESCRIPTION, String.class)
           .get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, OWNED_ENTITY.PROJECT_ID,
@@ -1489,7 +1497,8 @@ public enum FilterTarget {
           WIDGET.DESCRIPTION,
           WIDGET.ITEMS_COUNT,
           OWNED_ENTITY.PROJECT_ID,
-          OWNED_ENTITY.OWNER
+          OWNED_ENTITY.OWNER,
+          OWNED_ENTITY.LOCKED
       );
     }
 
@@ -1513,7 +1522,9 @@ public enum FilterTarget {
       Arrays.asList(
           new CriteriaHolderBuilder().newBuilder(CRITERIA_ID, FILTER.ID, Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_NAME, FILTER.NAME, String.class).get(),
-
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_LOCKED, OWNED_ENTITY.LOCKED, Boolean.class)
+              .withAggregateCriteria(DSL.max(DSL.cast(OWNED_ENTITY.LOCKED, Integer.class)).toString())
+              .get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_PROJECT_ID, OWNED_ENTITY.PROJECT_ID,
                   Long.class)
               .withAggregateCriteria(DSL.max(OWNED_ENTITY.PROJECT_ID).toString())
@@ -1537,7 +1548,8 @@ public enum FilterTarget {
           FILTER_SORT.FIELD,
           FILTER_SORT.DIRECTION,
           OWNED_ENTITY.PROJECT_ID,
-          OWNED_ENTITY.OWNER
+          OWNED_ENTITY.OWNER,
+          OWNED_ENTITY.LOCKED
       );
     }
 
@@ -1784,13 +1796,16 @@ public enum FilterTarget {
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_ID, TMS_TEST_CASE.ID,
               Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_NAME, TMS_TEST_CASE.NAME, String.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_DESCRIPTION, TMS_TEST_CASE.DESCRIPTION, String.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_DESCRIPTION, TMS_TEST_CASE.DESCRIPTION,
+              String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_PRIORITY, TMS_TEST_CASE.PRIORITY,
               String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_EXTERNAL_ID, TMS_TEST_CASE.EXTERNAL_ID,
               String.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_CREATED_AT, TMS_TEST_CASE.CREATED_AT, Instant.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_UPDATED_AT, TMS_TEST_CASE.UPDATED_AT, Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_CREATED_AT, TMS_TEST_CASE.CREATED_AT,
+              Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_UPDATED_AT, TMS_TEST_CASE.UPDATED_AT,
+              Instant.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_FOLDER_ID, TMS_TEST_CASE.TEST_FOLDER_ID,
               Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_PROJECT_ID, TMS_TEST_FOLDER.PROJECT_ID,
@@ -1845,7 +1860,6 @@ public enum FilterTarget {
               .get()
       )
   ) {
-
     @Override
     protected Collection<? extends SelectField> selectFields() {
       return Lists.newArrayList(
@@ -1887,8 +1901,10 @@ public enum FilterTarget {
               String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_DESCRIPTION, TMS_TEST_PLAN.DESCRIPTION,
               String.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_CREATED_AT, TMS_TEST_CASE.CREATED_AT, Instant.class).get(),
-          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_UPDATED_AT, TMS_TEST_CASE.UPDATED_AT, Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_CREATED_AT, TMS_TEST_CASE.CREATED_AT,
+              Instant.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_UPDATED_AT, TMS_TEST_CASE.UPDATED_AT,
+              Instant.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_PROJECT_ID, TMS_TEST_PLAN.PROJECT_ID,
               Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(
@@ -2222,12 +2238,12 @@ public enum FilterTarget {
           TMS_TEST_CASE_EXECUTION.DISPLAY_ID
       );
     }
-    
+
     @Override
     protected void addFrom(SelectQuery<? extends Record> query) {
       query.addFrom(TMS_TEST_CASE_EXECUTION);
     }
-    
+
     @Override
     protected void joinTables(QuerySupplier query) {
       query.addJoin(TEST_ITEM, JoinType.LEFT_OUTER_JOIN,
@@ -2241,7 +2257,7 @@ public enum FilterTarget {
       return TMS_TEST_CASE_EXECUTION.ID;
     }
   },
-  
+
   TMS_MILESTONE_TARGET(TmsMilestone.class,
       Arrays.asList(
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_MILESTONE_ID, TMS_MILESTONE.ID,
@@ -2276,23 +2292,23 @@ public enum FilterTarget {
           TMS_MILESTONE.PRODUCT_VERSION_ID
       );
     }
-  
+
     @Override
     protected void addFrom(SelectQuery<? extends Record> query) {
       query.addFrom(TMS_MILESTONE);
     }
-  
+
     @Override
     protected void joinTables(QuerySupplier query) {
       // No joins needed for basic fields
     }
-  
+
     @Override
     protected Field<Long> idField() {
       return TMS_MILESTONE.ID;
     }
   };
-  
+
   public static final String FILTERED_QUERY = "filtered";
   public static final String ATTRIBUTE_ALIAS = "attribute";
   public static final String FILTERED_ID = "id";

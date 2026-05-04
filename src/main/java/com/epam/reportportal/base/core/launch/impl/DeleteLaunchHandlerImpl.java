@@ -67,10 +67,15 @@ import org.springframework.stereotype.Service;
 public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
   private final ContentRemover<Launch> launchContentRemover;
+
   private final LaunchRepository launchRepository;
+
   private final ApplicationEventPublisher eventPublisher;
+
   private final LogIndexer logIndexer;
+
   private final AttachmentRepository attachmentRepository;
+
   private final LogService logService;
 
   public OperationCompletionRS deleteLaunch(Long launchId,

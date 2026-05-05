@@ -617,8 +617,21 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             ErrorType.NOT_FOUND,
             TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
         ));
-
+  
     return tmsTestCaseExecutionCommentService.putTestCaseExecutionComment(execution, request);
+  }
+  
+  @Override
+  @Transactional
+  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId,
+      Long executionId, TmsTestCaseExecutionCommentRQ request) {
+    var execution = findByTestCaseExecutionIdAndLaunchId(executionId, launchId)
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.NOT_FOUND,
+            TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
+        ));
+  
+    return tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution, request);
   }
 
   @Override

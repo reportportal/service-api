@@ -556,8 +556,20 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
       Long executionId, TmsTestCaseExecutionCommentRQ request) {
     // Validate launch belongs to project
     validateLaunchBelongsToProject(launchId, projectId);
-
+  
     return tmsTestCaseExecutionService.putTestCaseExecutionComment(
+        projectId, launchId, executionId, request
+    );
+  }
+  
+  @Override
+  @Transactional
+  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId,
+      Long executionId, TmsTestCaseExecutionCommentRQ request) {
+    // Validate launch belongs to project
+    validateLaunchBelongsToProject(launchId, projectId);
+  
+    return tmsTestCaseExecutionService.patchTestCaseExecutionComment(
         projectId, launchId, executionId, request
     );
   }

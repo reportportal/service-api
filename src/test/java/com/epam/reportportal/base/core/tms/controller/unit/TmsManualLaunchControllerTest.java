@@ -194,6 +194,19 @@ public class TmsManualLaunchControllerTest {
   }
   
   @Test
+  void patchTestCaseExecutionCommentTest() throws Exception {
+    TmsTestCaseExecutionCommentRQ request = new TmsTestCaseExecutionCommentRQ();
+    request.setComment("Patched comment");
+  
+    mockMvc.perform(patch("/v1/project/{projectKey}/launch/manual/{launchId}/test-case/execution/{executionId}/comment", projectKey, launchId, 400L)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+  
+    verify(tmsManualLaunchService).patchTestCaseExecutionComment(eq(projectId), eq(launchId), eq(400L), any());
+  }
+  
+  @Test
   void batchDeleteTestCaseExecutions() throws Exception {
     BatchDeleteTestCaseExecutionsRQ request = new BatchDeleteTestCaseExecutionsRQ(List.of(1L, 2L));
     BatchDeleteTestCaseExecutionsResultRS response = new BatchDeleteTestCaseExecutionsResultRS();

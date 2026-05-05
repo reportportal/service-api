@@ -8,6 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
@@ -27,7 +30,10 @@ class TmsTestCaseExecutionServiceImplTest {
 
   @Mock
   private TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
-
+  
+  @Mock
+  private TmsTestCaseExecutionCommentService tmsTestCaseExecutionCommentService;
+  
   @InjectMocks
   private TmsTestCaseExecutionServiceImpl sut;
 
@@ -493,5 +499,30 @@ class TmsTestCaseExecutionServiceImplTest {
     // Then
     assertTrue(result);
     verify(tmsTestCaseExecutionRepository).existsByTestCaseIdAndLaunchId(testCaseId1, 10L);
+  }
+
+  @Test
+  void patchTestCaseExecutionComment_WhenValid_ShouldCallCommentService() {
+    // Given
+    Long projectId = 1L;
+    Long launchId = 10L;
+    Long executionId = 100L;
+    TmsTestCaseExecutionCommentRQ request = new TmsTestCaseExecutionCommentRQ();
+    request.setComment("Patched");
+
+    TmsTestCaseExecutionCommentRS response = new TmsTestCaseExecutionCommentRS();
+
+    when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
+        .thenReturn(Optional.of(execution1));
+    when(tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution1, request))
+        .thenReturn(response);
+    
+    // When
+    var result = sut.patchTestCaseExecutionComment(projectId, launchId, executionId, request);
+    
+    // Then
+    assertNotNull(result);
+    verify(tmsTestCaseExecutionRepository).findByTestCaseExecutionIdAndLaunchId(executionId, launchId);
+    verify(tmsTestCaseExecutionCommentService).patchTestCaseExecutionComment(execution1, request);
   }
 }

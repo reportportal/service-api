@@ -204,7 +204,10 @@ public interface TmsTestCaseExecutionService {
 
   TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId,
       Long executionId, TmsTestCaseExecutionCommentRQ request);
-
+  
+  TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId,
+      Long executionId, TmsTestCaseExecutionCommentRQ request);
+  
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 
   TmsManualLaunchExecutionStatisticRS getTestCaseExecutionStatistic(Long launchId);

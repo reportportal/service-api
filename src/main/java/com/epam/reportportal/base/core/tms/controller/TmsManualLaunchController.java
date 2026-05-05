@@ -350,6 +350,27 @@ public class TmsManualLaunchController {
         request
     );
   }
+  
+  @PatchMapping("/{launchId}/test-case/execution/{executionId}/comment")
+  @Operation(summary = "Patch test case execution comment")
+  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(
+      @Parameter(description = "Project key", required = true)
+      @PathVariable String projectKey,
+      @Parameter(description = "Launch ID", required = true)
+      @PathVariable Long launchId,
+      @Parameter(description = "Execution ID", required = true)
+      @PathVariable Long executionId,
+      @Valid @RequestBody TmsTestCaseExecutionCommentRQ request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return tmsManualLaunchService.patchTestCaseExecutionComment(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        executionId,
+        request
+    );
+  }
 
   @DeleteMapping("/{launchId}/test-case/execution/{executionId}/comment")
   @Operation(summary = "Delete test case execution comment")

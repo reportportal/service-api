@@ -188,7 +188,9 @@ public interface TmsManualLaunchService {
   Optional<Long> getTestPlanIdByLaunchId(Long launchId);
 
   TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId, Long executionId, @Valid TmsTestCaseExecutionCommentRQ request);
-
+  
+  TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId, Long executionId, @Valid TmsTestCaseExecutionCommentRQ request);
+  
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 
   Map<Long, Launch> getEntitiesByIds(Long projectId, List<Long> launchIds);

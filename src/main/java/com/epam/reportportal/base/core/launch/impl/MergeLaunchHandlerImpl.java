@@ -108,7 +108,7 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
         "Not all launches with provided ids were found"
     );
 
-    validateMergingLaunches(launchesList, user, membershipDetails);
+    validateMergingLaunches(launchesList, membershipDetails);
 
     MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
     expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
@@ -128,19 +128,9 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
    * Validations for merge launches request parameters and data
    *
    * @param launches          {@link List} of the {@link Launch}
-   * @param user              {@link ReportPortalUser}
    * @param membershipDetails {@link MembershipDetails}
    */
-  private void validateMergingLaunches(List<Launch> launches, ReportPortalUser user,
-      MembershipDetails membershipDetails) {
-
-    /*
-     * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own
-     * launches
-     */
-    boolean isUserValidate = !(user.getUserRole().equals(ADMINISTRATOR)
-        || membershipDetails.getOrgRole().sameOrHigherThan(OrganizationRole.MANAGER)
-    );
+  private void validateMergingLaunches(List<Launch> launches, MembershipDetails membershipDetails) {
 
     launches.forEach(launch -> {
       expect(launch, notNull()).verify(LAUNCH_NOT_FOUND, launch);
@@ -155,12 +145,6 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
       expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
           FORBIDDEN_OPERATION, "Impossible to merge launches from different projects.");
 
-      if (isUserValidate) {
-        expect(launch.getUserId(), equalTo(user.getUserId())).verify(
-            ACCESS_DENIED,
-            "You are not an owner of launches or have less than PROJECT_MANAGER project role."
-        );
-      }
     });
   }
 

@@ -61,6 +61,7 @@ ext['logback.version'] = '1.5.25'
 // - tika-core: commons-bom pins 1.28.x (vulnerable); require 3.2.2+ (CVE-2025-66516).
 // - Netty: AWS SDK et al. pull mixed 4.1.x; align all io.netty artifacts to a patched release.
 // - mchange-commons-java: Quartz 2.3.2 brings 0.2.15; force 0.4.0+ (CVE-2026-27727).
+// - postgresql: align above 42.7.10 (e.g. Snyk) — fixed in 42.7.11.
 dependencyManagement {
     imports {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.1' : 'com.epam.reportportal:commons-bom:5.15.1')
@@ -69,6 +70,7 @@ dependencyManagement {
     }
     dependencies {
         dependency 'org.apache.tika:tika-core:3.2.2'
+        dependency 'org.postgresql:postgresql:42.7.11'
     }
 }
 

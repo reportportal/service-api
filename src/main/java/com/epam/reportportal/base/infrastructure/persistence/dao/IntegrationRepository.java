@@ -263,13 +263,6 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
   @Query("SELECT i FROM Integration i WHERE i.id = :id AND i.organizationId = :orgId")
   Optional<Integration> findByIdAndOrganizationId(@Param("id") Long id, @Param("orgId") Long orgId);
 
-  /**
-   * Delete all integrations of a given type within the given organization.
-   *
-   * @param orgId  Organization ID
-   * @param typeId Integration type ID
-   */
-  @Modifying
-  @Query("DELETE FROM Integration i WHERE i.organizationId = :orgId AND i.type.id = :typeId")
-  int deleteAllByOrganizationIdAndTypeId(@Param("orgId") Long orgId, @Param("typeId") Long typeId);
+  @Query("SELECT i FROM Integration i WHERE i.organizationId = :orgId AND i.type.id = :typeId")
+  List<Integration> findAllByOrganizationIdAndTypeId(@Param("orgId") Long orgId, @Param("typeId") Long typeId);
 }

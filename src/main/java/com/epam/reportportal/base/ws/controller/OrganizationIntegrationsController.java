@@ -93,4 +93,12 @@ public class OrganizationIntegrationsController implements OrganizationIntegrati
         UPDATE_REQUEST_TO_RQ.apply(updateOrgIntegrationRequest));
     return ResponseEntity.ok(new SuccessfulUpdate());
   }
+
+  @Override
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  @Transactional
+  public ResponseEntity<Void> deleteOrgIntegrations(Long orgId, String type) {
+    organizationIntegrationHandler.deleteOrganizationIntegrations(orgId, type);
+    return ResponseEntity.noContent().build();
+  }
 }

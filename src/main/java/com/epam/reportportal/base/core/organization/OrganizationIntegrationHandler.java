@@ -76,10 +76,10 @@ public interface OrganizationIntegrationHandler {
   void deleteOrganizationIntegration(Long orgId, Long integrationId);
 
   /**
-   * Delete all integrations of the given plugin type within the organization.
+   * Delete all integrations within the organization and by type (if provided).
    *
-   * @param orgId      Organization ID
-   * @param pluginName Plugin name
+   * @param orgId Organization ID
+   * @param type  Integration type
    */
-  void deleteOrganizationIntegrationsByType(Long orgId, String pluginName);
+  void deleteOrganizationIntegrations(Long orgId, String type);
 }

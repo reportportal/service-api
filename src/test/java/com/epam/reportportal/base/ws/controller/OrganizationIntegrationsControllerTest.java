@@ -286,6 +286,38 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
         .andExpect(status().isNotFound());
   }
 
+  // ── DELETE /organizations/{org_id}/integrations ──────────────────────────
+
+  @Test
+  void deleteIntegrations_manager_noContent_andIntegrationsRemoved() throws Exception {
+    mockMvc.perform(delete("/organizations/201/integrations?type=jira")
+            .with(token(managerToken)))
+        .andExpect(status().isNoContent());
+
+    var result = mockMvc.perform(get("/organizations/201/integrations")
+            .with(token(adminToken)))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    var page = objectMapper.readValue(
+        result.getResponse().getContentAsString(), OrganizationIntegrationPage.class);
+    assertEquals(0, page.getTotalCount());
+  }
+
+  @Test
+  void deleteIntegrations_member_forbidden() throws Exception {
+    mockMvc.perform(delete("/organizations/201/integrations?type=jira")
+            .with(token(viewerToken)))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void deleteIntegrations_unknownOrg_notFound() throws Exception {
+    mockMvc.perform(delete("/organizations/999/integrations?type=jira")
+            .with(token(adminToken)))
+        .andExpect(status().isNotFound());
+  }
+
   // ── DELETE /organizations/{org_id}/integrations/{integration_id} ──────────
 
   @Test

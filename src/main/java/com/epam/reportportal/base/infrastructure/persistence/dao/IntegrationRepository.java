@@ -263,6 +263,13 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
   @Query("SELECT i FROM Integration i WHERE i.id = :id AND i.organizationId = :orgId")
   Optional<Integration> findByIdAndOrganizationId(@Param("id") Long id, @Param("orgId") Long orgId);
 
+  /**
+   * Finds all integrations belonging to the specified organization and matching the given integration type.
+   *
+   * @param orgId  the ID of the organization
+   * @param typeId the ID of the integration type
+   * @return a list of {@link Integration} entities matching both the organization and type; empty if none found
+   */
   @Query("SELECT i FROM Integration i WHERE i.organizationId = :orgId AND i.type.id = :typeId")
   List<Integration> findAllByOrganizationIdAndTypeId(@Param("orgId") Long orgId, @Param("typeId") Long typeId);
 }

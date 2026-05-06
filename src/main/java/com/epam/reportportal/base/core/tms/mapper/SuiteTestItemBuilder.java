@@ -65,16 +65,6 @@ public class SuiteTestItemBuilder {
     suiteItem.setHasStats(true);  // SUITE contributes to statistics
     suiteItem.setHasChildren(false);  // Will be set to true when first TEST child added
     suiteItem.setRetryOf(null);
-    suiteItem.setPath(String.valueOf(launch.getId())); //TODO check if that is required
-
-    // Create test item results with INFO status
-    var suiteResults = new TestItemResults();
-    suiteResults.setStatus(StatusEnum.INFO);
-    suiteResults.setEndTime(null);
-    suiteResults.setDuration(null);
-
-    suiteItem.setItemResults(suiteResults);
-    suiteResults.setTestItem(suiteItem);
 
     log.trace("Successfully built SUITE item for test folder: {}", testFolderId);
     return suiteItem;

@@ -111,33 +111,49 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
 
     // Create SUITE item without a parent reference
     var suiteItem = suiteItemBuilder.buildSuiteItem(testFolder, launch, testFolderId);
-    suiteItem.setTestCaseHash(
-        testCaseHashGenerator.generate(
-            suiteItem,
-            IdentityUtil.getParentIds(suiteItem),
-            launch.getProjectId()
-        )
-    );
-    suiteItem = testItemRepository.save(suiteItem);
-    log.trace("Persisted SUITE item with ID: {}", suiteItem.getItemId());
-
-    // If folder has a parent, ensure parent SUITE exists and set parent relation
+    
+    // Resolve parent info FIRST
+    TestItem parentSuite = null;
+    boolean hasCircularDependency = false;
+    
     if (testFolder != null && testFolder.getParentTestFolder() != null) {
       var parentFolderId = testFolder.getParentTestFolder().getId();
       if (visitedFolderIds.contains(parentFolderId)) {
         log.warn("Cycle detected in test folder hierarchy for folder: {}. Breaking cycle.", testFolderId);
+        hasCircularDependency = true;
       } else {
-        var parentSuite = findTestFolderItem(projectId, parentFolderId,
-            launch, visitedFolderIds); // recursion ensures parent exists
+        parentSuite = findTestFolderItem(projectId, parentFolderId, launch, visitedFolderIds);
         markAsHavingChildren(parentSuite);
-
-        // Set parentId and complete path
         suiteItem.setParentId(parentSuite.getItemId());
-        suiteItem.setPath(parentSuite.getPath() + "." + suiteItem.getItemId());
-        suiteItem = testItemRepository.save(suiteItem);
       }
     }
-
+    
+    // Generate test case hash before saving
+    var parentIds = parentSuite != null ? IdentityUtil.getItemTreeIds(parentSuite) : java.util.Collections.<Long>emptyList();
+    suiteItem.setTestCaseHash(
+        testCaseHashGenerator.generate(suiteItem, parentIds, launch.getProjectId())
+    );
+    
+    suiteItem = testItemRepository.save(suiteItem);
+    
+    // Now create results after first save
+    var suiteResults = new com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults();
+    suiteResults.setStatus(com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.INFO);
+    suiteResults.setTestItem(suiteItem);
+    suiteItem.setItemResults(suiteResults);
+    
+    log.trace("Persisted SUITE item with ID: {}", suiteItem.getItemId());
+    
+    // Set path using generated ID
+    if (parentSuite != null && !hasCircularDependency) {
+      suiteItem.setPath(parentSuite.getPath() + "." + suiteItem.getItemId());
+    } else {
+      // Root folder or cycle
+      suiteItem.setPath(String.valueOf(suiteItem.getItemId()));
+    }
+    
+    suiteItem = testItemRepository.save(suiteItem);
+    
     // Create junction record linking SUITE item to test folder
     createFolderTestItem(testFolder, suiteItem);
 

@@ -15,8 +15,6 @@ import lombok.NoArgsConstructor;
 public class TmsTestCaseExecutionCommentRQ {
 
   private String comment;
-
-  private List<String> btsTickets;
-
+  
   private List<TmsTestCaseExecutionCommentAttachmentRQ> attachments;
 }

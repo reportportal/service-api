@@ -7,8 +7,10 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.model.Page;
 import java.util.List;
@@ -189,13 +191,15 @@ public interface TmsTestCaseExecutionService {
   /**
    * Updates test case execution.
    *
-   * @param executionId execution ID
-   * @param launchId    launch ID
-   * @param request     update request
+   * @param membershipDetails
+   * @param user
+   * @param executionId       execution ID
+   * @param launchId          launch ID
+   * @param request           update request
    * @return updated test case execution DTO
    */
   TmsTestCaseExecutionRS patch(
-      Long executionId,
+      MembershipDetails membershipDetails, ReportPortalUser user, Long executionId,
       Long launchId,
       TmsTestCaseExecutionRQ request
   );

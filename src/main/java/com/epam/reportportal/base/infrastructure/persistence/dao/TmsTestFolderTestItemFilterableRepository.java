@@ -99,7 +99,7 @@ public class TmsTestFolderTestItemFilterableRepository implements
 
     innerQuery.addJoin(CHILD_ITEM, JoinType.LEFT_OUTER_JOIN,
         CHILD_ITEM.PARENT_ID.eq(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)
-            .and(CHILD_ITEM.TYPE.eq(JTestItemTypeEnum.TEST)));
+            .and(CHILD_ITEM.TYPE.eq(JTestItemTypeEnum.STEP)));
 
     var filterTarget = filter.getTarget();
     var joinTables = new LinkedHashMap<TableLike<?>, JoinEntity>();

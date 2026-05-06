@@ -28,8 +28,7 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
   private final TmsTestCaseExecutionCommentRepository tmsTestCaseExecutionCommentRepository;
   private final TmsTestCaseExecutionCommentAttachmentService tmsTestCaseExecutionCommentAttachmentService;
-  private final TmsTestCaseExecutionCommentBtsTicketService tmsTestCaseExecutionCommentBtsTicketService;
-  private final TmsTestCaseExecutionCommentMapper tmsTestCaseExecutionCommentMapper;
+    private final TmsTestCaseExecutionCommentMapper tmsTestCaseExecutionCommentMapper;
 
   @Override
   @Transactional
@@ -63,7 +62,7 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
     if (executionCommentRQ == null || (executionCommentRQ.getComment() == null
         && executionCommentRQ.getAttachments() == null
-        && executionCommentRQ.getBtsTickets() == null)) {
+        )) {
       log.debug("No comment data provided, removing existing comment for execution: {}",
           existingExecution.getId());
       removeExistingComment(existingExecution);
@@ -95,8 +94,7 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
   @Transactional
   public void deleteByLaunchId(Long launchId) {
     tmsTestCaseExecutionCommentAttachmentService.deleteByLaunchId(launchId);
-    tmsTestCaseExecutionCommentBtsTicketService.deleteByLaunchId(launchId);
-    tmsTestCaseExecutionCommentRepository.deleteByLaunchId(launchId);
+        tmsTestCaseExecutionCommentRepository.deleteByLaunchId(launchId);
   }
 
   @Override
@@ -130,10 +128,6 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
     tmsTestCaseExecutionCommentAttachmentService.updateAttachments(existingComment,
         executionCommentRQ);
 
-    // Update BTS tickets
-    tmsTestCaseExecutionCommentBtsTicketService.updateBtsTickets(existingComment,
-        executionCommentRQ);
-
     // Save updated comment
     return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
         tmsTestCaseExecutionCommentRepository.save(existingComment)
@@ -155,11 +149,6 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
     if (executionCommentRQ.getAttachments() != null) {
       tmsTestCaseExecutionCommentAttachmentService.updateAttachments(existingComment,
-          executionCommentRQ);
-    }
-
-    if (executionCommentRQ.getBtsTickets() != null) {
-      tmsTestCaseExecutionCommentBtsTicketService.updateBtsTickets(existingComment,
           executionCommentRQ);
     }
 
@@ -188,10 +177,6 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
     tmsTestCaseExecutionCommentAttachmentService.createAttachments(savedComment,
         executionCommentRQ);
 
-    // Create BTS tickets
-    tmsTestCaseExecutionCommentBtsTicketService.createBtsTickets(savedComment,
-        executionCommentRQ);
-
     // Set bidirectional relationship
     existingExecution.setExecutionComment(savedComment);
 
@@ -212,10 +197,6 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
       // Delete attachments first
       tmsTestCaseExecutionCommentAttachmentService.deleteAllByExecutionId(
-          existingExecution.getId());
-
-      // Delete BTS tickets
-      tmsTestCaseExecutionCommentBtsTicketService.deleteAllByExecutionId(
           existingExecution.getId());
 
       // Delete comment

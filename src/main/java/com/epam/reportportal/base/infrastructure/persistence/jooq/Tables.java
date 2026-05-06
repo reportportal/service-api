@@ -81,7 +81,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentBtsTicket;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem;
@@ -531,7 +530,6 @@ public class Tables {
     /**
      * The table <code>public.tms_test_case_execution_comment_bts_ticket</code>.
      */
-    public static final JTmsTestCaseExecutionCommentBtsTicket TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET = JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET;
 
     /**
      * The table <code>public.tms_test_case_version</code>.

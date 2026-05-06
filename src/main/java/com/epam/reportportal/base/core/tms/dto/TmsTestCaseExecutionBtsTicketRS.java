@@ -11,7 +11,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class TmsTestCaseExecutionCommentBtsTicketRS {
-  private Long id;
-  private String link;
+public class TmsTestCaseExecutionBtsTicketRS {
+  private String btsUrl;
+  private String btsProject;
+  private String ticketId;
+  private String url;
+  private String pluginName;
 }

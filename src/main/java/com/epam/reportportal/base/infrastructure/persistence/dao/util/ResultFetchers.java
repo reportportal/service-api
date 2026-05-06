@@ -26,6 +26,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Rec
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ITEM_ATTRIBUTE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.LOG_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ORGANIZATION_USER_MAPPER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ISSUE_RECORD_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.PATTERN_TEMPLATE_NAME_RECORD_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.PROJECT_USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TICKET_MAPPER;
@@ -590,6 +591,26 @@ public class ResultFetchers {
       Long id = row.get(TMS_TEST_CASE_EXECUTION.ID);
       if (!executions.containsKey(id)) {
         executions.put(id, TMS_TEST_CASE_EXECUTION_MAPPER.map(row));
+      }
+      TmsTestCaseExecution execution = executions.get(id);
+  
+      if (execution.getTestItem() != null && execution.getTestItem().getItemResults() != null) {
+        var results = execution.getTestItem().getItemResults();
+        if (results.getIssue() == null) {
+          var issue = ISSUE_RECORD_MAPPER.map(row);
+          if (issue != null) {
+            if (issue.getTickets() == null) {
+              issue.setTickets(Sets.newHashSet());
+            }
+            results.setIssue(issue);
+          }
+        }
+        if (results.getIssue() != null) {
+          if (results.getIssue().getTickets() == null) {
+            results.getIssue().setTickets(Sets.newHashSet());
+          }
+          TICKET_MAPPER.apply(row).ifPresent(ticket -> results.getIssue().getTickets().add(ticket));
+        }
       }
     });
     return new ArrayList<>(executions.values());

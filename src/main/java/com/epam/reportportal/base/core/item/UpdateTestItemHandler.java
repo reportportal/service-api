@@ -59,6 +59,18 @@ public interface UpdateTestItemHandler {
       UpdateTestItemRQ rq, ReportPortalUser user);
 
   /**
+   * Update the specified test item and return that
+   *
+   * @param membershipDetails Membership details
+   * @param testItem          test item to be updated
+   * @param rq                update test item request data
+   * @param user              request principal name
+   * @return OperationCompletionRS
+   */
+  TestItem updateTestItem(MembershipDetails membershipDetails, TestItem testItem,
+      UpdateTestItemRQ rq, ReportPortalUser user);
+
+  /**
    * Add or remove external system issue link directly to the {@link TestItem}
    *
    * @param request           {@link ExternalIssueRQ}

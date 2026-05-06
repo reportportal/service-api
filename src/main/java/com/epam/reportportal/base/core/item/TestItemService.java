@@ -135,10 +135,4 @@ public class TestItemService {
 
     log.info("Deleted {} test items for launch: {}", deletedCount, launchId);
   }
-
-  @Transactional
-  public TestItem patchTestItemStatus(TestItem testItem, String status) {
-    testItem.getItemResults().setStatus(StatusEnum.valueOf(status));
-    return testItemRepository.save(testItem);
-  }
 }

@@ -322,11 +322,11 @@ public class TmsManualLaunchController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsManualLaunchService.patchTestCaseExecution(
         projectExtractor
-            .extractMembershipDetails(user, projectKey)
-            .getProjectId(),
+            .extractMembershipDetails(user, projectKey),
         launchId,
         executionId,
-        request
+        request,
+        user
     );
   }
 

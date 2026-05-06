@@ -11,5 +11,4 @@ public interface TestCaseItemService {
       TestItem suiteItem,
       Launch launch);
 
-  void markAsHavingNestedChildren(TestItem testItem);
 }

@@ -127,7 +127,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   private final DefectUpdateStatisticsService defectUpdateStatisticsService;
   private final ProjectService projectService;
 
-
   @Autowired
   public UpdateTestItemHandlerImpl(TestItemService testItemService,
       ProjectRepository projectRepository, TestItemRepository testItemRepository,
@@ -270,6 +269,41 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     testItemRepository.save(testItem);
 
     return COMPOSE_UPDATE_RESPONSE.apply(itemId);
+  }
+
+  @Override
+  public TestItem updateTestItem(MembershipDetails membershipDetails, TestItem testItem,
+      UpdateTestItemRQ rq, ReportPortalUser user) {
+    validate(membershipDetails, user, testItem);
+
+    var providedStatus = StatusEnum.fromValue(rq.getStatus());
+    if (providedStatus.isPresent() && !providedStatus.get()
+        .equals(testItem.getItemResults().getStatus())) {
+      expect(testItem.isHasChildren()
+          && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)
+      ).verify(INCORRECT_REQUEST, "Unable to change status on test item with children");
+
+      checkInitialStatusAttribute(testItem, rq);
+
+      var strategy = statusChangingStrategyMapping.get(providedStatus.get());
+
+      expect(strategy, notNull()).verify(INCORRECT_REQUEST,
+          formattedSupplier("Actual status: '{}' cannot be changed to '{}'.",
+              testItem.getItemResults().getStatus(), providedStatus.get()
+          )
+      );
+      var before = TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
+      strategy.changeStatus(testItem, providedStatus.get(), user, true);
+      testItem.setAnalysisOwnerId(user.getUserId());
+
+      eventPublisher.publishEvent(new TestItemStatusChangedEvent(before,
+          TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId()), user.getUserId(),
+          user.getUsername(), membershipDetails.getOrgId()
+      ));
+    }
+    testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes())
+        .addDescription(rq.getDescription()).get();
+    return testItemRepository.save(testItem);
   }
 
   @Override

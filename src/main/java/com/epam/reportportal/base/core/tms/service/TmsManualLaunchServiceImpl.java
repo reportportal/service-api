@@ -22,7 +22,6 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutio
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchManualLaunchOperationResultRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualLaunchMapper;
 import com.epam.reportportal.base.core.user.GetUserHandler;
@@ -450,10 +449,12 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   @Override
   @Transactional
   public TmsTestCaseExecutionRS patchTestCaseExecution(
-      Long projectId,
+      MembershipDetails membershipDetails,
       Long launchId,
       Long executionId,
-      TmsTestCaseExecutionRQ request) {
+      TmsTestCaseExecutionRQ request, ReportPortalUser user) {
+
+    var projectId = membershipDetails.getProjectId();
 
     log.debug("Patching test case execution: {} in launch: {} in project: {}",
         executionId, launchId, projectId);
@@ -462,7 +463,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     validateLaunchBelongsToProject(launchId, projectId);
 
     // Delegate to execution service
-    return tmsTestCaseExecutionService.patch(executionId, launchId, request);
+    return tmsTestCaseExecutionService.patch(membershipDetails, user, executionId, launchId, request);
   }
 
   @Override

@@ -65,7 +65,9 @@ public abstract class ProjectMemberContextCommand<T> extends AbstractContextBase
     expect(commandContext.getProjectId(), notNull())
         .verify(ErrorType.BAD_REQUEST_ERROR, "Project ID should not be null");
 
-    Project project = projectRepository.findById(commandContext.getProjectId())
+    Project project = ofNullable(commandContext.getOrgId())
+        .map(orgId -> projectRepository.findByIdAndOrganizationId(commandContext.getProjectId(), orgId))
+        .orElseGet(() -> projectRepository.findById(commandContext.getProjectId()))
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, commandContext.getProjectId()));
 
     validateProjectPermissions(user, project);

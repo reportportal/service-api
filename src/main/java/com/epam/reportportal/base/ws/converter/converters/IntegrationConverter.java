@@ -28,6 +28,7 @@ import com.epam.reportportal.base.core.integration.util.property.SauceLabsProper
 import com.epam.reportportal.base.infrastructure.persistence.entity.EmailSettingsEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.model.activity.IntegrationActivityResource;
 import com.epam.reportportal.base.model.integration.AuthFlowEnum;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
@@ -127,10 +128,14 @@ public final class IntegrationConverter {
         ofNullable(integration.getType()).ifPresent(t -> {
           OrganizationIntegrationIntegrationType type = new OrganizationIntegrationIntegrationType();
           type.setName(t.getName());
-          type.setType(t.getIntegrationGroup().name());
-          type.setEnabled(t.isEnabled());
-          ofNullable(t.getAuthFlow()).ifPresent(flow ->
-              type.setAuthFlow(OrganizationIntegrationIntegrationType.AuthFlowEnum.valueOf(flow.name())));
+          ofNullable(t.getIntegrationGroup()).map(Enum::name).ifPresent(type::setType);
+          ofNullable(t.getPluginType()).map(Enum::name).ifPresent(type::setPluginType);
+          ofNullable(t.getIntegrationGroup()).map(Enum::name).ifPresent(type::setGroupType);
+          type.setCreatedAt(t.getCreationDate());
+          ofNullable(t.getDetails()).map(IntegrationTypeDetails::getDetails).ifPresent(type::setDetails);
+          ofNullable(t.getAuthFlow())
+              .ifPresent(flow ->
+                  type.setAuthFlow(OrganizationIntegrationIntegrationType.AuthFlowEnum.valueOf(flow.name())));
           result.setIntegrationType(type);
         });
         return result;

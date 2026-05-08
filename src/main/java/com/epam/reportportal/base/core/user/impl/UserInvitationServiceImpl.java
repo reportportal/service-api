@@ -134,9 +134,17 @@ public class UserInvitationServiceImpl implements UserInvitationService {
             new String[]{userBid.getEmail()}, invitation.getLink().toString()
         ));
 
-    // TODO: Add org IDs to event publisher. Needs to refactor ActivityEvent.
-    eventPublisher.publishEvent(
-        new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername()));
+    invitationRq.getOrganizations().forEach(org -> {
+      if (org.getProjects() == null || org.getProjects().isEmpty()) {
+        eventPublisher.publishEvent(
+            new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername(), null, org.getId()));
+      } else {
+        org.getProjects().stream()
+            .map(UserProjectInfo::getId)
+            .forEach(projectId -> eventPublisher.publishEvent(
+                new CreateInvitationLinkEvent(rpUser.getUserId(), rpUser.getUsername(), projectId, org.getId())));
+      }
+    });
     return invitation;
   }
 

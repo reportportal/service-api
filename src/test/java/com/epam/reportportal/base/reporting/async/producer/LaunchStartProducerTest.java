@@ -15,13 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 @ExtendWith(MockitoExtension.class)
+
 class LaunchStartProducerTest {
 
   @Mock
-  AmqpTemplate amqpTemplate;
+  RabbitTemplate amqpTemplate;
 
   @InjectMocks
   LaunchStartProducer launchStartProducer;
@@ -33,7 +34,7 @@ class LaunchStartProducerTest {
         ProjectRole.EDITOR, 1L);
 
     launchStartProducer.startLaunch(user, rpUserToMembership(user), request);
-    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(amqpTemplate).invoke(any());
   }
 
 }

@@ -18,16 +18,19 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.activity;
 
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Getter;
 
 /**
  * String codes for user-visible actions (dashboard, widget, user, BTS, etc.).
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Getter
 public enum ActivityAction {
 
   CREATE_DASHBOARD("createDashboard"),
   UPDATE_DASHBOARD("updateDashboard"),
+  UPDATE_DASHBOARD_STATE("updateDashboardState"),
   DELETE_DASHBOARD("deleteDashboard"),
   CREATE_WIDGET("createWidget"),
   UPDATE_WIDGET("updateWidget"),
@@ -152,7 +155,7 @@ public enum ActivityAction {
   CREATE_TEST_CASE_MANUAL_SCENARIO_STEP_ATTACHMENTS("Added manual scenario step attachments"),
   UPDATE_TEST_CASE_MANUAL_SCENARIO_STEP_ATTACHMENTS("Updated manual scenario step attachments"),
   DELETE_TEST_CASE_MANUAL_SCENARIO_STEP_ATTACHMENTS("Deleted manual scenario step attachments"),
-  
+
   CREATE_LOG_TYPE("createLogType"),
   UPDATE_LOG_TYPE("updateLogType"),
   DELETE_LOG_TYPE("deleteLogType");
@@ -168,7 +171,4 @@ public enum ActivityAction {
         str -> Arrays.stream(values()).filter(it -> it.value.equalsIgnoreCase(str)).findAny());
   }
 
-  public String getValue() {
-    return value;
-  }
 }

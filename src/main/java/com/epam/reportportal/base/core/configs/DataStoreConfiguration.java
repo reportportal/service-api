@@ -68,9 +68,9 @@ public class DataStoreConfiguration {
     Properties properties = new Properties();
     properties.setProperty(FilesystemConstants.PROPERTY_BASEDIR, baseDirectory);
 
-    BlobStoreContext blobStoreContext =
-        ContextBuilder.newBuilder("filesystem").overrides(properties)
-            .buildView(BlobStoreContext.class);
+    BlobStoreContext blobStoreContext = ContextBuilder.newBuilder("filesystem")
+        .overrides(properties)
+        .buildView(BlobStoreContext.class);
 
     return blobStoreContext.getBlobStore();
   }
@@ -101,9 +101,10 @@ public class DataStoreConfiguration {
       @Value("${datastore.secretKey}") String secretKey,
       @Value("${datastore.endpoint}") String endpoint) {
 
-    BlobStoreContext blobStoreContext =
-        ContextBuilder.newBuilder("s3").endpoint(endpoint).credentials(accessKey, secretKey)
-            .buildView(BlobStoreContext.class);
+    BlobStoreContext blobStoreContext = ContextBuilder.newBuilder("s3")
+        .endpoint(endpoint)
+        .credentials(accessKey, secretKey)
+        .buildView(BlobStoreContext.class);
 
     return blobStoreContext.getBlobStore();
   }
@@ -125,8 +126,7 @@ public class DataStoreConfiguration {
       @Value("${datastore.bucketPostfix}") String bucketPostfix,
       @Value("${datastore.defaultBucketName}") String defaultBucketName,
       @Value("${datastore.region}") String region, FeatureFlagHandler featureFlagHandler) {
-    return new S3DataStore(
-        blobStore, bucketPrefix, bucketPostfix, defaultBucketName, region, featureFlagHandler);
+    return new S3DataStore(blobStore, bucketPrefix, bucketPostfix, defaultBucketName, region, featureFlagHandler);
   }
 
   /**

@@ -19,6 +19,7 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 import com.epam.reportportal.base.core.tms.dto.CountOfChildTestItemsByParentId;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.NestedItemAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -518,41 +519,6 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   Optional<String> findItemNameByItemId(Long itemId);
 
   /**
-   * Count items by launch id
-   *
-   * @param launchId Launch id
-   * @return Number of {@link TestItem}
-   */
-  long countTestItemByLaunchId(Long launchId);
-
-  /**
-   * Select items with provided parent ids
-   *
-   * @param parentIds Parent test items id
-   * @return List of item ids
-   */
-  @Query(value = "SELECT t.item_id FROM test_item t WHERE t.parent_id IN (:parentIds)", nativeQuery = true)
-  List<Long> findIdsByParentIds(@Param("parentIds") Long... parentIds);
-
-  /**
-   * Select item paths by provided parent ids
-   *
-   * @param parentIds Parent test items id
-   * @return List of item paths
-   */
-  @Query(value = "SELECT CAST(t.path AS VARCHAR) FROM test_item t WHERE t.parent_id IN (:parentIds)", nativeQuery = true)
-  List<String> findPathsByParentIds(@Param("parentIds") Long... parentIds);
-
-  /**
-   * Select items ids with provided retry of
-   *
-   * @param retryOf Retry of test item id
-   * @return List of item ids
-   */
-  @Query(value = "SELECT t.item_id FROM test_item t WHERE t.retry_of = :retryOf", nativeQuery = true)
-  List<Long> findIdsByRetryOf(@Param("retryOf") Long retryOf);
-
-  /**
    * Returns IDs (from itemIds) that have nested steps.
    *
    * @param itemIds test item IDs to check
@@ -574,6 +540,26 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   @Query("DELETE FROM TestItem ti WHERE ti.launchId = :launchId")
   int deleteByLaunchId(@Param("launchId") Long launchId);
 
+  @Query(value = """
+      select
+        ti.item_id as itemId,
+        ti.name as name,
+        cast (ti.path as varchar) as path,
+        a.file_id as fileId,
+        a.file_name as fileName,
+        a.content_type as contentType
+      from attachment a
+      right join test_item ti on ti.item_id = a.item_id
+      where ti.launch_id = :launchId
+        and ti.has_stats = false
+        and ti.path <@ CAST(:path AS LTREE)
+        and ti.item_id != :itemId
+      order by ti.item_id, a.id
+      """,
+      nativeQuery = true
+  )
+  List<NestedItemAttachment> findNestedStepsAttachments(Long launchId, String path, Long itemId);
+
   /**
    * Finds all test items by item IDs filtered by project ID.
    *
@@ -586,7 +572,6 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       INNER JOIN launch l ON ti.launch_id = l.id
       WHERE ti.item_id IN (:ids)
         AND l.project_id = :projectId
-      ORDER BY ti.item_id
       """, nativeQuery = true)
   List<TestItem> findAllByItemIdInAndProjectId(@Param("ids") Collection<Long> ids, @Param("projectId") Long projectId);
 

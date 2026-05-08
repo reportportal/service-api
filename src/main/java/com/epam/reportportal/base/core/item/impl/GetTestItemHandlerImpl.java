@@ -331,23 +331,25 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<TestItemResource> getTestItemsByIds(List<Long> ids, MembershipDetails projectDetails,
-      ReportPortalUser user) {
-    List<TestItem> items = testItemRepository.findAllByItemIdInAndProjectId(ids,
-        projectDetails.getProjectId());
+  public List<TestItemResource> getTestItemsByIds(List<Long> ids, MembershipDetails projectDetails) {
+    return getTestItemsByIds(ids, projectDetails.getProjectId());
+  }
+
+  @Override
+  public List<TestItemResource> getTestItemsByIds(List<Long> ids, Long projectId) {
+    List<TestItem> items = testItemRepository.findAllByItemIdInAndProjectId(ids, projectId);
 
     if (items.size() != ids.size()) {
       throw new ReportPortalException(BAD_REQUEST_ERROR, "Invalid list of ids");
     }
 
-    List<ResourceUpdater<TestItemResource>> resourceUpdaters =
-        getResourceUpdaters(projectDetails.getProjectId(), items);
+    List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectId, items);
 
     return items.stream().map(item -> {
       TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
       resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
       return testItemResource;
-    }).collect(toList());
+    }).toList();
   }
 
 }

@@ -58,6 +58,7 @@ public class WidgetConverter {
     widgetResource.setWidgetType(widget.getWidgetType());
     widgetResource.setDescription(widget.getDescription());
     widgetResource.setOwner(widget.getOwner());
+    widgetResource.setLocked(widget.getLocked());
     ofNullable(widget.getFilters()).ifPresent(
         filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE
             .apply(filter)));

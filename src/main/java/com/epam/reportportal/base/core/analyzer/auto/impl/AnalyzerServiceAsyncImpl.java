@@ -23,6 +23,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,17 +36,21 @@ import org.springframework.stereotype.Service;
 public class AnalyzerServiceAsyncImpl implements AnalyzerServiceAsync {
 
   private final AnalyzerService analyzerService;
+  private final TaskExecutor autoAnalyzeTaskExecutor;
 
   @Autowired
-  public AnalyzerServiceAsyncImpl(AnalyzerService analyzerService) {
+  public AnalyzerServiceAsyncImpl(AnalyzerService analyzerService,
+      @Qualifier("autoAnalyzeTaskExecutor") TaskExecutor autoAnalyzeTaskExecutor) {
     this.analyzerService = analyzerService;
+    this.autoAnalyzeTaskExecutor = autoAnalyzeTaskExecutor;
   }
 
   @Override
   public CompletableFuture<Void> analyze(Launch launch, List<Long> itemIds,
       AnalyzerConfig analyzerConfig) {
     return CompletableFuture.runAsync(
-        () -> analyzerService.runAnalyzers(launch, itemIds, analyzerConfig));
+        () -> analyzerService.runAnalyzers(launch, itemIds, analyzerConfig),
+        autoAnalyzeTaskExecutor);
   }
 
   @Override

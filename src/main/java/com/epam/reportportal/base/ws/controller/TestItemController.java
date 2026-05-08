@@ -551,7 +551,7 @@ public class TestItemController {
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated BulkItemsRQ request) {
     return getTestItemHandler.getTestItemsByIds(request.getIds(),
-        projectExtractor.extractMembershipDetails(user, projectKey), user
+        projectExtractor.extractMembershipDetails(user, projectKey)
     );
   }
 

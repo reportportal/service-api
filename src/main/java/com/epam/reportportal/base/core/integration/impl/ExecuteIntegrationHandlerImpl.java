@@ -74,11 +74,11 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
         ));
     executionParams.put(PROJECT_ID, membershipDetails.getProjectId());
     executionParams.put(PROJECT_NAME, membershipDetails.getProjectKey());
-    return ofNullable(pluginInstance.getCommonCommand(command))
-        .map(it -> it.executeCommand(executionParams))
+    var pluginCommand = ofNullable(pluginInstance.getCommonCommand(command))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
         ));
+    return pluginCommand.executeCommand(executionParams);
   }
 
   @Override

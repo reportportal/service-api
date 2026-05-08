@@ -148,6 +148,7 @@ public class FlushingDataJob implements Job {
         TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;
         TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;
         DELETE FROM statistics_field WHERE sf_id > 14;
+        DELETE FROM log_type WHERE id > 7;
         COMMIT;
         """);
   }

@@ -20,3 +20,4 @@ build/
 .gradle/
 out/
 src/test/resources/db/migration/*.sql
+bin

@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.model.filter;
 
-
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MAX_USER_FILTER_NAME_LENGTH;
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MIN_COLLECTION_SIZE;
 import static com.epam.reportportal.base.reporting.ValidationConstraints.MIN_NAME_LENGTH;

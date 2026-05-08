@@ -43,7 +43,6 @@ import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,25 +180,24 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
   }
 
   @Override
-  public void deleteOrganizationIntegrationsByType(Long orgId, String pluginName) {
+  public void deleteOrganizationIntegrations(Long orgId, String type) {
     validateOrganizationExists(orgId);
     var user = SecurityContextUtils.getPrincipal();
 
-    IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
-
-    List<Integration> integrations = integrationRepository.findAllByOrganizationId(orgId, Pageable.unpaged())
-        .stream()
-        .filter(i -> i.getType().getId().equals(integrationType.getId()))
-        .toList();
+    List<Integration> integrations;
+    if (StringUtils.isNotBlank(type)) {
+      IntegrationType integrationType = integrationTypeRepository.findByName(type)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
+      integrations = integrationRepository.findAllByOrganizationIdAndTypeId(orgId, integrationType.getId());
+    } else {
+      integrations = integrationRepository.findAllByOrganizationId(orgId, Pageable.unpaged()).toList();
+    }
+    integrationRepository.deleteAll(integrations);
 
     integrations.stream()
         .map(TO_ACTIVITY_RESOURCE)
-        .forEach(it ->
-            eventPublisher.publishEvent(new IntegrationDeletedEvent(it, user.getUserId(), user.getUsername(), orgId)));
-
-    integrationRepository.deleteAllByOrganizationIdAndTypeId(orgId, integrationType.getId());
-
+        .forEach(it -> eventPublisher.publishEvent(
+            new IntegrationDeletedEvent(it, user.getUserId(), user.getUsername(), orgId)));
   }
 
   private void validateOrganizationExists(Long orgId) {

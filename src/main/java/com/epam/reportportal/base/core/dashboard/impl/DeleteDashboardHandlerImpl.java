@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.dashboard.impl;
 
+import static com.epam.reportportal.base.util.OwnedEntityUtils.validateOwnedEntityLocked;
 import static com.epam.reportportal.base.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.stream.Collectors.toSet;
 
@@ -78,6 +79,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
             dashboardId,
             membershipDetails.getProjectName()
         ));
+    validateOwnedEntityLocked(dashboard, membershipDetails, user);
 
     Set<DashboardWidget> dashboardWidgets = dashboard.getWidgets();
     List<Widget> widgets = dashboardWidgets.stream()

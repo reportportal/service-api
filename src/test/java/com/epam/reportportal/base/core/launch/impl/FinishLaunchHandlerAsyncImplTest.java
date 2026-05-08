@@ -33,7 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 /**
  * @author Konstantin Antipin
@@ -43,7 +43,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 class FinishLaunchHandlerAsyncImplTest {
 
   @Mock
-  AmqpTemplate amqpTemplate;
+  RabbitTemplate amqpTemplate;
 
   @InjectMocks
   LaunchFinishProducer finishLaunchHandlerAsync;
@@ -59,6 +59,6 @@ class FinishLaunchHandlerAsyncImplTest {
 
     finishLaunchHandlerAsync.finishLaunch("0", request,
         rpUserToMembership(user), user, "http://base");
-    verify(amqpTemplate).convertAndSend(any(), any(), any(), any());
+    verify(amqpTemplate).invoke(any());
   }
 }

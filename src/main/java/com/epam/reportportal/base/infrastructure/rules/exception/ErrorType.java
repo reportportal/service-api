@@ -255,11 +255,6 @@ public enum ErrorType {
   UNABLE_POST_TICKET(40301, "Impossible post ticket. {}"),
 
   /**
-   * Impossible to interact with integration
-   */
-  UNABLE_INTERACT_WITH_INTEGRATION(40302, "Impossible interact with integration. {}"),
-
-  /**
    * "Unable to assign/unassign user to/from project
    */
   UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT(40304, "Unable to assign/unassign user to/from project. {}"),
@@ -289,6 +284,11 @@ public enum ErrorType {
    * If resource with specified settings already exists and should be unique
    */
   RESOURCE_ALREADY_EXISTS(4091, "Resource '{}' already exists. You couldn't create the duplicate."),
+
+  /**
+   * Impossible to interact with integration
+   */
+  UNABLE_INTERACT_WITH_INTEGRATION(4092, "Impossible interact with integration. {}"),
 
   /**
    * If Role with specified settings already exists and should be unique

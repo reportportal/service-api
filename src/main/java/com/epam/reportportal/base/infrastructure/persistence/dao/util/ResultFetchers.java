@@ -30,9 +30,9 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Rec
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.PROJECT_USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TICKET_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_ATTRIBUTE_MAPPER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_MILESTONE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_CASE_EXECUTION_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_CASE_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_MILESTONE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_TEST_ITEM_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_PLAN_MAPPER;
@@ -48,8 +48,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PARAMETER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PROJECT_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_MILESTONE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER_TEST_ITEM;
@@ -81,8 +81,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
@@ -354,6 +354,7 @@ public class ResultFetchers {
       } else {
         userFilter = r.into(UserFilter.class);
         userFilter.setOwner(r.get(OWNED_ENTITY.OWNER));
+        userFilter.setLocked(r.get(OWNED_ENTITY.LOCKED));
         Project project = new Project();
         project.setId(r.get(OWNED_ENTITY.PROJECT_ID, Long.class));
         userFilter.setProject(project);
@@ -379,6 +380,7 @@ public class ResultFetchers {
       } else {
         dashboard = r.into(Dashboard.class);
         dashboard.setOwner(r.get(OWNED_ENTITY.OWNER));
+        dashboard.setLocked(r.get(OWNED_ENTITY.LOCKED));
         Project project = new Project();
         project.setId(r.get(OWNED_ENTITY.PROJECT_ID, Long.class));
         dashboard.setProject(project);
@@ -399,6 +401,7 @@ public class ResultFetchers {
       } else {
         widget = r.into(Widget.class);
         widget.setOwner(r.get(OWNED_ENTITY.OWNER));
+        widget.setLocked(r.get(OWNED_ENTITY.LOCKED));
         Project project = new Project();
         project.setId(r.get(OWNED_ENTITY.PROJECT_ID, Long.class));
         widget.setProject(project);
@@ -521,7 +524,7 @@ public class ResultFetchers {
     });
     return new ArrayList<>(milestones.values());
   };
-  
+
   /**
    * Fetches records from db results into list of {@link TmsTestCase} objects.
    */

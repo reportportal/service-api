@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jooq.DSLContext;
+import org.jooq.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -82,6 +83,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         USER_FETCHER.apply(dsl.fetch(
             QueryBuilder.newBuilder(filter)
                 .with(pageable)
+                .with(USERS.ID, SortOrder.ASC)
                 .wrapExcludingFields(exclude)
                 .withWrapperSort(pageable.getSort())
                 .build())),

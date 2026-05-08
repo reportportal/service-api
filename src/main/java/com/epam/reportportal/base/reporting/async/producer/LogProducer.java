@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.reporting.async.producer;
 
+import static com.epam.reportportal.base.reporting.async.config.RabbitManagementConfiguration.REPLY_TIMEOUT_MS;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.DEFAULT_CONSISTENT_HASH_ROUTING_KEY;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 import static java.util.Optional.ofNullable;
@@ -37,7 +38,7 @@ import jakarta.inject.Provider;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -62,7 +63,7 @@ public class LogProducer implements CreateLogHandler {
 
   @Autowired
   @Qualifier(value = "rabbitTemplate")
-  private AmqpTemplate amqpTemplate;
+  private RabbitTemplate rabbitTemplate;
 
 
   @Nonnull
@@ -93,19 +94,25 @@ public class LogProducer implements CreateLogHandler {
     final String launchUuid = ofNullable(request.getLaunchUuid()).orElseThrow(
         () -> new ReportPortalException(
             ErrorType.BAD_REQUEST_ERROR, "Launch UUID should not be null or empty."));
-    amqpTemplate.convertAndSend(
-        REPORTING_EXCHANGE,
-        DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
-        DeserializablePair.of(request, metaInfo),
-        message -> {
-          Map<String, Object> headers = message.getMessageProperties().getHeaders();
-          headers.put(MessageHeaders.HASH_ON, launchUuid);
-          headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
-          headers.put(MessageHeaders.PROJECT_ID, projectId);
-          headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
-          return message;
-        }
-    );
+
+    rabbitTemplate.invoke(operations -> {
+      rabbitTemplate.convertAndSend(
+          REPORTING_EXCHANGE,
+          DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
+          DeserializablePair.of(request, metaInfo),
+          message -> {
+            Map<String, Object> headers = message.getMessageProperties().getHeaders();
+            headers.put(MessageHeaders.HASH_ON, launchUuid);
+            headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
+            headers.put(MessageHeaders.PROJECT_ID, projectId);
+            headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
+            return message;
+          }
+      );
+      operations.waitForConfirms(REPLY_TIMEOUT_MS);
+      return null;
+    });
+
 
   }
 

@@ -25,6 +25,8 @@ public enum EventAction {
   CREATE("create"),
   UPDATE("update"),
   DELETE("delete"),
+  LOCK("lock"),
+  UNLOCK("unlock"),
   BULK_CREATE("bulkCreate"),
   BULK_UPDATE("bulkUpdate"),
   BULK_DELETE("bulkDelete"),

@@ -17,14 +17,18 @@
 package com.epam.reportportal.base.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Activity payload for dashboard create, update, or delete.
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Data
+@Setter
+@Getter
+@ToString
 public class DashboardActivityResource {
 
   @JsonProperty(value = "id", required = true)
@@ -42,4 +46,6 @@ public class DashboardActivityResource {
   @JsonProperty(value = "description")
   private String description;
 
+  @JsonProperty(value = "locked")
+  private boolean locked;
 }

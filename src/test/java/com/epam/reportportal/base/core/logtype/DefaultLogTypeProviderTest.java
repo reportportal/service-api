@@ -22,14 +22,15 @@ class DefaultLogTypeProviderTest {
     List<ProjectLogType> logTypes = defaultLogTypeProvider.provideDefaultLogTypes(projectId);
 
     // then
-    assertThat(logTypes).hasSize(7);
+    assertThat(logTypes).hasSize(8);
     assertLogType(logTypes.get(0), projectId, "unknown", 60000, "#E3E7EC", false);
-    assertLogType(logTypes.get(1), projectId, "fatal", 50000, "#8B0000", true);
-    assertLogType(logTypes.get(2), projectId, "error", 40000, "#DC5959", true);
-    assertLogType(logTypes.get(3), projectId, "warn", 30000, "#FFBC6C", true);
-    assertLogType(logTypes.get(4), projectId, "info", 20000, "#23A6DE", true);
-    assertLogType(logTypes.get(5), projectId, "debug", 10000, "#C1C7D0", true);
-    assertLogType(logTypes.get(6), projectId, "trace", 5000, "#E3E7EC", true);
+    assertLogType(logTypes.get(1), projectId, "mobitru", 90000, "#E3E7EC", false);
+    assertLogType(logTypes.get(2), projectId, "fatal", 50000, "#8B0000", true);
+    assertLogType(logTypes.get(3), projectId, "error", 40000, "#DC5959", true);
+    assertLogType(logTypes.get(4), projectId, "warn", 30000, "#FFBC6C", true);
+    assertLogType(logTypes.get(5), projectId, "info", 20000, "#23A6DE", true);
+    assertLogType(logTypes.get(6), projectId, "debug", 10000, "#C1C7D0", true);
+    assertLogType(logTypes.get(7), projectId, "trace", 5000, "#E3E7EC", true);
   }
 
   private void assertLogType(ProjectLogType logType, Long expectedProjectId, String expectedName,

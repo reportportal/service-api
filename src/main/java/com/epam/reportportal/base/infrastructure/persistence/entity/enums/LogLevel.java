@@ -28,9 +28,11 @@ public enum LogLevel {
   DEBUG(LogLevel.DEBUG_INT),
   TRACE(LogLevel.TRACE_INT),
   FATAL(LogLevel.FATAL_INT),
-  UNKNOWN(LogLevel.UNKNOWN_INT);
+  UNKNOWN(LogLevel.UNKNOWN_INT),
+  MOBIRTU(LogLevel.MOBITRU_INT);
   //@formatter:on
 
+  public static final int MOBITRU_INT = 90000;
   public static final int UNKNOWN_INT = 60000;
   public static final int FATAL_INT = 50000;
   public static final int ERROR_INT = 40000;
@@ -55,8 +57,8 @@ public enum LogLevel {
   }
 
   /**
-   * Resolves a custom log level from a string input. If the input does not match any known level name, returns an empty
-   * Optional.
+   * Resolves a custom log level from a string input. If the input does not match any known level
+   * name, returns an empty Optional.
    *
    * @param levelString the input level;
    * @return Optional containing the resolved integer code when matched by name, otherwise empty
@@ -69,7 +71,8 @@ public enum LogLevel {
   }
 
   /**
-   * Resolves log level name from its integer representation. If not found, returns an empty Optional.
+   * Resolves log level name from its integer representation. If not found, returns an empty
+   * Optional.
    */
   public static Optional<String> toLevel(int intLevel) {
     return Arrays.stream(LogLevel.values())
@@ -83,7 +86,8 @@ public enum LogLevel {
   }
 
   /**
-   * Returns <code>true</code> if this Level has a higher or equal Level than the Level passed as argument,
+   * Returns <code>true</code> if this Level has a higher or equal Level than the Level passed as
+   * argument,
    * <code>false</code> otherwise.
    */
   public boolean isGreaterOrEqual(LogLevel r) {

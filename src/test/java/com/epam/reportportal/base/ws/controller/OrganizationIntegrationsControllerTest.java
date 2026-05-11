@@ -347,4 +347,35 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
             .with(token(managerToken)))
         .andExpect(status().isNotFound());
   }
+
+  // ── GET /organizations/{org_id}/integrations/{integration_id}/connection ──
+
+  @Test
+  void checkOrgIntegrationConnection_manager_ok() throws Exception {
+    mockMvc.perform(post("/organizations/201/integrations/901/connection")
+            .with(token(managerToken)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").isNotEmpty());
+  }
+
+  @Test
+  void checkOrgIntegrationConnection_viewer_forbidden() throws Exception {
+    mockMvc.perform(post("/organizations/201/integrations/901/connection")
+            .with(token(viewerToken)))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void checkOrgIntegrationConnection_unknownOrg_notFound() throws Exception {
+    mockMvc.perform(post("/organizations/999/integrations/901/connection")
+            .with(token(adminToken)))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void checkOrgIntegrationConnection_unknownIntegration_notFound() throws Exception {
+    mockMvc.perform(post("/organizations/201/integrations/999/connection")
+            .with(token(managerToken)))
+        .andExpect(status().isNotFound());
+  }
 }

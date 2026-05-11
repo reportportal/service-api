@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.ws.converter.converters.IntegrationConv
 import static com.epam.reportportal.base.ws.converter.converters.IntegrationConverter.TO_ORGANIZATION_INTEGRATION;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.IntegrationConnectionStatus;
 import com.epam.reportportal.api.model.OrganizationIntegration;
 import com.epam.reportportal.api.model.OrganizationIntegrationPage;
 import com.epam.reportportal.base.core.events.domain.IntegrationCreatedEvent;
@@ -41,6 +42,7 @@ import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.activity.IntegrationActivityResource;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.util.SecurityContextUtils;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
@@ -198,6 +200,28 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
         .map(TO_ACTIVITY_RESOURCE)
         .forEach(it -> eventPublisher.publishEvent(
             new IntegrationDeletedEvent(it, user.getUserId(), user.getUsername(), orgId)));
+  }
+
+  @Override
+  public IntegrationConnectionStatus checkConnection(Long orgId, Long integrationId) {
+    validateOrganizationExists(orgId);
+    Integration integration = integrationRepository.findByIdAndOrganizationId(integrationId, orgId)
+        .or(() -> integrationRepository.findGlobalById(integrationId))
+        .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+    IntegrationService integrationService =
+        integrationServiceMapping.getOrDefault(integration.getType().getName(), basicIntegrationService);
+
+    try {
+      boolean connected = integrationService.checkConnection(integration);
+      var status = connected
+          ? IntegrationConnectionStatus.StatusEnum.CONNECTED
+          : IntegrationConnectionStatus.StatusEnum.DISCONNECTED;
+      return new IntegrationConnectionStatus(status, null, Instant.now());
+    } catch (Exception e) {
+      return new IntegrationConnectionStatus(
+          IntegrationConnectionStatus.StatusEnum.DISCONNECTED, e.getMessage(), Instant.now());
+    }
   }
 
   private void validateOrganizationExists(Long orgId) {

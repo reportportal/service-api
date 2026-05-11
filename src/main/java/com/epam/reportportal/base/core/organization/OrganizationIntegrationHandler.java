@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.organization;
 
+import com.epam.reportportal.api.model.IntegrationConnectionStatus;
 import com.epam.reportportal.api.model.OrganizationIntegration;
 import com.epam.reportportal.api.model.OrganizationIntegrationPage;
 import com.epam.reportportal.base.model.EntryCreatedRS;
@@ -82,4 +83,13 @@ public interface OrganizationIntegrationHandler {
    * @param type  Integration type
    */
   void deleteOrganizationIntegrations(Long orgId, String type);
+
+  /**
+   * Test the live connection for the given organization integration.
+   *
+   * @param orgId         Organization ID
+   * @param integrationId Integration ID
+   * @return {@link IntegrationConnectionStatus}
+   */
+  IntegrationConnectionStatus checkConnection(Long orgId, Long integrationId);
 }

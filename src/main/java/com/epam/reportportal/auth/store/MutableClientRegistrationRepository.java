@@ -28,6 +28,8 @@ import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppli
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -40,6 +42,17 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
     OAuthRegistrationResourceRepository {
 
   public static final String ID_HAS_NOT_BEEN_FOUND = "Client registration with id = {} has not been found.";
+
+  private static final Map<String, ClientRegistrationRepository> PLUGIN_DELEGATES = new ConcurrentHashMap<>();
+
+  public static void registerDelegate(String registrationId, ClientRegistrationRepository repository) {
+    PLUGIN_DELEGATES.put(registrationId, repository);
+  }
+
+  public static void unregisterDelegate(String registrationId) {
+    PLUGIN_DELEGATES.remove(registrationId);
+  }
+
   private final IntegrationRepository integrationRepository;
 
   @Autowired
@@ -49,6 +62,10 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
 
   @Override
   public ClientRegistration findByRegistrationId(String registrationId) {
+    ClientRegistrationRepository delegate = PLUGIN_DELEGATES.get(registrationId);
+    if (delegate != null) {
+      return delegate.findByRegistrationId(registrationId);
+    }
     return integrationRepository.findGlobalByNameAndAuthFlowAndGroup(
             registrationId,
             IntegrationGroupEnum.AUTH,

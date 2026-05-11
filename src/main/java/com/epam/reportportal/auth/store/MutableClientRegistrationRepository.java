@@ -36,7 +36,8 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("mutableClientRegistrationRepository")
-public class MutableClientRegistrationRepository implements ClientRegistrationRepository {
+public class MutableClientRegistrationRepository implements ClientRegistrationRepository,
+    OAuthRegistrationResourceRepository {
 
   public static final String ID_HAS_NOT_BEEN_FOUND = "Client registration with id = {} has not been found.";
   private final IntegrationRepository integrationRepository;
@@ -71,8 +72,7 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
   }
 
   public List<Integration> findAll() {
-    return integrationRepository.findAllByAuthFlowAndGroup(IntegrationGroupEnum.AUTH,
-        IntegrationAuthFlowEnum.OAUTH);
+    return integrationRepository.findAllByAuthFlowAndGroup(IntegrationGroupEnum.AUTH, IntegrationAuthFlowEnum.OAUTH);
   }
 
 }

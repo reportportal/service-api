@@ -216,10 +216,12 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
     Project project = projectRepository.findByKey(projectKey)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
 
-    Integration integration =
-        integrationRepository.findByIdAndProjectId(integrationId, project.getId()).orElseGet(
-            () -> integrationRepository.findGlobalById(integrationId).orElseThrow(
-                () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId)));
+    Long orgId = project.getOrganizationId();
+    Integration integration = integrationRepository.findByIdAndProjectId(integrationId, project.getId())
+        .or(() -> Optional.ofNullable(orgId)
+            .flatMap(id -> integrationRepository.findByIdAndOrganizationId(integrationId, id)))
+        .or(() -> integrationRepository.findGlobalById(integrationId))
+        .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
     IntegrationService integrationService =
         integrationServiceMapping.getOrDefault(integration.getType().getName(),

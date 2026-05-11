@@ -24,6 +24,7 @@ import static com.epam.reportportal.base.ws.converter.converters.IntegrationConv
 
 import com.epam.reportportal.api.OrganizationIntegrationsApi;
 import com.epam.reportportal.api.model.CreateOrgIntegrationRequest;
+import com.epam.reportportal.api.model.IntegrationConnectionStatus;
 import com.epam.reportportal.api.model.OrganizationIntegration;
 import com.epam.reportportal.api.model.OrganizationIntegrationPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
@@ -100,5 +101,12 @@ public class OrganizationIntegrationsController implements OrganizationIntegrati
   public ResponseEntity<Void> deleteOrgIntegrations(Long orgId, String type) {
     organizationIntegrationHandler.deleteOrganizationIntegrations(orgId, type);
     return ResponseEntity.noContent().build();
+  }
+
+  @Transactional(readOnly = true)
+  @PreAuthorize(ORGANIZATION_MANAGER)
+  @Override
+  public ResponseEntity<IntegrationConnectionStatus> checkOrgIntegrationConnection(Long orgId, Long integrationId) {
+    return ResponseEntity.ok(organizationIntegrationHandler.checkConnection(orgId, integrationId));
   }
 }

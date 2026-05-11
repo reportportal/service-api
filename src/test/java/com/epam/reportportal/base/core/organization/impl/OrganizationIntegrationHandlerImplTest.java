@@ -17,16 +17,20 @@
 package com.epam.reportportal.base.core.organization.impl;
 
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.IntegrationConnectionStatus;
 import com.epam.reportportal.base.core.events.domain.IntegrationDeletedEvent;
+import com.epam.reportportal.base.core.integration.util.IntegrationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -41,6 +45,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,6 +71,10 @@ class OrganizationIntegrationHandlerImplTest {
   private OrganizationRepositoryCustom organizationRepository;
   @Mock
   private ApplicationEventPublisher eventPublisher;
+  @Mock
+  private Map<String, IntegrationService> integrationServiceMapping;
+  @Mock
+  private IntegrationService basicIntegrationService;
 
   @InjectMocks
   private OrganizationIntegrationHandlerImpl handler;
@@ -165,5 +174,109 @@ class OrganizationIntegrationHandlerImplTest {
     var ex = assertThrows(ReportPortalException.class,
         () -> handler.deleteOrganizationIntegrations(ORG_ID, "jira"));
     assertEquals(ErrorType.ORGANIZATION_NOT_FOUND, ex.getErrorType());
+  }
+
+  @Test
+  @DisplayName("Should return CONNECTED when integration check succeeds")
+  void checkConnectionWhenConnectedShouldReturnConnectedStatus() {
+    // Given
+    var integration = integrations.getFirst();
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(integration.getId(), ORG_ID))
+        .thenReturn(Optional.of(integration));
+    when(integrationServiceMapping.getOrDefault(anyString(), any())).thenReturn(basicIntegrationService);
+    when(basicIntegrationService.checkConnection(integration)).thenReturn(true);
+
+    // When
+    IntegrationConnectionStatus result = handler.checkConnection(ORG_ID, integration.getId());
+
+    // Then
+    assertThat(result.getStatus()).isEqualTo(IntegrationConnectionStatus.StatusEnum.CONNECTED);
+    assertThat(result.getMessage()).isNull();
+    assertThat(result.getCheckedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should return DISCONNECTED when integration check returns false")
+  void checkConnectionWhenDisconnectedShouldReturnDisconnectedStatus() {
+    // Given
+    var integration = integrations.getFirst();
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(integration.getId(), ORG_ID))
+        .thenReturn(Optional.of(integration));
+    when(integrationServiceMapping.getOrDefault(anyString(), any())).thenReturn(basicIntegrationService);
+    when(basicIntegrationService.checkConnection(integration)).thenReturn(false);
+
+    // When
+    IntegrationConnectionStatus result = handler.checkConnection(ORG_ID, integration.getId());
+
+    // Then
+    assertThat(result.getStatus()).isEqualTo(IntegrationConnectionStatus.StatusEnum.DISCONNECTED);
+    assertThat(result.getMessage()).isNull();
+  }
+
+  @Test
+  @DisplayName("Should return DISCONNECTED with message when integration check throws")
+  void checkConnectionWhenPluginThrowsShouldReturnDisconnectedWithMessage() {
+    // Given
+    var integration = integrations.getFirst();
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(integration.getId(), ORG_ID))
+        .thenReturn(Optional.of(integration));
+    when(integrationServiceMapping.getOrDefault(anyString(), any())).thenReturn(basicIntegrationService);
+    when(basicIntegrationService.checkConnection(integration)).thenThrow(new RuntimeException("Connection refused"));
+
+    // When
+    IntegrationConnectionStatus result = handler.checkConnection(ORG_ID, integration.getId());
+
+    // Then
+    assertThat(result.getStatus()).isEqualTo(IntegrationConnectionStatus.StatusEnum.DISCONNECTED);
+    assertThat(result.getMessage()).isEqualTo("Connection refused");
+  }
+
+  @Test
+  @DisplayName("Should throw ORGANIZATION_NOT_FOUND when org does not exist for checkConnection")
+  void checkConnectionWhenOrgNotFoundShouldThrow() {
+    // Given
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.empty());
+
+    // When & Then
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.checkConnection(ORG_ID, 901L));
+    assertEquals(ErrorType.ORGANIZATION_NOT_FOUND, ex.getErrorType());
+  }
+
+  @Test
+  @DisplayName("Should fall back to global integration when org-level not found")
+  void checkConnectionWhenOrgIntegrationNotFoundButGlobalExistsShouldReturnConnected() {
+    // Given
+    var integration = integrations.getFirst();
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(integration.getId(), ORG_ID))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findGlobalById(integration.getId()))
+        .thenReturn(Optional.of(integration));
+    when(integrationServiceMapping.getOrDefault(anyString(), any())).thenReturn(basicIntegrationService);
+    when(basicIntegrationService.checkConnection(integration)).thenReturn(true);
+
+    // When
+    IntegrationConnectionStatus result = handler.checkConnection(ORG_ID, integration.getId());
+
+    // Then
+    assertThat(result.getStatus()).isEqualTo(IntegrationConnectionStatus.StatusEnum.CONNECTED);
+    assertThat(result.getCheckedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should throw INTEGRATION_NOT_FOUND when integration does not belong to org")
+  void checkConnectionWhenIntegrationNotFoundShouldThrow() {
+    // Given
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(901L, ORG_ID)).thenReturn(Optional.empty());
+
+    // When & Then
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.checkConnection(ORG_ID, 901L));
+    assertEquals(ErrorType.INTEGRATION_NOT_FOUND, ex.getErrorType());
   }
 }

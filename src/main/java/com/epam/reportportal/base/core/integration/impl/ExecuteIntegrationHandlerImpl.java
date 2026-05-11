@@ -142,11 +142,11 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
 
-    return ofNullable(pluginInstance.getCommonCommand(command))
-        .map(it -> it.executeCommand(pluginCommandRq))
+    var pluginCommand = ofNullable(pluginInstance.getCommonCommand(command))
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
         ));
+    return pluginCommand.executeCommand(pluginCommandRq);
   }
 
   @Async

@@ -1,6 +1,6 @@
 package com.epam.reportportal.auth;
 
-import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
+import com.epam.reportportal.auth.store.OAuthRegistrationResourceRepository;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.extension.AuthExtension;
 import com.epam.reportportal.extension.common.ExtensionPoint;
@@ -22,11 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class DelegatingPluginOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
   private final Pf4jPluginBox pluginBox;
-  private final MutableClientRegistrationRepository clientRegistrationRepository;
+  private final OAuthRegistrationResourceRepository clientRegistrationRepository;
   private final DefaultOAuth2UserService fallback = new DefaultOAuth2UserService();
 
   public DelegatingPluginOAuth2UserService(Pf4jPluginBox pluginBox,
-      MutableClientRegistrationRepository clientRegistrationRepository) {
+      OAuthRegistrationResourceRepository clientRegistrationRepository) {
     this.pluginBox = pluginBox;
     this.clientRegistrationRepository = clientRegistrationRepository;
   }

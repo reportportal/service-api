@@ -31,12 +31,12 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
-import com.mchange.lang.IntegerUtils;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.mail.MessagingException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
@@ -91,7 +91,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
     ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute()))
         .ifPresent(
             p -> {
-              int port = IntegerUtils.parseInt(String.valueOf(p), -1);
+              int port = NumberUtils.toInt(String.valueOf(p), -1);
               if ((port <= 0) || (port > 65535)) {
                 BusinessRule.fail()
                     .withError(

@@ -229,7 +229,8 @@ public class AuthorizationServerConfig {
             .clientRegistrationRepository(clientRegistrationRepository)
             .authorizationEndpoint(authorization -> authorization
                 .baseUri("/oauth/login")
-                .authorizationRequestResolver(authorizationRequestResolver))
+                .authorizationRequestResolver(authorizationRequestResolver)
+                .authorizationRequestRepository(new HttpCookieOAuth2AuthorizationRequestRepository()))
             .redirectionEndpoint(redirection -> redirection.baseUri("/sso/login/*"))
             .successHandler(successHandler)
             .failureHandler(authenticationFailureHandler))

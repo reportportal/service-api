@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.base.util;
 
+import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -32,7 +34,8 @@ public final class EnvironmentUtils {
    * @param envVariableName the environment variable name
    * @return the value, or {@code null}
    */
-  public static String getEnvVariable(String envVariableName) {
+  public static String getEnvVariable(@NotNull String envVariableName) {
+    Objects.requireNonNull(envVariableName, "envVariableName must not be null");
     return StringUtils.defaultIfEmpty(System.getenv(envVariableName), null);
   }
 
@@ -44,7 +47,7 @@ public final class EnvironmentUtils {
    * @param defaultValue    the fallback value
    * @return the value, or {@code defaultValue}
    */
-  public static String getEnvVariableOrDefault(String envVariableName, String defaultValue) {
+  public static String getEnvVariableOrDefault(@NotNull String envVariableName, String defaultValue) {
     return StringUtils.defaultIfEmpty(System.getenv(envVariableName), defaultValue);
   }
 }

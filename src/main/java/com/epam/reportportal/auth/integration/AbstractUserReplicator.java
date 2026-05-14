@@ -20,7 +20,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.auth.oauth.UserSynchronizationException;
-import com.epam.reportportal.base.core.organization.PersonalOrganizationService;
 import com.epam.reportportal.base.infrastructure.commons.ContentTypeResolver;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
@@ -35,8 +34,7 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base class for replicating external OAuth2/SAML identity provider users into the ReportPortal user store.
@@ -44,15 +42,15 @@ import org.slf4j.LoggerFactory;
  * @author Andrei Varabyeu
  */
 @RequiredArgsConstructor
+@Slf4j
 public class AbstractUserReplicator {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractUserReplicator.class);
   private static final String EMAIL_NOT_PROVIDED_MSG = "Email not provided";
 
-  protected final UserRepository userRepository;
-  protected final OrganizationRepositoryCustom organizationRepository;
+  private final UserRepository userRepository;
+  private final OrganizationRepositoryCustom organizationRepository;
   private final ContentTypeResolver contentTypeResolver;
-  protected UserBinaryDataService userBinaryDataService;
+  private final UserBinaryDataService userBinaryDataService;
 
   /**
    * Generates default meta info.

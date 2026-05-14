@@ -23,7 +23,6 @@ import com.epam.reportportal.auth.oauth.UserSynchronizationException;
 import com.epam.reportportal.base.infrastructure.commons.ContentTypeResolver;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
@@ -33,7 +32,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -41,16 +40,15 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author Andrei Varabyeu
  */
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class AbstractUserReplicator {
 
   private static final String EMAIL_NOT_PROVIDED_MSG = "Email not provided";
 
-  private final UserRepository userRepository;
-  private final OrganizationRepositoryCustom organizationRepository;
-  private final ContentTypeResolver contentTypeResolver;
-  private final UserBinaryDataService userBinaryDataService;
+  protected final UserRepository userRepository;
+  protected final ContentTypeResolver contentTypeResolver;
+  protected final UserBinaryDataService userBinaryDataService;
 
   /**
    * Generates default meta info.

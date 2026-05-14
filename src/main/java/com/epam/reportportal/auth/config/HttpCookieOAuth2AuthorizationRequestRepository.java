@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
@@ -33,9 +34,8 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.util.StringUtils;
 
 /**
- * Cookie-based OAuth2AuthorizationRequestRepository for stateless deployments.
- * Stores the authorization request in a short-lived secure cookie instead of the HTTP session,
- * so the callback can be handled by any pod in a cluster.
+ * Cookie-based OAuth2AuthorizationRequestRepository for stateless deployments. Stores the authorization request in a
+ * short-lived secure cookie instead of the HTTP session, so the callback can be handled by any pod in a cluster.
  */
 public class HttpCookieOAuth2AuthorizationRequestRepository
     implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
@@ -66,8 +66,8 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
       cookie.setMaxAge(COOKIE_EXPIRE_SECONDS);
       cookie.setSecure(request.isSecure());
       response.addCookie(cookie);
-    } catch (Exception e) {
-      log.error("Failed to save OAuth2 authorization request to cookie", e);
+    } catch (IOException _) {
+      log.error("Failed to save OAuth2 authorization request to cookie");
     }
   }
 
@@ -92,8 +92,8 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
         .map(c -> {
           try {
             return (OAuth2AuthorizationRequest) deserialize(c.getValue());
-          } catch (Exception e) {
-            log.warn("Failed to deserialize OAuth2 authorization request from cookie", e);
+          } catch (IOException | ClassNotFoundException _) {
+            log.warn("Failed to deserialize OAuth2 authorization request from cookie");
             return null;
           }
         });
@@ -113,7 +113,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     }
   }
 
-  private static String serialize(Object object) throws Exception {
+  private static String serialize(Object object) throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     try (ObjectOutputStream oos = new ObjectOutputStream(bos)) {
       oos.writeObject(object);
@@ -121,7 +121,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     return Base64.getUrlEncoder().encodeToString(bos.toByteArray());
   }
 
-  private static Object deserialize(String base64) throws Exception {
+  private static Object deserialize(String base64) throws IOException, ClassNotFoundException {
     byte[] bytes = Base64.getUrlDecoder().decode(base64);
     try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
       return ois.readObject();

@@ -42,4 +42,13 @@ public interface AttributeHandler {
    * @param user   User that performs the action
    */
   void handleLaunchUpdate(Launch launch, ReportPortalUser user);
+
+  /**
+   * Handles attributes when the launch is finished. Default implementation is a no-op so that
+   * existing handlers that only care about start/update are not forced to implement it.
+   *
+   * @param launch Launch that should be handled
+   */
+  default void handleLaunchFinish(Launch launch) {
+  }
 }

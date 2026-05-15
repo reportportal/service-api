@@ -44,4 +44,8 @@ public class LaunchAttributeHandlerService {
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
     attributeHandlers.forEach(handler -> handler.handleLaunchUpdate(launch, user));
   }
+
+  public void handleLaunchFinish(Launch launch) {
+    attributeHandlers.forEach(handler -> handler.handleLaunchFinish(launch));
+  }
 }

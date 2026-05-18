@@ -3,6 +3,8 @@ ARG RELEASE_MODE
 ARG APP_VERSION
 WORKDIR /usr/app
 COPY . /usr/app
+RUN chown -R gradle:gradle /usr/app
+USER gradle
 RUN if [ "${RELEASE_MODE}" = true ]; then \
     gradle build --no-build-cache --exclude-task test \
         -PreleaseMode=true \

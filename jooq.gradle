@@ -3,8 +3,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.testcontainers:testcontainers:1.21.4'
-        classpath 'org.testcontainers:postgresql:1.21.3'
+        classpath 'io.zonky.test:embedded-postgres:2.2.0'
+        classpath 'io.zonky.test.postgres:embedded-postgres-binaries-linux-amd64:17.6.0'
+        classpath 'io.zonky.test.postgres:embedded-postgres-binaries-linux-amd64-alpine:17.6.0'
+        classpath 'io.zonky.test.postgres:embedded-postgres-binaries-darwin-amd64:17.6.0'
+        classpath 'io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8:17.6.0'
         classpath 'org.postgresql:postgresql:42.7.8'
     }
 }
@@ -12,22 +15,20 @@ buildscript {
 tasks.named('jooqCodegen').configure { jooqTask ->
     def migrationsDir = file("${rootDir}/migrations/migrations")
     inputs.dir(migrationsDir)
-    ext.pgContainer = null
+    ext.pgInstance = null
 
     doFirst {
-        ext.pgContainer = new org.testcontainers.containers.PostgreSQLContainer<>('postgres:17-alpine')
-        ext.pgContainer.start()
+        def pg = io.zonky.test.db.postgres.embedded.EmbeddedPostgres.start()
+        ext.pgInstance = pg
 
-        def jdbcUrl = ext.pgContainer.jdbcUrl
-        def username = ext.pgContainer.username
-        def password = ext.pgContainer.password
-        logger.lifecycle("PostgreSQL container started: ${jdbcUrl}")
+        def jdbcUrl = "jdbc:postgresql://localhost:${pg.port}/postgres"
+        def username = "postgres"
+        def password = ""
+        logger.lifecycle("Embedded PostgreSQL started on port: ${pg.port}")
 
-        def driver = new org.postgresql.Driver()
         def props = new Properties()
         props.setProperty('user', username)
-        props.setProperty('password', password)
-        def conn = driver.connect(jdbcUrl, props)
+        def conn = new org.postgresql.Driver().connect(jdbcUrl, props)
         try {
             (migrationsDir.listFiles() ?: [])
                 .findAll { it.name.endsWith('.up.sql') }
@@ -55,10 +56,10 @@ tasks.named('jooqCodegen').configure { jooqTask ->
     }
 
     doLast {
-        if (ext.pgContainer != null) {
-            ext.pgContainer.stop()
-            ext.pgContainer = null
-            logger.lifecycle("PostgreSQL container stopped")
+        if (ext.pgInstance != null) {
+            ext.pgInstance.close()
+            ext.pgInstance = null
+            logger.lifecycle("Embedded PostgreSQL stopped")
         }
     }
 }

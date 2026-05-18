@@ -20,6 +20,7 @@ aws-sdk = "2.41.3"
 bouncycastle = "1.82"
 commons-validator = "1.10.0"
 embedded-postgres = "2.2.0"
+testcontainers = "1.21.4"
 flyway-spring-test = "10.0.0"
 google-api-client = "2.8.1"
 guava = "33.5.0-jre"
@@ -126,6 +127,8 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 jasypt = { group = "org.jasypt", name = "jasypt", version.ref = "jasypt" }
 pf4j = { group = "org.pf4j", name = "pf4j", version.ref = "pf4j" }
 embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version.ref = "embedded-postgres" }
+testcontainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "testcontainers" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
 spring-context = { group = "org.springframework", name = "spring-context" }

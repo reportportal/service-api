@@ -65,17 +65,18 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
 
     testResults.setTestItem(testItem);
     testItem.setItemResults(testResults);
-    testItem.setPath(suiteItem.getPath() + "." + testItem.getItemId());
+
+    // Compute hash before first save using parent IDs from suiteItem's path
+    var parentIds = IdentityUtil.getItemTreeIds(suiteItem.getPath());
     testItem.setTestCaseHash(
-        testCaseHashGenerator.generate(
-            testItem,
-            IdentityUtil.getParentIds(testItem),
-            launch.getProjectId()
-        )
+        testCaseHashGenerator.generate(testItem, parentIds, launch.getProjectId())
     );
 
-    // Save test item first
     var savedTestItem = testItemRepository.save(testItem);
+
+    // Set path after save so getItemId() returns the actual generated ID
+    savedTestItem.setPath(suiteItem.getPath() + "." + savedTestItem.getItemId());
+    savedTestItem = testItemRepository.save(savedTestItem);
 
     // Process test case attributes if present
     if (CollectionUtils.isNotEmpty(testCase.getAttributes())) {

@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.testcontainers:testcontainers:1.21.4'
+        classpath 'org.testcontainers:postgresql:1.21.3'
+        classpath 'org.postgresql:postgresql:42.7.8'
+    }
+}
+
 plugins {
     alias(libs.plugins.java.library)
     alias(libs.plugins.owasp.dependencycheck)
@@ -30,7 +41,7 @@ apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
-apply from: "$scriptsUrl/copy-database-scripts.gradle"
+apply from: 'copy-database-scripts.gradle'
 
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ?
         apply(from: 'sealights.gradle') :
@@ -101,7 +112,6 @@ dependencies {
     implementation(libs.opencsv)
     implementation(libs.slugify)
     implementation(libs.postgresql)
-    jooqCodegen(libs.postgresql)
     implementation(libs.thumbnailator)
     implementation(libs.aws.core)
     implementation(libs.aws.sts)
@@ -152,6 +162,8 @@ dependencies {
     testAnnotationProcessor(libs.lombok)
 }
 
+apply from: 'jooq.gradle'
+
 sourceSets {
     main {
         java {
@@ -166,7 +178,7 @@ openApiGenerate {
     outputDir.set("${layout.buildDirectory.get()}/generated")
     configFile.set("$rootDir/src/main/resources/openapi/config.json")
     skipOverwrite.set(false)
-    cleanupOutput.set(true)
+    cleanupOutput.set(false)
     // verbose.set(true)
 }
 
@@ -210,6 +222,11 @@ dependencyCheck {
 //    cveValidForHours = 1
 }
 
+
+tasks.named('sourcesJar').configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 bootJar {
     duplicatesStrategy = duplicatesStrategy.EXCLUDE
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
@@ -231,6 +248,7 @@ test {
     maxHeapSize = '2g'
 }
 
+compileJava.dependsOn tasks.named('jooqCodegen')
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build

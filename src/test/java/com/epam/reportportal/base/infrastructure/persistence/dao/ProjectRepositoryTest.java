@@ -59,7 +59,7 @@ class ProjectRepositoryTest extends BaseMvcTest {
     projects.getContent().forEach(project -> {
       assertNotNull(project.getId());
       assertTrue(CollectionUtils.isNotEmpty(project.getProjectAttributes()));
-      assertEquals(16, project.getProjectAttributes().size());
+      assertEquals(18, project.getProjectAttributes().size());
       assertTrue(project.getProjectAttributes()
           .stream()
           .anyMatch(pa -> ofNullable(pa.getValue()).isPresent() && pa.getAttribute()

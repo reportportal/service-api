@@ -22,67 +22,33 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.auth.oauth.UserSynchronizationException;
 import com.epam.reportportal.base.infrastructure.commons.ContentTypeResolver;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
-import com.epam.reportportal.base.infrastructure.persistence.util.PersonalProjectService;
 import com.google.common.collect.Maps;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base class for replicating external OAuth2/SAML identity provider users into the ReportPortal user store.
  *
  * @author Andrei Varabyeu
  */
+@AllArgsConstructor
+@Slf4j
 public class AbstractUserReplicator {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractUserReplicator.class);
   private static final String EMAIL_NOT_PROVIDED_MSG = "Email not provided";
 
   protected final UserRepository userRepository;
-  protected final ProjectRepository projectRepository;
-  protected final PersonalProjectService personalProjectService;
-  private final ContentTypeResolver contentTypeResolver;
-  protected UserBinaryDataService userBinaryDataService;
-
-  /**
-   * Wires user, project, and content-type dependencies for IdP user replication.
-   *
-   * @param userRepository         user persistence
-   * @param projectRepository      project persistence
-   * @param personalProjectService default personal project helper
-   * @param userBinaryDataService  binary storage for avatars
-   * @param contentTypeResolver    content-type sniffing for uploaded bytes
-   */
-  public AbstractUserReplicator(UserRepository userRepository, ProjectRepository projectRepository,
-      PersonalProjectService personalProjectService, UserBinaryDataService userBinaryDataService,
-      ContentTypeResolver contentTypeResolver) {
-    this.userRepository = userRepository;
-    this.projectRepository = projectRepository;
-    this.personalProjectService = personalProjectService;
-    this.userBinaryDataService = userBinaryDataService;
-    this.contentTypeResolver = contentTypeResolver;
-  }
-
-  /**
-   * Generates personal project if it does NOT exist.
-   *
-   * @param user Owner of personal project
-   * @return Created project name
-   */
-  protected Project generatePersonalProject(User user) {
-    return projectRepository.findByName(personalProjectService.getProjectPrefix(user.getLogin()))
-        .orElse(generatePersonalProjectByUser(user));
-  }
+  protected final ContentTypeResolver contentTypeResolver;
+  protected final UserBinaryDataService userBinaryDataService;
 
   /**
    * Generates default meta info.
@@ -160,8 +126,4 @@ public class AbstractUserReplicator {
     return contentTypeResolver.detectContentType(data);
   }
 
-  private Project generatePersonalProjectByUser(User user) {
-    Project personalProject = personalProjectService.generatePersonalProject(user);
-    return projectRepository.save(personalProject);
-  }
 }

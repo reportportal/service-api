@@ -6,7 +6,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public abstract class AuthenticatedUserExtensionCommand extends AbstractExtensionCommand<Object> {
+public abstract class AuthenticatedUserExtensionCommand<T> extends AbstractExtensionCommand<T> {
 
   protected void validateRole(PluginCommandContext commandContext) {
     var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

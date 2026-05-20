@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.role;
+package com.epam.reportportal.extension.command;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.notNull;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
@@ -29,24 +29,15 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.extension.AbstractContextBasedCommand;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-/**
- * Abstract base class for organization context commands.
- * <p>
- * Provides common role validation logic for commands that require organization context.
- *
- * @param <T> the type of the command result
- */
-@Deprecated
-public abstract class OrganizationMemberContextCommand<T> extends AbstractContextBasedCommand<T> {
+public abstract class OrganizationMemberExtensionCommand<T> extends AbstractExtensionCommand<T> {
 
   protected final OrganizationRepositoryCustom organizationRepository;
   protected final OrganizationUserRepository organizationUserRepository;
 
-  protected OrganizationMemberContextCommand(OrganizationRepositoryCustom organizationRepository,
+  protected OrganizationMemberExtensionCommand(OrganizationRepositoryCustom organizationRepository,
       OrganizationUserRepository organizationUserRepository) {
     this.organizationRepository = organizationRepository;
     this.organizationUserRepository = organizationUserRepository;

@@ -38,6 +38,7 @@ import java.util.Map.Entry;
  *
  * @param <T> the type of the command result
  */
+@Deprecated
 public abstract class ProjectEditorContextCommand<T> extends ProjectMemberContextCommand<T> {
 
   protected ProjectEditorContextCommand(ProjectRepository projectRepository,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.role;
+package com.epam.reportportal.extension.command;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.notNull;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
@@ -30,26 +30,16 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.extension.AbstractContextBasedCommand;
 import java.util.Map.Entry;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-/**
- * Abstract base class for plugin commands that operate within a project context.
- *
- * <p>Provides role validation logic for commands that require only a project context (no orgId
- * needed). Suitable for use with POST /api/plugins/{name}/commands/{commandName}.
- *
- * @param <T> the type of the command result
- */
-@Deprecated
-public abstract class ProjectMemberContextCommand<T> extends AbstractContextBasedCommand<T> {
+public abstract class ProjectMemberExtensionCommand<T> extends AbstractExtensionCommand<T> {
 
   protected final ProjectRepository projectRepository;
   protected final OrganizationRepositoryCustom organizationRepository;
 
-  protected ProjectMemberContextCommand(ProjectRepository projectRepository,
+  protected ProjectMemberExtensionCommand(ProjectRepository projectRepository,
       OrganizationRepositoryCustom organizationRepository) {
     this.projectRepository = projectRepository;
     this.organizationRepository = organizationRepository;

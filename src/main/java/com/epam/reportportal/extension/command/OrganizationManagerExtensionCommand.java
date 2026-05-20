@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.role;
+package com.epam.reportportal.extension.command;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
@@ -23,16 +23,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.Organiz
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 
-/**
- * Abstract context-based plugin command that requires at least the {@code MANAGER} organization role.
- *
- * @param <T> the return type of the command
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
- */
-@Deprecated
-public abstract class OrganizationManagerContextCommand<T> extends OrganizationMemberContextCommand<T> {
+public abstract class OrganizationManagerExtensionCommand<T> extends OrganizationMemberExtensionCommand<T> {
 
-  protected OrganizationManagerContextCommand(OrganizationRepositoryCustom organizationRepository,
+  protected OrganizationManagerExtensionCommand(OrganizationRepositoryCustom organizationRepository,
       OrganizationUserRepository organizationUserRepository) {
     super(organizationRepository, organizationUserRepository);
   }

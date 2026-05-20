@@ -1,14 +1,12 @@
-package com.epam.reportportal.extension.role;
+package com.epam.reportportal.extension.command;
 
 import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.extension.AbstractContextBasedCommand;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-@Deprecated
-public abstract class AuthenticatedUserContextCommand extends AbstractContextBasedCommand<Object> {
+public abstract class AuthenticatedUserExtensionCommand extends AbstractExtensionCommand<Object> {
 
   protected void validateRole(PluginCommandContext commandContext) {
     var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

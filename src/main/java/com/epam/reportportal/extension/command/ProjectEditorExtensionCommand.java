@@ -14,79 +14,36 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.role;
+package com.epam.reportportal.extension.command;
 
-import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.notNull;
-import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.extension.AbstractContextBasedCommand;
 import java.util.Map.Entry;
-import java.util.Objects;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-/**
- * Abstract base class for plugin commands that operate within a project context.
- *
- * <p>Provides role validation logic for commands that require only a project context (no orgId
- * needed). Suitable for use with POST /api/plugins/{name}/commands/{commandName}.
- *
- * @param <T> the type of the command result
- */
-@Deprecated
-public abstract class ProjectMemberContextCommand<T> extends AbstractContextBasedCommand<T> {
+public abstract class ProjectEditorExtensionCommand<T> extends ProjectMemberExtensionCommand<T> {
 
-  protected final ProjectRepository projectRepository;
-  protected final OrganizationRepositoryCustom organizationRepository;
-
-  protected ProjectMemberContextCommand(ProjectRepository projectRepository,
+  protected ProjectEditorExtensionCommand(ProjectRepository projectRepository,
       OrganizationRepositoryCustom organizationRepository) {
-    this.projectRepository = projectRepository;
-    this.organizationRepository = organizationRepository;
+    super(projectRepository, organizationRepository);
   }
 
   @Override
-  public void validateRole(PluginCommandContext commandContext) {
-    ReportPortalUser user =
-        (ReportPortalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    expect(user, Objects::nonNull)
-        .verify(ErrorType.ACCESS_DENIED);
-    expect(commandContext, notNull())
-        .verify(ErrorType.BAD_REQUEST_ERROR, "Context should not be null");
-    expect(commandContext.getProjectId(), notNull())
-        .verify(ErrorType.BAD_REQUEST_ERROR, "Project ID should not be null");
-
-    Project project = ofNullable(commandContext.getOrgId())
-        .map(orgId -> projectRepository.findByIdAndOrganizationId(commandContext.getProjectId(), orgId))
-        .orElseGet(() -> projectRepository.findById(commandContext.getProjectId()))
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, commandContext.getProjectId()));
-
-    validateProjectPermissions(user, project);
-  }
-
-  /**
-   * Validates that the user has at minimum project-member access.
-   *
-   * <p>Subclasses may override this method to enforce a stricter role requirement (e.g. project
-   * manager or editor).
-   *
-   * @param user    the authenticated user
-   * @param project the resolved project
-   */
   protected void validateProjectPermissions(ReportPortalUser user, Project project) {
     if (user.getUserRole() == UserRole.ADMINISTRATOR) {
       return;
     }
+
     Organization organization = organizationRepository.findById(project.getOrganizationId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
 
@@ -99,13 +56,17 @@ public abstract class ProjectMemberContextCommand<T> extends AbstractContextBase
       return;
     }
 
-    user.getOrganizationDetails().entrySet().stream()
+    ProjectRole projectRole = user.getOrganizationDetails().entrySet().stream()
         .filter(entry -> entry.getKey().equals(organization.getName()))
         .map(Entry::getValue)
         .flatMap(orgDetails -> orgDetails.getProjectDetails().entrySet().stream())
         .map(Entry::getValue)
         .filter(details -> details.getProjectId().equals(project.getId()))
+        .map(ReportPortalUser.OrganizationDetails.ProjectDetails::getProjectRole)
         .findFirst()
         .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
+
+    BusinessRule.expect(projectRole, ProjectRole.EDITOR::sameOrLowerThan)
+        .verify(ErrorType.ACCESS_DENIED);
   }
 }

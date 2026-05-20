@@ -235,8 +235,7 @@ public class TestCaseController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Delete multiple test cases",
-      description = "Deletes multiple test cases by their IDs within a project.",
-      tags = {"Batch Operations"}
+      description = "Deletes multiple test cases by their IDs within a project."
   )
   @ApiResponse(responseCode = "204", description = "Test cases deleted successfully")
   public void deleteTestCases(@PathVariable("projectKey") String projectKey,
@@ -261,8 +260,7 @@ public class TestCaseController {
   @PatchMapping("/batch")
   @Operation(
       summary = "Partially update multiple test cases",
-      description = "Updates multiple test cases at once, particularly useful for changing test case folder for multiple test cases.",
-      tags = {"Batch Operations"}
+      description = "Updates multiple test cases at once, particularly useful for changing test case folder for multiple test cases."
   )
   @ApiResponse(responseCode = "200", description = "Test cases updated successfully")
   public BatchPatchTestCasesRS batchPatchTestCases(@PathVariable("projectKey") String projectKey,
@@ -288,8 +286,7 @@ public class TestCaseController {
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
       summary = "Import test cases from CSV",
-      description = "Imports test cases from a CSV file into a project. Supports new CSV format with template, summary, path, labels, test steps, and expected result fields.",
-      tags = {"Import/Export"}
+      description = "Imports test cases from a CSV file into a project. Supports new CSV format with template, summary, path, labels, test steps, and expected result fields."
   )
   @ApiResponse(responseCode = "200", description = "Test cases imported successfully")
   public List<TmsTestFolderRS> importTestCases(@PathVariable("projectKey") String projectKey,
@@ -319,8 +316,7 @@ public class TestCaseController {
   @GetMapping("/export")
   @Operation(
       summary = "Export test cases",
-      description = "Exports test cases from a project to a file. Supports JSON and CSV formats.",
-      tags = {"Import/Export"}
+      description = "Exports test cases from a project to a file. Supports JSON and CSV formats."
   )
   @ApiResponse(
       responseCode = "200",
@@ -381,8 +377,7 @@ public class TestCaseController {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
       summary = "Patch attributes from multiple test cases",
-      description = "Patch specific attributes for multiple test cases by their IDs.",
-      tags = {"Batch Operations"}
+      description = "Patch specific attributes for multiple test cases by their IDs."
   )
   @ApiResponse(responseCode = "200", description = "Attributes patched successfully")
   public void patchTestCaseAttributes(@PathVariable("projectKey") String projectKey,
@@ -407,8 +402,7 @@ public class TestCaseController {
   @PostMapping("/batch/duplicate")
   @Operation(
       summary = "Duplicate multiple test cases",
-      description = "Creates full copies of multiple test cases including their default versions, manual scenarios, and attachments.",
-      tags = {"Batch Operations"}
+      description = "Creates full copies of multiple test cases including their default versions, manual scenarios, and attachments."
   )
   @ApiResponse(responseCode = "200", description = "Test cases duplicated successfully")
   public BatchDuplicateTestCasesRS duplicateTestCases(@PathVariable("projectKey") String projectKey,

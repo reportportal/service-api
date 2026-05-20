@@ -181,8 +181,7 @@ public class TmsTestPlanController {
   @PostMapping("/{id}/test-case/batch")
   @Operation(
       summary = "Add test cases to test plan",
-      description = "Adds multiple test cases to a test plan by their IDs.",
-      tags = {"Batch Operations"}
+      description = "Adds multiple test cases to a test plan by their IDs."
   )
   @ApiResponse(responseCode = "204", description = "Test cases added to test plan successfully")
   public BatchTestCaseOperationResultRS addTestCasesToPlan(@PathVariable String projectKey,
@@ -207,8 +206,7 @@ public class TmsTestPlanController {
   @DeleteMapping("/{id}/test-case/batch")
   @Operation(
       summary = "Remove test cases from test plan",
-      description = "Removes multiple test cases from a test plan by their IDs.",
-      tags = {"Batch Operations"}
+      description = "Removes multiple test cases from a test plan by their IDs."
   )
   @ApiResponse(responseCode = "204", description = "Test cases removed from test plan successfully")
   public BatchTestCaseOperationResultRS removeTestCasesFromPlan(@PathVariable String projectKey,

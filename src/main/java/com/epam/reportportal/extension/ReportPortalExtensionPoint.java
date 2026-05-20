@@ -58,8 +58,12 @@ public interface ReportPortalExtensionPoint extends ExtensionPoint {
     return Optional.empty();
   }
 
-  ExtensionCommand<?> getCommonExtensionCommand(String commandName);
+  default ExtensionCommand<?> getCommonExtensionCommand(String commandName) {
+    return null;
+  }
 
-  ExtensionCommand<?> getIntegrationExtensionCommand(String commandName);
+  default ExtensionCommand<?> getIntegrationExtensionCommand(String commandName) {
+    return null;
+  }
 
 }

@@ -143,13 +143,29 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
 
-    var commonCommand = pluginInstance.getCommonCommand(command);
-    if (commonCommand != null) {
-      return commonCommand.executeCommand(pluginCommandRq);
+    var pluginCommand = ofNullable(pluginInstance.getCommonCommand(command))
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
+        ));
+    return pluginCommand.executeCommand(pluginCommandRq);
+  }
+
+
+  @Override
+  public Object executeExtensionCommand(String pluginName, String command, PluginCommandRQ pluginCommandRq) {
+    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
+        ));
+
+    var extCommand = pluginInstance.getCommonExtensionCommand(command);
+    if (extCommand != null) {
+      return extCommand.executeCommand(pluginCommandRq);
     }
-    var integrationCommand = pluginInstance.getIntegrationCommand(command);
-    if (integrationCommand != null) {
-      return integrationCommand.executeCommand(resolveIntegration(pluginCommandRq.getContext()), pluginCommandRq);
+
+    extCommand = pluginInstance.getIntegrationExtensionCommand(command);
+    if (extCommand != null) {
+      return extCommand.executeCommand(resolveIntegration(pluginCommandRq.getContext()), pluginCommandRq);
     }
     throw new ReportPortalException(BAD_REQUEST_ERROR,
         formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()

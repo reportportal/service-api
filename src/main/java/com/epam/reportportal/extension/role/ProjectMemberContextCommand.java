@@ -38,10 +38,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * Abstract base class for plugin commands that operate within a project context.
  *
- * <p>Provides role validation logic for commands that require only a project context (no orgId
- * needed). Suitable for use with POST /api/plugins/{name}/commands/{commandName}.
- *
  * @param <T> the type of the command result
+ * @deprecated Use {@link com.epam.reportportal.extension.command.ProjectMemberExtensionCommand} instead.
  */
 @Deprecated
 public abstract class ProjectMemberContextCommand<T> extends AbstractContextBasedCommand<T> {

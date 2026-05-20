@@ -19,7 +19,6 @@ package com.epam.reportportal.extension.command;
 import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import java.util.Map;
 
 /**
  * Plugin command that validates the caller's role, then runs {@link #invokeCommand(PluginCommandRQ)}.
@@ -28,9 +27,13 @@ import java.util.Map;
  */
 public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T> {
 
-  protected abstract T invokeCommand(PluginCommandRQ pluginCommandRq);
+  protected T invokeCommand(PluginCommandRQ pluginCommandRq) {
+    throw new UnsupportedOperationException();
+  }
 
-  protected abstract T invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq);
+  protected T invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    throw new UnsupportedOperationException();
+  }
 
   @Override
   public T executeCommand(PluginCommandRQ pluginCommandRq) {
@@ -38,7 +41,6 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     return invokeCommand(pluginCommandRq);
   }
 
-  protected abstract T invokeCommand(Integration integration, Map<String, Object> params);
 
   @Override
   public T executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {

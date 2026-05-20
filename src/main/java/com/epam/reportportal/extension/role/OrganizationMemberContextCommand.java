@@ -35,10 +35,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Abstract base class for organization context commands.
- * <p>
- * Provides common role validation logic for commands that require organization context.
  *
  * @param <T> the type of the command result
+ * @deprecated Use {@link com.epam.reportportal.extension.command.OrganizationMemberExtensionCommand} instead.
  */
 @Deprecated
 public abstract class OrganizationMemberContextCommand<T> extends AbstractContextBasedCommand<T> {

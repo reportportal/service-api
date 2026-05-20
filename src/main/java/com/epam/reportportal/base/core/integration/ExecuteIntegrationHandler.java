@@ -28,49 +28,68 @@ import java.util.Map;
 public interface ExecuteIntegrationHandler {
 
   /**
-   * Executes provided common plugin command
+   * Executes a common plugin command using untyped parameter maps.
    *
-   * @param membershipDetails Membership details
-   * @param pluginName        Command name
-   * @param command           Command to be executed
-   * @param executionParams   Parameters for execute
-   * @return Result of the command execution
+   * @param membershipDetails membership context supplying project ID and key
+   * @param pluginName        name of the target plugin
+   * @param command           name of the command to execute
+   * @param executionParams   untyped command parameters
+   * @return result of the command execution
+   * @deprecated Use {@link #executeExtensionCommand(String, String, PluginCommandRQ)} instead.
    */
+  @Deprecated
   Object executeCommand(MembershipDetails membershipDetails, String pluginName,
       String command,
       Map<String, Object> executionParams);
 
   /**
-   * Executes provided plugin public command
+   * Executes a public plugin command (name must start with {@code public_}).
    *
-   * @param pluginName      Command name
-   * @param command         Command to be executed
-   * @param executionParams Parameters for execute
-   * @return Result of the command execution
+   * @param pluginName      name of the target plugin
+   * @param command         name of the command to execute
+   * @param executionParams untyped command parameters
+   * @return result of the command execution
+   * @deprecated Use {@link #executeExtensionCommand(String, String, PluginCommandRQ)} instead.
    */
+  @Deprecated
   Object executePublicCommand(String pluginName, String command,
       Map<String, Object> executionParams);
 
   /**
-   * Executes provided plugin command for existed integration
+   * Executes a plugin command against a specific integration instance.
    *
-   * @param membershipDetails Membership details
-   * @param integrationId     Integration id
-   * @param command           Command to be executed
-   * @param executionParams   Parameters for execute
-   * @return Result of the command execution
+   * @param membershipDetails membership context supplying the project ID
+   * @param integrationId     ID of the integration to execute the command against
+   * @param command           name of the command to execute
+   * @param executionParams   untyped command parameters
+   * @return result of the command execution
+   * @deprecated Use {@link #executeExtensionCommand(String, String, PluginCommandRQ)} instead.
    */
+  @Deprecated
   Object executeCommand(MembershipDetails membershipDetails, Long integrationId,
       String command,
       Map<String, Object> executionParams);
 
   /**
-   * Executes provided common plugin command.
+   * Executes a common plugin command using a structured request object.
    *
-   * @param pluginName      Plugin name
-   * @param commandName     Command to be executed
-   * @param pluginCommandRq Structured parameters for execution
-   * @return Result of the command execution
+   * @param pluginName      name of the target plugin
+   * @param commandName     name of the command to execute
+   * @param pluginCommandRq structured command parameters including context
+   * @return result of the command execution
+   * @deprecated Use {@link #executeExtensionCommand(String, String, PluginCommandRQ)} instead.
    */
+  @Deprecated
   Object executeCommand(String pluginName, String commandName, PluginCommandRQ pluginCommandRq);
+
+  /**
+   * Executes a plugin extension command. Tries a context-only command first; if not found, resolves the integration
+   * from {@link PluginCommandRQ#getContext()} and executes an integration-scoped command.
+   *
+   * @param pluginName      name of the target plugin
+   * @param commandName     name of the command to execute
+   * @param pluginCommandRq structured command parameters including context
+   * @return result of the command execution
+   */
+  Object executeExtensionCommand(String pluginName, String commandName, PluginCommandRQ pluginCommandRq);
 }

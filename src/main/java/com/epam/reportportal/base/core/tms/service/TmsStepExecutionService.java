@@ -110,4 +110,9 @@ public class TmsStepExecutionService {
   public void deleteByLaunchId(Long launchId) {
     tmsStepExecutionRepository.deleteByLaunchId(launchId);
   }
+
+  @Transactional
+  public void updateTmsStepExecution(TmsStepExecution stepExecution) {
+    tmsStepExecutionRepository.save(stepExecution);
+  }
 }

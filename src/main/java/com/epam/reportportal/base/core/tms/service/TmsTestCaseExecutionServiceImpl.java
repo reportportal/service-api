@@ -2,7 +2,9 @@ package com.epam.reportportal.base.core.tms.service;
 
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
+import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
+import com.epam.reportportal.base.core.item.FinishTestItemHandler;
 import com.epam.reportportal.base.core.tms.dto.NestedStepResult;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioRS;
@@ -14,6 +16,8 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.core.tms.mapper.TestCaseItemBuilder;
+import com.epam.reportportal.base.core.tms.mapper.NestedStepItemBuilder;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseExecutionMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -31,6 +35,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
+import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,7 +43,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
 import java.util.Optional;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepExecution;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +72,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private final TmsTestCaseExecutionFilterableRepository tmsTestCaseExecutionFilterableRepository;
   private final TmsTestCaseVersionService tmsTestCaseVersionService;
   private final UpdateTestItemHandler updateTestItemHandler;
+  private final FinishTestItemHandler finishTestItemHandler;
   private final TmsTestCaseExecutionCommentService tmsTestCaseExecutionCommentService;
   private final TmsTestCaseExecutionMapper tmsTestCaseExecutionMapper;
   private final TmsTestPlanService tmsTestPlanService;
@@ -73,6 +81,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private final TestCaseItemService testCaseItemService;
   private final NestedStepsService nestedStepsService;
   private final TmsStepExecutionService tmsStepExecutionService;
+  private final NestedStepItemBuilder nestedStepItemBuilder;
+  private final TestCaseItemBuilder testCaseItemBuilder;
   private final TmsManualScenarioMapper tmsManualScenarioMapper;
 
   private TmsTestCaseService tmsTestCaseService;
@@ -383,30 +393,29 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     tmsStepExecutionService.deleteStepExecutionsByTestCaseExecution(executionId);
     log.debug("Deleted step execution records for test case execution: {}", executionId);
 
-    log.debug("Deleted TEST item: {} and its nested steps", testItemId);
-
     // Delete the execution record
     tmsTestCaseExecutionRepository.deleteById(executionId);
     log.debug("Deleted test case execution: {}", executionId);
+
+    // Delete the TEST item and all its nested steps (cascade)
+    testItemRepository.deleteById(testItemId);
+    log.debug("Deleted TEST item: {} and its nested steps", testItemId);
 
     // Check if SUITE item has any remaining STEP children (test cases)
     if (suiteItemId != null) {
       var testChildrenCount = testItemRepository.countByParentIdAndType(
           suiteItemId, TestItemTypeEnum.STEP);
-    
+
       if (testChildrenCount == 0) {
         log.debug("SUITE item: {} has no more STEP children, deleting it", suiteItemId);
         // Clean up folder-item link
         testFolderItemService.deleteTestFolderTestItemByTestItemId(suiteItemId);
-    
+
         testItemRepository.deleteById(suiteItemId);
       } else {
         log.debug("SUITE item: {} still has {} STEP children", suiteItemId, testChildrenCount);
       }
     }
-
-    // Delete the TEST item and all its nested steps (cascade)
-    testItemRepository.deleteById(testItemId);
 
     log.debug("Successfully removed test case execution: {} from launch: {}", executionId,
         launchId);
@@ -526,6 +535,23 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             tmsTestCaseExecutionMapper.convertToPageTmsTestCaseExecutionRS(executions, pageable));
   }
 
+  private void resetStepExecutionsForRetry(Long executionId, TestItem parentRetryItem) {
+    List<TmsStepExecution> stepExecutions = tmsStepExecutionService.getStepExecutionsByTestCaseExecution(executionId);
+    for (TmsStepExecution stepExecution : stepExecutions) {
+      var originalStep = stepExecution.getTestItem();
+      if (originalStep != null) {
+        var newStep = nestedStepItemBuilder.buildRetryNestedStepItem(originalStep, parentRetryItem);
+  
+        newStep = testItemRepository.save(newStep);
+        newStep.setPath(parentRetryItem.getPath() + "." + newStep.getItemId());
+        newStep = testItemRepository.save(newStep);
+  
+        stepExecution.setTestItem(newStep);
+        tmsStepExecutionService.updateTmsStepExecution(stepExecution);
+      }
+    }
+  }
+
   @Override
   @Transactional
   public TmsTestCaseExecutionRS patch(
@@ -545,20 +571,63 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             // Update test item status
             var testItem = execution.getTestItem();
             if (testItem != null && testItem.getItemResults() != null) {
-              execution.setTestItem(
-                  updateTestItemHandler.updateTestItem(
-                      membershipDetails,
-                      testItem,
-                      UpdateTestItemRQ.builder().status(request.getStatus()).build(),
-                      user
-                  )
-              );
+              var targetStatus = StatusEnum.valueOf(request.getStatus().toUpperCase());
+              var currentStatus = testItem.getItemResults().getStatus();
+
+              if (currentStatus == targetStatus) {
+                // Do nothing
+              } else if (targetStatus == StatusEnum.IN_PROGRESS || targetStatus == StatusEnum.TO_RUN) {
+                if (currentStatus == StatusEnum.IN_PROGRESS || currentStatus == StatusEnum.TO_RUN) {
+                  // Active <-> Active (e.g. TO_RUN -> IN_PROGRESS)
+                  testItem.getItemResults().setStatus(targetStatus);
+                  testItem = testItemRepository.save(testItem);
+                  execution.setTestItem(testItem);
+                } else {
+                  // Terminal -> Active (RETRY logic)
+                  testItem.setHasRetries(true);
+                  testItem = testItemRepository.save(testItem);
+                  var oldPath = testItem.getPath();
+                  var lastDot = oldPath != null ? oldPath.lastIndexOf('.') : -1;
+
+                  testItem = testCaseItemBuilder.buildRetryTestCaseItem(testItem, targetStatus);
+                  execution.setTestItem(testItem);
+                  testItem = testItemRepository.save(testItem);
+                  
+                  // Build path
+                  var newPath = lastDot >= 0 ? oldPath.substring(0, lastDot) + "." + testItem.getItemId() : String.valueOf(testItem.getItemId());
+                  testItem.setPath(newPath);
+                  testItem = testItemRepository.save(testItem);
+                  
+                  resetStepExecutionsForRetry(execution.getId(), testItem);
+                }
+              } else if (currentStatus == StatusEnum.IN_PROGRESS || currentStatus == StatusEnum.TO_RUN) {
+                // Active -> Terminal
+                var finishRq = new FinishTestItemRQ();
+                finishRq.setStatus(targetStatus.name());
+                finishRq.setEndTime(Instant.now());
+
+                finishTestItemHandler.finishTestItem(user, membershipDetails, testItem.getUuid(), finishRq);
+
+                // Refresh test item after finish
+                testItem = testItemRepository.findById(testItem.getItemId()).orElseThrow();
+                execution.setTestItem(testItem);
+              } else {
+                // Terminal -> Terminal (Update logic)
+                execution.setTestItem(
+                    updateTestItemHandler.updateTestItem(
+                        membershipDetails,
+                        testItem,
+                        UpdateTestItemRQ.builder().status(request.getStatus()).build(),
+                        user
+                    )
+                );
+              }
               // Add the test case to test plan for PASSED or FAILED status
               addTestCaseToTestPlan(execution, request.getStatus());
               updated = true;
             }
           }
-          
+
           if (request.getExecutionComment() != null) {
             tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution, request.getExecutionComment());
             updated = true;
@@ -629,10 +698,10 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             ErrorType.NOT_FOUND,
             TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
         ));
-  
+
     return tmsTestCaseExecutionCommentService.putTestCaseExecutionComment(execution, request);
   }
-  
+
   @Override
   @Transactional
   public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId,
@@ -642,7 +711,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             ErrorType.NOT_FOUND,
             TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
         ));
-  
+
     return tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution, request);
   }
 

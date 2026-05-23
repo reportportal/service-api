@@ -260,7 +260,8 @@ public class TestCaseController {
   @PatchMapping("/batch")
   @Operation(
       summary = "Partially update multiple test cases",
-      description = "Updates multiple test cases at once, particularly useful for changing test case folder for multiple test cases."
+      description = "Updates multiple test cases at once, "
+          + "particularly useful for changing test case folder for multiple test cases."
   )
   @ApiResponse(responseCode = "200", description = "Test cases updated successfully")
   public BatchPatchTestCasesRS batchPatchTestCases(@PathVariable("projectKey") String projectKey,

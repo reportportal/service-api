@@ -22,9 +22,11 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Act
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventAction;
 import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import org.apache.commons.collections4.CollectionUtils;
 
 public class TmsTmsTestCaseFieldProcessorImpl implements TmsTestCaseFieldProcessor {
 
@@ -52,7 +54,7 @@ public class TmsTmsTestCaseFieldProcessorImpl implements TmsTestCaseFieldProcess
         Object beforeValue = valueExtractor.apply(before);
         Object afterValue = valueExtractor.apply(after);
 
-        if (Objects.equals(beforeValue, afterValue)) {
+        if (areValuesEqual(beforeValue, afterValue)) {
             return Optional.empty();
         }
 
@@ -99,5 +101,12 @@ public class TmsTmsTestCaseFieldProcessorImpl implements TmsTestCaseFieldProcess
             return col.isEmpty();
         }
         return false;
+    }
+
+    private boolean areValuesEqual(Object beforeValue, Object afterValue) {
+        if (beforeValue instanceof Collection && afterValue instanceof Collection) {
+            return CollectionUtils.isEqualCollection((Collection<?>) beforeValue, (Collection<?>) afterValue);
+        }
+        return Objects.equals(beforeValue, afterValue);
     }
 }

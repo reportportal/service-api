@@ -95,8 +95,9 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void findByIdAndTypeId() {
-    final Integration jiraIntegration = integrationRepository.findByIdAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
-        JIRA_INTEGRATION_ID, JIRA_INTEGRATION_TYPE_ID).get();
+    final Integration jiraIntegration = integrationRepository
+        .findByIdAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(JIRA_INTEGRATION_ID, JIRA_INTEGRATION_TYPE_ID)
+        .get();
     assertEquals("jira", jiraIntegration.getName());
     assertEquals(JIRA_INTEGRATION_ID, jiraIntegration.getId());
     assertEquals(JIRA_INTEGRATION_TYPE_ID, jiraIntegration.getType().getId());
@@ -104,8 +105,8 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void findByNameAndTypeId() {
-    final Integration jiraIntegration = integrationRepository.findByNameAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
-        "jira", JIRA_INTEGRATION_TYPE_ID).get();
+    final Integration jiraIntegration = integrationRepository
+        .findByNameAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull("jira", JIRA_INTEGRATION_TYPE_ID).get();
     assertEquals("jira", jiraIntegration.getName());
     assertEquals(JIRA_INTEGRATION_ID, jiraIntegration.getId());
     assertEquals(JIRA_INTEGRATION_TYPE_ID, jiraIntegration.getType().getId());

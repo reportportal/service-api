@@ -85,13 +85,13 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
       IntegrationType integrationType);
 
   /**
-   * Delete all {@link Integration} with {@link Integration#project} == NULL by integration type ID
+   * Delete all global {@link Integration} (no project, no organization) by integration type ID
    *
    * @param typeId {@link IntegrationType#id}
    */
   @Modifying
-  @Query(value = "DELETE FROM integration WHERE project_id IS NULL AND type = :typeId", nativeQuery = true)
-  int deleteAllGlobalByIntegrationTypeId(@Param("typeId") Long typeId);
+  @Query(value = "DELETE FROM integration WHERE project_id IS NULL AND organization_id IS NULL AND type = :typeId", nativeQuery = true)
+  void deleteAllGlobalByIntegrationTypeId(@Param("typeId") Long typeId);
 
   /**
    * Delete all {@link Integration} by projectID and integration type ID
@@ -100,7 +100,7 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    */
   @Modifying
   @Query(value = "DELETE FROM integration WHERE project_id = :projectId AND type = :typeId", nativeQuery = true)
-  int deleteAllByProjectIdAndIntegrationTypeId(@Param("projectId") Long projectId,
+  void deleteAllByProjectIdAndIntegrationTypeId(@Param("projectId") Long projectId,
       @Param("typeId") Long typeId);
 
   /**

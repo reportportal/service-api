@@ -95,7 +95,7 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void findByIdAndTypeId() {
-    final Integration jiraIntegration = integrationRepository.findByIdAndTypeIdAndProjectIdIsNull(
+    final Integration jiraIntegration = integrationRepository.findByIdAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
         JIRA_INTEGRATION_ID, JIRA_INTEGRATION_TYPE_ID).get();
     assertEquals("jira", jiraIntegration.getName());
     assertEquals(JIRA_INTEGRATION_ID, jiraIntegration.getId());
@@ -104,7 +104,7 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void findByNameAndTypeId() {
-    final Integration jiraIntegration = integrationRepository.findByNameAndTypeIdAndProjectIdIsNull(
+    final Integration jiraIntegration = integrationRepository.findByNameAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
         "jira", JIRA_INTEGRATION_TYPE_ID).get();
     assertEquals("jira", jiraIntegration.getName());
     assertEquals(JIRA_INTEGRATION_ID, jiraIntegration.getId());
@@ -164,13 +164,15 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void existsByNameTypePositive() {
-    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNull("jira", 6L);
+    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
+        "jira", 6L);
     assertTrue(exists);
   }
 
   @Test
   void existsByNameTypeNegative() {
-    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNull("jira1", 4L);
+    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
+        "jira1", 4L);
     assertFalse(exists);
   }
 

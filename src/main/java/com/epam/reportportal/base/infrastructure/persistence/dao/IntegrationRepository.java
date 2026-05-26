@@ -38,7 +38,7 @@ import org.springframework.data.repository.query.Param;
 public interface IntegrationRepository extends ReportPortalRepository<Integration, Long>,
     IntegrationRepositoryCustom {
 
-  boolean existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNull(String name, Long typeId);
+  boolean existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(String name, Long typeId);
 
   boolean existsByNameIgnoreCaseAndTypeIdAndProjectId(String name, Long typeId, Long projectId);
 
@@ -56,14 +56,15 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @param integrationTypeId {@code Integration#getType()}#{@code IntegrationType#getId()}
    * @return {@link Optional} with {@link Integration}
    */
-  Optional<Integration> findByNameAndTypeIdAndProjectIdIsNull(String name, Long integrationTypeId);
+  Optional<Integration> findByNameAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(String name,
+      Long integrationTypeId);
 
   /**
    * @param id                {@code Integration#getId()}
    * @param integrationTypeId {@code Integration#getType()}#{@code IntegrationType#getId()}
    * @return {@link Optional} with {@link Integration}
    */
-  Optional<Integration> findByIdAndTypeIdAndProjectIdIsNull(Long id, Long integrationTypeId);
+  Optional<Integration> findByIdAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(Long id, Long integrationTypeId);
 
   /**
    * Retrieve given project's integrations

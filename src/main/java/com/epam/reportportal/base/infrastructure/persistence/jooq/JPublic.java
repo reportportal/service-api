@@ -81,7 +81,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentAttachment;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionCommentBtsTicket;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem;
@@ -545,7 +544,6 @@ public class JPublic extends SchemaImpl {
     /**
      * The table <code>public.tms_test_case_execution_comment_bts_ticket</code>.
      */
-    public final JTmsTestCaseExecutionCommentBtsTicket TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET = JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET;
 
     /**
      * The table <code>public.tms_test_case_version</code>.
@@ -712,7 +710,6 @@ public class JPublic extends SchemaImpl {
             JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION,
             JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT,
             JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT,
-            JTmsTestCaseExecutionCommentBtsTicket.TMS_TEST_CASE_EXECUTION_COMMENT_BTS_TICKET,
             JTmsTestCaseVersion.TMS_TEST_CASE_VERSION,
             JTmsTestFolder.TMS_TEST_FOLDER,
             JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM,

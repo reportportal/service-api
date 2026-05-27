@@ -20,6 +20,8 @@ public class TmsTestCaseExecutionRS {
 
   private TmsTestCaseExecutionCommentRS executionComment;
 
+  private Set<TmsTestCaseExecutionBtsTicketRS> btsTickets;
+
   private Long startedAt;
 
   private Long finishedAt;

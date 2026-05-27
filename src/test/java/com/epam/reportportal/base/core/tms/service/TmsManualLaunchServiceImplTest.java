@@ -308,17 +308,37 @@ class TmsManualLaunchServiceImplTest {
     TmsTestCaseExecutionCommentRQ commentRQ = new TmsTestCaseExecutionCommentRQ();
     commentRQ.setComment("New comment");
     TmsTestCaseExecutionCommentRS commentRS = new TmsTestCaseExecutionCommentRS();
-
+  
     when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(true);
     when(tmsTestCaseExecutionService.putTestCaseExecutionComment(projectId, launchId, executionId,
         commentRQ))
         .thenReturn(commentRS);
-
+  
     var result = sut.putTestCaseExecutionComment(projectId, launchId, executionId, commentRQ);
-
+  
     assertNotNull(result);
     verify(launchRepository).existsByIdAndProjectId(launchId, projectId);
     verify(tmsTestCaseExecutionService).putTestCaseExecutionComment(projectId, launchId,
+        executionId, commentRQ);
+  }
+  
+  @Test
+  void patchTestCaseExecutionComment_WhenValid_ShouldUpdateComment() {
+    long executionId = 400L;
+    TmsTestCaseExecutionCommentRQ commentRQ = new TmsTestCaseExecutionCommentRQ();
+    commentRQ.setComment("Patched comment");
+    TmsTestCaseExecutionCommentRS commentRS = new TmsTestCaseExecutionCommentRS();
+  
+    when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(true);
+    when(tmsTestCaseExecutionService.patchTestCaseExecutionComment(projectId, launchId, executionId,
+        commentRQ))
+        .thenReturn(commentRS);
+  
+    var result = sut.patchTestCaseExecutionComment(projectId, launchId, executionId, commentRQ);
+  
+    assertNotNull(result);
+    verify(launchRepository).existsByIdAndProjectId(launchId, projectId);
+    verify(tmsTestCaseExecutionService).patchTestCaseExecutionComment(projectId, launchId,
         executionId, commentRQ);
   }
 

@@ -238,7 +238,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     BusinessRule.expect(integrationName, StringUtils::isNotBlank)
         .verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
     boolean integrationExists =
-        integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNull(integrationName, type.getId());
+        integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(integrationName,
+            type.getId());
     BusinessRule.expect(integrationExists, BooleanUtils::isFalse).
         verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
             Suppliers.formattedSupplier("Global integration of type = '{}' with name = '{}' already exists",

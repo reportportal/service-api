@@ -553,21 +553,21 @@ VALUES
 
 INSERT INTO test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, test_case_id, has_children, has_retries, has_stats, parent_id, retry_of, launch_id, test_case_hash)
 VALUES
-    (1000, '550e8400-e29b-41d4-a716-446655441000', 'Test Item for TC 100',                        'com.test.TC100', 'TEST', '2023-10-06 10:00:00', 'Test execution for test case 100',                  '2023-10-06 10:05:00', '10001.1000', 'tc-100-exec-1',        NULL, false, false, true, 10001, NULL, 100, 2839437),
-    (1010, '550e8400-e29b-41d4-a716-446655441010', 'Test Item for TC 101 - First',                'com.test.TC101', 'TEST', '2023-10-05 10:00:00', 'First execution for test case 101',                 '2023-10-05 10:05:00', '10001.1010', 'tc-101-exec-1',        NULL, false, false, true, 10001, NULL, 100, 2839438),
-    (1011, '550e8400-e29b-41d4-a716-446655441011', 'Test Item for TC 101 - Latest',               'com.test.TC101', 'TEST', '2023-10-07 14:00:00', 'Latest execution for test case 101',                '2023-10-07 14:05:00', '10002.1011', 'tc-101-exec-2',        NULL, false, false, true, 10002, NULL, 101, 2839439),
-    (1030, '550e8400-e29b-41d4-a716-446655441030', 'Test Item for TC 103',                        'com.test.TC103', 'TEST', '2023-10-08 15:00:00', 'Test execution for test case 103',                  '2023-10-08 15:05:00', '10003.1030', 'tc-103-exec-1',        NULL, false, false, true, 10003, NULL, 102, 2839440),
-    (2000, '550e8400-e29b-41d4-a716-446655442000', 'Execution: User Login with Valid Credentials','manual.tc4.exec1','TEST','2024-01-15 10:05:00', 'Manual execution of test case 4',                   '2024-01-15 10:10:00', '10004.2000', 'manual-launch-200-tc4-1',NULL,false, false, true, 10004, NULL, 200, 2839441),
-    (2001, '550e8400-e29b-41d4-a716-446655442001', 'Execution: User Login with Invalid Credentials','manual.tc5.exec1','TEST','2024-01-15 10:15:00','Manual execution of test case 5',                  '2024-01-15 10:25:00', '10004.2001', 'manual-launch-200-tc5-1',NULL,false, false, true, 10004, NULL, 200, 2839442),
-    (2002, '550e8400-e29b-41d4-a716-446655442002', 'Execution: Password Reset Flow',              'manual.tc6.exec1','TEST','2024-01-16 10:05:00', 'Manual execution of test case 6',                   '2024-01-16 10:20:00', '10005.2002', 'manual-launch-201-tc6-1',NULL,false, false, true, 10005, NULL, 201, 2839443),
-    (2003, '550e8400-e29b-41d4-a716-446655442003', 'Execution: User Profile Update',              'manual.tc7.exec1','TEST','2024-01-16 10:25:00', 'Manual execution of test case 7',                   '2024-01-16 10:35:00', '10006.2003', 'manual-launch-201-tc7-1',NULL,false, false, true, 10006, NULL, 201, 2839444),
-    (2004, '550e8400-e29b-41d4-a716-446655442004', 'Execution: Data Export Functionality',        'manual.tc8.exec1','TEST','2024-01-16 10:40:00', 'Manual execution of test case 8',                   '2024-01-16 10:50:00', '10006.2004', 'manual-launch-201-tc8-1',NULL,false, false, true, 10006, NULL, 201, 2839445),
-    (2005, '550e8400-e29b-41d4-a716-446655442005', 'Execution: API Integration Test',             'manual.tc9.exec1','TEST','2024-01-17 10:05:00', 'Manual execution of test case 9',                   '2024-01-17 10:15:00', '10007.2005', 'manual-launch-202-tc9-1',NULL,false, false, true, 10007, NULL, 202, 2839446),
-    (2006, '550e8400-e29b-41d4-a716-446655442006', 'Execution 1: User Login with Valid Credentials','manual.tc4.exec2','TEST','2024-01-18 10:05:00','First execution of TC4 in launch 203',              '2024-01-18 10:10:00', '10008.2006', 'manual-launch-203-tc4-1',NULL,false, false, true, 10008, NULL, 203, 2839447),
-    (2007, '550e8400-e29b-41d4-a716-446655442007', 'Execution 2: User Login with Valid Credentials','manual.tc4.exec3','TEST','2024-01-18 10:15:00','Second execution of TC4 in launch 203',             '2024-01-18 10:20:00', '10008.2007', 'manual-launch-203-tc4-2',NULL,false, false, true, 10008, NULL, 203, 2839448),
-    (2008, '550e8400-e29b-41d4-a716-446655442008', 'Execution 1: Password Reset Flow',            'manual.tc6.exec2','TEST','2024-01-18 10:25:00', 'First execution of TC6 in launch 203',              '2024-01-18 10:35:00', '10008.2008', 'manual-launch-203-tc6-1',NULL,false, false, true, 10008, NULL, 203, 2839449),
-    (2009, '550e8400-e29b-41d4-a716-446655442009', 'Execution: User Profile Update',              'manual.tc7.exec2','TEST','2024-01-18 10:40:00', 'Execution of TC7 in launch 203',                   '2024-01-18 10:50:00', '10009.2009', 'manual-launch-203-tc7-1',NULL,false, false, true, 10009, NULL, 203, 2839450),
-    (2010, '550e8400-e29b-41d4-a716-446655442010', 'Execution: Database Connection Test',         'manual.tc10.exec1','TEST','2024-01-18 10:55:00','Execution of TC10 in launch 203',                  '2024-01-18 11:00:00', '10010.2010', 'manual-launch-203-tc10-1',NULL,false,false, true, 10010, NULL, 203, 2839451);
+    (1000, '550e8400-e29b-41d4-a716-446655441000', 'Test Item for TC 100',                        'com.test.TC100', 'STEP', '2023-10-06 10:00:00', 'Test execution for test case 100',                  '2023-10-06 10:05:00', '10001.1000', 'tc-100-exec-1',        NULL, false, false, true, 10001, NULL, 100, 2839437),
+    (1010, '550e8400-e29b-41d4-a716-446655441010', 'Test Item for TC 101 - First',                'com.test.TC101', 'STEP', '2023-10-05 10:00:00', 'First execution for test case 101',                 '2023-10-05 10:05:00', '10001.1010', 'tc-101-exec-1',        NULL, false, false, true, 10001, NULL, 100, 2839438),
+    (1011, '550e8400-e29b-41d4-a716-446655441011', 'Test Item for TC 101 - Latest',               'com.test.TC101', 'STEP', '2023-10-07 14:00:00', 'Latest execution for test case 101',                '2023-10-07 14:05:00', '10002.1011', 'tc-101-exec-2',        NULL, false, false, true, 10002, NULL, 101, 2839439),
+    (1030, '550e8400-e29b-41d4-a716-446655441030', 'Test Item for TC 103',                        'com.test.TC103', 'STEP', '2023-10-08 15:00:00', 'Test execution for test case 103',                  '2023-10-08 15:05:00', '10003.1030', 'tc-103-exec-1',        NULL, false, false, true, 10003, NULL, 102, 2839440),
+    (2000, '550e8400-e29b-41d4-a716-446655442000', 'Execution: User Login with Valid Credentials','manual.tc4.exec1','STEP','2024-01-15 10:05:00', 'Manual execution of test case 4',                   '2024-01-15 10:10:00', '10004.2000', 'manual-launch-200-tc4-1',NULL,false, false, true, 10004, NULL, 200, 2839441),
+    (2001, '550e8400-e29b-41d4-a716-446655442001', 'Execution: User Login with Invalid Credentials','manual.tc5.exec1','STEP','2024-01-15 10:15:00','Manual execution of test case 5',                  '2024-01-15 10:25:00', '10004.2001', 'manual-launch-200-tc5-1',NULL,false, false, true, 10004, NULL, 200, 2839442),
+    (2002, '550e8400-e29b-41d4-a716-446655442002', 'Execution: Password Reset Flow',              'manual.tc6.exec1','STEP','2024-01-16 10:05:00', 'Manual execution of test case 6',                   '2024-01-16 10:20:00', '10005.2002', 'manual-launch-201-tc6-1',NULL,false, false, true, 10005, NULL, 201, 2839443),
+    (2003, '550e8400-e29b-41d4-a716-446655442003', 'Execution: User Profile Update',              'manual.tc7.exec1','STEP','2024-01-16 10:25:00', 'Manual execution of test case 7',                   '2024-01-16 10:35:00', '10006.2003', 'manual-launch-201-tc7-1',NULL,false, false, true, 10006, NULL, 201, 2839444),
+    (2004, '550e8400-e29b-41d4-a716-446655442004', 'Execution: Data Export Functionality',        'manual.tc8.exec1','STEP','2024-01-16 10:40:00', 'Manual execution of test case 8',                   '2024-01-16 10:50:00', '10006.2004', 'manual-launch-201-tc8-1',NULL,false, false, true, 10006, NULL, 201, 2839445),
+    (2005, '550e8400-e29b-41d4-a716-446655442005', 'Execution: API Integration Test',             'manual.tc9.exec1','STEP','2024-01-17 10:05:00', 'Manual execution of test case 9',                   '2024-01-17 10:15:00', '10007.2005', 'manual-launch-202-tc9-1',NULL,false, false, true, 10007, NULL, 202, 2839446),
+    (2006, '550e8400-e29b-41d4-a716-446655442006', 'Execution 1: User Login with Valid Credentials','manual.tc4.exec2','STEP','2024-01-18 10:05:00','First execution of TC4 in launch 203',              '2024-01-18 10:10:00', '10008.2006', 'manual-launch-203-tc4-1',NULL,false, false, true, 10008, NULL, 203, 2839447),
+    (2007, '550e8400-e29b-41d4-a716-446655442007', 'Execution 2: User Login with Valid Credentials','manual.tc4.exec3','STEP','2024-01-18 10:15:00','Second execution of TC4 in launch 203',             '2024-01-18 10:20:00', '10008.2007', 'manual-launch-203-tc4-2',NULL,false, false, true, 10008, NULL, 203, 2839448),
+    (2008, '550e8400-e29b-41d4-a716-446655442008', 'Execution 1: Password Reset Flow',            'manual.tc6.exec2','STEP','2024-01-18 10:25:00', 'First execution of TC6 in launch 203',              '2024-01-18 10:35:00', '10008.2008', 'manual-launch-203-tc6-1',NULL,false, false, true, 10008, NULL, 203, 2839449),
+    (2009, '550e8400-e29b-41d4-a716-446655442009', 'Execution: User Profile Update',              'manual.tc7.exec2','STEP','2024-01-18 10:40:00', 'Execution of TC7 in launch 203',                   '2024-01-18 10:50:00', '10009.2009', 'manual-launch-203-tc7-1',NULL,false, false, true, 10009, NULL, 203, 2839450),
+    (2010, '550e8400-e29b-41d4-a716-446655442010', 'Execution: Database Connection Test',         'manual.tc10.exec1','STEP','2024-01-18 10:55:00','Execution of TC10 in launch 203',                  '2024-01-18 11:00:00', '10010.2010', 'manual-launch-203-tc10-1',NULL,false,false, true, 10010, NULL, 203, 2839451);
 
 -- =====================================================
 -- TEST ITEM RESULTS (TEST items)
@@ -642,15 +642,6 @@ VALUES
     (4, 17, 'Second execution also failed. Login button not responding on Safari browser.');
 
 -- =====================================================
--- TMS TEST CASE EXECUTION COMMENT BTS TICKETS
--- =====================================================
-
-INSERT INTO tms_test_case_execution_comment_bts_ticket (id, comment_id, url)
-VALUES
-    (1, 2, 'https://jira.example.com/browse/JIRA-123'),
-    (2, 4, 'https://jira.example.com/browse/JIRA-456');
-
--- =====================================================
 -- TMS TEST CASE EXECUTION COMMENT ATTACHMENTS
 -- =====================================================
 
@@ -696,5 +687,4 @@ SELECT setval('statistics_s_id_seq',                               (SELECT COALE
 SELECT setval('test_item_item_id_seq',                             (SELECT COALESCE(MAX(item_id), 1) FROM test_item));
 SELECT setval('tms_test_case_execution_id_seq',                    (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));
 SELECT setval('tms_test_case_execution_comment_id_seq',            (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution_comment));
-SELECT setval('tms_test_case_execution_comment_bts_ticket_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution_comment_bts_ticket));
 SELECT setval('tms_test_folder_test_item_id_seq',                  (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder_test_item));

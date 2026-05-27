@@ -2235,21 +2235,47 @@ public enum FilterTarget {
           TEST_ITEM_RESULTS.RESULT_ID,
           TEST_ITEM_RESULTS.STATUS,
           TEST_ITEM_RESULTS.END_TIME,
-          TMS_TEST_CASE_EXECUTION.DISPLAY_ID
+          TMS_TEST_CASE_EXECUTION.DISPLAY_ID,
+          ISSUE.ISSUE_ID,
+          ISSUE.AUTO_ANALYZED,
+          ISSUE.IGNORE_ANALYZER,
+          ISSUE.ISSUE_DESCRIPTION,
+          ISSUE_TYPE.ID,
+          ISSUE_TYPE.LOCATOR,
+          ISSUE_TYPE.ABBREVIATION,
+          ISSUE_TYPE.HEX_COLOR,
+          ISSUE_TYPE.ISSUE_NAME,
+          ISSUE_GROUP.ISSUE_GROUP_,
+          TICKET.ID,
+          TICKET.BTS_PROJECT,
+          TICKET.BTS_URL,
+          TICKET.TICKET_ID,
+          TICKET.URL,
+          TICKET.PLUGIN_NAME
       );
     }
-
+    
     @Override
     protected void addFrom(SelectQuery<? extends Record> query) {
       query.addFrom(TMS_TEST_CASE_EXECUTION);
     }
-
+    
     @Override
     protected void joinTables(QuerySupplier query) {
       query.addJoin(TEST_ITEM, JoinType.LEFT_OUTER_JOIN,
           TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID.eq(TEST_ITEM.ITEM_ID));
       query.addJoin(TEST_ITEM_RESULTS, JoinType.LEFT_OUTER_JOIN,
           TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID));
+      query.addJoin(ISSUE, JoinType.LEFT_OUTER_JOIN,
+          TEST_ITEM_RESULTS.RESULT_ID.eq(ISSUE.ISSUE_ID));
+      query.addJoin(ISSUE_TYPE, JoinType.LEFT_OUTER_JOIN,
+          ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID));
+      query.addJoin(ISSUE_GROUP, JoinType.LEFT_OUTER_JOIN,
+          ISSUE_TYPE.ISSUE_GROUP_ID.eq(ISSUE_GROUP.ISSUE_GROUP_ID));
+      query.addJoin(ISSUE_TICKET, JoinType.LEFT_OUTER_JOIN,
+          ISSUE.ISSUE_ID.eq(ISSUE_TICKET.ISSUE_ID));
+      query.addJoin(TICKET, JoinType.LEFT_OUTER_JOIN,
+          ISSUE_TICKET.TICKET_ID.eq(TICKET.ID));
     }
 
     @Override

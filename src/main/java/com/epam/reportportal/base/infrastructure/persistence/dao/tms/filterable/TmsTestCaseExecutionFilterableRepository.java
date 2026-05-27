@@ -1,6 +1,11 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable;
 
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.TMS_TEST_CASE_EXECUTION_FETCHER;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ISSUE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ISSUE_GROUP;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ISSUE_TICKET;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ISSUE_TYPE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TICKET;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TEST_ITEM_RESULTS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.TEST_ITEM;
@@ -96,13 +101,22 @@ public class TmsTestCaseExecutionFilterableRepository implements
     var query = dsl.select(TMS_TEST_CASE_EXECUTION.fields())
         .select(TEST_ITEM.fields())
         .select(TEST_ITEM_RESULTS.fields())
+        .select(ISSUE.fields())
+        .select(ISSUE_TYPE.fields())
+        .select(ISSUE_GROUP.fields())
+        .select(TICKET.fields())
         .from(TMS_TEST_CASE_EXECUTION)
         .leftJoin(TEST_ITEM).on(TEST_ITEM.ITEM_ID.eq(TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID))
         .leftJoin(TEST_ITEM_RESULTS).on(TEST_ITEM_RESULTS.RESULT_ID.eq(TEST_ITEM.ITEM_ID))
+        .leftJoin(ISSUE).on(TEST_ITEM_RESULTS.RESULT_ID.eq(ISSUE.ISSUE_ID))
+        .leftJoin(ISSUE_TYPE).on(ISSUE.ISSUE_TYPE.eq(ISSUE_TYPE.ID))
+        .leftJoin(ISSUE_GROUP).on(ISSUE_TYPE.ISSUE_GROUP_ID.eq(ISSUE_GROUP.ISSUE_GROUP_ID))
+        .leftJoin(ISSUE_TICKET).on(ISSUE.ISSUE_ID.eq(ISSUE_TICKET.ISSUE_ID))
+        .leftJoin(TICKET).on(ISSUE_TICKET.TICKET_ID.eq(TICKET.ID))
         .where(TMS_TEST_CASE_EXECUTION.TEST_CASE_ID.eq(testCaseId))
         .and(TMS_TEST_CASE_EXECUTION.LAUNCH_ID.eq(launchId))
         .orderBy(TEST_ITEM.START_TIME.desc());
-
+  
     return TMS_TEST_CASE_EXECUTION_FETCHER.apply(dsl.fetch(query));
   }
 

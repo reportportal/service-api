@@ -61,14 +61,16 @@ ext['logback.version'] = '1.5.25'
 // - tika-core: commons-bom pins 1.28.x (vulnerable); require 3.2.2+ (CVE-2025-66516).
 // - Netty: AWS SDK et al. pull mixed 4.1.x; align all io.netty artifacts to a patched release.
 // - mchange-commons-java: Quartz 2.3.2 brings 0.2.15; force 0.4.0+ (CVE-2026-27727).
+// - postgresql: align above 42.7.10 (e.g. Snyk) — fixed in 42.7.11.
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.1' : 'com.epam.reportportal:commons-bom:5.15.1')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:5.15.2')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
         mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
     dependencies {
         dependency 'org.apache.tika:tika-core:3.2.2'
+        dependency 'org.postgresql:postgresql:42.7.11'
     }
 }
 
@@ -86,8 +88,8 @@ configurations.configureEach {
 
 println("Release mode: $releaseMode")
 dependencies {
-    implementation 'com.github.reportportal:commons:5.15.1'
-    implementation 'com.github.reportportal:commons-dao:5.15.3'
+    implementation 'com.github.reportportal:commons:5.15.2'
+    implementation 'com.github.reportportal:commons-dao:5.15.4'
     implementation('com.github.reportportal:plugin-api:5.15.0') {
         exclude group: 'com.github.reportportal', module: 'commons-dao'
         exclude group: 'com.github.reportportal', module: 'commons'

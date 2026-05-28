@@ -27,10 +27,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
+import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
 import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -38,7 +41,6 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.BulkRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
@@ -77,7 +79,13 @@ class FinishLaunchHandlerImplTest {
   private ApplicationEventPublisher publisher;
 
   @Mock
+  private TestItemStatisticsService statisticsService;
+
+  @Mock
   LinkGenerator linkGenerator;
+
+  @Mock
+  private LaunchChangesHandler launchChangesHandler;
 
   @InjectMocks
   private FinishLaunchHandlerImpl handler;
@@ -147,6 +155,7 @@ class FinishLaunchHandlerImplTest {
     );
     assertNotNull(response);
     assertEquals("Launch with ID = '1' successfully stopped.", response.getResultMessage());
+    verify(statisticsService, times(1)).addInterruptionStatistics(1L);
   }
 
   @Test
@@ -173,6 +182,7 @@ class FinishLaunchHandlerImplTest {
     );
     assertNotNull(response);
     assertEquals(1, response.size());
+    verify(statisticsService, times(1)).addInterruptionStatistics(1L);
   }
 
   @Test

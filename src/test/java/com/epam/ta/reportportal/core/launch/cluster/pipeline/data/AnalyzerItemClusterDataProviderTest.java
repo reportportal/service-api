@@ -17,8 +17,6 @@
 package com.epam.ta.reportportal.core.launch.cluster.pipeline.data;
 
 import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyList;
@@ -28,6 +26,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
@@ -38,9 +38,6 @@ import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfi
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.model.analyzer.IndexLaunch;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -67,11 +64,8 @@ class AnalyzerItemClusterDataProviderTest {
     when(analyzerServiceClient.hasClients()).thenReturn(false);
 
     final GenerateClustersConfig config = getConfig(false);
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> provider.provide(config));
-    assertEquals(
-        "Impossible interact with integration. There are no analyzer services are deployed.",
-        exception.getMessage());
+    Optional<ClusterData> provide = provider.provide(config);
+    assertTrue(provide.isEmpty());
   }
 
   @Test

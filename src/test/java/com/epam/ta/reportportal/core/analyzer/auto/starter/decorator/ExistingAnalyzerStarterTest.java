@@ -17,13 +17,12 @@
 package com.epam.ta.reportportal.core.analyzer.auto.starter.decorator;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
@@ -31,8 +30,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItems
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -74,13 +71,6 @@ class ExistingAnalyzerStarterTest {
     );
 
     when(analyzerService.hasAnalyzers()).thenReturn(Boolean.FALSE);
-
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> existingAnalyzerStarter.start(config));
-
-    assertEquals(
-        "Impossible interact with integration. There are no analyzer services are deployed.",
-        exception.getMessage());
 
     verify(delegate, times(0)).start(config);
   }

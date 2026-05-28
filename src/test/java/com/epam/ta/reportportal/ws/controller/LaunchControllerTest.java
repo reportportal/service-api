@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -105,12 +104,7 @@ class LaunchControllerTest extends BaseMvcTest {
     mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/analyze").with(
                 token(oAuthHelper.getDefaultToken()))
             .content(objectMapper.writeValueAsBytes(analyzeLaunchRQ)).contentType(APPLICATION_JSON))
-        .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
-        .andExpect(result -> assertEquals(
-            "Impossible interact with integration. There are no analyzer services are deployed.",
-            result.getResolvedException().getMessage()
-        ));
+        .andExpect(status().is(200));
   }
 
   @Test

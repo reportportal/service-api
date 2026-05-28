@@ -254,6 +254,25 @@ class TestItemControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void searchTestItemsWithoutNameOrAttributeReturnsBadRequest() throws Exception {
+    mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/search").with(
+            token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(
+            "Error in handled Request. Please, check specified parameters: 'Provide either 'filter.has.compositeAttribute' or 'filter.swt.name'.'"));
+  }
+
+  @Test
+  void searchTestItemsByNamePrefixReturnsOk() throws Exception {
+    mockMvc.perform(
+            get(DEFAULT_PROJECT_BASE_URL + "/item/search?filter.swt.name=child&size=10").with(
+                token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content", hasSize(3)));
+  }
+
+  @Test
   void getTestItemsBadProvider() throws Exception {
     mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=bad").with(
         token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());

@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -45,14 +46,16 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
       TestItemRepository testItemRepository,
       ItemAttributeRepository itemAttributeRepository, RetryHandler retryHandler,
       IssueTypeHandler issueTypeHandler,
-      IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler) {
+      IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
+      TestItemStatisticsService statisticsService) {
     super(launchRepository,
         testItemRepository,
         itemAttributeRepository,
         issueEntityRepository,
         retryHandler,
         issueTypeHandler,
-        changeStatusHandler
+        changeStatusHandler,
+        statisticsService
     );
   }
 

@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
-import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -40,7 +39,6 @@ public class TestItemRetryEventHandler {
   @Async
   @TransactionalEventListener
   public void onItemRetry(ItemRetryEvent event) {
-    logIndexer.indexItemsRemoveAsync(event.getProjectId(),
-        Collections.singletonList(event.getItemId()));
+    logIndexer.indexItemsRemoveAsync(event.getProjectId(), event.getPreviousTryIds());
   }
 }

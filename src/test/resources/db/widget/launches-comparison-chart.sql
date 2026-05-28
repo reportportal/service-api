@@ -160,3 +160,17 @@ values (2, 'statistics$executions$total'),
 insert into widget_filter(widget_id, filter_id)
 values (2, 1),
        (3, 4);
+
+-- Statistics (1=total, 2=passed, 3=skipped, 4=failed, 5-6=automation_bug, 7-8=product_bug, 11-12=to_investigate)
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 1), (1, 2, 1);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 2), (1, 4, 2), (1, 5, 2), (1, 6, 2);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 3), (1, 4, 3), (1, 7, 3), (1, 8, 3);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 4), (1, 2, 4);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 5), (1, 4, 5), (1, 11, 5), (1, 12, 5);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 6), (1, 2, 6);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 7), (1, 4, 7), (1, 11, 7), (1, 12, 7);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 8), (1, 4, 8), (1, 7, 8), (1, 8, 8);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 9), (1, 3, 9);
+INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
+INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);

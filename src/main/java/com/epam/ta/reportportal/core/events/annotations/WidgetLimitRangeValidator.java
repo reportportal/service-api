@@ -19,8 +19,7 @@ public class WidgetLimitRangeValidator
 
   @Override
   public boolean isValid(BaseEntityRQ value, ConstraintValidatorContext context) {
-    if (value instanceof WidgetRQ) {
-      WidgetRQ widgetRQ = (WidgetRQ) value;
+    if (value instanceof WidgetRQ widgetRQ) {
       if (TEST_CASE_SEARCH.getType().equalsIgnoreCase(widgetRQ.getWidgetType())) {
         return true;
       }

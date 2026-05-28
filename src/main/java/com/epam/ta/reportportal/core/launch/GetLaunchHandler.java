@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.model.Page;
+import com.epam.ta.reportportal.model.launch.LaunchViewModel;
 import com.epam.ta.reportportal.ws.reporting.LaunchResource;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -46,7 +47,7 @@ public interface GetLaunchHandler {
    * @param projectDetails Project Details
    * @return {@link LaunchResource}
    */
-  LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails);
+  LaunchViewModel getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails);
 
   /**
    * Get Launch resource by specified Name (for Jenkins Plugin)
@@ -57,7 +58,7 @@ public interface GetLaunchHandler {
    * @param filter   {@link Filter}
    * @return Response Data
    */
-  LaunchResource getLaunchByProjectName(String project, Pageable pageable, Filter filter,
+  LaunchViewModel getLaunchByProjectName(String project, Pageable pageable, Filter filter,
       String username);
 
   /**
@@ -69,7 +70,7 @@ public interface GetLaunchHandler {
    * @param userName       Name of User
    * @return Response Data
    */
-  Page<LaunchResource> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Page<LaunchViewModel> getProjectLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable,
       String userName);
 
@@ -81,7 +82,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Page<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Page<LaunchViewModel> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -150,14 +151,19 @@ public interface GetLaunchHandler {
    * or HTML).
    * </p>
    *
-   * @param launchId           ID of the launch to export.
-   * @param reportFormat       Format of the report to export. Supported values: "pdf", "xls", "html".
-   * @param includeAttachments Whether to include all attachments related to the launch in a ZIP archive.
-   * @param response           {@link HttpServletResponse} used to write the report (or archive) to the output stream.
-   * @param user               Authenticated user requesting the export.
+   * @param launchId              ID of the launch to export.
+   * @param reportFormat          Format of the report to export. Supported values: "pdf", "xls", "html".
+   * @param includeAttachments    Whether to include all attachments related to the launch in a ZIP archive.
+   * @param flatAttachments       If {@code true}, all attachments are placed in a single flat
+   *                              {@code attachments/} directory with names {@code <id>_<name>.ext}.
+   *                              If {@code false}, attachments are organized in a hierarchical directory
+   *                              structure mirroring the test item tree.
+   * @param response              {@link HttpServletResponse} used to write the report (or archive) to the output stream.
+   * @param user                  Authenticated user requesting the export.
    * @throws ReportPortalException if the report or archive could not be written to the output stream.
    */
-  void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
+  void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
+      boolean flatAttachments, HttpServletResponse response,
       ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 
   /**
@@ -168,7 +174,7 @@ public interface GetLaunchHandler {
    * @param pageable       Page details
    * @return Response Data
    */
-  Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
+  Page<LaunchViewModel> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
       Filter filter, Pageable pageable);
 
   /**

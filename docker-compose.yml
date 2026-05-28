@@ -1,78 +1,580 @@
+## ReportPortal common variables
+##
+
+## @section Deployment Profiles
+##
+## The following profiles can be used to control which services are launched:
+##
+## - core: Essential services required for a standard ReportPortal deployment
+## - infra: Infrastructure dependencies (e.g., database, message broker, gateway)
+## - "": Default profile, typically used for optional or internal services (e.g., analyzers)
+##
+
+## @section Logging configuration
+## @param x-logging Shared logging configuration for all services
+## - Uses json-file logging driver with rotation
+##
+x-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: 100m
+    max-file: "5"
+
+## @section Database configuration
+## @param x-database Shared database connection settings used across services
+## @param db_host Internal hostname of the database container (e.g., "postgres")
+## @param db_port Port used to connect to the database (default: 5432)
+## @param db_user Username for service-level access to the database
+## @param db_password Password for the specified DB user
+## @param db_name Logical database name used by services
+##
+x-database:
+  db_host: &db_host postgres
+  db_port: &db_port 5432
+  db_user: &db_user ${POSTGRES_USER-rpuser}
+  db_password: &db_password ${POSTGRES_PASSWORD-rppass}
+  db_name: &db_name ${POSTGRES_DB-reportportal}
+
+## @section AMQP (RabbitMQ) configuration
+## @param x-amqp Shared message broker settings used for internal service communication
+## @param rabbitmq_host Hostname of the RabbitMQ container (Docker internal DNS)
+## @param rabbitmq_port Port for AMQP protocol communication (default: 5672)
+## @param rabbitmq_apiport Port to access RabbitMQ web UI (default: 15672)
+## @param rabbitmq_user Username for authenticating RabbitMQ clients
+## @param rabbitmq_password Password for the RabbitMQ user
+##
+x-amqp:
+  rabbitmq_host: &rabbitmq_host rabbitmq
+  rabbitmq_port: &rabbitmq_port 5672
+  rabbitmq_apiport: &rabbitmq_apiport 15672
+  rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER-rabbitmq}
+  rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS-rabbitmq}
+
+## @section Common environment variables
+## @param x-environment Environment values used by services for database, AMQP and storage connectivity
+##
+x-environment: &common-environment
+  RP_DB_HOST: *db_host
+  RP_DB_PORT: *db_port
+  RP_DB_USER: *db_user
+  RP_DB_PASS: *db_password
+  RP_DB_NAME: *db_name
+  RP_AMQP_HOST: *rabbitmq_host
+  RP_AMQP_PORT: *rabbitmq_port
+  RP_AMQP_APIPORT: *rabbitmq_apiport
+  RP_AMQP_USER: *rabbitmq_user
+  RP_AMQP_PASS: *rabbitmq_password
+  RP_AMQP_APIUSER: *rabbitmq_user
+  RP_AMQP_APIPASS: *rabbitmq_password
+  RP_AMQP_ANALYZER-VHOST: analyzer
+  DATASTORE_TYPE: filesystem # Change to 'aws-s3' to use aws S3 storage
+  ## For S3 storage, also set the following variables in addition to @env DATASTORE_TYPE: s3
+  ## Ref.: https://reportportal.io/docs/installation-steps-advanced/FileStorageOptions
+  # RP_FEATURE_FLAGS: singleBucket
+  # DATASTORE_REGION: "us-standard"
+  ## @env DATASTORE_ACCESSKEY and DATASTORE_SECRETSKEY must be empty for AIM Role-based access
+  # DATASTORE_ACCESSKEY: ""
+  # DATASTORE_SECRETSKEY: ""
+  # DATASTORE_DEFAULTBUCKETNAME: my-rp-docker-bucket
+
+## @section Analyzer service environment
+## @param x-analyzer-environment Environment variables specific to analyzer services (e.g., auto-analyzer)
+##
+x-analyzer-environment: &common-analyzer-environment
+  LOGGING_LEVEL: info
+  AMQP_EXCHANGE_NAME: analyzer-default
+  AMQP_VIRTUAL_HOST: analyzer
+  AMQP_URL: amqp://${RABBITMQ_DEFAULT_USER-rabbitmq}:${RABBITMQ_DEFAULT_PASS-rabbitmq}@rabbitmq:5672
+  ES_HOSTS: http://opensearch:9200
+  ANALYZER_BINARYSTORE_TYPE: filesystem
+
 services:
+  ##
+  ## ReportPortal dependencies
+  ## @section ReportPortal dependencies
+  ##
 
-  rabbitmq:
-    image: rabbitmq:3.8.2-management
+  ## @param gateway Reverse proxy and entry point for ReportPortal
+  ## - Port 8080: exposes the ReportPortal UI
+  ## - Port 8081: exposes the Traefik dashboard
+  ## - Uses Docker labels to auto-discover services
+  ##
+  gateway:
+    image: traefik:v2.11.28
+    logging:
+      <<: *logging
     ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: "rabbitmq"
-      RABBITMQ_DEFAULT_PASS: "rabbitmq"
-
-  postgres:
-    image: postgres:12-alpine
-    environment:
-      POSTGRES_USER: rpuser
-      POSTGRES_PASSWORD: rppass123
-      POSTGRES_DB: reportportal
+      - "8080:8080"  ## ReportPortal UI
+      - "8081:8081"  ## Traefik dashboard
     volumes:
-      - reportportal-database:/var/lib/postgresql/data
-    restart: on-failure
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --providers.docker=true
+      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --entrypoints.web.address=:8080
+      - --entrypoints.traefik.address=:8081
+      - --api.dashboard=true
+      - --api.insecure=true
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8081/api/http/routers || wget -q --spider http://localhost:8081/api/http/routers || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - infra
+      - ''
+
+  ## @param postgres Database service used by ReportPortal
+  ## - Stores metadata and user/test results
+  ## - Exposes healthcheck for service readiness
+  ## - Volume is used for persistent storage
+  ##
+  postgres:
+    image: bitnamilegacy/postgresql:17.5.0-debian-12-r20
+    container_name: *db_host
+    logging:
+      <<: *logging
+    shm_size: '512m'
+    environment:
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+      POSTGRES_DB: *db_name
+    volumes:
+      - postgres:/bitnami/postgresql
+    ## Uncomment to expose PostgreSQL externally
     ports:
       - "5432:5432"
-
-  opensearch:
-    image: opensearchproject/opensearch:2.16.0
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER" ]
+      interval: 10s
+      timeout: 120s
+      retries: 10
+    networks:
+      - reportportal
     restart: always
-    volumes:
-      - opensearch:/usr/share/opensearch/data
+    profiles:
+      - core
+      - infra
+      - ''
+
+  ## @param rabbitmq Asynchronous message broker for inter-service communication
+  ## - Provides queues used in analysis and background jobs
+  ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
+  ##
+  rabbitmq:
+    image: bitnamilegacy/rabbitmq:4.1.2-debian-12-r1
+    logging:
+      <<: *logging
+    ports:
+      # Uncomment to expose AMQP protocol port
+      - "5672:5672"
+      # Uncomment to expose RabbitMQ dashboard
+      - "15672:15672"
     environment:
-      - "bootstrap.memory_lock=true"
-      - "discovery.type=single-node"
-      - "logger.level=INFO"
+      RABBITMQ_DEFAULT_USER: *rabbitmq_user
+      RABBITMQ_DEFAULT_PASS: *rabbitmq_password
+      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
+      ## Block all procedures when free disk space is less than 50MB
+      ## Ref: https://www.rabbitmq.com/docs/disk-alarms
+      RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
+      RABBITMQ_PLUGINS: >
+        rabbitmq_consistent_hash_exchange
+        rabbitmq_management
+        rabbitmq_auth_backend_ldap
+        rabbitmq_shovel
+        rabbitmq_shovel_management
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 60s
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - infra
+      - ''
+
+  #  ## @param opensearch Search and analytics engine for the analyzer stack
+  #  ## - Used to store and query indexed test logs
+  #  ## - Runs in single-node mode with web security disabled
+  #  ##
+  opensearch:
+    image: opensearchproject/opensearch:2.19.3
+    logging:
+      <<: *logging
+    environment:
+      discovery.type: single-node
+      plugins.security.disabled: "true"
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      ## @env _JAVA_OPTIONS required to run OpenSearch on Apple Silicon
+      # _JAVA_OPTIONS: "-XX:UseSVE=0"
     ulimits:
       memlock:
         soft: -1
         hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
     ports:
-      - "9200:9200"
-
-  api:
-    build: .
-    depends_on:
-      - postgres
-      - rabbitmq
-      - minio
-    environment:
-      - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-      - DATASTORE_TYPE=minio
-      - DATASTORE_ENDPOINT=http://minio:9000
-      - DATASTORE_ACCESSKEY=minio
-      - DATASTORE_SECRETKEY=minio123
-    restart: always
-    ports:
-      - "8585:8585"
-
-  minio:
-    image: minio/minio:latest
-    ports:
-      - '9000:9000'
+      ## OpenSearch HTTP API
+      - "9200:9200"  # OpenSearch HTTP API
+      ## OpenSearch Performance Analyzer
+      - "9600:9600"  # OpenSearch Performance Analyzer
     volumes:
-      - minio:/data
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-    command: server /data
+      - opensearch:/usr/share/opensearch/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: [ "CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'" ]
       interval: 30s
-      timeout: 20s
-      retries: 3
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - ''
 
+  ##
+  ## @section ReportPortal Core Services
+  ##
+
+  ## @param migrations Applies DB schema migrations before services start
+  ## - Runs once on container start and exits
+  ## - Requires database to be healthy
+  ##
+  migrations:
+    image: migrations:latest-dev
+    build: ./migrations
+    logging:
+      <<: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_SERVER: *db_host
+      POSTGRES_PORT: *db_port
+      POSTGRES_DB: *db_name
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+    networks:
+      - reportportal
+    restart: on-failure
+    profiles:
+      - core
+      - infra
+      - ''
+
+  ## @param index Service for indexing test data and logs
+  ## - Listens for incoming test results and logs
+  ## - Exposed via Traefik on root `/`
+  ##
+  index:
+    image: ${INDEX_IMAGE-reportportal/service-index:5.14.0}
+    build: ./service-index
+    logging:
+      <<: *logging
+    depends_on:
+      gateway:
+        condition: service_started
+    environment:
+      LB_URL: http://gateway:8081
+      TRAEFIK_V2_MODE: 'true'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health || wget -q --spider http://localhost:8080/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index.service=index"
+      - "traefik.http.services.index.loadbalancer.server.port=8080"
+      - "traefik.http.services.index.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - infra
+      - ''
+
+  ## @param ui Web-based frontend for ReportPortal
+  ## - Provides the visual interface for test reports
+  ## - Routed via Traefik under path `/ui`
+  ## - Performs healthcheck on port 8080 to verify availability
+  ##
+  ui:
+    #    image: ${UI_IMAGE-reportportal/service-ui:5.14.5}
+    image: service-ui:latest
+    build: ./service-ui
+    environment:
+      RP_SERVER_PORT: "8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health || wget -q --spider http://localhost:8080/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
+      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
+      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
+      - "traefik.http.routers.ui.service=ui"
+      - "traefik.http.services.ui.loadbalancer.server.port=8080"
+      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - ''
+
+  ## @param api ReportPortal backend API service
+  ## - Hosts core business logic and background processing
+  ## - Requires database, RabbitMQ, and gateway to be available
+  ## - Exposes a REST API and internal job coordination endpoints
+  ## - Routed via Traefik under path `/api`
+  ##
+  api:
+    #    image: ${API_IMAGE-reportportal/service-api:5.14.3}
+    image: service-api:latest-dev
+    deploy:
+      replicas: 1
+    build: ./service-api
+    logging:
+      <<: *logging
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *common-environment
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
+      RP_REQUESTLOGGING: "false"
+      AUDIT_LOGGER: "OFF"
+      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
+      RP_OPENSEARCH_URL: "http://opensearch:9200"
+      RP_OPENSEARCH_USERNAME: "elastic"
+      RP_OPENSEARCH_PASSWORD: "elastic123"
+      RP_OPENSEARCH_INDEX: "test_executions"
+      RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
+      #      MANAGEMENT_SERVER_PORT: 9191
+
+      JAVA_OPTS: >
+        -Xmx1g 
+        -XX:+HeapDumpOnOutOfMemoryError 
+        -XX:HeapDumpPath=/tmp  
+        -Dcom.sun.management.jmxremote.rmi.port=12349 
+        -Dcom.sun.management.jmxremote 
+        -Dcom.sun.management.jmxremote.local.only=false  
+        -Dcom.sun.management.jmxremote.port=9010 
+        -Dcom.sun.management.jmxremote.authenticate=false 
+        -Dcom.sun.management.jmxremote.ssl=false 
+        -Djava.rmi.server.hostname=0.0.0.0
+      RP_JOBS_BASEURL: http://jobs:8686
+      COM_TA_REPORTPORTAL_JOB_INTERRUPT_BROKEN_LAUNCHES_CRON: PT1H
+      RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_BATCH-SIZE: 100
+      RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_PREFETCH-COUNT: 1
+      RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_CONSUMERS-COUNT: 1
+      COM_TA_REPORTPORTAL_JOB_LOAD_PLUGINS_CRON: PT10S
+      COM_TA_REPORTPORTAL_JOB_CLEAN_OUTDATED_PLUGINS_CRON: PT10S
+      REPORTING_QUEUES_COUNT: 1
+      REPORTING_CONSUMER_PREFETCHCOUNT: 1
+      REPORTING_PARKINGLOT_TTL_DAYS: 7
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8585/health || wget -q --spider http://localhost:8585/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.service=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8585"
+      - "traefik.http.services.api.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - ''
+
+  ## @param uat Authorization and authentication service
+  ## - Manages login, session lifecycle, and token issuance
+  ## - Initializes admin password on first deployment via env variable
+  ## - Routed via Traefik under path `/uat`
+  ##
+  uat:
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.5}
+    build: ./service-authorization
+    logging:
+      <<: *logging
+    environment:
+      <<: *common-environment
+      RP_SESSION_LIVE: 86400      ## Session duration in seconds (1 day)
+      RP_SAML_SESSION-LIVE: 4320  ## SAML session duration in minutes (3 days)
+      RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD:-erebus}
+      JAVA_OPTS: >
+        -Djava.security.egd=file:/dev/./urandom
+        -XX:MinRAMPercentage=60.0
+        -XX:MaxRAMPercentage=90.0
+        --add-opens=java.base/java.lang=ALL-UNNAMED
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9999/health || wget -q --spider http://localhost:9999/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
+      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
+      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
+      - "traefik.http.routers.uat.service=uat"
+      - "traefik.http.services.uat.loadbalancer.server.port=9999"
+      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - ''
+
+  ## @param jobs Scheduled job processor for ReportPortal
+  ## - Executes cleanup, notification, and cron-based background tasks
+  ## - Uses AMQP and DB to manage lifecycle of stored data and plugins
+  ## - Routed via Traefik under `/jobs`
+  ## - Performs healthcheck on port 8686
+  ##
+  jobs:
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.14.0}
+    build: ./service-jobs
+    logging:
+      <<: *logging
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *common-environment
+      RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
+      RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_RETENTIONPERIOD: 365
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_CRON: 0 30 05 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 20000
+      RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
+      RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
+      RP_AMQP_MAXLOGCONSUMER: 1
+      JAVA_OPTS: >
+        -Djava.security.egd=file:/dev/./urandom
+        -XX:+UseG1GC
+        -XX:+UseStringDeduplication
+        -XX:G1ReservePercent=20
+        -XX:InitiatingHeapOccupancyPercent=60
+        -XX:MaxRAMPercentage=70.0
+        -XX:+HeapDumpOnOutOfMemoryError
+        -XX:HeapDumpPath=/tmp
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8686/health || wget -q --spider http://localhost:8686/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
+      - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
+      - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
+      - traefik.http.routers.jobs.service=jobs
+      - traefik.http.services.jobs.loadbalancer.server.port=8686
+      - traefik.http.services.jobs.loadbalancer.server.scheme=http
+      - traefik.expose=true
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - ''
+
+#  ## @section Analyzer stack
+#  ## Analyzer services (optional): auto-analysis and ML training
+#  ##
+#
+#  ## @param analyzer Automatic test result analyzer
+#  ## - Performs log analysis and pattern detection
+#  ## - Relies on OpenSearch and RabbitMQ
+#  ## - Writes persistent data to shared volume
+#  ##
+#  ##
+#  analyzer:
+#    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.4}
+#    build: ./service-auto-analyzer
+#    logging:
+#      <<: *logging
+#    environment:
+#      <<: *common-analyzer-environment
+#    volumes:
+#      - storage:/backend/storage
+#    healthcheck:
+#      test: ["CMD-SHELL", "curl -f http://localhost:5001 || wget -q --spider http://localhost:5001/ || exit 1"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 60s
+#    depends_on:
+#      opensearch:
+#        condition: service_healthy
+#      rabbitmq:
+#        condition: service_healthy
+#    networks:
+#      - reportportal
+#    restart: always
+#    profiles:
+#      - ''
+
+
+## @section Volumes
+## Named volumes for persistent data storage
+##
 volumes:
-  reportportal-database:
   opensearch:
-  minio:
+  storage:
+  postgres:
+
+## @section Networks
+## Custom Docker network for ReportPortal service discovery
+##
+networks:
+  reportportal:

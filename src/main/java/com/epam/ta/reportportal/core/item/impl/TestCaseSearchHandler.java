@@ -43,7 +43,7 @@ public class TestCaseSearchHandler {
       if (hasText(attribute)) {
         result = searchByAttribute(attribute, statuses, pageable, projectDetails);
       } else {
-        result = searchByName(namePart, statuses, pageable, projectDetails);
+        result = searchByName(namePart.trim().toLowerCase(), statuses, pageable, projectDetails);
       }
     } catch (QueryTimeoutException e) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -61,10 +61,10 @@ public class TestCaseSearchHandler {
   private Slice<TestItem> searchByName(String namePart, String statuses, Pageable pageable,
       ProjectDetails projectDetails) {
     if (hasText(statuses)) {
-      return testItemRepository.findTestItemsContainsNameAndStatuses(namePart,
+      return testItemRepository.findTestItemsWithNamePrefixAndStatuses(namePart,
           projectDetails.getProjectId(), parseStatuses(statuses), pageable);
     }
-    return testItemRepository.findTestItemsContainsName(namePart,
+    return testItemRepository.findTestItemsWithNamePrefix(namePart,
         projectDetails.getProjectId(), pageable);
   }
 
@@ -103,11 +103,11 @@ public class TestCaseSearchHandler {
     }
     if (!hasText(namePart) && !hasText(attribute)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Provide either 'filter.has.compositeAttribute' or 'filter.cnt.name'.");
+          "Provide either 'filter.has.compositeAttribute' or 'filter.swt.name'.");
     }
     if (hasText(namePart) && namePart.length() < 3) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Value of 'filter.cnt.name' must contains more than 2 symbols.");
+          "Value of 'filter.swt.name' must contain more than 2 symbols.");
     }
     return pageable;
   }

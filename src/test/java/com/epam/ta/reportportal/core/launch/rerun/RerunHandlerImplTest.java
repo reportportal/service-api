@@ -239,13 +239,12 @@ class RerunHandlerImplTest {
     when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
     when(testItemRepository.selectPath("uuid")).thenReturn(
         Optional.of(Pair.of(parent.getItemId(), parent.getPath())));
-    when(testItemRepository.findIdByUuidForUpdate("uuid")).thenReturn(
-        Optional.of(parent.getItemId()));
-    when(testItemRepository.getOne(parent.getItemId())).thenReturn(parent);
+    when(testItemRepository.findByUuid("uuid")).thenReturn(
+        Optional.of(parent));
 
     Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, "uuid");
 
-    verify(retryHandler, times(1)).handleRetries(any(), any(), any());
+    verify(retryHandler, times(1)).handleRetry(any(), any(), any());
 
     assertTrue(rerunCreatedRS.isPresent());
   }

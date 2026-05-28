@@ -34,8 +34,10 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.core.item.repository.TestItemPathContext;
 import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -83,6 +85,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
   private final LogService logService;
 
+  private final TestItemStatisticsService testItemStatisticsService;
+
   @Override
   public OperationCompletionRS deleteTestItem(Long itemId,
       ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
@@ -101,6 +105,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
     logService.deleteLogMessageByTestItemSet(projectDetails.getProjectId(), itemsForRemove);
     itemContentRemover.remove(item.getItemId());
+    TestItemPathContext cur = new TestItemPathContext(item.getItemId(),
+        item.getLaunchId(), item.getPath());
+    testItemStatisticsService.deleteItemStatistics(cur);
     testItemRepository.deleteById(item.getItemId());
 
     launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
@@ -128,6 +135,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         .collect(Collectors.groupingBy(TestItem::getLaunchId));
     launches.forEach(launch -> launchItemMap.get(launch.getId())
         .forEach(item -> validate(item, launch, user, projectDetails)));
+
+    items.forEach(it -> testItemStatisticsService.deleteItemStatistics(
+        new TestItemPathContext(it.getItemId(), it.getLaunchId(), it.getPath())));
 
     Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
 

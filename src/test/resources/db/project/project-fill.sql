@@ -163,5 +163,39 @@ values (10, 1, 'to investigate', false, true);
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
 values (3, 'uuid3', 1, 1, 'empty launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
 
+-- Statistics: statistics_field IDs 1=total, 2=passed, 3=skipped, 4=failed,
+-- 5=automation_bug$total, 6=automation_bug$ab001, 7=product_bug$total, 8=product_bug$pb001,
+-- 9=system_issue$total, 10=system_issue$si001, 11=to_investigate$total, 12=to_investigate$ti001
+
+-- Test item statistics (item_id, launch_id NULL for items)
+-- Item 1: PASSED
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 1), (1, 2, 1);
+-- Item 2: FAILED, automation_bug (ab001)
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 2), (1, 4, 2), (1, 5, 2), (1, 6, 2);
+-- Item 3: FAILED, product_bug (pb001)
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 3), (1, 4, 3), (1, 7, 3), (1, 8, 3);
+-- Item 4: PASSED
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 4), (1, 2, 4);
+-- Item 5: FAILED, to_investigate (ti001)
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 5), (1, 4, 5), (1, 11, 5), (1, 12, 5);
+-- Item 6: PASSED
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 6), (1, 2, 6);
+-- Item 7: FAILED, to_investigate (ti001)
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 7), (1, 4, 7), (1, 11, 7), (1, 12, 7);
+-- Item 8: FAILED, product_bug (pb001)
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 8), (1, 4, 8), (1, 7, 8), (1, 8, 8);
+-- Item 9: SKIPPED
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 9), (1, 3, 9);
+-- Item 10: FAILED, to_investigate (ti001)
+insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
+
+-- Launch statistics (launch_id, item_id NULL for launches)
+-- Launch 1: 5 total, 2 passed, 3 failed, 1 automation_bug, 1 product_bug, 1 to_investigate
+insert into statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+-- Launch 2: 5 total, 1 passed, 3 failed, 1 skipped, 2 to_investigate, 1 product_bug
+insert into statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
+-- Launch 3: empty launch, 0 total
+insert into statistics(s_counter, statistics_field_id, launch_id) values (0, 1, 3);
+
 alter sequence project_id_seq restart with 4;
 alter sequence users_id_seq restart with 4;

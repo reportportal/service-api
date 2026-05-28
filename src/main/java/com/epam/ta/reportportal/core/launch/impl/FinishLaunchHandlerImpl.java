@@ -16,21 +16,22 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
-import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.reportportal.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.reporting.FinishExecutionRQ;
@@ -56,16 +57,19 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
   private final ApplicationEventPublisher eventPublisher;
   private final LinkGenerator linkGenerator;
+  private final LaunchChangesHandler launchChangesHandler;
 
   @Autowired
   public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
       @Qualifier("finishLaunchHierarchyHandler")
       FinishHierarchyHandler<Launch> finishHierarchyHandler,
-      ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator) {
+      ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator,
+      LaunchChangesHandler launchChangesHandler) {
     this.launchRepository = launchRepository;
     this.finishHierarchyHandler = finishHierarchyHandler;
     this.eventPublisher = eventPublisher;
     this.linkGenerator = linkGenerator;
+    this.launchChangesHandler = launchChangesHandler;
   }
 
   @Override
@@ -80,6 +84,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
     Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
 
     Long id = launch.getId();
+    var beforeSnapshot = launchChangesHandler.captureSnapshot(launch);
 
     final int finishedCount =
         finishHierarchyHandler.finishDescendants(launch, status.orElse(StatusEnum.INTERRUPTED),
@@ -100,6 +105,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         .addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
         .addAttributes(finishLaunchRQ.getAttributes()).addEndTime(finishLaunchRQ.getEndTime())
         .get();
+
+    launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
 
     String launchLink = linkGenerator.generateLaunchLink(baseUrl, projectDetails.getProjectName(),
         String.valueOf(launch.getId())

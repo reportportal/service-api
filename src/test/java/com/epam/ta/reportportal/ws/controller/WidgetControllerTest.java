@@ -756,6 +756,37 @@ class WidgetControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"));
   }
 
+  @Sql("/db/widget/overall-statistics-interrupted.sql")
+  @Test
+  void getOverallStatisticsWidgetInterruptedDefaultView() throws Exception {
+    mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(
+            token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(jsonPath("$.name").value("overall statistics default"))
+        .andExpect(jsonPath("$.widgetType").value("overallStatistics"))
+        .andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("6"))
+        .andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("2"))
+        .andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("4"))
+        .andExpect(
+            jsonPath(
+                "$.content.result[0].values.statistics$executions$interrupted").doesNotExist());
+  }
+
+  @Sql("/db/widget/overall-statistics-interrupted.sql")
+  @Test
+  void getOverallStatisticsWidgetInterruptedSeparatedView() throws Exception {
+    mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(
+            token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(jsonPath("$.name").value("overall statistics separated"))
+        .andExpect(jsonPath("$.widgetType").value("overallStatistics"))
+        .andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("6"))
+        .andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("2"))
+        .andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
+        .andExpect(
+            jsonPath("$.content.result[0].values.statistics$executions$interrupted").value("1"));
+  }
+
   @Sql("/db/widget/overall-statistics.sql")
   @Test
   void getEmptyContentOverallStatisticsWidget() throws Exception {

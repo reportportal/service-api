@@ -20,14 +20,12 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_R
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.model.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
@@ -35,6 +33,7 @@ import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StopLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
+import com.epam.ta.reportportal.core.launch.util.LinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.model.BulkRQ;
@@ -42,6 +41,7 @@ import com.epam.ta.reportportal.model.DeleteBulkRS;
 import com.epam.ta.reportportal.model.Page;
 import com.epam.ta.reportportal.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.model.launch.FinishLaunchRS;
+import com.epam.ta.reportportal.model.launch.LaunchViewModel;
 import com.epam.ta.reportportal.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -67,8 +67,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -97,6 +96,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrei_Ramanchuk
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/{projectName}/launch")
 @Tag(name = "Launch", description = "Launches API collection")
 public class LaunchController {
@@ -109,29 +109,8 @@ public class LaunchController {
   private final GetLaunchHandler getLaunchMessageHandler;
   private final UpdateLaunchHandler updateLaunchHandler;
   private final MergeLaunchHandler mergeLaunchesHandler;
-  private final GetJasperReportHandler<Launch> getJasperHandler;
   private final LaunchConverter launchConverter;
   private final LinkGenerator linkGenerator;
-
-  @Autowired
-  public LaunchController(ProjectExtractor projectExtractor, StartLaunchHandler startLaunchHandler,
-      FinishLaunchHandler finishLaunchHandler, StopLaunchHandler stopLaunchHandler,
-      DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
-      UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler,
-      @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler,
-      LaunchConverter launchConverter, LinkGenerator linkGenerator) {
-    this.projectExtractor = projectExtractor;
-    this.startLaunchHandler = startLaunchHandler;
-    this.finishLaunchHandler = finishLaunchHandler;
-    this.stopLaunchHandler = stopLaunchHandler;
-    this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
-    this.getLaunchMessageHandler = getLaunchMessageHandler;
-    this.updateLaunchHandler = updateLaunchHandler;
-    this.mergeLaunchesHandler = mergeLaunchesHandler;
-    this.getJasperHandler = getJasperHandler;
-    this.launchConverter = launchConverter;
-    this.linkGenerator = linkGenerator;
-  }
 
   /* Report client API */
 
@@ -232,7 +211,7 @@ public class LaunchController {
   @GetMapping("/{launchId}")
   @ResponseStatus(OK)
   @Operation(summary = "Get specified launch by ID")
-  public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable String launchId,
+  public LaunchViewModel getLaunch(@PathVariable String projectName, @PathVariable String launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName))
@@ -243,7 +222,7 @@ public class LaunchController {
   @GetMapping(value = "/uuid/{launchId}", produces = "application/x.reportportal.launch.v2+json")
   @ResponseStatus(OK)
   @Operation(summary = "Get specified launch by UUID")
-  public LaunchResource getLaunchByUuid(@PathVariable String projectName,
+  public LaunchViewModel getLaunchByUuid(@PathVariable String projectName,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
         projectExtractor.extractProjectDetails(user, normalizeId(projectName))
@@ -273,7 +252,7 @@ public class LaunchController {
   @GetMapping
   @ResponseStatus(OK)
   @Operation(summary = "Get list of project launches by filter")
-  public Page<LaunchResource> getProjectLaunches(@PathVariable String projectName,
+  public Page<LaunchViewModel> getProjectLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getProjectLaunches(
@@ -286,7 +265,7 @@ public class LaunchController {
   @GetMapping(value = "/latest")
   @ResponseStatus(OK)
   @Operation(summary = "Get list of latest project launches by filter")
-  public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName,
+  public Page<LaunchViewModel> getLatestLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLatestLaunches(
@@ -297,7 +276,7 @@ public class LaunchController {
   @ResponseBody
   @ResponseStatus(OK)
   @Operation(summary = "Get launches of specified project from DEBUG mode")
-  public Page<LaunchResource> getDebugLaunches(@PathVariable String projectName,
+  public Page<LaunchViewModel> getDebugLaunches(@PathVariable String projectName,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getDebugLaunches(
@@ -369,7 +348,7 @@ public class LaunchController {
   @Operation(summary = "Get launch names of project")
   public List<String> getAllLaunchNames(@PathVariable String projectName,
       @RequestParam(value = "filter." + "cnt." + "name", required = false, defaultValue = "")
-          String value, @AuthenticationPrincipal ReportPortalUser user) {
+      String value, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunchNames(
         projectExtractor.extractProjectDetails(user, normalizeId(projectName)), value);
   }
@@ -470,10 +449,11 @@ public class LaunchController {
       @Parameter(schema = @Schema(allowableValues = {"pdf", "xls", "html"}))
       @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
       @RequestParam(value = "includeAttachments", required = false, defaultValue = "false") boolean includeAttachments,
+      @RequestParam(value = "flatAttachments", required = false, defaultValue = "false") boolean flatAttachments,
       @AuthenticationPrincipal ReportPortalUser user,
       HttpServletResponse response) {
-    getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user,
-        projectExtractor.extractProjectDetails(user, normalizeId(projectName)));
+    getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, flatAttachments,
+        response, user, projectExtractor.extractProjectDetails(user, normalizeId(projectName)));
   }
 
   @Transactional

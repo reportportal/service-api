@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -110,6 +111,9 @@ class UpdateTestItemHandlerImplTest {
 
   @Mock
   private LogIndexerService logIndexerService;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
 
   @InjectMocks
   private UpdateTestItemHandlerImpl handler;
@@ -385,6 +389,7 @@ class UpdateTestItemHandlerImplTest {
     TestItem item = new TestItem();
     item.setItemId(itemId);
     item.setType(TestItemTypeEnum.STEP);
+    item.setLaunchId(1L);
     TestItemResults itemResults = new TestItemResults();
     itemResults.setStatus(StatusEnum.FAILED);
     IssueEntity issueEntity = new IssueEntity();
@@ -422,6 +427,7 @@ class UpdateTestItemHandlerImplTest {
 
     assertEquals(user.getUserId(), item.getAnalysisOwnerId());
     verify(itemRepository, times(1)).save(item);
+    verify(statisticsService, times(1)).changeDefectStatistics(any(), any(), any());
   }
 
   @Test
@@ -432,6 +438,7 @@ class UpdateTestItemHandlerImplTest {
     long itemId = 1L;
     TestItem item = new TestItem();
     item.setItemId(itemId);
+    item.setLaunchId(1L);
     TestItemResults itemResults = new TestItemResults();
     itemResults.setStatus(StatusEnum.FAILED);
     IssueEntity issueEntity = new IssueEntity();

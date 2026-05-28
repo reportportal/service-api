@@ -40,6 +40,7 @@ public final class ContentLoaderConstants {
   public static final String ATTRIBUTE_KEYS = "attributeKeys";
   public static final String MIN_PASSING_RATE = "minPassingRate";
   public static final String EXCLUDE_SKIPPED = "excludeSkipped";
+  public static final String SEPARATE_INTERRUPTED = "separateInterrupted";
 
 
   private ContentLoaderConstants() {

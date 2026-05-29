@@ -21,7 +21,13 @@ import static com.epam.reportportal.base.OrganizationUtil.TEST_PROJECT_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.bts.handler.GetBugTrackingSystemHandler;
@@ -31,8 +37,13 @@ import com.epam.reportportal.base.core.integration.util.IntegrationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.model.integration.IntegrationResource;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -103,4 +114,132 @@ class GetIntegrationHandlerTest {
     assertNotNull(integrationResource.getIntegrationParams());
     assertNotNull(integrationResource.getIntegrationType());
   }
+
+  @Test
+  void findFirstEnabledByGroupWhenProjectIntegrationExistsShouldReturnProjectIntegration() {
+    final long projectId = 1L;
+    final long orgId = 201L;
+    final List<Long> typeIds = List.of(IntegrationTestUtil.getEmailIntegrationType().getId());
+    final Integration projectIntegration = IntegrationTestUtil.getProjectEmailIntegration(11L, projectId);
+    projectIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION))
+        .thenReturn(typeIds);
+    when(integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, typeIds))
+        .thenReturn(Optional.of(projectIntegration));
+
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByGroup(
+        projectId, orgId, IntegrationGroupEnum.NOTIFICATION);
+
+    assertTrue(result.isPresent());
+    assertEquals(11L, result.get().getId());
+    verify(integrationRepository, never()).findFirstEnabledByOrganizationIdAndTypeIdIn(anyLong(), anyList());
+    verify(integrationRepository, never()).findFirstEnabledGlobalByTypeIdIn(anyList());
+  }
+
+  @Test
+  void findFirstEnabledByGroupWhenOrgIntegrationExistsShouldReturnOrgIntegration() {
+    final long projectId = 1L;
+    final long orgId = 201L;
+    final List<Long> typeIds = List.of(IntegrationTestUtil.getEmailIntegrationType().getId());
+    final Integration orgIntegration = IntegrationTestUtil.getOrganizationEmailIntegration(901L, orgId);
+    orgIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION))
+        .thenReturn(typeIds);
+    when(integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, typeIds))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(orgId, typeIds))
+        .thenReturn(Optional.of(orgIntegration));
+
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByGroup(
+        projectId, orgId, IntegrationGroupEnum.NOTIFICATION);
+
+    assertTrue(result.isPresent());
+    assertEquals(901L, result.get().getId());
+    assertEquals(orgId, result.get().getOrganizationId());
+    verify(integrationRepository, never()).findFirstEnabledGlobalByTypeIdIn(anyList());
+  }
+
+  @Test
+  void findFirstEnabledByGroupWhenOnlyGlobalIntegrationExistsShouldReturnGlobalIntegration() {
+    final long projectId = 1L;
+    final long orgId = 201L;
+    final List<Long> typeIds = List.of(IntegrationTestUtil.getEmailIntegrationType().getId());
+    final Integration globalIntegration = IntegrationTestUtil.getGlobalEmailIntegration(17L);
+    globalIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION))
+        .thenReturn(typeIds);
+    when(integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, typeIds))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(orgId, typeIds))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findFirstEnabledGlobalByTypeIdIn(typeIds))
+        .thenReturn(Optional.of(globalIntegration));
+
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByGroup(
+        projectId, orgId, IntegrationGroupEnum.NOTIFICATION);
+
+    assertTrue(result.isPresent());
+    assertEquals(17L, result.get().getId());
+    assertNull(result.get().getProject());
+    assertNull(result.get().getOrganizationId());
+  }
+
+  @Test
+  void findFirstEnabledByGroupWhenOrganizationIdNullShouldSkipOrgLookup() {
+    final long projectId = 1L;
+    final List<Long> typeIds = List.of(IntegrationTestUtil.getEmailIntegrationType().getId());
+    final Integration globalIntegration = IntegrationTestUtil.getGlobalEmailIntegration(17L);
+    globalIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION))
+        .thenReturn(typeIds);
+    when(integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, typeIds))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findFirstEnabledGlobalByTypeIdIn(typeIds))
+        .thenReturn(Optional.of(globalIntegration));
+
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByGroup(
+        projectId, null, IntegrationGroupEnum.NOTIFICATION);
+
+    assertTrue(result.isPresent());
+    assertEquals(17L, result.get().getId());
+    verify(integrationRepository, never()).findFirstEnabledByOrganizationIdAndTypeIdIn(anyLong(), anyList());
+  }
+
+  @Test
+  void findFirstEnabledByGroupWhenNoTypeIdsShouldReturnEmpty() {
+    when(integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION))
+        .thenReturn(Collections.emptyList());
+
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByGroup(
+        1L, 201L, IntegrationGroupEnum.NOTIFICATION);
+
+    assertTrue(result.isEmpty());
+    verify(integrationRepository, never()).findFirstEnabledByProjectIdAndTypeIdIn(anyLong(), anyList());
+  }
+
+  @Test
+  void findFirstEnabledByGroupWhenNoIntegrationsFoundShouldReturnEmpty() {
+    final long projectId = 1L;
+    final long orgId = 201L;
+    final List<Long> typeIds = List.of(IntegrationTestUtil.getEmailIntegrationType().getId());
+
+    when(integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION))
+        .thenReturn(typeIds);
+    when(integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, typeIds))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(orgId, typeIds))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findFirstEnabledGlobalByTypeIdIn(typeIds))
+        .thenReturn(Optional.empty());
+
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByGroup(
+        projectId, orgId, IntegrationGroupEnum.NOTIFICATION);
+
+    assertTrue(result.isEmpty());
+  }
+
 }

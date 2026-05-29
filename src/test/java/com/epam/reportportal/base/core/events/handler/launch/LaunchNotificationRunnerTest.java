@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.events.handler.launch;
 
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -90,8 +91,9 @@ class LaunchNotificationRunnerTest {
 
     runner.handle(event, mapping);
 
-    verify(getIntegrationHandler, times(0)).getEnabledByProjectIdOrGlobalAndIntegrationGroup(
+    verify(getIntegrationHandler, times(0)).findFirstEnabledByGroup(
         event.getProjectId(),
+        event.getOrganizationId(),
         IntegrationGroupEnum.NOTIFICATION
     );
 
@@ -119,8 +121,8 @@ class LaunchNotificationRunnerTest {
     when(emailIntegration.getName()).thenReturn("email server");
 
     when(
-        getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(event.getProjectId(),
-            IntegrationGroupEnum.NOTIFICATION
+        getIntegrationHandler.findFirstEnabledByGroup(event.getProjectId(),
+            event.getOrganizationId(), IntegrationGroupEnum.NOTIFICATION
         )).thenReturn(Optional.ofNullable(emailIntegration));
 
     when(userRepository.findLoginById(any())).thenReturn(Optional.of("owner"));
@@ -132,8 +134,52 @@ class LaunchNotificationRunnerTest {
     when(getLaunchHandler.hasItemsWithIssues(launch)).thenReturn(Boolean.TRUE);
 
     runner.handle(event, mapping);
+    verify(getIntegrationHandler).findFirstEnabledByGroup(
+        eq(event.getProjectId()), eq(event.getOrganizationId()), eq(IntegrationGroupEnum.NOTIFICATION));
     verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
     verify(eventPublisher, times(1)).publishEvent(any());
+  }
+
+  @Test
+  void shouldSendWhenOrgEmailIntegrationResolved() {
+
+    final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
+    launch.setName("name1");
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
+        launch.getProjectId());
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
+
+    final Map<String, String> mapping = ImmutableMap.<String, String>builder()
+        .put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true")
+        .put(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute(), "true")
+        .build();
+
+    final Project project = new Project();
+    project.setId(1L);
+    project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
+
+    when(emailIntegration.getName()).thenReturn("Email Server");
+
+    when(
+        getIntegrationHandler.findFirstEnabledByGroup(event.getProjectId(),
+            event.getOrganizationId(), IntegrationGroupEnum.NOTIFICATION
+        )).thenReturn(Optional.of(emailIntegration));
+
+    when(userRepository.findLoginById(any())).thenReturn(Optional.of("owner"));
+    when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(
+        Optional.ofNullable(emailService));
+
+    when(getLaunchHandler.get(event.getId())).thenReturn(launch);
+    when(getProjectHandler.get(event.getProjectId())).thenReturn(project);
+    when(getLaunchHandler.hasItemsWithIssues(launch)).thenReturn(Boolean.TRUE);
+
+    runner.handle(event, mapping);
+
+    verify(getIntegrationHandler).findFirstEnabledByGroup(
+        eq(event.getProjectId()), eq(event.getOrganizationId()), eq(IntegrationGroupEnum.NOTIFICATION));
+    verify(mailServiceFactory).getDefaultEmailService(emailIntegration);
+    verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
   }
 
 }

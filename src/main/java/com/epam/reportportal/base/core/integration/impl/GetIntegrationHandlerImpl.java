@@ -39,10 +39,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Loads project and global integration definitions.
@@ -92,29 +92,18 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
+  public Optional<Integration> findFirstEnabledByGroup(Long projectId, Long organizationId,
       IntegrationGroupEnum integrationGroup) {
 
-    List<Long> integrationTypeIds =
-        integrationTypeRepository.findAllByIntegrationGroup(integrationGroup).stream()
-            .map(IntegrationType::getId).collect(Collectors.toList());
-
-    List<Integration> integrations =
-        integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(projectId,
-            integrationTypeIds
-        );
-
-    if (!CollectionUtils.isEmpty(integrations)) {
-
-      return integrations.stream()
-          .filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
-          .findFirst();
-
-    } else {
-
-      return getGlobalIntegrationByIntegrationTypeIds(integrationTypeIds);
+    List<Long> typeIds = integrationTypeRepository.findIdsByIntegrationGroup(integrationGroup);
+    if (CollectionUtils.isEmpty(typeIds)) {
+      return Optional.empty();
     }
 
+    return integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, typeIds)
+        .or(() -> Optional.ofNullable(organizationId)
+            .flatMap(id -> integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(id, typeIds)))
+        .or(() -> integrationRepository.findFirstEnabledGlobalByTypeIdIn(typeIds));
   }
 
   @Override
@@ -240,13 +229,6 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
             this.basicIntegrationService
         );
     return integrationService.checkConnection(integration);
-  }
-
-  private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(
-      List<Long> integrationTypeIds) {
-    return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds).stream()
-        .filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
-        .findFirst();
   }
 
   private void validateIntegration(Integration integration) {

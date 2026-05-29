@@ -117,7 +117,7 @@ public interface GetTestItemHandler {
   /**
    * Get specified attribute keys of all test items and launches for project with provided id
    *
-   * @param launchFilterId    {@link UserFilter#getId()} fo the {@link FilterTarget#LAUNCH_TARGET}
+   * @param launchFilterId    {@code UserFilter#getId()} fo the {@link FilterTarget#LAUNCH_TARGET}
    * @param isLatest          Flag defines whether all or latest launches launches will be included in the query
    *                          condition
    * @param launchesLimit     Launches limit

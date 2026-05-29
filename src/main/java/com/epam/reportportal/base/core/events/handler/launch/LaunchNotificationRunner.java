@@ -192,8 +192,8 @@ public class LaunchNotificationRunner
         projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute()));
 
     if (isNotificationsEnabled) {
-      getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(
-              launchFinishedEvent.getProjectId(), IntegrationGroupEnum.NOTIFICATION)
+      getIntegrationHandler.findFirstEnabledByGroup(launchFinishedEvent.getProjectId(),
+              launchFinishedEvent.getOrganizationId(), IntegrationGroupEnum.NOTIFICATION)
           .filter(integration -> EMAIL_INTEGRATION_NAME.equalsIgnoreCase(integration.getName()))
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),

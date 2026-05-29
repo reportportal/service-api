@@ -62,6 +62,14 @@ public final class IntegrationTestUtil {
     return integration;
   }
 
+  public static Integration getOrganizationEmailIntegration(long emailIntegrationId, long organizationId) {
+
+    Integration integration = getGlobalEmailIntegration(emailIntegrationId);
+    integration.setOrganizationId(organizationId);
+
+    return integration;
+  }
+
   public static Integration getGlobalJiraIntegration(long id, Map<String, Object> params) {
 
     Integration integration = new Integration();
@@ -126,6 +134,7 @@ public final class IntegrationTestUtil {
     integrationType.setCreationDate(Instant.now());
     integrationType.setId(1L);
     integrationType.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
+    integrationType.setEnabled(true);
 
     return integrationType;
   }

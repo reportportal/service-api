@@ -39,7 +39,15 @@ public interface GetIntegrationHandler {
 
   IntegrationResource getGlobalIntegrationById(Long integrationId);
 
-  Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
+  /**
+   * Returns the first enabled integration for the given group, resolved in order: project -> organization -> global.
+   *
+   * @param projectId        project identifier
+   * @param organizationId   organization identifier; when {@code null}, organization-level lookup is skipped
+   * @param integrationGroup integration group (e.g. NOTIFICATION, BTS)
+   * @return the matching integration, or empty if none is enabled at any level
+   */
+  Optional<Integration> findFirstEnabledByGroup(Long projectId, Long organizationId,
       IntegrationGroupEnum integrationGroup);
 
   Integration getEnabledBtsIntegration(MembershipDetails membershipDetails, String url,

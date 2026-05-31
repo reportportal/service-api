@@ -70,4 +70,13 @@ public interface IntegrationTypeRepository extends ReportPortalRepository<Integr
    * @return The {@link List} of the {@link IntegrationType}
    */
   List<IntegrationType> findAllByPluginType(PluginTypeEnum pluginType);
+
+  /**
+   * Returns identifiers of integration types that belong to the given integration group.
+   *
+   * @param group integration group
+   * @return type identifiers; empty if the group has no types
+   */
+  @Query("SELECT it.id FROM IntegrationType it WHERE it.integrationGroup = :group")
+  List<Long> findIdsByIntegrationGroup(@Param("group") IntegrationGroupEnum group);
 }

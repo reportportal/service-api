@@ -21,9 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -179,33 +177,43 @@ class EditUserHandlerImplTest {
   }
 
   @Test
-  void editUpsaUserShouldFail() {
+  void editUpsaUserByAdminShouldSucceed() {
     User user = new User();
     user.setLogin("test");
     user.setUserType(UserType.UPSA);
     when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
-    doAnswer(invocation -> {
-      User u = invocation.getArgument(0);
-      if (u != null && u.getUserType() == UserType.UPSA) {
-        throw new ReportPortalException(ErrorType.ACCESS_DENIED, "UPSA users cannot be updated.");
-      }
-      return null;
-    }).when(userMutationService).validateUserUpdatable(any());
 
     final EditUserRQ editUserRQ = new EditUserRQ();
     editUserRQ.setEmail("new@example.com");
     editUserRQ.setFullName("New Name");
 
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.editUser("test", editUserRQ,
-            getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L)
-        )
+    handler.editUser("test", editUserRQ,
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L)
     );
 
-    assertEquals("You do not have enough permissions. UPSA users cannot be updated.",
-        exception.getMessage());
-    verify(userMutationService, never()).updateEmail(any(), any(), any());
-    verify(userMutationService, never()).updateFullName(any(), any(), any());
+    verify(userMutationService).updateEmail(eq(user), eq("new@example.com"), any());
+    verify(userMutationService).updateFullName(eq(user), eq("New Name"), any());
+    verify(userRepository).save(user);
+  }
+
+  @Test
+  void editUpsaUserByOwnerShouldSucceed() {
+    User user = new User();
+    user.setLogin("test");
+    user.setUserType(UserType.UPSA);
+    when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
+
+    final EditUserRQ editUserRQ = new EditUserRQ();
+    editUserRQ.setEmail("new@example.com");
+    editUserRQ.setFullName("New Name");
+
+    handler.editUser("test", editUserRQ,
+        getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L)
+    );
+
+    verify(userMutationService).updateEmail(eq(user), eq("new@example.com"), any());
+    verify(userMutationService).updateFullName(eq(user), eq("New Name"), any());
+    verify(userRepository).save(user);
   }
 
   @Test

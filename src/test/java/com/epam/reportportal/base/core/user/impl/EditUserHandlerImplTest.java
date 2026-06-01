@@ -191,8 +191,8 @@ class EditUserHandlerImplTest {
         getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L)
     );
 
-    verify(userMutationService).updateEmail(user, "new@example.com", any());
-    verify(userMutationService).updateFullName(user, "New Name", any());
+    verify(userMutationService).updateEmail(eq(user), eq("new@example.com"), any());
+    verify(userMutationService).updateFullName(eq(user), eq("New Name"), any());
     verify(userRepository).save(user);
   }
 
@@ -211,8 +211,8 @@ class EditUserHandlerImplTest {
         getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L)
     );
 
-    verify(userMutationService).updateEmail(user, "new@example.com", any());
-    verify(userMutationService).updateFullName(user, "New Name", any());
+    verify(userMutationService).updateEmail(eq(user), eq("new@example.com"), any());
+    verify(userMutationService).updateFullName(eq(user), eq("New Name"), any());
     verify(userRepository).save(user);
   }
 

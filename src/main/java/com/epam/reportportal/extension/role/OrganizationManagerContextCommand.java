@@ -27,7 +27,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
  * Abstract context-based plugin command that requires at least the {@code MANAGER} organization role.
  *
  * @param <T> the return type of the command
- * @deprecated Use {@link com.epam.reportportal.extension.command.OrganizationManagerExtensionCommand} instead.
+ * @deprecated Use {@link com.epam.reportportal.extension.command.AbstractExtensionCommand} instead.
  */
 @Deprecated
 public abstract class OrganizationManagerContextCommand<T> extends OrganizationMemberContextCommand<T> {

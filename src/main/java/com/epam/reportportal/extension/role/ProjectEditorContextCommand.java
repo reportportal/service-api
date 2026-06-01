@@ -35,7 +35,7 @@ import java.util.Map.Entry;
  * Abstract base class for plugin commands that require at least the {@code EDITOR} project role.
  *
  * @param <T> the type of the command result
- * @deprecated Use {@link com.epam.reportportal.extension.command.ProjectEditorExtensionCommand} instead.
+ * @deprecated Use {@link com.epam.reportportal.extension.command.AbstractExtensionCommand} instead.
  */
 @Deprecated
 public abstract class ProjectEditorContextCommand<T> extends ProjectMemberContextCommand<T> {

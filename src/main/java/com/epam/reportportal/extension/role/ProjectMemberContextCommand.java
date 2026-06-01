@@ -39,7 +39,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * Abstract base class for plugin commands that operate within a project context.
  *
  * @param <T> the type of the command result
- * @deprecated Use {@link com.epam.reportportal.extension.command.ProjectMemberExtensionCommand} instead.
+ * @deprecated Use {@link com.epam.reportportal.extension.command.AbstractExtensionCommand} instead.
  */
 @Deprecated
 public abstract class ProjectMemberContextCommand<T> extends AbstractContextBasedCommand<T> {

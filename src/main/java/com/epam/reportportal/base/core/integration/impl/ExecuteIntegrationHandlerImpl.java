@@ -165,7 +165,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
     extCommand = pluginInstance.getIntegrationExtensionCommand(command);
     if (extCommand != null) {
-      return extCommand.executeCommand(resolveIntegration(pluginCommandRq.getContext()), pluginCommandRq);
+      Integration integration = resolveIntegration(pluginCommandRq.getContext());
+      return extCommand.executeCommand(integration, pluginCommandRq);
     }
     throw new ReportPortalException(BAD_REQUEST_ERROR,
         formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
@@ -173,9 +174,10 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   }
 
   private Integration resolveIntegration(PluginCommandContext context) {
-    BusinessRule.expect(context, c -> c != null && c.getIntegrationId() != null && c.getIntegrationId() > 0)
+    BusinessRule.expect(context, ctx -> ctx != null && ctx.getIntegrationId() != null)
         .verify(BAD_REQUEST_ERROR, "Integration context with a valid integration ID is required.");
     Long integrationId = context.getIntegrationId();
+
     if (context.getProjectId() != null) {
       return integrationRepository.findByIdAndProjectId(integrationId, context.getProjectId())
           .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));

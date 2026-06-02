@@ -20,7 +20,6 @@ import static com.epam.reportportal.base.infrastructure.model.ValidationConstrai
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MIN_USER_NAME_LENGTH;
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.USER_FULL_NAME_REGEXP;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
@@ -57,13 +56,6 @@ public class UserMutationServiceImpl implements UserMutationService {
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
   private final ApplicationEventPublisher eventPublisher;
-
-  @Override
-  public void validateUserUpdatable(User user) {
-    if (user.getUserType() == UserType.UPSA) {
-      throw new ReportPortalException(ACCESS_DENIED, "UPSA users cannot be updated.");
-    }
-  }
 
   @Override
   public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {

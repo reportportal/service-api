@@ -76,23 +76,24 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
   }
 
   protected void validateRole(PluginCommandContext commandContext) {
-    ReportPortalUser user = SecurityContextUtils.getPrincipal();
-    BusinessRule.expect(user, Objects::nonNull).verify(ErrorType.ACCESS_DENIED); // TODO: could block public commands
-
-    if (minUserRole != null) {
-      if (user.getUserRole() == UserRole.ADMINISTRATOR) {
-        return;
-      }
-
-      if (minProjectRole != null && commandContext.getProjectId() != null) {
-        validateProjectRole(user, commandContext);
-      } else if (minOrgRole != null && commandContext.getOrgId() != null) {
-        validateOrgRole(user, commandContext);
-      } else if (minUserRole != user.getUserRole()) {
-        throw new ReportPortalException(ErrorType.ACCESS_DENIED);
-      }
+    if (minUserRole == null) {
+      return;
     }
-    // if minUserRole is null means plugin command is public
+
+    ReportPortalUser user = SecurityContextUtils.getPrincipal();
+    BusinessRule.expect(user, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+
+    if (user.getUserRole() == UserRole.ADMINISTRATOR) {
+      return;
+    }
+
+    if (minProjectRole != null && commandContext.getProjectId() != null) {
+      validateProjectRole(user, commandContext);
+    } else if (minOrgRole != null && commandContext.getOrgId() != null) {
+      validateOrgRole(user, commandContext);
+    } else if (minUserRole != user.getUserRole()) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED);
+    }
   }
 
   private void validateProjectRole(ReportPortalUser user, PluginCommandContext commandContext) {
@@ -141,6 +142,5 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     BusinessRule.expect(orgRole, role -> role.sameOrHigherThan(minOrgRole))
         .verify(ErrorType.ACCESS_DENIED);
   }
-
 
 }

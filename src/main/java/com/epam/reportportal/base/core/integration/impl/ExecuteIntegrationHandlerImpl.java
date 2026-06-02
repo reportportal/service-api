@@ -158,12 +158,12 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
 
-    var extCommand = pluginInstance.getCommonExtensionCommands().get(command);
+    var extCommand = pluginInstance.getCommonExtensionCommand(command);
     if (extCommand != null) {
       return extCommand.executeCommand(pluginCommandRq);
     }
 
-    extCommand = pluginInstance.getIntegrationExtensionCommands().get(command);
+    extCommand = pluginInstance.getIntegrationExtensionCommand(command);
     if (extCommand != null) {
       Integration integration = resolveIntegration(pluginCommandRq.getContext());
       return extCommand.executeCommand(integration, pluginCommandRq);

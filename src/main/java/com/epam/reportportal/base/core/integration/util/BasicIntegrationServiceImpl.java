@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.integration.util;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.plugin.PluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
@@ -89,7 +90,7 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
     final Optional<ExtensionCommand<?>> pluginCommand = getCommonCommand(integrationType, RETRIEVE_CREATE_PARAMS);
     if (pluginCommand.isPresent()) {
       return (Map<String, Object>) pluginCommand.get()
-          .executeCommand(new PluginCommandRQ().arguments(integrationParams));
+          .executeCommand(new PluginCommandRQ().context(new PluginCommandContext()).arguments(integrationParams));
     }
     return integrationParams;
   }
@@ -100,8 +101,11 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
     final Optional<ExtensionCommand<?>> pluginCommand =
         getCommonCommand(integrationType, RETRIEVE_UPDATED_PARAMS);
     if (pluginCommand.isPresent()) {
+      var pluginCommandRQ = new PluginCommandRQ()
+          .context(new PluginCommandContext())
+          .arguments(integrationParams);
       return (Map<String, Object>) pluginCommand.get()
-          .executeCommand(new PluginCommandRQ().arguments(integrationParams));
+          .executeCommand(pluginCommandRQ);
     }
     return integrationParams;
   }
@@ -111,8 +115,16 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
     final Optional<ExtensionCommand<?>> pluginCommand =
         getIntegrationCommand(integration.getType().getName(), TEST_CONNECTION_COMMAND);
     if (pluginCommand.isPresent()) {
+      PluginCommandContext ctx = new PluginCommandContext()
+          .orgId(integration.getOrganizationId());
+      if (integration.getProject() != null) {
+        ctx.projectId(integration.getProject().getId());
+      }
+      var pluginCommandRq = new PluginCommandRQ()
+          .context(ctx)
+          .arguments(integration.getParams().getParams());
       return (Boolean) pluginCommand.get()
-          .executeCommand(integration, new PluginCommandRQ().arguments(integration.getParams().getParams()));
+          .executeCommand(integration, pluginCommandRq);
     }
     return true;
   }
@@ -127,10 +139,9 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
   private Optional<ExtensionCommand<?>> getCommonCommand(String integration,
       String commandName) {
-    ReportPortalExtensionPoint pluginInstance =
-        pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
-            .orElseThrow(
-                () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
+    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
+
     return ofNullable(pluginInstance.getCommonExtensionCommand(commandName));
   }
 

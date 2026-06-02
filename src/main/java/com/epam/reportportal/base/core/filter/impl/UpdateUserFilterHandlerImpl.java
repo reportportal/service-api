@@ -74,9 +74,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
     validateFilterRq(createFilterRQ);
 
     BusinessRule.expect(
-            userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
-                user.getUsername(), membershipDetails.getProjectId()
-            ), BooleanUtils::isFalse)
+            userFilterRepository.existsByNameAndProjectId(createFilterRQ.getName(), membershipDetails.getProjectId()),
+            BooleanUtils::isFalse)
         .verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(),
             projectName
         );

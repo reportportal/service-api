@@ -115,8 +115,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
     User user = userRepository.findByLogin(username)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 
-    userMutationService.validateUserUpdatable(user);
-
     updateRestrictedFields(editor, user, editUserRq);
 
     ofNullable(editUserRq.getEmail())

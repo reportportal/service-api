@@ -85,7 +85,7 @@ public class LinkGenerator {
       }
     }
 
-    URI uri = new URI(request.getRequestURI());
+    URI uri = new URI(request.getRequestURL().toString());
 
     return ForwardedHeaderUtils.adaptFromForwardedHeaders(uri, httpHeaders)
         .replacePath(processedPath)

@@ -59,13 +59,12 @@ public interface ReportPortalExtensionPoint extends ExtensionPoint {
     return Optional.empty();
   }
 
-  // TODO: remove default implementation after all plugins migrated to ExtensionCommand
   default ExtensionCommand<?> getCommonExtensionCommand(String commandName) {
-    return null;
+    return getCommonExtensionCommands().get(commandName);
   }
 
   default ExtensionCommand<?> getIntegrationExtensionCommand(String commandName) {
-    return null;
+    return getIntegrationExtensionCommands().get(commandName);
   }
 
   default Map<String, ExtensionCommand<?>> getCommonExtensionCommands() {

@@ -89,9 +89,10 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
       } else if (minOrgRole != null && commandContext.getOrgId() != null) {
         validateOrgRole(user, commandContext);
       } else if (minUserRole != user.getUserRole()) {
-        validateOrgRole(user, commandContext);
+        throw new ReportPortalException(ErrorType.ACCESS_DENIED);
       }
     }
+    // if minUserRole is null means plugin command is public
   }
 
   private void validateProjectRole(ReportPortalUser user, PluginCommandContext commandContext) {

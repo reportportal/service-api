@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.integration.util;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.plugin.PluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
@@ -27,9 +28,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.ws.converter.builders.IntegrationBuilder;
-import com.epam.reportportal.extension.CommonPluginCommand;
-import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.command.ExtensionCommand;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -60,9 +60,10 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   }
 
   @Override
-  public Integration createIntegration(IntegrationRQ integrationRq,
-      IntegrationType integrationType) {
-    return new IntegrationBuilder().withCreationDate(Instant.now()).withType(integrationType)
+  public Integration createIntegration(IntegrationRQ integrationRq, IntegrationType integrationType) {
+    return new IntegrationBuilder()
+        .withCreationDate(Instant.now())
+        .withType(integrationType)
         .withEnabled(integrationRq.getEnabled())
         .withName(integrationRq.getName())
         .withParams(new IntegrationParams(
@@ -85,10 +86,10 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   @Override
   public Map<String, Object> retrieveCreateParams(String integrationType,
       Map<String, Object> integrationParams) {
-    final Optional<CommonPluginCommand<?>> pluginCommand =
-        getCommonCommand(integrationType, RETRIEVE_CREATE_PARAMS);
+    final Optional<ExtensionCommand<?>> pluginCommand = getCommonCommand(integrationType, RETRIEVE_CREATE_PARAMS);
     if (pluginCommand.isPresent()) {
-      return (Map<String, Object>) pluginCommand.get().executeCommand(integrationParams);
+      return (Map<String, Object>) pluginCommand.get()
+          .executeCommand(new PluginCommandRQ().arguments(integrationParams));
     }
     return integrationParams;
   }
@@ -96,40 +97,41 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   @Override
   public Map<String, Object> retrieveUpdatedParams(String integrationType,
       Map<String, Object> integrationParams) {
-    final Optional<CommonPluginCommand<?>> pluginCommand =
+    final Optional<ExtensionCommand<?>> pluginCommand =
         getCommonCommand(integrationType, RETRIEVE_UPDATED_PARAMS);
     if (pluginCommand.isPresent()) {
-      return (Map<String, Object>) pluginCommand.get().executeCommand(integrationParams);
+      return (Map<String, Object>) pluginCommand.get()
+          .executeCommand(new PluginCommandRQ().arguments(integrationParams));
     }
     return integrationParams;
   }
 
   @Override
   public boolean checkConnection(Integration integration) {
-    final Optional<PluginCommand<?>> pluginCommand =
+    final Optional<ExtensionCommand<?>> pluginCommand =
         getIntegrationCommand(integration.getType().getName(), TEST_CONNECTION_COMMAND);
     if (pluginCommand.isPresent()) {
       return (Boolean) pluginCommand.get()
-          .executeCommand(integration, integration.getParams().getParams());
+          .executeCommand(integration, new PluginCommandRQ().arguments(integration.getParams().getParams()));
     }
     return true;
   }
 
-  private Optional<PluginCommand<?>> getIntegrationCommand(String integration, String commandName) {
+  private Optional<ExtensionCommand<?>> getIntegrationCommand(String integration, String commandName) {
     ReportPortalExtensionPoint pluginInstance =
         pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
             .orElseThrow(
                 () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
-    return ofNullable(pluginInstance.getIntegrationCommand(commandName));
+    return ofNullable(pluginInstance.getIntegrationExtensionCommand(commandName));
   }
 
-  private Optional<CommonPluginCommand<?>> getCommonCommand(String integration,
+  private Optional<ExtensionCommand<?>> getCommonCommand(String integration,
       String commandName) {
     ReportPortalExtensionPoint pluginInstance =
         pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
             .orElseThrow(
                 () -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
-    return ofNullable(pluginInstance.getCommonCommand(commandName));
+    return ofNullable(pluginInstance.getCommonExtensionCommand(commandName));
   }
 
   private IntegrationParams getCombinedParams(Integration integration,

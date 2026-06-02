@@ -33,8 +33,8 @@ import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
@@ -91,10 +91,10 @@ class LaunchNotificationRunnerTest {
 
     runner.handle(event, mapping);
 
-    verify(getIntegrationHandler, times(0)).findFirstEnabledByGroup(
+    verify(getIntegrationHandler, times(0)).findFirstEnabledByTypeName(
         event.getProjectId(),
         event.getOrganizationId(),
-        IntegrationGroupEnum.NOTIFICATION
+        ReservedIntegrationTypeEnum.EMAIL.getName()
     );
 
   }
@@ -118,12 +118,9 @@ class LaunchNotificationRunnerTest {
     project.setId(1L);
     project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
 
-    when(emailIntegration.getName()).thenReturn("email server");
-
-    when(
-        getIntegrationHandler.findFirstEnabledByGroup(event.getProjectId(),
-            event.getOrganizationId(), IntegrationGroupEnum.NOTIFICATION
-        )).thenReturn(Optional.ofNullable(emailIntegration));
+    when(getIntegrationHandler.findFirstEnabledByTypeName(event.getProjectId(),
+        event.getOrganizationId(), ReservedIntegrationTypeEnum.EMAIL.getName()
+    )).thenReturn(Optional.of(emailIntegration));
 
     when(userRepository.findLoginById(any())).thenReturn(Optional.of("owner"));
     when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(
@@ -134,8 +131,8 @@ class LaunchNotificationRunnerTest {
     when(getLaunchHandler.hasItemsWithIssues(launch)).thenReturn(Boolean.TRUE);
 
     runner.handle(event, mapping);
-    verify(getIntegrationHandler).findFirstEnabledByGroup(
-        eq(event.getProjectId()), eq(event.getOrganizationId()), eq(IntegrationGroupEnum.NOTIFICATION));
+    verify(getIntegrationHandler).findFirstEnabledByTypeName(
+        eq(event.getProjectId()), eq(event.getOrganizationId()), eq(ReservedIntegrationTypeEnum.EMAIL.getName()));
     verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
     verify(eventPublisher, times(1)).publishEvent(any());
   }
@@ -159,12 +156,9 @@ class LaunchNotificationRunnerTest {
     project.setId(1L);
     project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
 
-    when(emailIntegration.getName()).thenReturn("Email Server");
-
-    when(
-        getIntegrationHandler.findFirstEnabledByGroup(event.getProjectId(),
-            event.getOrganizationId(), IntegrationGroupEnum.NOTIFICATION
-        )).thenReturn(Optional.of(emailIntegration));
+    when(getIntegrationHandler.findFirstEnabledByTypeName(event.getProjectId(),
+        event.getOrganizationId(), ReservedIntegrationTypeEnum.EMAIL.getName()
+    )).thenReturn(Optional.of(emailIntegration));
 
     when(userRepository.findLoginById(any())).thenReturn(Optional.of("owner"));
     when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(
@@ -176,8 +170,8 @@ class LaunchNotificationRunnerTest {
 
     runner.handle(event, mapping);
 
-    verify(getIntegrationHandler).findFirstEnabledByGroup(
-        eq(event.getProjectId()), eq(event.getOrganizationId()), eq(IntegrationGroupEnum.NOTIFICATION));
+    verify(getIntegrationHandler).findFirstEnabledByTypeName(
+        eq(event.getProjectId()), eq(event.getOrganizationId()), eq(ReservedIntegrationTypeEnum.EMAIL.getName()));
     verify(mailServiceFactory).getDefaultEmailService(emailIntegration);
     verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
   }

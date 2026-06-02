@@ -30,9 +30,9 @@ import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogicalOperator;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.SendCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -72,8 +72,6 @@ public class LaunchNotificationRunner
     implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
-
-  private static final String EMAIL_INTEGRATION_NAME = "Email Server";
 
   private final static String NOTIFICATION_TYPE = "email";
 
@@ -192,15 +190,11 @@ public class LaunchNotificationRunner
         projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED.getAttribute()));
 
     if (isNotificationsEnabled) {
-      getIntegrationHandler.findFirstEnabledByGroup(launchFinishedEvent.getProjectId(),
-              launchFinishedEvent.getOrganizationId(), IntegrationGroupEnum.NOTIFICATION)
-          .filter(integration -> EMAIL_INTEGRATION_NAME.equalsIgnoreCase(integration.getName()))
+      getIntegrationHandler.findFirstEnabledByTypeName(launchFinishedEvent.getProjectId(),
+              launchFinishedEvent.getOrganizationId(), ReservedIntegrationTypeEnum.EMAIL.getName())
           .flatMap(mailServiceFactory::getDefaultEmailService)
           .ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
-              () -> LOGGER.warn("Unable to find {} integration for project {}",
-                  IntegrationGroupEnum.NOTIFICATION, launchFinishedEvent.getProjectId()
-              )
-          );
+              () -> LOGGER.warn("Unable to find email integration for project {}", launchFinishedEvent.getProjectId()));
     }
 
     if (BooleanUtils.toBoolean(

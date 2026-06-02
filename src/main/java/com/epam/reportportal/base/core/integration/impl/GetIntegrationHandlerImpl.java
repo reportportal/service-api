@@ -25,7 +25,6 @@ import com.epam.reportportal.base.core.integration.util.validator.IntegrationVal
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Loads project and global integration definitions.
@@ -92,18 +90,16 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public Optional<Integration> findFirstEnabledByGroup(Long projectId, Long organizationId,
-      IntegrationGroupEnum integrationGroup) {
-
-    List<Long> typeIds = integrationTypeRepository.findIdsByIntegrationGroup(integrationGroup);
-    if (CollectionUtils.isEmpty(typeIds)) {
-      return Optional.empty();
-    }
-
-    return integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, typeIds)
-        .or(() -> Optional.ofNullable(organizationId)
-            .flatMap(id -> integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(id, typeIds)))
-        .or(() -> integrationRepository.findFirstEnabledGlobalByTypeIdIn(typeIds));
+  public Optional<Integration> findFirstEnabledByTypeName(Long projectId, Long organizationId, String typeName) {
+    return integrationTypeRepository.findByName(typeName)
+        .map(IntegrationType::getId)
+        .flatMap(typeId ->
+            integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, List.of(typeId))
+                .or(() -> Optional.ofNullable(organizationId)
+                    .flatMap(
+                        id -> integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(id, List.of(typeId))))
+                .or(() -> integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(typeId)))
+        );
   }
 
   @Override

@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.doNothing;
@@ -28,13 +30,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.events.domain.OrganizationDeletedEvent;
+import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UserDeletedEvent;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
@@ -42,6 +51,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.util.email.strategy.EmailNotificationStrategy;
 import com.epam.reportportal.base.util.email.strategy.EmailTemplate;
 import com.google.common.collect.Lists;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -79,6 +89,12 @@ class DeleteUserHandlerImplTest {
   private OrganizationUserRepository organizationUserRepository;
 
   @Mock
+  private OrganizationRepository organizationRepository;
+
+  @Mock
+  private ProjectUserRepository projectUserRepository;
+
+  @Mock
   private ApplicationEventPublisher applicationEventPublisher;
 
   @InjectMocks
@@ -94,6 +110,8 @@ class DeleteUserHandlerImplTest {
     when(organizationUserRepository.findNonPersonalOrganizationIdsByUserId(user.getId())).thenReturn(
         Lists.newArrayList());
     when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
+    when(organizationRepository.findByOwnerIdAndOrganizationType(user.getId(), OrganizationType.PERSONAL))
+        .thenReturn(Optional.empty());
     doNothing().when(dataStore).deleteUserPhoto(any());
     when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);
     doNothing().when(emailNotificationStrategy).sendEmail(any(), anyMap());
@@ -136,6 +154,49 @@ class DeleteUserHandlerImplTest {
 
     verify(repository, times(1)).findById(1L);
     verify(repository, times(0)).delete(any(User.class));
+  }
+
+  @Test
+  void deleteUserWithPersonalOrganizationShouldPublishOrgAndProjectEvents() {
+    User user = new User();
+    user.setId(2L);
+    user.setLogin("test");
+
+    Organization personalOrg = new Organization();
+    personalOrg.setId(10L);
+    personalOrg.setName("Personal Org");
+    personalOrg.setOwnerId(2L);
+    personalOrg.setOrganizationType(OrganizationType.PERSONAL);
+
+    Project project = new Project();
+    project.setId(100L);
+    project.setName("Personal Project");
+    project.setOrganizationId(10L);
+
+    doReturn(Optional.of(user)).when(repository).findById(2L);
+    when(organizationUserRepository.findNonPersonalOrganizationIdsByUserId(user.getId()))
+        .thenReturn(Lists.newArrayList());
+    when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
+    when(organizationRepository.findByOwnerIdAndOrganizationType(user.getId(), OrganizationType.PERSONAL))
+        .thenReturn(Optional.of(personalOrg));
+    when(organizationUserRepository.findUserIdsByOrganizationId(10L)).thenReturn(List.of(2L));
+    when(projectRepository.findAllByOrganizationId(10L)).thenReturn(List.of(project));
+    when(projectUserRepository.findUserIdsByProjectId(100L)).thenReturn(List.of(2L));
+    doNothing().when(dataStore).deleteUserPhoto(any());
+    when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);
+    doNothing().when(emailNotificationStrategy).sendEmail(any(), anyMap());
+
+    handler.deleteUser(
+        2L, getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L));
+
+    verify(organizationRepository).findByOwnerIdAndOrganizationType(eq(2L), eq(OrganizationType.PERSONAL));
+    verify(applicationEventPublisher).publishEvent(argThat(event ->
+        event instanceof ProjectDeletedEvent projectEvent
+            && projectEvent.getOrganizationId() == null
+            && projectEvent.getProjectId().equals(100L)));
+    verify(applicationEventPublisher).publishEvent(isA(OrganizationDeletedEvent.class));
+    verify(applicationEventPublisher).publishEvent(isA(UserDeletedEvent.class));
   }
 
 }

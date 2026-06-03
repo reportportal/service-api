@@ -18,6 +18,8 @@ package com.epam.reportportal.base.core.user.impl;
 
 import static com.epam.reportportal.base.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 
+import com.epam.reportportal.base.core.events.domain.OrganizationDeletedEvent;
+import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.events.domain.UserDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UsersDeletedEvent;
@@ -28,8 +30,11 @@ import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDa
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
@@ -76,6 +81,10 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
   private final OrganizationUserRepository organizationUserRepository;
 
+  private final OrganizationRepository organizationRepository;
+
+  private final ProjectUserRepository projectUserRepository;
+
   private final Map<EmailTemplate, EmailNotificationStrategy> emailNotificationStrategyMapping;
 
   private final ApplicationEventPublisher applicationEventPublisher;
@@ -110,6 +119,10 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
       projectRecipientHandler.handle(Lists.newArrayList(user), project);
       publishUserUnassignEvent(user, project.getId(), project.getOrganizationId());
     });
+
+    String actorLogin = loggedInUser.getUserId().equals(user.getId())
+        ? DELETED_USER : loggedInUser.getUsername();
+    publishPersonalOrganizationDeletedEvents(user, loggedInUser.getUserId(), actorLogin);
 
     dataStore.deleteUserPhoto(user);
     userRepository.delete(user);
@@ -190,5 +203,22 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
     userActivityResource.setDefaultProjectId(projectId);
 
     applicationEventPublisher.publishEvent(new UnassignUserEvent(userActivityResource, orgId));
+  }
+
+  private void publishPersonalOrganizationDeletedEvents(User user, Long actorId, String actorLogin) {
+    organizationRepository.findByOwnerIdAndOrganizationType(user.getId(), OrganizationType.PERSONAL)
+        .ifPresent(org -> {
+          projectRepository.findAllByOrganizationId(org.getId())
+              .forEach(project -> {
+                List<Long> projectUserIds = projectUserRepository.findUserIdsByProjectId(project.getId());
+                applicationEventPublisher.publishEvent(
+                    new ProjectDeletedEvent(actorId, actorLogin, project.getId(), project.getName(), null,
+                        projectUserIds));
+              });
+
+          List<Long> orgUserIds = organizationUserRepository.findUserIdsByOrganizationId(org.getId());
+          applicationEventPublisher.publishEvent(
+              new OrganizationDeletedEvent(actorId, actorLogin, org.getId(), org.getName(), orgUserIds));
+        });
   }
 }

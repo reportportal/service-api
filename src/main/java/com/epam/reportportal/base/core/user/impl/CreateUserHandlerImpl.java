@@ -30,7 +30,6 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
-import com.epam.reportportal.base.core.organization.PersonalOrganizationService;
 import com.epam.reportportal.base.core.user.CreateUserHandler;
 import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -76,7 +75,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final ThreadPoolTaskExecutor emailExecutorService;
   private final PasswordEncoder passwordEncoder;
   private final ApplicationEventPublisher eventPublisher;
-  private final PersonalOrganizationService personalOrganizationService;
   private final UserMutationService userMutationService;
 
   @Override
@@ -86,8 +84,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     request.setEmail(email);
 
     var savedUser = saveUser(request);
-
-    personalOrganizationService.createPersonalOrganization(savedUser.getId());
 
     var userCreatedEvent = new UserCreatedEvent(
         TO_ACTIVITY_RESOURCE.apply(savedUser, null),

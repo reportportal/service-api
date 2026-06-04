@@ -7,7 +7,7 @@ zonky-postgres-bom = "17.6.0"
 
 # Plugin versions
 owasp-dependencycheck = "11.1.1"
-drill-integration = "0.1.6"
+drill-integration = "0.10.1"
 openapi-generator = "7.11.0"
 
 # Library versions

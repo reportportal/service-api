@@ -35,7 +35,7 @@ public interface DashboardRepository extends ReportPortalRepository<Dashboard, L
   /**
    * Finds dashboard by 'id' and 'project id'
    *
-   * @param id        {@link Dashboard#getId()}
+   * @param id        {@code Dashboard#getId()}
    * @param projectId Id of the {@link Project} whose dashboard will be extracted
    * @return {@link Dashboard} wrapped in the {@link Optional}
    */
@@ -46,8 +46,8 @@ public interface DashboardRepository extends ReportPortalRepository<Dashboard, L
   /**
    * Checks the existence of the {@link Dashboard} with specified name for a user on a project
    *
-   * @param name      {@link Dashboard#getName()}
-   * @param owner     {@link Dashboard#getOwner()}
+   * @param name      {@code Dashboard#getName()}
+   * @param owner     {@code Dashboard#getOwner()}
    * @param projectId Id of the {@link Project} on which dashboard existence will be checked
    * @return if exists 'true' else 'false'
    */
@@ -56,8 +56,8 @@ public interface DashboardRepository extends ReportPortalRepository<Dashboard, L
   /**
    * Checks the existence of the {@link Dashboard} with specified name on a project
    *
-   * @param name      {@link Dashboard#getName()}
-   * @param projectId {@link Project#getId()}
+   * @param name      {@code Dashboard#getName()}
+   * @param projectId {@code Project#getId()}
    * @return if exists 'true' else 'false'
    */
   boolean existsByNameAndProjectId(String name, Long projectId);

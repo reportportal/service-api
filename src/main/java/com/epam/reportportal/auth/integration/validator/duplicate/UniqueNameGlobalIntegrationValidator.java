@@ -35,8 +35,8 @@ public class UniqueNameGlobalIntegrationValidator implements IntegrationDuplicat
 
   @Override
   public void validate(Integration integration) {
-    integrationRepository.findByNameAndTypeIdAndProjectIdIsNull(integration.getName(),
-            integration.getType().getId())
+    integrationRepository.findByNameAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
+            integration.getName(), integration.getType().getId())
         .ifPresent(found -> BusinessRule.expect(found.getId(), id -> id.equals(integration.getId()))
             .verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName()));
   }

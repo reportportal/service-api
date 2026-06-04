@@ -58,11 +58,11 @@ public class TestCaseItemBuilder {
     testItem.setTestCaseId(String.valueOf(tmsTestCaseRS.getId()));
     testItem.setName(tmsTestCaseRS.getName());
     testItem.setDescription(tmsTestCaseRS.getDescription());
-    testItem.setType(TestItemTypeEnum.TEST);
+    testItem.setType(TestItemTypeEnum.STEP); //as per the RPP philosophy test case is the step, but test cases steps are inner steps for this step
     testItem.setStartTime(Instant.now());
     testItem.setLaunchId(launch.getId());
     testItem.setHasStats(true);  // TEST contributes to statistics
-    testItem.setHasChildren(false);  // Will be set to true when nested steps added
+    testItem.setHasChildren(false);
     testItem.setRetryOf(null);
     testItem.setParentId(parentSuiteItem.getItemId());
     return testItem;

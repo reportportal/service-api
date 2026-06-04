@@ -113,7 +113,7 @@ class TestFolderItemServiceImplTest {
 
     assertNotNull(result);
     assertEquals(itemId, result.getItemId());
-    verify(testItemRepository).save(suiteItem);
+    verify(testItemRepository, times(2)).save(suiteItem);
     verify(testFolderTestItemRepository).save(any(TmsTestFolderTestItem.class));
   }
 
@@ -138,7 +138,7 @@ class TestFolderItemServiceImplTest {
     // Current Folder Creation
     when(tmsTestFolderService.getEntityById(projectId, folderId)).thenReturn(testFolder);
     when(suiteItemBuilder.buildSuiteItem(testFolder, launch, folderId)).thenReturn(suiteItem);
-    when(testItemRepository.save(suiteItem)).thenReturn(suiteItem);
+    when(testItemRepository.save(any(TestItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(testCaseHashGenerator.generate(any(), any(), any())).thenReturn(111);
 
     sut.createTestFolderSuiteItem(projectId, folderId, launch);
@@ -146,13 +146,13 @@ class TestFolderItemServiceImplTest {
     // Parent suite should be marked as having children
     assertTrue(parentSuite.isHasChildren());
     verify(testItemRepository).save(parentSuite);
-
+    
     // Child suite path should be updated
     assertEquals("600.300", suiteItem.getPath());
     assertEquals(600L, suiteItem.getParentId());
-
-    // Should save suite again after updating path
-    verify(testItemRepository, times(3)).save(any(TestItem.class));
+    
+    // Should save suite twice (first to get id, second with path and hash)
+    verify(testItemRepository, times(2)).save(suiteItem);
   }
 
   // -------------------------------------------------------------------------

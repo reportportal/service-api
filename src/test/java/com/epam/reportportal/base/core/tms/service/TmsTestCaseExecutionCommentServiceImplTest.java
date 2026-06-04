@@ -38,8 +38,6 @@ class TmsTestCaseExecutionCommentServiceImplTest {
   @Mock
   private TmsTestCaseExecutionCommentAttachmentService tmsTestCaseExecutionCommentAttachmentService;
   @Mock
-  private TmsTestCaseExecutionCommentBtsTicketService tmsTestCaseExecutionCommentBtsTicketService;
-  @Mock
   private TmsTestCaseExecutionCommentMapper tmsTestCaseExecutionCommentMapper;
   @InjectMocks
   private TmsTestCaseExecutionCommentServiceImpl sut;
@@ -77,7 +75,6 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     assertNull(result);
     assertNull(execution.getExecutionComment());
     verify(tmsTestCaseExecutionCommentAttachmentService).deleteAllByExecutionId(executionId);
-    verify(tmsTestCaseExecutionCommentBtsTicketService).deleteAllByExecutionId(executionId);
     verify(tmsTestCaseExecutionCommentRepository).deleteById(commentId);
   }
 
@@ -96,7 +93,6 @@ class TmsTestCaseExecutionCommentServiceImplTest {
 
     verify(tmsTestCaseExecutionCommentAttachmentService).updateAttachments(existingComment,
         request);
-    verify(tmsTestCaseExecutionCommentBtsTicketService).updateBtsTickets(existingComment, request);
     verify(tmsTestCaseExecutionCommentRepository).save(existingComment);
   }
 
@@ -118,7 +114,6 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     assertEquals(newComment, execution.getExecutionComment());
 
     verify(tmsTestCaseExecutionCommentAttachmentService).createAttachments(newComment, request);
-    verify(tmsTestCaseExecutionCommentBtsTicketService).createBtsTickets(newComment, request);
     verify(tmsTestCaseExecutionCommentRepository).save(newComment);
   }
 
@@ -156,7 +151,6 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     verify(tmsTestCaseExecutionCommentAttachmentService).updateAttachments(existingComment,
         request);
     // getBtsTickets is null, so it should not call updateBtsTickets
-    verify(tmsTestCaseExecutionCommentBtsTicketService, never()).updateBtsTickets(any(), any());
     verify(tmsTestCaseExecutionCommentRepository).save(existingComment);
   }
 
@@ -189,7 +183,6 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     sut.deleteByLaunchId(launchId);
 
     verify(tmsTestCaseExecutionCommentAttachmentService).deleteByLaunchId(launchId);
-    verify(tmsTestCaseExecutionCommentBtsTicketService).deleteByLaunchId(launchId);
     verify(tmsTestCaseExecutionCommentRepository).deleteByLaunchId(launchId);
   }
 }

@@ -322,11 +322,11 @@ public class TmsManualLaunchController {
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsManualLaunchService.patchTestCaseExecution(
         projectExtractor
-            .extractMembershipDetails(user, projectKey)
-            .getProjectId(),
+            .extractMembershipDetails(user, projectKey),
         launchId,
         executionId,
-        request
+        request,
+        user
     );
   }
 
@@ -342,6 +342,27 @@ public class TmsManualLaunchController {
       @Valid @RequestBody TmsTestCaseExecutionCommentRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsManualLaunchService.putTestCaseExecutionComment(
+        projectExtractor
+            .extractMembershipDetails(user, projectKey)
+            .getProjectId(),
+        launchId,
+        executionId,
+        request
+    );
+  }
+  
+  @PatchMapping("/{launchId}/test-case/execution/{executionId}/comment")
+  @Operation(summary = "Patch test case execution comment")
+  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(
+      @Parameter(description = "Project key", required = true)
+      @PathVariable String projectKey,
+      @Parameter(description = "Launch ID", required = true)
+      @PathVariable Long launchId,
+      @Parameter(description = "Execution ID", required = true)
+      @PathVariable Long executionId,
+      @Valid @RequestBody TmsTestCaseExecutionCommentRQ request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return tmsManualLaunchService.patchTestCaseExecutionComment(
         projectExtractor
             .extractMembershipDetails(user, projectKey)
             .getProjectId(),

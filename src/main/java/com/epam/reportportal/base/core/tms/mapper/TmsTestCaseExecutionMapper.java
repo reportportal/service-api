@@ -1,7 +1,7 @@
 package com.epam.reportportal.base.core.tms.mapper;
 
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentAttachmentRS;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentBtsTicketRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionBtsTicketRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionTestFolderRS;
@@ -100,7 +100,25 @@ public abstract class TmsTestCaseExecutionMapper {
     if (execution.getExecutionComment() != null) {
       builder.executionComment(convertToExecutionCommentRS(execution.getExecutionComment()));
     }
-
+    
+    // BTS Tickets from TestItem's Issue
+    if (execution.getTestItem() != null && execution.getTestItem().getItemResults() != null
+        && execution.getTestItem().getItemResults().getIssue() != null) {
+      var issue = execution.getTestItem().getItemResults().getIssue();
+      if (CollectionUtils.isNotEmpty(issue.getTickets())) {
+        var btsTicketsRS = issue.getTickets().stream()
+            .map(ticket -> TmsTestCaseExecutionBtsTicketRS.builder()
+                .ticketId(ticket.getTicketId())
+                .url(ticket.getUrl())
+                .btsUrl(ticket.getBtsUrl())
+                .btsProject(ticket.getBtsProject())
+                .pluginName(ticket.getPluginName())
+                .build())
+            .collect(Collectors.toSet());
+        builder.btsTickets(btsTicketsRS);
+      }
+    }
+    
     return builder.build();
   }
 
@@ -181,7 +199,7 @@ public abstract class TmsTestCaseExecutionMapper {
     if (comment == null) {
       return null;
     }
-
+  
     var attachmentRSList = comment.getAttachments() != null ?
         comment
             .getAttachments()
@@ -189,23 +207,14 @@ public abstract class TmsTestCaseExecutionMapper {
             .map(this::convertCommentAttachment)
             .collect(Collectors.toList())
         : null;
-
+  
     var result = new TmsTestCaseExecutionCommentRS();
-
+  
     result.setComment(comment.getComment());
     if (CollectionUtils.isNotEmpty(attachmentRSList)) {
       result.setAttachments(attachmentRSList);
     }
-    
-    if (CollectionUtils.isNotEmpty(comment.getBtsTickets())) {
-      result.setBtsTickets(comment.getBtsTickets().stream()
-          .map(ticket -> TmsTestCaseExecutionCommentBtsTicketRS.builder()
-              .id(ticket.getId())
-              .link(ticket.getLink())
-              .build())
-          .toList());
-    }
-
+  
     return result;
   }
 

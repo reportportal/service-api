@@ -60,23 +60,28 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
         testCase, suiteItem, launch
     );
 
-    var testResults = new TestItemResults();
-    testResults.setStatus(StatusEnum.TO_RUN);
-
-    testResults.setTestItem(testItem);
-    testItem.setItemResults(testResults);
-    testItem.setPath(suiteItem.getPath() + "." + testItem.getItemId());
     testItem.setTestCaseHash(
         testCaseHashGenerator.generate(
             testItem,
-            IdentityUtil.getParentIds(testItem),
+            IdentityUtil.getItemTreeIds(suiteItem),
             launch.getProjectId()
         )
     );
-
-    // Save test item first
+    
+    // Save test item first to get ID
     var savedTestItem = testItemRepository.save(testItem);
-
+    
+    // After first save we have the real ID
+    var testResults = new TestItemResults();
+    testResults.setStatus(StatusEnum.TO_RUN);
+    testResults.setTestItem(savedTestItem);
+    savedTestItem.setItemResults(testResults);
+    
+    // Now set path using generated ID
+    savedTestItem.setPath(suiteItem.getPath() + "." + savedTestItem.getItemId());
+    
+    savedTestItem = testItemRepository.save(savedTestItem);
+    
     // Process test case attributes if present
     if (CollectionUtils.isNotEmpty(testCase.getAttributes())) {
       log.debug("Creating {} item attributes for test case: {}",
@@ -115,18 +120,4 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
     return savedTestItem;
   }
 
-  /**
-   * Marks TEST item as having nested children (nested steps).
-   *
-   * @param testItem TEST item
-   */
-  @Transactional
-  @Override
-  public void markAsHavingNestedChildren(TestItem testItem) {
-    if (!testItem.isHasChildren()) {
-      log.debug("Marking TEST item: {} as having children", testItem.getItemId());
-      testItem.setHasChildren(true);
-      testItemRepository.save(testItem);
-    }
-  }
 }

@@ -94,6 +94,13 @@ public class AuthorizationServerConfig {
   private Integer tokenValidity;
   @Value("${rp.jwt.issuer}")
   private String jwtIssuer;
+  @Value("${rp.auth.cookie.secure.enforce-https:true}")
+  private boolean cookieSecureEnforceHttps;
+
+  @Bean
+  public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+    return new HttpCookieOAuth2AuthorizationRequestRepository(cookieSecureEnforceHttps);
+  }
 
   @Bean
   public RegisteredClientRepository registeredClientRepository() {
@@ -207,7 +214,8 @@ public class AuthorizationServerConfig {
   public SecurityFilterChain globalWebSecurityFilterChain(
       HttpSecurity http,
       OAuth2AuthorizationRequestResolver authorizationRequestResolver,
-      OAuthSuccessHandler successHandler) throws Exception {
+      OAuthSuccessHandler successHandler,
+      HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository) throws Exception {
     http
         .securityMatcher("/**")
         .authorizeHttpRequests(auth -> auth
@@ -229,7 +237,8 @@ public class AuthorizationServerConfig {
             .clientRegistrationRepository(clientRegistrationRepository)
             .authorizationEndpoint(authorization -> authorization
                 .baseUri("/oauth/login")
-                .authorizationRequestResolver(authorizationRequestResolver))
+                .authorizationRequestResolver(authorizationRequestResolver)
+                .authorizationRequestRepository(cookieAuthorizationRequestRepository))
             .redirectionEndpoint(redirection -> redirection.baseUri("/sso/login/*"))
             .successHandler(successHandler)
             .failureHandler(authenticationFailureHandler))

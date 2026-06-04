@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.integration;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.model.integration.IntegrationResource;
@@ -39,8 +38,16 @@ public interface GetIntegrationHandler {
 
   IntegrationResource getGlobalIntegrationById(Long integrationId);
 
-  Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
-      IntegrationGroupEnum integrationGroup);
+  /**
+   * Returns the first enabled integration for the given type name, resolved in order: project -> organization ->
+   * global.
+   *
+   * @param projectId      project identifier
+   * @param organizationId organization identifier; when {@code null}, organization-level lookup is skipped
+   * @param typeName       integration type name (e.g. {@code "email"})
+   * @return the matching integration, or empty if none is enabled at any level
+   */
+  Optional<Integration> findFirstEnabledByTypeName(Long projectId, Long organizationId, String typeName);
 
   Integration getEnabledBtsIntegration(MembershipDetails membershipDetails, String url,
       String btsProject);

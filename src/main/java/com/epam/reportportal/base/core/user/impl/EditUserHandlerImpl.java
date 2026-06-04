@@ -26,6 +26,7 @@ import static com.epam.reportportal.base.infrastructure.rules.commons.validation
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BINARY_DATA_CANNOT_BE_SAVED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.user.EditUserHandler;
@@ -52,6 +53,7 @@ import java.util.function.Predicate;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -113,15 +115,19 @@ public class EditUserHandlerImpl implements EditUserHandler {
     User user = userRepository.findByLogin(username)
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 
-    userMutationService.validateUserUpdatable(user);
-
     updateRestrictedFields(editor, user, editUserRq);
 
-    ofNullable(editUserRq.getEmail()).ifPresent(email ->
-        userMutationService.updateEmail(user, email, editor));
+    ofNullable(editUserRq.getEmail())
+        .ifPresent(email -> {
+          validateBlankField("email", email);
+          userMutationService.updateEmail(user, email, editor);
+        });
 
-    ofNullable(editUserRq.getFullName()).ifPresent(fullName ->
-        userMutationService.updateFullName(user, fullName, editor));
+    ofNullable(editUserRq.getFullName())
+        .ifPresent(fullName -> {
+          validateBlankField("fullName", fullName);
+          userMutationService.updateFullName(user, fullName, editor);
+        });
 
     ofNullable(editUserRq.getExternalId()).ifPresent(extId -> {
       checkPossibilityToEdit(editor, user, "externalId");
@@ -286,5 +292,11 @@ public class EditUserHandlerImpl implements EditUserHandler {
         .verify(ACCESS_DENIED, "Current Account Role can't update " + fieldName);
     BusinessRule.expect(user, u -> !u.getLogin().equalsIgnoreCase(editor.getUsername()))
         .verify(ErrorType.ACCESS_DENIED, "You cannot update your " + fieldName);
+  }
+
+  private void validateBlankField(String field, String str) {
+    expect(StringUtils.isNotBlank(str), equalTo(true))
+        .verify(INCORRECT_REQUEST,
+            "[Field %s should not contain only white spaces and shouldn't be empty.]".formatted(field));
   }
 }

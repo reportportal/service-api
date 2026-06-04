@@ -71,7 +71,9 @@ public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCus
         .from(INTEGRATION)
         .join(INTEGRATION_TYPE)
         .on(INTEGRATION.TYPE.eq(INTEGRATION_TYPE.ID))
-        .where(INTEGRATION.ID.eq(integrationId.intValue()).and(INTEGRATION.PROJECT_ID.isNull()))
+        .where(INTEGRATION.ID.eq(integrationId.intValue())
+            .and(INTEGRATION.PROJECT_ID.isNull())
+            .and(INTEGRATION.ORGANIZATION_ID.isNull()))
         .fetchAny(GLOBAL_INTEGRATION_RECORD_MAPPER));
   }
 
@@ -96,19 +98,9 @@ public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCus
         .on(INTEGRATION.TYPE.eq(INTEGRATION_TYPE.ID))
         .where(INTEGRATION_TYPE.ID.in(integrationTypeIds))
         .and(INTEGRATION.PROJECT_ID.isNull())
+        .and(INTEGRATION.ORGANIZATION_ID.isNull())
         .orderBy(INTEGRATION.CREATION_DATE.desc())
         .fetch(GLOBAL_INTEGRATION_RECORD_MAPPER);
   }
 
-  @Override
-  public List<Integration> findAllGlobalNotInIntegrationTypeIds(List<Long> integrationTypeIds) {
-    return dsl.select()
-        .from(INTEGRATION)
-        .join(INTEGRATION_TYPE)
-        .on(INTEGRATION.TYPE.eq(INTEGRATION_TYPE.ID))
-        .where(INTEGRATION_TYPE.ID.notIn(integrationTypeIds))
-        .and(INTEGRATION.PROJECT_ID.isNull())
-        .orderBy(INTEGRATION.CREATION_DATE.desc())
-        .fetch(GLOBAL_INTEGRATION_RECORD_MAPPER);
-  }
 }

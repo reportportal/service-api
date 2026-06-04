@@ -46,10 +46,6 @@ public class TmsTestCaseExecutionComment implements Serializable {
   @Column(name = "comment", columnDefinition = "text")
   private String comment;
 
-  @OneToMany(mappedBy = "comment")
-  @ToString.Exclude
-  private Set<TmsTestCaseExecutionCommentBtsTicket> btsTickets;
-
   @ManyToMany
   @JoinTable(
       name = "tms_test_case_execution_comment_attachment",

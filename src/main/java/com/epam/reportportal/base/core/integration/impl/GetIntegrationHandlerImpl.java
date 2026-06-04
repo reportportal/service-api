@@ -25,7 +25,6 @@ import com.epam.reportportal.base.core.integration.util.validator.IntegrationVal
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -39,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -92,29 +90,16 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   }
 
   @Override
-  public Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
-      IntegrationGroupEnum integrationGroup) {
-
-    List<Long> integrationTypeIds =
-        integrationTypeRepository.findAllByIntegrationGroup(integrationGroup).stream()
-            .map(IntegrationType::getId).collect(Collectors.toList());
-
-    List<Integration> integrations =
-        integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(projectId,
-            integrationTypeIds
+  public Optional<Integration> findFirstEnabledByTypeName(Long projectId, Long organizationId, String typeName) {
+    return integrationTypeRepository.findByName(typeName)
+        .map(IntegrationType::getId)
+        .flatMap(typeId ->
+            integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, List.of(typeId))
+                .or(() -> Optional.ofNullable(organizationId)
+                    .flatMap(
+                        id -> integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(id, List.of(typeId))))
+                .or(() -> integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(typeId)))
         );
-
-    if (!CollectionUtils.isEmpty(integrations)) {
-
-      return integrations.stream()
-          .filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
-          .findFirst();
-
-    } else {
-
-      return getGlobalIntegrationByIntegrationTypeIds(integrationTypeIds);
-    }
-
   }
 
   @Override
@@ -240,13 +225,6 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
             this.basicIntegrationService
         );
     return integrationService.checkConnection(integration);
-  }
-
-  private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(
-      List<Long> integrationTypeIds) {
-    return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds).stream()
-        .filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
-        .findFirst();
   }
 
   private void validateIntegration(Integration integration) {

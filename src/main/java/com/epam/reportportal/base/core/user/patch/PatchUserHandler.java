@@ -40,10 +40,8 @@ import org.springframework.util.Assert;
  * <p>Authorization rules:
  * <ul>
  *   <li>Administrators may update email, full_name, role, active, account_type and external_id of
- *       any non-UPSA user.</li>
- *   <li>Regular users (any type except UPSA) may update only their own email and full name.</li>
- *   <li>UPSA users' mutable fields (email, full_name, role, active, account_type, external_id)
- *       cannot be changed by anyone, including administrators.</li>
+ *       any user.</li>
+ *   <li>Regular users may update only their own email and full name.</li>
  * </ul>
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
@@ -97,8 +95,7 @@ public class PatchUserHandler {
    *   <li>Regular users are restricted to updating only their email and full name</li>
    * </ul>
    *
-   * <p>Additionally delegates to {@link UserMutationService#validateUserUpdatable(User)}
-   * for user-type-specific restrictions (e.g., UPSA users).
+   * <p>Additionally enforces field-level restrictions for non-administrators.
    *
    * @param user      the target user whose profile is being modified
    * @param operation the patch operation containing the field path and new value
@@ -108,8 +105,6 @@ public class PatchUserHandler {
   private void validateOperation(User user, PatchOperation operation) {
     String path = operation.getPath();
     Assert.isTrue(StringUtils.isNotEmpty(path), "The 'path' must not be null");
-
-    userMutationService.validateUserUpdatable(user);
 
     boolean isAdmin = SecurityContextUtils.isAdminRole();
     if (isAdmin) {

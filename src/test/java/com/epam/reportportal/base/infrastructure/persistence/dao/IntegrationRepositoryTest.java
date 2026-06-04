@@ -95,8 +95,9 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void findByIdAndTypeId() {
-    final Integration jiraIntegration = integrationRepository.findByIdAndTypeIdAndProjectIdIsNull(
-        JIRA_INTEGRATION_ID, JIRA_INTEGRATION_TYPE_ID).get();
+    final Integration jiraIntegration = integrationRepository
+        .findByIdAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(JIRA_INTEGRATION_ID, JIRA_INTEGRATION_TYPE_ID)
+        .get();
     assertEquals("jira", jiraIntegration.getName());
     assertEquals(JIRA_INTEGRATION_ID, jiraIntegration.getId());
     assertEquals(JIRA_INTEGRATION_TYPE_ID, jiraIntegration.getType().getId());
@@ -104,8 +105,8 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void findByNameAndTypeId() {
-    final Integration jiraIntegration = integrationRepository.findByNameAndTypeIdAndProjectIdIsNull(
-        "jira", JIRA_INTEGRATION_TYPE_ID).get();
+    final Integration jiraIntegration = integrationRepository
+        .findByNameAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull("jira", JIRA_INTEGRATION_TYPE_ID).get();
     assertEquals("jira", jiraIntegration.getName());
     assertEquals(JIRA_INTEGRATION_ID, jiraIntegration.getId());
     assertEquals(JIRA_INTEGRATION_TYPE_ID, jiraIntegration.getType().getId());
@@ -164,13 +165,15 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void existsByNameTypePositive() {
-    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNull("jira", 6L);
+    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
+        "jira", 6L);
     assertTrue(exists);
   }
 
   @Test
   void existsByNameTypeNegative() {
-    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNull("jira1", 4L);
+    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
+        "jira1", 4L);
     assertFalse(exists);
   }
 
@@ -291,21 +294,65 @@ class IntegrationRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void shouldFindAllGlobalProjectIntegrationsNotInIntegrationTypeIds() {
+  void shouldFindIdsByIntegrationGroup() {
+    List<Long> notificationTypeIds =
+        integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
 
-    List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(
-            IntegrationGroupEnum.BTS)
-        .stream()
-        .map(IntegrationType::getId)
-        .collect(Collectors.toList());
+    assertThat(notificationTypeIds, is(not(empty())));
+    notificationTypeIds.forEach(typeId ->
+        assertEquals(IntegrationGroupEnum.NOTIFICATION,
+            integrationTypeRepository.findById(typeId).orElseThrow().getIntegrationGroup()));
+  }
 
-    List<Integration> integrations = integrationRepository.findAllGlobalNotInIntegrationTypeIds(
-        integrationTypeIds);
+  @Test
+  void shouldFindFirstEnabledGlobalByTypeIdIn() {
+    List<Long> notificationTypeIds =
+        integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
 
-    assertNotNull(integrations);
-    assertEquals(GLOBAL_EMAIL_INTEGRATIONS_COUNT, integrations.size());
+    Optional<Integration> integration =
+        integrationRepository.findFirstEnabledGlobalByTypeIdIn(notificationTypeIds);
 
-    integrations.forEach(i -> assertNull(i.getProject()));
+    assertTrue(integration.isPresent());
+    assertTrue(integration.get().isEnabled());
+    assertTrue(integration.get().getType().isEnabled());
+    assertNull(integration.get().getProject());
+    assertNull(integration.get().getOrganizationId());
+    assertEquals(17L, integration.get().getId());
+  }
+
+  @Test
+  @Sql({"/db/organization/full_organization_samples.sql", "/db/organization/organization_integrations.sql"})
+  void shouldFindFirstEnabledByOrganizationIdAndTypeIdIn() {
+    List<Long> btsTypeIds = integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.BTS);
+
+    Optional<Integration> org201Integration =
+        integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(201L, btsTypeIds);
+
+    assertTrue(org201Integration.isPresent());
+    assertEquals(201L, org201Integration.get().getOrganizationId());
+    assertNull(org201Integration.get().getProject());
+    assertTrue(org201Integration.get().isEnabled());
+
+    Optional<Integration> org202Integration =
+        integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(202L, btsTypeIds);
+
+    assertTrue(org202Integration.isPresent());
+    assertEquals(202L, org202Integration.get().getOrganizationId());
+    assertEquals(903L, org202Integration.get().getId());
+
+    assertTrue(integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(999L, btsTypeIds).isEmpty());
+  }
+
+  @Test
+  void shouldFindFirstEnabledByProjectIdAndTypeIdIn() {
+    List<Long> notificationTypeIds =
+        integrationTypeRepository.findIdsByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
+
+    Optional<Integration> disabledProjectIntegration =
+        integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(
+            SUPERADMIN_PERSONAL_PROJECT_ID, notificationTypeIds);
+
+    assertTrue(disabledProjectIntegration.isEmpty());
   }
 
   @Test

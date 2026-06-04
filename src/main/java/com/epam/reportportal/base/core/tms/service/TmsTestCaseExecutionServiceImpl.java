@@ -2,7 +2,7 @@ package com.epam.reportportal.base.core.tms.service;
 
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
-import com.epam.reportportal.base.core.item.TestItemService;
+import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
 import com.epam.reportportal.base.core.tms.dto.NestedStepResult;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioRS;
@@ -16,6 +16,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseExecutionMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
@@ -24,10 +25,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Status
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
+import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,7 +64,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private final TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
   private final TmsTestCaseExecutionFilterableRepository tmsTestCaseExecutionFilterableRepository;
   private final TmsTestCaseVersionService tmsTestCaseVersionService;
-  private final TestItemService testItemService;
+  private final UpdateTestItemHandler updateTestItemHandler;
   private final TmsTestCaseExecutionCommentService tmsTestCaseExecutionCommentService;
   private final TmsTestCaseExecutionMapper tmsTestCaseExecutionMapper;
   private final TmsTestPlanService tmsTestPlanService;
@@ -192,7 +195,6 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
       tmsStepIds = scenarioResult.getTmsStepIds();
 
       if (!nestedSteps.isEmpty()) {
-        testCaseItemService.markAsHavingNestedChildren(testItem);
         log.trace("Nested steps created: {} for TEST item: {}", nestedSteps.size(),
             testItem.getItemId());
       }
@@ -387,19 +389,19 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     tmsTestCaseExecutionRepository.deleteById(executionId);
     log.debug("Deleted test case execution: {}", executionId);
 
-    // Check if SUITE item has any remaining TEST children
+    // Check if SUITE item has any remaining STEP children (test cases)
     if (suiteItemId != null) {
       var testChildrenCount = testItemRepository.countByParentIdAndType(
-          suiteItemId, TestItemTypeEnum.TEST);
-
+          suiteItemId, TestItemTypeEnum.STEP);
+    
       if (testChildrenCount == 0) {
-        log.debug("SUITE item: {} has no more TEST children, deleting it", suiteItemId);
+        log.debug("SUITE item: {} has no more STEP children, deleting it", suiteItemId);
         // Clean up folder-item link
         testFolderItemService.deleteTestFolderTestItemByTestItemId(suiteItemId);
-
+    
         testItemRepository.deleteById(suiteItemId);
       } else {
-        log.debug("SUITE item: {} still has {} TEST children", suiteItemId, testChildrenCount);
+        log.debug("SUITE item: {} still has {} STEP children", suiteItemId, testChildrenCount);
       }
     }
 
@@ -526,7 +528,11 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
 
   @Override
   @Transactional
-  public TmsTestCaseExecutionRS patch(Long executionId, Long launchId,
+  public TmsTestCaseExecutionRS patch(
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
+      Long executionId,
+      Long launchId,
       TmsTestCaseExecutionRQ request) {
     log.debug("Updating test case execution: {} in launch: {}", executionId,
         launchId); //TODO check that anf think how to fix
@@ -540,7 +546,13 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             var testItem = execution.getTestItem();
             if (testItem != null && testItem.getItemResults() != null) {
               execution.setTestItem(
-                  testItemService.patchTestItemStatus(testItem, request.getStatus().toUpperCase()));
+                  updateTestItemHandler.updateTestItem(
+                      membershipDetails,
+                      testItem,
+                      UpdateTestItemRQ.builder().status(request.getStatus()).build(),
+                      user
+                  )
+              );
               // Add the test case to test plan for PASSED or FAILED status
               addTestCaseToTestPlan(execution, request.getStatus());
               updated = true;
@@ -617,8 +629,21 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             ErrorType.NOT_FOUND,
             TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
         ));
-
+  
     return tmsTestCaseExecutionCommentService.putTestCaseExecutionComment(execution, request);
+  }
+  
+  @Override
+  @Transactional
+  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId,
+      Long executionId, TmsTestCaseExecutionCommentRQ request) {
+    var execution = findByTestCaseExecutionIdAndLaunchId(executionId, launchId)
+        .orElseThrow(() -> new ReportPortalException(
+            ErrorType.NOT_FOUND,
+            TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
+        ));
+  
+    return tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution, request);
   }
 
   @Override

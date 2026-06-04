@@ -159,18 +159,19 @@ public interface TmsManualLaunchService {
   /**
    * Patches test case execution (updates status and comment).
    *
-   * @param projectId   project ID
-   * @param launchId    launch ID
-   * @param executionId execution ID
-   * @param request     patch request data
+   * @param membershipDetails project ID
+   * @param launchId          launch ID
+   * @param executionId       execution ID
+   * @param request           patch request data
+   * @param user
    * @return updated test case execution
    */
   TmsTestCaseExecutionRS patchTestCaseExecution(
-      Long projectId,
+      MembershipDetails membershipDetails,
       Long launchId,
       Long executionId,
-      TmsTestCaseExecutionRQ request
-  );
+      TmsTestCaseExecutionRQ request,
+      ReportPortalUser user);
 
   /**
    * Gets unique folders from test cases in launch.
@@ -188,7 +189,9 @@ public interface TmsManualLaunchService {
   Optional<Long> getTestPlanIdByLaunchId(Long launchId);
 
   TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId, Long executionId, @Valid TmsTestCaseExecutionCommentRQ request);
-
+  
+  TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId, Long executionId, @Valid TmsTestCaseExecutionCommentRQ request);
+  
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 
   Map<Long, Launch> getEntitiesByIds(Long projectId, List<Long> launchIds);

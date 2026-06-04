@@ -24,6 +24,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Patch-style update for a test item (e.g. description, attributes, status).
@@ -31,6 +35,10 @@ import java.util.Set;
  * @author Dzmitry_Kavalets
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class UpdateTestItemRQ {
 
   @Size(max = MAX_PARAMETERS_LENGTH)
@@ -43,28 +51,4 @@ public class UpdateTestItemRQ {
 
   @JsonProperty(value = "status")
   private String status;
-
-  public Set<ItemAttributeResource> getAttributes() {
-    return attributes;
-  }
-
-  public void setAttributes(Set<ItemAttributeResource> attributes) {
-    this.attributes = attributes;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public String getStatus() {
-    return status;
-  }
-
-  public void setStatus(String status) {
-    this.status = status;
-  }
 }

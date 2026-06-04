@@ -1,0 +1,164 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.ws.converter.converters;
+
+import static java.util.Optional.ofNullable;
+
+import com.epam.reportportal.api.model.CreateOrgIntegrationRequest;
+import com.epam.reportportal.api.model.OrganizationIntegration;
+import com.epam.reportportal.api.model.OrganizationIntegrationIntegrationType;
+import com.epam.reportportal.api.model.UpdateOrgIntegrationRequest;
+import com.epam.reportportal.base.core.integration.util.property.AuthProperties;
+import com.epam.reportportal.base.core.integration.util.property.BtsProperties;
+import com.epam.reportportal.base.core.integration.util.property.SauceLabsProperties;
+import com.epam.reportportal.base.infrastructure.persistence.entity.EmailSettingsEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
+import com.epam.reportportal.base.model.activity.IntegrationActivityResource;
+import com.epam.reportportal.base.model.integration.AuthFlowEnum;
+import com.epam.reportportal.base.model.integration.IntegrationRQ;
+import com.epam.reportportal.base.model.integration.IntegrationResource;
+import com.epam.reportportal.base.model.integration.IntegrationTypeResource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+/**
+ * Maps third-party integration entities to API integration resources.
+ *
+ * @author Pavel Bortnik
+ */
+public final class IntegrationConverter {
+
+  private IntegrationConverter() {
+    //static only
+  }
+
+
+  public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE =
+      integration -> {
+        IntegrationActivityResource resource = new IntegrationActivityResource();
+        resource.setId(integration.getId());
+        resource.setName(integration.getName());
+        ofNullable(integration.getProject()).ifPresent(p -> {
+          resource.setProjectId(p.getId());
+          resource.setProjectName(p.getName());
+        });
+        resource.setTypeName(integration.getType().getName());
+        return resource;
+      };
+
+
+  private static final List<String> IGNORE_FIELDS =
+      List.of(EmailSettingsEnum.PASSWORD.getAttribute(), SauceLabsProperties.ACCESS_TOKEN.getName(),
+          BtsProperties.OAUTH_ACCESS_KEY.getName(), BtsProperties.API_TOKEN.getName(),
+          AuthProperties.MANAGER_PASSWORD.getName()
+      );
+
+
+  private static final Predicate<Map.Entry<String, Object>> IGNORE_FIELDS_CONDITION =
+      entry -> IGNORE_FIELDS.stream().noneMatch(field -> field.equalsIgnoreCase(entry.getKey()));
+
+
+  public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE =
+      integration -> {
+        IntegrationResource resource = new IntegrationResource();
+        resource.setId(integration.getId());
+        resource.setName(integration.getName());
+        resource.setCreator(integration.getCreator());
+        resource.setCreationDate(integration.getCreationDate());
+        resource.setEnabled(integration.isEnabled());
+        ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
+        ofNullable(integration.getParams()).flatMap(IntegrationConverter::convertToResourceParams)
+            .ifPresent(resource::setIntegrationParams);
+        IntegrationTypeResource type = new IntegrationTypeResource();
+        type.setId(integration.getType().getId());
+        type.setName(integration.getType().getName());
+        type.setEnabled(integration.getType().isEnabled());
+        type.setCreationDate(integration.getType().getCreationDate());
+        type.setGroupType(integration.getType().getIntegrationGroup().name());
+        ofNullable(integration.getType().getDetails())
+            .ifPresent(it -> type.setDetails(it.getDetails()));
+        ofNullable(integration.getType().getAuthFlow())
+            .ifPresent(it -> type.setAuthFlow(AuthFlowEnum.valueOf(it.name())));
+        resource.setIntegrationType(type);
+
+        return resource;
+      };
+
+
+  private static Optional<Map<String, Object>> convertToResourceParams(IntegrationParams it) {
+    return ofNullable(it.getParams()).map(p -> p.entrySet().stream().filter(IGNORE_FIELDS_CONDITION)
+        .collect(HashMap::new,
+            (resourceParams, entry) -> resourceParams.put(entry.getKey(), entry.getValue()),
+            Map::putAll
+        ));
+  }
+
+  public static final Function<Integration, OrganizationIntegration> TO_ORGANIZATION_INTEGRATION =
+      integration -> {
+        OrganizationIntegration result = new OrganizationIntegration();
+        result.setId(integration.getId());
+        result.setName(integration.getName());
+        result.setCreator(integration.getCreator());
+        result.setEnabled(integration.isEnabled());
+        result.setCreatedAt(integration.getCreationDate());
+        result.setParameters(
+            ofNullable(integration.getParams())
+                .flatMap(IntegrationConverter::convertToResourceParams)
+                .orElseGet(HashMap::new));
+        ofNullable(integration.getType()).ifPresent(t -> {
+          OrganizationIntegrationIntegrationType type = new OrganizationIntegrationIntegrationType();
+          type.setName(t.getName());
+          ofNullable(t.getIntegrationGroup()).map(Enum::name).ifPresent(type::setType);
+          ofNullable(t.getPluginType()).map(Enum::name).ifPresent(type::setPluginType);
+          ofNullable(t.getIntegrationGroup()).map(Enum::name).ifPresent(type::setGroupType);
+          type.setCreatedAt(t.getCreationDate());
+          ofNullable(t.getDetails()).map(IntegrationTypeDetails::getDetails).ifPresent(type::setDetails);
+          ofNullable(t.getAuthFlow())
+              .ifPresent(flow ->
+                  type.setAuthFlow(OrganizationIntegrationIntegrationType.AuthFlowEnum.valueOf(flow.name())));
+          result.setIntegrationType(type);
+        });
+        return result;
+      };
+
+
+  public static final Function<CreateOrgIntegrationRequest, IntegrationRQ> CREATE_REQUEST_TO_RQ =
+      request -> {
+        IntegrationRQ rq = new IntegrationRQ();
+        rq.setName(request.getName());
+        rq.setIntegrationParams(request.getParameters());
+        rq.setEnabled(request.getEnabled());
+        return rq;
+      };
+
+
+  public static final Function<UpdateOrgIntegrationRequest, IntegrationRQ> UPDATE_REQUEST_TO_RQ =
+      request -> {
+        IntegrationRQ rq = new IntegrationRQ();
+        rq.setName(request.getName());
+        rq.setIntegrationParams(request.getParameters());
+        rq.setEnabled(request.getEnabled());
+        return rq;
+      };
+
+}

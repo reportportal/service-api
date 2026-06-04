@@ -20,6 +20,7 @@ plugins {
     alias(libs.plugins.drill.integration)
     alias(libs.plugins.openapi.generator)
     alias(libs.plugins.spring.boot)
+    alias(libs.plugins.jooq.codegen)
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -36,39 +37,57 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ?
         println('No sealights session')
 
 java {
-    targetCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_25
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
 println("Release mode: $releaseMode")
 
 dependencies {
-    if (releaseMode) {
-        println("Using release dependencies")
-        implementation(libs.reportportal.commons)
-        implementation(libs.reportportal.commons.dao) {
-            exclude group: 'com.epam.reportportal', module: 'commons'
-        }
-        implementation(libs.reportportal.plugin.api) {
-            exclude group: 'com.epam.reportportal', module: 'commons-dao'
-            exclude group: 'com.epam.reportportal', module: 'commons'
-        }
-    } else {
-        println("Using snapshot dependencies")
-        implementation(libs.reportportal.commons.dev)
-        implementation(libs.reportportal.commons.dao.dev) {
-            exclude group: 'com.github.reportportal', module: 'commons'
-        }
-        implementation(libs.reportportal.plugin.api.dev) {
-            exclude group: 'com.github.reportportal', module: 'commons-dao'
-            exclude group: 'com.github.reportportal', module: 'commons'
-        }
-    }
-    api(platform(libs.spring.boot.bom))
-    implementation(platform(libs.reportportal.commons.bom))
     implementation(platform(libs.zonky.postgres.bom))
+    api(libs.embedded.postgres)
+
+    api(platform(libs.spring.boot.bom))
+
+    // Spring Modulith
+    implementation(platform(libs.spring.modulith.bom))
+    implementation(libs.spring.modulith.starter.core)
+    implementation(libs.spring.modulith.events.api)
+    implementation(libs.spring.modulith.actuator)
+    testImplementation(libs.spring.modulith.docs)
+    testImplementation(libs.spring.modulith.starter.test)
+    testImplementation(libs.spring.modulith.junit)
+
+    api(libs.jclouds.s3)
+    api(libs.jclouds.aw.s3)
+    api(libs.jclouds.filesystem)
+    api(libs.guava)
+    api(libs.jasypt)
+    api(libs.pf4j)
+    api(libs.jackson.databind)
+    api(libs.jackson.jsr310)
+    api(libs.jooq)
+    api(libs.apache.commons.collections4)
+    api(libs.tika)
+    api(libs.httpclient5) // supports gzip encoding
+    api(libs.spring.context)
+    api(libs.spring.jdbc)
+    api(libs.spring.web)
+    api(libs.spring.data.jpa)
+    api(libs.spring.security.core)
+    implementation(libs.spring.security.ldap)
+    implementation(libs.spring.security.saml2.service.provider)
+    implementation(libs.spring.security.oauth2.authorization.server)
+
+    runtimeOnly(libs.nimbus.oauth2.oidc.sdk)
+
+    api(libs.spring.data.commons)
+    api(libs.hibernate.core)
+    api(libs.jakarta.validation)
+
+    api(libs.pf4j.update) // TODO get rid of and rewrite with the latest version of pf4j
     implementation(libs.bundles.spring.boot.starters)
     implementation(libs.bundles.spring.security)
 
@@ -78,13 +97,22 @@ dependencies {
 
     implementation(libs.springdoc.openapi)
     implementation(libs.micrometer)
+    implementation(libs.kotlin.stdlib)
     implementation(libs.opencsv)
-    implementation(libs.jooq)
     implementation(libs.slugify)
+    implementation(libs.postgresql)
+    jooqCodegen(libs.postgresql)
+    implementation(libs.thumbnailator)
+    implementation(libs.aws.core)
+    implementation(libs.aws.sts)
+    implementation(libs.jakarta.xml.bind.api)
+    implementation(libs.jaxb.api)
+    implementation(libs.json) // TODO get rid of
+    implementation(libs.flyway.core) // TODO get rid of
+    implementation(libs.flyway.database.postgresql) // TODO get rid of
 
     // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)
-    implementation(libs.httpclient5) // supports gzip encoding
 
     // Check authentication error response format for versions higher than 6.21.3 TODO: consider upgrade to 7.0.1+
     implementation(libs.jasperreports) {
@@ -93,6 +121,8 @@ dependencies {
 
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation(libs.apache.poi)
+    implementation(libs.apache.poi.ooxml)
+    implementation(libs.apache.commons.commonscsv)
     implementation(libs.openpdf)
     implementation(libs.jakarta.inject.api)
     implementation(libs.jakarta.mail)
@@ -103,14 +133,18 @@ dependencies {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
     }
     implementation(libs.caffeine)
-    implementation(libs.apache.jclouds.filesystem)
     implementation(libs.apache.commons.compress)
+    implementation(libs.apache.commons.lang3)
     implementation(libs.hibernate.validator)
     implementation(libs.json.schema.validator)
 
     // Add lombok support
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+
+    //mapstruct
+    implementation(libs.mapstruct)
+    annotationProcessor(libs.mapstruct.processor)
 
     //  Tests
     testImplementation(libs.bundles.test.libs)
@@ -148,8 +182,8 @@ tasks.register('updateApiSubmodule', Exec) {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
     options.encoding = "UTF-8"
     options.compilerArgs << "-parameters"
     options.debug = true
@@ -180,7 +214,7 @@ bootJar {
     duplicatesStrategy = duplicatesStrategy.EXCLUDE
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
 }
-jar.enabled(true)
+jar.enabled = true
 jar.archiveClassifier.set('')
 
 test {
@@ -194,6 +228,7 @@ test {
     reports {
         junitXml.required = true
     }
+    maxHeapSize = '2g'
 }
 
 compileJava.dependsOn tasks.named('openApiGenerate')

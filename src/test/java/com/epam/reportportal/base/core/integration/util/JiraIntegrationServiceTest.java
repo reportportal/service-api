@@ -1,0 +1,124 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.core.integration.util;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+
+import com.epam.reportportal.base.core.integration.util.property.BtsProperties;
+import com.epam.reportportal.base.core.plugin.PluginBox;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.AuthType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.HashMap;
+import java.util.Map;
+import org.jasypt.util.text.BasicTextEncryptor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+/**
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ */
+class JiraIntegrationServiceTest {
+
+  private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
+  private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
+  private PluginBox pluginBox = mock(PluginBox.class);
+
+  private BtsIntegrationService btsService;
+
+  @BeforeEach
+  void setUp() {
+    BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
+    basicTextEncryptor.setPassword("123");
+    btsService = new BtsIntegrationService(integrationRepository, pluginBox, basicTextEncryptor);
+  }
+
+  @Test
+  void testParameters() {
+    Map<String, Object> res = btsService.retrieveCreateParams("jira",
+        getCorrectJiraIntegrationParams());
+    assertThat(res.keySet(), hasSize(5));
+  }
+
+  @Test
+  void testParametersWithoutUsername() {
+    Map<String, Object> params = getCorrectJiraIntegrationParams();
+    params.remove(BtsProperties.USER_NAME.getName());
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> btsService.retrieveCreateParams("jira", params)
+    );
+    assertEquals("Impossible interact with integration. Username value is not specified",
+        exception.getMessage());
+  }
+
+  @Test
+  void testParametersWithouPassword() {
+    Map<String, Object> params = getCorrectJiraIntegrationParams();
+    params.remove(BtsProperties.PASSWORD.getName());
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> btsService.retrieveCreateParams("jira", params)
+    );
+    assertEquals("Impossible interact with integration. Password value is not specified",
+        exception.getMessage());
+  }
+
+  @Test
+  void testParametersWithouKey() {
+    Map<String, Object> params = getCorrectJiraIntegrationParams();
+    params.put(BtsProperties.AUTH_TYPE.getName(), AuthType.OAUTH.name());
+    params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> btsService.retrieveCreateParams("jira", params)
+    );
+    assertEquals("Impossible interact with integration. AccessKey value is not specified",
+        exception.getMessage());
+  }
+
+  @Test
+  void testParametersUnopportetAuthType() {
+    Map<String, Object> params = getCorrectJiraIntegrationParams();
+    params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> btsService.retrieveCreateParams("jira", params)
+    );
+    assertEquals(
+        "Impossible interact with integration. Unsupported auth type for integration - "
+            + UNSUPPORTED_AUTH_TYPE_NAME,
+        exception.getMessage()
+    );
+  }
+
+  private Map<String, Object> getCorrectJiraIntegrationParams() {
+
+    Map<String, Object> params = new HashMap<>();
+    params.put(BtsProperties.URL.getName(), "jira-url");
+    params.put(BtsProperties.PROJECT.getName(), "jira-project");
+    params.put(BtsProperties.AUTH_TYPE.getName(), AuthType.BASIC.name());
+    params.put(BtsProperties.USER_NAME.getName(), "USERNAME");
+    params.put(BtsProperties.PASSWORD.getName(), "PASSWORD");
+    params.put(BtsProperties.OAUTH_ACCESS_KEY.getName(), "KEY");
+
+    return params;
+  }
+}

@@ -3,7 +3,11 @@ rootProject.name = 'service-api'
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven { url "https://jitpack.io" }
+        maven { url = "https://jitpack.io" }
+        maven { url = "https://jitpack.io" }
+
+        // spring security relies on open saml dependency which lives in Shibboleth artifactory
+        maven { url = "https://build.shibboleth.net/nexus/content/repositories/releases/" }
     }
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 }

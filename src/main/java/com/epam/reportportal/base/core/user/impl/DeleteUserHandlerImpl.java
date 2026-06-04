@@ -120,9 +120,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
       publishUserUnassignEvent(user, project.getId(), project.getOrganizationId());
     });
 
-    String actorLogin = loggedInUser.getUserId().equals(user.getId())
-        ? DELETED_USER : loggedInUser.getUsername();
-    publishPersonalOrganizationDeletedEvents(user, loggedInUser.getUserId(), actorLogin);
+    publishPersonalOrganizationDeletedEvents(user, loggedInUser);
 
     dataStore.deleteUserPhoto(user);
     userRepository.delete(user);
@@ -205,7 +203,11 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
     applicationEventPublisher.publishEvent(new UnassignUserEvent(userActivityResource, orgId));
   }
 
-  private void publishPersonalOrganizationDeletedEvents(User user, Long actorId, String actorLogin) {
+  private void publishPersonalOrganizationDeletedEvents(User user, ReportPortalUser loggedInUser) {
+    boolean isSelfDeletion = loggedInUser.getUserId().equals(user.getId());
+    Long actorId = isSelfDeletion ? null : loggedInUser.getUserId();
+    String actorLogin = isSelfDeletion ? null : loggedInUser.getUsername();
+
     organizationRepository.findByOwnerIdAndOrganizationType(user.getId(), OrganizationType.PERSONAL)
         .ifPresent(org -> {
           projectRepository.findAllByOrganizationId(org.getId())

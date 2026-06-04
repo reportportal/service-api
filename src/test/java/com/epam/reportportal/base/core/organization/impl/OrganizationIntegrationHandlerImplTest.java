@@ -43,6 +43,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.util.List;
 import java.util.Map;
@@ -265,6 +266,27 @@ class OrganizationIntegrationHandlerImplTest {
     // Then
     assertThat(result.getStatus()).isEqualTo(IntegrationConnectionStatus.StatusEnum.CONNECTED);
     assertThat(result.getCheckedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should throw INTEGRATION_ALREADY_EXISTS when org email integration already exists")
+  void createOrganizationIntegrationWhenEmailAlreadyExistsShouldThrow() {
+    // Given
+    var emailType = new IntegrationType();
+    emailType.setId(5L);
+    emailType.setName("email");
+
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationTypeRepository.findByName("email")).thenReturn(Optional.of(emailType));
+    when(integrationRepository.existsByTypeIdAndOrganizationId(5L, ORG_ID)).thenReturn(true);
+
+    var request = new IntegrationRQ();
+    request.setName("email-server-2");
+
+    // When & Then
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.createOrganizationIntegration(ORG_ID, "email", request));
+    assertEquals(ErrorType.INTEGRATION_ALREADY_EXISTS, ex.getErrorType());
   }
 
   @Test

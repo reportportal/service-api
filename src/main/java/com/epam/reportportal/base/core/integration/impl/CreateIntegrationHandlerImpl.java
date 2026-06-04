@@ -29,6 +29,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepo
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -100,6 +101,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
         integrationServiceMapping.getOrDefault(integrationType.getName(),
             this.basicIntegrationService
         );
+
+    validateSingleInstanceTypeGlobal(integrationType);
+
     String integrationName = ofNullable(createRequest.getName())
         .map(name -> {
           validateGlobalIntegrationName(name, integrationType);
@@ -139,6 +143,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
         integrationServiceMapping.getOrDefault(integrationType.getName(),
             this.basicIntegrationService
         );
+
+    validateSingleInstanceTypeProject(integrationType, project);
 
     String integrationName = ofNullable(createRequest.getName())
         .map(name -> {
@@ -260,6 +266,25 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
             integrationType.getName(), integrationName, project.getName()
         )
     );
+  }
+
+  private void validateSingleInstanceTypeGlobal(IntegrationType type) {
+    if (!ReservedIntegrationTypeEnum.EMAIL.getName().equals(type.getName())) {
+      return;
+    }
+    BusinessRule.expect(integrationRepository.existsByTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(type.getId()),
+        BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+        Suppliers.formattedSupplier("Global integration of type = '{}' already exists", type.getName()));
+  }
+
+  private void validateSingleInstanceTypeProject(IntegrationType type, Project project) {
+    if (!ReservedIntegrationTypeEnum.EMAIL.getName().equals(type.getName())) {
+      return;
+    }
+    BusinessRule.expect(integrationRepository.existsByTypeIdAndProjectId(type.getId(), project.getId()),
+        BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+        Suppliers.formattedSupplier("Project integration of type = '{}' already exists on project = '{}'",
+            type.getName(), project.getName()));
   }
 
   private void publishUpdateActivity(ReportPortalUser user,

@@ -49,6 +49,12 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
 
   boolean existsByNameIgnoreCaseAndTypeIdAndProjectId(String name, Long typeId, Long projectId);
 
+  boolean existsByTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(Long typeId);
+
+  boolean existsByTypeIdAndOrganizationId(Long typeId, Long organizationId);
+
+  boolean existsByTypeIdAndProjectId(Long typeId, Long projectId);
+
   /**
    * Retrieve integration by ID and project ID
    *
@@ -279,14 +285,14 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @return the integration, or empty if none match
    */
   @Query("""
-        SELECT i FROM Integration i
-        WHERE i.project.id = :projectId
-          AND i.type.id IN :typeIds
-          AND i.enabled = true
-          AND i.type.enabled = true
-        ORDER BY i.creationDate DESC
-        LIMIT 1
-        """)
+      SELECT i FROM Integration i
+      WHERE i.project.id = :projectId
+        AND i.type.id IN :typeIds
+        AND i.enabled = true
+        AND i.type.enabled = true
+      ORDER BY i.creationDate DESC
+      LIMIT 1
+      """)
   Optional<Integration> findFirstEnabledByProjectIdAndTypeIdIn(
       @Param("projectId") Long projectId, @Param("typeIds") List<Long> typeIds);
 
@@ -298,14 +304,14 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @return the integration, or empty if none match
    */
   @Query("""
-        SELECT i FROM Integration i
-        WHERE i.organizationId = :orgId
-          AND i.type.id IN :typeIds
-          AND i.enabled = true
-          AND i.type.enabled = true
-        ORDER BY i.creationDate DESC
-        LIMIT 1
-        """)
+      SELECT i FROM Integration i
+      WHERE i.organizationId = :orgId
+        AND i.type.id IN :typeIds
+        AND i.enabled = true
+        AND i.type.enabled = true
+      ORDER BY i.creationDate DESC
+      LIMIT 1
+      """)
   Optional<Integration> findFirstEnabledByOrganizationIdAndTypeIdIn(
       @Param("orgId") Long orgId, @Param("typeIds") List<Long> typeIds);
 
@@ -316,15 +322,15 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @return the integration, or empty if none match
    */
   @Query("""
-        SELECT i FROM Integration i
-        WHERE i.project IS NULL
-          AND i.organizationId IS NULL
-          AND i.type.id IN :typeIds
-          AND i.enabled = true
-          AND i.type.enabled = true
-        ORDER BY i.creationDate DESC
-        LIMIT 1
-        """)
+      SELECT i FROM Integration i
+      WHERE i.project IS NULL
+        AND i.organizationId IS NULL
+        AND i.type.id IN :typeIds
+        AND i.enabled = true
+        AND i.type.enabled = true
+      ORDER BY i.creationDate DESC
+      LIMIT 1
+      """)
   Optional<Integration> findFirstEnabledGlobalByTypeIdIn(@Param("typeIds") List<Long> typeIds);
 
 }

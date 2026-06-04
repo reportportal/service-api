@@ -26,12 +26,12 @@ jobs:
       DRILL_API_KEY: ${{ secrets.DRILL_API_KEY }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
 
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
           distribution: adopt
           java-version: 21
@@ -45,7 +45,8 @@ jobs:
       - name: Build with Gradle
         id: build
         run: |
-          ./gradlew test || true
+          ./gradlew test
+        continue-on-error: true
 
       - name: Upload test report
         if: always()

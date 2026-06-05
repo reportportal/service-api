@@ -39,6 +39,7 @@ import com.epam.reportportal.api.model.InvitationRequestOrganizationsInner;
 import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.CreateInvitationLinkEvent;
+import com.epam.reportportal.base.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
@@ -51,6 +52,8 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.organization.Or
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
@@ -66,6 +69,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +86,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   private final ApplicationEventPublisher eventPublisher;
   private final ThreadPoolTaskExecutor emailExecutorService;
   private final MailServiceFactory emailServiceFactory;
+  private final GetIntegrationHandler getIntegrationHandler;
   private final HttpServletRequest httpServletRequest;
   private final UserCreationBidRepository userCreationBidRepository;
   private final UserRepository userRepository;
@@ -127,12 +132,13 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     invitation.setUserId(inviter.getId());
     invitation.setFullName(inviter.getFullName());
 
-    //  TODO: Add search organization integrations
-    emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(false)
-        .sendCreateUserConfirmationEmail(
-            "User registration confirmation",
-            new String[]{userBid.getEmail()}, invitation.getLink().toString()
-        ));
+    Optional<Integration> emailIntegration = resolveEmailIntegration(invitationRq);
+    if (emailIntegration.isEmpty()) {
+      log.warn("Email server is not configured. Invitation email to {} was not sent.", userBid.getEmail());
+      return invitation;
+    }
+
+    emailExecutorService.execute(() -> sendInvitationEmail(emailIntegration.get(), userBid, invitation));
 
     invitationRq.getOrganizations().forEach(org -> {
       if (org.getProjects() == null || org.getProjects().isEmpty()) {
@@ -241,6 +247,35 @@ public class UserInvitationServiceImpl implements UserInvitationService {
           obj.put("projects", getProjectsMetadata(org));
           return obj;
         }).toList();
+  }
+
+  private void sendInvitationEmail(Integration integration, UserCreationBid userBid, Invitation invitation) {
+    emailServiceFactory.getDefaultEmailService(integration)
+        .ifPresentOrElse(emailService -> emailService.sendCreateUserConfirmationEmail("User registration confirmation",
+                new String[]{userBid.getEmail()}, invitation.getLink().toString()),
+            () -> log.warn("No email service available for integration. Invitation email to {} was not sent.",
+                userBid.getEmail()));
+  }
+
+  private Optional<Integration> resolveEmailIntegration(InvitationRequest request) {
+    var orgs = request.getOrganizations();
+    var emailType = ReservedIntegrationTypeEnum.EMAIL.getName();
+
+    if (CollectionUtils.isEmpty(orgs) || orgs.size() > 1) {
+      // global integration
+      return getIntegrationHandler.findFirstEnabledGlobalByTypeName(emailType);
+    }
+
+    var org = orgs.getFirst();
+    var projects = org.getProjects();
+
+    if (CollectionUtils.isNotEmpty(projects) && projects.size() == 1) {
+      // project -> org -> global integration
+      return getIntegrationHandler.findFirstEnabledByTypeName(projects.getFirst().getId(), org.getId(), emailType);
+    }
+
+    // org -> global integration
+    return getIntegrationHandler.findFirstEnabledByOrganizationAndTypeName(org.getId(), emailType);
   }
 
   private boolean isSsoEnabled() {

@@ -7,6 +7,12 @@ import com.epam.reportportal.extension.AbstractContextBasedCommand;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+/**
+ * Abstract plugin command that requires only an authenticated principal.
+ *
+ * @deprecated Use {@link com.epam.reportportal.extension.command.AbstractExtensionCommand} instead.
+ */
+@Deprecated
 public abstract class AuthenticatedUserContextCommand extends AbstractContextBasedCommand<Object> {
 
   protected void validateRole(PluginCommandContext commandContext) {

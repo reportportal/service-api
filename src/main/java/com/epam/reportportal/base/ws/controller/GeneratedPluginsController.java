@@ -47,9 +47,8 @@ public class GeneratedPluginsController implements PluginsApi {
    */
   @Override
   @Transactional
-  public ResponseEntity<Object> executePluginCommand(String pluginName, String commandName,
-      PluginCommandRQ pluginCommandRq) {
-    return ResponseEntity.ok(executeIntegrationHandler.executeCommand(pluginName, commandName, pluginCommandRq));
+  public ResponseEntity<Object> executePluginCommand(String pluginName, String commandName, PluginCommandRQ pluginCommandRq) {
+    return ResponseEntity.ok(executeIntegrationHandler.executeExtensionCommand(pluginName, commandName, pluginCommandRq));
   }
 
 }

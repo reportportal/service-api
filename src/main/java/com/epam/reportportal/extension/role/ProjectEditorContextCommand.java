@@ -1,4 +1,20 @@
-package com.epam.reportportal.extension;
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.extension.role;
 
 import static java.util.Optional.ofNullable;
 
@@ -16,28 +32,27 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import java.util.Map.Entry;
 
 /**
- * Abstract plugin command that requires at least project manager (editor) role for execution.
+ * Abstract base class for plugin commands that require at least the {@code EDITOR} project role.
  *
- * @param <T> the return type of the command
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @param <T> the type of the command result
+ * @deprecated Use {@link com.epam.reportportal.extension.command.AbstractExtensionCommand} instead.
  */
 @Deprecated
-public abstract class ProjectManagerCommand<T> extends ProjectMemberCommand<T> {
+public abstract class ProjectEditorContextCommand<T> extends ProjectMemberContextCommand<T> {
 
-  protected ProjectManagerCommand(ProjectRepository projectRepository,
+  protected ProjectEditorContextCommand(ProjectRepository projectRepository,
       OrganizationRepositoryCustom organizationRepository) {
     super(projectRepository, organizationRepository);
   }
 
   @Override
-  protected void validatePermissions(ReportPortalUser user, Project project) {
-    Organization organization = organizationRepository.findById(project.getOrganizationId())
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.NOT_FOUND, project.getOrganizationId()));
-
+  protected void validateProjectPermissions(ReportPortalUser user, Project project) {
     if (user.getUserRole() == UserRole.ADMINISTRATOR) {
       return;
     }
+
+    Organization organization = organizationRepository.findById(project.getOrganizationId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
 
     OrganizationRole orgRole = ofNullable(user.getOrganizationDetails())
         .flatMap(detailsMapping -> ofNullable(detailsMapping.get(organization.getName())))
@@ -48,7 +63,7 @@ public abstract class ProjectManagerCommand<T> extends ProjectMemberCommand<T> {
       return;
     }
 
-    var projectRole = user.getOrganizationDetails().entrySet().stream()
+    ProjectRole projectRole = user.getOrganizationDetails().entrySet().stream()
         .filter(entry -> entry.getKey().equals(organization.getName()))
         .map(Entry::getValue)
         .flatMap(orgDetails -> orgDetails.getProjectDetails().entrySet().stream())

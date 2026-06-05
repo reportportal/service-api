@@ -40,7 +40,6 @@ import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
-import com.epam.reportportal.base.core.organization.PersonalOrganizationService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -93,7 +92,6 @@ public class UserInvitationHandler {
   private final ProjectRepository projectRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserInvitationService userInvitationService;
-  private final PersonalOrganizationService personalOrganizationService;
   private final LinkGenerator linkGenerator;
 
   /**
@@ -149,7 +147,6 @@ public class UserInvitationHandler {
 
     assignOrganizationsAndProjects(createdUser, bid.getMetadata(), bid.getInvitingUser());
     userCreationBidRepository.deleteByUuid(bid.getUuid());
-    personalOrganizationService.createPersonalOrganization(createdUser.getId());
     userAuthenticator.authenticate(createdUser);
 
     return new Invitation()

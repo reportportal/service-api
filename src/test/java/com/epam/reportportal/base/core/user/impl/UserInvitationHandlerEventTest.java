@@ -30,7 +30,6 @@ import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
-import com.epam.reportportal.base.core.organization.PersonalOrganizationService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -93,9 +92,6 @@ class UserInvitationHandlerEventTest {
 
   @Mock
   private UserInvitationService userInvitationService;
-
-  @Mock
-  private PersonalOrganizationService personalOrganizationService;
 
   @Mock
   private LinkGenerator linkGenerator;

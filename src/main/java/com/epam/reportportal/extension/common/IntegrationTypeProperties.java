@@ -23,6 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 /**
  * Enum of well-known property keys stored in
@@ -30,6 +31,7 @@ import java.util.Optional;
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Getter
 public enum IntegrationTypeProperties {
 
   FILE_ID("fileId"),
@@ -38,7 +40,7 @@ public enum IntegrationTypeProperties {
   COMMANDS("allowedCommands"),
   VERSION("version");
 
-  private String attribute;
+  private final String attribute;
 
   IntegrationTypeProperties(String attribute) {
     this.attribute = attribute;
@@ -54,7 +56,4 @@ public enum IntegrationTypeProperties {
     integrationTypeDetails.setDetails(details);
   }
 
-  public String getAttribute() {
-    return attribute;
-  }
 }

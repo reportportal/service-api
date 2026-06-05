@@ -1,6 +1,8 @@
 package com.epam.reportportal.extension;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
+import com.epam.reportportal.extension.command.ExtensionCommand;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.pf4j.ExtensionPoint;
@@ -37,6 +39,7 @@ public interface ReportPortalExtensionPoint extends ExtensionPoint {
    * @param commandName Command name
    * @return {@link CommonPluginCommand}
    */
+  @Deprecated
   CommonPluginCommand getCommonCommand(String commandName);
 
   /**
@@ -45,6 +48,7 @@ public interface ReportPortalExtensionPoint extends ExtensionPoint {
    * @param commandName Command name
    * @return {@link PluginCommand}
    */
+  @Deprecated
   PluginCommand getIntegrationCommand(String commandName);
 
   default IntegrationGroupEnum getIntegrationGroup() {
@@ -53,6 +57,22 @@ public interface ReportPortalExtensionPoint extends ExtensionPoint {
 
   default Optional<IntegrationAuthFlowEnum> getAuthFlow() {
     return Optional.empty();
+  }
+
+  default ExtensionCommand<?> getCommonExtensionCommand(String commandName) {
+    return getCommonExtensionCommands().get(commandName);
+  }
+
+  default ExtensionCommand<?> getIntegrationExtensionCommand(String commandName) {
+    return getIntegrationExtensionCommands().get(commandName);
+  }
+
+  default Map<String, ExtensionCommand<?>> getCommonExtensionCommands() {
+    return new HashMap<>();
+  }
+
+  default Map<String, ExtensionCommand<?>> getIntegrationExtensionCommands() {
+    return new HashMap<>();
   }
 
 }

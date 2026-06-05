@@ -24,6 +24,7 @@ import com.epam.reportportal.api.model.PluginCommandRQ;
  *
  * @param <T> command return type
  */
+@Deprecated
 public abstract class AbstractContextBasedCommand<T> implements CommonPluginCommand<T> {
 
   /**

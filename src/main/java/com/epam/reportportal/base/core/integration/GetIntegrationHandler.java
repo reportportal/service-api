@@ -39,15 +39,31 @@ public interface GetIntegrationHandler {
   IntegrationResource getGlobalIntegrationById(Long integrationId);
 
   /**
-   * Returns the first enabled integration for the given type name, resolved in order: project -> organization ->
-   * global.
+   * Returns the first enabled integration resolved in order: project → organization → global.
    *
    * @param projectId      project identifier
-   * @param organizationId organization identifier; when {@code null}, organization-level lookup is skipped
+   * @param organizationId organization identifier
    * @param typeName       integration type name (e.g. {@code "email"})
    * @return the matching integration, or empty if none is enabled at any level
    */
   Optional<Integration> findFirstEnabledByTypeName(Long projectId, Long organizationId, String typeName);
+
+  /**
+   * Returns the first enabled integration resolved in order: organization → global.
+   *
+   * @param organizationId organization identifier
+   * @param typeName       integration type name (e.g. {@code "email"})
+   * @return the matching integration, or empty if none is enabled at any level
+   */
+  Optional<Integration> findFirstEnabledByOrganizationAndTypeName(Long organizationId, String typeName);
+
+  /**
+   * Returns the first enabled global integration for the given type name.
+   *
+   * @param typeName integration type name (e.g. {@code "email"})
+   * @return the matching integration, or empty if none is enabled globally
+   */
+  Optional<Integration> findFirstEnabledGlobalByTypeName(String typeName);
 
   Integration getEnabledBtsIntegration(MembershipDetails membershipDetails, String url,
       String btsProject);

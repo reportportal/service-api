@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ImageF
 import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.tika.mime.MediaType;
 
 /**
@@ -27,6 +29,8 @@ import org.apache.tika.mime.MediaType;
  *
  * @author Andrei Varabyeu
  */
+@Setter
+@Getter
 public class InternalTicket {
 
   private String summary;
@@ -42,46 +46,7 @@ public class InternalTicket {
    */
   private Map<Long, String> backLinks;
 
-  public String getSummary() {
-    return summary;
-  }
-
-  public void setSummary(String summary) {
-    this.summary = summary;
-  }
-
-  public String getComments() {
-    return comments;
-  }
-
-  public void setComments(String value) {
-    this.comments = value;
-  }
-
-  public Multimap<String, String> getFields() {
-    return fields;
-  }
-
-  public void setFields(Multimap<String, String> fields) {
-    this.fields = fields;
-  }
-
-  public List<LogEntry> getLogs() {
-    return logs;
-  }
-
-  public void setLogs(List<LogEntry> logs) {
-    this.logs = logs;
-  }
-
-  public Map<Long, String> getBackLinks() {
-    return backLinks;
-  }
-
-  public void setBackLinks(Map<Long, String> backLinks) {
-    this.backLinks = backLinks;
-  }
-
+  @Getter
   public static class LogEntry {
 
     private Long logId;
@@ -112,36 +77,5 @@ public class InternalTicket {
       this.isImage = ImageFormat.fromValue(MediaType.parse(contentType).getSubtype()).isPresent();
     }
 
-    public Long getLogId() {
-      return logId;
-    }
-
-    public String getMessage() {
-      return message;
-    }
-
-    public boolean isIncludeLogs() {
-      return isIncludeLogs;
-    }
-
-    public boolean isHasAttachment() {
-      return hasAttachment;
-    }
-
-    public String getFileId() {
-      return fileId;
-    }
-
-    public String getDecodedFileName() {
-      return decodedFileName;
-    }
-
-    public String getContentType() {
-      return contentType;
-    }
-
-    public boolean isImage() {
-      return isImage;
-    }
   }
 }

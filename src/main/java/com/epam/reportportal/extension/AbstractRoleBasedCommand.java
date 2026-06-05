@@ -10,6 +10,7 @@ import java.util.Map;
  * @param <T> the return type of the command
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Deprecated
 public abstract class AbstractRoleBasedCommand<T> implements PluginCommand<T> {
 
   /**

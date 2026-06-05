@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @param <T> the return type of the command
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Deprecated
 public abstract class AdminCommand<T> extends AbstractRoleBasedCommand<T> {
 
   @Override

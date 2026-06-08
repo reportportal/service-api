@@ -47,6 +47,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ExternalAttachmentLoadServiceTest {
 
+  private static final String PLUGIN_ID = "test-plugin";
+  private static final String COMMAND_NAME = "downloadExternalAttachment";
+
   @Mock
   private LogRepository logRepository;
 
@@ -73,14 +76,14 @@ class ExternalAttachmentLoadServiceTest {
   void prefersProjectIntegrationWhenAvailable() {
     IntegrationType type = integrationType();
     Integration projectIntegration = new Integration();
-    when(integrationTypeRepository.findByName("mobitru")).thenReturn(Optional.of(type));
+    when(integrationTypeRepository.findByName(PLUGIN_ID)).thenReturn(Optional.of(type));
     when(integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(7L, type))
         .thenReturn(List.of(projectIntegration));
-    when(pluginBox.getInstance("mobitru", ReportPortalExtensionPoint.class))
+    when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand("loadExternalAttachment")).thenReturn(pluginCommand);
+    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
 
-    service.loadAttachment(new ExternalAttachmentLoadEvent(11L, 7L, 3L, 5L, "rec-1"));
+    service.loadAttachment(event(11L, 7L, 3L, 5L, "rec-1", "BBID"));
 
     ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
     verify(pluginCommand).executeCommand(eq(projectIntegration), paramsCaptor.capture());
@@ -88,7 +91,8 @@ class ExternalAttachmentLoadServiceTest {
         .containsEntry("projectId", 7L)
         .containsEntry("launchId", 3L)
         .containsEntry("testItemId", 5L)
-        .containsEntry("attachmentExternalId", "rec-1");
+        .containsEntry("attachmentExternalId", "rec-1")
+        .containsEntry("attachmentAttributeKey", "BBID");
     verify(integrationRepository, never()).findAllGlobalByType(type);
   }
 
@@ -96,15 +100,15 @@ class ExternalAttachmentLoadServiceTest {
   void fallsBackToGlobalIntegrationWhenProjectScopedMissing() {
     IntegrationType type = integrationType();
     Integration globalIntegration = new Integration();
-    when(integrationTypeRepository.findByName("mobitru")).thenReturn(Optional.of(type));
+    when(integrationTypeRepository.findByName(PLUGIN_ID)).thenReturn(Optional.of(type));
     when(integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(7L, type))
         .thenReturn(List.of());
     when(integrationRepository.findAllGlobalByType(type)).thenReturn(List.of(globalIntegration));
-    when(pluginBox.getInstance("mobitru", ReportPortalExtensionPoint.class))
+    when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand("loadExternalAttachment")).thenReturn(pluginCommand);
+    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
 
-    service.loadAttachment(new ExternalAttachmentLoadEvent(11L, 7L, 3L, null, "rec-1"));
+    service.loadAttachment(event(11L, 7L, 3L, null, "rec-1"));
 
     verify(pluginCommand).executeCommand(eq(globalIntegration), anyMap());
   }
@@ -117,14 +121,14 @@ class ExternalAttachmentLoadServiceTest {
     Log log = new Log();
     log.setProjectId(9L);
     when(logRepository.findById(11L)).thenReturn(Optional.of(log));
-    when(integrationTypeRepository.findByName("mobitru")).thenReturn(Optional.of(type));
+    when(integrationTypeRepository.findByName(PLUGIN_ID)).thenReturn(Optional.of(type));
     when(integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(9L, type))
         .thenReturn(List.of(projectIntegration));
-    when(pluginBox.getInstance("mobitru", ReportPortalExtensionPoint.class))
+    when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand("loadExternalAttachment")).thenReturn(pluginCommand);
+    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
 
-    service.loadAttachment(new ExternalAttachmentLoadEvent(11L, null, 3L, null, "rec-1"));
+    service.loadAttachment(event(11L, null, 3L, null, "rec-1"));
 
     ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
     verify(pluginCommand).executeCommand(eq(projectIntegration), paramsCaptor.capture());
@@ -134,37 +138,59 @@ class ExternalAttachmentLoadServiceTest {
   @Test
   void skipsWhenIntegrationCannotBeResolved() {
     IntegrationType type = integrationType();
-    when(integrationTypeRepository.findByName("mobitru")).thenReturn(Optional.of(type));
+    when(integrationTypeRepository.findByName(PLUGIN_ID)).thenReturn(Optional.of(type));
     when(integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(7L, type))
         .thenReturn(List.of());
     when(integrationRepository.findAllGlobalByType(type)).thenReturn(List.of());
 
-    service.loadAttachment(new ExternalAttachmentLoadEvent(11L, 7L, 3L, 5L, "rec-1"));
+    service.loadAttachment(event(11L, 7L, 3L, 5L, "rec-1"));
 
     verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  void skipsWhenPluginMetadataIsMissing() {
+    ExternalAttachmentLoadEvent event = event(11L, 7L, 3L, 5L, "rec-1");
+    event.setPluginCommandName(null);
+
+    service.loadAttachment(event);
+
+    verifyNoInteractions(logRepository, integrationRepository, integrationTypeRepository,
+        pluginBox);
   }
 
   @Test
   void swallowsPluginCommandExceptions() {
     IntegrationType type = integrationType();
     Integration projectIntegration = new Integration();
-    when(integrationTypeRepository.findByName("mobitru")).thenReturn(Optional.of(type));
+    when(integrationTypeRepository.findByName(PLUGIN_ID)).thenReturn(Optional.of(type));
     when(integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(7L, type))
         .thenReturn(List.of(projectIntegration));
-    when(pluginBox.getInstance("mobitru", ReportPortalExtensionPoint.class))
+    when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand("loadExternalAttachment")).thenReturn(pluginCommand);
+    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
     when(pluginCommand.executeCommand(eq(projectIntegration), anyMap()))
         .thenThrow(new RuntimeException("boom"));
 
     assertThatCode(() -> service.loadAttachment(
-        new ExternalAttachmentLoadEvent(11L, 7L, 3L, 5L, "rec-1")))
+        event(11L, 7L, 3L, 5L, "rec-1")))
         .doesNotThrowAnyException();
+  }
+
+  private ExternalAttachmentLoadEvent event(Long logId, Long projectId, Long launchId,
+      Long testItemId, String attachmentExternalId) {
+    return event(logId, projectId, launchId, testItemId, attachmentExternalId, null);
+  }
+
+  private ExternalAttachmentLoadEvent event(Long logId, Long projectId, Long launchId,
+      Long testItemId, String attachmentExternalId, String attachmentAttributeKey) {
+    return new ExternalAttachmentLoadEvent(PLUGIN_ID, COMMAND_NAME, logId, projectId, launchId,
+        testItemId, attachmentExternalId, attachmentAttributeKey);
   }
 
   private IntegrationType integrationType() {
     IntegrationType type = new IntegrationType();
-    type.setName("mobitru");
+    type.setName(PLUGIN_ID);
     return type;
   }
 }

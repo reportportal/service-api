@@ -45,6 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MobitruTestItemAttributeHandlerTest {
 
   private static final String PLUGIN_ID = "mobitru";
+  private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
 
   @Mock
@@ -110,10 +111,32 @@ class MobitruTestItemAttributeHandlerTest {
         eq("device-2"));
     verify(systemLogService, times(2))
         .writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME), anyString());
-    verify(externalAttachmentLoadProducer).publish(eq(11L), eq(7L), eq(99L), eq(10L),
-        eq("device-1"));
-    verify(externalAttachmentLoadProducer).publish(eq(22L), eq(7L), eq(99L), eq(10L),
-        eq("device-2"));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(7L), eq(99L), eq(10L),
+        eq("device-1"), eq("MBID"));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(7L), eq(99L), eq(10L),
+        eq("device-2"), eq("MBID"));
+  }
+
+  @Test
+  void writesLogAndPublishesAttributeKeyForBbid() {
+    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
+    TestItem item = itemWithAttribute("BBID", "browser-session-1");
+    Launch launch = new Launch();
+    launch.setId(99L);
+    launch.setProjectId(7L);
+    when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
+    when(systemLogService.writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
+        eq("browser-session-1"))).thenReturn(33L);
+
+    handler.handleTestItemFinish(item);
+
+    verify(systemLogService).writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
+        eq("browser-session-1"));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(33L), eq(7L), eq(99L), eq(10L),
+        eq("browser-session-1"), eq("BBID"));
   }
 
   @Test

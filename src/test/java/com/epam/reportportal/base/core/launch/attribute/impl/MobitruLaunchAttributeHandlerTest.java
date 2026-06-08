@@ -43,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MobitruLaunchAttributeHandlerTest {
 
   private static final String PLUGIN_ID = "mobitru";
+  private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
 
   @Mock
@@ -86,10 +87,12 @@ class MobitruLaunchAttributeHandlerTest {
     verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-2"));
     verify(systemLogService, times(2))
         .writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), anyString());
-    verify(externalAttachmentLoadProducer).publish(eq(11L), eq(2L), eq(1L), isNull(),
-        eq("device-1"));
-    verify(externalAttachmentLoadProducer).publish(eq(22L), eq(2L), eq(1L), isNull(),
-        eq("device-2"));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(2L), eq(1L), isNull(),
+        eq("device-1"), eq("MBID"));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(2L), eq(1L), isNull(),
+        eq("device-2"), eq("MBID"));
   }
 
   @Test
@@ -117,8 +120,9 @@ class MobitruLaunchAttributeHandlerTest {
 
     verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-x"));
     verify(systemLogService, times(1)).writeLaunchLog(any(), anyString(), anyString());
-    verify(externalAttachmentLoadProducer, times(1)).publish(eq(99L), eq(2L), eq(1L), isNull(),
-        eq("device-x"));
+    verify(externalAttachmentLoadProducer, times(1)).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(99L), eq(2L), eq(1L), isNull(),
+        eq("device-x"), eq("MBID"));
   }
 
   @Test

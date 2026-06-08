@@ -21,29 +21,32 @@ import com.epam.reportportal.base.core.item.attribute.TestItemAttributeHandler;
 import com.epam.reportportal.base.core.log.SystemLogService;
 import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
- * On test item finish, scans merged attributes for the {@code MBID} key (case-sensitive). For every
- * non-empty value a system log of type {@code mobitru} is created and attached to the test item.
- * No-op when the Mobitru plugin is not currently loaded and enabled.
+ * On test item finish, scans merged attributes for Mobitru recording keys (case-sensitive). For
+ * every non-empty value a system log of type {@code mobitru} is created and attached to the test
+ * item. No-op when the Mobitru plugin is not currently loaded and enabled.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MobitruTestItemAttributeHandler implements TestItemAttributeHandler {
 
-  public static final String MBID_KEY = "MBID";
+  private static final String MBID_KEY = "MBID";
+  private static final String BBID_KEY = "BBID";
   private static final String PLUGIN_ID = "mobitru";
+  private static final String LOAD_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
+  private static final String LOG_MESSAGE = "Mobitru video. RecordId: %s";
+  private static final Set<String> RECORDING_KEYS = Set.of(MBID_KEY, BBID_KEY);
 
   private final PluginAvailabilityChecker pluginAvailabilityChecker;
   private final SystemLogService systemLogService;
@@ -52,38 +55,46 @@ public class MobitruTestItemAttributeHandler implements TestItemAttributeHandler
 
   @Override
   public void handleTestItemFinish(TestItem testItem) {
-    if (!pluginAvailabilityChecker.isAvailable(PLUGIN_ID)) {
+    if (!validateState(testItem)) {
       return;
     }
-    if (testItem == null) {
-      return;
-    }
-    Set<ItemAttribute> attributes = testItem.getAttributes();
-    if (attributes == null || attributes.isEmpty()) {
-      return;
-    }
-    List<String> recordIds = attributes.stream()
-        .filter(attr -> MBID_KEY.equals(attr.getKey()))
-        .map(ItemAttribute::getValue)
-        .filter(value -> value != null && !value.isEmpty())
+
+    var attributes = testItem.getAttributes();
+    var recordAttributes = attributes.stream()
+        .filter(attr -> RECORDING_KEYS.contains(attr.getKey()))
+        .filter(attr -> StringUtils.hasText(attr.getValue()))
+        .map(attr -> new RecordingAttribute(attr.getKey(), attr.getValue()))
         .toList();
-    if (recordIds.isEmpty()) {
+    if (recordAttributes.isEmpty()) {
       return;
     }
-    Optional<Launch> launch = Optional.ofNullable(testItem.getLaunchId())
+
+    var launch = Optional.ofNullable(testItem.getLaunchId())
         .flatMap(launchRepository::findById);
     if (launch.isEmpty()) {
       log.warn("Skipping Mobitru log creation for test item {}: launch could not be resolved",
           testItem.getItemId());
       return;
     }
-    Launch launchEntity = launch.get();
 
-    recordIds.forEach(value -> {
-      Long logId = systemLogService.writeTestItemLog(testItem, launchEntity, LOG_TYPE_NAME, value);
-      externalAttachmentLoadProducer.publish(logId, launchEntity.getProjectId(),
-          launchEntity.getId(),
-          testItem.getItemId(), value);
+    var launchEntity = launch.get();
+    recordAttributes.forEach(attribute -> {
+      var logId = systemLogService.writeTestItemLog(testItem, launchEntity, LOG_TYPE_NAME,
+          String.format(LOG_MESSAGE, attribute.value()));
+      externalAttachmentLoadProducer.publish(PLUGIN_ID, LOAD_ATTACHMENT_COMMAND, logId,
+          launchEntity.getProjectId(), launchEntity.getId(), testItem.getItemId(),
+          attribute.value(), attribute.key());
     });
+  }
+
+  private boolean validateState(TestItem testItem) {
+    if (!pluginAvailabilityChecker.isAvailable(PLUGIN_ID) || testItem == null) {
+      return false;
+    }
+    return !CollectionUtils.isEmpty(testItem.getAttributes());
+  }
+
+  private record RecordingAttribute(String key, String value) {
+
   }
 }

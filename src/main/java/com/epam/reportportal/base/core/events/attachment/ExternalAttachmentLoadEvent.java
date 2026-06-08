@@ -24,16 +24,23 @@ import lombok.Setter;
 
 /**
  * Event published to request asynchronous fetching of an external attachment and attaching it to an
- * existing log row identified by {@code logId}. The message also carries the project and launch
- * context needed to resolve the integration and persist the downloaded binary. The
- * {@code attachmentExternalId} carries the provider-specific reference (e.g. Mobitru recording id)
- * that the consumer uses to download the actual binary.
+ * existing log row identified by {@code logId}. The message also carries the plugin command,
+ * project and launch context needed to resolve the integration and persist the downloaded binary.
+ * The {@code attachmentExternalId} carries the provider-specific reference that the consumer uses
+ * to download the actual binary. {@code attachmentAttributeKey} carries the source attribute key
+ * when the provider needs it to choose the download endpoint.
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExternalAttachmentLoadEvent {
+
+  @JsonProperty("pluginId")
+  private String pluginId;
+
+  @JsonProperty("pluginCommandName")
+  private String pluginCommandName;
 
   @JsonProperty("logId")
   private Long logId;
@@ -49,4 +56,18 @@ public class ExternalAttachmentLoadEvent {
 
   @JsonProperty("attachmentExternalId")
   private String attachmentExternalId;
+
+  @JsonProperty("attachmentAttributeKey")
+  private String attachmentAttributeKey;
+
+  public ExternalAttachmentLoadEvent(Long logId, Long projectId, Long launchId, Long testItemId,
+      String attachmentExternalId) {
+    this(logId, projectId, launchId, testItemId, attachmentExternalId, null);
+  }
+
+  public ExternalAttachmentLoadEvent(Long logId, Long projectId, Long launchId, Long testItemId,
+      String attachmentExternalId, String attachmentAttributeKey) {
+    this(null, null, logId, projectId, launchId, testItemId, attachmentExternalId,
+        attachmentAttributeKey);
+  }
 }

@@ -34,8 +34,7 @@ public class ExternalAttachmentLoadConsumer {
 
   private final ExternalAttachmentLoadService externalAttachmentLoadService;
 
-  @RabbitListener(queues = QUEUE_ATTACHMENT_EXTERNAL_LOAD,
-      containerFactory = "rabbitListenerContainerFactory")
+  @RabbitListener(queues = QUEUE_ATTACHMENT_EXTERNAL_LOAD, containerFactory = "rabbitListenerContainerFactory")
   public void onEvent(@Payload ExternalAttachmentLoadEvent event) {
     externalAttachmentLoadService.loadAttachment(event);
   }

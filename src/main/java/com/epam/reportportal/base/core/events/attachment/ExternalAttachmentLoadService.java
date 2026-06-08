@@ -30,20 +30,17 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
- * Resolves the target Mobitru integration and delegates the attachment download/save flow to the
- * Mobitru plugin command.
+ * Resolves the target integration and delegates the attachment download/save flow to the plugin
+ * command requested in the event.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExternalAttachmentLoadService {
-
-  private static final String MOBITRU_PLUGIN_ID = "mobitru";
-  private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
 
   private final LogRepository logRepository;
   private final IntegrationRepository integrationRepository;
@@ -61,8 +58,9 @@ public class ExternalAttachmentLoadService {
   }
 
   private void processEvent(ExternalAttachmentLoadEvent event) {
-    if (event == null || event.getLogId() == null || StringUtils.isBlank(
-        event.getAttachmentExternalId())) {
+    if (event == null || event.getLogId() == null || !StringUtils.hasText(
+        event.getAttachmentExternalId()) || !StringUtils.hasText(event.getPluginId())
+        || !StringUtils.hasText(event.getPluginCommandName())) {
       log.warn("Skipping external attachment load: event payload is incomplete");
       return;
     }
@@ -74,25 +72,26 @@ public class ExternalAttachmentLoadService {
       return;
     }
 
-    Integration integration = resolveIntegration(projectId).orElse(null);
+    Integration integration = resolveIntegration(projectId, event.getPluginId()).orElse(null);
     if (integration == null) {
-      log.warn("Skipping external attachment load for log {}: Mobitru integration not found",
-          event.getLogId());
+      log.warn(
+          "Skipping external attachment load for log {}: integration for plugin '{}' not found",
+          event.getLogId(), event.getPluginId());
       return;
     }
 
-    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(MOBITRU_PLUGIN_ID,
+    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(event.getPluginId(),
         ReportPortalExtensionPoint.class).orElse(null);
     if (pluginInstance == null) {
-      log.warn("Skipping external attachment load for log {}: Mobitru plugin is unavailable",
-          event.getLogId());
+      log.warn("Skipping external attachment load for log {}: plugin '{}' is unavailable",
+          event.getLogId(), event.getPluginId());
       return;
     }
-    PluginCommand<?> command = pluginInstance.getIntegrationCommand(
-        LOAD_EXTERNAL_ATTACHMENT_COMMAND);
+    PluginCommand<?> command = pluginInstance.getIntegrationCommand(event.getPluginCommandName());
     if (command == null) {
-      log.warn("Skipping external attachment load for log {}: Mobitru command '{}' is unavailable",
-          event.getLogId(), LOAD_EXTERNAL_ATTACHMENT_COMMAND);
+      log.warn(
+          "Skipping external attachment load for log {}: command '{}' is unavailable for plugin '{}'",
+          event.getLogId(), event.getPluginCommandName(), event.getPluginId());
       return;
     }
 
@@ -107,8 +106,8 @@ public class ExternalAttachmentLoadService {
     return logEntity == null ? null : logEntity.getProjectId();
   }
 
-  private Optional<Integration> resolveIntegration(Long projectId) {
-    return integrationTypeRepository.findByName(MOBITRU_PLUGIN_ID)
+  private Optional<Integration> resolveIntegration(Long projectId, String pluginId) {
+    return integrationTypeRepository.findByName(pluginId)
         .flatMap(type -> resolveIntegration(projectId, type));
   }
 
@@ -118,7 +117,7 @@ public class ExternalAttachmentLoadService {
         integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(projectId,
             integrationType);
     if (!projectIntegrations.isEmpty()) {
-      return Optional.of(projectIntegrations.get(0));
+      return Optional.of(projectIntegrations.getFirst());
     }
     return integrationRepository.findAllGlobalByType(integrationType).stream().findFirst();
   }
@@ -128,13 +127,12 @@ public class ExternalAttachmentLoadService {
     HashMap<String, Object> params = new HashMap<>();
     params.put("logId", event.getLogId());
     params.put("projectId", projectId);
-    if (event.getLaunchId() != null) {
-      params.put("launchId", event.getLaunchId());
-    }
-    if (event.getTestItemId() != null) {
-      params.put("testItemId", event.getTestItemId());
-    }
+    params.put("launchId", event.getLaunchId());
+    params.put("testItemId", event.getTestItemId());
     params.put("attachmentExternalId", event.getAttachmentExternalId());
+    if (StringUtils.hasText(event.getAttachmentAttributeKey())) {
+      params.put("attachmentAttributeKey", event.getAttachmentAttributeKey());
+    }
     return params;
   }
 }

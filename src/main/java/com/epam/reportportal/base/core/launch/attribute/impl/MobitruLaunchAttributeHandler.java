@@ -38,6 +38,7 @@ public class MobitruLaunchAttributeHandler implements AttributeHandler {
 
   public static final String MBID_KEY = "MBID";
   private static final String PLUGIN_ID = "mobitru";
+  private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
 
   private final PluginAvailabilityChecker pluginAvailabilityChecker;
@@ -70,8 +71,8 @@ public class MobitruLaunchAttributeHandler implements AttributeHandler {
         .filter(value -> value != null && !value.isEmpty())
         .forEach(value -> {
           Long logId = systemLogService.writeLaunchLog(launch, LOG_TYPE_NAME, value);
-          externalAttachmentLoadProducer.publish(logId, launch.getProjectId(), launch.getId(), null,
-              value);
+          externalAttachmentLoadProducer.publish(PLUGIN_ID, LOAD_EXTERNAL_ATTACHMENT_COMMAND,
+              logId, launch.getProjectId(), launch.getId(), null, value, MBID_KEY);
         });
   }
 }

@@ -39,7 +39,8 @@ class ExternalAttachmentLoadProducerTest {
   void publishesEventToAttachmentExchangeWithExternalLoadRoutingKey() {
     ExternalAttachmentLoadProducer producer = new ExternalAttachmentLoadProducer(amqpTemplate);
 
-    producer.publish(123L, 456L, 789L, 100L, "device-1");
+    producer.publish("mobitru", "loadExternalAttachment", 123L, 456L, 789L, 100L, "device-1",
+        "MBID");
 
     ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
     verify(amqpTemplate).convertAndSend(eq(EXCHANGE_ATTACHMENT),
@@ -47,10 +48,13 @@ class ExternalAttachmentLoadProducerTest {
 
     assertThat(payloadCaptor.getValue()).isInstanceOf(ExternalAttachmentLoadEvent.class);
     ExternalAttachmentLoadEvent event = (ExternalAttachmentLoadEvent) payloadCaptor.getValue();
+    assertThat(event.getPluginId()).isEqualTo("mobitru");
+    assertThat(event.getPluginCommandName()).isEqualTo("loadExternalAttachment");
     assertThat(event.getLogId()).isEqualTo(123L);
     assertThat(event.getProjectId()).isEqualTo(456L);
     assertThat(event.getLaunchId()).isEqualTo(789L);
     assertThat(event.getTestItemId()).isEqualTo(100L);
     assertThat(event.getAttachmentExternalId()).isEqualTo("device-1");
+    assertThat(event.getAttachmentAttributeKey()).isEqualTo("MBID");
   }
 }

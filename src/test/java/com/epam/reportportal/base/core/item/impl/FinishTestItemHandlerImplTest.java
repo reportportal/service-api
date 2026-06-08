@@ -88,6 +88,9 @@ class FinishTestItemHandlerImplTest {
   @Mock
   private ApplicationEventPublisher eventPublisher;
 
+  @Mock
+  private com.epam.reportportal.base.core.item.attribute.TestItemAttributeHandlerService testItemAttributeHandlerService;
+
   @InjectMocks
   private FinishTestItemHandlerImpl handler;
 

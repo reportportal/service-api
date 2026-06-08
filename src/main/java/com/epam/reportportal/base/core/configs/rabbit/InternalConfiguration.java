@@ -56,6 +56,7 @@ public class InternalConfiguration {
    */
   public static final String KEY_EVENTS = "broadcast.events";
   public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
+  public static final String QUEUE_ATTACHMENT_EXTERNAL_LOAD = "attachment.external.load";
   public static final String QUEUE_EMAIL = "notification.email";
 
   public static final String QUEUE_QUERY_RQ = "query-rq";
@@ -101,6 +102,11 @@ public class InternalConfiguration {
   }
 
   @Bean
+  public Queue externalAttachmentLoadQueue() {
+    return new Queue(QUEUE_ATTACHMENT_EXTERNAL_LOAD);
+  }
+
+  @Bean
   public Queue queryQueue() {
     return new Queue(QUEUE_QUERY_RQ);
   }
@@ -121,6 +127,12 @@ public class InternalConfiguration {
   public Binding attachmentDeleteBinding() {
     return BindingBuilder.bind(deleteAttachmentQueue()).to(attachmentExchange())
         .with(QUEUE_ATTACHMENT_DELETE);
+  }
+
+  @Bean
+  public Binding attachmentExternalLoadBinding() {
+    return BindingBuilder.bind(externalAttachmentLoadQueue()).to(attachmentExchange())
+        .with(QUEUE_ATTACHMENT_EXTERNAL_LOAD);
   }
 
   @Bean

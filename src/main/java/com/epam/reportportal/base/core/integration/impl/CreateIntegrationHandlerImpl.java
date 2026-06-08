@@ -248,8 +248,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
             type.getId());
     BusinessRule.expect(integrationExists, BooleanUtils::isFalse).
         verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-            Suppliers.formattedSupplier("Global integration of type = '{}' with name = '{}' already exists",
-                type.getName(), integrationName)
+            Suppliers.formattedSupplier("Global integration of type = '{}' with name = '{}'", type.getName(),
+                integrationName)
         );
   }
 
@@ -262,7 +262,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
             integrationType.getId(), project.getId()
         ), BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
         Suppliers.formattedSupplier(
-            "Project integration of type = '{}' with name = '{}' already exists on project = '{}'",
+            "Project integration of type = '{}' with name = '{}' on project = '{}'",
             integrationType.getName(), integrationName, project.getName()
         )
     );
@@ -274,7 +274,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     }
     BusinessRule.expect(integrationRepository.existsByTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(type.getId()),
         BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-        Suppliers.formattedSupplier("Global integration of type = '{}' already exists", type.getName()));
+        Suppliers.formattedSupplier("Global integration of type = '{}'", type.getName()));
   }
 
   private void validateSingleInstanceTypeProject(IntegrationType type, Project project) {
@@ -283,8 +283,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     }
     BusinessRule.expect(integrationRepository.existsByTypeIdAndProjectId(type.getId(), project.getId()),
         BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-        Suppliers.formattedSupplier("Project integration of type = '{}' already exists on project = '{}'",
-            type.getName(), project.getName()));
+        Suppliers.formattedSupplier("Project integration of type = '{}' on project = '{}'", type.getName(),
+            project.getName()));
   }
 
   private void publishUpdateActivity(ReportPortalUser user,

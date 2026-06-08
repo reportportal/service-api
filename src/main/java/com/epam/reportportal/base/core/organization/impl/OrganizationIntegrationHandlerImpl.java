@@ -238,7 +238,7 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
     BusinessRule.expect(integrationRepository.existsByNameIgnoreCaseAndTypeIdAndOrganizationId(integrationName,
             integrationType.getId(), orgId), BooleanUtils::isFalse)
         .verify(ErrorType.INTEGRATION_ALREADY_EXISTS, Suppliers.formattedSupplier(
-                "Organization integration of type = '{}' with name = '{}' already exists in organization = '{}'",
+                "Organization integration of type = '{}' with name = '{}' in organization = '{}'",
                 integrationType.getName(), integrationName, orgId
             )
         );
@@ -250,7 +250,7 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
     }
     BusinessRule.expect(integrationRepository.existsByTypeIdAndOrganizationId(type.getId(), orgId),
         BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-        Suppliers.formattedSupplier("Organization integration of type = '{}' already exists in organization = '{}'",
-            type.getName(), orgId));
+        Suppliers.formattedSupplier("Organization integration of type = '{}' in organization = '{}'", type.getName(),
+            orgId));
   }
 }

@@ -34,9 +34,8 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.model.activity.LogTypeActivityResource;
 import com.epam.reportportal.base.ws.converter.builders.LogTypeBuilder;
 import com.epam.reportportal.base.ws.converter.converters.LogTypeConverter;
-
 import java.util.Objects;
-
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -49,6 +48,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
+
+  private static final Set<String> NON_FILTERABLE_SYSTEM_LOG_TYPES = Set.of(
+      LogLevel.UNKNOWN.toString().toLowerCase(),
+      LogLevel.MOBIRTU.toString().toLowerCase()
+  );
 
   private final ProjectRepository projectRepository;
   private final LogTypeRepository logTypeRepository;
@@ -158,7 +162,7 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
       Long projectId) {
 
     if (Boolean.TRUE.equals(updateRq.getIsFilterable())) {
-      validateUnknownLogType(existingLogType);
+      validateNonFilterableSystemLogType(existingLogType);
 
       if (!existingLogType.isFilterable()) {
         logTypeValidator.validateFilterableLimit(projectId, true);
@@ -166,11 +170,12 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
     }
   }
 
-  private void validateUnknownLogType(ProjectLogType existingLogType) {
-    if (LogLevel.UNKNOWN.toString().equalsIgnoreCase(existingLogType.getName())) {
+  private void validateNonFilterableSystemLogType(ProjectLogType existingLogType) {
+    String name = existingLogType.getName();
+    if (name != null && NON_FILTERABLE_SYSTEM_LOG_TYPES.contains(name.toLowerCase())) {
       throw new ReportPortalException(
           ErrorType.ACCESS_DENIED,
-          "The 'unknown' log type cannot be set as filterable"
+          String.format("The '%s' log type cannot be set as filterable", name.toLowerCase())
       );
     }
   }

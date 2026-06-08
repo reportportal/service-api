@@ -47,6 +47,7 @@ import com.epam.reportportal.base.core.events.domain.item.TestItemStatusChangedE
 import com.epam.reportportal.base.core.hierarchy.FinishHierarchyHandler;
 import com.epam.reportportal.base.core.item.ExternalTicketHandler;
 import com.epam.reportportal.base.core.item.FinishTestItemHandler;
+import com.epam.reportportal.base.core.item.attribute.TestItemAttributeHandlerService;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.impl.retry.RetrySearcher;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
@@ -126,6 +127,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
   private final ExternalTicketHandler externalTicketHandler;
 
+  private final TestItemAttributeHandlerService testItemAttributeHandlerService;
+
   @Autowired
   FinishTestItemHandlerImpl(TestItemRepository testItemRepository,
       IssueTypeHandler issueTypeHandler, @Qualifier("finishTestItemHierarchyHandler")
@@ -134,7 +137,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
       IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
       @Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher, RetryHandler retryHandler,
-      ExternalTicketHandler externalTicketHandler) {
+      ExternalTicketHandler externalTicketHandler,
+      TestItemAttributeHandlerService testItemAttributeHandlerService) {
     this.testItemRepository = testItemRepository;
     this.issueTypeHandler = issueTypeHandler;
     this.finishHierarchyHandler = finishHierarchyHandler;
@@ -147,6 +151,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     this.retrySearcher = retrySearcher;
     this.retryHandler = retryHandler;
     this.externalTicketHandler = externalTicketHandler;
+    this.testItemAttributeHandlerService = testItemAttributeHandlerService;
   }
 
   @Override
@@ -173,6 +178,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
     testItemRepository.save(itemForUpdate);
 
+    testItemAttributeHandlerService.handleTestItemFinish(itemForUpdate);
+
     if (BooleanUtils.toBoolean(finishExecutionRQ.getRetry()) || StringUtils.isNotBlank(
         finishExecutionRQ.getRetryOf())) {
       Optional.of(testItem).filter(
@@ -195,8 +202,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
   }
 
   /**
-   * If test item has descendants, it's status is resolved from statistics When status provided, no matter test item has
-   * or not descendants, test item status is resolved to provided
+   * If test item has descendants, it's status is resolved from statistics When status provided, no
+   * matter test item has or not descendants, test item status is resolved to provided
    *
    * @param testItem         {@link TestItem}
    * @param finishTestItemRQ {@link FinishTestItemRQ}
@@ -277,7 +284,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     TestItemResults testItemResults = testItem.getItemResults();
     Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
-    if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getLaunchId(), testItem.getPath(),
+    if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getLaunchId(),
+        testItem.getPath(),
         IN_PROGRESS.name()
     )) {
       finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED),

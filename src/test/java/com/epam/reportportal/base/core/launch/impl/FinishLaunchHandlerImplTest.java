@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.hierarchy.FinishHierarchyHandler;
+import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -79,6 +80,9 @@ class FinishLaunchHandlerImplTest {
 
   @Mock
   LinkGenerator linkGenerator;
+
+  @Mock
+  private LaunchAttributeHandlerService launchAttributeHandlerService;
 
   @InjectMocks
   private FinishLaunchHandlerImpl handler;

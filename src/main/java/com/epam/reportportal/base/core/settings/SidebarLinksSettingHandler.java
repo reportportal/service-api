@@ -54,7 +54,7 @@ public class SidebarLinksSettingHandler implements ServerSettingHandler {
   private JsonNode parseJson(String value) {
     try {
       return objectMapper.readTree(value);
-    } catch (JsonProcessingException e) {
+    } catch (JsonProcessingException _) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Invalid JSON format for '%s'.".formatted(SETTING_KEY));
     }

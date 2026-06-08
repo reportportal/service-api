@@ -14,38 +14,42 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.core.launch.attribute;
+package com.epam.reportportal.base.core.launch.attribute.impl;
 
+import com.epam.reportportal.base.core.launch.attribute.AttributeHandler;
+import com.epam.reportportal.base.core.log.MobitruAttachmentService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Handler for attributes
- *
- * @author Ivan Kustau
+ * On launch finish, scans merged attributes for Mobitru recording keys (case-sensitive). For every
+ * non-empty value a system log of type {@code mobitru} is created and attached to the launch. No-op
+ * when the Mobitru plugin is not currently loaded and enabled.
  */
 @Component
-public class LaunchAttributeHandlerService {
+@RequiredArgsConstructor
+public class MobitruLaunchAttributeHandler implements AttributeHandler {
 
-  private final List<AttributeHandler> attributeHandlers;
+  private final MobitruAttachmentService mobitruAttachmentService;
 
-  @Autowired
-  public LaunchAttributeHandlerService(List<AttributeHandler> attributeHandlers) {
-    this.attributeHandlers = attributeHandlers;
-  }
-
+  @Override
   public void handleLaunchStart(Launch launch) {
-    attributeHandlers.forEach(handler -> handler.handleLaunchStart(launch));
+    //not supported
   }
 
+  @Override
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
-    attributeHandlers.forEach(handler -> handler.handleLaunchUpdate(launch, user));
+    //not supported
   }
 
+  @Override
   public void handleLaunchFinish(Launch launch) {
-    attributeHandlers.forEach(handler -> handler.handleLaunchFinish(launch));
+    if (launch == null || !mobitruAttachmentService.isPluginAvailable()) {
+      return;
+    }
+    mobitruAttachmentService.extractRecordingAttributes(launch.getAttributes())
+        .forEach(attribute -> mobitruAttachmentService.attachToLaunch(launch, attribute));
   }
 }

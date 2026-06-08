@@ -25,6 +25,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.base.core.hierarchy.FinishHierarchyHandler;
 import com.epam.reportportal.base.core.launch.FinishLaunchHandler;
+import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -57,16 +58,19 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
   private final ApplicationEventPublisher eventPublisher;
   private final LinkGenerator linkGenerator;
+  private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
   @Autowired
   public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
       @Qualifier("finishLaunchHierarchyHandler")
       FinishHierarchyHandler<Launch> finishHierarchyHandler,
-      ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator) {
+      ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator,
+      LaunchAttributeHandlerService launchAttributeHandlerService) {
     this.launchRepository = launchRepository;
     this.finishHierarchyHandler = finishHierarchyHandler;
     this.eventPublisher = eventPublisher;
     this.linkGenerator = linkGenerator;
+    this.launchAttributeHandlerService = launchAttributeHandlerService;
   }
 
   @Override
@@ -101,6 +105,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         .addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
         .addAttributes(finishLaunchRQ.getAttributes()).addEndTime(finishLaunchRQ.getEndTime())
         .get();
+
+    launchAttributeHandlerService.handleLaunchFinish(launch);
 
     String launchLink = linkGenerator.generateLaunchLink(baseUrl, membershipDetails.getProjectKey(),
         String.valueOf(launch.getId())

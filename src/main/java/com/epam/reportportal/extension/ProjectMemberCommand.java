@@ -24,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @param <T> the return type of the command
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Deprecated
 public abstract class ProjectMemberCommand<T> extends AbstractRoleBasedCommand<T> {
 
   public static final String PROJECT_ID_PARAM = "projectId";

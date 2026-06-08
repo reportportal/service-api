@@ -43,6 +43,7 @@ class IntegrationControllerTest extends BaseMvcTest {
   private ObjectMapper objectMapper;
 
   @Test
+  @Sql(scripts = "/db/integration/integration-clear-email.sql")
   void createGlobalIntegration() throws Exception {
     IntegrationRQ request = new IntegrationRQ();
     request.setName("email");
@@ -79,6 +80,7 @@ class IntegrationControllerTest extends BaseMvcTest {
   }
 
   @Test
+  @Sql(scripts = "/db/integration/integration-clear-email.sql")
   void createProjectIntegration() throws Exception {
     IntegrationRQ request = new IntegrationRQ();
     request.setName("email");

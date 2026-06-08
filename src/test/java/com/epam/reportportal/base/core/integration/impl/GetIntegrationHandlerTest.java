@@ -241,4 +241,115 @@ class GetIntegrationHandlerTest {
     assertTrue(result.isEmpty());
   }
 
+  @Test
+  void findFirstEnabledByTypeNameWhenProjectIdNullShouldSkipProjectLookupAndUseOrgIntegration() {
+    // Given
+    final long orgId = 201L;
+    final IntegrationType emailType = IntegrationTestUtil.getEmailIntegrationType();
+    final Integration orgIntegration = IntegrationTestUtil.getOrganizationEmailIntegration(901L, orgId);
+    orgIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findByName(ReservedIntegrationTypeEnum.EMAIL.getName()))
+        .thenReturn(Optional.of(emailType));
+    when(integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(orgId, List.of(emailType.getId())))
+        .thenReturn(Optional.of(orgIntegration));
+
+    // When
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByTypeName(
+        null, orgId, ReservedIntegrationTypeEnum.EMAIL.getName());
+
+    // Then
+    assertTrue(result.isPresent());
+    assertEquals(901L, result.get().getId());
+    verify(integrationRepository, never()).findFirstEnabledByProjectIdAndTypeIdIn(anyLong(), anyList());
+  }
+
+  @Test
+  void findFirstEnabledByOrganizationAndTypeNameWhenOrgIntegrationExistsShouldReturnOrgIntegration() {
+    // Given
+    final long orgId = 201L;
+    final IntegrationType emailType = IntegrationTestUtil.getEmailIntegrationType();
+    final Integration orgIntegration = IntegrationTestUtil.getOrganizationEmailIntegration(901L, orgId);
+    orgIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findByName(ReservedIntegrationTypeEnum.EMAIL.getName()))
+        .thenReturn(Optional.of(emailType));
+    when(integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(orgId, List.of(emailType.getId())))
+        .thenReturn(Optional.of(orgIntegration));
+
+    // When
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByOrganizationAndTypeName(
+        orgId, ReservedIntegrationTypeEnum.EMAIL.getName());
+
+    // Then
+    assertTrue(result.isPresent());
+    assertEquals(901L, result.get().getId());
+    verify(integrationRepository, never()).findFirstEnabledByProjectIdAndTypeIdIn(anyLong(), anyList());
+  }
+
+  @Test
+  void findFirstEnabledByOrganizationAndTypeNameWhenNoOrgIntegrationShouldFallBackToGlobal() {
+    // Given
+    final long orgId = 201L;
+    final IntegrationType emailType = IntegrationTestUtil.getEmailIntegrationType();
+    final Integration globalIntegration = IntegrationTestUtil.getGlobalEmailIntegration(17L);
+    globalIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findByName(ReservedIntegrationTypeEnum.EMAIL.getName()))
+        .thenReturn(Optional.of(emailType));
+    when(integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(orgId, List.of(emailType.getId())))
+        .thenReturn(Optional.empty());
+    when(integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(emailType.getId())))
+        .thenReturn(Optional.of(globalIntegration));
+
+    // When
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledByOrganizationAndTypeName(
+        orgId, ReservedIntegrationTypeEnum.EMAIL.getName());
+
+    // Then
+    assertTrue(result.isPresent());
+    assertEquals(17L, result.get().getId());
+  }
+
+  @Test
+  void findFirstEnabledGlobalByTypeNameWhenGlobalIntegrationExistsShouldReturnIt() {
+    // Given
+    final IntegrationType emailType = IntegrationTestUtil.getEmailIntegrationType();
+    final Integration globalIntegration = IntegrationTestUtil.getGlobalEmailIntegration(17L);
+    globalIntegration.setEnabled(true);
+
+    when(integrationTypeRepository.findByName(ReservedIntegrationTypeEnum.EMAIL.getName()))
+        .thenReturn(Optional.of(emailType));
+    when(integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(emailType.getId())))
+        .thenReturn(Optional.of(globalIntegration));
+
+    // When
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledGlobalByTypeName(
+        ReservedIntegrationTypeEnum.EMAIL.getName());
+
+    // Then
+    assertTrue(result.isPresent());
+    assertEquals(17L, result.get().getId());
+    verify(integrationRepository, never()).findFirstEnabledByProjectIdAndTypeIdIn(anyLong(), anyList());
+    verify(integrationRepository, never()).findFirstEnabledByOrganizationIdAndTypeIdIn(anyLong(), anyList());
+  }
+
+  @Test
+  void findFirstEnabledGlobalByTypeNameWhenNoneExistsShouldReturnEmpty() {
+    // Given
+    final IntegrationType emailType = IntegrationTestUtil.getEmailIntegrationType();
+
+    when(integrationTypeRepository.findByName(ReservedIntegrationTypeEnum.EMAIL.getName()))
+        .thenReturn(Optional.of(emailType));
+    when(integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(emailType.getId())))
+        .thenReturn(Optional.empty());
+
+    // When
+    Optional<Integration> result = getIntegrationHandler.findFirstEnabledGlobalByTypeName(
+        ReservedIntegrationTypeEnum.EMAIL.getName());
+
+    // Then
+    assertTrue(result.isEmpty());
+  }
+
 }

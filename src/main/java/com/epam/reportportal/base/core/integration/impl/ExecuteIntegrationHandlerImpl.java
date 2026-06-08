@@ -22,6 +22,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
@@ -147,6 +148,45 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
             formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
         ));
     return pluginCommand.executeCommand(pluginCommandRq);
+  }
+
+
+  @Override
+  public Object executeExtensionCommand(String pluginName, String command, PluginCommandRQ pluginCommandRq) {
+    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
+        ));
+
+    var extCommand = pluginInstance.getCommonExtensionCommand(command);
+    if (extCommand != null) {
+      return extCommand.executeCommand(pluginCommandRq);
+    }
+
+    extCommand = pluginInstance.getIntegrationExtensionCommand(command);
+    if (extCommand != null) {
+      Integration integration = resolveIntegration(pluginCommandRq.getContext());
+      return extCommand.executeCommand(integration, pluginCommandRq);
+    }
+    throw new ReportPortalException(BAD_REQUEST_ERROR,
+        formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
+    );
+  }
+
+  private Integration resolveIntegration(PluginCommandContext context) {
+    BusinessRule.expect(context, ctx -> ctx != null && ctx.getIntegrationId() != null)
+        .verify(BAD_REQUEST_ERROR, "Integration context with a valid integration ID is required.");
+    Long integrationId = context.getIntegrationId();
+
+    if (context.getProjectId() != null) {
+      return integrationRepository.findByIdAndProjectId(integrationId, context.getProjectId())
+          .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
+    } else if (context.getOrgId() != null) {
+      return integrationRepository.findByIdAndOrganizationId(integrationId, context.getOrgId())
+          .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
+    }
+    return integrationRepository.findGlobalById(integrationId)
+        .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
   }
 
   @Async

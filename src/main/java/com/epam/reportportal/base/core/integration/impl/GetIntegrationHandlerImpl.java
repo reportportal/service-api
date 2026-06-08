@@ -93,13 +93,22 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
   public Optional<Integration> findFirstEnabledByTypeName(Long projectId, Long organizationId, String typeName) {
     return integrationTypeRepository.findByName(typeName)
         .map(IntegrationType::getId)
-        .flatMap(typeId ->
-            integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(projectId, List.of(typeId))
-                .or(() -> Optional.ofNullable(organizationId)
-                    .flatMap(
-                        id -> integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(id, List.of(typeId))))
-                .or(() -> integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(typeId)))
+        .flatMap(typeId -> Optional.ofNullable(projectId)
+            .flatMap(pid -> integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(pid, List.of(typeId)))
+            .or(() -> Optional.ofNullable(organizationId)
+                .flatMap(id -> integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(id, List.of(typeId))))
+            .or(() -> integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(typeId)))
         );
+  }
+
+  @Override
+  public Optional<Integration> findFirstEnabledByOrganizationAndTypeName(Long organizationId, String typeName) {
+    return findFirstEnabledByTypeName(null, organizationId, typeName);
+  }
+
+  @Override
+  public Optional<Integration> findFirstEnabledGlobalByTypeName(String typeName) {
+    return findFirstEnabledByTypeName(null, null, typeName);
   }
 
   @Override

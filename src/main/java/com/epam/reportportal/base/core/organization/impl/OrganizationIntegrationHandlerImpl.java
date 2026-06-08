@@ -32,6 +32,7 @@ import com.epam.reportportal.base.core.organization.OrganizationIntegrationHandl
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
@@ -110,6 +111,7 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
+    validateSingleInstanceTypeOrg(integrationType, orgId);
     String integrationName = ofNullable(createRequest.getName())
         .map(name -> {
           validateOrgIntegrationName(name, integrationType, orgId);
@@ -240,5 +242,15 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
                 integrationType.getName(), integrationName, orgId
             )
         );
+  }
+
+  private void validateSingleInstanceTypeOrg(IntegrationType type, Long orgId) {
+    if (!ReservedIntegrationTypeEnum.EMAIL.getName().equals(type.getName())) {
+      return;
+    }
+    BusinessRule.expect(integrationRepository.existsByTypeIdAndOrganizationId(type.getId(), orgId),
+        BooleanUtils::isFalse).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+        Suppliers.formattedSupplier("Organization integration of type = '{}' already exists in organization = '{}'",
+            type.getName(), orgId));
   }
 }

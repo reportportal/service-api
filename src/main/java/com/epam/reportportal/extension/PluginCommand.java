@@ -11,6 +11,7 @@ import java.util.Map;
  * @param <T> the return type of the command
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Deprecated
 public interface PluginCommand<T> extends NamedPluginCommand {
 
   /**

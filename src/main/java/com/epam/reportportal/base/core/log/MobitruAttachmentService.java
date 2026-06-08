@@ -71,8 +71,9 @@ public class MobitruAttachmentService {
       return List.of();
     }
     return attributes.stream()
-        .filter(attr -> RECORDING_KEYS.contains(attr.getKey()))
+        .filter(attr -> StringUtils.hasText(attr.getKey()))
         .filter(attr -> StringUtils.hasText(attr.getValue()))
+        .filter(attr -> RECORDING_KEYS.contains(attr.getKey()))
         .map(attr -> new RecordingAttribute(attr.getKey(), attr.getValue()))
         .toList();
   }

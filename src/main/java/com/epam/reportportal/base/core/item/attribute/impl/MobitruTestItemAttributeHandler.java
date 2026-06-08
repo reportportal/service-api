@@ -16,19 +16,16 @@
 
 package com.epam.reportportal.base.core.item.attribute.impl;
 
-import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
 import com.epam.reportportal.base.core.item.attribute.TestItemAttributeHandler;
-import com.epam.reportportal.base.core.log.SystemLogService;
-import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
+import com.epam.reportportal.base.core.log.MobitruAttachmentService;
+import com.epam.reportportal.base.core.log.MobitruAttachmentService.RecordingAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * On test item finish, scans merged attributes for Mobitru recording keys (case-sensitive). For
@@ -40,31 +37,17 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class MobitruTestItemAttributeHandler implements TestItemAttributeHandler {
 
-  private static final String MBID_KEY = "MBID";
-  private static final String BBID_KEY = "BBID";
-  private static final String PLUGIN_ID = "mobitru";
-  private static final String LOAD_ATTACHMENT_COMMAND = "loadExternalAttachment";
-  private static final String LOG_TYPE_NAME = "mobitru";
-  private static final String LOG_MESSAGE = "Mobitru video. RecordId: %s";
-  private static final Set<String> RECORDING_KEYS = Set.of(MBID_KEY, BBID_KEY);
-
-  private final PluginAvailabilityChecker pluginAvailabilityChecker;
-  private final SystemLogService systemLogService;
+  private final MobitruAttachmentService mobitruAttachmentService;
   private final LaunchRepository launchRepository;
-  private final ExternalAttachmentLoadProducer externalAttachmentLoadProducer;
 
   @Override
   public void handleTestItemFinish(TestItem testItem) {
-    if (!validateState(testItem)) {
+    if (testItem == null || !mobitruAttachmentService.isPluginAvailable()) {
       return;
     }
 
-    var attributes = testItem.getAttributes();
-    var recordAttributes = attributes.stream()
-        .filter(attr -> RECORDING_KEYS.contains(attr.getKey()))
-        .filter(attr -> StringUtils.hasText(attr.getValue()))
-        .map(attr -> new RecordingAttribute(attr.getKey(), attr.getValue()))
-        .toList();
+    List<RecordingAttribute> recordAttributes =
+        mobitruAttachmentService.extractRecordingAttributes(testItem.getAttributes());
     if (recordAttributes.isEmpty()) {
       return;
     }
@@ -78,23 +61,7 @@ public class MobitruTestItemAttributeHandler implements TestItemAttributeHandler
     }
 
     var launchEntity = launch.get();
-    recordAttributes.forEach(attribute -> {
-      var logId = systemLogService.writeTestItemLog(testItem, launchEntity, LOG_TYPE_NAME,
-          String.format(LOG_MESSAGE, attribute.value()));
-      externalAttachmentLoadProducer.publish(PLUGIN_ID, LOAD_ATTACHMENT_COMMAND, logId,
-          launchEntity.getProjectId(), launchEntity.getId(), testItem.getItemId(),
-          attribute.value(), attribute.key());
-    });
-  }
-
-  private boolean validateState(TestItem testItem) {
-    if (!pluginAvailabilityChecker.isAvailable(PLUGIN_ID) || testItem == null) {
-      return false;
-    }
-    return !CollectionUtils.isEmpty(testItem.getAttributes());
-  }
-
-  private record RecordingAttribute(String key, String value) {
-
+    recordAttributes.forEach(attribute ->
+        mobitruAttachmentService.attachToTestItem(testItem, launchEntity, attribute));
   }
 }

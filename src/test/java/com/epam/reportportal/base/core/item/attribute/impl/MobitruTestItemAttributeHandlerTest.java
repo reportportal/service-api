@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
+import com.epam.reportportal.base.core.log.MobitruAttachmentService;
 import com.epam.reportportal.base.core.log.SystemLogService;
 import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -35,9 +36,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -47,6 +48,7 @@ class MobitruTestItemAttributeHandlerTest {
   private static final String PLUGIN_ID = "mobitru";
   private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
+  private static final String LOG_MESSAGE = "Mobitru video. RecordId: %s";
 
   @Mock
   private PluginAvailabilityChecker pluginAvailabilityChecker;
@@ -60,8 +62,15 @@ class MobitruTestItemAttributeHandlerTest {
   @Mock
   private ExternalAttachmentLoadProducer externalAttachmentLoadProducer;
 
-  @InjectMocks
   private MobitruTestItemAttributeHandler handler;
+
+  @BeforeEach
+  void setUp() {
+    MobitruAttachmentService recordingAttachmentService =
+        new MobitruAttachmentService(pluginAvailabilityChecker, systemLogService,
+            externalAttachmentLoadProducer);
+    handler = new MobitruTestItemAttributeHandler(recordingAttachmentService, launchRepository);
+  }
 
   @Test
   void doesNothingWhenPluginNotAvailable() {
@@ -99,16 +108,16 @@ class MobitruTestItemAttributeHandlerTest {
     launch.setProjectId(7L);
     when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
     when(systemLogService.writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
-        eq("device-1"))).thenReturn(11L);
+        eq(logMessage("device-1")))).thenReturn(11L);
     when(systemLogService.writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
-        eq("device-2"))).thenReturn(22L);
+        eq(logMessage("device-2")))).thenReturn(22L);
 
     handler.handleTestItemFinish(item);
 
     verify(systemLogService).writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
-        eq("device-1"));
+        eq(logMessage("device-1")));
     verify(systemLogService).writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
-        eq("device-2"));
+        eq(logMessage("device-2")));
     verify(systemLogService, times(2))
         .writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME), anyString());
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
@@ -128,12 +137,12 @@ class MobitruTestItemAttributeHandlerTest {
     launch.setProjectId(7L);
     when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
     when(systemLogService.writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
-        eq("browser-session-1"))).thenReturn(33L);
+        eq(logMessage("browser-session-1")))).thenReturn(33L);
 
     handler.handleTestItemFinish(item);
 
     verify(systemLogService).writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
-        eq("browser-session-1"));
+        eq(logMessage("browser-session-1")));
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(33L), eq(7L), eq(99L), eq(10L),
         eq("browser-session-1"), eq("BBID"));
@@ -183,5 +192,9 @@ class MobitruTestItemAttributeHandlerTest {
 
   private ItemAttribute attr(String key, String value) {
     return new ItemAttribute(key, value, false);
+  }
+
+  private String logMessage(String value) {
+    return String.format(LOG_MESSAGE, value);
   }
 }

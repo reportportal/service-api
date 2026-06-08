@@ -27,15 +27,16 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
+import com.epam.reportportal.base.core.log.MobitruAttachmentService;
 import com.epam.reportportal.base.core.log.SystemLogService;
 import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,6 +46,7 @@ class MobitruLaunchAttributeHandlerTest {
   private static final String PLUGIN_ID = "mobitru";
   private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
+  private static final String LOG_MESSAGE = "Mobitru video. RecordId: %s";
 
   @Mock
   private PluginAvailabilityChecker pluginAvailabilityChecker;
@@ -55,8 +57,15 @@ class MobitruLaunchAttributeHandlerTest {
   @Mock
   private ExternalAttachmentLoadProducer externalAttachmentLoadProducer;
 
-  @InjectMocks
   private MobitruLaunchAttributeHandler handler;
+
+  @BeforeEach
+  void setUp() {
+    MobitruAttachmentService recordingAttachmentService =
+        new MobitruAttachmentService(pluginAvailabilityChecker, systemLogService,
+            externalAttachmentLoadProducer);
+    handler = new MobitruLaunchAttributeHandler(recordingAttachmentService);
+  }
 
   @Test
   void doesNothingWhenPluginNotAvailable() {
@@ -76,15 +85,17 @@ class MobitruLaunchAttributeHandlerTest {
         attr("MBID", "device-2"),
         attr("otherKey", "x")
     );
-    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-1")))
+    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-1"))))
         .thenReturn(11L);
-    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-2")))
+    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-2"))))
         .thenReturn(22L);
 
     handler.handleLaunchFinish(launch);
 
-    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-1"));
-    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-2"));
+    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+        eq(logMessage("device-1")));
+    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+        eq(logMessage("device-2")));
     verify(systemLogService, times(2))
         .writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), anyString());
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
@@ -93,6 +104,59 @@ class MobitruLaunchAttributeHandlerTest {
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(2L), eq(1L), isNull(),
         eq("device-2"), eq("MBID"));
+  }
+
+  @Test
+  void writesOneLogPerBbidAttribute() {
+    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
+    Launch launch = launchWithAttributes(
+        attr("BBID", "device-1"),
+        attr("BBID", "device-2"),
+        attr("otherKey", "x")
+    );
+    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-1"))))
+        .thenReturn(11L);
+    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-2"))))
+        .thenReturn(22L);
+
+    handler.handleLaunchFinish(launch);
+
+    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+        eq(logMessage("device-1")));
+    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+        eq(logMessage("device-2")));
+    verify(systemLogService, times(2))
+        .writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), anyString());
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(2L), eq(1L), isNull(),
+        eq("device-1"), eq("BBID"));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(2L), eq(1L), isNull(),
+        eq("device-2"), eq("BBID"));
+  }
+
+  @Test
+  void writesLogsForMixedMbidAndBbidAttributes() {
+    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
+    Launch launch = launchWithAttributes(
+        attr("MBID", "device-mb"),
+        attr("BBID", "device-bb")
+    );
+    when(
+        systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-mb"))))
+        .thenReturn(11L);
+    when(
+        systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-bb"))))
+        .thenReturn(22L);
+
+    handler.handleLaunchFinish(launch);
+
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(2L), eq(1L), isNull(),
+        eq("device-mb"), eq("MBID"));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(2L), eq(1L), isNull(),
+        eq("device-bb"), eq("BBID"));
   }
 
   @Test
@@ -113,12 +177,13 @@ class MobitruLaunchAttributeHandlerTest {
         attr("MBID", null),
         attr("MBID", "device-x")
     );
-    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-x")))
+    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-x"))))
         .thenReturn(99L);
 
     handler.handleLaunchFinish(launch);
 
-    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq("device-x"));
+    verify(systemLogService).writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+        eq(logMessage("device-x")));
     verify(systemLogService, times(1)).writeLaunchLog(any(), anyString(), anyString());
     verify(externalAttachmentLoadProducer, times(1)).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(99L), eq(2L), eq(1L), isNull(),
@@ -155,5 +220,9 @@ class MobitruLaunchAttributeHandlerTest {
 
   private ItemAttribute attr(String key, String value) {
     return new ItemAttribute(key, value, false);
+  }
+
+  private String logMessage(String value) {
+    return String.format(LOG_MESSAGE, value);
   }
 }

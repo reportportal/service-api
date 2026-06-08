@@ -16,19 +16,15 @@
 
 package com.epam.reportportal.base.core.launch.attribute.impl;
 
-import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
 import com.epam.reportportal.base.core.launch.attribute.AttributeHandler;
-import com.epam.reportportal.base.core.log.SystemLogService;
-import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
+import com.epam.reportportal.base.core.log.MobitruAttachmentService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * On launch finish, scans merged attributes for the {@code MBID} key (case-sensitive). For every
+ * On launch finish, scans merged attributes for Mobitru recording keys (case-sensitive). For every
  * non-empty value a system log of type {@code mobitru} is created and attached to the launch. No-op
  * when the Mobitru plugin is not currently loaded and enabled.
  */
@@ -36,43 +32,24 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MobitruLaunchAttributeHandler implements AttributeHandler {
 
-  public static final String MBID_KEY = "MBID";
-  private static final String PLUGIN_ID = "mobitru";
-  private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
-  private static final String LOG_TYPE_NAME = "mobitru";
-
-  private final PluginAvailabilityChecker pluginAvailabilityChecker;
-  private final SystemLogService systemLogService;
-  private final ExternalAttachmentLoadProducer externalAttachmentLoadProducer;
+  private final MobitruAttachmentService mobitruAttachmentService;
 
   @Override
   public void handleLaunchStart(Launch launch) {
+    //not supported
   }
 
   @Override
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
+    //not supported
   }
 
   @Override
   public void handleLaunchFinish(Launch launch) {
-    if (!pluginAvailabilityChecker.isAvailable(PLUGIN_ID)) {
+    if (launch == null || !mobitruAttachmentService.isPluginAvailable()) {
       return;
     }
-    if (launch == null) {
-      return;
-    }
-    Set<ItemAttribute> attributes = launch.getAttributes();
-    if (attributes == null || attributes.isEmpty()) {
-      return;
-    }
-    attributes.stream()
-        .filter(attr -> MBID_KEY.equals(attr.getKey()))
-        .map(ItemAttribute::getValue)
-        .filter(value -> value != null && !value.isEmpty())
-        .forEach(value -> {
-          Long logId = systemLogService.writeLaunchLog(launch, LOG_TYPE_NAME, value);
-          externalAttachmentLoadProducer.publish(PLUGIN_ID, LOAD_EXTERNAL_ATTACHMENT_COMMAND,
-              logId, launch.getProjectId(), launch.getId(), null, value, MBID_KEY);
-        });
+    mobitruAttachmentService.extractRecordingAttributes(launch.getAttributes())
+        .forEach(attribute -> mobitruAttachmentService.attachToLaunch(launch, attribute));
   }
 }

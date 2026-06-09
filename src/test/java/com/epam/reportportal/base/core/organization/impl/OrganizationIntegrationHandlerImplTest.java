@@ -152,7 +152,7 @@ class OrganizationIntegrationHandlerImplTest {
   }
 
   @Test
-  @DisplayName("Should throw INTEGRATION_NOT_FOUND when type does not exist")
+  @DisplayName("Should throw INTEGRATION_TYPE_NOT_FOUND when type does not exist")
   void deleteOrganizationIntegrationsWhenTypeNotFoundShouldThrow() {
     // Given
     mockedSecurityContextUtils.when(SecurityContextUtils::getPrincipal).thenReturn(principal);
@@ -162,7 +162,7 @@ class OrganizationIntegrationHandlerImplTest {
     // When & Then
     var ex = assertThrows(ReportPortalException.class,
         () -> handler.deleteOrganizationIntegrations(ORG_ID, "unknown"));
-    assertEquals(ErrorType.INTEGRATION_NOT_FOUND, ex.getErrorType());
+    assertEquals(ErrorType.INTEGRATION_TYPE_NOT_FOUND, ex.getErrorType());
   }
 
   @Test
@@ -266,6 +266,22 @@ class OrganizationIntegrationHandlerImplTest {
     // Then
     assertThat(result.getStatus()).isEqualTo(IntegrationConnectionStatus.StatusEnum.CONNECTED);
     assertThat(result.getCheckedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should throw INTEGRATION_TYPE_NOT_FOUND when plugin id does not exist")
+  void createOrganizationIntegrationWhenPluginIdNotFoundShouldThrow() {
+    // Given
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationTypeRepository.findByName("unknown")).thenReturn(Optional.empty());
+
+    var request = new IntegrationRQ();
+    request.setName("email-server");
+
+    // When & Then
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.createOrganizationIntegration(ORG_ID, "unknown", request));
+    assertEquals(ErrorType.INTEGRATION_TYPE_NOT_FOUND, ex.getErrorType());
   }
 
   @Test

@@ -107,6 +107,7 @@ public class StatusCodeMapping {
 
       // ExternalSystem related
       put(ErrorType.INTEGRATION_NOT_FOUND, HttpStatus.NOT_FOUND);
+      put(ErrorType.INTEGRATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
       put(ErrorType.INTEGRATION_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.PROJECT_NOT_CONFIGURED, HttpStatus.NOT_FOUND);
       put(ErrorType.INCORRECT_AUTHENTICATION_TYPE, HttpStatus.BAD_REQUEST);

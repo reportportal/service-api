@@ -225,6 +225,11 @@ public enum ErrorType {
   NOT_FOUND(40430, "'{}' not found. Did you use correct ID?"),
 
   /**
+   * If integration type not found
+   */
+  INTEGRATION_TYPE_NOT_FOUND(40431, "Integration type '{}' not found. Did you use correct type?"),
+
+  /**
    * If provided filtering parameters are incorrect
    */
   INCORRECT_FILTER_PARAMETERS(40011, "Incorrect filtering parameters. {}"),

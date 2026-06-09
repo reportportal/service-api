@@ -178,14 +178,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
         .verify(BAD_REQUEST_ERROR, "Integration context with a valid integration ID is required.");
     Long integrationId = context.getIntegrationId();
 
-    if (context.getProjectId() != null) {
-      return integrationRepository.findByIdAndProjectId(integrationId, context.getProjectId())
-          .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
-    } else if (context.getOrgId() != null) {
-      return integrationRepository.findByIdAndOrganizationId(integrationId, context.getOrgId())
-          .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
-    }
-    return integrationRepository.findGlobalById(integrationId)
+    return integrationRepository.findById(integrationId)
         .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
   }
 

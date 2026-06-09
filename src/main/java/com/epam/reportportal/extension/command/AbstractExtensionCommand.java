@@ -18,7 +18,6 @@ package com.epam.reportportal.extension.command;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -64,18 +63,20 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
 
   @Override
   public T executeCommand(PluginCommandRQ pluginCommandRq) {
-    validateRole(pluginCommandRq.getContext());
+    var context = pluginCommandRq.getContext();
+    validateRole(context.getOrgId(), context.getProjectId());
     return invokeCommand(pluginCommandRq);
   }
 
 
   @Override
   public T executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
-    validateRole(pluginCommandRq.getContext());
+    var context = pluginCommandRq.getContext();
+    validateRole(context.getOrgId(), context.getProjectId());
     return invokeCommand(integration, pluginCommandRq);
   }
 
-  protected void validateRole(PluginCommandContext commandContext) {
+  protected void validateRole(Long orgId, Long projectId) {
     if (minUserRole == null) {
       return;
     }
@@ -87,21 +88,21 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
       return;
     }
 
-    if (minProjectRole != null && commandContext.getProjectId() != null) {
-      validateProjectRole(user, commandContext);
-    } else if (minOrgRole != null && commandContext.getOrgId() != null) {
-      validateOrgRole(user, commandContext);
+    if (minProjectRole != null && projectId != null) {
+      validateProjectRole(user, orgId, projectId);
+    } else if (minOrgRole != null && orgId != null) {
+      validateOrgRole(user, orgId);
     } else if (minUserRole != user.getUserRole()) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED);
     }
   }
 
-  private void validateProjectRole(ReportPortalUser user, PluginCommandContext commandContext) {
-    Project project = ofNullable(commandContext.getOrgId())
-        .map(orgId -> projectRepository.findByIdAndOrganizationId(commandContext.getProjectId(), orgId))
-        .orElseGet(() -> projectRepository.findById(commandContext.getProjectId()))
+  private void validateProjectRole(ReportPortalUser user, Long orgId, Long projectId) {
+    Project project = ofNullable(orgId)
+        .map(id -> projectRepository.findByIdAndOrganizationId(projectId, id))
+        .orElseGet(() -> projectRepository.findById(projectId))
         .orElseThrow(
-            () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, commandContext.getProjectId()));
+            () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
 
     Organization organization = organizationRepository.findById(project.getOrganizationId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
@@ -129,10 +130,9 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
         .verify(ErrorType.ACCESS_DENIED);
   }
 
-  private void validateOrgRole(ReportPortalUser user, PluginCommandContext commandContext) {
-    Organization organization = organizationRepository.findById(commandContext.getOrgId())
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, commandContext.getOrgId()));
+  private void validateOrgRole(ReportPortalUser user, Long orgId) {
+    Organization organization = organizationRepository.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     OrganizationRole orgRole = ofNullable(user.getOrganizationDetails())
         .flatMap(detailsMapping -> ofNullable(detailsMapping.get(organization.getName())))

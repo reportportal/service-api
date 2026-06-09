@@ -109,7 +109,7 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
     validateOrganizationExists(orgId);
 
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_TYPE_NOT_FOUND, pluginName));
 
     validateSingleInstanceTypeOrg(integrationType, orgId);
     String integrationName = ofNullable(createRequest.getName())
@@ -191,7 +191,7 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
     List<Integration> integrations;
     if (StringUtils.isNotBlank(type)) {
       IntegrationType integrationType = integrationTypeRepository.findByName(type)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
+          .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_TYPE_NOT_FOUND, type));
       integrations = integrationRepository.findAllByOrganizationIdAndTypeId(orgId, integrationType.getId());
     } else {
       integrations = integrationRepository.findAllByOrganizationId(orgId, Pageable.unpaged()).toList();

@@ -126,7 +126,7 @@ public class Launch implements Serializable {
   @Column(name = "launch_type")
   @Enumerated(EnumType.STRING)
   @JdbcType(PostgreSQLEnumJdbcType.class)
-  private LaunchTypeEnum launchType;
+  private LaunchTypeEnum launchType = LaunchTypeEnum.AUTOMATION;
 
   @Column(name = "display_id")
   private String displayId;

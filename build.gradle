@@ -60,6 +60,8 @@ ext['spring-framework.version'] = '6.2.19'
 ext['micrometer.version'] = '1.15.12'
 // CVE-2020-29582: align kotlin stack to patched stdlib
 ext['kotlin.version'] = '2.1.0'
+// SNYK-JAVA-ORGSPRINGFRAMEWORKRETRY-17260993: resource allocation fixed in 2.0.13
+ext['spring-retry.version'] = '2.0.13'
 // CVE-2026-1225 (logback-core): минимум 1.5.25
 ext['logback.version'] = '1.5.25'
 
@@ -80,7 +82,7 @@ dependencyManagement {
     }
 }
 
-def secureNettyVersion = '4.1.133.Final'
+def secureNettyVersion = '4.1.135.Final'
 configurations.configureEach {
     resolutionStrategy {
         force 'com.mchange:mchange-commons-java:0.4.0'

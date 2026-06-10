@@ -54,7 +54,7 @@ public class OrganizationIntegrationsController implements OrganizationIntegrati
   public ResponseEntity<OrganizationIntegration> createOrgIntegration(Long orgId,
       CreateOrgIntegrationRequest createOrgIntegrationRequest) {
     var created = organizationIntegrationHandler.createOrganizationIntegration(
-        orgId, createOrgIntegrationRequest.getPluginId(),
+        orgId, createOrgIntegrationRequest.getIntegrationType(),
         CREATE_REQUEST_TO_RQ.apply(createOrgIntegrationRequest));
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(organizationIntegrationHandler.getOrganizationIntegrationById(orgId, created.getId()));

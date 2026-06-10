@@ -168,7 +168,7 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
 
     var request = new CreateOrgIntegrationRequest()
         .name("new-jira-integration")
-        .pluginId("jira")
+        .integrationType("jira")
         .enabled(true)
         .parameters(Map.of("url", "http://jira.test", "project", "TEST", "authType", "BASIC",
             "username", "testuser", "password", "testpass"));
@@ -190,7 +190,7 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
   void createIntegration_duplicateName_conflict() throws Exception {
     var request = new CreateOrgIntegrationRequest()
         .name("jira-org-integration")
-        .pluginId("jira")
+        .integrationType("jira")
         .enabled(true)
         .parameters(Map.of("url", "http://jira.test", "project", "TEST"));
 
@@ -202,10 +202,10 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void createIntegration_unknownPlugin_notFound() throws Exception {
+  void createIntegration_unknownIntegrationType_notFound() throws Exception {
     var request = new CreateOrgIntegrationRequest()
         .name("test-integration")
-        .pluginId("unknown-plugin")
+        .integrationType("unknown-integrationType")
         .enabled(true);
 
     mockMvc.perform(post("/organizations/201/integrations")
@@ -219,7 +219,7 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
   void createIntegration_member_forbidden() throws Exception {
     var request = new CreateOrgIntegrationRequest()
         .name("test-integration")
-        .pluginId("jira")
+        .integrationType("jira")
         .enabled(true);
 
     mockMvc.perform(post("/organizations/201/integrations")
@@ -233,7 +233,7 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
   void createIntegration_unknownOrg_notFound() throws Exception {
     var request = new CreateOrgIntegrationRequest()
         .name("test-integration")
-        .pluginId("jira")
+        .integrationType("jira")
         .enabled(true);
 
     mockMvc.perform(post("/organizations/999/integrations")

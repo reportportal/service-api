@@ -45,6 +45,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Field;
 import org.jooq.Operator;
@@ -56,6 +57,7 @@ import org.jooq.util.postgres.PostgresDSL;
  *
  * @author Andrei Varabyeu
  */
+@Getter
 public enum Condition {
 
   /**
@@ -66,6 +68,10 @@ public enum Condition {
     public org.jooq.Condition toCondition(FilterCondition filter, CriteriaHolder criteriaHolder) {
       this.validate(criteriaHolder, filter.getValue(), filter.isNegative(),
           INCORRECT_FILTER_PARAMETERS);
+      if (String.class.equals(criteriaHolder.getDataType())) {
+        return DSL.lower(field(criteriaHolder.getAggregateCriteria(), String.class))
+            .eq(DSL.lower(DSL.val(filter.getValue())));
+      }
       return field(criteriaHolder.getAggregateCriteria()).eq(this.castValue(criteriaHolder,
           filter.getValue(),
           INCORRECT_FILTER_PARAMETERS
@@ -97,6 +103,10 @@ public enum Condition {
     public org.jooq.Condition toCondition(FilterCondition filter, CriteriaHolder criteriaHolder) {
       this.validate(criteriaHolder, filter.getValue(), filter.isNegative(),
           INCORRECT_FILTER_PARAMETERS);
+      if (String.class.equals(criteriaHolder.getDataType())) {
+        return DSL.lower(field(criteriaHolder.getAggregateCriteria(), String.class))
+            .ne(DSL.lower(DSL.val(filter.getValue())));
+      }
       return field(criteriaHolder.getAggregateCriteria()).ne(this.castValue(criteriaHolder,
           filter.getValue(),
           INCORRECT_FILTER_PARAMETERS
@@ -724,10 +734,6 @@ public enum Condition {
    */
   abstract public Object castValue(CriteriaHolder criteriaHolder, String values,
       ErrorType errorType);
-
-  public String getMarker() {
-    return marker;
-  }
 
   /**
    * Cast values for filters which have many values(filters with conditions:btw, in, etc.)

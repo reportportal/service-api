@@ -299,7 +299,7 @@ public class ProjectController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping({"/{projectKey}/preference", "/{projectName}/preference/"})
+  @GetMapping({"/{projectKey}/preference", "/{projectKey}/preference/"})
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Load logged-in user preferences", description = "Only for logged-in user")
   public PreferenceResource getUserPreference(@PathVariable String projectKey,

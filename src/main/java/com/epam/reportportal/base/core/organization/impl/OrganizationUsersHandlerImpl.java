@@ -41,6 +41,7 @@ import com.epam.reportportal.api.model.OrganizationUsersPage;
 import com.epam.reportportal.api.model.ProjectRole;
 import com.epam.reportportal.api.model.UserAssignmentResponse;
 import com.epam.reportportal.api.model.UserProjectInfo;
+import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.core.organization.OrganizationUsersHandler;
 import com.epam.reportportal.base.core.project.ProjectUserService;
@@ -64,6 +65,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
+import com.epam.reportportal.base.ws.converter.converters.UserConverter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -119,6 +121,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
   @Override
   @Transactional
   public UserAssignmentResponse assignUser(Long orgId, OrgUserAssignment request) {
+    var principal = SecurityContextUtils.getPrincipal();
+
     User assignedUser = userRepository.findById(request.getId())
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, request.getId()));
     var organization = organizationRepositoryCustom.findById(orgId)
@@ -133,6 +137,11 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     );
 
     saveOrganizationUser(organization, assignedUser, request.getOrgRole().getValue());
+
+    eventPublisher.publishEvent(new AssignUserEvent(
+        UserConverter.TO_ACTIVITY_RESOURCE.apply(assignedUser, null),
+        principal.getUserId(), principal.getUsername(), orgId
+    ));
 
     var projects = getDeduplicatedProjectList(request);
 
@@ -154,6 +163,11 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
           .withProjectRole(com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole
               .valueOf(project.getProjectRole().toString()))
           .withUser(assignedUser));
+
+      eventPublisher.publishEvent(new AssignUserEvent(
+          UserConverter.TO_ACTIVITY_RESOURCE.apply(assignedUser, projectEntity.getId()),
+          principal.getUserId(), principal.getUsername(), orgId
+      ));
     });
 
     return new UserAssignmentResponse()

@@ -190,12 +190,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
             .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
             .collect(Collectors.toSet());
     issueTypeRepository.deleteAll(issueTypesToRemove);
-    projectRepository.delete(project);
     logIndexer.deleteIndex(project.getId());
     analyzerServiceClient.removeSuggest(project.getId());
     logRepository.deleteByProjectId(project.getId());
     attachmentBinaryDataService.deleteAllByProjectId(project.getId());
     projectContentRemover.remove(project);
+    projectRepository.delete(project);
 
     return new OperationCompletionRS(
         "Project with id = '" + project.getId() + "' has been successfully deleted.");

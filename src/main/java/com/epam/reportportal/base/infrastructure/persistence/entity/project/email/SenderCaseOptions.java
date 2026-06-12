@@ -19,6 +19,7 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.project.ema
 import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,5 +43,22 @@ public class SenderCaseOptions extends JsonbUserType<SenderCaseOptions> implemen
   @Override
   public Class<SenderCaseOptions> returnedClass() {
     return SenderCaseOptions.class;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SenderCaseOptions that = (SenderCaseOptions) o;
+    return Objects.equals(options, that.options);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(options);
   }
 }

@@ -237,13 +237,13 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
         .collect(Collectors.toSet());
 
-    projectContentRemover.remove(project);
-    projectRepository.delete(project);
     issueTypeRepository.deleteAll(issueTypesToRemove);
     logIndexer.deleteIndex(project.getId());
     analyzerServiceClient.removeSuggest(project.getId());
     logRepository.deleteByProjectId(project.getId());
     attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+    projectContentRemover.remove(project);
+    projectRepository.delete(project);
 
   }
 

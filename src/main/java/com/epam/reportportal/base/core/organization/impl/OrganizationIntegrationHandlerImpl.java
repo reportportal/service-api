@@ -208,7 +208,6 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
   public IntegrationConnectionStatus checkConnection(Long orgId, Long integrationId) {
     validateOrganizationExists(orgId);
     Integration integration = integrationRepository.findByIdAndOrganizationId(integrationId, orgId)
-        .or(() -> integrationRepository.findGlobalById(integrationId))
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
     IntegrationService integrationService =

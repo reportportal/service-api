@@ -248,27 +248,6 @@ class OrganizationIntegrationHandlerImplTest {
   }
 
   @Test
-  @DisplayName("Should fall back to global integration when org-level not found")
-  void checkConnectionWhenOrgIntegrationNotFoundButGlobalExistsShouldReturnConnected() {
-    // Given
-    var integration = integrations.getFirst();
-    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
-    when(integrationRepository.findByIdAndOrganizationId(integration.getId(), ORG_ID))
-        .thenReturn(Optional.empty());
-    when(integrationRepository.findGlobalById(integration.getId()))
-        .thenReturn(Optional.of(integration));
-    when(integrationServiceMapping.getOrDefault(anyString(), any())).thenReturn(basicIntegrationService);
-    when(basicIntegrationService.checkConnection(integration)).thenReturn(true);
-
-    // When
-    IntegrationConnectionStatus result = handler.checkConnection(ORG_ID, integration.getId());
-
-    // Then
-    assertThat(result.getStatus()).isEqualTo(IntegrationConnectionStatus.StatusEnum.CONNECTED);
-    assertThat(result.getCheckedAt()).isNotNull();
-  }
-
-  @Test
   @DisplayName("Should throw INTEGRATION_TYPE_NOT_FOUND when plugin id does not exist")
   void createOrganizationIntegrationWhenPluginIdNotFoundShouldThrow() {
     // Given

@@ -20,6 +20,8 @@ import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
@@ -57,14 +59,17 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
 
   private final ProjectRepository projectRepository;
   private final OrganizationUserRepository organizationUserRepository;
+  private final OrganizationRepository organizationRepository;
   private final ProjectUserRepository projectUserRepository;
 
   protected AbstractExtensionCommand(
       ProjectRepository projectRepository,
       OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
       ProjectUserRepository projectUserRepository) {
     this.projectRepository = projectRepository;
     this.organizationUserRepository = organizationUserRepository;
+    this.organizationRepository = organizationRepository;
     this.projectUserRepository = projectUserRepository;
   }
 
@@ -103,10 +108,7 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
 
   @Override
   public T executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
-    var context = pluginCommandRq.getContext();
-    var orgId = context != null ? context.getOrgId() : null;
-    var projectId = context != null ? context.getProjectId() : null;
-    validateRole(orgId, projectId);
+    validateIntegrationRole(integration);
     return invokeCommand(integration, pluginCommandRq);
   }
 
@@ -134,9 +136,38 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
       return;
     }
 
+    if (minProjectRole != null) {
+      if (projectId == null) {
+        throw new ReportPortalException(ErrorType.ACCESS_DENIED);
+      }
+      validateProjectRole(user, projectId);
+    } else if (minOrgRole != null) {
+      if (orgId == null) {
+        throw new ReportPortalException(ErrorType.ACCESS_DENIED);
+      }
+      validateOrgRole(user, orgId);
+    } else if (minUserRole != user.getUserRole()) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED);
+    }
+  }
+
+  protected void validateIntegrationRole(Integration integration) {
+    var orgId = integration.getOrganizationId();
+    var projectId = integration.getProject() != null ? integration.getProject().getId() : null;
+    if (minUserRole == null) {
+      return;
+    }
+
+    ReportPortalUser user = SecurityContextUtils.getPrincipal();
+    BusinessRule.expect(user, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+
+    if (user.getUserRole() == UserRole.ADMINISTRATOR) {
+      return;
+    }
+
     if (minProjectRole != null && projectId != null) {
       validateProjectRole(user, projectId);
-    } else if (minOrgRole != null && orgId != null) {
+    } else if (minOrgRole != null && projectId != null) {
       validateOrgRole(user, orgId);
     } else if (minUserRole != user.getUserRole()) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED);

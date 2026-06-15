@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.organization;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.ReportPortalRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUserId;
 import java.util.List;
@@ -99,4 +100,8 @@ public interface OrganizationUserRepository extends
   @Modifying
   @Query(value = "DELETE FROM organization_user WHERE organization_id = :orgId RETURNING user_id", nativeQuery = true)
   List<Long> unassignAllUsersByOrgId(@Param(value = "orgId") Long orgId);
+
+  @Query("SELECT ou FROM OrganizationUser ou JOIN FETCH ou.organization o WHERE ou.user.id = :userId AND o.organizationType = :type")
+  List<OrganizationUser> findWithOrganizationByUserIdAndType(@Param("userId") Long userId,
+      @Param("type") OrganizationType type);
 }

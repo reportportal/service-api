@@ -16,12 +16,12 @@
 
 package com.epam.reportportal.base.core.configs.security.converters;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.configs.security.JwtIssuer;
 import java.util.Collection;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -34,15 +34,13 @@ import org.springframework.security.oauth2.jwt.Jwt;
  */
 public class ExternalJwtConverter extends AbstractJwtConverter {
 
-  /**
-   * Constructs an ExternalJwtConverter with the specified UserDetailsService and JWT issuer configuration.
-   */
-  public ExternalJwtConverter(UserDetailsService userDetailsService, JwtIssuer config) {
-    super(userDetailsService, config);
+  public ExternalJwtConverter(UserDetailsService userDetailsService,
+      TokenBlacklistService tokenBlacklistService, JwtIssuer config) {
+    super(userDetailsService, tokenBlacklistService, config);
   }
 
   @Override
-  public AbstractAuthenticationToken convert(Jwt jwt) {
+  protected AbstractAuthenticationToken doConvert(Jwt jwt) {
     var externalId = jwt.getClaimAsString(config.getUsernameClaim());
     if (StringUtils.isBlank(externalId)) {
       throw new IllegalArgumentException("Username claim is missing or null");
@@ -50,8 +48,8 @@ public class ExternalJwtConverter extends AbstractJwtConverter {
     var user = findUser(externalId);
     var authorities = Optional.ofNullable(extractAuthorities(jwt))
         .filter(auths -> !auths.isEmpty())
-        .orElseGet(() -> (Collection<GrantedAuthority>) findUser(externalId).getAuthorities());
+        .orElseGet(() -> (Collection<GrantedAuthority>) user.getAuthorities());
 
-    return new UsernamePasswordAuthenticationToken(user, null, authorities);
+    return new RpJwtAuthenticationToken(jwt, user, authorities);
   }
 }

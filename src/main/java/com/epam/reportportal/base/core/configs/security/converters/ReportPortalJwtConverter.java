@@ -16,8 +16,8 @@
 
 package com.epam.reportportal.base.core.configs.security.converters;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -29,19 +29,16 @@ import org.springframework.security.oauth2.jwt.Jwt;
  */
 public class ReportPortalJwtConverter extends AbstractJwtConverter {
 
-  /**
-   * Constructs a ReportPortalJwtConverter with the specified UserDetailsService.
-   */
-  public ReportPortalJwtConverter(UserDetailsService userDetailsService) {
-    super(userDetailsService);
+  public ReportPortalJwtConverter(UserDetailsService userDetailsService,
+      TokenBlacklistService tokenBlacklistService) {
+    super(userDetailsService, tokenBlacklistService);
   }
 
   @Override
-  public final AbstractAuthenticationToken convert(Jwt jwt) {
+  protected AbstractAuthenticationToken doConvert(Jwt jwt) {
     var username = jwt.getSubject();
     var principal = userDetailsService.loadUserByUsername(username);
     var authorities = extractAuthorities(jwt);
-
-    return new UsernamePasswordAuthenticationToken(principal, null, authorities);
+    return new RpJwtAuthenticationToken(jwt, principal, authorities);
   }
 }

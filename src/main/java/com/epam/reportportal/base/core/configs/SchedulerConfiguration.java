@@ -17,10 +17,11 @@
 package com.epam.reportportal.base.core.configs;
 
 import com.epam.reportportal.base.core.tms.scheduled.TmsAttachmentCleanupJob;
-import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
 import com.epam.reportportal.base.job.CleanExpiredCreationBidsJob;
 import com.epam.reportportal.base.job.FlushingDataJob;
 import com.epam.reportportal.base.job.InterruptBrokenLaunchesJob;
+import com.epam.reportportal.base.job.RevokedTokensPurgeJob;
+import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
 import jakarta.inject.Named;
 import java.time.Duration;
 import java.util.List;
@@ -132,6 +133,13 @@ public class SchedulerConfiguration {
   }
 
   @Bean
+  public SimpleTriggerFactoryBean revokedTokensPurgeTrigger(
+      @Named("revokedTokensPurgeJobBean") JobDetail jobDetail,
+      @Value("${com.ta.reportportal.job.purge.revoked.tokens.cron}") String purgeCron) {
+    return createTrigger(jobDetail, Duration.parse(purgeCron).toMillis());
+  }
+
+  @Bean
   @Profile("demo")
   public SimpleTriggerFactoryBean flushingDataTrigger(@Named("flushingDataJob") JobDetail jobDetail,
       @Value("${com.ta.reportportal.rp.flushing.time.cron}") String flushingCron) {
@@ -146,6 +154,11 @@ public class SchedulerConfiguration {
   @Bean("cleanExpiredCreationBidsJobBean")
   public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
     return createJobDetail(CleanExpiredCreationBidsJob.class);
+  }
+
+  @Bean("revokedTokensPurgeJobBean")
+  public JobDetailFactoryBean revokedTokensPurgeJob() {
+    return createJobDetail(RevokedTokensPurgeJob.class);
   }
 
   @Bean

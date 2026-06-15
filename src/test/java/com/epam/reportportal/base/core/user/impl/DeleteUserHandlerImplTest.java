@@ -30,6 +30,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.OrganizationDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UserDeletedEvent;
@@ -97,6 +98,9 @@ class DeleteUserHandlerImplTest {
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
 
+  @Mock
+  private TokenBlacklistService tokenBlacklistService;
+
   @InjectMocks
   private DeleteUserHandlerImpl handler;
 
@@ -123,7 +127,33 @@ class DeleteUserHandlerImplTest {
 
     verify(repository, times(1)).findById(2L);
     verify(dataStore, times(1)).deleteUserPhoto(any());
+    verify(tokenBlacklistService).revokeSubject("test");
+  }
 
+  @Test
+  void deleteUserWithExternalIdShouldRevokeSubjectForBothLoginAndExternalId() {
+    User user = new User();
+    user.setId(2L);
+    user.setLogin("test");
+    user.setExternalId("ext-user-id");
+
+    doReturn(Optional.of(user)).when(repository).findById(2L);
+    when(organizationUserRepository.findNonPersonalOrganizationIdsByUserId(user.getId())).thenReturn(
+        Lists.newArrayList());
+    when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
+    when(organizationRepository.findByOwnerIdAndOrganizationType(user.getId(), OrganizationType.PERSONAL))
+        .thenReturn(Optional.empty());
+    doNothing().when(dataStore).deleteUserPhoto(any());
+    when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);
+    doNothing().when(emailNotificationStrategy).sendEmail(any(), anyMap());
+    doNothing().when(applicationEventPublisher).publishEvent(isA(UserDeletedEvent.class));
+
+    handler.deleteUser(
+        2L, getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L));
+
+    verify(tokenBlacklistService).revokeSubject("test");
+    verify(tokenBlacklistService).revokeSubject("ext-user-id");
   }
 
   @Test

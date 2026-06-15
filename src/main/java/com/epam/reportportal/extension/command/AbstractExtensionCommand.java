@@ -64,7 +64,9 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
   @Override
   public T executeCommand(PluginCommandRQ pluginCommandRq) {
     var context = pluginCommandRq.getContext();
-    validateRole(context.getOrgId(), context.getProjectId());
+    var orgId = context != null ? context.getOrgId() : null;
+    var projectId = context != null ? context.getProjectId() : null;
+    validateRole(orgId, projectId);
     return invokeCommand(pluginCommandRq);
   }
 
@@ -72,7 +74,9 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
   @Override
   public T executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
     var context = pluginCommandRq.getContext();
-    validateRole(context.getOrgId(), context.getProjectId());
+    var orgId = context != null ? context.getOrgId() : null;
+    var projectId = context != null ? context.getProjectId() : null;
+    validateRole(orgId, projectId);
     return invokeCommand(integration, pluginCommandRq);
   }
 

@@ -35,6 +35,19 @@ import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Base class for plugin extension commands that require role-based access control.
+ *
+ * <p>Subclasses declare the minimum required {@link #minUserRole}, {@link #minOrgRole}, and/or
+ * {@link #minProjectRole}, then implement either {@link #invokeCommand(PluginCommandRQ)} or
+ * {@link #invokeCommand(Integration, PluginCommandRQ)} (or both). Role validation runs automatically before the command
+ * is invoked.
+ *
+ * <p>The project-level check derives the organization from the project record itself, so a caller
+ * cannot bypass the check by supplying a mismatched {@code orgId}.
+ *
+ * @param <T> the return type of the command
+ */
 @Slf4j
 public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T> {
 
@@ -55,10 +68,26 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     this.projectUserRepository = projectUserRepository;
   }
 
+
+  /**
+   * Override to handle a command that operates on a specific {@link Integration}.
+   *
+   * @param integration     the integration to act on
+   * @param pluginCommandRq the incoming command request
+   * @return the command result
+   * @throws UnsupportedOperationException if the subclass does not support this variant
+   */
   protected T invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
     throw new UnsupportedOperationException("Command does not support execution with an integration");
   }
 
+  /**
+   * Override to handle a command that does not require an {@link Integration}.
+   *
+   * @param pluginCommandRq the incoming command request
+   * @return the command result
+   * @throws UnsupportedOperationException if the subclass does not support this variant
+   */
   protected T invokeCommand(PluginCommandRQ pluginCommandRq) {
     throw new UnsupportedOperationException("Command does not support execution without an integration");
   }
@@ -72,7 +101,6 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     return invokeCommand(pluginCommandRq);
   }
 
-
   @Override
   public T executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
     var context = pluginCommandRq.getContext();
@@ -82,6 +110,18 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     return invokeCommand(integration, pluginCommandRq);
   }
 
+  /**
+   * Validates that the current user holds the required role.
+   *
+   * <p>Checks are evaluated in order: project role (when {@link #minProjectRole} and a
+   * {@code projectId} are present), organization role (when {@link #minOrgRole} and an {@code orgId} are present), or
+   * plain user role otherwise. Administrators bypass all checks. When {@link #minUserRole} is {@code null} the method
+   * returns immediately.
+   *
+   * @param orgId     organization ID from the request context, may be {@code null}
+   * @param projectId project ID from the request context, may be {@code null}
+   * @throws ReportPortalException with {@code ACCESS_DENIED} if the user lacks the required role
+   */
   protected void validateRole(Long orgId, Long projectId) {
     if (minUserRole == null) {
       return;

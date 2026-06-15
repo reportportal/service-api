@@ -18,10 +18,12 @@ package com.epam.reportportal.extension.command;
 
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
@@ -40,12 +42,15 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
   protected OrganizationRole minOrgRole;
   protected UserRole minUserRole;
 
-  protected final OrganizationUserRepository organizationUserRepository;
-  protected final ProjectUserRepository projectUserRepository;
+  private final ProjectRepository projectRepository;
+  private final OrganizationUserRepository organizationUserRepository;
+  private final ProjectUserRepository projectUserRepository;
 
   protected AbstractExtensionCommand(
+      ProjectRepository projectRepository,
       OrganizationUserRepository organizationUserRepository,
       ProjectUserRepository projectUserRepository) {
+    this.projectRepository = projectRepository;
     this.organizationUserRepository = organizationUserRepository;
     this.projectUserRepository = projectUserRepository;
   }
@@ -90,7 +95,7 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     }
 
     if (minProjectRole != null && projectId != null) {
-      validateProjectRole(user, orgId, projectId);
+      validateProjectRole(user, projectId);
     } else if (minOrgRole != null && orgId != null) {
       validateOrgRole(user, orgId);
     } else if (minUserRole != user.getUserRole()) {
@@ -98,8 +103,12 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     }
   }
 
-  private void validateProjectRole(ReportPortalUser user, Long orgId, Long projectId) {
-    OrganizationRole orgRole = findOrgRole(user.getUserId(), orgId);
+  private void validateProjectRole(ReportPortalUser user, Long projectId) {
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+    Long projectOrgId = project.getOrganizationId();
+    OrganizationRole orgRole = findOrgRole(user.getUserId(), projectOrgId);
+
     if (orgRole.sameOrHigherThan(OrganizationRole.MANAGER)) {
       return;
     }

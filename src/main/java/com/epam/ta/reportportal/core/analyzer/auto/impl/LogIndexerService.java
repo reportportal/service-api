@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.project.AnalyzerConfig;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
@@ -25,10 +29,6 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.model.analyzer.IndexLaunch;
-import com.epam.reportportal.model.project.AnalyzerConfig;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -137,11 +137,10 @@ public class LogIndexerService implements LogIndexer {
   }
 
   @Override
-  public CompletableFuture<Long> cleanIndex(Long index, List<Long> ids) {
-    return CollectionUtils.isEmpty(ids) ?
-        CompletableFuture.completedFuture(0L) :
-        CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids),
-            taskExecutor);
+  public void cleanIndex(Long index, List<Long> ids) {
+    if (CollectionUtils.isNotEmpty(ids)) {
+      indexerServiceClient.cleanIndex(index, ids);
+    }
   }
 
   @Async("autoAnalyzeTaskExecutor")
@@ -166,11 +165,6 @@ public class LogIndexerService implements LogIndexer {
           missedItems);
       indexerServiceClient.index(indexLaunchList);
     }
-  }
-
-  @Override
-  public int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
-    return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
   }
 
   @Async("autoAnalyzeTaskExecutor")

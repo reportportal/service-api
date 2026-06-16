@@ -22,10 +22,6 @@ import com.epam.reportportal.api.model.CreateOrgIntegrationRequest;
 import com.epam.reportportal.api.model.OrganizationIntegration;
 import com.epam.reportportal.api.model.OrganizationIntegrationIntegrationType;
 import com.epam.reportportal.api.model.UpdateOrgIntegrationRequest;
-import com.epam.reportportal.base.core.integration.util.property.AuthProperties;
-import com.epam.reportportal.base.core.integration.util.property.BtsProperties;
-import com.epam.reportportal.base.core.integration.util.property.SauceLabsProperties;
-import com.epam.reportportal.base.infrastructure.persistence.entity.EmailSettingsEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
@@ -34,8 +30,8 @@ import com.epam.reportportal.base.model.integration.AuthFlowEnum;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.model.integration.IntegrationResource;
 import com.epam.reportportal.base.model.integration.IntegrationTypeResource;
+import com.epam.reportportal.extension.SensitiveIntegrationParam;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -67,17 +63,8 @@ public final class IntegrationConverter {
       };
 
 
-  private static final List<String> IGNORE_FIELDS =
-      List.of(EmailSettingsEnum.PASSWORD.getAttribute(),
-          SauceLabsProperties.ACCESS_TOKEN.getName(),
-          BtsProperties.OAUTH_ACCESS_KEY.getName(),
-          BtsProperties.API_TOKEN.getName(),
-          AuthProperties.MANAGER_PASSWORD.getName()
-      );
-
-
   private static final Predicate<Map.Entry<String, Object>> IGNORE_FIELDS_CONDITION =
-      entry -> IGNORE_FIELDS.stream().noneMatch(field -> field.equalsIgnoreCase(entry.getKey()));
+      entry -> !SensitiveIntegrationParam.ALL.contains(entry.getKey());
 
 
   public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE =

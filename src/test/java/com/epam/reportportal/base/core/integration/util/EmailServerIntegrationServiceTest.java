@@ -35,7 +35,6 @@ import jakarta.mail.MessagingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -55,11 +54,10 @@ class EmailServerIntegrationServiceTest {
 
   @BeforeEach
   void setUp() {
-    BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
-    basicTextEncryptor.setPassword("123");
+    IntegrationParamsEncryptor paramsEncryptor = mock(IntegrationParamsEncryptor.class);
     emailServerIntegrationService = new EmailServerIntegrationService(integrationRepository,
         pluginBox,
-        basicTextEncryptor,
+        paramsEncryptor,
         mailServiceFactory
     );
   }

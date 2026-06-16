@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.integration.util.property.SauceLabsProperties;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -29,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.collections.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SauceLabsIntegrationServiceTest {
 
   @Mock
-  private BasicTextEncryptor encryptor;
+  private IntegrationParamsEncryptor paramsEncryptor;
 
   @InjectMocks
   private SauceLabsIntegrationService sauceLabsIntegrationService;
@@ -91,15 +89,12 @@ class SauceLabsIntegrationServiceTest {
     integrationParams.put(SauceLabsProperties.ACCESS_TOKEN.getName(), "token");
     integrationParams.put("param", "value");
 
-    final String encryptedToken = "encryptedToken";
-    when(encryptor.encrypt("token")).thenReturn(encryptedToken);
-
     final Map<String, Object> params = sauceLabsIntegrationService.retrieveCreateParams("saucelabs",
         integrationParams);
 
     assertNotNull(params);
     assertTrue(MapUtils.isNotEmpty(params));
     assertEquals(3, params.size());
-    assertEquals(encryptedToken, params.get(SauceLabsProperties.ACCESS_TOKEN.getName()));
+    assertEquals("token", params.get(SauceLabsProperties.ACCESS_TOKEN.getName()));
   }
 }

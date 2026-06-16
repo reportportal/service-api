@@ -20,31 +20,28 @@ import com.epam.reportportal.auth.integration.builder.AuthIntegrationBuilder;
 import com.epam.reportportal.auth.integration.validator.duplicate.IntegrationDuplicateValidator;
 import com.epam.reportportal.auth.integration.validator.request.AuthRequestValidator;
 import com.epam.reportportal.auth.model.AbstractAuthResource;
+import com.epam.reportportal.base.core.integration.util.IntegrationParamsEncryptor;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.time.Instant;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Abstract strategy for creating or updating a specific type of authentication integration.
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@RequiredArgsConstructor
 public abstract class AuthIntegrationStrategy {
 
   private final IntegrationRepository integrationRepository;
   private final AuthRequestValidator<IntegrationRQ> updateAuthRequestValidator;
   private final IntegrationDuplicateValidator integrationDuplicateValidator;
-
-  public AuthIntegrationStrategy(IntegrationRepository integrationRepository,
-      AuthRequestValidator<IntegrationRQ> updateAuthRequestValidator,
-      IntegrationDuplicateValidator integrationDuplicateValidator) {
-    this.integrationRepository = integrationRepository;
-    this.updateAuthRequestValidator = updateAuthRequestValidator;
-    this.integrationDuplicateValidator = integrationDuplicateValidator;
-  }
+  private final IntegrationParamsEncryptor paramsEncryptor;
 
   protected abstract void populateIntegrationDetails(Integration integration, IntegrationRQ updateRequest);
 
@@ -59,13 +56,22 @@ public abstract class AuthIntegrationStrategy {
         .addCreationDate(Instant.now())
         .build();
     populateIntegrationDetails(integration, request);
+    encryptIntegrationParams(integration);
 
     return save(integration);
   }
 
   public Integration updateIntegration(Integration integration, IntegrationRQ request) {
     populateIntegrationDetails(integration, request);
+    encryptIntegrationParams(integration);
     return save(integration);
+  }
+
+  private void encryptIntegrationParams(Integration integration) {
+    IntegrationParams params = integration.getParams();
+    if (params != null) {
+      params.setParams(paramsEncryptor.encryptSensitiveFields(params.getParams()));
+    }
   }
 
   protected Integration save(Integration integration) {

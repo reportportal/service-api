@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.base.core.integration.util;
 
-import static java.util.stream.Collectors.toMap;
-
 import com.epam.reportportal.extension.SensitiveIntegrationParam;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.MapUtils;
@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 /**
  * Encrypts sensitive integration fields centrally before persisting. Fields listed in
  * {@link SensitiveIntegrationParam#ALL} are encrypted; null values and unknown keys are passed through unchanged.
+ * Nested maps and lists are traversed recursively.
  */
 @Component
 @RequiredArgsConstructor
@@ -39,10 +40,30 @@ public class IntegrationParamsEncryptor {
     if (MapUtils.isEmpty(params)) {
       return params;
     }
-    return params.entrySet().stream()
-        .map(e -> SensitiveIntegrationParam.ALL.contains(e.getKey()) && e.getValue() != null
-            ? Map.entry(e.getKey(), basicTextEncryptor.encrypt(String.valueOf(e.getValue())))
-            : e)
-        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return encryptMap(params);
   }
+
+  private Map<String, Object> encryptMap(Map<String, Object> params) {
+    Map<String, Object> result = HashMap.newHashMap(params.size());
+    params.forEach((key, value) -> result.put(key, encryptEntry(key, value)));
+    return result;
+  }
+
+  private Object encryptEntry(String key, Object value) {
+    if (value != null && SensitiveIntegrationParam.ALL.contains(key)) {
+      return basicTextEncryptor.encrypt(value.toString());
+    }
+    return traverse(value);
+  }
+
+  private Object traverse(Object value) {
+    return switch (value) {
+      case Map<?, ?> map -> encryptMap((Map<String, Object>) map);
+      case List<?> list -> list.stream()
+          .map(this::traverse)
+          .toList();
+      case null, default -> value;
+    };
+  }
+
 }

@@ -64,7 +64,7 @@ public final class IntegrationConverter {
 
 
   private static final Predicate<Map.Entry<String, Object>> IGNORE_FIELDS_CONDITION =
-      entry -> !SensitiveIntegrationParam.ALL.contains(entry.getKey());
+      entry -> entry.getKey() == null || !SensitiveIntegrationParam.ALL.contains(entry.getKey());
 
 
   public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE =

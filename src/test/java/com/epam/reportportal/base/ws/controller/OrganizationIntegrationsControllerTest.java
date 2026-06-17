@@ -378,4 +378,12 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
             .with(token(managerToken)))
         .andExpect(status().isNotFound());
   }
+
+  @Test
+  void checkOrgIntegrationConnection_wrongOrg_notFound() throws Exception {
+    // integration 903 belongs to org 202, not org 201
+    mockMvc.perform(post("/organizations/201/integrations/903/connection")
+            .with(token(managerToken)))
+        .andExpect(status().isNotFound());
+  }
 }

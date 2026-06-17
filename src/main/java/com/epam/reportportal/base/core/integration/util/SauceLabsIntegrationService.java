@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.collections4.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,13 +39,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 
-  private final BasicTextEncryptor encryptor;
-
   @Autowired
   public SauceLabsIntegrationService(IntegrationRepository integrationRepository,
-      PluginBox pluginBox, BasicTextEncryptor encryptor) {
-    super(integrationRepository, pluginBox);
-    this.encryptor = encryptor;
+      PluginBox pluginBox, IntegrationParamsEncryptor paramsEncryptor) {
+    super(integrationRepository, pluginBox, paramsEncryptor);
   }
 
   @Override
@@ -55,15 +51,15 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
     expect(integrationParams, MapUtils::isNotEmpty).verify(BAD_REQUEST_ERROR,
         "No integration params provided");
 
-    final String encryptedToken = encryptor.encrypt(ACCESS_TOKEN.getParameter(integrationParams)
+    final String accessToken = ACCESS_TOKEN.getParameter(integrationParams)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-            "Access token value is not specified")));
+            "Access token value is not specified"));
     final String username = USERNAME.getParameter(integrationParams)
         .orElseThrow(
             () -> new ReportPortalException(BAD_REQUEST_ERROR, "Username value is not specified"));
 
     HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
-    result.put(ACCESS_TOKEN.getName(), encryptedToken);
+    result.put(ACCESS_TOKEN.getName(), accessToken);
     result.put(USERNAME.getName(), username);
 
     integrationParams.entrySet()
@@ -80,7 +76,7 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
       Map<String, Object> integrationParams) {
     HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
     ACCESS_TOKEN.getParameter(integrationParams)
-        .ifPresent(token -> result.put(ACCESS_TOKEN.getName(), encryptor.encrypt(token)));
+        .ifPresent(token -> result.put(ACCESS_TOKEN.getName(), token));
     USERNAME.getParameter(integrationParams)
         .ifPresent(username -> result.put(USERNAME.getName(), username));
     integrationParams.entrySet()

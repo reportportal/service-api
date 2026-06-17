@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,13 +44,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class BtsIntegrationService extends BasicIntegrationServiceImpl {
 
-  private final BasicTextEncryptor basicTextEncryptor;
-
   @Autowired
   public BtsIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
-      BasicTextEncryptor basicTextEncryptor) {
-    super(integrationRepository, pluginBox);
-    this.basicTextEncryptor = basicTextEncryptor;
+      IntegrationParamsEncryptor paramsEncryptor) {
+    super(integrationRepository, pluginBox, paramsEncryptor);
   }
 
   @Override
@@ -137,17 +133,15 @@ public class BtsIntegrationService extends BasicIntegrationServiceImpl {
               ))
       );
 
-      String encryptedPassword = basicTextEncryptor.encrypt(
+      resultParams.put(BtsProperties.PASSWORD.getName(),
           BtsProperties.PASSWORD.getParam(integrationParams)
               .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
                   "Password value is not specified")));
-      resultParams.put(BtsProperties.PASSWORD.getName(), encryptedPassword);
     } else if (AuthType.OAUTH.equals(authType)) {
-      final String encryptedAccessKey = basicTextEncryptor.encrypt(
+      resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
           BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
               .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
                   "AccessKey value is not specified")));
-      resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(), encryptedAccessKey);
     } else {
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
           "Unsupported auth type for integration - " + authType.name()

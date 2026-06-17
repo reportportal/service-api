@@ -29,7 +29,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.AuthTy
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashMap;
 import java.util.Map;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,9 +45,8 @@ class JiraIntegrationServiceTest {
 
   @BeforeEach
   void setUp() {
-    BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
-    basicTextEncryptor.setPassword("123");
-    btsService = new BtsIntegrationService(integrationRepository, pluginBox, basicTextEncryptor);
+    IntegrationParamsEncryptor paramsEncryptor = mock(IntegrationParamsEncryptor.class);
+    btsService = new BtsIntegrationService(integrationRepository, pluginBox, paramsEncryptor);
   }
 
   @Test

@@ -37,7 +37,6 @@ import java.util.Optional;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -52,8 +51,6 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerSettingsServiceImpl.class);
 
-  private final BasicTextEncryptor basicTextEncryptor;
-
   private final MailServiceFactory emailServiceFactory;
 
   /**
@@ -61,16 +58,15 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
    *
    * @param integrationRepository the repository for integration entities
    * @param pluginBox             the plugin box for managing plugins
-   * @param basicTextEncryptor    the text encryptor for encrypting sensitive data
+   * @param paramsEncryptor       the params encryptor for encrypting sensitive data
    * @param emailServiceFactory   the factory for creating email services
    */
   public EmailServerIntegrationService(
       IntegrationRepository integrationRepository,
       PluginBox pluginBox,
-      BasicTextEncryptor basicTextEncryptor,
+      IntegrationParamsEncryptor paramsEncryptor,
       MailServiceFactory emailServiceFactory) {
-    super(integrationRepository, pluginBox);
-    this.basicTextEncryptor = basicTextEncryptor;
+    super(integrationRepository, pluginBox, paramsEncryptor);
     this.emailServiceFactory = emailServiceFactory;
   }
 
@@ -117,11 +113,8 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
               if (isAuthEnabled) {
                 EmailSettingsEnum.PASSWORD
                     .getAttribute(integrationParams)
-                    .ifPresent(
-                        password ->
-                            resultParams.put(
-                                EmailSettingsEnum.PASSWORD.getAttribute(),
-                                basicTextEncryptor.encrypt(password)));
+                    .ifPresent(password ->
+                        resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), password));
               } else {
                 /* Auto-drop values on switched-off authentication */
                 resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);

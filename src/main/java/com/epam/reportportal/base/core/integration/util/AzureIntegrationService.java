@@ -34,8 +34,8 @@ public class AzureIntegrationService extends BasicIntegrationServiceImpl {
 
   @Autowired
   public AzureIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
-      BtsIntegrationService btsIntegrationService) {
-    super(integrationRepository, pluginBox);
+      IntegrationParamsEncryptor paramsEncryptor, BtsIntegrationService btsIntegrationService) {
+    super(integrationRepository, pluginBox, paramsEncryptor);
     this.btsIntegrationService = btsIntegrationService;
   }
 

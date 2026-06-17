@@ -20,15 +20,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.integration.util.property.BtsProperties;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.AuthType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashMap;
 import java.util.Map;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,14 +41,13 @@ class AzureIntegrationServiceTest {
   private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
   @Mock
-  private BasicTextEncryptor encryptor;
+  private IntegrationParamsEncryptor paramsEncryptor;
 
   @InjectMocks
   private BtsIntegrationService btsIntegrationService;
 
   @Test
   void testParameters() {
-    when(encryptor.encrypt(any())).thenReturn("encrypted");
     Map<String, Object> res = btsIntegrationService.retrieveCreateParams("azure",
         getCorrectRallyIntegrationParams());
     assertThat(res.keySet(), hasSize(4));

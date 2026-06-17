@@ -50,25 +50,27 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
   private static final String RETRIEVE_UPDATED_PARAMS = "retrieveUpdated";
 
   protected IntegrationRepository integrationRepository;
-
   protected PluginBox pluginBox;
+  protected IntegrationParamsEncryptor paramsEncryptor;
 
   @Autowired
-  public BasicIntegrationServiceImpl(IntegrationRepository integrationRepository,
-      PluginBox pluginBox) {
+  public BasicIntegrationServiceImpl(IntegrationRepository integrationRepository, PluginBox pluginBox,
+      IntegrationParamsEncryptor paramsEncryptor) {
     this.integrationRepository = integrationRepository;
     this.pluginBox = pluginBox;
+    this.paramsEncryptor = paramsEncryptor;
   }
 
   @Override
   public Integration createIntegration(IntegrationRQ integrationRq, IntegrationType integrationType) {
+    Map<String, Object> rawParams = retrieveCreateParams(integrationType.getName(),
+        integrationRq.getIntegrationParams());
     return new IntegrationBuilder()
         .withCreationDate(Instant.now())
         .withType(integrationType)
         .withEnabled(integrationRq.getEnabled())
         .withName(integrationRq.getName())
-        .withParams(new IntegrationParams(
-            retrieveCreateParams(integrationType.getName(), integrationRq.getIntegrationParams())))
+        .withParams(new IntegrationParams(paramsEncryptor.encryptSensitiveFields(rawParams)))
         .get();
   }
 
@@ -77,7 +79,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
     Map<String, Object> validParams = retrieveUpdatedParams(integration.getType().getName(),
         integrationRQ.getIntegrationParams()
     );
-    IntegrationParams combinedParams = getCombinedParams(integration, validParams);
+    IntegrationParams combinedParams = getCombinedParams(integration,
+        paramsEncryptor.encryptSensitiveFields(validParams));
     integration.setParams(combinedParams);
     ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
     ofNullable(integrationRQ.getName()).ifPresent(integration::setName);

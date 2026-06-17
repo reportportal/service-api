@@ -30,11 +30,12 @@ public final class SensitiveIntegrationParam {
   public static final String PASSWORD = "password";
   public static final String OAUTH_ACCESS_KEY = "oauthAccessKey";
   public static final String API_TOKEN = "apiToken";
+  public static final String API_KEY = "apiKey";
   public static final String ACCESS_TOKEN = "accessToken";
   public static final String MANAGER_PASSWORD = "managerPassword";
   public static final String CLIENT_SECRET = "clientSecret";
   public static final String PASSWORD_ATTRIBUTE = "passwordAttribute";
 
   public static final Set<String> ALL = Set.of(PASSWORD, OAUTH_ACCESS_KEY, API_TOKEN, ACCESS_TOKEN, MANAGER_PASSWORD,
-      CLIENT_SECRET, PASSWORD_ATTRIBUTE);
+      CLIENT_SECRET, PASSWORD_ATTRIBUTE, API_KEY);
 }

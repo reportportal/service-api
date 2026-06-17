@@ -25,6 +25,7 @@ import com.epam.reportportal.auth.config.password.CustomCodeGrantAuthenticationC
 import com.epam.reportportal.auth.config.password.OAuth2ErrorResponseHandler;
 import com.epam.reportportal.auth.config.utils.JwtReportPortalUserConverter;
 import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
@@ -86,6 +87,7 @@ public class AuthorizationServerConfig {
   private final AuthenticationFailureHandler authenticationFailureHandler;
   private final PasswordEncoder passwordEncoder;
   private final UserDetailsService userDetailsService;
+  private final TokenBlacklistService tokenBlacklistService;
   private final DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider;
   private final DelegatingPluginOAuth2UserService delegatingPluginOAuth2UserService;
   @Value("${rp.jwt.signing-key}")
@@ -283,7 +285,7 @@ public class AuthorizationServerConfig {
     return oauth2 -> oauth2
         .jwt(jwt -> jwt
             .decoder(jwtDecoder())
-            .jwtAuthenticationConverter(new JwtReportPortalUserConverter(userDetailsService)));
+            .jwtAuthenticationConverter(new JwtReportPortalUserConverter(userDetailsService, tokenBlacklistService)));
   }
 
 }

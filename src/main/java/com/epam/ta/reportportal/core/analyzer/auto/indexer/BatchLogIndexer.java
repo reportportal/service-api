@@ -1,5 +1,8 @@
 package com.epam.ta.reportportal.core.analyzer.auto.indexer;
 
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.analyzer.IndexTestItem;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -9,9 +12,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JLaunchModeEnum;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
-import com.epam.reportportal.model.analyzer.IndexLaunch;
-import com.epam.reportportal.model.analyzer.IndexTestItem;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -75,9 +75,8 @@ public class BatchLogIndexer {
   @Transactional(readOnly = true)
   public Long index(AnalyzerConfig analyzerConfig, Launch launch, List<Long> itemIds) {
     AtomicLong indexedCount = new AtomicLong(0);
-    Iterables.partition(itemIds, itemsBatchSize)
-        .forEach(
-            partition -> indexedCount.addAndGet(indexPartition(partition, analyzerConfig, launch)));
+    Iterables.partition(itemIds, itemsBatchSize).forEach(
+        partition -> indexedCount.addAndGet(indexPartition(partition, analyzerConfig, launch)));
     return indexedCount.get();
   }
 

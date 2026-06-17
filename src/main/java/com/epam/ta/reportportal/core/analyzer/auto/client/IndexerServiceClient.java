@@ -35,11 +35,18 @@ public interface IndexerServiceClient {
   void cleanIndex(Long index, List<Long> ids);
 
   /**
-   * Delete index
+   * Delete index and wait for analyzer response.
    *
    * @param index Index to be deleted
    */
   void deleteIndex(Long index);
+
+  /**
+   * Sends a request to delete index without waiting for analyzer response.
+   *
+   * @param index Index to be deleted
+   */
+  void deleteIndexAsync(Long index);
 
   /**
    * Index list of launches
@@ -51,7 +58,7 @@ public interface IndexerServiceClient {
   /**
    * Sends a message to the queue with a map of items which must be updated with a new issue type
    *
-   * @param projectId Project id
+   * @param projectId           Project id
    * @param itemsForIndexUpdate Pair of itemId - issue type
    * @return List of missed items in analyzer
    */
@@ -60,7 +67,7 @@ public interface IndexerServiceClient {
   /**
    * Sends a message to the queue with a list of items which must be removed from index
    *
-   * @param projectId Project id
+   * @param projectId           Project id
    * @param itemsForIndexRemove List of item ids
    */
   void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove);
@@ -68,7 +75,7 @@ public interface IndexerServiceClient {
   /**
    * Sends a message to the queue with a list of launches which must be removed from index
    *
-   * @param projectId Project id
+   * @param projectId              Project id
    * @param launchesForIndexRemove List of launhces ids
    */
   void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove);

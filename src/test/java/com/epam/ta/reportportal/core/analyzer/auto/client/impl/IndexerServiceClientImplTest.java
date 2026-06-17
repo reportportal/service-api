@@ -8,6 +8,7 @@ import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.IndexerSer
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.IndexerServiceClientImpl.LAUNCH_REMOVE_ROUTE;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -41,7 +42,22 @@ class IndexerServiceClientImplTest {
   @Test
   void deleteIndex() {
     when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
+    when(rabbitTemplate.convertSendAndReceiveAsType(AUTO_ANALYZER_KEY, DELETE_ROUTE, 1L,
+        new ParameterizedTypeReference<Integer>() {
+        })).thenReturn(1);
     indexerServiceClient.deleteIndex(1L);
+    verify(rabbitTemplate, times(1)).convertSendAndReceiveAsType(AUTO_ANALYZER_KEY,
+        DELETE_ROUTE,
+        1L,
+        new ParameterizedTypeReference<Integer>() {
+        }
+    );
+  }
+
+  @Test
+  void deleteIndexAsync() {
+    when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
+    indexerServiceClient.deleteIndexAsync(1L);
     verify(rabbitTemplate, times(1)).convertAndSend(AUTO_ANALYZER_KEY, DELETE_ROUTE, 1L);
   }
 
@@ -81,10 +97,13 @@ class IndexerServiceClientImplTest {
   void cleanIndex() {
     List<Long> list = Lists.newArrayList(1L);
     when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
-    doNothing().when(rabbitTemplate).convertAndSend(AUTO_ANALYZER_KEY, "clean",
+
+    doNothing().when(rabbitTemplate).convertAndSend(eq(AUTO_ANALYZER_KEY), eq("clean"),
         any(CleanIndexRq.class));
+
     indexerServiceClient.cleanIndex(1L, list);
-    verify(rabbitTemplate, times(1)).convertAndSend(AUTO_ANALYZER_KEY, "clean",
+
+    verify(rabbitTemplate, times(1)).convertAndSend(eq(AUTO_ANALYZER_KEY), eq("clean"),
         any(CleanIndexRq.class));
   }
 

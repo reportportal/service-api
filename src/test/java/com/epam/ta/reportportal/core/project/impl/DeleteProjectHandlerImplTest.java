@@ -24,6 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
@@ -32,7 +33,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.remover.ContentRemover;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -43,7 +43,6 @@ import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.reporting.OperationCompletionRS;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -212,7 +211,7 @@ class DeleteProjectHandlerImplTest {
     OperationCompletionRS response = handler.deleteProject(1L, user);
 
 		verify(projectContentRemover, times(1)).remove(project);
-		verify(logIndexer, times(1)).deleteIndex(projectId);
+    verify(logIndexer, times(1)).deleteIndexAsync(projectId);
 		verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
 		verify(projectContentRemover, times(1)).remove(any(Project.class));
 

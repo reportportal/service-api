@@ -137,6 +137,11 @@ public class LogIndexerService implements LogIndexer {
   }
 
   @Override
+  public void deleteIndexAsync(Long project) {
+    indexerServiceClient.deleteIndexAsync(project);
+  }
+
+  @Override
   public void cleanIndex(Long index, List<Long> ids) {
     if (CollectionUtils.isNotEmpty(ids)) {
       indexerServiceClient.cleanIndex(index, ids);
@@ -167,13 +172,11 @@ public class LogIndexerService implements LogIndexer {
     }
   }
 
-  @Async("autoAnalyzeTaskExecutor")
   @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
     indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
   }
 
-  @Async("autoAnalyzeTaskExecutor")
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
     indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);

@@ -16,17 +16,15 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client;
 
+import com.epam.reportportal.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
-import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.model.analyzer.SearchRs;
-import com.epam.reportportal.model.analyzer.IndexLaunch;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Rabbit client for all log indexing/analysis services. Such services are those that have tag
@@ -36,10 +34,9 @@ import java.util.Map;
  * {@link AnalyzerUtils#ANALYZER_INDEX} with <code>true</code> in metadata. If tag is not provided
  * it is <code>false</code> by default
  * <p>
- * Items are analyzed in order of priority specified in tag *
- * {@link AnalyzerUtils#ANALYZER_PRIORITY} in metadata. If priority is not provided service gets the
- * lowest one. If several analyzers provided different issues for one item, it would be overwritten
- * with results of more priority service.
+ * Analysis requests are dispatched to all analyzers simultaneously and asynchronously. Priority is
+ * no longer resolved: every result delivered to the reply queue is treated as the actual one and
+ * overwrites the previous issue for the item (last-write-wins).
  *
  * @author Ivan Sharamet
  * @author Pavel Bortnik
@@ -54,12 +51,13 @@ public interface AnalyzerServiceClient {
   boolean hasClients();
 
   /**
-   * Analyze launch
+   * Dispatches the launch for analysis to every analyzer asynchronously (fire-and-forget). The
+   * request is sent to all analyzer exchanges simultaneously; results are delivered back through
+   * the reply queue and handled by a dedicated listener.
    *
    * @param rq Launch
-   * @return Analyzed Launch
    */
-  Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq);
+  void analyze(IndexLaunch rq);
 
   /**
    * Searches logs with similar log message

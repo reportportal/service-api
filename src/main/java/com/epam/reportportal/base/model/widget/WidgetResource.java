@@ -54,7 +54,7 @@ public class WidgetResource extends OwnedResource {
       "oldLineChart, investigatedTrend, launchStatistics, statisticTrend,"
           + " casesTrend, notPassed, overallStatistics, uniqueBugTable, bugTrend, activityStream, launchesComparisonChart,"
           + " launchesDurationChart, launchesTable, topTestCases, flakyTestCases, passingRateSummary, passingRatePerLaunch,"
-          + " productStatus, mostTimeConsuming, cumulative")
+          + " productStatus, mostTimeConsuming, cumulative, testStabilityFlakiness")
   private String widgetType;
 
   @NotNull

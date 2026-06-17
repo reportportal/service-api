@@ -31,6 +31,7 @@ import com.epam.reportportal.base.core.widget.content.loader.ChartInvestigatedCo
 import com.epam.reportportal.base.core.widget.content.loader.ComponentHealthCheckContentLoader;
 import com.epam.reportportal.base.core.widget.content.loader.EmptyContentLoader;
 import com.epam.reportportal.base.core.widget.content.loader.FlakyCasesTableContentLoader;
+import com.epam.reportportal.base.core.widget.content.loader.TestStabilityFlakinessMultilevelContentLoader;
 import com.epam.reportportal.base.core.widget.content.loader.LaunchExecutionAndIssueStatisticsContentLoader;
 import com.epam.reportportal.base.core.widget.content.loader.LaunchesComparisonContentLoader;
 import com.epam.reportportal.base.core.widget.content.loader.LaunchesDurationContentLoader;
@@ -139,6 +140,8 @@ public class WidgetConfig implements ApplicationContextAware {
         )
         .put(WidgetType.COMPONENT_HEALTH_CHECK,
             applicationContext.getBean(ComponentHealthCheckContentLoader.class))
+        .put(WidgetType.TEST_STABILITY_FLAKINESS,
+            applicationContext.getBean(TestStabilityFlakinessMultilevelContentLoader.class))
         .build();
   }
 
@@ -198,6 +201,9 @@ public class WidgetConfig implements ApplicationContextAware {
         .put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
             (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
         ).put(WidgetType.TEST_CASE_SEARCH,
+            (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+        )
+        .put(WidgetType.TEST_STABILITY_FLAKINESS,
             (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
         )
         .build();

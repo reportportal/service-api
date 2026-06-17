@@ -40,12 +40,12 @@ public class WidgetPreviewRQ {
       "casesTrend", "notPassed", "overallStatistics", "uniqueBugTable", "bugTrend",
       "activityStream", "launchesComparisonChart", "launchesDurationChart", "launchesTable",
       "topTestCases", "flakyTestCases", "passingRateSummary", "passingRatePerLaunch",
-      "productStatus", "mostTimeConsuming", "cumulative"})
+      "productStatus", "mostTimeConsuming", "cumulative", "testStabilityFlakiness" })
   @Schema(required = true, allowableValues =
       "oldLineChart, investigatedTrend, launchStatistics, statisticTrend,"
           + " casesTrend, notPassed, overallStatistics, uniqueBugTable, bugTrend, activityStream, launchesComparisonChart,"
           + " launchesDurationChart, launchesTable, topTestCases, flakyTestCases, passingRateSummary, passingRatePerLaunch,"
-          + " productStatus, mostTimeConsuming, cumulative")
+          + " productStatus, mostTimeConsuming, cumulative, testStabilityFlakiness")
   private String widgetType;
 
   @Valid

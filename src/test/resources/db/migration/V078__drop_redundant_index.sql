@@ -1,0 +1,1 @@
+DROP index IF EXISTS path_idx

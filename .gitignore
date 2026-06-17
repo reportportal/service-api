@@ -21,3 +21,4 @@ build/
 out/
 src/test/resources/db/migration/*.sql
 bin
+logs/

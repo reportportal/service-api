@@ -1,0 +1,1 @@
+INSERT INTO server_settings (key, value) VALUES ('server.users.sso', 'false');

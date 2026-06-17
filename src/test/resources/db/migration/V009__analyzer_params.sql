@@ -1,0 +1,1 @@
+    DELETE FROM attribute WHERE name IN ('analyzer.minDocFreq', 'analyzer.minTermFreq');

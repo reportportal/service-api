@@ -23,6 +23,7 @@ import com.epam.reportportal.base.core.widget.content.updater.validator.ChartInv
 import com.epam.reportportal.base.core.widget.content.updater.validator.ComponentHealthCheckContentValidator;
 import com.epam.reportportal.base.core.widget.content.updater.validator.CumulativeTrendChartValidator;
 import com.epam.reportportal.base.core.widget.content.updater.validator.FlakyCasesTableContentValidator;
+import com.epam.reportportal.base.core.widget.content.updater.validator.TestStabilityFlakinessMultilevelValidator;
 import com.epam.reportportal.base.core.widget.content.updater.validator.LaunchExecutionAndIssueStatisticsContentValidator;
 import com.epam.reportportal.base.core.widget.content.updater.validator.LaunchesComparisonContentValidator;
 import com.epam.reportportal.base.core.widget.content.updater.validator.LaunchesDurationContentValidator;
@@ -114,6 +115,8 @@ public class WidgetValidatorConfig {
             applicationContext.getBean(ComponentHealthCheckContentValidator.class))
         .put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
             applicationContext.getBean(ComponentHealthCheckContentValidator.class))
+        .put(WidgetType.TEST_STABILITY_FLAKINESS,
+            applicationContext.getBean(TestStabilityFlakinessMultilevelValidator.class))
         .build();
   }
 }

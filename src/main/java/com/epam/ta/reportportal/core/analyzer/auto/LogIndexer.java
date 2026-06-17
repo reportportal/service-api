@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto;
 
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -47,20 +47,26 @@ public interface LogIndexer {
       AnalyzerConfig analyzerConfig);
 
   /**
-   * Delete index of specified project
+   * Delete index of specified project and wait for analyzer response.
    *
    * @param project Project/index
    */
   void deleteIndex(Long project);
 
   /**
-   * Remove documents with specified ids from index
+   * Sends a request to delete index of specified project without waiting for analyzer response.
+   *
+   * @param project Project/index
+   */
+  void deleteIndexAsync(Long project);
+
+  /**
+   * Sends a request to remove documents with specified ids from index
    *
    * @param index Index to to be cleaned
    * @param ids   The {@link List} of the {@link com.epam.ta.reportportal.entity.log.Log#id}
-   * @return Amount of deleted logs
    */
-  CompletableFuture<Long> cleanIndex(Long index, List<Long> ids);
+  void cleanIndex(Long index, List<Long> ids);
 
   /**
    * Async handle of updated items for indexing.
@@ -70,15 +76,6 @@ public interface LogIndexer {
    * @param testItems      Test items must be updated
    */
   void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
-
-  /**
-   * Handle of items that should be removed from index.
-   *
-   * @param projectId           Project id
-   * @param itemsForIndexRemove Ids of items
-   * @return number of removed items
-   */
-  int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
 
   /**
    * Async handle of items that should be removed from index.

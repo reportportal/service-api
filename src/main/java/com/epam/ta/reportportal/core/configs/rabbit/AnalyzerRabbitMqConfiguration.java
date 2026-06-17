@@ -16,16 +16,20 @@
 
 package com.epam.ta.reportportal.core.configs.rabbit;
 
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.configs.Conditions;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.rabbitmq.http.client.Client;
 import java.net.URI;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -76,6 +80,37 @@ public class AnalyzerRabbitMqConfiguration {
     rabbitTemplate.setMessageConverter(messageConverter);
     rabbitTemplate.setReplyTimeout(replyTimeout);
     return rabbitTemplate;
+  }
+
+  @Bean(name = "analyzerRabbitAdmin")
+  public RabbitAdmin analyzerRabbitAdmin(
+      @Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory) {
+    RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+    // declare only declarables that explicitly reference this admin, so it does not
+    // attempt to create base-vhost queues in the analyzer vhost
+    rabbitAdmin.setExplicitDeclarationsOnly(true);
+    return rabbitAdmin;
+  }
+
+  @Bean(name = "analyzerReplyQueue")
+  public Queue analyzerReplyQueue(
+      @Value("${rp.amqp.analyzer-reply-queue:analysis-reply}") String replyQueueName,
+      @Autowired @Qualifier("analyzerRabbitAdmin") RabbitAdmin analyzerRabbitAdmin) {
+    Queue queue = new Queue(replyQueueName, true);
+    queue.setAdminsThatShouldDeclare(analyzerRabbitAdmin);
+    return queue;
+  }
+
+  @Bean(name = "analyzerRabbitListenerContainerFactory")
+  public SimpleRabbitListenerContainerFactory analyzerRabbitListenerContainerFactory(
+      @Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory) {
+    SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+    factory.setConnectionFactory(connectionFactory);
+    factory.setDefaultRequeueRejected(false);
+    factory.setErrorHandler(new ConditionalRejectingErrorHandler());
+    factory.setAutoStartup(true);
+    factory.setMessageConverter(messageConverter);
+    return factory;
   }
 
 }

@@ -632,8 +632,7 @@ class ProjectControllerTest extends BaseMvcTest {
     verifyProjectIndexEvent();
 
     verify(rabbitTemplate, times(1))
-        .convertSendAndReceiveAsType(eq(exchangeInfo.getName()),
-        eq("delete"), eq(2L), any());
+        .convertSendAndReceiveAsType(eq(exchangeInfo.getName()), eq("delete"), eq(2L), any());
   }
 
   private void verifyProjectIndexEvent() {

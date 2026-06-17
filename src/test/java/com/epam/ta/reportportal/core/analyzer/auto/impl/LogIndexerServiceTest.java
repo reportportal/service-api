@@ -26,6 +26,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.model.analyzer.IndexLaunch;
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.BatchLogIndexer;
@@ -45,8 +47,6 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.model.analyzer.IndexRs;
 import com.epam.ta.reportportal.model.analyzer.IndexRsIndex;
 import com.epam.ta.reportportal.model.analyzer.IndexRsItem;
-import com.epam.reportportal.model.analyzer.IndexLaunch;
-import com.epam.reportportal.model.project.AnalyzerConfig;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -112,6 +112,14 @@ class LogIndexerServiceTest {
     doNothing().when(indexerServiceClient).indexItemsRemoveAsync(1L, list);
     logIndexerService.indexItemsRemoveAsync(1L, list);
     verify(indexerServiceClient, times(1)).indexItemsRemoveAsync(1L, list);
+  }
+
+  @Test
+  void testCleanIndex() {
+    List<Long> list = Lists.newArrayList(1L);
+    doNothing().when(indexerServiceClient).cleanIndex(1L, list);
+    logIndexerService.cleanIndex(1L, list);
+    verify(indexerServiceClient, times(1)).cleanIndex(1L, list);
   }
 
   private AnalyzerConfig analyzerConfig() {

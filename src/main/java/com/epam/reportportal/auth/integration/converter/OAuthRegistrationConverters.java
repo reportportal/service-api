@@ -23,8 +23,6 @@ import static com.epam.reportportal.auth.integration.converter.RegistrationParam
 import static com.epam.reportportal.auth.integration.converter.RegistrationParam.CLIENT_NAME;
 import static com.epam.reportportal.auth.integration.converter.RegistrationParam.CLIENT_SECRET;
 import static com.epam.reportportal.auth.integration.converter.RegistrationParam.JWK_SET_URI;
-import static com.epam.reportportal.auth.integration.converter.RegistrationParam.ORGANIZATIONS_KEY;
-import static com.epam.reportportal.auth.integration.converter.RegistrationParam.ORGANIZATION_TYPE;
 import static com.epam.reportportal.auth.integration.converter.RegistrationParam.REDIRECT_URI_TEMPLATE;
 import static com.epam.reportportal.auth.integration.converter.RegistrationParam.RESTRICTIONS;
 import static com.epam.reportportal.auth.integration.converter.RegistrationParam.SCOPES;
@@ -40,10 +38,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -102,20 +102,9 @@ public class OAuthRegistrationConverters {
       }
       resource.setScopes(scopes);
     }
+    Optional.ofNullable(params.get(RESTRICTIONS))
+        .ifPresent(restrictions -> resource.setRestrictions((Map<String, String>) restrictions));
 
-    Object restrictionsObj = params.get(RESTRICTIONS);
-    if (restrictionsObj instanceof List<?> list) {
-      String organizations = list.stream()
-          .filter(item -> item instanceof Map<?, ?>)
-          .map(item -> (Map<?, ?>) item)
-          .filter(r -> r.get("type") instanceof String t && ORGANIZATION_TYPE.equalsIgnoreCase(t))
-          .map(r -> r.get("value") instanceof String v ? v : null)
-          .filter(v -> v != null)
-          .collect(Collectors.joining(","));
-      Map<String, String> restrictions = new HashMap<>();
-      restrictions.put(ORGANIZATIONS_KEY, organizations);
-      resource.setRestrictions(restrictions);
-    }
     return resource;
   };
 
@@ -130,10 +119,11 @@ public class OAuthRegistrationConverters {
   };
 
   /**
-   * Converts an {@link Integration} params directly to a Spring {@link ClientRegistration}.
+   * Converts an {@link Integration} params directly to a Spring {@link ClientRegistration}, decrypting the stored
+   * client secret with the given {@link BasicTextEncryptor}.
    */
   @SuppressWarnings("unchecked")
-  public static final Function<Integration, ClientRegistration> INTEGRATION_TO_OAUTH_REGISTRATION = integration -> {
+  public static ClientRegistration toClientRegistration(Integration integration, BasicTextEncryptor encryptor) {
     Map<String, Object> params = integration.getParams().getParams();
     List<String> scopes = params.get(SCOPES) instanceof List
         ? (List<String>) params.get(SCOPES)
@@ -141,10 +131,11 @@ public class OAuthRegistrationConverters {
 
     String clientAuthMethod = getStringParam(params, CLIENT_AUTH_METHOD, "").trim();
     String authGrantType = getStringParam(params, AUTH_GRANT_TYPE, "").trim();
+    String clientSecret = getStringParam(params, CLIENT_SECRET);
 
     return ClientRegistration.withRegistrationId(integration.getName())
         .clientId(getStringParam(params, CLIENT_ID))
-        .clientSecret(getStringParam(params, CLIENT_SECRET))
+        .clientSecret(clientSecret == null ? null : encryptor.decrypt(clientSecret))
         .clientAuthenticationMethod(clientAuthMethod.isEmpty()
             ? ClientAuthenticationMethod.CLIENT_SECRET_BASIC
             : new ClientAuthenticationMethod(clientAuthMethod))
@@ -160,5 +151,5 @@ public class OAuthRegistrationConverters {
         .clientName(getStringParam(params, CLIENT_NAME, integration.getName()))
         .scope(scopes.toArray(String[]::new))
         .build();
-  };
+  }
 }

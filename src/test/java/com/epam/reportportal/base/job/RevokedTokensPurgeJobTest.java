@@ -16,11 +16,13 @@
 
 package com.epam.reportportal.base.job;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.verify;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRepository;
+import java.time.Duration;
 import java.time.Instant;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,9 +30,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class RevokedTokensPurgeJobTest {
+
+  private static final long ACCESS_TOKEN_VALIDITY_SECONDS = 3600L;
 
   @Mock
   private RevokedTokenRepository revokedTokenRepository;
@@ -38,20 +43,25 @@ class RevokedTokensPurgeJobTest {
   @InjectMocks
   private RevokedTokensPurgeJob job;
 
+  @BeforeEach
+  void setUp() {
+    ReflectionTestUtils.setField(job, "accessTokenValiditySeconds", ACCESS_TOKEN_VALIDITY_SECONDS);
+  }
+
   @Test
-  @DisplayName("Should call deleteExpired with the current Instant")
+  @DisplayName("Should call deleteExpired with cutoff based on token validity period")
   void executeShouldDeleteExpiredEntries() {
     // Given
     var captor = ArgumentCaptor.forClass(Instant.class);
-    var before = Instant.now();
+    var earliestCutoff = Instant.now().minus(Duration.ofSeconds(ACCESS_TOKEN_VALIDITY_SECONDS));
 
     // When
     job.execute(null);
 
     // Then
     verify(revokedTokenRepository).deleteExpired(captor.capture());
-    assertThat(captor.getValue())
-        .isAfterOrEqualTo(before)
-        .isBeforeOrEqualTo(Instant.now());
+    var cutoff = captor.getValue();
+    assertFalse(cutoff.isBefore(earliestCutoff));
+    assertFalse(cutoff.isAfter(Instant.now()));
   }
 }

@@ -45,18 +45,18 @@ public interface RevokedTokenRepository extends JpaRepository<RevokedToken, Long
       SELECT EXISTS (
           SELECT 1 FROM revoked_token
           WHERE jti = :jti
-             OR (subject = :subject AND revoke_before >= :issuedAt)
+             OR (subject = :subject AND revoked_at >= :issuedAt)
       )
       """, nativeQuery = true)
   boolean isRevoked(@Param("jti") String jti, @Param("subject") String subject, @Param("issuedAt") Instant issuedAt);
 
   /**
-   * Removes all blacklist rows whose {@code expiresAt} is in the past.
+   * Removes all blacklist rows whose {@code revokedAt} is older than the given cutoff.
    *
-   * @param now reference point; rows with {@code expiresAt < now} are deleted
+   * @param cutoff reference point; rows with {@code revokedAt < cutoff} are deleted
    */
   @Modifying
   @Transactional
-  @Query("DELETE FROM RevokedToken t WHERE t.expiresAt < :now")
-  void deleteExpired(Instant now);
+  @Query("DELETE FROM RevokedToken t WHERE t.revokedAt < :cutoff")
+  void deleteExpired(Instant cutoff);
 }

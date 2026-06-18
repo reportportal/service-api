@@ -17,11 +17,13 @@
 package com.epam.reportportal.base.job;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRepository;
+import java.time.Duration;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,13 +41,17 @@ public class RevokedTokensPurgeJob implements Job {
   @Autowired
   private RevokedTokenRepository revokedTokenRepository;
 
+  @Value("${rp.jwt.token.validity-period}")
+  private long accessTokenValiditySeconds;
+
   /**
-   * Deletes every blacklist row whose {@code expires_at} is already in the past.
+   * Deletes every blacklist row whose {@code revoked_at} is older than the maximum JWT lifetime.
    */
   @Override
   @Transactional
   public void execute(JobExecutionContext context) {
-    revokedTokenRepository.deleteExpired(Instant.now());
+    var cutoff = Instant.now().minus(Duration.ofSeconds(accessTokenValiditySeconds));
+    revokedTokenRepository.deleteExpired(cutoff);
     log.info("Purged expired entries from revoked_token table");
   }
 }

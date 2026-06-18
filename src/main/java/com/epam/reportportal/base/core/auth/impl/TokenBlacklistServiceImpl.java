@@ -19,10 +19,8 @@ package com.epam.reportportal.base.core.auth.impl;
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.RevokedToken;
-import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
  * JPA-backed implementation of {@link TokenBlacklistService}.
  *
  * <p>Per-token rows expire alongside their underlying JWT; per-user rows expire after the
- * configured access-token validity (no JWT issued before {@code revokeBefore} can outlive that window).
+ * configured access-token validity (no JWT issued before {@code revokedAt} can outlive that window).
  */
 @Service
 @RequiredArgsConstructor
@@ -38,21 +36,16 @@ public class TokenBlacklistServiceImpl implements TokenBlacklistService {
 
   private final RevokedTokenRepository revokedTokenRepository;
 
-  @Value("${rp.jwt.token.validity-period}")
-  private long accessTokenValiditySeconds;
-
   @Override
   @Transactional
-  public void revoke(String jti, Instant expiresAt) {
-    revokedTokenRepository.save(RevokedToken.forJti(jti, expiresAt));
+  public void revoke(String jti) {
+    revokedTokenRepository.save(RevokedToken.forJti(jti));
   }
 
   @Override
   @Transactional
   public void revokeSubject(String subject) {
-    var now = Instant.now();
-    var expiresAt = now.plus(Duration.ofSeconds(accessTokenValiditySeconds));
-    revokedTokenRepository.save(RevokedToken.forSubject(subject, now, expiresAt));
+    revokedTokenRepository.save(RevokedToken.forSubject(subject));
   }
 
   @Override

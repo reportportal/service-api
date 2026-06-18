@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * JWT blacklist row. Stores either a per-token revocation (by {@code jti}) or a per-user revocation (by JWT
- * {@code subject} with a {@code revokeBefore} timestamp).
+ * {@code subject} with a {@code revokedAt} timestamp).
  */
 @Entity
 @Table(name = "revoked_token", schema = "public")
@@ -50,30 +50,24 @@ public class RevokedToken {
   @Column(name = "subject")
   private String subject;
 
-  @Column(name = "revoke_before")
-  private Instant revokeBefore;
-
-  @Column(name = "expires_at", nullable = false)
-  private Instant expiresAt;
+  @Column(name = "revoked_at", nullable = false)
+  private Instant revokedAt;
 
   /**
    * Creates a per-token revocation row.
    *
-   * @param jti       JWT ID of the revoked token
-   * @param expiresAt original {@code exp} of the JWT
+   * @param jti JWT ID of the revoked token
    */
-  public static RevokedToken forJti(String jti, Instant expiresAt) {
-    return new RevokedToken(null, jti, null, null, expiresAt);
+  public static RevokedToken forJti(String jti) {
+    return new RevokedToken(null, jti, null, Instant.now());
   }
 
   /**
    * Creates a per-user revocation row.
    *
-   * @param subject      JWT {@code sub} claim of the user whose tokens are revoked
-   * @param revokeBefore JWTs with {@code iat < revokeBefore} are rejected
-   * @param expiresAt    row purge time (use now + max JWT lifetime)
+   * @param subject JWT {@code sub} claim of the user whose tokens are revoked
    */
-  public static RevokedToken forSubject(String subject, Instant revokeBefore, Instant expiresAt) {
-    return new RevokedToken(null, null, subject, revokeBefore, expiresAt);
+  public static RevokedToken forSubject(String subject) {
+    return new RevokedToken(null, null, subject, Instant.now());
   }
 }

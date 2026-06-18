@@ -16,7 +16,11 @@
 
 package com.epam.reportportal.base.core.auth.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,7 +34,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class TokenBlacklistServiceImplTest {
@@ -42,28 +45,25 @@ class TokenBlacklistServiceImplTest {
   private TokenBlacklistServiceImpl service;
 
   @Test
-  @DisplayName("Should persist a per-jti RevokedToken with the given jti and expiresAt")
+  @DisplayName("Should persist a per-jti RevokedToken with the given jti and revokedAt")
   void revokeWhenCalledShouldSavePerJtiRevokedToken() {
     // Given
     var jti = "abc-123";
-    var expiresAt = Instant.parse("2030-01-01T00:00:00Z");
     var captor = ArgumentCaptor.forClass(RevokedToken.class);
 
     // When
-    service.revoke(jti, expiresAt);
+    service.revoke(jti);
 
     // Then
     verify(revokedTokenRepository).save(captor.capture());
-    assertThat(captor.getValue())
-        .extracting("jti", "expiresAt")
-        .containsExactly(jti, expiresAt);
+    assertEquals(jti, captor.getValue().getJti());
+    assertNotNull(captor.getValue().getRevokedAt());
   }
 
   @Test
-  @DisplayName("Should persist a per-subject RevokedToken with subject and computed expiresAt")
+  @DisplayName("Should persist a per-subject RevokedToken with subject and revokedAt")
   void revokeSubjectWhenCalledShouldSavePerSubjectRevokedToken() {
     // Given
-    ReflectionTestUtils.setField(service, "accessTokenValiditySeconds", 3600L);
     var subject = "user@example.com";
     var captor = ArgumentCaptor.forClass(RevokedToken.class);
 
@@ -73,10 +73,9 @@ class TokenBlacklistServiceImplTest {
     // Then
     verify(revokedTokenRepository).save(captor.capture());
     var saved = captor.getValue();
-    assertThat(saved).extracting("subject").isEqualTo(subject);
-    assertThat(saved).extracting("jti").isNull();
-    assertThat(saved.getExpiresAt()).isAfter(Instant.now());
-    assertThat(saved.getRevokeBefore()).isNotNull();
+    assertEquals(subject, saved.getSubject());
+    assertNull(saved.getJti());
+    assertNotNull(saved.getRevokedAt());
   }
 
   @Test
@@ -92,7 +91,7 @@ class TokenBlacklistServiceImplTest {
     var result = service.isRevoked(jti, subject, issuedAt);
 
     // Then
-    assertThat(result).isTrue();
+    assertTrue(result);
     verify(revokedTokenRepository).isRevoked(jti, subject, issuedAt);
   }
 
@@ -109,7 +108,7 @@ class TokenBlacklistServiceImplTest {
     var result = service.isRevoked(jti, subject, issuedAt);
 
     // Then
-    assertThat(result).isFalse();
+    assertFalse(result);
     verify(revokedTokenRepository).isRevoked(jti, subject, issuedAt);
   }
 }

@@ -16,8 +16,11 @@
 
 package com.epam.reportportal.base.core.configs.security.converters;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
@@ -79,13 +82,11 @@ class ReportPortalJwtConverterTest {
     var auth = converter.convert(jwt);
 
     // Then
-    assertThat(auth).isInstanceOf(RpJwtAuthenticationToken.class);
-    var rpAuth = (RpJwtAuthenticationToken) auth;
-    assertThat(rpAuth.getPrincipal()).isSameAs(user);
-    assertThat(rpAuth.getToken()).isSameAs(jwt);
-    assertThat(rpAuth.getAuthorities())
-        .extracting("authority")
-        .containsExactly("ROLE_USER");
+    var rpAuth = assertInstanceOf(RpJwtAuthenticationToken.class, auth);
+    assertSame(user, rpAuth.getPrincipal());
+    assertSame(jwt, rpAuth.getToken());
+    assertEquals(1, rpAuth.getAuthorities().size());
+    assertEquals("ROLE_USER", rpAuth.getAuthorities().iterator().next().getAuthority());
   }
 
   @Test
@@ -96,9 +97,10 @@ class ReportPortalJwtConverterTest {
     when(tokenBlacklistService.isRevoked("jti-revoked", "user@reportportal.io",
         Instant.parse("2026-01-01T00:00:00Z"))).thenReturn(true);
 
+    // When
+    var exception = assertThrows(OAuth2AuthenticationException.class, () -> converter.convert(jwt));
+
     // Then
-    assertThatThrownBy(() -> converter.convert(jwt))
-        .isInstanceOf(OAuth2AuthenticationException.class)
-        .hasMessageContaining("revoked");
+    assertTrue(exception.getMessage().contains("revoked"));
   }
 }

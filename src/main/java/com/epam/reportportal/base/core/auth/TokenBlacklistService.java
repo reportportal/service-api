@@ -24,12 +24,11 @@ import java.time.Instant;
 public interface TokenBlacklistService {
 
   /**
-   * Adds the given JWT identifier to the blacklist until its natural expiration.
+   * Adds the given JWT identifier to the blacklist.
    *
-   * @param jti       JWT ID (the {@code jti} claim) of the token being revoked
-   * @param expiresAt original {@code exp} claim of the token; bounds the row's lifetime
+   * @param jti JWT ID (the {@code jti} claim) of the token being revoked
    */
-  void revoke(String jti, Instant expiresAt);
+  void revoke(String jti);
 
   /**
    * Revokes every currently active JWT issued to the given subject. JWTs whose {@code iat} is earlier than the moment

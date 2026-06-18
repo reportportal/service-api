@@ -16,7 +16,9 @@
 
 package com.epam.reportportal.base.core.configs.security.converters;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.time.Instant;
 import java.util.List;
@@ -56,10 +58,10 @@ class RpJwtAuthenticationTokenTest {
     var token = new RpJwtAuthenticationToken(jwt, USER, authorities);
 
     // Then
-    assertThat(token.getPrincipal()).isSameAs(USER);
-    assertThat(token.getToken()).isSameAs(jwt);
-    assertThat(token.getAuthorities()).containsExactlyElementsOf(authorities);
-    assertThat(token.getName()).isEqualTo(USER.getUsername());
+    assertSame(USER, token.getPrincipal());
+    assertSame(jwt, token.getToken());
+    assertIterableEquals(authorities, token.getAuthorities());
+    assertEquals(USER.getUsername(), token.getName());
   }
 
   @Test
@@ -74,9 +76,9 @@ class RpJwtAuthenticationTokenTest {
     token.eraseCredentials();
 
     // Then
-    assertThat(token.getToken()).isSameAs(jwt);
-    assertThat(token.getToken().getId()).isEqualTo("jti-1");
-    assertThat(token.getToken().getExpiresAt()).isEqualTo(Instant.parse("2026-01-02T00:00:00Z"));
+    assertSame(jwt, token.getToken());
+    assertEquals("jti-1", token.getToken().getId());
+    assertEquals(Instant.parse("2026-01-02T00:00:00Z"), token.getToken().getExpiresAt());
   }
 
   @Test
@@ -96,6 +98,7 @@ class RpJwtAuthenticationTokenTest {
         List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
     // Then
-    assertThat(t1).isEqualTo(t2).hasSameHashCodeAs(t2);
+    assertEquals(t1, t2);
+    assertEquals(t1.hashCode(), t2.hashCode());
   }
 }

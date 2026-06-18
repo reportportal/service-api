@@ -33,6 +33,6 @@ public class LogoutHandlerImpl implements LogoutHandler {
 
   @Override
   public void logout(Jwt jwt) {
-    tokenBlacklistService.revoke(jwt.getId(), jwt.getExpiresAt());
+    tokenBlacklistService.revoke(jwt.getId());
   }
 }

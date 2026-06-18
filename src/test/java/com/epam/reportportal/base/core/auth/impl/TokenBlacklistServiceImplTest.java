@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,6 +77,18 @@ class TokenBlacklistServiceImplTest {
     assertEquals(subject, saved.getSubject());
     assertNull(saved.getJti());
     assertNotNull(saved.getRevokedAt());
+  }
+
+  @Test
+  @DisplayName("Should throw when jti is blank")
+  void revokeWhenJtiBlankShouldThrow() {
+    assertThrows(IllegalArgumentException.class, () -> service.revoke(" "));
+  }
+
+  @Test
+  @DisplayName("Should throw when subject is blank")
+  void revokeSubjectWhenSubjectBlankShouldThrow() {
+    assertThrows(IllegalArgumentException.class, () -> service.revokeSubject(null));
   }
 
   @Test

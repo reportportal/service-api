@@ -21,6 +21,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRep
 import com.epam.reportportal.base.infrastructure.persistence.entity.RevokedToken;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,12 +40,18 @@ public class TokenBlacklistServiceImpl implements TokenBlacklistService {
   @Override
   @Transactional
   public void revoke(String jti) {
+    if (StringUtils.isBlank(jti)) {
+      throw new IllegalArgumentException("jti must not be blank");
+    }
     revokedTokenRepository.save(RevokedToken.forJti(jti));
   }
 
   @Override
   @Transactional
   public void revokeSubject(String subject) {
+    if (StringUtils.isBlank(subject)) {
+      throw new IllegalArgumentException("subject must not be blank");
+    }
     revokedTokenRepository.save(RevokedToken.forSubject(subject));
   }
 

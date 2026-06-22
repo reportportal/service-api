@@ -76,10 +76,32 @@ public class NestedStepItemBuilder {
     nestedStep.setItemResults(nestedResults);
     nestedResults.setTestItem(nestedStep);
 
-    nestedStep.setTestCaseHash(parentTestItem.getTestCaseHash()); //TODO check is it correct
+    nestedStep.setTestCaseHash(parentTestItem.getTestCaseHash());
 
     log.trace("Successfully built nested step item: {}", name);
     return nestedStep;
+  }
+  
+  public TestItem buildRetryNestedStepItem(TestItem originalStep, TestItem parentRetryItem) {
+    var newStep = new TestItem();
+    newStep.setUuid(UUID.randomUUID().toString());
+    newStep.setName(originalStep.getName());
+    newStep.setDescription(originalStep.getDescription());
+    newStep.setType(TestItemTypeEnum.STEP);
+    newStep.setStartTime(Instant.now());
+    newStep.setLaunchId(parentRetryItem.getLaunchId());
+    newStep.setHasStats(false);
+    newStep.setHasChildren(false);
+    newStep.setRetryOf(null);
+    newStep.setParentId(parentRetryItem.getItemId());
+    newStep.setTestCaseId(parentRetryItem.getTestCaseId());
+  
+    var results = new TestItemResults();
+    results.setStatus(StatusEnum.TO_RUN);
+    results.setTestItem(newStep);
+    newStep.setItemResults(results);
+  
+    return newStep;
   }
 
   /**
@@ -112,7 +134,7 @@ public class NestedStepItemBuilder {
     }
 
     if (expectedResult != null && !expectedResult.isEmpty()) {
-      if (description.length() > 0) {
+      if (!description.isEmpty()) {
         description.append("\n\nExpected result: ");
       } else {
         description.append("Expected result: ");

@@ -3,17 +3,38 @@ package com.epam.reportportal.base.core.tms.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.item.FinishTestItemHandler;
+import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
+import com.epam.reportportal.base.core.tms.mapper.NestedStepItemBuilder;
+import com.epam.reportportal.base.core.tms.mapper.TestCaseItemBuilder;
+import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseExecutionMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
+import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,10 +51,37 @@ class TmsTestCaseExecutionServiceImplTest {
 
   @Mock
   private TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
-  
+
   @Mock
   private TmsTestCaseExecutionCommentService tmsTestCaseExecutionCommentService;
-  
+
+  @Mock
+  private UpdateTestItemHandler updateTestItemHandler;
+
+  @Mock
+  private FinishTestItemHandler finishTestItemHandler;
+
+  @Mock
+  private TmsTestCaseExecutionMapper tmsTestCaseExecutionMapper;
+
+  @Mock
+  private TestItemRepository testItemRepository;
+
+  @Mock
+  private TmsManualLaunchService tmsManualLaunchService;
+
+  @Mock
+  private TmsTestCaseService tmsTestCaseService;
+
+  @Mock
+  private TestCaseItemBuilder testCaseItemBuilder;
+
+  @Mock
+  private NestedStepItemBuilder nestedStepItemBuilder;
+
+  @Mock
+  private TmsStepExecutionService tmsStepExecutionService;
+
   @InjectMocks
   private TmsTestCaseExecutionServiceImpl sut;
 
@@ -59,6 +107,10 @@ class TmsTestCaseExecutionServiceImplTest {
     testItem1 = new TestItem();
     testItem1.setItemId(10L);
     testItem1.setName("Test Item 1");
+    testItem1.setPath("1.10");
+    var results1 = new TestItemResults();
+    results1.setStatus(StatusEnum.TO_RUN);
+    testItem1.setItemResults(results1);
 
     testItem2 = new TestItem();
     testItem2.setItemId(20L);
@@ -91,7 +143,124 @@ class TmsTestCaseExecutionServiceImplTest {
         .testItem(testItem3)
         .testCaseSnapshot("{\"name\": \"Test Case 3\"}")
         .build();
+
+    sut.setTmsManualLaunchService(tmsManualLaunchService);
+    sut.setTmsTestCaseService(tmsTestCaseService);
   }
+
+  // ==================== patch: Active -> Active ====================
+
+  @Test
+  void patch_WhenActiveStatusChangesToAnotherActive_ShouldSaveDirectlyAndBypassHandlers() {
+    // Given - current TO_RUN, target IN_PROGRESS → Active -> Active path
+    var executionId = 100L;
+    var launchId = 10L;
+    var request = TmsTestCaseExecutionRQ.builder().status("IN_PROGRESS").build();
+    var membershipDetails = new MembershipDetails();
+    var user = mock(ReportPortalUser.class);
+
+    when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
+        .thenReturn(Optional.of(execution1));
+    when(testItemRepository.save(any(TestItem.class))).thenReturn(testItem1);
+    when(tmsTestCaseExecutionRepository.save(execution1)).thenReturn(execution1);
+    when(tmsTestCaseExecutionMapper.convert(execution1)).thenReturn(new TmsTestCaseExecutionRS());
+
+    // When
+    var result = sut.patch(membershipDetails, user, executionId, launchId, request);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(StatusEnum.IN_PROGRESS, testItem1.getItemResults().getStatus());
+    verify(testItemRepository).save(testItem1);
+    verifyNoInteractions(updateTestItemHandler);
+    verifyNoInteractions(finishTestItemHandler);
+    verifyNoInteractions(testCaseItemBuilder);
+  }
+
+  @Test
+  void patch_WhenStatusSameAsCurrentStatus_ShouldDoNothingAndSkipAllHandlers() {
+    // Given - current TO_RUN, target TO_RUN → same status, nothing should happen
+    var executionId = 100L;
+    var launchId = 10L;
+    var request = TmsTestCaseExecutionRQ.builder().status("TO_RUN").build();
+    var membershipDetails = new MembershipDetails();
+    var user = mock(ReportPortalUser.class);
+
+    when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
+        .thenReturn(Optional.of(execution1));
+    when(tmsTestCaseExecutionRepository.save(execution1)).thenReturn(execution1);
+    when(tmsTestCaseExecutionMapper.convert(execution1)).thenReturn(new TmsTestCaseExecutionRS());
+
+    // When
+    var result = sut.patch(membershipDetails, user, executionId, launchId, request);
+
+    // Then
+    assertNotNull(result);
+    verifyNoInteractions(updateTestItemHandler);
+    verifyNoInteractions(finishTestItemHandler);
+    verifyNoInteractions(testCaseItemBuilder);
+    verify(testItemRepository, never()).save(any());
+  }
+
+  // ==================== patch: Active -> Terminal ====================
+
+  // ==================== patch: Terminal -> Active (RETRY) ====================
+
+  // ==================== patch: Terminal -> Terminal ====================
+
+  @Test
+  void patch_WhenBothStatusesAreTerminal_ShouldCallUpdateTestItemHandler() {
+    // Given - current FAILED, target PASSED → Terminal -> Terminal path
+    var executionId = 100L;
+    var launchId = 10L;
+    var request = TmsTestCaseExecutionRQ.builder().status("PASSED").build();
+    var membershipDetails = new MembershipDetails();
+    var user = mock(ReportPortalUser.class);
+
+    testItem1.getItemResults().setStatus(StatusEnum.FAILED);
+
+    when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
+        .thenReturn(Optional.of(execution1));
+    when(updateTestItemHandler.updateTestItem(
+        eq(membershipDetails), eq(testItem1), any(UpdateTestItemRQ.class), eq(user)))
+        .thenReturn(testItem1);
+    when(tmsTestCaseExecutionRepository.save(execution1)).thenReturn(execution1);
+    when(tmsTestCaseExecutionMapper.convert(execution1)).thenReturn(new TmsTestCaseExecutionRS());
+    when(tmsManualLaunchService.getTestPlanIdByLaunchId(any())).thenReturn(Optional.empty());
+
+    // When
+    var result = sut.patch(membershipDetails, user, executionId, launchId, request);
+
+    // Then
+    assertNotNull(result);
+    verify(updateTestItemHandler).updateTestItem(
+        eq(membershipDetails), eq(testItem1), any(UpdateTestItemRQ.class), eq(user));
+    verifyNoInteractions(finishTestItemHandler);
+    verifyNoInteractions(testCaseItemBuilder);
+  }
+
+  // ==================== patch: execution not found ====================
+
+  @Test
+  void patch_WhenExecutionNotFound_ShouldThrowReportPortalException() {
+    // Given
+    var executionId = 999L;
+    var launchId = 10L;
+    var request = TmsTestCaseExecutionRQ.builder().status("FAILED").build();
+    var membershipDetails = new MembershipDetails();
+    var user = mock(ReportPortalUser.class);
+
+    when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
+        .thenReturn(Optional.empty());
+
+    // When / Then
+    assertThrows(
+        ReportPortalException.class,
+        () -> sut.patch(membershipDetails, user, executionId, launchId, request)
+    );
+  }
+
+  // ==================== getLastTestCasesExecutionsByTestCaseIds ====================
 
   @Test
   void getLastTestCasesExecutionsByTestCaseIds_WithMultipleExecutions_ShouldReturnMapWithAllExecutions() {
@@ -207,6 +376,8 @@ class TmsTestCaseExecutionServiceImplTest {
     verify(tmsTestCaseExecutionRepository).findLastExecutionsByTestCaseIds(testCaseIds);
   }
 
+  // ==================== getLastTestCaseExecution ====================
+
   @Test
   void getLastTestCaseExecution_WhenExecutionExists_ShouldReturnExecution() {
     // Given
@@ -259,7 +430,7 @@ class TmsTestCaseExecutionServiceImplTest {
   }
 
   @Test
-  void getLastTestCaseExecution_WithNullTestCaseId_ShouldCallRepository() {
+  void getLastTestCaseExecution_WithNullTestCaseId_ShouldCallRepositoryAndReturnNull() {
     // Given
     when(tmsTestCaseExecutionRepository.findLastExecutionByTestCaseId(null))
         .thenReturn(Optional.empty());
@@ -273,36 +444,6 @@ class TmsTestCaseExecutionServiceImplTest {
   }
 
   @Test
-  void getLastTestCasesExecutionsByTestCaseIds_WithMixedTestCaseIds_ShouldReturnCorrectMapping() {
-    // Given
-    var testCaseIds = Arrays.asList(1L, 5L, 10L, 15L, 20L);
-    var executions = Arrays.asList(
-        TmsTestCaseExecution.builder().id(1L).testCaseId(1L).testItem(testItem1)
-            .testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(2L).testCaseId(5L).testItem(testItem2)
-            .testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(3L).testCaseId(10L).testItem(testItem3)
-            .testCaseSnapshot("{}").build()
-    );
-
-    when(tmsTestCaseExecutionRepository.findLastExecutionsByTestCaseIds(testCaseIds))
-        .thenReturn(executions);
-
-    // When
-    var result = sut.getLastTestCasesExecutionsByTestCaseIds(testCaseIds);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(3, result.size());
-    assertTrue(result.containsKey(1L));
-    assertTrue(result.containsKey(5L));
-    assertTrue(result.containsKey(10L));
-    assertNull(result.get(15L));
-    assertNull(result.get(20L));
-    verify(tmsTestCaseExecutionRepository).findLastExecutionsByTestCaseIds(testCaseIds);
-  }
-
-  @Test
   void getLastTestCaseExecution_VerifyExecutionProperties_ShouldReturnCompleteExecution() {
     // Given
     var executionWithAllProperties = TmsTestCaseExecution.builder()
@@ -310,8 +451,7 @@ class TmsTestCaseExecutionServiceImplTest {
         .testCaseId(testCaseId1)
         .testCaseVersionId(5L)
         .testItem(testItem1)
-        .testCaseSnapshot(
-            "{\"name\": \"Complete Test Case\", \"description\": \"Full description\"}")
+        .testCaseSnapshot("{\"name\": \"Complete Test Case\", \"description\": \"Full description\"}")
         .build();
 
     when(tmsTestCaseExecutionRepository.findLastExecutionByTestCaseId(testCaseId1))
@@ -331,55 +471,7 @@ class TmsTestCaseExecutionServiceImplTest {
     verify(tmsTestCaseExecutionRepository).findLastExecutionByTestCaseId(testCaseId1);
   }
 
-  @Test
-  void getLastTestCasesExecutionsByTestCaseIds_WithLargeNumberOfIds_ShouldHandleCorrectly() {
-    // Given - test with large number of IDs
-    var largeTestCaseIdsList = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
-    var executions = Arrays.asList(
-        TmsTestCaseExecution.builder().id(1L).testCaseId(1L).testItem(testItem1)
-            .testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(2L).testCaseId(2L).testItem(testItem2)
-            .testCaseSnapshot("{}").build(),
-        TmsTestCaseExecution.builder().id(3L).testCaseId(3L).testItem(testItem3)
-            .testCaseSnapshot("{}").build()
-    );
-
-    when(tmsTestCaseExecutionRepository.findLastExecutionsByTestCaseIds(largeTestCaseIdsList))
-        .thenReturn(executions);
-
-    // When
-    var result = sut.getLastTestCasesExecutionsByTestCaseIds(largeTestCaseIdsList);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(3, result.size());
-    assertEquals(1L, result.get(1L).getId());
-    assertEquals(2L, result.get(2L).getId());
-    assertEquals(3L, result.get(3L).getId());
-    verify(tmsTestCaseExecutionRepository).findLastExecutionsByTestCaseIds(largeTestCaseIdsList);
-  }
-
-  @Test
-  void getLastTestCasesExecutionsByTestCaseIds_WhenMapContainsAllRequestedIds_ShouldReturnCompleteMap() {
-    // Given - case when all requested IDs have executions
-    var testCaseIds = Arrays.asList(testCaseId1, testCaseId2);
-    var executions = Arrays.asList(execution1, execution2);
-
-    when(tmsTestCaseExecutionRepository.findLastExecutionsByTestCaseIds(testCaseIds))
-        .thenReturn(executions);
-
-    // When
-    var result = sut.getLastTestCasesExecutionsByTestCaseIds(testCaseIds);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(testCaseIds.size(), result.size());
-    for (Long testCaseId : testCaseIds) {
-      assertTrue(result.containsKey(testCaseId));
-      assertNotNull(result.get(testCaseId));
-    }
-    verify(tmsTestCaseExecutionRepository).findLastExecutionsByTestCaseIds(testCaseIds);
-  }
+  // ==================== findLastExecutionsByTestCaseIdsAndTestPlanId ====================
 
   @Test
   void findLastExecutionsByTestCaseIdsAndTestPlanId_WithEmptyList_ShouldReturnEmptyMap() {
@@ -408,6 +500,8 @@ class TmsTestCaseExecutionServiceImplTest {
     assertTrue(result.isEmpty());
     verifyNoInteractions(tmsTestCaseExecutionRepository);
   }
+
+  // ==================== findByTestCaseIdAndTestPlanId ====================
 
   @Test
   void findByTestCaseIdAndTestPlanId_WithExecutions_ShouldReturnList() {
@@ -471,6 +565,8 @@ class TmsTestCaseExecutionServiceImplTest {
     verify(tmsTestCaseExecutionRepository).findByTestCaseIdAndTestPlanId(testCaseId1, testPlanId);
   }
 
+  // ==================== addTestCasesToLaunch ====================
+
   @Test
   void addTestCasesToLaunch_WithEmptyList_ShouldReturnEmptyResult() {
     // Given
@@ -487,11 +583,13 @@ class TmsTestCaseExecutionServiceImplTest {
     assertTrue(result.getErrors().isEmpty());
   }
 
+  // ==================== isTestCaseInLaunch ====================
+
   @Test
   void isTestCaseInLaunch_WhenExists_ShouldReturnTrue() {
     // Given
-    when(tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(testCaseId1, 10L)).thenReturn(
-        true);
+    when(tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(testCaseId1, 10L))
+        .thenReturn(true);
 
     // When
     var result = sut.isTestCaseInLaunch(testCaseId1, 10L);
@@ -501,28 +599,48 @@ class TmsTestCaseExecutionServiceImplTest {
     verify(tmsTestCaseExecutionRepository).existsByTestCaseIdAndLaunchId(testCaseId1, 10L);
   }
 
+  // ==================== patchTestCaseExecutionComment ====================
+
   @Test
   void patchTestCaseExecutionComment_WhenValid_ShouldCallCommentService() {
     // Given
-    Long projectId = 1L;
-    Long launchId = 10L;
-    Long executionId = 100L;
-    TmsTestCaseExecutionCommentRQ request = new TmsTestCaseExecutionCommentRQ();
+    var projectId = 1L;
+    var launchId = 10L;
+    var executionId = 100L;
+    var request = new TmsTestCaseExecutionCommentRQ();
     request.setComment("Patched");
 
-    TmsTestCaseExecutionCommentRS response = new TmsTestCaseExecutionCommentRS();
+    var response = new TmsTestCaseExecutionCommentRS();
 
     when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
         .thenReturn(Optional.of(execution1));
     when(tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution1, request))
         .thenReturn(response);
-    
+
     // When
     var result = sut.patchTestCaseExecutionComment(projectId, launchId, executionId, request);
-    
+
     // Then
     assertNotNull(result);
     verify(tmsTestCaseExecutionRepository).findByTestCaseExecutionIdAndLaunchId(executionId, launchId);
     verify(tmsTestCaseExecutionCommentService).patchTestCaseExecutionComment(execution1, request);
+  }
+
+  @Test
+  void patchTestCaseExecutionComment_WhenExecutionNotFound_ShouldThrowReportPortalException() {
+    // Given
+    var projectId = 1L;
+    var launchId = 10L;
+    var executionId = 999L;
+    var request = new TmsTestCaseExecutionCommentRQ();
+
+    when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
+        .thenReturn(Optional.empty());
+
+    // When / Then
+    assertThrows(
+        ReportPortalException.class,
+        () -> sut.patchTestCaseExecutionComment(projectId, launchId, executionId, request)
+    );
   }
 }

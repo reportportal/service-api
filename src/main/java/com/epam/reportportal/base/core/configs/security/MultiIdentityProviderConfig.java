@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.core.configs.security.UserResolverType.
 
 import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import com.epam.reportportal.base.auth.userdetails.ExternalUserDetailsService;
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.configs.security.converters.ExternalJwtConverter;
 import com.epam.reportportal.base.core.configs.security.converters.ReportPortalJwtConverter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
@@ -65,6 +66,7 @@ public class MultiIdentityProviderConfig {
   private final UserDetailsService userDetailsService;
   private final ExternalUserDetailsService externalUserDetailsService;
   private final ServerSettingsRepository serverSettingsRepository;
+  private final TokenBlacklistService tokenBlacklistService;
 
   /**
    * Constructs a MultiIdentityProviderConfig with the necessary services.
@@ -73,11 +75,13 @@ public class MultiIdentityProviderConfig {
   public MultiIdentityProviderConfig(
       DefaultUserDetailsService userDetailsService,
       ExternalUserDetailsService externalUserDetailsService,
-      ServerSettingsRepository serverSettingsRepository
+      ServerSettingsRepository serverSettingsRepository,
+      TokenBlacklistService tokenBlacklistService
   ) {
     this.userDetailsService = userDetailsService;
     this.externalUserDetailsService = externalUserDetailsService;
     this.serverSettingsRepository = serverSettingsRepository;
+    this.tokenBlacklistService = tokenBlacklistService;
   }
 
   /**
@@ -169,14 +173,14 @@ public class MultiIdentityProviderConfig {
 
   private Converter<Jwt, AbstractAuthenticationToken> createJwtConverter(String name, JwtIssuer config) {
     if (name.equals("rp")) {
-      return new ReportPortalJwtConverter(userDetailsService);
+      return new ReportPortalJwtConverter(userDetailsService, tokenBlacklistService);
     }
 
     var detailsService = config.getUserResolver() == EXTERNAL
         ? externalUserDetailsService
         : userDetailsService;
 
-    return new ExternalJwtConverter(detailsService, config);
+    return new ExternalJwtConverter(detailsService, tokenBlacklistService, config);
   }
 
   private SecretKeySpec convertToSecretKey(String key, String algorithm) {

@@ -15,12 +15,15 @@
  */
 package com.epam.reportportal.auth.config.utils;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import java.util.Collection;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
@@ -33,12 +36,15 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
  */
 public class JwtReportPortalUserConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
-  private final static String PRINCIPAL_CLAIM_NAME = "user_name";
+  private static final String PRINCIPAL_CLAIM_NAME = "user_name";
   private final UserDetailsService userDetailsService;
+  private final TokenBlacklistService tokenBlacklistService;
   private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
 
-  public JwtReportPortalUserConverter(UserDetailsService userDetailsService) {
+  public JwtReportPortalUserConverter(UserDetailsService userDetailsService,
+      TokenBlacklistService tokenBlacklistService) {
     this.userDetailsService = userDetailsService;
+    this.tokenBlacklistService = tokenBlacklistService;
 
     this.jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
     this.jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
@@ -47,16 +53,17 @@ public class JwtReportPortalUserConverter implements Converter<Jwt, AbstractAuth
 
   @Override
   public final AbstractAuthenticationToken convert(Jwt jwt) {
-    Collection<GrantedAuthority> authorities = this.jwtGrantedAuthoritiesConverter.convert(jwt);
+    if (tokenBlacklistService.isRevoked(jwt.getId(), jwt.getSubject(), jwt.getIssuedAt())) {
+      throw new OAuth2AuthenticationException(new OAuth2Error("invalid_token", "Token has been revoked", null));
+    }
 
+    Collection<GrantedAuthority> authorities = this.jwtGrantedAuthoritiesConverter.convert(jwt);
     String username = jwt.getClaimAsString(PRINCIPAL_CLAIM_NAME);
     String upstreamToken = jwt.getClaimAsString("upstream_token");
     var principal = userDetailsService.loadUserByUsername(username);
 
-    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-        principal, null, authorities);
-    usernamePasswordAuthenticationToken.setDetails(upstreamToken);
-
-    return usernamePasswordAuthenticationToken;
+    var token = new UsernamePasswordAuthenticationToken(principal, null, authorities);
+    token.setDetails(upstreamToken);
+    return token;
   }
 }

@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.configs.security.converters;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.configs.security.JwtIssuer;
 import java.util.Collection;
 import org.springframework.core.convert.converter.Converter;
@@ -24,6 +25,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
@@ -37,6 +40,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
   protected final UserDetailsService userDetailsService;
+  protected final TokenBlacklistService tokenBlacklistService;
 
   protected JwtIssuer config;
 
@@ -45,37 +49,56 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
   /**
    * Constructs an AbstractJwtConverter with the specified UserDetailsService and default JwtIssuerConfig.
    *
-   * @param userDetailsService The service to load user details.
+   * @param userDetailsService    The service to load user details.
+   * @param tokenBlacklistService The service to for JWT blacklisting
    */
-  protected AbstractJwtConverter(UserDetailsService userDetailsService) {
-    this(userDetailsService, new JwtIssuer());
+  protected AbstractJwtConverter(UserDetailsService userDetailsService, TokenBlacklistService tokenBlacklistService) {
+    this(userDetailsService, tokenBlacklistService, new JwtIssuer());
   }
 
   /**
    * Constructs an AbstractJwtConverter with the specified UserDetailsService and JwtIssuerConfig.
    *
-   * @param userDetailsService The service to load user details.
-   * @param config             The configuration for JWT issuer settings.
+   * @param userDetailsService    The service to load user details.
+   * @param config                The configuration for JWT issuer settings.
+   * @param tokenBlacklistService The service to for JWT blacklisting
    */
-  protected AbstractJwtConverter(
-      UserDetailsService userDetailsService,
-      JwtIssuer config
-  ) {
+  protected AbstractJwtConverter(UserDetailsService userDetailsService, TokenBlacklistService tokenBlacklistService,
+      JwtIssuer config) {
     this.userDetailsService = userDetailsService;
+    this.tokenBlacklistService = tokenBlacklistService;
     this.config = config;
-    var jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName(config.getAuthoritiesClaim());
-    jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-    this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
+    var authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    authoritiesConverter.setAuthoritiesClaimName(config.getAuthoritiesClaim());
+    authoritiesConverter.setAuthorityPrefix("");
+    this.jwtGrantedAuthoritiesConverter = authoritiesConverter;
   }
 
   /**
-   * Finds a user by their identifier (username).
+   * Validates the JWT against the revocation blacklist and, if not revoked, delegates to the subclass-specific
+   * {@link #doConvert(Jwt)} to build the authentication token.
    *
-   * @param identifier The identifier of the user to find.
-   * @return The UserDetails of the found user.
-   * @throws UsernameNotFoundException if the user is not found.
+   * @param jwt decoded JWT
+   * @return authentication token for the resolved user
+   * @throws OAuth2AuthenticationException if the JWT's {@code jti} is present in the blacklist
    */
+  @Override
+  public final AbstractAuthenticationToken convert(Jwt jwt) {
+    if (tokenBlacklistService.isRevoked(jwt.getId(), jwt.getSubject(), jwt.getIssuedAt())) {
+      throw new OAuth2AuthenticationException(new OAuth2Error("invalid_token", "Token has been revoked", null));
+    }
+    return doConvert(jwt);
+  }
+
+  /**
+   * Subclass hook that builds the {@link AbstractAuthenticationToken} from a JWT that has already passed the revocation
+   * check.
+   *
+   * @param jwt decoded, non-revoked JWT
+   * @return authentication token for the resolved user
+   */
+  protected abstract AbstractAuthenticationToken doConvert(Jwt jwt);
+
   protected UserDetails findUser(String identifier) {
     try {
       return userDetailsService.loadUserByUsername(identifier);

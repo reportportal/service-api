@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.ws.converter.converters.ExceptionConver
 import com.epam.reportportal.base.core.events.domain.OrganizationDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.UserDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UsersDeletedEvent;
 import com.epam.reportportal.base.core.project.settings.notification.ProjectRecipientHandler;
@@ -52,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -89,6 +91,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
+  private final TokenBlacklistService tokenBlacklistService;
+
   private static final String DELETED_USER = "deleted_user";
 
   @Value("${rp.environment.variable.allow-delete-account:false}")
@@ -124,9 +128,17 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
     dataStore.deleteUserPhoto(user);
     userRepository.delete(user);
+    revokeUserTokens(user);
     sendEmailAboutDeletion(user, loggedInUser);
 
     return user;
+  }
+
+  private void revokeUserTokens(User user) {
+    tokenBlacklistService.revokeSubject(user.getLogin());
+    if (StringUtils.isNotBlank(user.getExternalId())) {
+      tokenBlacklistService.revokeSubject(user.getExternalId());
+    }
   }
 
   private void sendEmailAboutDeletion(User user, ReportPortalUser loggedInUser) {

@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'EPMRPP-115024-blacklist-jwts')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -99,6 +99,7 @@ project.ext {
             (migrationsUrl + '/migrations/1001_migrate_auth_integrations.up.sql')      : 'V214__migrate_auth_integrations.up.sql',
             (migrationsUrl + '/migrations/1002_drop_tms_bts_ticket.up.sql')            : 'V215__drop_tms_bts_ticket.up.sql',
             (migrationsUrl + '/migrations/1003_increase_activity_name_length.up.sql')  : 'V216__increase_activity_name_length.up.sql',
+            (migrationsUrl + '/migrations/1004_revoked_token.up.sql')                  : 'V217__revoked_token.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

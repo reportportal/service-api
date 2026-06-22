@@ -19,14 +19,15 @@ package com.epam.ta.reportportal.core.widget.content.updater.validator;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.MIN_PASSING_RATE;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.OWNER_LEVEL_KEY;
 import static java.util.Optional.ofNullable;
 
-import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -69,6 +70,11 @@ public class ComponentHealthCheckContentValidator implements MultilevelValidator
             "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
     attributeKeys.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
         .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not blank"));
+    long ownerCount = attributeKeys.stream()
+        .filter(OWNER_LEVEL_KEY::equals)
+        .count();
+    BusinessRule.expect(ownerCount, count -> count <= 1)
+        .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Owner level can be added only once");
   }
 
   private void validateWidgetOptions(WidgetOptions widgetOptions) {

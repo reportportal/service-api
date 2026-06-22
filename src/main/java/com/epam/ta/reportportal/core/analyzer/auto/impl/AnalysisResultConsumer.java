@@ -39,7 +39,7 @@ public class AnalysisResultConsumer {
 
   private final AnalysisResultHandler analysisResultHandler;
 
-  @RabbitListener(queues = "${rp.amqp.analyzer-reply-queue:analysis.matches}",
+  @RabbitListener(queues = "${rp.amqp.analyzer-reply-queue:analysis-reply}",
       containerFactory = "analyzerRabbitListenerContainerFactory")
   public void onReply(@Payload List<AnalyzedItemRs> analyzed,
       @Header(name = "analyzer_id", required = false) String analyzerInstance) {

@@ -20,6 +20,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeCo
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.KEY_VALUE_SEPARATOR;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_CHILDREN;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_STATS;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_LAUNCH_OWNER;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_RETRY_PARENT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_STATUS;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TYPE;
@@ -29,16 +30,17 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.OWNER_LEVEL_KEY;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
 
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -47,13 +49,12 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.ComponentHealthCheckContent;
-import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -117,9 +118,8 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
   private ConvertibleCondition getTestItemCondition(List<String> attributeKeys,
       List<String> attributeValues) {
 
-    List<ConvertibleCondition> conditions = Lists.newArrayList(FilterCondition.builder()
-            .eq(CRITERIA_HAS_STATS, String.valueOf(Boolean.TRUE))
-            .build(),
+    List<ConvertibleCondition> conditions = Lists.newArrayList(
+        FilterCondition.builder().eq(CRITERIA_HAS_STATS, String.valueOf(Boolean.TRUE)).build(),
         FilterCondition.builder().eq(CRITERIA_HAS_CHILDREN, String.valueOf(Boolean.FALSE)).build(),
         FilterCondition.builder().eq(CRITERIA_TYPE, TestItemTypeEnum.STEP.name()).build(),
         FilterCondition.builder()
@@ -137,18 +137,24 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
     );
 
     if (CollectionUtils.isNotEmpty(attributeValues)) {
-      String attributeCriteria = IntStream.range(0, attributeValues.size()).mapToObj(index -> {
-        String attributeKey = attributeKeys.get(index);
-        String attributeValue = attributeValues.get(index);
-        return String.join(KEY_VALUE_SEPARATOR, attributeKey, attributeValue);
-      }).collect(joining(","));
-
-      conditions.add(FilterCondition.builder()
-          .withCondition(Condition.HAS)
-          .withNegative(false)
-          .withSearchCriteria(CRITERIA_COMPOSITE_ATTRIBUTE)
-          .withValue(attributeCriteria)
-          .build());
+      List<String> attributePairs = new ArrayList<>();
+      for (int i = 0; i < attributeValues.size(); i++) {
+        String key = attributeKeys.get(i);
+        String value = attributeValues.get(i);
+        if (OWNER_LEVEL_KEY.equals(key)) {
+          conditions.add(FilterCondition.builder().eq(CRITERIA_LAUNCH_OWNER, value).build());
+        } else {
+          attributePairs.add(String.join(KEY_VALUE_SEPARATOR, key, value));
+        }
+      }
+      if (!attributePairs.isEmpty()) {
+        conditions.add(FilterCondition.builder()
+            .withCondition(Condition.HAS)
+            .withNegative(false)
+            .withSearchCriteria(CRITERIA_COMPOSITE_ATTRIBUTE)
+            .withValue(String.join(",", attributePairs))
+            .build());
+      }
     }
 
     return new CompositeFilterCondition(conditions);

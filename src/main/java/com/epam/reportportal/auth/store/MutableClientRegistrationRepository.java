@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.auth.store;
 
-import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.INTEGRATION_TO_OAUTH_REGISTRATION;
 import static com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters.TO_RESOURCE;
 
+import com.epam.reportportal.auth.integration.converter.OAuthRegistrationConverters;
 import com.epam.reportportal.auth.model.OAuthRegistrationResource;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -55,9 +56,13 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
 
   private final IntegrationRepository integrationRepository;
 
+  private final BasicTextEncryptor basicTextEncryptor;
+
   @Autowired
-  public MutableClientRegistrationRepository(IntegrationRepository integrationRepository) {
+  public MutableClientRegistrationRepository(IntegrationRepository integrationRepository,
+      BasicTextEncryptor basicTextEncryptor) {
     this.integrationRepository = integrationRepository;
+    this.basicTextEncryptor = basicTextEncryptor;
   }
 
   @Override
@@ -70,7 +75,7 @@ public class MutableClientRegistrationRepository implements ClientRegistrationRe
             registrationId,
             IntegrationGroupEnum.AUTH,
             IntegrationAuthFlowEnum.OAUTH)
-        .map(INTEGRATION_TO_OAUTH_REGISTRATION)
+        .map(integration -> OAuthRegistrationConverters.toClientRegistration(integration, basicTextEncryptor))
         .orElseThrow(() -> new ReportPortalException(ErrorType.AUTH_INTEGRATION_NOT_FOUND,
             Suppliers.formattedSupplier(ID_HAS_NOT_BEEN_FOUND, registrationId).get()
         ));

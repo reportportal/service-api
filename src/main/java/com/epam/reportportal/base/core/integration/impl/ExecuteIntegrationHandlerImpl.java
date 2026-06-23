@@ -33,6 +33,7 @@ import com.epam.reportportal.base.infrastructure.rules.commons.validation.Busine
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -147,12 +148,14 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
         ));
+    enrichArgumentsFromContext(pluginCommandRq);
     return pluginCommand.executeCommand(pluginCommandRq);
   }
 
 
   @Override
   public Object executeExtensionCommand(String pluginName, String command, PluginCommandRQ pluginCommandRq) {
+    enrichArgumentsFromContext(pluginCommandRq);
     ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
@@ -171,6 +174,21 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     throw new ReportPortalException(BAD_REQUEST_ERROR,
         formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
     );
+  }
+
+  private void enrichArgumentsFromContext(PluginCommandRQ pluginCommandRq) {
+    var context = pluginCommandRq.getContext();
+    if (context == null) {
+      return;
+    }
+    var arguments = pluginCommandRq.getArguments();
+    if (arguments == null) {
+      arguments = new HashMap<>();
+      pluginCommandRq.setArguments(arguments);
+    }
+    if (context.getProjectId() != null) {
+      arguments.put(PROJECT_ID, context.getProjectId());
+    }
   }
 
   private Integration resolveIntegration(PluginCommandContext context) {

@@ -29,6 +29,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * JPA supertype for entities with an {@code owner} and optional {@link Project} link.
@@ -52,6 +54,7 @@ public abstract class OwnedEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "project_id")
+  @OnDelete(action = OnDeleteAction.CASCADE)
   private Project project;
 
 }

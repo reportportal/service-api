@@ -19,6 +19,7 @@ package com.epam.reportportal.base.ws.controller;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ORGANIZATION_MANAGER;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ORGANIZATION_MEMBER;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_USER_ROLE;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EMAIL;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_FULL_NAME;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
@@ -66,7 +67,7 @@ public class OrganizationUsersController extends BaseController implements Organ
   @PreAuthorize(ORGANIZATION_MANAGER)
   public ResponseEntity<OrganizationUsersPage> getOrganizationsOrgIdUsers(
       Long orgId, Integer offset, Integer limit, String order,
-      String sort, String fullName, String role
+      String sort, String fullName, String email, String role
   ) {
     Filter filter = new Filter(OrganizationUserFilter.class, new ArrayList<>());
     filter.withCondition(
@@ -75,6 +76,11 @@ public class OrganizationUsersController extends BaseController implements Organ
       filter.withCondition(
           new FilterCondition(Condition.CONTAINS, false, fullName, CRITERIA_FULL_NAME));
     }
+
+    if (StringUtils.isNotEmpty(email)) {
+      filter.withCondition(new FilterCondition(Condition.EQUALS, false, email, CRITERIA_EMAIL));
+    }
+
     if (StringUtils.isNotEmpty(role)) {
       var validRole = OrganizationRole.forName(role).orElseThrow(() ->
           new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Incorrect organization role provided: " + role));

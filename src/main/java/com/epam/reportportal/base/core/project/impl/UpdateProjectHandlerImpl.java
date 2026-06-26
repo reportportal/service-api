@@ -21,7 +21,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.Enti
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Preconditions.contains;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.isNull;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.isPresent;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.not;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.notNull;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED;
@@ -318,7 +317,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       usernames.forEach(username -> {
         User userForUnassign = userRepository.findByLogin(username)
             .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
-        validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+        validateUnassigningUser(userForUnassign, project);
         unassignedUsers.add(unassignUser(project, username, userForUnassign, user));
 
       });
@@ -340,7 +339,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
             BooleanUtils::isTrue
         ).verify(ACCESS_DENIED);
 
-        validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+        validateUnassigningUser(userForUnassign, project);
         unassignedUsers.add(unassignUser(project, username, userForUnassign, user));
 
       });
@@ -426,8 +425,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     applicationEventPublisher.publishEvent(assignUserEvent);
   }
 
-  private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId,
-      Project project) {
+  private void validateUnassigningUser(User userForUnassign, Project project) {
     if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
       fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(),
           String.format("User not found in project %s", project.getName())
@@ -435,47 +433,49 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     }
   }
 
-  private void updateProjectUserRoles(Map<String, String> userRoles, Project project,
-      ReportPortalUser user) {
+  private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser user) {
 
-    if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
-      expect(userRoles.get(user.getUsername()), isNull()).verify(
-          ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
+    boolean isAdmin = UserRole.ADMINISTRATOR == user.getUserRole();
+
+    if (!isAdmin) {
+      expect(userRoles.get(user.getUsername()), isNull())
+          .verify(ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
     }
 
-    if (MapUtils.isNotEmpty(userRoles)) {
-      userRoles.forEach((key, value) -> {
+    if (MapUtils.isEmpty(userRoles)) {
+      return;
+    }
 
-        Optional<ProjectRole> newProjectRole = ProjectRole.forName(value);
-        expect(newProjectRole, isPresent()).verify(ErrorType.ROLE_NOT_FOUND, value);
+    Optional<MembershipDetails> membershipDetails = isAdmin
+        ? Optional.empty()
+        : Optional.of(projectExtractor.extractMembershipDetails(user, project.getKey()));
+    boolean isOrgManager = membershipDetails.map(d -> MANAGER == d.getOrgRole()).orElse(false);
 
-        Optional<ProjectUser> updatingProjectUser =
-            ofNullable(ProjectUtils.findUserConfigByLogin(project, key));
-        expect(updatingProjectUser, isPresent()).verify(ErrorType.USER_NOT_FOUND, key);
+    userRoles.forEach((key, value) -> {
+      ProjectRole newProjectRole = ProjectRole.forName(value)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.ROLE_NOT_FOUND, value));
 
-        if (UserRole.ADMINISTRATOR != user.getUserRole()) {
-          ProjectRole principalRole =
-              projectExtractor.extractMembershipDetails(user, project.getKey()).getProjectRole();
-          ProjectRole updatingUserRole =
-              ofNullable(ProjectUtils.findUserConfigByLogin(project, key)).orElseThrow(
-                  () -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();
-          /*
-           * Validate principal role level is high enough
-           */
-          if (principalRole.sameOrHigherThan(updatingUserRole)) {
-            expect(newProjectRole.get(), Preconditions.isLevelEnough(principalRole)).verify(
-                ErrorType.ACCESS_DENIED);
-          } else {
-            expect(updatingUserRole, Preconditions.isLevelEnough(principalRole)).verify(
-                ErrorType.ACCESS_DENIED);
-          }
+      ProjectUser updatingProjectUser = ofNullable(ProjectUtils.findUserConfigByLogin(project, key))
+          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key));
+
+      if (!isAdmin && !isOrgManager) {
+        ProjectRole principalRole = membershipDetails
+            .map(MembershipDetails::getProjectRole)
+            .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
+        ProjectRole updatingUserRole = updatingProjectUser.getProjectRole();
+        if (principalRole.sameOrHigherThan(updatingUserRole)) {
+          expect(newProjectRole, Preconditions.isLevelEnough(principalRole))
+              .verify(ErrorType.ACCESS_DENIED);
+        } else {
+          expect(updatingUserRole, Preconditions.isLevelEnough(principalRole))
+              .verify(ErrorType.ACCESS_DENIED);
         }
-        String oldRole = updatingProjectUser.get().getProjectRole().getRoleName();
-        updatingProjectUser.get().setProjectRole(newProjectRole.get());
+      }
 
-        publishChangeRoleEvent(user, updatingProjectUser.get(), oldRole);
-      });
-    }
+      String oldRole = updatingProjectUser.getProjectRole().getRoleName();
+      updatingProjectUser.setProjectRole(newProjectRole);
+      publishChangeRoleEvent(user, updatingProjectUser, oldRole);
+    });
   }
 
   private void publishChangeRoleEvent(ReportPortalUser loggedUser, ProjectUser updatingProjectUser,

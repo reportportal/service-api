@@ -19,7 +19,9 @@ package com.epam.reportportal.base.ws.converter.builders;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.InstanceRole;
 import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.api.model.NewUserRequest.AccountTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
@@ -75,9 +77,14 @@ public class UserBuilder implements Supplier<User> {
   public UserBuilder fromNewUserRequest(NewUserRequest request) {
     ofNullable(request).ifPresent(
         it -> {
-          fillUser(it.getEmail(), it.getFullName(), it.getExternalId(),
-              request.getAccountType().name());
-          addUserRole(UserRole.findByName(request.getInstanceRole().name())
+          var accountType = ofNullable(request.getAccountType())
+              .map(NewUserRequest.AccountTypeEnum::name)
+              .orElse(AccountTypeEnum.INTERNAL.name());
+          fillUser(it.getEmail(), it.getFullName(), it.getExternalId(), accountType);
+          var roleName = ofNullable(request.getInstanceRole())
+              .map(InstanceRole::name)
+              .orElse(UserRole.USER.name());
+          addUserRole(UserRole.findByName(roleName)
               .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
                   "Incorrect specified Instance Role parameter.")));
         }

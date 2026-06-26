@@ -52,6 +52,10 @@ public class LinkGenerator {
    * @return the project UI path (e.g. {@code http://host/ui/#organizations/org/projects/proj})
    */
   public String generateProjectUiPath(String baseUrl, String orgSlug, String projectSlug) {
+    if (StringUtils.isBlank(orgSlug) || StringUtils.isBlank(projectSlug)) {
+      log.warn("Cannot generate project UI path: orgSlug or projectSlug is blank");
+      return null;
+    }
     String uiPath = UI_PREFIX + ORGANIZATIONS + orgSlug + PROJECTS + projectSlug;
     return StringUtils.isEmpty(baseUrl) ? uiPath : baseUrl + uiPath;
   }
@@ -66,8 +70,11 @@ public class LinkGenerator {
    * @return the generated launch link or null if baseUrl is empty
    */
   public String generateLaunchLink(String baseUrl, String orgSlug, String projectSlug, String id) {
-    return StringUtils.isEmpty(baseUrl) ? null
-        : generateProjectUiPath(baseUrl, orgSlug, projectSlug) + LAUNCHES + id;
+    if (StringUtils.isEmpty(baseUrl)) {
+      return null;
+    }
+    String projectPath = generateProjectUiPath(baseUrl, orgSlug, projectSlug);
+    return projectPath == null ? null : projectPath + LAUNCHES + id;
   }
 
   public URI generateInvitationUrl(HttpServletRequest httpServletRequest, String invitationId) {

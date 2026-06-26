@@ -229,8 +229,8 @@ public class LaunchNotificationRunner
                 recipients
             );
             try {
-              emailService.sendLaunchFinishNotification(recipientsArray,
-                  linkGenerator.generateProjectUiPath(launchFinishedEvent.getBaseUrl(), launchFinishedEvent.getOrgSlug(),
+              emailService.sendLaunchFinishNotification(recipientsArray, linkGenerator
+                  .generateProjectUiPath(launchFinishedEvent.getBaseUrl(), launchFinishedEvent.getOrgSlug(),
                       project.getSlug()), project, launch);
             } catch (Exception e) {
               LOGGER.error("Unable to send email.", e);

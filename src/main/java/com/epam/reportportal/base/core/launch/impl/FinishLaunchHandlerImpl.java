@@ -108,7 +108,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
     launchAttributeHandlerService.handleLaunchFinish(launch);
 
-    String launchLink = linkGenerator.generateLaunchLink(baseUrl, membershipDetails.getOrgSlug(),
+    final String launchLink = linkGenerator.generateLaunchLink(baseUrl, membershipDetails.getOrgSlug(),
         membershipDetails.getProjectSlug(), String.valueOf(launch.getId()));
 
     eventPublisher.publishEvent(

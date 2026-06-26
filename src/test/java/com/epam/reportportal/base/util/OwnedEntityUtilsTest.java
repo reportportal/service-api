@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.base.util;
 
-
 import static com.epam.reportportal.base.util.OwnedEntityUtils.DASHBOARD_LOCKED_MESSAGE;
 import static com.epam.reportportal.base.util.OwnedEntityUtils.RESTRICTED_MESSAGE;
 import static com.epam.reportportal.base.util.OwnedEntityUtils.WIDGET_LOCKED_MESSAGE;
+import static com.epam.reportportal.base.util.OwnedEntityUtils.validateOwnedEntityLocked;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,11 +30,11 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.entity.OwnedEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,86 +42,131 @@ import org.junit.jupiter.api.Test;
  */
 class OwnedEntityUtilsTest {
 
-  private ReportPortalUser adminUser;
-  private MembershipDetails adminProjectDetails;
-
-  private ReportPortalUser projectManagerUser;
-  private MembershipDetails projectManagerProjectDetails;
-
-  private ReportPortalUser memberUser;
-  private MembershipDetails memberProjectDetails;
-
-  @BeforeEach
-  void setUp() {
-    adminUser = mock(ReportPortalUser.class);
-    adminProjectDetails = mock(MembershipDetails.class);
-    when(adminUser.getUserRole()).thenReturn(UserRole.ADMINISTRATOR);
-
-    projectManagerUser = mock(ReportPortalUser.class);
-    projectManagerProjectDetails = mock(MembershipDetails.class);
-    when(projectManagerUser.getUserRole()).thenReturn(UserRole.USER);
-    when(projectManagerProjectDetails.getProjectRole()).thenReturn(ProjectRole.EDITOR);
-
-    memberUser = mock(ReportPortalUser.class);
-    memberProjectDetails = mock(MembershipDetails.class);
-    when(memberUser.getUserRole()).thenReturn(UserRole.USER);
-    when(memberProjectDetails.getProjectRole()).thenReturn(ProjectRole.VIEWER);
-  }
-
   @Test
-  void validateOwnedEntityLockedShouldNotThrowForAdmin() {
-    OwnedEntity lockedEntity = mock(Dashboard.class);
-    when(lockedEntity.getLocked()).thenReturn(true);
-    assertDoesNotThrow(() -> OwnedEntityUtils.validateOwnedEntityLocked(lockedEntity, adminProjectDetails, adminUser));
-  }
+  void validateOwnedEntityLockedWhenEntityNotLockedShouldNotThrow() {
+    // Given
+    Dashboard entity = mockDashboard(false);
 
-  @Test
-  void validateOwnedEntityLockedShouldNotThrowForProjectManager() {
-    OwnedEntity lockedEntity = mock(Dashboard.class);
-    when(lockedEntity.getLocked()).thenReturn(true);
-    assertDoesNotThrow(() -> OwnedEntityUtils.validateOwnedEntityLocked(lockedEntity, projectManagerProjectDetails,
-        projectManagerUser));
-  }
-
-  @Test
-  void validateOwnedEntityLockedShouldNotThrowWhenNotLocked() {
-    OwnedEntity notLockedEntity = mock(Dashboard.class);
-    when(notLockedEntity.getLocked()).thenReturn(false);
+    // When / Then
     assertDoesNotThrow(
-        () -> OwnedEntityUtils.validateOwnedEntityLocked(notLockedEntity, memberProjectDetails, memberUser));
+        () -> validateOwnedEntityLocked(entity, membership(null, ProjectRole.VIEWER), user(UserRole.USER)));
   }
 
   @Test
-  void validateOwnedEntityLockedShouldThrowForDashboard() {
-    Dashboard lockedDashboard = mock(Dashboard.class);
-    when(lockedDashboard.getLocked()).thenReturn(true);
+  void validateOwnedEntityLockedWhenLockedIsNullShouldNotThrow() {
+    // Given
+    Dashboard entity = mock(Dashboard.class);
+    when(entity.getLocked()).thenReturn(null);
 
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> OwnedEntityUtils.validateOwnedEntityLocked(lockedDashboard, memberProjectDetails, memberUser));
-
-    assertTrue(exception.getMessage().contains(DASHBOARD_LOCKED_MESSAGE));
+    // When / Then
+    assertDoesNotThrow(
+        () -> validateOwnedEntityLocked(entity, membership(null, ProjectRole.VIEWER), user(UserRole.USER)));
   }
 
   @Test
-  void validateOwnedEntityLockedShouldThrowForWidget() {
-    Widget lockedWidget = mock(Widget.class);
-    when(lockedWidget.getLocked()).thenReturn(true);
+  void validateOwnedEntityLockedWhenUserIsAdministratorShouldNotThrow() {
+    // Given
+    Dashboard entity = mockDashboard(true);
 
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> OwnedEntityUtils.validateOwnedEntityLocked(lockedWidget, memberProjectDetails, memberUser));
-
-    assertTrue(exception.getMessage().contains(WIDGET_LOCKED_MESSAGE));
-
+    // When / Then
+    assertDoesNotThrow(
+        () -> validateOwnedEntityLocked(entity, membership(null, ProjectRole.VIEWER), user(UserRole.ADMINISTRATOR)));
   }
 
   @Test
-  void validateOwnedEntityLockedShouldThrowForGenericEntity() {
-    OwnedEntity lockedEntity = mock(OwnedEntity.class);
-    when(lockedEntity.getLocked()).thenReturn(true);
+  void validateOwnedEntityLockedWhenOrgRoleIsManagerShouldNotThrow() {
+    // Given
+    Dashboard entity = mockDashboard(true);
+    MembershipDetails details = membership(OrganizationRole.MANAGER, ProjectRole.VIEWER);
 
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> OwnedEntityUtils.validateOwnedEntityLocked(lockedEntity, memberProjectDetails, memberUser));
+    // When / Then
+    assertDoesNotThrow(() -> validateOwnedEntityLocked(entity, details, user(UserRole.USER)));
+  }
 
-    assertTrue(exception.getMessage().contains(RESTRICTED_MESSAGE));
+  @Test
+  void validateOwnedEntityLockedWhenProjectRoleIsEditorShouldNotThrow() {
+    // Given
+    Dashboard entity = mockDashboard(true);
+    MembershipDetails details = membership(OrganizationRole.MEMBER, ProjectRole.EDITOR);
+
+    // When / Then
+    assertDoesNotThrow(() -> validateOwnedEntityLocked(entity, details, user(UserRole.USER)));
+  }
+
+  @Test
+  void validateOwnedEntityLockedWhenDashboardLockedAndUserLacksPrivilegesShouldThrowDashboardMessage() {
+    // Given
+    Dashboard entity = mockDashboard(true);
+    MembershipDetails details = membership(OrganizationRole.MEMBER, ProjectRole.VIEWER);
+
+    // When
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> validateOwnedEntityLocked(entity, details, user(UserRole.USER)));
+
+    // Then
+    assertTrue(ex.getMessage().contains(DASHBOARD_LOCKED_MESSAGE));
+  }
+
+  @Test
+  void validateOwnedEntityLockedWhenWidgetLockedAndUserLacksPrivilegesShouldThrowWidgetMessage() {
+    // Given
+    Widget entity = mock(Widget.class);
+    when(entity.getLocked()).thenReturn(true);
+    MembershipDetails details = membership(OrganizationRole.MEMBER, ProjectRole.VIEWER);
+
+    // When
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> validateOwnedEntityLocked(entity, details, user(UserRole.USER)));
+
+    // Then
+    assertTrue(ex.getMessage().contains(WIDGET_LOCKED_MESSAGE));
+  }
+
+  @Test
+  void validateOwnedEntityLockedWhenGenericEntityLockedShouldThrowRestrictedMessage() {
+    // Given
+    OwnedEntity entity = mock(OwnedEntity.class);
+    when(entity.getLocked()).thenReturn(true);
+    MembershipDetails details = membership(OrganizationRole.MEMBER, ProjectRole.VIEWER);
+
+    // When
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> validateOwnedEntityLocked(entity, details, user(UserRole.USER)));
+
+    // Then
+    assertTrue(ex.getMessage().contains(RESTRICTED_MESSAGE));
+  }
+
+  @Test
+  void validateOwnedEntityLockedWhenAllRolesAreNullShouldThrow() {
+    // Given
+    Dashboard entity = mockDashboard(true);
+    MembershipDetails details = membership(null, null);
+
+    // When
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> validateOwnedEntityLocked(entity, details, user(UserRole.USER)));
+
+    // Then
+    assertTrue(ex.getMessage().contains(DASHBOARD_LOCKED_MESSAGE));
+  }
+
+  private static Dashboard mockDashboard(boolean locked) {
+    Dashboard dashboard = mock(Dashboard.class);
+    when(dashboard.getLocked()).thenReturn(locked);
+    return dashboard;
+  }
+
+  private static ReportPortalUser user(UserRole role) {
+    ReportPortalUser user = mock(ReportPortalUser.class);
+    when(user.getUserRole()).thenReturn(role);
+    return user;
+  }
+
+  private static MembershipDetails membership(OrganizationRole orgRole, ProjectRole projectRole) {
+    MembershipDetails details = mock(MembershipDetails.class);
+    when(details.getOrgRole()).thenReturn(orgRole);
+    when(details.getProjectRole()).thenReturn(projectRole);
+    return details;
   }
 }

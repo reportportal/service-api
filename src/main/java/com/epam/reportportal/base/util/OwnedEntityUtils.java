@@ -21,6 +21,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.entity.OwnedEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
@@ -43,24 +44,38 @@ public final class OwnedEntityUtils {
   }
 
   /**
-   * Validates if a user has permissions to modify a locked entity.
+   * Ensures the user is allowed to modify the given entity if it is locked.
    *
-   * @param entity         The entity to validate.
-   * @param projectDetails The project details.
-   * @param user           The user.
-   * @throws ReportPortalException if the user does not have permissions.
+   * @throws ReportPortalException if the entity is locked and the user lacks bypass privileges
    */
-  public static void validateOwnedEntityLocked(OwnedEntity entity, MembershipDetails projectDetails,
-      ReportPortalUser user) {
-    if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)
-        && projectDetails.getProjectRole().lowerThan(ProjectRole.EDITOR)
-        && Boolean.TRUE.equals(entity.getLocked())) {
-      String message = switch (entity) {
-        case Dashboard _ -> DASHBOARD_LOCKED_MESSAGE;
-        case Widget _ -> WIDGET_LOCKED_MESSAGE;
-        default -> RESTRICTED_MESSAGE;
-      };
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED, message);
+  public static void validateOwnedEntityLocked(OwnedEntity entity, MembershipDetails projectDetails, ReportPortalUser user) {
+    if (!Boolean.TRUE.equals(entity.getLocked())) {
+      return;
     }
+    if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
+      return;
+    }
+    if (isOrgManager(projectDetails) || isProjectEditor(projectDetails)) {
+      return;
+    }
+    throw new ReportPortalException(ErrorType.ACCESS_DENIED, resolveLockMessage(entity));
+  }
+
+  private static boolean isOrgManager(MembershipDetails details) {
+    OrganizationRole role = details.getOrgRole();
+    return role != null && role.sameOrHigherThan(OrganizationRole.MANAGER);
+  }
+
+  private static boolean isProjectEditor(MembershipDetails details) {
+    ProjectRole role = details.getProjectRole();
+    return role != null && role.sameOrHigherThan(ProjectRole.EDITOR);
+  }
+
+  private static String resolveLockMessage(OwnedEntity entity) {
+    return switch (entity) {
+      case Dashboard _ -> DASHBOARD_LOCKED_MESSAGE;
+      case Widget _ -> WIDGET_LOCKED_MESSAGE;
+      default -> RESTRICTED_MESSAGE;
+    };
   }
 }

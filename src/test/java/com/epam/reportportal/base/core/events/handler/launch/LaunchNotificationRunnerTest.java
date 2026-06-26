@@ -107,7 +107,7 @@ class LaunchNotificationRunnerTest {
     final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
         ProjectRole.VIEWER,
         launch.getProjectId());
-    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L, "helen");
 
     final Map<String, String> mapping = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true")
@@ -116,6 +116,7 @@ class LaunchNotificationRunnerTest {
 
     final Project project = new Project();
     project.setId(1L);
+    project.setSlug("some-project");
     project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
 
     when(getIntegrationHandler.findFirstEnabledByTypeName(event.getProjectId(),
@@ -145,7 +146,7 @@ class LaunchNotificationRunnerTest {
     final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
         ProjectRole.VIEWER,
         launch.getProjectId());
-    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L);
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L, "helen");
 
     final Map<String, String> mapping = ImmutableMap.<String, String>builder()
         .put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true")
@@ -154,6 +155,7 @@ class LaunchNotificationRunnerTest {
 
     final Project project = new Project();
     project.setId(1L);
+    project.setSlug("helen-project");
     project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
 
     when(getIntegrationHandler.findFirstEnabledByTypeName(event.getProjectId(),

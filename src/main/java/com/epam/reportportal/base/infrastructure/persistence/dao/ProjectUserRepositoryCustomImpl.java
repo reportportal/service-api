@@ -42,7 +42,8 @@ public class ProjectUserRepositoryCustomImpl implements ProjectUserRepositoryCus
             PROJECT.SLUG,
             PROJECT.ORGANIZATION_ID,
             ORGANIZATION_USER.ORGANIZATION_ROLE,
-            ORGANIZATION.NAME)
+            ORGANIZATION.NAME,
+            ORGANIZATION.SLUG)
         .from(PROJECT)
         .join(ORGANIZATION).on(PROJECT.ORGANIZATION_ID.eq(ORGANIZATION.ID))
         .fullJoin(PROJECT_USER)
@@ -64,7 +65,8 @@ public class ProjectUserRepositoryCustomImpl implements ProjectUserRepositoryCus
             PROJECT.KEY,
             PROJECT.SLUG,
             PROJECT.ORGANIZATION_ID,
-            ORGANIZATION.NAME)
+            ORGANIZATION.NAME,
+            ORGANIZATION.SLUG)
         .from(PROJECT)
         .join(ORGANIZATION).on(PROJECT.ORGANIZATION_ID.eq(ORGANIZATION.ID))
         .where(PROJECT.KEY.eq(projectKey))

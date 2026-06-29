@@ -50,7 +50,8 @@ public class MessageBusImpl implements MessageBus {
   public void publishActivity(ActivityEvent event) {
     final Activity activity = event.toActivity();
     if (Objects.nonNull(activity)) {
-      this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, generateKey(activity), activity);
+      this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, generateKey(activity),
+          ActivityMessageConverter.toMessage(activity));
     }
   }
 

@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
+import com.epam.ta.reportportal.core.events.ActivityMessage;
+import com.epam.ta.reportportal.core.events.ActivityMessageConverter;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
@@ -47,11 +49,12 @@ public class ActivityConsumer {
 
   @RabbitListener(queues = "#{ @activityQueue.name }",
       containerFactory = "rabbitListenerContainerFactory")
-  public void onEvent(@Payload Activity rq) {
-    Optional.ofNullable(rq).ifPresent(this::processActivity);
+  public void onEvent(@Payload ActivityMessage message) {
+    Optional.ofNullable(message).ifPresent(this::processActivity);
   }
 
-  private void processActivity(Activity activity) {
+  private void processActivity(ActivityMessage message) {
+    Activity activity = ActivityMessageConverter.toActivity(message);
     LOGGER.info("[audit] - {}", activity);
     if (activity.isSavedEvent()) {
       if (Objects.isNull(activity.getDetails())) {

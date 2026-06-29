@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.events;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_ACTIVITY;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -90,7 +91,7 @@ public class MessageBusImplTest {
     when(activityEvent.toActivity()).thenReturn(activity);
     messageBus.publishActivity(activityEvent);
 
-    verify(amqpTemplate).convertAndSend(EXCHANGE_ACTIVITY, activityKey, activity);
+    verify(amqpTemplate).convertAndSend(eq(EXCHANGE_ACTIVITY), eq(activityKey), any(ActivityMessage.class));
   }
 
 }

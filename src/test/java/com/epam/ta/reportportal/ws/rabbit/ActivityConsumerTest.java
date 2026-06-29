@@ -21,9 +21,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.ActivityMessage;
 import com.epam.ta.reportportal.dao.ActivityRepository;
-import com.epam.ta.reportportal.entity.activity.Activity;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,53 +42,35 @@ class ActivityConsumerTest {
   @InjectMocks
   private ActivityConsumer activityConsumer;
 
-  private static class EmptyActivity implements ActivityEvent {
-
-    @Override
-    public Activity toActivity() {
-      return null;
-    }
-
-  }
-
   @Test
-  void nullTest() {
-    activityConsumer.onEvent(new EmptyActivity().toActivity());
+  void nullPayloadIsIgnored() {
+    activityConsumer.onEvent(null);
     verifyNoInteractions(activityRepository);
   }
 
-  private static class NotEmptyActivity implements ActivityEvent {
-
-    private final Long userId;
-    private final Long projectId;
-    private final String username;
-    private final Long objectId;
-
-    NotEmptyActivity(Long userId, Long projectId, String username, Long objectId) {
-      this.userId = userId;
-      this.projectId = projectId;
-      this.username = username;
-      this.objectId = objectId;
-    }
-
-    @Override
-    public Activity toActivity() {
-      Activity activity = new Activity();
-      activity.setSubjectId(userId);
-      activity.setProjectId(projectId);
-      activity.setSubjectName(username);
-      activity.setObjectId(objectId);
-      return activity;
-    }
-
-  }
-
   @Test
-  void consume() {
-    NotEmptyActivity notEmptyActivity = new NotEmptyActivity(1L, 2L, "username", 3L);
+  void savedEventIsPersistedToRepository() {
+    ActivityMessage message = new ActivityMessage();
+    message.setSubjectId(1L);
+    message.setProjectId(2L);
+    message.setSubjectName("username");
+    message.setObjectId(3L);
+    message.setSavedEvent(true);
+    message.setCreatedAt(Instant.now());
 
-    activityConsumer.onEvent(notEmptyActivity.toActivity());
+    activityConsumer.onEvent(message);
 
     verify(activityRepository, times(1)).save(any());
   }
+
+  @Test
+  void notSavedEventIsNotPersistedToRepository() {
+    ActivityMessage message = new ActivityMessage();
+    message.setSavedEvent(false);
+
+    activityConsumer.onEvent(message);
+
+    verifyNoInteractions(activityRepository);
+  }
+
 }

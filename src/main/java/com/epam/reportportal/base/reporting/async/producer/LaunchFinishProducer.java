@@ -73,7 +73,9 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
 
     FinishLaunchRS response = new FinishLaunchRS();
     response.setId(launchId);
-    response.setLink(linkGenerator.generateLaunchLink(baseUrl, membershipDetails.getProjectKey(), launchId));
+    response.setLink(
+        linkGenerator.generateLaunchLink(baseUrl, membershipDetails.getOrgSlug(), membershipDetails.getProjectSlug(),
+            launchId));
     return response;
   }
 }

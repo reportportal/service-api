@@ -229,15 +229,9 @@ public class LaunchNotificationRunner
                 recipients
             );
             try {
-              if (launchFinishedEvent.getBaseUrl() != null) {
-                emailService.sendLaunchFinishNotification(recipientsArray,
-                    String.format("%s/ui/#%s", launchFinishedEvent.getBaseUrl(), project.getName()),
-                    project, launch
-                );
-              } else {
-                emailService.sendLaunchFinishNotification(
-                    recipientsArray, String.format("/ui/#%s", project.getName()), project, launch);
-              }
+              emailService.sendLaunchFinishNotification(recipientsArray, linkGenerator
+                  .generateProjectUiPath(launchFinishedEvent.getBaseUrl(), launchFinishedEvent.getOrgSlug(),
+                      project.getSlug()), project, launch);
             } catch (Exception e) {
               LOGGER.error("Unable to send email.", e);
             }
@@ -286,9 +280,7 @@ public class LaunchNotificationRunner
     final Project project = getProjectHandler.get(launchFinishedEvent.getProjectId());
 
     String launchLink = linkGenerator.generateLaunchLink(launchFinishedEvent.getBaseUrl(),
-        project.getName(),
-        String.valueOf(launchFinishedEvent.getId())
-    );
+        launchFinishedEvent.getOrgSlug(), project.getSlug(), String.valueOf(launchFinishedEvent.getId()));
 
     eventPublisher.publishEvent(
         new LaunchFinishedNotificationEvent(launchFinishedEvent.getId(),

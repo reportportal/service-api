@@ -118,21 +118,25 @@ class FinishLaunchHandlerImplTest {
 
     ReportPortalUser rpUser =
         getRpUser("test", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    var membership = rpUserToMembership(rpUser);
+    membership.setOrgSlug("o-slug");
+    membership.setProjectSlug("project-name");
 
     when(launchRepository.findByUuid("1"))
         .thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
-    when(linkGenerator.generateLaunchLink("http://example.com", "o-slug.project-name", "1"))
-        .thenReturn("http://example.com/ui/#o-slug.project-name/launches/all/1");
+    when(linkGenerator.generateLaunchLink("http://example.com", "o-slug", "project-name", "1"))
+        .thenReturn("http://example.com/ui/#organizations/o-slug/projects/project-name/launches/all/1");
 
     final FinishLaunchRS finishLaunchRS =
-        handler.finishLaunch("1", finishExecutionRQ, rpUserToMembership(rpUser),
+        handler.finishLaunch("1", finishExecutionRQ, membership,
             rpUser, "http://example.com"
         );
 
     verify(finishHierarchyHandler, times(1)).finishDescendants(any(), any(), any(), any(), any());
 
     assertNotNull(finishLaunchRS);
-    assertEquals("http://example.com/ui/#o-slug.project-name/launches/all/1", finishLaunchRS.getLink());
+    assertEquals("http://example.com/ui/#organizations/o-slug/projects/project-name/launches/all/1",
+        finishLaunchRS.getLink());
   }
 
   @Test

@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.launch.util;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import lombok.SneakyThrows;
@@ -37,28 +36,45 @@ import org.springframework.web.util.ForwardedHeaderUtils;
 public class LinkGenerator {
 
   private static final String UI_PREFIX = "/ui/#";
+  private static final String ORGANIZATIONS = "organizations/";
+  private static final String PROJECTS = "/projects/";
   private static final String LAUNCHES = "/launches/all/";
-
-  private static String path;
 
   @Value("${server.servlet.context-path:/api}")
   private String pathValue;
 
-  @PostConstruct
-  public void init() {
-    LinkGenerator.path = this.pathValue;
+  /**
+   * Generates the project-level UI path for notifications.
+   *
+   * @param baseUrl     the base URL, or null/empty for a relative path
+   * @param orgSlug     the organization slug
+   * @param projectSlug the project slug
+   * @return the project UI path (e.g. {@code http://host/ui/#organizations/org/projects/proj})
+   */
+  public String generateProjectUiPath(String baseUrl, String orgSlug, String projectSlug) {
+    if (StringUtils.isBlank(orgSlug) || StringUtils.isBlank(projectSlug)) {
+      log.warn("Cannot generate project UI path: orgSlug or projectSlug is blank");
+      return null;
+    }
+    String uiPath = UI_PREFIX + ORGANIZATIONS + orgSlug + PROJECTS + projectSlug;
+    return StringUtils.isEmpty(baseUrl) ? uiPath : baseUrl + uiPath;
   }
 
   /**
-   * Generates a launch link for the given parameters
+   * Generates a launch link for the given parameters.
    *
    * @param baseUrl     the base URL
-   * @param projectName the project name
+   * @param orgSlug     the organization slug
+   * @param projectSlug the project slug
    * @param id          the launch ID
    * @return the generated launch link or null if baseUrl is empty
    */
-  public String generateLaunchLink(String baseUrl, String projectName, String id) {
-    return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
+  public String generateLaunchLink(String baseUrl, String orgSlug, String projectSlug, String id) {
+    if (StringUtils.isEmpty(baseUrl)) {
+      return null;
+    }
+    String projectPath = generateProjectUiPath(baseUrl, orgSlug, projectSlug);
+    return projectPath == null ? null : projectPath + LAUNCHES + id;
   }
 
   public URI generateInvitationUrl(HttpServletRequest httpServletRequest, String invitationId) {
@@ -69,7 +85,7 @@ public class LinkGenerator {
   @SneakyThrows
   public String composeBaseUrl(HttpServletRequest request) {
 
-    String processedPath = "/".equals(path) ? null : path.replace("/api", "");
+    String processedPath = "/".equals(pathValue) ? null : pathValue.replace("/api", "");
     /*
      * Use Uri components since they are aware of x-forwarded-host headers
      */

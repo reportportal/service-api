@@ -37,6 +37,7 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
   private String name;
   private LaunchModeEnum mode;
   private String baseUrl;
+  private String orgSlug;
 
   /**
    * Constructs a LaunchFinishedEvent.
@@ -86,6 +87,22 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
   }
 
   /**
+   * Constructs a LaunchFinishedEvent with org slug for notification link generation.
+   *
+   * @param launch    The launch that finished
+   * @param userId    The ID of the user who finished the launch
+   * @param userLogin The login of the user who finished the launch
+   * @param baseUrl   The base URL
+   * @param orgId     The organization ID
+   * @param orgSlug   The organization slug
+   */
+  public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl,
+      Long orgId, String orgSlug) {
+    this(launch, userId, userLogin, baseUrl, orgId);
+    this.orgSlug = orgSlug;
+  }
+
+  /**
    * Constructs a LaunchFinishedEvent.
    *
    * @param launch  The launch that finished
@@ -95,6 +112,21 @@ public class LaunchFinishedEvent extends AbstractEvent<Void> {
    */
   public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl, Long orgId) {
     this(launch, user.getUserId(), user.getUsername(), baseUrl, orgId);
+  }
+
+  /**
+   * Constructs a LaunchFinishedEvent with org slug for notification link generation.
+   *
+   * @param launch  The launch that finished
+   * @param user    The user who finished the launch
+   * @param baseUrl The base URL
+   * @param orgId   The organization ID
+   * @param orgSlug The organization slug
+   */
+  public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl, Long orgId,
+      String orgSlug) {
+    this(launch, user, baseUrl, orgId);
+    this.orgSlug = orgSlug;
   }
 
 }

@@ -505,6 +505,7 @@ public class RecordMappers {
 
     ofNullable(r.get(PROJECT.ORGANIZATION_ID)).ifPresent(md::setOrgId);
     ofNullable(r.get(ORGANIZATION.NAME)).ifPresent(md::setOrgName);
+    ofNullable(r.get(ORGANIZATION.SLUG)).ifPresent(md::setOrgSlug);
     ofNullable(r.get(ORGANIZATION_USER.ORGANIZATION_ROLE))
         .ifPresent(orgRole -> md.setOrgRole(r.into(ORGANIZATION_USER.ORGANIZATION_ROLE)
             .into(OrganizationRole.class)));

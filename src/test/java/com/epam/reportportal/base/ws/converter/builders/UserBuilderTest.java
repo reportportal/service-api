@@ -21,10 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.api.model.InstanceRole;
+import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.model.user.CreateUserRQConfirm;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -54,5 +57,37 @@ class UserBuilderTest {
     assertNotNull(user.getUuid());
     assertTrue(user.getActive());
     assertFalse(user.isExpired());
+  }
+
+  @Test
+  @DisplayName("Should default instance role to USER when instance_role is omitted")
+  void fromNewUserRequestWhenInstanceRoleNullShouldDefaultToUserRole() {
+    // Given
+    var request = new NewUserRequest("user@example.com", "Test User");
+
+    // When
+    var user = new UserBuilder().fromNewUserRequest(request).get();
+
+    // Then
+    assertNotNull(user);
+    assertEquals("user@example.com", user.getEmail());
+    assertEquals("Test User", user.getFullName());
+    assertEquals(UserRole.USER, user.getRole());
+    assertEquals(UserType.INTERNAL, user.getUserType());
+  }
+
+  @Test
+  @DisplayName("Should use provided instance role when instance_role is set")
+  void fromNewUserRequestWhenInstanceRoleProvidedShouldUseIt() {
+    // Given
+    var request = new NewUserRequest("admin@example.com", "Admin User");
+    request.setInstanceRole(InstanceRole.ADMINISTRATOR);
+
+    // When
+    var user = new UserBuilder().fromNewUserRequest(request).get();
+
+    // Then
+    assertNotNull(user);
+    assertEquals(UserRole.ADMINISTRATOR, user.getRole());
   }
 }

@@ -28,7 +28,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Base entity for sharable resources. This resource should contains owner in response.
+ * Base entity for sharable resources. This resource should contain owner in response.
  *
  * @author Aliaksei_Makayed
  */

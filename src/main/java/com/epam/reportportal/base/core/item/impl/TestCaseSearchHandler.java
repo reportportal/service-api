@@ -77,10 +77,10 @@ public class TestCaseSearchHandler {
   private Slice<TestItem> searchByName(String namePart, String statuses, Pageable pageable,
       MembershipDetails membershipDetails) {
     if (hasText(statuses)) {
-      return testItemRepository.findTestItemsContainsNameAndStatuses(namePart,
+      return testItemRepository.findTestItemsWithNamePrefixAndStatuses(namePart,
           membershipDetails.getProjectId(), parseStatuses(statuses), pageable);
     }
-    return testItemRepository.findTestItemsContainsName(namePart,
+    return testItemRepository.findTestItemsWithNamePrefix(namePart,
         membershipDetails.getProjectId(), pageable);
   }
 

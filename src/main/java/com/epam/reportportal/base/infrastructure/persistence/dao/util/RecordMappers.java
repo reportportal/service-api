@@ -78,6 +78,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Da
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.DashboardWidgetId;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationAuthFlowEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
@@ -420,6 +421,7 @@ public class RecordMappers {
     launch.setTestPlanId((r.get(LAUNCH.TEST_PLAN_ID) != null) ? r.get(LAUNCH.TEST_PLAN_ID) : null);
     launch.setDisplayId((r.get(LAUNCH.DISPLAY_ID) != null) ? r.get(LAUNCH.DISPLAY_ID) : null);
     launch.setRetentionPolicy(r.into(LAUNCH.RETENTION_POLICY).into(RetentionPolicyEnum.class));
+    launch.setLaunchType(r.into(LAUNCH.LAUNCH_TYPE).into(LaunchTypeEnum.class));
     return launch;
   };
 

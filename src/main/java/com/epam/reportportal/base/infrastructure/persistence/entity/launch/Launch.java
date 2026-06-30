@@ -45,6 +45,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.JdbcType;
@@ -58,6 +59,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  * @author Pavel Bortnik
  */
 
+@Getter
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "launch", schema = "public", uniqueConstraints = {
@@ -123,7 +125,7 @@ public class Launch implements Serializable {
   @JdbcType(PostgreSQLEnumJdbcType.class)
   private RetentionPolicyEnum retentionPolicy = RetentionPolicyEnum.REGULAR;
 
-  @Column(name = "launch_type")
+  @Column(name = "launch_type", nullable = false)
   @Enumerated(EnumType.STRING)
   @JdbcType(PostgreSQLEnumJdbcType.class)
   private LaunchTypeEnum launchType = LaunchTypeEnum.AUTOMATION;

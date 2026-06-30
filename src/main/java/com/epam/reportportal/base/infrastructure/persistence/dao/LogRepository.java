@@ -38,23 +38,14 @@ public interface LogRepository extends ReportPortalRepository<Log, Long>, LogRep
   List<Log> findLogsByLogTime(Timestamp timestamp);
 
   @Query(value = """
-      WITH ParentPath AS (
-          SELECT path
-          FROM test_item ti2
-          WHERE ti2.item_id = (
-              SELECT parent_id
-              FROM test_item ti3
-              WHERE ti3.item_id = :itemId
-          )
-      ),
-      TargetPath AS (
-          SELECT cast(concat(pp.path, '.', :itemId) as ltree) AS path
-          FROM ParentPath pp
-      ),
-      FilteredItems AS (
+      WITH RECURSIVE item_tree AS (
+          SELECT item_id
+          FROM test_item
+          WHERE item_id = :itemId
+          UNION ALL
           SELECT ti.item_id
           FROM test_item ti
-          WHERE ti.path <@ (SELECT path FROM TargetPath)
+          INNER JOIN item_tree it ON ti.parent_id = it.item_id
       )
       SELECT
           log.id AS logId,
@@ -64,7 +55,7 @@ public interface LogRepository extends ReportPortalRepository<Log, Long>, LogRep
           clusters.index_id AS clusterId
       FROM log
       LEFT JOIN clusters ON log.cluster_id = clusters.id
-      WHERE log.item_id IN (SELECT item_id FROM FilteredItems)
+      WHERE log.item_id IN (SELECT item_id FROM item_tree)
         AND log.log_level >= :logLevel;
       """, nativeQuery = true)
   List<IndexLog> findNestedLogsOfRetryItem(@Param("itemId") Long itemId,

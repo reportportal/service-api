@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
+import java.util.Optional;
 
 /**
  * Spring Data repository for statistics field definitions.
@@ -26,4 +27,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.S
 public interface StatisticsFieldRepository extends ReportPortalRepository<StatisticsField, Long> {
 
   void deleteByName(String name);
+
+  /**
+   * Finds statistics field by name.
+   *
+   * @param name field name
+   * @return optional statistics field
+   */
+  Optional<StatisticsField> findByName(String name);
 }

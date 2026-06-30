@@ -78,37 +78,40 @@ public class LoadPluginsJob {
     List<PluginInfo> notLoadedPlugins = pluginLoaderService.getNotLoadedPluginsInfo();
 
     notLoadedPlugins.forEach(pluginInfo -> {
-      try (InputStream inputStream = dataStore.load(pluginInfo.getFileId())) {
-        LOGGER.debug("Plugin loading has started...");
+      try {
+        try (InputStream inputStream = dataStore.load(pluginInfo.getFileId())) {
+          LOGGER.debug("Plugin loading has started...");
 
-        if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getFileName()))) {
-          LOGGER.debug("Copying plugin file...");
-          FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
-        }
+          if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getFileName()))) {
+            LOGGER.debug("Copying plugin file...");
+            FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
+          }
 
-        if (pluginInfo.isEnabled()) {
-          IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId())
-              .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND,
-                  pluginInfo.getId()));
+          if (pluginInfo.isEnabled()) {
+            IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId())
+                .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND,
+                    pluginInfo.getId()));
 
-          unloadPlugin(integrationType);
+            unloadPlugin(integrationType);
 
-          boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(),
-              integrationType.getDetails());
+            boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(),
+                integrationType.getDetails());
 
-          if (isLoaded) {
-            LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.",
-                    integrationType.getName())
-                .get());
-          } else {
-            LOGGER.error(Suppliers.formattedSupplier("Plugin - '{}' has not been started.",
-                integrationType.getName()).get());
+            if (isLoaded) {
+              LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.",
+                      integrationType.getName())
+                  .get());
+            } else {
+              LOGGER.error(Suppliers.formattedSupplier("Plugin - '{}' has not been started.",
+                  integrationType.getName()).get());
+            }
           }
         }
-
       } catch (IOException ex) {
         LOGGER.error("Error has occurred during plugin copying from the Data store", ex);
-        //do nothing
+      } catch (RuntimeException ex) {
+        LOGGER.debug("Plugin '{}' file '{}' not available in datastore yet: {}",
+            pluginInfo.getId(), pluginInfo.getFileId(), ex.getMessage());
       }
     });
 

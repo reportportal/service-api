@@ -37,9 +37,21 @@ public final class ContentLoaderConstants {
   public static final String ITEM_TYPE = "type";
   public static final String INCLUDE_METHODS = "includeMethods";
   public static final String FLAKY = "flaky";
+  /** CCAAS test stability (flakiness) table payload key */
+  public static final String TEST_STABILITY_FLAKINESS = "testStabilityFlakiness";
+  public static final String TEST_STABILITY_PER_LAUNCH = "testStabilityPerLaunch";
+  public static final String LAUNCH_BREAKDOWN = "launchBreakdown";
+  public static final String BREAKDOWN_TEST_NAME = "breakdownTestName";
   public static final String CUSTOM_COLUMNS = "customColumns";
   public static final String TIMELINE = "timeline";
   public static final String ATTRIBUTE_KEYS = "attributeKeys";
+  /** When true, merge rows that share the same test {@code name} but different RP {@code unique_id}. */
+  public static final String AGGREGATE_BY_TEST_NAME = "aggregateByTestName";
+  /**
+   * When true (default if omitted), include only the latest {@code launch.id} per {@code launch.name}
+   * — aligns widget totals with the Launches page filter view.
+   */
+  public static final String LATEST_LAUNCHES_ONLY = "latestLaunchesOnly";
   public static final String MIN_PASSING_RATE = "minPassingRate";
   public static final String EXCLUDE_SKIPPED = "excludeSkipped";
 

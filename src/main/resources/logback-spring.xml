@@ -2,6 +2,10 @@
 <configuration scan="true">
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
+    <!-- Writable default for local bootRun; Docker/K8s set AUDIT_LOG_FILE=/var/log/reportportal/audit.log when needed -->
+    <springProperty scope="context" name="AUDIT_LOG_FILE_PATH" source="rp.audit.log-file"
+                    defaultValue="logs/reportportal/audit.log"/>
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
@@ -13,13 +17,18 @@
         <appender-ref ref="CONSOLE"/>
     </appender>
 
-    <appender name="FILE_AUDIT" class="ch.qos.logback.core.FileAppender">
-        <file>/var/log/reportportal/audit.log</file>
+    <appender name="FILE_AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${AUDIT_LOG_FILE_PATH}</file>
+        <append>true</append>
         <encoder>
-            <pattern>
-                ${FILE_LOG_PATTERN}
-            </pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${AUDIT_LOG_FILE_PATH}.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>512MB</totalSizeCap>
+        </rollingPolicy>
+        <createMissingDirectories>true</createMissingDirectories>
     </appender>
 
     <root level="INFO">

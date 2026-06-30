@@ -1,0 +1,2 @@
+ALTER TABLE sender_case
+    ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT TRUE;

@@ -1,0 +1,2 @@
+ALTER TABLE owned_entity
+    ADD COLUMN locked BOOLEAN DEFAULT FALSE;

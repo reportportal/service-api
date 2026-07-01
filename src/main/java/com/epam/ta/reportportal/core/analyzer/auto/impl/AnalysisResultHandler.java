@@ -45,6 +45,7 @@ import com.epam.ta.reportportal.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.google.common.collect.Sets;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -107,15 +108,40 @@ public class AnalysisResultHandler {
     var analyzedResultMap = analyzed.stream()
         .filter(it -> Objects.nonNull(it.getItemId()))
         .collect(
-            toMap(AnalyzedItemRs::getItemId, identity(), (existing, replacement) -> replacement));
+            toMap(AnalyzedItemRs::getItemId, identity(), (existing, replacement) -> replacement,
+                LinkedHashMap::new));
 
-    var items = testItemRepository.findAllById(analyzedResultMap.keySet());
+    var itemsById = testItemRepository.findAllById(analyzedResultMap.keySet()).stream()
+        .collect(toMap(TestItem::getItemId, identity()));
 
-    items.stream()
+    Map<Long, TestItem> resolvedItemsById = new LinkedHashMap<>();
+    Map<Long, AnalyzedItemRs> resolvedAnalyzedResultMap = new LinkedHashMap<>();
+
+    analyzedResultMap.forEach((itemId, analyzedItemResult) -> {
+      TestItem testItem = itemsById.get(itemId);
+      if (testItem != null) {
+        TestItem resolvedItem = resolveRetryItem(testItem);
+        resolvedItemsById.put(resolvedItem.getItemId(), resolvedItem);
+        resolvedAnalyzedResultMap.put(resolvedItem.getItemId(), analyzedItemResult);
+      }
+    });
+
+    resolvedItemsById.values().stream()
         .filter(it -> Objects.nonNull(it.getLaunchId()))
         .collect(groupingBy(TestItem::getLaunchId))
         .forEach((launchId, launchItems) ->
-            processLaunchResults(launchId, launchItems, analyzedResultMap, instance));
+            processLaunchResults(launchId, launchItems, resolvedAnalyzedResultMap, instance));
+  }
+
+  private TestItem resolveRetryItem(TestItem testItem) {
+    if (testItem.getRetryOf() == null) {
+      return testItem;
+    }
+
+    log.info("Analyzed item is retry {}, replacing with original {} for update",
+        testItem.getItemId(), testItem.getRetryOf());
+    return testItemRepository.findById(testItem.getRetryOf())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
   }
 
   private void processLaunchResults(Long launchId, List<TestItem> testItems,
@@ -156,13 +182,6 @@ public class AnalysisResultHandler {
       String analyzerInstance) {
 
     log.info("Analysis has found a match: {}", analyzed);
-
-    if (testItem.getRetryOf() != null) {
-      log.info("Analyzed item is retry {}, replacing with original {} for update",
-          testItem.getItemId(), testItem.getRetryOf());
-      testItem = testItemRepository.findById(testItem.getRetryOf())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
-    }
 
     IssueType beforeIssue = testItem.getItemResults().getIssue().getIssueType();
 

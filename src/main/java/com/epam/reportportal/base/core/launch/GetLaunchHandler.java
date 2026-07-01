@@ -24,6 +24,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.ChartStatisticsContent;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
+import com.epam.reportportal.base.model.launch.LaunchViewModel;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -47,7 +48,7 @@ public interface GetLaunchHandler {
    * @param membershipDetails Membership details
    * @return {@link LaunchResource}
    */
-  LaunchResource getLaunch(String launchId, MembershipDetails membershipDetails);
+  LaunchViewModel getLaunch(String launchId, MembershipDetails membershipDetails);
 
   /**
    * Get Launch resource by specified Name (for Jenkins Plugin)
@@ -58,7 +59,7 @@ public interface GetLaunchHandler {
    * @param filter   {@link Filter}
    * @return Response Data
    */
-  LaunchResource getLaunchByProjectKey(String project, Pageable pageable, Filter filter,
+  LaunchViewModel getLaunchByProjectKey(String project, Pageable pageable, Filter filter,
       String username);
 
   /**
@@ -70,7 +71,7 @@ public interface GetLaunchHandler {
    * @param userName          Name of User
    * @return Response Data
    */
-  Page<LaunchResource> getProjectLaunches(MembershipDetails membershipDetails,
+  Page<LaunchViewModel> getProjectLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable,
       String userName);
 
@@ -82,7 +83,7 @@ public interface GetLaunchHandler {
    * @param pageable          Page details
    * @return Response Data
    */
-  Page<LaunchResource> getDebugLaunches(MembershipDetails membershipDetails,
+  Page<LaunchViewModel> getDebugLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
 
   /**
@@ -154,11 +155,15 @@ public interface GetLaunchHandler {
    * @param launchId           ID of the launch to export.
    * @param reportFormat       Format of the report to export. Supported values: "pdf", "xls", "html".
    * @param includeAttachments Whether to include all attachments related to the launch in a ZIP archive.
+   * @param flatAttachments    If {@code true}, all attachments are placed in a single flat {@code attachments/}
+   *                           directory with names {@code <id>_<name>.ext}. If {@code false}, attachments are organized
+   *                           in a hierarchical directory structure mirroring the test item tree.
    * @param response           {@link HttpServletResponse} used to write the report (or archive) to the output stream.
    * @param user               Authenticated user requesting the export.
    * @throws ReportPortalException if the report or archive could not be written to the output stream.
    */
-  void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, HttpServletResponse response,
+  void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
+      boolean flatAttachments, HttpServletResponse response,
       ReportPortalUser user, MembershipDetails membershipDetails);
 
   /**
@@ -169,7 +174,7 @@ public interface GetLaunchHandler {
    * @param pageable          Page details
    * @return Response Data
    */
-  Page<LaunchResource> getLatestLaunches(MembershipDetails membershipDetails,
+  Page<LaunchViewModel> getLatestLaunches(MembershipDetails membershipDetails,
       Filter filter, Pageable pageable);
 
   /**

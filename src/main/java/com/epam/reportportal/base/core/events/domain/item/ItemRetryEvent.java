@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.events.domain.item;
 
 import com.epam.reportportal.base.core.events.domain.AbstractEvent;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,17 +31,17 @@ import lombok.NoArgsConstructor;
 public class ItemRetryEvent extends AbstractEvent<Void> {
 
   private Long launchId;
-  private Long itemId;
+  private List<Long> previousTryIds;
 
-  private ItemRetryEvent(Long projectId, Long launchId, Long itemId) {
+  private ItemRetryEvent(Long projectId, Long launchId, List<Long> previousTryIds) {
     super();
     this.projectId = projectId;
     this.launchId = launchId;
-    this.itemId = itemId;
+    this.previousTryIds = previousTryIds;
   }
 
-  public static ItemRetryEvent of(Long projectId, Long launchId, Long itemId) {
-    return new ItemRetryEvent(projectId, launchId, itemId);
+  public static ItemRetryEvent of(Long projectId, Long launchId, List<Long> previousTryIds) {
+    return new ItemRetryEvent(projectId, launchId, previousTryIds);
   }
 
 }

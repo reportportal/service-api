@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
@@ -55,6 +56,7 @@ class FinishLaunchHierarchyHandlerTest {
   private final IssueTypeHandler issueTypeHandler = mock(IssueTypeHandler.class);
   private final IssueEntityRepository issueEntityRepository = mock(IssueEntityRepository.class);
   private final ChangeStatusHandler changeStatusHandler = mock(ChangeStatusHandler.class);
+  private final TestItemStatisticsService statisticsService = mock(TestItemStatisticsService.class);
 
   private final FinishLaunchHierarchyHandler finishLaunchHierarchyHandler = new FinishLaunchHierarchyHandler(
       launchRepository,
@@ -63,7 +65,8 @@ class FinishLaunchHierarchyHandlerTest {
       retryHandler,
       issueTypeHandler,
       issueEntityRepository,
-      changeStatusHandler
+      changeStatusHandler,
+      statisticsService
   );
 
   @Test

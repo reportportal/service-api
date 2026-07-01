@@ -23,6 +23,7 @@ import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -56,9 +57,9 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       ApplicationEventPublisher eventPublisher, IssueEntityRepository issueEntityRepository,
-      LogRepository logRepository, LogIndexer logIndexer) {
+      LogRepository logRepository, LogIndexer logIndexer, TestItemStatisticsService testItemStatisticsService) {
     super(testItemService, projectRepository, launchRepository, testItemRepository,
-        issueTypeHandler, eventPublisher, issueEntityRepository, logRepository, logIndexer
+        issueTypeHandler, eventPublisher, issueEntityRepository, logRepository, logIndexer, testItemStatisticsService
     );
   }
 

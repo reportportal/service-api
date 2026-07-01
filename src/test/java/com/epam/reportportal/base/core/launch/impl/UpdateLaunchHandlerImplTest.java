@@ -32,9 +32,11 @@ import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
+import com.epam.reportportal.base.core.launch.changes.LaunchChangesHandler;
 import com.epam.reportportal.base.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.reportportal.base.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -87,6 +89,12 @@ class UpdateLaunchHandlerImplTest {
 
   @Mock
   private LogIndexer logIndexer;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
+
+  @Mock
+  private LaunchChangesHandler launchChangesHandler;
 
   @InjectMocks
   private UpdateLaunchHandlerImpl handler;

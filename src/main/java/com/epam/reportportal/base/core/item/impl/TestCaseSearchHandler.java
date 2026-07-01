@@ -59,7 +59,7 @@ public class TestCaseSearchHandler {
       if (hasText(attribute)) {
         result = searchByAttribute(attribute, statuses, pageable, membershipDetails);
       } else {
-        result = searchByName(namePart, statuses, pageable, membershipDetails);
+        result = searchByName(namePart.trim().toLowerCase(), statuses, pageable, membershipDetails);
       }
     } catch (QueryTimeoutException e) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -119,11 +119,11 @@ public class TestCaseSearchHandler {
     }
     if (!hasText(namePart) && !hasText(attribute)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Provide either 'filter.has.compositeAttribute' or 'filter.cnt.name'.");
+          "Provide either 'filter.has.compositeAttribute' or 'filter.swt.name'.");
     }
     if (hasText(namePart) && namePart.length() < 3) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Value of 'filter.cnt.name' must contains more than 2 symbols.");
+          "Value of 'filter.swt.name' must contain more than 2 symbols.");
     }
     return pageable;
   }

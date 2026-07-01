@@ -26,6 +26,7 @@ import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.base.core.hierarchy.FinishHierarchyHandler;
 import com.epam.reportportal.base.core.launch.FinishLaunchHandler;
 import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
+import com.epam.reportportal.base.core.launch.changes.LaunchChangesHandler;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -59,18 +60,21 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   private final ApplicationEventPublisher eventPublisher;
   private final LinkGenerator linkGenerator;
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
+  private final LaunchChangesHandler launchChangesHandler;
+
 
   @Autowired
   public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
       @Qualifier("finishLaunchHierarchyHandler")
       FinishHierarchyHandler<Launch> finishHierarchyHandler,
       ApplicationEventPublisher eventPublisher, LinkGenerator linkGenerator,
-      LaunchAttributeHandlerService launchAttributeHandlerService) {
+      LaunchAttributeHandlerService launchAttributeHandlerService, LaunchChangesHandler launchChangesHandler) {
     this.launchRepository = launchRepository;
     this.finishHierarchyHandler = finishHierarchyHandler;
     this.eventPublisher = eventPublisher;
     this.linkGenerator = linkGenerator;
     this.launchAttributeHandlerService = launchAttributeHandlerService;
+    this.launchChangesHandler = launchChangesHandler;
   }
 
   @Override
@@ -85,6 +89,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
     Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
 
     Long id = launch.getId();
+    var beforeSnapshot = launchChangesHandler.captureSnapshot(launch);
 
     final int finishedCount =
         finishHierarchyHandler.finishDescendants(launch, status.orElse(StatusEnum.INTERRUPTED),
@@ -107,6 +112,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
         .get();
 
     launchAttributeHandlerService.handleLaunchFinish(launch);
+
+    launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
 
     final String launchLink = linkGenerator.generateLaunchLink(baseUrl, membershipDetails.getOrgSlug(),
         membershipDetails.getProjectSlug(), String.valueOf(launch.getId()));

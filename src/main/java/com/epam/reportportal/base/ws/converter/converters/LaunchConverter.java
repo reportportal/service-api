@@ -25,6 +25,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.model.activity.LaunchActivityResource;
+import com.epam.reportportal.base.model.launch.LaunchViewModel;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import com.epam.reportportal.base.reporting.LaunchResourceOld;
 import com.epam.reportportal.base.reporting.Mode;
@@ -87,11 +88,11 @@ public class LaunchConverter {
   @Autowired
   private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>>
       resourceAttributeUpdaterMapping;
-  public Function<Launch, LaunchResource> TO_RESOURCE = db -> {
+  public Function<Launch, LaunchViewModel> TO_RESOURCE = db -> {
 
     Preconditions.checkNotNull(db);
 
-    LaunchResource resource = new LaunchResource();
+    LaunchViewModel resource = new LaunchViewModel();
     resource.setLaunchId(db.getId());
     resource.setUuid(db.getUuid());
     resource.setName(db.getName());
@@ -115,10 +116,11 @@ public class LaunchConverter {
     ofNullable(db.getUserId()).flatMap(id -> userRepository.findLoginById(id))
         .ifPresentOrElse(resource::setOwner, () -> resource.setOwner(DELETED_USER));
     resource.setRerun(db.isRerun());
+    resource.setLaunchType(db.getLaunchType());
     return resource;
   };
 
-  private void updateAttributes(LaunchResource resource, Set<ItemAttribute> attributes) {
+  private void updateAttributes(LaunchViewModel resource, Set<ItemAttribute> attributes) {
     final Map<ItemAttributeType, Set<ItemAttribute>> attributeMapping =
         attributes.stream().collect(groupingBy(
             attr -> itemAttributeTypeResolver.resolve(attr).orElse(ItemAttributeType.UNRESOLVED),

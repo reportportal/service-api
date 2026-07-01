@@ -22,9 +22,9 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import java.util.Collections;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
+@RequiredArgsConstructor
 public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AutoAnalyzedCollector.class);
@@ -42,14 +43,6 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
   private final LogIndexer logIndexer;
 
   private final UpdateTestItemHandler updateTestItemHandler;
-
-  @Autowired
-  public AutoAnalyzedCollector(TestItemRepository testItemRepository, LogIndexer logIndexer,
-      UpdateTestItemHandler updateTestItemHandler) {
-    this.testItemRepository = testItemRepository;
-    this.logIndexer = logIndexer;
-    this.updateTestItemHandler = updateTestItemHandler;
-  }
 
   @Override
   public List<Long> collectItems(Long projectId, Long launchId, Long userId, String userLogin) {

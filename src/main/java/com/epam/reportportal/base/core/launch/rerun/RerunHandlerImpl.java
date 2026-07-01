@@ -169,10 +169,8 @@ public class RerunHandlerImpl implements RerunHandler {
     return rerunSearcher.findItem(childItemFilter).flatMap(testItemRepository::findById)
         .flatMap(foundItem -> {
           if (!foundItem.isHasChildren()) {
-            final TestItem parent =
-                testItemRepository.findIdByUuidForUpdate(parentUuid).map(testItemRepository::getOne)
-                    .orElseThrow(
-                        () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentUuid));
+            final TestItem parent = testItemRepository.findByUuid(parentUuid).orElseThrow(
+                () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentUuid));
             parentItemValidators.forEach(v -> v.validate(request, parent));
             return Optional.of(handleRetry(launch, newItem, foundItem, parent));
           }
@@ -207,15 +205,13 @@ public class RerunHandlerImpl implements RerunHandler {
         new FilterCondition(Condition.EQUALS, false, String.valueOf(parentId), CRITERIA_PARENT_ID));
   }
 
-  private ItemCreatedRS handleRetry(Launch launch, TestItem newItem, TestItem foundItem,
-      TestItem parentItem) {
-    eventPublisher.publishEvent(
-        ItemRetryEvent.of(launch.getProjectId(), launch.getId(), foundItem.getItemId()));
-    testItemRepository.save(newItem);
-    newItem.setPath(parentItem.getPath() + "." + newItem.getItemId());
-    generateUniqueId(launch, newItem);
-    retryHandler.handleRetries(launch, newItem, foundItem.getItemId());
-    return new ItemCreatedRS(newItem.getUuid(), newItem.getUniqueId());
+  private ItemCreatedRS handleRetry(Launch launch, TestItem lastTry, TestItem previousTry,
+      TestItem treeParent) {
+    testItemRepository.save(lastTry);
+    lastTry.setPath(treeParent.getPath() + "." + lastTry.getItemId());
+    generateUniqueId(launch, lastTry);
+    retryHandler.handleRetry(launch, lastTry, previousTry.getUuid());
+    return new ItemCreatedRS(lastTry.getUuid(), lastTry.getUniqueId());
   }
 
   private void generateUniqueId(Launch launch, TestItem item) {

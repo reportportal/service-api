@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.Pred
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.ProjectLogType;
@@ -65,7 +66,6 @@ public class LogTypeValidator {
    */
   public void validateLogTypeBelongsToProject(ProjectLogType logType, Long projectId) {
     expect(logType.getProjectId(), equalTo(projectId))
-        .verify(ACCESS_DENIED, formattedSupplier(
-            "Log type '{}' does not belong to the specified project", logType.getId()));
+        .verify(NOT_FOUND, "Log type");
   }
 }

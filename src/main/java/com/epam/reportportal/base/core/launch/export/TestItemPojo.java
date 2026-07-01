@@ -112,6 +112,7 @@ public class TestItemPojo {
     if (!CollectionUtils.isEmpty(input.getAttachments())) {
       this.attachmentPojoList = input.getAttachments().stream().filter(Objects::nonNull)
           .map(it -> AttachmentPojo.builder()
+              .id(it.getId())
               .fileId(it.getFileId())
               .fileName(it.getFileName())
               .contentType(it.getContentType())
@@ -124,8 +125,12 @@ public class TestItemPojo {
     var testItemPojo = new TestItemPojo(input);
     if (includeAttachments) {
       input.getAttachments().stream().filter(Objects::nonNull)
-          .forEach(attachment -> testItemPojo.setType(
-              testItemPojo.getType() + "\n" + attachment.getFileName()));
+          .forEach(attachment -> {
+            String displayName = AttachmentExportNaming.prefixedFileName(attachment.getId(),
+                attachment.getFileName(),
+                attachment.getContentType());
+            testItemPojo.setType(testItemPojo.getType() + "\n" + displayName);
+          });
     }
     return testItemPojo;
   }

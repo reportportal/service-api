@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.epam.reportportal.base.core.launch.changes;
 
-package com.epam.reportportal.base.core.item.impl.retry;
-
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import java.util.Optional;
-
-public interface RetrySearcher {
-
-  Optional<Long> findPreviousRetry(Launch launch, TestItem newItem, TestItem parentItem);
+/**
+ * Immutable view of one launch attribute (key, value, system flag) for change comparison.
+ */
+public record AttributeSnapshot(String key, String value, boolean system) {
 
 }
+

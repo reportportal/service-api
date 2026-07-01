@@ -33,6 +33,8 @@ import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClien
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.core.project.ProjectService;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsServiceImpl;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLog;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexTestItem;
@@ -83,12 +85,13 @@ class AnalyzerServiceServiceTest {
 
   private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
   private ProjectService projectService = mock(ProjectService.class);
+  private TestItemStatisticsService statisticsService = mock(TestItemStatisticsServiceImpl.class);
 
   private AnalyzerServiceImpl issuesAnalyzer =
       new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
           analyzerServiceClient, issueTypeHandler, testItemRepository, applicationEventPublisher,
           launchRepository,
-          defectUpdateStatisticsService, projectService);
+          defectUpdateStatisticsService, projectService, statisticsService);
 
   @Test
   void hasAnalyzers() {

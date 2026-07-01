@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +87,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
     ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute()))
         .ifPresent(
             p -> {
-              int port = parseInt(String.valueOf(p), -1);
+              int port = NumberUtils.toInt(String.valueOf(p), -1);
               if ((port <= 0) || (port > 65535)) {
                 BusinessRule.fail()
                     .withError(

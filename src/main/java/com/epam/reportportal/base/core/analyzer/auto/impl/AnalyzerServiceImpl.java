@@ -30,6 +30,7 @@ import com.epam.reportportal.base.core.events.domain.ItemIssueTypeDefinedEvent;
 import com.epam.reportportal.base.core.events.domain.LinkTicketEvent;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.core.project.ProjectService;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -89,7 +90,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   private final Integer itemsBatchSize;
 
   private final DefectUpdateStatisticsService defectUpdateStatisticsService;
+
   private final ProjectService projectService;
+
+  private final TestItemStatisticsService testItemStatisticsService;
 
   @Autowired
   public AnalyzerServiceImpl(
@@ -98,7 +102,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
       TestItemRepository testItemRepository,
       ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
-      DefectUpdateStatisticsService defectUpdateStatisticsService, ProjectService projectService) {
+      DefectUpdateStatisticsService defectUpdateStatisticsService, ProjectService projectService,
+      TestItemStatisticsService testItemStatisticsService) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
     this.launchPreparerService = launchPreparerService;
@@ -109,6 +114,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     this.launchRepository = launchRepository;
     this.defectUpdateStatisticsService = defectUpdateStatisticsService;
     this.projectService = projectService;
+    this.testItemStatisticsService = testItemStatisticsService;
   }
 
   @Override
@@ -181,7 +187,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       List<TestItem> testItems, Long projectId) {
     return rs.stream().map(analyzed -> {
       Optional<TestItem> toUpdate = testItemRepository.findById(analyzed.getItemId());
-      toUpdate.ifPresent(testItem -> {
+      toUpdate = toUpdate.map(testItem -> {
         LOGGER.debug("Analysis has found a match: {}", analyzed);
         if (testItem.getRetryOf() != null) {
           LOGGER.info("Analyzed item is retry {}, replacing with original {} for update",
@@ -189,12 +195,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
           testItem = testItemRepository.findById(testItem.getRetryOf())
               .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
         }
-        if (!testItem.getItemResults().getIssue().getIssueType().getLocator()
-            .equals(analyzed.getLocator())) {
+        IssueType beforeIssue = testItem.getItemResults().getIssue().getIssueType();
+        if (!beforeIssue.getLocator().equals(analyzed.getLocator())) {
           TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
           RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
           TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
+          testItemStatisticsService.changeDefectStatistics(testItem, beforeIssue,
+              testItem.getItemResults().getIssue().getIssueType());
           testItemRepository.save(testItem);
           var project = projectService.findProjectById(projectId);
           eventPublisher.publishEvent(
@@ -205,6 +213,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
                   new LinkTicketEvent(before, after, analyzerInstance,
                       project.getOrganizationId())));
         }
+        return testItem;
       });
       return toUpdate;
     }).filter(Optional::isPresent).map(Optional::get).collect(toList());

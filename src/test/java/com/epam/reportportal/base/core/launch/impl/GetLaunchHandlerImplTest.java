@@ -50,7 +50,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
-import com.epam.reportportal.base.reporting.LaunchResource;
+import com.epam.reportportal.base.model.launch.LaunchViewModel;
 import com.epam.reportportal.base.ws.converter.converters.LaunchConverter;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -109,8 +109,8 @@ class GetLaunchHandlerImplTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    Function<Launch, LaunchResource> toResourceFunction = (l -> {
-      LaunchResource launchResource = new LaunchResource();
+    Function<Launch, LaunchViewModel> toResourceFunction = (l -> {
+      LaunchViewModel launchResource = new LaunchViewModel();
       launchResource.setLaunchId(1L);
       return launchResource;
     });
@@ -141,7 +141,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(1L)).thenReturn(launch);
 
     // when
-    LaunchResource result = handler.getLaunch("1",
+    LaunchViewModel result = handler.getLaunch("1",
         rpUserToMembership(rpUser));
 
     // then
@@ -281,7 +281,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, "pdf", false, null, user, membershipDetails)
+        () -> handler.exportLaunch(launchId, "pdf", false, false, null, user, membershipDetails)
     );
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
@@ -300,7 +300,7 @@ class GetLaunchHandlerImplTest {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.exportLaunch(launchId, "pdf", false, null, user, membershipDetails)
+        () -> handler.exportLaunch(launchId, "pdf", false, false, null, user, membershipDetails)
     );
     assertEquals("User '1' not found.", exception.getMessage());
   }
@@ -319,7 +319,7 @@ class GetLaunchHandlerImplTest {
     when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
 
     // when
-    LaunchResource result = handler.getLaunch("1",
+    LaunchViewModel result = handler.getLaunch("1",
         extractProjectDetails(user, TEST_PROJECT_KEY));
 
     // then

@@ -105,7 +105,7 @@ public class DataStoreConfiguration {
    * @return {@link BlobStore}
    */
   @Bean
-  @ConditionalOnProperty(name = "datastore.type", havingValue = "minio")
+  @ConditionalOnProperty(name = "datastore.type", havingValue = "s3-compatible")
   public BlobStore minioBlobStore(@Value("${datastore.accessKey}") String accessKey,
       @Value("${datastore.secretKey}") String secretKey,
       @Value("${datastore.endpoint}") String endpoint,
@@ -137,7 +137,7 @@ public class DataStoreConfiguration {
    */
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "s3-compatible")
-  public DataStore minioDataStore(@Autowired BlobStore blobStore,
+  public DataStore minioDataStore(@Autowired @Qualifier("minioBlobStore") BlobStore blobStore,
       @Value("${datastore.bucketPrefix}") String bucketPrefix,
       @Value("${datastore.bucketPostfix}") String bucketPostfix,
       @Value("${datastore.defaultBucketName}") String defaultBucketName,

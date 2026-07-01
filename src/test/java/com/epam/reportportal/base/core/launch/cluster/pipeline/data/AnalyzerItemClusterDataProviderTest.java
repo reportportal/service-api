@@ -67,11 +67,8 @@ class AnalyzerItemClusterDataProviderTest {
     when(analyzerServiceClient.hasClients()).thenReturn(false);
 
     final GenerateClustersConfig config = getConfig(false);
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> provider.provide(config));
-    assertEquals(
-        "Impossible interact with integration. There are no analyzer services are deployed.",
-        exception.getMessage());
+    Optional<ClusterData> provide = provider.provide(config);
+    assertTrue(provide.isEmpty());
   }
 
   @Test

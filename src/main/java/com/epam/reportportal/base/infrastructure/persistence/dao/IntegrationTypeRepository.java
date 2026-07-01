@@ -79,4 +79,13 @@ public interface IntegrationTypeRepository extends ReportPortalRepository<Integr
    */
   @Query("SELECT it.id FROM IntegrationType it WHERE it.integrationGroup = :group")
   List<Long> findIdsByIntegrationGroup(@Param("group") IntegrationGroupEnum group);
+
+  /**
+   * Check whether an integration type with the given plugin type and name exists.
+   *
+   * @param pluginType {@link PluginTypeEnum}
+   * @param name integration type name
+   * @return {@code true} if such an integration type exists
+   */
+  boolean existsByPluginTypeAndName(PluginTypeEnum pluginType, String name);
 }

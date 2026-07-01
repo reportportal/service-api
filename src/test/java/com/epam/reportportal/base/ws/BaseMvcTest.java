@@ -28,6 +28,8 @@ import com.epam.reportportal.base.util.BinaryDataResponseWriter;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
+import com.epam.reportportal.extension.builtin.email.EmailExtension;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
@@ -95,7 +97,13 @@ public abstract class BaseMvcTest {
   protected BinaryDataResponseWriter binaryDataResponseWriter;
 
   @MockBean
+  protected BuiltinCommandResolver builtinCommandResolver;
+
+  @MockBean
   protected ExecuteIntegrationHandler executeIntegrationHandler;
+
+  @MockBean
+  protected EmailExtension emailExtension;
 
   @MockBean
   protected CreateAuthIntegrationHandler createAuthIntegrationHandler;

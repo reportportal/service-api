@@ -19,12 +19,14 @@ package com.epam.reportportal.base.infrastructure.persistence.entity;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 /**
  * Keys in server or project email integration configuration.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Getter
 public enum EmailSettingsEnum {
 
   RP_HOST("rpHost"),
@@ -38,7 +40,7 @@ public enum EmailSettingsEnum {
   PASSWORD("password"),
   FROM("from");
 
-  private String attribute;
+  private final String attribute;
 
   EmailSettingsEnum(String attribute) {
     this.attribute = attribute;
@@ -52,10 +54,6 @@ public enum EmailSettingsEnum {
 
   public static boolean isPresent(String attribute) {
     return findByAttribute(attribute).isPresent();
-  }
-
-  public String getAttribute() {
-    return attribute;
   }
 
   public Optional<String> getAttribute(Map<String, Object> params) {

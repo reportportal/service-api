@@ -27,13 +27,17 @@ import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -58,12 +62,17 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   private static final String PUBLIC_COMMAND_PREFIX = "public_";
 
   private final IntegrationRepository integrationRepository;
+  private final IntegrationTypeRepository integrationTypeRepository;
+  private final BuiltinCommandResolver builtinCommandResolver;
 
   private final PluginBox pluginBox;
 
   public ExecuteIntegrationHandlerImpl(IntegrationRepository integrationRepository,
+      IntegrationTypeRepository integrationTypeRepository, BuiltinCommandResolver builtinCommandResolver,
       PluginBox pluginBox) {
     this.integrationRepository = integrationRepository;
+    this.integrationTypeRepository = integrationTypeRepository;
+    this.builtinCommandResolver = builtinCommandResolver;
     this.pluginBox = pluginBox;
   }
 
@@ -161,19 +170,36 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
             formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
         ));
 
-    var extCommand = pluginInstance.getCommonExtensionCommand(command);
-    if (extCommand != null) {
-      return extCommand.executeCommand(pluginCommandRq);
+    if (isBuiltinExtension(pluginName)) {
+      return builtinCommandResolver.resolve(pluginName, command)
+          .executeCommand(resolveIntegration(pluginName, pluginCommandRq.getContext()), pluginCommandRq);
     }
 
-    extCommand = pluginInstance.getIntegrationExtensionCommand(command);
-    if (extCommand != null) {
-      Integration integration = resolveIntegration(pluginCommandRq.getContext());
-      return extCommand.executeCommand(integration, pluginCommandRq);
+    if (isCommonCommand(command, pluginInstance)) {
+      return pluginInstance.getCommonExtensionCommand(command)
+          .executeCommand(pluginCommandRq);
+    }
+
+    if (isIntegrationCommand(command, pluginInstance)) {
+      Integration integration = resolveIntegration(pluginName, pluginCommandRq.getContext());
+      return pluginInstance.getIntegrationExtensionCommand(command)
+          .executeCommand(integration, pluginCommandRq);
     }
     throw new ReportPortalException(BAD_REQUEST_ERROR,
         formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
     );
+  }
+
+  private static boolean isIntegrationCommand(String command, ReportPortalExtensionPoint pluginInstance) {
+    return pluginInstance.getIntegrationExtensionCommand(command) != null;
+  }
+
+  private boolean isBuiltinExtension(String name) {
+    return integrationTypeRepository.existsByPluginTypeAndName(PluginTypeEnum.BUILT_IN, name);
+  }
+
+  private static boolean isCommonCommand(String command, ReportPortalExtensionPoint pluginInstance) {
+    return pluginInstance.getCommonExtensionCommand(command) != null;
   }
 
   private void enrichArgumentsFromContext(PluginCommandRQ pluginCommandRq) {
@@ -191,13 +217,27 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     }
   }
 
-  private Integration resolveIntegration(PluginCommandContext context) {
-    BusinessRule.expect(context, ctx -> ctx != null && ctx.getIntegrationId() != null)
-        .verify(BAD_REQUEST_ERROR, "Integration context with a valid integration ID is required.");
-    Long integrationId = context.getIntegrationId();
+  private Integration resolveIntegration(String pluginName, PluginCommandContext context) {
+    if (context != null && context.getIntegrationId() != null) {
+      Long integrationId = context.getIntegrationId();
+      return integrationRepository.findById(integrationId)
+          .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
+    }
 
-    return integrationRepository.findById(integrationId)
-        .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
+    Long typeId = integrationTypeRepository.findByName(pluginName)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            formattedSupplier("Integration type '{}' not found.", pluginName).get()))
+        .getId();
+
+    if (context != null && context.getProjectId() != null) {
+      return integrationRepository.findFirstEnabledByProjectIdAndTypeIdIn(context.getProjectId(), List.of(typeId))
+          .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, pluginName));
+    } else if (context != null && context.getOrgId() != null) {
+      return integrationRepository.findFirstEnabledByOrganizationIdAndTypeIdIn(context.getOrgId(), List.of(typeId))
+          .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, pluginName));
+    }
+    return integrationRepository.findFirstEnabledGlobalByTypeIdIn(List.of(typeId))
+        .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, pluginName));
   }
 
   @Async

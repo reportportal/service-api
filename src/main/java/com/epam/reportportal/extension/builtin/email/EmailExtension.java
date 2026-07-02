@@ -14,6 +14,7 @@ public class EmailExtension implements BuiltinExtension {
   @Autowired
   TestConnectionCommand testConnectionCommand;
 
+  @Override
   public Map<String, ExtensionCommand<?>> getIntegrationExtensionCommands() {
     var commands = new HashMap<String, ExtensionCommand<?>>();
     commands.put(testConnectionCommand.getName(), testConnectionCommand);

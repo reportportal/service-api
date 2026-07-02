@@ -1,0 +1,33 @@
+def migrationsSrcDir = file("${rootDir}/migrations/migrations")
+def migrationsDstDir = file("${projectDir}/src/test/resources/db/migration")
+
+tasks.register('copyTestDatabaseScripts') {
+    inputs.dir(migrationsSrcDir)
+    doLast {
+        migrationsDstDir.mkdirs()
+        (migrationsSrcDir.listFiles() ?: [])
+            .findAll { it.name.endsWith('.up.sql') }
+            .each { srcFile ->
+                def m = (srcFile.name =~ /^(\d+)_(.+)\.up\.sql$/)
+                if (m) {
+                    def target = new File(migrationsDstDir, "V${String.format('%03d', m[0][1] as int)}__${m[0][2]}.sql")
+                    if (!target.exists()) {
+                        target.text = srcFile.text
+                    }
+                }
+            }
+    }
+}
+
+tasks.register('removeScripts') {
+    doLast {
+        (migrationsSrcDir.listFiles() ?: [])
+            .findAll { it.name.endsWith('.up.sql') }
+            .each { srcFile ->
+                def m = (srcFile.name =~ /^(\d+)_(.+)\.up\.sql$/)
+                if (m) {
+                    new File(migrationsDstDir, "V${String.format('%03d', m[0][1] as int)}__${m[0][2]}.sql").delete()
+                }
+            }
+    }
+}

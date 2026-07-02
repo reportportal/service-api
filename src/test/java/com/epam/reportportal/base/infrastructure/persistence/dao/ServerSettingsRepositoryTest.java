@@ -38,7 +38,7 @@ class ServerSettingsRepositoryTest extends BaseMvcTest {
   @Test
   public void findSettings() {
     final List<ServerSettings> settings = repository.selectServerSettings();
-    assertEquals(4L, settings.size());
+    assertEquals(8L, settings.size());
     settings.forEach(setting -> assertTrue(setting.getKey().startsWith(SERVER_SETTING_KEY)));
   }
 

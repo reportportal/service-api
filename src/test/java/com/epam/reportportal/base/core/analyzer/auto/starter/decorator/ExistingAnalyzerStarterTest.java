@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.core.analyzer.auto.starter.decorator;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +26,6 @@ import com.epam.reportportal.base.core.analyzer.auto.starter.LaunchAutoAnalysisS
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.reportportal.base.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -70,13 +67,6 @@ class ExistingAnalyzerStarterTest {
     );
 
     when(analyzerService.hasAnalyzers()).thenReturn(Boolean.FALSE);
-
-    final ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> existingAnalyzerStarter.start(config));
-
-    assertEquals(
-        "Impossible interact with integration. There are no analyzer services are deployed.",
-        exception.getMessage());
 
     verify(delegate, times(0)).start(config);
   }

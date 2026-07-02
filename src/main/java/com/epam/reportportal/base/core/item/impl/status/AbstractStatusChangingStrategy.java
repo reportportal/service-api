@@ -31,6 +31,8 @@ import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.events.domain.item.TestItemStatusChangedEvent;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
+import com.epam.reportportal.base.core.item.repository.TestItemPathContext;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -71,6 +73,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   private final LaunchRepository launchRepository;
   private final IssueTypeHandler issueTypeHandler;
   private final ApplicationEventPublisher eventPublisher;
+  private final TestItemStatisticsService testItemStatisticsService;
 
   /**
    * Assembles the strategy with repositories and support services.
@@ -89,7 +92,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
       ProjectRepository projectRepository, LaunchRepository launchRepository,
       TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
       ApplicationEventPublisher eventPublisher, IssueEntityRepository issueEntityRepository,
-      LogRepository logRepository, LogIndexer logIndexer) {
+      LogRepository logRepository, LogIndexer logIndexer, TestItemStatisticsService testItemStatisticsService) {
     this.testItemService = testItemService;
     this.projectRepository = projectRepository;
     this.launchRepository = launchRepository;
@@ -99,6 +102,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
     this.issueEntityRepository = issueEntityRepository;
     this.logRepository = logRepository;
     this.logIndexer = logIndexer;
+    this.testItemStatisticsService = testItemStatisticsService;
   }
 
   /**
@@ -126,6 +130,11 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
   @Override
   public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
       boolean updateParents) {
+
+    TestItemPathContext cur = new TestItemPathContext(testItem.getItemId(),
+        testItem.getLaunchId(), testItem.getPath());
+    testItemStatisticsService.deleteItemStatistics(cur);
+
     BusinessRule.expect(testItem.getItemResults().getStatus(),
         currentStatus -> !IN_PROGRESS.equals(currentStatus)
     ).verify(
@@ -143,6 +152,8 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
             () -> new ReportPortalException(NOT_FOUND, "Project " + launch.getProjectId()));
 
     updateStatus(project, launch, testItem, providedStatus, user, updateParents);
+
+    testItemStatisticsService.addStatistics(testItem);
   }
 
   /**

@@ -49,7 +49,6 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.cluster.GetClusterHandler;
 import com.epam.reportportal.base.core.launch.export.LaunchExportService;
-import com.epam.reportportal.extension.event.GetLaunchResourceCollectionEvent;
 import com.epam.reportportal.base.infrastructure.model.launch.cluster.ClusterInfoResource;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -74,10 +73,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.launch.LaunchViewModel;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import com.epam.reportportal.base.ws.converter.converters.LaunchConverter;
+import com.epam.reportportal.extension.event.GetLaunchResourceCollectionEvent;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
@@ -122,7 +123,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public LaunchResource getLaunch(String launchId, MembershipDetails membershipDetails) {
+  public LaunchViewModel getLaunch(String launchId, MembershipDetails membershipDetails) {
     final Launch launch = findLaunch(launchId, membershipDetails);
     return getLaunchResource(launch);
   }
@@ -140,7 +141,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public LaunchResource getLaunchByProjectKey(String projectKey, Pageable pageable, Filter filter,
+  public LaunchViewModel getLaunchByProjectKey(String projectKey, Pageable pageable, Filter filter,
       String username) {
     Project project = projectRepository.findByKey(projectKey)
         .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
@@ -151,15 +152,15 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
     return getLaunchResource(launches.iterator().next());
   }
 
-  private LaunchResource getLaunchResource(Launch launch) {
-    final LaunchResource launchResource = launchConverter.TO_RESOURCE.apply(launch);
+  private LaunchViewModel getLaunchResource(Launch launch) {
+    final LaunchViewModel launchResource = launchConverter.TO_RESOURCE.apply(launch);
     applicationEventPublisher.publishEvent(
         new GetLaunchResourceCollectionEvent(Collections.singletonList(launchResource)));
     return launchResource;
   }
 
   @Override
-  public com.epam.reportportal.base.model.Page<LaunchResource> getProjectLaunches(
+  public com.epam.reportportal.base.model.Page<LaunchViewModel> getProjectLaunches(
       MembershipDetails membershipDetails,
       Filter filter, Pageable pageable, String userName) {
     validateModeConditions(filter);
@@ -177,7 +178,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
    * project users, for specified user or only owner
    */
   @Override
-  public com.epam.reportportal.base.model.Page<LaunchResource> getDebugLaunches(
+  public com.epam.reportportal.base.model.Page<LaunchViewModel> getDebugLaunches(
       MembershipDetails membershipDetails,
       Filter filter, Pageable pageable) {
     validateModeConditions(filter);
@@ -206,7 +207,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public com.epam.reportportal.base.model.Page<LaunchResource> getLatestLaunches(
+  public com.epam.reportportal.base.model.Page<LaunchViewModel> getLatestLaunches(
       MembershipDetails membershipDetails,
       Filter filter, Pageable pageable) {
 
@@ -235,12 +236,13 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
     return testItemRepository.hasItemsWithIssueByLaunch(launch.getId());
   }
 
-  private com.epam.reportportal.base.model.Page<LaunchResource> getLaunchResources(
+  private com.epam.reportportal.base.model.Page<LaunchViewModel> getLaunchResources(
       Page<Launch> launches) {
-    final com.epam.reportportal.base.model.Page<LaunchResource> launchResourcePage =
+    final com.epam.reportportal.base.model.Page<LaunchViewModel> launchResourcePage =
         PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
-    applicationEventPublisher.publishEvent(
-        new GetLaunchResourceCollectionEvent(launchResourcePage.getContent()));
+    applicationEventPublisher.publishEvent(new GetLaunchResourceCollectionEvent(
+        launchResourcePage.getContent().stream().map(it -> (LaunchResource) it)
+            .collect(Collectors.toList())));
     return launchResourcePage;
   }
 
@@ -306,7 +308,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
+  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, boolean flatAttachments,
       HttpServletResponse response,
       ReportPortalUser user, MembershipDetails membershipDetails) {
     var launch = launchRepository.findById(launchId)
@@ -322,7 +324,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
 
     if (includeAttachments) {
-      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat, response);
+      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat, flatAttachments, response);
     } else {
       launchExportService.exportLaunch(launch, userFullName, reportFormat, response);
     }

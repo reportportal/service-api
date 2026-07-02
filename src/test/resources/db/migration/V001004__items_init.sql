@@ -9,8 +9,8 @@ DECLARE
     DECLARE cur_suite_id   BIGINT;
     DECLARE cur_item_id    BIGINT;
     DECLARE cur_step_id    BIGINT;
+    DECLARE main_step_id   BIGINT;
     DECLARE stepcounter    INT = 1;
-    DECLARE functionresult INT = 0;
 BEGIN
 
     alter sequence launch_id_seq
@@ -240,6 +240,7 @@ BEGIN
             cur_item_id,
             launchcounter - 1);
     cur_step_id = (SELECT currval(pg_get_serial_sequence('test_item', 'item_id')));
+    main_step_id = cur_step_id;
 
     UPDATE test_item
     SET path = cast(cur_suite_id AS TEXT) || cast(cast(cur_item_id AS TEXT) AS LTREE) ||
@@ -281,13 +282,16 @@ BEGIN
             INSERT INTO parameter (item_id, key, value)
             VALUES (cur_step_id, 'third key', 'third value');
 
-            functionresult := (SELECT handle_retries(cur_step_id));
+            UPDATE test_item
+            SET retry_of = main_step_id, launch_id = NULL, has_retries = FALSE
+            WHERE item_id = cur_step_id;
+            UPDATE test_item
+            SET has_retries = TRUE
+            WHERE item_id = main_step_id;
 
             retriescounter = retriescounter + 1;
 
         END LOOP;
-
-    functionresult := (SELECT retries_statistics(launchcounter - 1));
 
     INSERT INTO test_item (test_case_hash, name, uuid, type, start_time, description, last_modified,
                            unique_id, parent_id, launch_id)
@@ -302,6 +306,14 @@ BEGIN
     INSERT INTO test_item_results (result_id, status, duration, end_time)
     VALUES ((SELECT currval(pg_get_serial_sequence('test_item', 'item_id'))), 'FAILED', 0.35,
             now());
+
+    INSERT INTO statistics_field (name) VALUES ('statistics$executions$total') ON CONFLICT DO NOTHING;
+    INSERT INTO statistics_field (name) VALUES ('statistics$executions$failed') ON CONFLICT DO NOTHING;
+    INSERT INTO statistics (item_id, statistics_field_id, s_counter)
+        SELECT cur_step_id, sf_id, 1
+        FROM statistics_field
+        WHERE name IN ('statistics$executions$total', 'statistics$executions$failed')
+    ON CONFLICT DO NOTHING;
 END;
 $$
     LANGUAGE plpgsql;

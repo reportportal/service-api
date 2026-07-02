@@ -117,6 +117,7 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
         .mergeLaunches(membershipDetails, user, rq, launchesList);
     newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
+    launchesList.forEach(launch -> launch.getAttributes().clear());
     launchRepository.deleteAll(launchesList);
 
     logIndexer.indexLaunchLogs(newLaunch, AnalyzerUtils.getAnalyzerConfig(project));
@@ -146,6 +147,11 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
           FORBIDDEN_OPERATION, "Impossible to merge launches from different projects.");
 
     });
+
+    long distinctLaunchTypes =
+        launches.stream().map(Launch::getLaunchType).distinct().count();
+    expect(distinctLaunchTypes, equalTo(1L)).verify(ErrorType.BAD_REQUEST_ERROR,
+        "Launches with different launch types cannot be merged.");
   }
 
 }

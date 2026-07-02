@@ -45,6 +45,7 @@ import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
 import com.epam.reportportal.base.core.item.impl.status.StatusChangingStrategy;
 import com.epam.reportportal.base.core.project.ProjectService;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -89,6 +90,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +102,7 @@ import org.springframework.stereotype.Service;
  *
  * @author Pavel Bortnik
  */
+@RequiredArgsConstructor
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
@@ -125,28 +128,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
   private final DefectUpdateStatisticsService defectUpdateStatisticsService;
+
   private final ProjectService projectService;
 
-  @Autowired
-  public UpdateTestItemHandlerImpl(TestItemService testItemService,
-      ProjectRepository projectRepository, TestItemRepository testItemRepository,
-      ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
-      ApplicationEventPublisher eventPublisher, LogIndexerService logIndexerService,
-      IssueEntityRepository issueEntityRepository,
-      Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
-      DefectUpdateStatisticsService defectUpdateStatisticsService, ProjectService projectService) {
-    this.testItemService = testItemService;
-    this.projectRepository = projectRepository;
-    this.testItemRepository = testItemRepository;
-    this.externalTicketHandler = externalTicketHandler;
-    this.issueTypeHandler = issueTypeHandler;
-    this.eventPublisher = eventPublisher;
-    this.logIndexerService = logIndexerService;
-    this.issueEntityRepository = issueEntityRepository;
-    this.statusChangingStrategyMapping = statusChangingStrategyMapping;
-    this.defectUpdateStatisticsService = defectUpdateStatisticsService;
-    this.projectService = projectService;
-  }
+  private final TestItemStatisticsService testItemStatisticsService;
 
   @Override
   public List<Issue> defineTestItemsIssues(MembershipDetails membershipDetails,
@@ -176,8 +161,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
             ).get()));
 
         verifyTestItem(testItem, issueDefinition.getId());
+
         TestItemActivityResource before =
             TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
+        IssueType oldIssue = testItem.getItemResults().getIssue().getIssueType();
 
         Issue issue = issueDefinition.getIssue();
         IssueType issueType =
@@ -205,6 +192,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         }
 
         updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
+
+        testItemStatisticsService.changeDefectStatistics(testItem, oldIssue, issueType);
 
         TestItemActivityResource after =
             TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
@@ -326,7 +315,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<TestItemActivityResource> before =
         testItems.stream()
             .map(it -> TO_ACTIVITY_RESOURCE.apply(it, membershipDetails.getProjectId()))
-            .collect(Collectors.toList());
+            .toList();
 
     if (LinkExternalIssueRQ.class.equals(request.getClass())) {
       LinkExternalIssueRQ linkRequest = (LinkExternalIssueRQ) request;
@@ -384,6 +373,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     itemIds.forEach(itemId -> {
       TestItem item = testItemRepository.findById(itemId)
           .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
+      IssueType beforeIssue = item.getItemResults().getIssue().getIssueType();
       TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
 
       IssueType issueType = issueTypeHandler.defineIssueType(projectId,
@@ -394,6 +384,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
           ))).addIssueType(issueType).addAutoAnalyzedFlag(false).get();
       issueEntityRepository.save(issueEntity);
       item.getItemResults().setIssue(issueEntity);
+      testItemStatisticsService.changeDefectStatistics(item, beforeIssue, issueType);
 
       TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(item, projectId);
       if (!Strings.CI.equals(before.getIssueTypeLongName(), after.getIssueTypeLongName())) {
@@ -484,6 +475,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
             item.getItemId()
         )
     ).verify();
+
+    expect(item.getRetryOf(), equalTo(null),
+        formattedSupplier("Test item = {} is a retry", item.getItemId())).verify();
+
+    expect(item.getLaunchId(), notNull(),
+        formattedSupplier("Test item = {} is a retry", item.getItemId())).verify();
 
     expect(item.getItemResults().getStatus(),
         not(status -> Stream.of(StatusEnum.values()).filter(StatusEnum::isPositive)

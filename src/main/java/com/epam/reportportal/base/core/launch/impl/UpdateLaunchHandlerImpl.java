@@ -26,6 +26,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils;
@@ -35,6 +36,8 @@ import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.core.launch.UpdateLaunchHandler;
 import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
+import com.epam.reportportal.base.core.launch.changes.LaunchChangesHandler;
+import com.epam.reportportal.base.core.launch.changes.LaunchFieldsSnapshot;
 import com.epam.reportportal.base.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.reportportal.base.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
@@ -94,6 +97,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
 
+  private final LaunchChangesHandler launchChangesHandler;
+
   @Autowired
   public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler,
       GetLaunchHandler getLaunchHandler, LaunchAccessValidator launchAccessValidator,
@@ -101,7 +106,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
       Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
       @Qualifier("uniqueErrorAnalysisStarterAsync")
       UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
-      LaunchAttributeHandlerService launchAttributeHandlerService) {
+      LaunchAttributeHandlerService launchAttributeHandlerService,
+      LaunchChangesHandler launchChangesHandler) {
     this.getProjectHandler = getProjectHandler;
     this.getLaunchHandler = getLaunchHandler;
     this.launchAccessValidator = launchAccessValidator;
@@ -110,6 +116,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     this.logIndexer = logIndexer;
     this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
     this.launchAttributeHandlerService = launchAttributeHandlerService;
+    this.launchChangesHandler = launchChangesHandler;
   }
 
   @Override
@@ -121,11 +128,14 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
     validate(launch, user, membershipDetails);
 
     LaunchModeEnum previousMode = launch.getMode();
+    var beforeSnapshot = launchChangesHandler.captureSnapshot(launch);
 
     launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription())
         .overwriteAttributes(rq.getAttributes()).get();
     launchAttributeHandlerService.handleLaunchUpdate(launch, user);
     launchRepository.save(launch);
+
+    launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
 
     if (!previousMode.equals(launch.getMode())) {
       reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
@@ -188,6 +198,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
+    Map<Long, LaunchFieldsSnapshot> snapshots = launches.stream()
+        .collect(toMap(Launch::getId, launchChangesHandler::captureSnapshot));
+
     launches.forEach(
         it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
             .ifPresent(it::setDescription));
@@ -219,6 +232,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         }
       }
     });
+
+    launches.forEach(launch ->
+        launchChangesHandler.handleIfChanged(launch, snapshots.get(launch.getId())));
 
     return new OperationCompletionRS("Attributes successfully updated");
   }

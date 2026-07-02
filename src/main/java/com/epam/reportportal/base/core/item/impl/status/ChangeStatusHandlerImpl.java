@@ -25,6 +25,7 @@ import static com.epam.reportportal.base.ws.converter.converters.TestItemConvert
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.events.domain.item.TestItemStatusChangedEvent;
+import com.epam.reportportal.base.core.launch.changes.LaunchChangesHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -57,6 +58,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
   private final ApplicationEventPublisher eventPublisher;
   private final LaunchRepository launchRepository;
   private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
+  private final LaunchChangesHandler launchChangesHandler;
 
   @Override
   public void changeParentStatus(TestItem childItem, MembershipDetails membershipDetails,
@@ -118,8 +120,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
   public void changeLaunchStatus(Launch launch) {
     if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
       if (!launchRepository.hasItemsInStatuses(launch.getId(),
-          Lists.newArrayList(JStatusEnum.IN_PROGRESS)
-      )) {
+          Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
         StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
             StatusEnum.PASSED.name(), INFO.name(), WARN.name()
         ) ? FAILED : PASSED;

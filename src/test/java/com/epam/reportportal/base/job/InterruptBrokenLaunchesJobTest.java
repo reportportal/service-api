@@ -21,6 +21,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.launch.changes.LaunchChangesHandler;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -59,6 +61,12 @@ class InterruptBrokenLaunchesJobTest {
 
   @Mock
   private ProjectRepository projectRepository;
+
+  @Mock
+  private TestItemStatisticsService statisticsService;
+
+  @Mock
+  private LaunchChangesHandler launchChangesHandler;
 
   @InjectMocks
   private InterruptBrokenLaunchesJob interruptBrokenLaunchesJob;

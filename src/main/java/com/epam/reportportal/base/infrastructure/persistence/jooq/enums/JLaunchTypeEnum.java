@@ -19,7 +19,9 @@ public enum JLaunchTypeEnum implements EnumType {
 
     AUTOMATION("AUTOMATION"),
 
-    MANUAL("MANUAL");
+    MANUAL("MANUAL"),
+
+    AGENTIC("AGENTIC");
 
     private final String literal;
 

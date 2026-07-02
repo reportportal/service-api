@@ -46,11 +46,10 @@ public abstract class AnalyzerClusterDataProvider implements ClusterDataProvider
 
   @Override
   public Optional<ClusterData> provide(GenerateClustersConfig config) {
-    expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(
-        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-        "There are no analyzer services are deployed."
-    );
-    return getGenerateRq(config).map(analyzerServiceClient::generateClusters);
+    if (analyzerServiceClient.hasClients()) {
+      return getGenerateRq(config).map(analyzerServiceClient::generateClusters);
+    }
+    return Optional.empty();
   }
 
   private Optional<GenerateClustersRq> getGenerateRq(GenerateClustersConfig config) {

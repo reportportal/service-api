@@ -253,6 +253,25 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .fetch());
   }
 
+  @Override
+  public long overallStatisticsInterruptedCount(Filter filter, Sort sort, boolean latest, int limit) {
+    return ofNullable(dsl.with(LAUNCHES)
+        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest).with(sort)
+            .with(limit).build())
+        .select(count().cast(Long.class))
+        .from(TEST_ITEM)
+        .join(LAUNCHES)
+        .on(TEST_ITEM.LAUNCH_ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
+        .join(TEST_ITEM_RESULTS)
+        .on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
+        .where(TEST_ITEM.TYPE.eq(JTestItemTypeEnum.STEP))
+        .and(TEST_ITEM.HAS_STATS.eq(Boolean.TRUE))
+        .and(TEST_ITEM.HAS_CHILDREN.eq(false))
+        .and(TEST_ITEM.RETRY_OF.isNull())
+        .and(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.INTERRUPTED))
+        .fetchOne(0, Long.class)).orElse(0L);
+  }
+
   /**
    * Returns condition for step level test item types. Include before/after methods and classes types depends on
    * {@code includeMethods} param.
@@ -375,7 +394,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
                         .gt(ZERO_QUERY_VALUE))
                     .as(START_TIME_HISTORY),
                 sum(field(name(FLAKY_TABLE_RESULTS, SWITCH_FLAG)).cast(Long.class)).as(FLAKY_COUNT),
-                count(field(name(FLAKY_TABLE_RESULTS, ITEM_ID))).minus(1).as(TOTAL)
+                count(field(name(FLAKY_TABLE_RESULTS, ITEM_ID))).minus(1).as(TOTAL),
+                DSL.max(field(name(FLAKY_TABLE_RESULTS, LAUNCH_ID)).cast(Long.class)).as(LAUNCH_ID)
             )
             .from(dsl.with(LAUNCHES)
                 .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, Sort.unsorted()))
@@ -386,6 +406,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
                     TEST_ITEM.UNIQUE_ID,
                     TEST_ITEM.NAME,
                     TEST_ITEM.START_TIME,
+                    TEST_ITEM.LAUNCH_ID,
                     TEST_ITEM_RESULTS.STATUS,
                     when(TEST_ITEM_RESULTS.STATUS.notEqual(
                             lag(TEST_ITEM_RESULTS.STATUS).over(orderBy(TEST_ITEM.UNIQUE_ID,
@@ -409,7 +430,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
                 .and(TEST_ITEM.RETRY_OF.isNull())
                 .and(TEST_ITEM_RESULTS.STATUS.notEqual(JStatusEnum.SKIPPED))
                 .groupBy(TEST_ITEM.ITEM_ID, TEST_ITEM_RESULTS.STATUS, TEST_ITEM.UNIQUE_ID,
-                    TEST_ITEM.NAME, TEST_ITEM.START_TIME)
+                    TEST_ITEM.NAME, TEST_ITEM.START_TIME, TEST_ITEM.LAUNCH_ID)
                 .orderBy(TEST_ITEM.UNIQUE_ID, TEST_ITEM.START_TIME.desc())
                 .asTable(FLAKY_TABLE_RESULTS))
             .groupBy(field(name(FLAKY_TABLE_RESULTS, TEST_ITEM.UNIQUE_ID.getName())),

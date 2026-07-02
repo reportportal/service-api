@@ -23,6 +23,8 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -52,6 +54,7 @@ public class S3DataStore implements DataStore {
   private final String bucketPostfix;
   private final String defaultBucketName;
   private final Location location;
+  private final boolean legacyEncodedKeyFallback;
 
   private final FeatureFlagHandler featureFlagHandler;
 
@@ -67,12 +70,20 @@ public class S3DataStore implements DataStore {
    */
   public S3DataStore(BlobStore blobStore, String bucketPrefix, String bucketPostfix,
       String defaultBucketName, String region, FeatureFlagHandler featureFlagHandler) {
+    this(blobStore, bucketPrefix, bucketPostfix, defaultBucketName, region, featureFlagHandler,
+        false);
+  }
+
+  public S3DataStore(BlobStore blobStore, String bucketPrefix, String bucketPostfix,
+      String defaultBucketName, String region, FeatureFlagHandler featureFlagHandler,
+      boolean legacyEncodedKeyFallback) {
     this.blobStore = blobStore;
     this.bucketPrefix = bucketPrefix;
     this.bucketPostfix = Objects.requireNonNullElse(bucketPostfix, "");
     this.defaultBucketName = defaultBucketName;
     this.location = getLocationFromString(region);
     this.featureFlagHandler = featureFlagHandler;
+    this.legacyEncodedKeyFallback = legacyEncodedKeyFallback;
   }
 
   @Override
@@ -112,6 +123,12 @@ public class S3DataStore implements DataStore {
     }
     StoredFile storedFile = getStoredFile(filePath);
     Blob fileBlob = blobStore.getBlob(storedFile.getBucket(), storedFile.getFilePath());
+    if (fileBlob == null && legacyEncodedKeyFallback) {
+      String legacyKey = urlEncodeKey(storedFile.getFilePath());
+      if (!legacyKey.equals(storedFile.getFilePath())) {
+        fileBlob = blobStore.getBlob(storedFile.getBucket(), legacyKey);
+      }
+    }
     if (fileBlob != null) {
       try {
         return fileBlob.getPayload().openStream();
@@ -119,7 +136,8 @@ public class S3DataStore implements DataStore {
         throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, e.getMessage());
       }
     }
-    LOGGER.error("Unable to find file '{}'", filePath);
+    LOGGER.error("Unable to find file '{}' in bucket '{}'", storedFile.getFilePath(),
+        storedFile.getBucket());
     throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
   }
 
@@ -129,7 +147,15 @@ public class S3DataStore implements DataStore {
       return false;
     }
     StoredFile storedFile = getStoredFile(filePath);
-    return blobStore.blobExists(storedFile.getBucket(), storedFile.getFilePath());
+    if (blobStore.blobExists(storedFile.getBucket(), storedFile.getFilePath())) {
+      return true;
+    }
+    if (legacyEncodedKeyFallback) {
+      String legacyKey = urlEncodeKey(storedFile.getFilePath());
+      return !legacyKey.equals(storedFile.getFilePath())
+          && blobStore.blobExists(storedFile.getBucket(), legacyKey);
+    }
+    return false;
   }
 
   @Override
@@ -140,6 +166,12 @@ public class S3DataStore implements DataStore {
     StoredFile storedFile = getStoredFile(filePath);
     try {
       blobStore.removeBlob(storedFile.getBucket(), storedFile.getFilePath());
+      if (legacyEncodedKeyFallback) {
+        String legacyKey = urlEncodeKey(storedFile.getFilePath());
+        if (!legacyKey.equals(storedFile.getFilePath())) {
+          blobStore.removeBlob(storedFile.getBucket(), legacyKey);
+        }
+      }
     } catch (Exception e) {
       LOGGER.error("Unable to delete file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete file");
@@ -195,5 +227,17 @@ public class S3DataStore implements DataStore {
 
   private String retrievePath(Path path, int beginIndex, int endIndex) {
     return String.valueOf(path.subpath(beginIndex, endIndex));
+  }
+
+  private String urlEncodeKey(String key) {
+    String[] segments = key.split("/", -1);
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < segments.length; i++) {
+      if (i > 0) {
+        sb.append('/');
+      }
+      sb.append(URLEncoder.encode(segments[i], StandardCharsets.UTF_8).replace("+", "%20"));
+    }
+    return sb.toString();
   }
 }

@@ -66,6 +66,18 @@ public interface WidgetContentRepository {
       List<String> contentFields, boolean latest, int limit);
 
   /**
+   * Counts interrupted test items for Overall statistics widget for launches selected by the same
+   * filter/sort/latest/limit logic as {@link #overallStatisticsContent(Filter, Sort, List, boolean, int)}.
+   *
+   * @param filter {@link Filter}
+   * @param sort   {@link Sort}
+   * @param latest Load only for latest launches
+   * @param limit  Limit of loaded launches
+   * @return Count of interrupted test items
+   */
+  long overallStatisticsInterruptedCount(Filter filter, Sort sort, boolean latest, int limit);
+
+  /**
    * Loads top limit history of items sorted in descending order by provided criteria for specified launch. Criteria
    * could be one of statistics fields. For example if criteria is 'statistics$execution$failed' and launchName is
    * 'DefaultLaunch' that is specified in the filter and limit is 20 the result will be top 20 grouped steps by uniqueId

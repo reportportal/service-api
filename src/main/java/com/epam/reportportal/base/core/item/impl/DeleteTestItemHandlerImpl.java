@@ -30,8 +30,10 @@ import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.DeleteTestItemHandler;
+import com.epam.reportportal.base.core.item.repository.TestItemPathContext;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.remover.ContentRemover;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
@@ -86,6 +88,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
   private final LogService logService;
 
+  private final TestItemStatisticsService testItemStatisticsService;
+
   @Override
   public OperationCompletionRS deleteTestItem(Long itemId,
       MembershipDetails membershipDetails, ReportPortalUser user) {
@@ -104,6 +108,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
     logService.deleteLogMessageByTestItemSet(membershipDetails.getProjectId(), itemsForRemove);
     itemContentRemover.remove(item.getItemId());
+    TestItemPathContext cur = new TestItemPathContext(item.getItemId(),
+        item.getLaunchId(), item.getPath());
+    testItemStatisticsService.deleteItemStatistics(cur);
     testItemRepository.deleteById(item.getItemId());
 
     launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
@@ -131,6 +138,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
         .collect(Collectors.groupingBy(TestItem::getLaunchId));
     launches.forEach(launch -> launchItemMap.get(launch.getId())
         .forEach(item -> validate(item, launch, user, membershipDetails)));
+
+    items.forEach(it -> testItemStatisticsService.deleteItemStatistics(
+        new TestItemPathContext(it.getItemId(), it.getLaunchId(), it.getPath())));
 
     Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
 

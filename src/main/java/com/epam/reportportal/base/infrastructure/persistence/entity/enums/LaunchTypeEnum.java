@@ -9,7 +9,8 @@ import java.util.Optional;
 public enum LaunchTypeEnum {
 
   AUTOMATION("AUTOMATION"),
-  MANUAL("MANUAL");
+  MANUAL("MANUAL"),
+  AGENTIC("AGENTIC");
 
   private final String value;
 

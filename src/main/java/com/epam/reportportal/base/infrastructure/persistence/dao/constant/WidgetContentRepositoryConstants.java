@@ -25,6 +25,7 @@ public class WidgetContentRepositoryConstants {
 
   public static final String EXECUTIONS_TOTAL = "statistics$executions$total";
   public static final String EXECUTIONS_FAILED = "statistics$executions$failed";
+  public static final String EXECUTIONS_INTERRUPTED = "statistics$executions$interrupted";
   public static final String EXECUTIONS_SKIPPED = "statistics$executions$skipped";
   public static final String EXECUTIONS_PASSED = "statistics$executions$passed";
   public static final String EXECUTIONS_STOPPED = "statistics$executions$stopped";

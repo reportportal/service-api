@@ -22,8 +22,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.Enti
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-import com.epam.reportportal.base.core.jasper.GetJasperReportHandler;
-import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.launch.DeleteLaunchHandler;
 import com.epam.reportportal.base.core.launch.FinishLaunchHandler;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
@@ -37,13 +35,12 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.ChartStatisticsContent;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.BulkRQ;
 import com.epam.reportportal.base.model.DeleteBulkRS;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.launch.AnalyzeLaunchRQ;
 import com.epam.reportportal.base.model.launch.FinishLaunchRS;
+import com.epam.reportportal.base.model.launch.LaunchViewModel;
 import com.epam.reportportal.base.model.launch.UpdateLaunchRQ;
 import com.epam.reportportal.base.model.launch.cluster.CreateClustersRQ;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
@@ -67,14 +64,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,6 +94,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Andrei_Ramanchuk
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/{projectKey}/launch")
 @Tag(name = "Launch", description = "Launches API collection")
 public class LaunchController {
@@ -113,29 +107,8 @@ public class LaunchController {
   private final GetLaunchHandler getLaunchMessageHandler;
   private final UpdateLaunchHandler updateLaunchHandler;
   private final MergeLaunchHandler mergeLaunchesHandler;
-  private final GetJasperReportHandler<Launch> getJasperHandler;
   private final LaunchConverter launchConverter;
   private final LinkGenerator linkGenerator;
-
-  @Autowired
-  public LaunchController(ProjectExtractor projectExtractor, StartLaunchHandler startLaunchHandler,
-      FinishLaunchHandler finishLaunchHandler, StopLaunchHandler stopLaunchHandler,
-      DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
-      UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler,
-      @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler,
-      LaunchConverter launchConverter, LinkGenerator linkGenerator) {
-    this.projectExtractor = projectExtractor;
-    this.startLaunchHandler = startLaunchHandler;
-    this.finishLaunchHandler = finishLaunchHandler;
-    this.stopLaunchHandler = stopLaunchHandler;
-    this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
-    this.getLaunchMessageHandler = getLaunchMessageHandler;
-    this.updateLaunchHandler = updateLaunchHandler;
-    this.mergeLaunchesHandler = mergeLaunchesHandler;
-    this.getJasperHandler = getJasperHandler;
-    this.launchConverter = launchConverter;
-    this.linkGenerator = linkGenerator;
-  }
 
   /* Report client API */
 
@@ -237,7 +210,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specified launch by ID")
-  public LaunchResource getLaunch(@PathVariable String projectKey, @PathVariable String launchId,
+  public LaunchViewModel getLaunch(@PathVariable String projectKey, @PathVariable String launchId,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey))
@@ -249,7 +222,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specified launch by UUID")
-  public LaunchResource getLaunchByUuid(@PathVariable String projectKey,
+  public LaunchViewModel getLaunchByUuid(@PathVariable String projectKey,
       @PathVariable String launchId, @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLaunch(launchId,
         projectExtractor.extractMembershipDetails(user, normalizeId(projectKey))
@@ -280,7 +253,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of project launches by filter")
-  public Page<LaunchResource> getProjectLaunches(@PathVariable String projectKey,
+  public Page<LaunchViewModel> getProjectLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getProjectLaunches(
@@ -294,7 +267,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get list of latest project launches by filter")
-  public Page<LaunchResource> getLatestLaunches(@PathVariable String projectKey,
+  public Page<LaunchViewModel> getLatestLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getLatestLaunches(
@@ -305,7 +278,7 @@ public class LaunchController {
   @ResponseStatus(OK)
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get launches of specified project from DEBUG mode")
-  public Page<LaunchResource> getDebugLaunches(@PathVariable String projectKey,
+  public Page<LaunchViewModel> getDebugLaunches(@PathVariable String projectKey,
       @FilterFor(Launch.class) Filter filter, @SortFor(Launch.class) Pageable pageable,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getLaunchMessageHandler.getDebugLaunches(
@@ -487,24 +460,10 @@ public class LaunchController {
       @Parameter(schema = @Schema(allowableValues = {"pdf", "xls", "html"}))
       @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
       @RequestParam(value = "includeAttachments", required = false, defaultValue = "false") boolean includeAttachments,
+      @RequestParam(value = "flatAttachments", required = false, defaultValue = "false") boolean flatAttachments,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
-
-    ReportFormat format = getJasperHandler.getReportFormat(view);
-    response.setContentType(format.getContentType());
-
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-        String.format("attachment; filename=\"RP_LAUNCH_%s_Report.%s\"", format.name(),
-            format.getValue()
-        )
-    );
-
-    try (OutputStream outputStream = response.getOutputStream()) {
-      getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, response, user,
-          projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)));
-
-    } catch (IOException e) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
-    }
+    getLaunchMessageHandler.exportLaunch(launchId, view, includeAttachments, flatAttachments, response, user,
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)));
   }
 
   @Transactional

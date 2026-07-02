@@ -28,6 +28,7 @@ import lombok.Data;
 @Builder
 public class AttachmentPojo {
 
+  private Long id;
   private String fileId;
   private String fileName;
   private String contentType;

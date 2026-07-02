@@ -1398,12 +1398,12 @@ class TestItemRepositoryTest extends BaseMvcTest {
 
 
   @Test
-  void testFindTestItemsContainsName() {
+  void testFindTestItemsWithNamePrefix() {
     //given
     Pageable pageable = PageRequest.of(0, 10);
 
     //when
-    Slice<TestItem> result = testItemRepository.findTestItemsContainsName("Ste", 1L, pageable);
+    Slice<TestItem> result = testItemRepository.findTestItemsWithNamePrefix("Ste".toLowerCase(), 1L, pageable);
 
     //then
     List<String> names = result.getContent().stream().map(TestItem::getName).toList();
@@ -1412,12 +1412,12 @@ class TestItemRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void testFindTestItemsContainsNameNotExists() {
+  void testFindTestItemsWithNamePrefixNotExists() {
     //given
     Pageable pageable = PageRequest.of(0, 10);
 
     //when
-    Slice<TestItem> result = testItemRepository.findTestItemsContainsName("Not exists", 1L,
+    Slice<TestItem> result = testItemRepository.findTestItemsWithNamePrefix("Not exists", 1L,
         pageable);
 
     //then
@@ -1425,13 +1425,13 @@ class TestItemRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void testFindTestItemsContainsNameAndStatuses() {
+  void testFindTestItemsWithNamePrefixAndStatuses() {
     //given
     Pageable pageable = Pageable.unpaged();
 
     //when
-    Slice<TestItem> result = testItemRepository.findTestItemsContainsNameAndStatuses(
-        "Step",
+    Slice<TestItem> result = testItemRepository.findTestItemsWithNamePrefixAndStatuses(
+        "Step".toLowerCase(),
         1L,
         List.of("FAILED"),
         pageable
@@ -1449,8 +1449,8 @@ class TestItemRepositoryTest extends BaseMvcTest {
     Pageable pageable = Pageable.unpaged();
 
     //when
-    Slice<TestItem> result = testItemRepository.findTestItemsContainsNameAndStatuses(
-        "Step", 1L, List.of("FAILED", "IN_PROGRESS"), pageable);
+    Slice<TestItem> result = testItemRepository.findTestItemsWithNamePrefixAndStatuses(
+        "Step".toLowerCase(), 1L, List.of("FAILED", "IN_PROGRESS"), pageable);
 
     //then
     assertEquals(78, result.getContent().size());
@@ -1462,13 +1462,13 @@ class TestItemRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void testFindTestItemsContainsNameAndStatusesNotExists() {
+  void testFindTestItemsWithNamePrefixAndStatusesNotExists() {
     //given
     Pageable pageable = Pageable.unpaged();
 
     //when
-    Slice<TestItem> result = testItemRepository.findTestItemsContainsNameAndStatuses(
-        "Step",
+    Slice<TestItem> result = testItemRepository.findTestItemsWithNamePrefixAndStatuses(
+        "Step".toLowerCase(),
         1L,
         List.of("PASSED"),
         pageable

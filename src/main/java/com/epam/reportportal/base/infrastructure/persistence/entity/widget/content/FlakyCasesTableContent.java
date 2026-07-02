@@ -18,6 +18,7 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.widget.cont
 
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.FLAKY_COUNT;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.ITEM_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.LAUNCH_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.START_TIME_HISTORY;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.STATUSES;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.TOTAL;
@@ -28,12 +29,14 @@ import jakarta.persistence.Column;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
+import lombok.Data;
 
 /**
  * A flaky test case row: statuses over time, counts, and name.
  *
  * @author Ivan Budayeu
  */
+@Data
 public class FlakyCasesTableContent implements Serializable {
 
   @JsonProperty(value = STATUSES)
@@ -60,54 +63,9 @@ public class FlakyCasesTableContent implements Serializable {
   @Column(name = START_TIME_HISTORY)
   private List<Instant> startTime;
 
+  @Column(name = LAUNCH_ID)
+  private Long launchId;
+
   public FlakyCasesTableContent() {
-  }
-
-  public String[] getStatuses() {
-    return statuses;
-  }
-
-  public void setStatuses(String[] statuses) {
-    this.statuses = statuses;
-  }
-
-  public Long getFlakyCount() {
-    return flakyCount;
-  }
-
-  public void setFlakyCount(Long flakyCount) {
-    this.flakyCount = flakyCount;
-  }
-
-  public Long getTotal() {
-    return total;
-  }
-
-  public void setTotal(Long total) {
-    this.total = total;
-  }
-
-  public String getItemName() {
-    return itemName;
-  }
-
-  public void setItemName(String itemName) {
-    this.itemName = itemName;
-  }
-
-  public String getUniqueId() {
-    return uniqueId;
-  }
-
-  public void setUniqueId(String uniqueId) {
-    this.uniqueId = uniqueId;
-  }
-
-  public List<Instant> getStartTime() {
-    return startTime;
-  }
-
-  public void setStartTime(List<Instant> startTime) {
-    this.startTime = startTime;
   }
 }

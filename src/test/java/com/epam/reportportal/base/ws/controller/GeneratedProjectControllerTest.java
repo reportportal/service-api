@@ -58,8 +58,10 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
   @Test
   void getLogTypesReturns404ForUnknownProject() throws Exception {
     mockMvc.perform(get("/projects/unknown_project/log-types")
-            .with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(status().isForbidden());
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message")
+            .value("Project 'unknown_project' not found. Did you use correct project name?"));
   }
 
   @Test
@@ -162,7 +164,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
   void deleteLogTypeAdminCannotDeleteFromAnyProject() throws Exception {
     mockMvc.perform(delete("/projects/default_personal/log-types/1001")
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isNotFound());
   }
 
   @Test

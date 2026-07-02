@@ -2,3 +2,6 @@
 	path = api-registry
 	url = https://github.com/reportportal/api-registry
 	branch = feature/organizations
+[submodule "migrations"]
+	path = migrations
+	url = https://github.com/reportportal/migrations

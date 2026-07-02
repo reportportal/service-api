@@ -18,7 +18,17 @@ tasks.named('jooqCodegen').configure { jooqTask ->
     ext.pgInstance = null
 
     doFirst {
-        def pg = io.zonky.test.db.postgres.embedded.EmbeddedPostgres.start()
+        def pgLog = File.createTempFile('embedded-postgres', '.log')
+        def pg
+        try {
+            pg = io.zonky.test.db.postgres.embedded.EmbeddedPostgres.builder()
+                .setOutputRedirector(ProcessBuilder.Redirect.to(pgLog))
+                .setErrorRedirector(ProcessBuilder.Redirect.to(pgLog))
+                .start()
+        } catch (Exception e) {
+            logger.error("Embedded PostgreSQL failed to start. Process output:\n${pgLog.text}")
+            throw e
+        }
         ext.pgInstance = pg
 
         def jdbcUrl = "jdbc:postgresql://localhost:${pg.port}/postgres"

@@ -165,15 +165,16 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   @Override
   public Object executeExtensionCommand(String pluginName, String command, PluginCommandRQ pluginCommandRq) {
     enrichArgumentsFromContext(pluginCommandRq);
-    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
-        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-            formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
-        ));
 
     if (isBuiltinExtension(pluginName)) {
       return builtinCommandResolver.resolve(pluginName, command)
           .executeCommand(resolveIntegration(pluginName, pluginCommandRq.getContext()), pluginCommandRq);
     }
+
+    ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
+        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+            formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
+        ));
 
     if (isCommonCommand(command, pluginInstance)) {
       return pluginInstance.getCommonExtensionCommand(command)

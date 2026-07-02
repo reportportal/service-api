@@ -9,10 +9,12 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -24,10 +26,12 @@ public class ExecuteIntegrationHandlerTest {
   private static final String PUBLIC_COMMAND_PREFIX = "public_";
 
   private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
+  private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+  private final BuiltinCommandResolver builtinCommandResolver = mock(BuiltinCommandResolver.class);
   private final PluginBox pluginBox = mock(PluginBox.class);
 
   private final ExecuteIntegrationHandler executeIntegrationHandler = new ExecuteIntegrationHandlerImpl(
-      integrationRepository, pluginBox);
+      integrationRepository, integrationTypeRepository, builtinCommandResolver, pluginBox);
 
   @Test
   @DisplayName("Positive Test. Everything is fine")

@@ -21,7 +21,6 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.plugin.PluginBox;
-import com.epam.reportportal.base.core.settings.ServerSettingsServiceImpl;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.EmailSettingsEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
@@ -34,12 +33,11 @@ import com.google.common.collect.Maps;
 import jakarta.mail.MessagingException;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,9 +46,8 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
+@Slf4j
 public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServerSettingsServiceImpl.class);
 
   private final MailServiceFactory emailServiceFactory;
 
@@ -170,20 +167,21 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
   @Override
   public boolean checkConnection(Integration integration) {
-    return emailServiceFactory.getEmailService(integration).map(emailService -> {
-      try {
-        emailService.testConnection();
-      } catch (MessagingException ex) {
-        LOGGER.error("Connection to email server failed", ex);
-        fail()
-            .withError(
-                EMAIL_CONFIGURATION_IS_INCORRECT,
-                "Email configuration is incorrect. Please, check your configuration. "
-                    + ex.getMessage());
-        return false;
-      }
-      return true;
-    }).orElse(false);
+    return emailServiceFactory.getEmailService(integration)
+        .map(emailService -> {
+          try {
+            emailService.testConnection();
+          } catch (MessagingException ex) {
+            log.error("Connection to email server failed", ex);
+            fail()
+                .withError(
+                    EMAIL_CONFIGURATION_IS_INCORRECT,
+                    "Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
+            return false;
+          }
+          return true;
+        })
+        .orElse(false);
   }
 
   private void sendConnectionTestEmail(Integration integration, boolean isNewIntegration) {
@@ -196,7 +194,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         try {
           emailService.sendConnectionTestEmail(isNewIntegration);
         } catch (MessagingException ex) {
-          LOGGER.error("Cannot send email to user", ex);
+          log.error("Cannot send email to user", ex);
           fail()
               .withError(
                   EMAIL_CONFIGURATION_IS_INCORRECT,

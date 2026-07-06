@@ -73,6 +73,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Qu
 import com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils;
 import com.epam.reportportal.base.infrastructure.persistence.dao.util.TimestampUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
@@ -919,6 +920,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
                     .where(nestedItemTable.LAUNCH_ID.eq(launchId))
                     .andNot(nestedItemTable.HAS_STATS)
                     .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+                    .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
                     .and(nestedItemTable.PATH.cast(String.class)
                         .eq(outerItemTable.PATH.cast(String.class))
                         .or(nestedItemTable.PATH.cast(String.class)
@@ -935,7 +937,8 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
                 .on(TEST_ITEM.ITEM_ID.eq(LOG.ITEM_ID))
                 .where(TEST_ITEM.LAUNCH_ID.eq(launchId))
                 .and(issueCondition)
-                .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel)))
+                .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+                .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT)))
             .asTable(ITEM))
         .fetchInto(Long.class);
   }
@@ -1014,6 +1017,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .on(TEST_ITEM.ITEM_ID.eq(LOG.ITEM_ID))
         .where(TEST_ITEM.ITEM_ID.in(itemIds))
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.like("%" + DSL.escape(pattern, '\\') + "%"))
         .fetchInto(Long.class);
   }
@@ -1027,6 +1031,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .on(TEST_ITEM.ITEM_ID.eq(LOG.ITEM_ID))
         .where(TEST_ITEM.ITEM_ID.in(itemIds))
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.likeRegex(pattern))
         .fetchInto(Long.class);
   }
@@ -1039,6 +1044,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .on(TEST_ITEM.ITEM_ID.eq(LOG.ITEM_ID))
         .where(TEST_ITEM.ITEM_ID.in(itemIds))
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .fetchInto(Long.class);
   }
 
@@ -1058,6 +1064,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .where(TEST_ITEM.ITEM_ID.in(itemIds))
         .and(child.LAUNCH_ID.eq(launchId))
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.like("%" + DSL.escape(pattern, '\\') + "%"))
         .groupBy(TEST_ITEM.ITEM_ID)
         .fetchInto(Long.class);
@@ -1079,6 +1086,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .where(TEST_ITEM.ITEM_ID.in(itemIds))
         .and(child.LAUNCH_ID.eq(launchId))
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .fetchInto(Long.class);
   }
 
@@ -1098,6 +1106,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .where(TEST_ITEM.ITEM_ID.in(itemIds))
         .and(child.LAUNCH_ID.eq(launchId))
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.likeRegex(pattern))
         .groupBy(TEST_ITEM.ITEM_ID)
         .fetchInto(Long.class);

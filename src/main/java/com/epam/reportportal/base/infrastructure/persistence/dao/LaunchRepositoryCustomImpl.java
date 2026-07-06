@@ -50,6 +50,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Qu
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchModeEnum;
@@ -370,7 +371,8 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
         .on(TEST_ITEM.ITEM_ID.eq(LOG.ITEM_ID))
         .where(TEST_ITEM.LAUNCH_ID.eq(launchId))
         .and(TEST_ITEM.TYPE.in(itemTypes))
-        .and(LOG.LOG_LEVEL.ge(logLevel)));
+        .and(LOG.LOG_LEVEL.ge(logLevel))
+        .and(LOG.LOG_LEVEL.le(LogLevel.UNKNOWN_INT)));
   }
 
   @Override

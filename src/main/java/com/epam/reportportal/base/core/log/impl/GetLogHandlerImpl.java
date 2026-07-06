@@ -301,7 +301,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
         .findLogIdsWithPage(filterWithPath, pageable);
 
     return pagedIds.stream()
-        .filter(entry -> entry.logLevel() >= LogLevel.ERROR_INT)
+        .filter(entry -> LogLevel.isErrorLevel(entry.logLevel()))
         .map(entry -> buildPagedLogResource(entry.id(),
             List.of(Map.entry(entry.id(), entry.pageNumber()))))
         .toList();
@@ -312,7 +312,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
     Predicate<NestedItemPage> inclusionFilter = item ->
         LogRepositoryConstants.ITEM.equals(item.getType())
-            || item.getLogLevel() >= LogLevel.ERROR_INT;
+            || LogLevel.isErrorLevel(item.getLogLevel());
 
     NestedProcessContext context = new NestedProcessContext(inclusionFilter,
         params.excludeEmptySteps(), params.excludePassedLogs(), queryable, pageable);

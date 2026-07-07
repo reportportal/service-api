@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -34,7 +35,8 @@ import com.epam.reportportal.api.model.OrganizationIntegration;
 import com.epam.reportportal.api.model.OrganizationIntegrationPage;
 import com.epam.reportportal.api.model.UpdateOrgIntegrationRequest;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.command.ExtensionCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.Optional;
@@ -162,9 +164,11 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
 
   @Test
   void createIntegration_manager_created() throws Exception {
-    when(pluginBox.getInstance(eq("jira"), eq(BtsExtension.class))).thenReturn(
-        Optional.of(extension));
-    when(extension.testConnection(any())).thenReturn(true);
+    ExtensionCommand testConnectionCommand = mock(ExtensionCommand.class);
+    when(pluginBox.getInstance(eq("jira"), eq(ReportPortalExtensionPoint.class)))
+        .thenReturn(Optional.of(extension));
+    when(extension.getIntegrationExtensionCommand(eq("testConnection"))).thenReturn(testConnectionCommand);
+    when(testConnectionCommand.executeCommand(any(), any())).thenReturn(true);
 
     var request = new CreateOrgIntegrationRequest()
         .name("new-jira-integration")
@@ -247,9 +251,11 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
 
   @Test
   void updateIntegration_manager_ok() throws Exception {
-    when(pluginBox.getInstance(eq("jira"), eq(BtsExtension.class))).thenReturn(
-        Optional.of(extension));
-    when(extension.testConnection(any())).thenReturn(true);
+    ExtensionCommand testConnectionCommand = mock(ExtensionCommand.class);
+    when(pluginBox.getInstance(eq("jira"), eq(ReportPortalExtensionPoint.class)))
+        .thenReturn(Optional.of(extension));
+    when(extension.getIntegrationExtensionCommand(eq("testConnection"))).thenReturn(testConnectionCommand);
+    when(testConnectionCommand.executeCommand(any(), any())).thenReturn(true);
 
     var request = new UpdateOrgIntegrationRequest()
         .name("updated-jira-integration")

@@ -27,7 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.util.BinaryDataResponseWriter;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
 import com.epam.reportportal.extension.builtin.email.EmailExtension;
 import lombok.extern.slf4j.Slf4j;
@@ -109,7 +109,7 @@ public abstract class BaseMvcTest {
   protected CreateAuthIntegrationHandler createAuthIntegrationHandler;
 
   @Mock
-  protected BtsExtension extension;
+  protected ReportPortalExtensionPoint extension;
 
   @Mock
   protected EmailService emailService;

@@ -177,6 +177,10 @@ processResources {
     }
 }
 
+javadoc {
+    source = fileTree(dir: "src/main/java")
+}
+
 tasks.register('updateApiSubmodule', Exec) {
     commandLine 'git', 'submodule', 'update', '--init', "--recursive"
 }

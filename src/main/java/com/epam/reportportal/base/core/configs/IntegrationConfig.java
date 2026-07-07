@@ -16,11 +16,8 @@
 
 package com.epam.reportportal.base.core.configs;
 
-import com.epam.reportportal.base.core.integration.util.AzureIntegrationService;
-import com.epam.reportportal.base.core.integration.util.BtsIntegrationService;
 import com.epam.reportportal.base.core.integration.util.EmailServerIntegrationService;
 import com.epam.reportportal.base.core.integration.util.IntegrationService;
-import com.epam.reportportal.base.core.integration.util.SauceLabsIntegrationService;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.beans.BeansException;
@@ -47,11 +44,7 @@ public class IntegrationConfig implements ApplicationContextAware {
   @Bean
   public Map<String, IntegrationService> integrationServiceMapping() {
     return ImmutableMap.<String, IntegrationService>builder()
-        .put("jira", applicationContext.getBean(BtsIntegrationService.class))
-        .put("rally", applicationContext.getBean(BtsIntegrationService.class))
-        .put("Azure DevOps", applicationContext.getBean(AzureIntegrationService.class))
         .put("email", applicationContext.getBean(EmailServerIntegrationService.class))
-        .put("saucelabs", applicationContext.getBean(SauceLabsIntegrationService.class))
         .build();
 
   }

@@ -54,6 +54,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Qu
 import com.epam.reportportal.base.infrastructure.persistence.dao.constant.LogRepositoryConstants;
 import com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils;
 import com.epam.reportportal.base.infrastructure.persistence.dao.util.TimestampUtils;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.NestedItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.NestedItemPage;
@@ -76,6 +77,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.jooq.CommonTableExpression;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.OrderField;
@@ -115,6 +117,11 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
   @Autowired
   public void setDsl(DSLContext dsl) {
     this.dsl = dsl;
+  }
+
+  private Condition logLevelInStandardRange(int logLevel) {
+    return LOG.LOG_LEVEL.greaterOrEqual(logLevel)
+        .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT));
   }
 
   @Override
@@ -162,7 +169,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
   public List<Log> findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(Long launchId,
       List<Long> itemIds, int logLevel) {
     return buildLogsUnderItemsQuery(launchId, itemIds, false).and(
-            LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+            logLevelInStandardRange(logLevel))
         .fetch()
         .map(LOG_UNDER_RECORD_MAPPER);
   }
@@ -194,7 +201,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
             .from(descendants)
             .join(LOG)
             .on(LOG.ITEM_ID.eq(dItemId)
-                .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel)))
+                .and(logLevelInStandardRange(logLevel)))
             .leftJoin(CLUSTERS)
             .on(LOG.CLUSTER_ID.eq(CLUSTERS.ID))
             .fetch());
@@ -205,8 +212,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
       Long itemId, int logLevel, int limit) {
     return Lists.reverse(
         buildLogsUnderItemsQuery(launchId, Collections.singletonList(itemId), false).and(
-                LOG.LOG_LEVEL.greaterOrEqual(
-                    logLevel)).orderBy(LOG.LOG_TIME.desc()).limit(limit).fetch()
+                logLevelInStandardRange(logLevel)).orderBy(LOG.LOG_TIME.desc()).limit(limit).fetch()
             .map(LOG_UNDER_RECORD_MAPPER));
   }
 
@@ -283,7 +289,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         .where(childItemTable.LAUNCH_ID.eq(launchId))
         .and(parentItemTable.LAUNCH_ID.eq(launchId))
         .and(parentItemTable.ITEM_ID.in(itemIds))
-        .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(logLevelInStandardRange(logLevel))
         .fetchInto(Long.class);
   }
 
@@ -296,7 +302,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         .join(LAUNCH)
         .on(TEST_ITEM.LAUNCH_ID.eq(LAUNCH.ID))
         .where(LAUNCH.ID.eq(launchId))
-        .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(logLevelInStandardRange(logLevel))
         .fetch(LOG.ID, Long.class);
   }
 
@@ -309,7 +315,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         .join(LAUNCH)
         .on(TEST_ITEM.LAUNCH_ID.eq(LAUNCH.ID))
         .where(LAUNCH.ID.in(launchIds))
-        .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(logLevelInStandardRange(logLevel))
         .fetch(LOG.ID, Long.class);
   }
 
@@ -318,7 +324,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
     return dsl.select(LOG.ID)
         .from(LOG)
         .where(LOG.ITEM_ID.in(itemIds))
-        .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
+        .and(logLevelInStandardRange(logLevel))
         .fetch(LOG.ID, Long.class);
   }
 
@@ -474,7 +480,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         .from(LOG)
         .join(TEST_ITEM)
         .on(LOG.ITEM_ID.eq(TEST_ITEM.ITEM_ID))
-        .where(LOG.LOG_LEVEL.ge(level)
+        .where(logLevelInStandardRange(level)
             .and(TEST_ITEM.LAUNCH_ID.eq(launchId))
             .and(TEST_ITEM.ITEM_ID.eq(itemId)
                 .or(TEST_ITEM.HAS_STATS.eq(false)
@@ -491,7 +497,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         .from(LOG)
         .join(TEST_ITEM)
         .on(LOG.ITEM_ID.eq(TEST_ITEM.ITEM_ID))
-        .where(LOG.LOG_LEVEL.ge(level)
+        .where(logLevelInStandardRange(level)
             .and(TEST_ITEM.LAUNCH_ID.eq(launchId))
             .and(TEST_ITEM.ITEM_ID.eq(itemId)
                 .or(TEST_ITEM.HAS_STATS.eq(false)

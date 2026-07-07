@@ -29,7 +29,7 @@ public enum LogLevel {
   TRACE(LogLevel.TRACE_INT),
   FATAL(LogLevel.FATAL_INT),
   UNKNOWN(LogLevel.UNKNOWN_INT),
-  MOBIRTU(LogLevel.MOBITRU_INT);
+  MOBITRU(LogLevel.MOBITRU_INT);
   //@formatter:on
 
   public static final int MOBITRU_INT = 90000;
@@ -83,6 +83,14 @@ public enum LogLevel {
 
   public int toInt() {
     return intLevel;
+  }
+
+  /**
+   * Checks whether the level belongs to the standard error range, excluding custom/system levels
+   * above UNKNOWN.
+   */
+  public static boolean isErrorLevel(int intLevel) {
+    return intLevel >= ERROR_INT && intLevel <= UNKNOWN_INT;
   }
 
   /**

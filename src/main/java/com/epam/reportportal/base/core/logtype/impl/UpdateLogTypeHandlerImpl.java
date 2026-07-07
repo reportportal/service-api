@@ -51,7 +51,7 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
 
   private static final Set<String> NON_FILTERABLE_SYSTEM_LOG_TYPES = Set.of(
       LogLevel.UNKNOWN.toString().toLowerCase(),
-      LogLevel.MOBIRTU.toString().toLowerCase()
+      LogLevel.MOBITRU.toString().toLowerCase()
   );
 
   private final ProjectRepository projectRepository;

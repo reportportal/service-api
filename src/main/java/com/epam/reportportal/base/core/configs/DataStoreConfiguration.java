@@ -45,6 +45,12 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 @Configuration
 public class DataStoreConfiguration {
 
+  private static final String ACCESS_KEY_ID = "access_key_id";
+  private static final String SECRET_ACCESS_KEY = "secret_access_key";
+  private static final String ENDPOINT = "endpoint";
+  private static final String REGION = "region";
+  private static final String ROOT = "root";
+
   /**
    * Creates OpenDAL Operator for the local filesystem.
    *
@@ -55,11 +61,7 @@ public class DataStoreConfiguration {
   @ConditionalOnProperty(name = "datastore.type", havingValue = "filesystem")
   @Primary
   public Operator filesystemOperator(@Value("${datastore.path:/data/store}") String baseDirectory) {
-
-    Map<String, String> config = new HashMap<>();
-    config.put("root", baseDirectory);
-
-    return Operator.of("fs", config);
+    return fsOperator(baseDirectory);
   }
 
   @Bean
@@ -90,10 +92,10 @@ public class DataStoreConfiguration {
       @Value("${datastore.region:us-east-1}") String region) {
 
     Map<String, String> config = new HashMap<>();
-    config.put("access_key_id", accessKey);
-    config.put("secret_access_key", secretKey);
-    config.put("endpoint", endpoint);
-    config.put("region", region);
+    config.put(ACCESS_KEY_ID, accessKey);
+    config.put(SECRET_ACCESS_KEY, secretKey);
+    config.put(ENDPOINT, endpoint);
+    config.put(REGION, region);
 
     return Operator.of("s3", config);
   }
@@ -135,17 +137,17 @@ public class DataStoreConfiguration {
       @Value("${datastore.region}") String region) {
 
     Map<String, String> config = new HashMap<>();
-    config.put("region", region);
+    config.put(REGION, region);
 
     if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
-      config.put("access_key_id", accessKey);
-      config.put("secret_access_key", secretKey);
+      config.put(ACCESS_KEY_ID, accessKey);
+      config.put(SECRET_ACCESS_KEY, secretKey);
     } else {
       // Use IAM credentials from DefaultCredentialsProvider
       DefaultCredentialsProvider credentialsProvider = DefaultCredentialsProvider.builder().build();
       AwsCredentials awsCredentials = credentialsProvider.resolveCredentials();
-      config.put("access_key_id", awsCredentials.accessKeyId());
-      config.put("secret_access_key", awsCredentials.secretAccessKey());
+      config.put(ACCESS_KEY_ID, awsCredentials.accessKeyId());
+      config.put(SECRET_ACCESS_KEY, awsCredentials.secretAccessKey());
     }
 
     return Operator.of("s3", config);
@@ -183,7 +185,7 @@ public class DataStoreConfiguration {
     config.put("account_name", accountName);
     config.put("account_key", accountKey);
     if (StringUtils.isNotEmpty(endpoint)) {
-      config.put("endpoint", endpoint);
+      config.put(ENDPOINT, endpoint);
     }
     if (StringUtils.isNotEmpty(container)) {
       config.put("container", container);
@@ -226,7 +228,7 @@ public class DataStoreConfiguration {
       config.put("credential_path", credentialsPath);
     }
     if (StringUtils.isNotEmpty(endpoint)) {
-      config.put("endpoint", endpoint);
+      config.put(ENDPOINT, endpoint);
     }
 
     return Operator.of("gcs", config);
@@ -252,11 +254,7 @@ public class DataStoreConfiguration {
   @Bean
   @ConditionalOnProperty(name = "rp.tms.datastore.type", havingValue = "filesystem")
   public Operator tmsFilesystemOperator(@Value("${rp.tms.datastore.path:/data/store}") String baseDirectory) {
-
-    Map<String, String> config = new HashMap<>();
-    config.put("root", baseDirectory);
-
-    return Operator.of("fs", config);
+    return fsOperator(baseDirectory);
   }
 
   @Bean
@@ -288,5 +286,12 @@ public class DataStoreConfiguration {
   @Bean
   public ContentTypeResolver contentTypeResolver() {
     return new TikaContentTypeResolver();
+  }
+
+  private Operator fsOperator(String baseDirectory) {
+    Map<String, String> config = new HashMap<>();
+    config.put(ROOT, baseDirectory);
+
+    return Operator.of("fs", config);
   }
 }

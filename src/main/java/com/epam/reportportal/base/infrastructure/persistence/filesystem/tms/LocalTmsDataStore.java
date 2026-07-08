@@ -16,167 +16,58 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.filesystem.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
-import com.epam.reportportal.base.infrastructure.persistence.filesystem.StoredFile;
+import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStore;
+import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStoreClient;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import org.apache.opendal.Operator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Local file-system implementation of the TMS data store, backed by Apache OpenDAL.
+ *
+ * <p>Delegates to {@link DataStoreClient}, since {@link TmsDataStore} and {@link DataStore}
+ * share the same contract.
  *
  * @author Dzianis_Shybeka
  */
 public class LocalTmsDataStore implements TmsDataStore {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LocalTmsDataStore.class);
-
-  private final Operator operator;
-  private final FeatureFlagHandler featureFlagHandler;
-  private final String bucketPrefix;
-  private final String bucketPostfix;
-  private final String defaultBucketName;
+  private final DataStore delegate;
 
   public LocalTmsDataStore(Operator operator, FeatureFlagHandler featureFlagHandler,
       String bucketPrefix, String bucketPostfix, String defaultBucketName) {
-    this.operator = operator;
-    this.featureFlagHandler = featureFlagHandler;
-    this.bucketPrefix = bucketPrefix;
-    this.bucketPostfix = Objects.requireNonNullElse(bucketPostfix, "");
-    this.defaultBucketName = defaultBucketName;
+    this.delegate =
+        new DataStoreClient(operator, bucketPrefix, bucketPostfix, defaultBucketName, featureFlagHandler);
   }
 
   @Override
   public String save(String filePath, InputStream inputStream) {
-    if (filePath == null) {
-      return "";
-    }
-    StoredFile storedFile = getStoredFile(filePath);
-    try {
-      byte[] data = inputStream.readAllBytes();
-      String fullPath = getFullPath(storedFile);
-      operator.write(fullPath, data);
-      return Paths.get(filePath).toString();
-    } catch (IOException e) {
-      LOGGER.error("Unable to save file '{}'", filePath, e);
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save file");
-    }
+    return delegate.save(filePath, inputStream);
   }
 
   @Override
   public InputStream load(String filePath) {
-    if (filePath == null) {
-      LOGGER.error("Unable to find file");
-      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
-    }
-    StoredFile storedFile = getStoredFile(filePath);
-    String fullPath = getFullPath(storedFile);
-    try {
-      byte[] data = operator.read(fullPath);
-      return new ByteArrayInputStream(data);
-    } catch (Exception e) {
-      LOGGER.error("Unable to find file '{}'", filePath, e);
-      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
-    }
+    return delegate.load(filePath);
   }
 
   @Override
   public boolean exists(String filePath) {
-    if (filePath == null) {
-      return false;
-    }
-    StoredFile storedFile = getStoredFile(filePath);
-    String fullPath = getFullPath(storedFile);
-    try {
-      operator.stat(fullPath);
-      return true;
-    } catch (Exception e) {
-      return false;
-    }
+    return delegate.exists(filePath);
   }
 
   @Override
   public void delete(String filePath) {
-    if (filePath == null) {
-      return;
-    }
-    StoredFile storedFile = getStoredFile(filePath);
-    String fullPath = getFullPath(storedFile);
-    try {
-      operator.delete(fullPath);
-    } catch (Exception e) {
-      LOGGER.error("Unable to delete file '{}'", filePath, e);
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete file");
-    }
+    delegate.delete(filePath);
   }
 
   @Override
   public void deleteAll(List<String> filePaths, String bucketName) {
-    String bucket = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-        ? bucketName
-        : bucketPrefix + bucketName + bucketPostfix;
-
-    for (String filePath : filePaths) {
-      try {
-        String fullPath = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-            ? filePath
-            : bucket + "/" + filePath;
-        operator.delete(fullPath);
-      } catch (Exception e) {
-        LOGGER.error("Unable to delete file '{}' from bucket '{}'", filePath, bucket, e);
-      }
-    }
+    delegate.deleteAll(filePaths, bucketName);
   }
 
   @Override
   public void deleteContainer(String bucketName) {
-    String bucket = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-        ? bucketName
-        : bucketPrefix + bucketName + bucketPostfix;
-
-    try {
-      String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET) ? "/" : bucket + "/";
-      operator.removeAll(path);
-    } catch (Exception e) {
-      LOGGER.error("Unable to delete container '{}'", bucket, e);
-      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete container");
-    }
-  }
-
-  private StoredFile getStoredFile(String filePath) {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      return new StoredFile(defaultBucketName, filePath);
-    }
-    Path targetPath = Paths.get(filePath);
-    int nameCount = targetPath.getNameCount();
-    String bucketName;
-    if (nameCount > 1) {
-      bucketName = bucketPrefix + retrievePath(targetPath, 0, 1) + bucketPostfix;
-      return new StoredFile(bucketName, retrievePath(targetPath, 1, nameCount));
-    } else {
-      bucketName = defaultBucketName;
-      return new StoredFile(bucketName, retrievePath(targetPath, 0, 1));
-    }
-  }
-
-  private String getFullPath(StoredFile storedFile) {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      return storedFile.filePath();
-    }
-    return storedFile.bucket() + "/" + storedFile.filePath();
-  }
-
-  private String retrievePath(Path path, int beginIndex, int endIndex) {
-    return String.valueOf(path.subpath(beginIndex, endIndex));
+    delegate.deleteContainer(bucketName);
   }
 }

@@ -38,6 +38,8 @@ import org.apache.opendal.Operator;
 @Slf4j
 public class DataStoreClient implements DataStore {
 
+  private static final String PATH_DELIMITER = "/";
+
   private final Operator operator;
   private final String bucketPrefix;
   private final String bucketPostfix;
@@ -107,7 +109,7 @@ public class DataStoreClient implements DataStore {
     try {
       operator.stat(fullPath);
       return true;
-    } catch (Exception e) {
+    } catch (Exception _) {
       return false;
     }
   }
@@ -137,7 +139,7 @@ public class DataStoreClient implements DataStore {
       try {
         String fullPath = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
             ? filePath
-            : bucket + "/" + filePath;
+            : bucket + PATH_DELIMITER + filePath;
         operator.delete(fullPath);
       } catch (Exception e) {
         log.error("Unable to delete file '{}' from bucket '{}'", filePath, bucket, e);
@@ -153,8 +155,8 @@ public class DataStoreClient implements DataStore {
 
     try {
       String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-          ? "/"
-          : bucket + "/";
+          ? PATH_DELIMITER
+          : bucket + PATH_DELIMITER;
       operator.removeAll(path);
     } catch (Exception e) {
       log.error("Unable to delete container '{}'", bucket, e);
@@ -182,7 +184,7 @@ public class DataStoreClient implements DataStore {
     if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       return storedFile.filePath();
     }
-    return storedFile.bucket() + "/" + storedFile.filePath();
+    return storedFile.bucket() + PATH_DELIMITER + storedFile.filePath();
   }
 
   private String retrievePath(Path path, int beginIndex, int endIndex) {

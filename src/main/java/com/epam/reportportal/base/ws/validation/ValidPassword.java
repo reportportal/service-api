@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
 public @interface ValidPassword {
 
   String DEFAULT_MESSAGE = "Password must meet server-defined minimum length, include a digit, "
-      + "special symbol, uppercase & lowercase letter, no whitespace, max 256 characters.";
+      + "special symbol, uppercase & lowercase letter, no whitespace, max 36 characters.";
 
   String message() default DEFAULT_MESSAGE;
 

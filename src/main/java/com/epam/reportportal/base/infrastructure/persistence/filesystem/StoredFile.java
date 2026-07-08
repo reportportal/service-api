@@ -14,28 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.persistence.filesystem.distributed.s3;
+package com.epam.reportportal.base.infrastructure.persistence.filesystem;
 
 /**
  * Immutable reference to a blob in S3 (bucket, id, name).
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class StoredFile {
+public record StoredFile(String bucket, String filePath) {
 
-  private final String bucket;
-  private final String filePath;
-
-  public StoredFile(String bucket, String filePath) {
-    this.bucket = bucket;
-    this.filePath = filePath;
-  }
-
-  public String getBucket() {
-    return bucket;
-  }
-
-  public String getFilePath() {
-    return filePath;
-  }
 }

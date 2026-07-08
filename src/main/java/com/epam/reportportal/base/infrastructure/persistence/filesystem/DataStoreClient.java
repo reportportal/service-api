@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.persistence.filesystem.tms;
+package com.epam.reportportal.base.infrastructure.persistence.filesystem;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
-import com.epam.reportportal.base.infrastructure.persistence.filesystem.StoredFile;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -28,32 +27,40 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.opendal.Operator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Local file-system implementation of the TMS data store, backed by Apache OpenDAL.
+ * Implementation of basic operations with blob storages using Apache OpenDAL.
  *
- * @author Dzianis_Shybeka
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class LocalTmsDataStore implements TmsDataStore {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(LocalTmsDataStore.class);
+@Slf4j
+public class DataStoreClient implements DataStore {
 
   private final Operator operator;
-  private final FeatureFlagHandler featureFlagHandler;
   private final String bucketPrefix;
   private final String bucketPostfix;
   private final String defaultBucketName;
 
-  public LocalTmsDataStore(Operator operator, FeatureFlagHandler featureFlagHandler,
-      String bucketPrefix, String bucketPostfix, String defaultBucketName) {
+  private final FeatureFlagHandler featureFlagHandler;
+
+  /**
+   * Initialises {@link DataStoreClient}.
+   *
+   * @param operator           {@link Operator} OpenDAL operator instance
+   * @param bucketPrefix       Prefix for bucket name
+   * @param bucketPostfix      Postfix for bucket name
+   * @param defaultBucketName  Name of default bucket to use
+   * @param featureFlagHandler {@link FeatureFlagHandler}
+   */
+  public DataStoreClient(Operator operator, String bucketPrefix, String bucketPostfix,
+      String defaultBucketName, FeatureFlagHandler featureFlagHandler) {
     this.operator = operator;
-    this.featureFlagHandler = featureFlagHandler;
     this.bucketPrefix = bucketPrefix;
     this.bucketPostfix = Objects.requireNonNullElse(bucketPostfix, "");
     this.defaultBucketName = defaultBucketName;
+    this.featureFlagHandler = featureFlagHandler;
   }
 
   @Override
@@ -68,7 +75,7 @@ public class LocalTmsDataStore implements TmsDataStore {
       operator.write(fullPath, data);
       return Paths.get(filePath).toString();
     } catch (IOException e) {
-      LOGGER.error("Unable to save file '{}'", filePath, e);
+      log.error("Unable to save file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to save file");
     }
   }
@@ -76,7 +83,7 @@ public class LocalTmsDataStore implements TmsDataStore {
   @Override
   public InputStream load(String filePath) {
     if (filePath == null) {
-      LOGGER.error("Unable to find file");
+      log.error("Unable to find file");
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
     }
     StoredFile storedFile = getStoredFile(filePath);
@@ -85,7 +92,7 @@ public class LocalTmsDataStore implements TmsDataStore {
       byte[] data = operator.read(fullPath);
       return new ByteArrayInputStream(data);
     } catch (Exception e) {
-      LOGGER.error("Unable to find file '{}'", filePath, e);
+      log.error("Unable to find file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
     }
   }
@@ -115,7 +122,7 @@ public class LocalTmsDataStore implements TmsDataStore {
     try {
       operator.delete(fullPath);
     } catch (Exception e) {
-      LOGGER.error("Unable to delete file '{}'", filePath, e);
+      log.error("Unable to delete file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete file");
     }
   }
@@ -133,7 +140,7 @@ public class LocalTmsDataStore implements TmsDataStore {
             : bucket + "/" + filePath;
         operator.delete(fullPath);
       } catch (Exception e) {
-        LOGGER.error("Unable to delete file '{}' from bucket '{}'", filePath, bucket, e);
+        log.error("Unable to delete file '{}' from bucket '{}'", filePath, bucket, e);
       }
     }
   }
@@ -145,10 +152,12 @@ public class LocalTmsDataStore implements TmsDataStore {
         : bucketPrefix + bucketName + bucketPostfix;
 
     try {
-      String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET) ? "/" : bucket + "/";
+      String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
+          ? "/"
+          : bucket + "/";
       operator.removeAll(path);
     } catch (Exception e) {
-      LOGGER.error("Unable to delete container '{}'", bucket, e);
+      log.error("Unable to delete container '{}'", bucket, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete container");
     }
   }

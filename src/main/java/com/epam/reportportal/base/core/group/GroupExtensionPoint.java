@@ -29,7 +29,6 @@ import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import java.util.Optional;
-import org.jclouds.rest.ResourceNotFoundException;
 
 /**
  * Extension point for group-related operations.
@@ -79,9 +78,8 @@ public interface GroupExtensionPoint extends ReportPortalExtensionPoint {
    * Deletes a group.
    *
    * @param groupId The ID of the group.
-   * @throws ResourceNotFoundException if the group is not found.
    */
-  void deleteGroup(Long groupId) throws ResourceNotFoundException;
+  void deleteGroup(Long groupId);
 
   /**
    * Returns a page of group users.

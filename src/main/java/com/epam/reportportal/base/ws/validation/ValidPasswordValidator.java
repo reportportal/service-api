@@ -37,7 +37,7 @@ public class ValidPasswordValidator implements ConstraintValidator<ValidPassword
   private static final String MIN_LENGTH_KEY = "server.password.min.length";
   private static final Pattern COMPLEXITY = Pattern.compile(USER_PASSWORD_REGEXP);
   private static final int DEFAULT_MIN = 8;
-  private static final int MAX = 256;
+  private static final int MAX = 36;
 
   private final ServerSettingsRepository serverSettingsRepository;
   private boolean allowNull;

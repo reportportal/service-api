@@ -31,22 +31,23 @@ import org.springframework.util.StringUtils;
 
 /**
  * Shared logic for the Mobitru attribute handlers (launch and test item). Encapsulates the
- * recording key recognition ({@code MBID}/{@code BBID}, case-sensitive), the plugin availability
- * check, and the creation of a {@code mobitru} system log together with the external attachment
- * load event for a single recording attribute.
+ * recording key recognition, the plugin availability check, and the creation of a {@code mobitru}
+ * system log together with the external attachment load event for a single recording attribute.
  */
 @Service
 @RequiredArgsConstructor
 public class MobitruAttachmentService {
 
-  public static final String MBID_KEY = "MBID";
-  public static final String BBID_KEY = "BBID";
+  public static final String MOBILE_RECORDING_ID_KEY = "mobitru_mobile_recording_id";
+  public static final String PLAYWRIGHT_RECORDING_ID_KEY = "mobitru_playwright_recording_id";
+  public static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
   public static final String PLUGIN_ID = "mobitru";
 
   private static final String LOAD_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
   private static final String LOG_MESSAGE = "Mobitru video. RecordId: %s";
-  private static final Set<String> RECORDING_KEYS = Set.of(MBID_KEY, BBID_KEY);
+  private static final Set<String> RECORDING_KEYS = Set.of(MOBILE_RECORDING_ID_KEY,
+      PLAYWRIGHT_RECORDING_ID_KEY, SELENIUM_RECORDING_ID_KEY);
 
   private final PluginAvailabilityChecker pluginAvailabilityChecker;
   private final SystemLogService systemLogService;
@@ -60,8 +61,8 @@ public class MobitruAttachmentService {
   }
 
   /**
-   * Extracts the non-empty Mobitru recording attributes ({@code MBID}/{@code BBID}) from the given
-   * attribute set, preserving the original key so it can be forwarded to the plugin.
+   * Extracts the non-empty Mobitru recording attributes from the given attribute set, preserving
+   * the original key so it can be forwarded to the plugin.
    *
    * @param attributes Merged attributes of a launch or test item (may be {@code null}/empty)
    * @return Recording attributes to process, never {@code null}
@@ -102,8 +103,8 @@ public class MobitruAttachmentService {
   }
 
   /**
-   * A recognized Mobitru recording attribute: its key ({@code MBID}/{@code BBID}) and non-empty
-   * value (the external record id).
+   * A recognized Mobitru recording attribute: its key and non-empty value (the external record
+   * id).
    */
   public record RecordingAttribute(String key, String value) {
 

@@ -47,6 +47,9 @@ class MobitruLaunchAttributeHandlerTest {
   private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
   private static final String LOG_MESSAGE = "Mobitru video. RecordId: %s";
+  private static final String MOBILE_RECORDING_ID_KEY = "mobitru_mobile_recording_id";
+  private static final String PLAYWRIGHT_RECORDING_ID_KEY = "mobitru_playwright_recording_id";
+  private static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
 
   @Mock
   private PluginAvailabilityChecker pluginAvailabilityChecker;
@@ -71,18 +74,18 @@ class MobitruLaunchAttributeHandlerTest {
   void doesNothingWhenPluginNotAvailable() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(false);
 
-    handler.handleLaunchFinish(launchWithAttribute("MBID", "device-1"));
+    handler.handleLaunchFinish(launchWithAttribute(MOBILE_RECORDING_ID_KEY, "device-1"));
 
     verifyNoInteractions(systemLogService);
     verifyNoInteractions(externalAttachmentLoadProducer);
   }
 
   @Test
-  void writesOneLogPerMbidAttribute() {
+  void writesOneLogPerMobileRecordingAttribute() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttributes(
-        attr("MBID", "device-1"),
-        attr("MBID", "device-2"),
+        attr(MOBILE_RECORDING_ID_KEY, "device-1"),
+        attr(MOBILE_RECORDING_ID_KEY, "device-2"),
         attr("otherKey", "x")
     );
     when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-1"))))
@@ -100,18 +103,18 @@ class MobitruLaunchAttributeHandlerTest {
         .writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), anyString());
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(2L), eq(1L), isNull(),
-        eq("device-1"), eq("MBID"));
+        eq("device-1"), eq(MOBILE_RECORDING_ID_KEY));
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(2L), eq(1L), isNull(),
-        eq("device-2"), eq("MBID"));
+        eq("device-2"), eq(MOBILE_RECORDING_ID_KEY));
   }
 
   @Test
-  void writesOneLogPerBbidAttribute() {
+  void writesOneLogPerPlaywrightRecordingAttribute() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttributes(
-        attr("BBID", "device-1"),
-        attr("BBID", "device-2"),
+        attr(PLAYWRIGHT_RECORDING_ID_KEY, "device-1"),
+        attr(PLAYWRIGHT_RECORDING_ID_KEY, "device-2"),
         attr("otherKey", "x")
     );
     when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-1"))))
@@ -129,34 +132,58 @@ class MobitruLaunchAttributeHandlerTest {
         .writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), anyString());
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(2L), eq(1L), isNull(),
-        eq("device-1"), eq("BBID"));
+        eq("device-1"), eq(PLAYWRIGHT_RECORDING_ID_KEY));
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(2L), eq(1L), isNull(),
-        eq("device-2"), eq("BBID"));
+        eq("device-2"), eq(PLAYWRIGHT_RECORDING_ID_KEY));
   }
 
   @Test
-  void writesLogsForMixedMbidAndBbidAttributes() {
+  void writesLogForSeleniumRecordingAttribute() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
-    Launch launch = launchWithAttributes(
-        attr("MBID", "device-mb"),
-        attr("BBID", "device-bb")
-    );
-    when(
-        systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-mb"))))
+    Launch launch = launchWithAttribute(SELENIUM_RECORDING_ID_KEY, "device-1");
+    when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-1"))))
         .thenReturn(11L);
-    when(
-        systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-bb"))))
-        .thenReturn(22L);
 
     handler.handleLaunchFinish(launch);
 
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(2L), eq(1L), isNull(),
-        eq("device-mb"), eq("MBID"));
+        eq("device-1"), eq(SELENIUM_RECORDING_ID_KEY));
+  }
+
+  @Test
+  void writesLogsForMixedMobitruRecordingAttributes() {
+    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
+    Launch launch = launchWithAttributes(
+        attr(MOBILE_RECORDING_ID_KEY, "device-mobile"),
+        attr(PLAYWRIGHT_RECORDING_ID_KEY, "device-playwright"),
+        attr(SELENIUM_RECORDING_ID_KEY, "device-selenium")
+    );
+    when(
+        systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+            eq(logMessage("device-mobile"))))
+        .thenReturn(11L);
+    when(
+        systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+            eq(logMessage("device-playwright"))))
+        .thenReturn(22L);
+    when(
+        systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME),
+            eq(logMessage("device-selenium"))))
+        .thenReturn(33L);
+
+    handler.handleLaunchFinish(launch);
+
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(2L), eq(1L), isNull(),
+        eq("device-mobile"), eq(MOBILE_RECORDING_ID_KEY));
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(2L), eq(1L), isNull(),
-        eq("device-bb"), eq("BBID"));
+        eq("device-playwright"), eq(PLAYWRIGHT_RECORDING_ID_KEY));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(33L), eq(2L), eq(1L), isNull(),
+        eq("device-selenium"), eq(SELENIUM_RECORDING_ID_KEY));
   }
 
   @Test
@@ -173,9 +200,9 @@ class MobitruLaunchAttributeHandlerTest {
   void skipsEmptyAndNullValues() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttributes(
-        attr("MBID", ""),
-        attr("MBID", null),
-        attr("MBID", "device-x")
+        attr(MOBILE_RECORDING_ID_KEY, ""),
+        attr(MOBILE_RECORDING_ID_KEY, null),
+        attr(MOBILE_RECORDING_ID_KEY, "device-x")
     );
     when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-x"))))
         .thenReturn(99L);
@@ -187,7 +214,7 @@ class MobitruLaunchAttributeHandlerTest {
     verify(systemLogService, times(1)).writeLaunchLog(any(), anyString(), anyString());
     verify(externalAttachmentLoadProducer, times(1)).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(99L), eq(2L), eq(1L), isNull(),
-        eq("device-x"), eq("MBID"));
+        eq("device-x"), eq(MOBILE_RECORDING_ID_KEY));
   }
 
   @Test

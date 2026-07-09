@@ -21,6 +21,7 @@ plugins {
     alias(libs.plugins.openapi.generator)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.jooq.codegen)
+    alias(libs.plugins.osdetector)
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -60,9 +61,6 @@ dependencies {
     testImplementation(libs.spring.modulith.starter.test)
     testImplementation(libs.spring.modulith.junit)
 
-    api(libs.jclouds.s3)
-    api(libs.jclouds.aw.s3)
-    api(libs.jclouds.filesystem)
     api(libs.guava)
     api(libs.jasypt)
     api(libs.pf4j)
@@ -110,6 +108,9 @@ dependencies {
     implementation(libs.json) // TODO get rid of
     implementation(libs.flyway.core) // TODO get rid of
     implementation(libs.flyway.database.postgresql) // TODO get rid of
+
+    implementation "org.apache.opendal:opendal:0.49.0"
+    implementation "org.apache.opendal:opendal:0.49.0:$osdetector.classifier"
 
     // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)

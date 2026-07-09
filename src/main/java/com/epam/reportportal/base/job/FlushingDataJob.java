@@ -32,13 +32,13 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStore;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.persistence.util.PersonalProjectService;
 import com.epam.reportportal.base.model.user.CreateUserRQFull;
 import com.epam.reportportal.base.ws.converter.builders.UserBuilder;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jclouds.blobstore.BlobStore;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -88,7 +88,7 @@ public class FlushingDataJob implements Job {
   private UserBinaryDataService dataStore;
 
   @Autowired
-  private BlobStore blobStore;
+  private DataStore fileDataStore;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -108,9 +108,6 @@ public class FlushingDataJob implements Job {
   @Value("${datastore.bucketPrefix}")
   private String bucketPrefix;
 
-  @Value("${datastore.bucketPostfix}")
-  private String bucketPostfix;
-
   @Value("${datastore.defaultBucketName}")
   private String defaultBucketName;
 
@@ -124,7 +121,7 @@ public class FlushingDataJob implements Job {
         .forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
     if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       try {
-        blobStore.deleteContainer(defaultBucketName);
+        fileDataStore.deleteContainer(defaultBucketName);
       } catch (Exception e) {
         LOGGER.warn("Cannot delete bucket {}", defaultBucketName);
       }
@@ -195,7 +192,7 @@ public class FlushingDataJob implements Job {
     issueTypeRepository.deleteAll(issueTypesToRemove);
     if (!featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       try {
-        blobStore.deleteContainer(bucketPrefix + project.getId() + bucketPostfix);
+        fileDataStore.deleteContainer(String.valueOf(project.getId()));
       } catch (Exception e) {
         LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
       }

@@ -26,6 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.api.model.PluginCommandContext;
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.activation.MimetypesFileTypeMap;
@@ -41,6 +43,9 @@ import org.springframework.http.MediaType;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class PluginPublicControllerTest extends BaseMvcTest {
+
+  private final static PluginCommandRQ EMPTY_RQ = new PluginCommandRQ()
+      .context(new PluginCommandContext());
 
   @Test
   void shouldGetFileWhenAuthenticated() throws Exception {
@@ -83,7 +88,7 @@ class PluginPublicControllerTest extends BaseMvcTest {
     final String command = "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
     final String ok = "{'result': 'ok'}";
-    when(executeIntegrationHandler.executePublicCommand(plugin, command, params)).thenReturn(ok);
+    when(executeIntegrationHandler.executeExtensionCommand(plugin, command, EMPTY_RQ)).thenReturn(ok);
 
     mockMvc.perform(put("/v1/plugin/public/{plugin}/{command}", plugin, command)
             .with(token(oAuthHelper.getSuperadminToken()))
@@ -92,7 +97,7 @@ class PluginPublicControllerTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(content().string(Matchers.containsString(ok)));
 
-    verify(executeIntegrationHandler).executePublicCommand(eq(plugin), eq(command), eq(params));
+    verify(executeIntegrationHandler).executeExtensionCommand(eq(plugin), eq(command), eq(EMPTY_RQ));
   }
 
   @Test
@@ -101,7 +106,8 @@ class PluginPublicControllerTest extends BaseMvcTest {
     final String command = "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
     final String ok = "{'result': 'ok'}";
-    when(executeIntegrationHandler.executePublicCommand(plugin, command, params)).thenReturn(ok);
+    when(executeIntegrationHandler.executeExtensionCommand(plugin, command, EMPTY_RQ))
+        .thenReturn(ok);
 
     mockMvc.perform(put("/v1/plugin/public/{plugin}/{command}", plugin, command)
             .contentType(MediaType.APPLICATION_JSON)
@@ -109,7 +115,7 @@ class PluginPublicControllerTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(content().string(Matchers.containsString(ok)));
 
-    verify(executeIntegrationHandler).executePublicCommand(eq(plugin), eq(command), eq(params));
+    verify(executeIntegrationHandler).executeExtensionCommand(eq(plugin), eq(command), eq(EMPTY_RQ));
   }
 
 }

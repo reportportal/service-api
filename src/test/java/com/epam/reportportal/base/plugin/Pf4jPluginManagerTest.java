@@ -28,7 +28,6 @@ import com.epam.reportportal.base.core.integration.impl.util.IntegrationTestUtil
 import com.epam.reportportal.base.core.integration.plugin.PluginLoader;
 import com.epam.reportportal.base.core.plugin.Plugin;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
@@ -241,8 +240,8 @@ class Pf4jPluginManagerTest {
   void getPlugins() {
     when(pluginManager.getPlugins()).thenReturn(Lists.newArrayList(newPlugin));
     when(newPlugin.getPluginId()).thenReturn(NEW_JIRA_PLUGIN_ID);
-    when(pluginManager.getExtensionClasses(NEW_JIRA_PLUGIN_ID)).thenReturn(
-        Lists.newArrayList(BtsExtension.class));
+    when(pluginManager.getExtensionClasses(NEW_JIRA_PLUGIN_ID))
+        .thenReturn(Lists.newArrayList(ReportPortalException.class));
     List<Plugin> plugins = pluginBox.getPlugins();
     assertNotNull(plugins);
     assertEquals(1L, plugins.size());

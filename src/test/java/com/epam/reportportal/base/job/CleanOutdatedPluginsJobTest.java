@@ -153,8 +153,8 @@ class CleanOutdatedPluginsJobTest {
   }
 
   private List<Plugin> getPlugins() {
-    return Lists.newArrayList(new Plugin("jira", ExtensionPoint.BTS),
-        new Plugin("rally", ExtensionPoint.BTS));
+    return Lists.newArrayList(new Plugin("jira", ExtensionPoint.REPORT_PORTAL),
+        new Plugin("rally", ExtensionPoint.REPORT_PORTAL));
   }
 
 }

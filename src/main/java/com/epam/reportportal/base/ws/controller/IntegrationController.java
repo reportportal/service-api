@@ -20,23 +20,19 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils.normalizeId;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.epam.reportportal.base.core.integration.CreateIntegrationHandler;
 import com.epam.reportportal.base.core.integration.DeleteIntegrationHandler;
-import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.model.integration.IntegrationResource;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
-import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,23 +58,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Integration", description = "Integrations API collection")
 public class IntegrationController {
 
-  private final ProjectExtractor projectExtractor;
   private final DeleteIntegrationHandler deleteIntegrationHandler;
   private final GetIntegrationHandler getIntegrationHandler;
   private final CreateIntegrationHandler createIntegrationHandler;
-  private final ExecuteIntegrationHandler executeIntegrationHandler;
 
   @Autowired
-  public IntegrationController(ProjectExtractor projectExtractor,
-      DeleteIntegrationHandler deleteIntegrationHandler,
+  public IntegrationController(DeleteIntegrationHandler deleteIntegrationHandler,
       GetIntegrationHandler getIntegrationHandler,
-      CreateIntegrationHandler createIntegrationHandler,
-      ExecuteIntegrationHandler executeIntegrationHandler) {
-    this.projectExtractor = projectExtractor;
+      CreateIntegrationHandler createIntegrationHandler) {
     this.deleteIntegrationHandler = deleteIntegrationHandler;
     this.getIntegrationHandler = getIntegrationHandler;
     this.createIntegrationHandler = createIntegrationHandler;
-    this.executeIntegrationHandler = executeIntegrationHandler;
   }
 
   @Transactional(readOnly = true)
@@ -248,25 +238,7 @@ public class IntegrationController {
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type,
       @PathVariable String projectKey, @AuthenticationPrincipal ReportPortalUser user) {
-    return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectKey),
-        user
-    );
-  }
-
-  @Transactional
-  @PutMapping(value = "{projectKey}/{integrationId}/{command}", consumes = {
-      APPLICATION_JSON_VALUE})
-  @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-  @Operation(summary = "Execute command to the integration instance")
-  public Object executeIntegrationCommand(@PathVariable String projectKey,
-      @PathVariable("integrationId") Long integrationId, @PathVariable("command") String command,
-      @RequestBody Map<String, Object> executionParams,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return executeIntegrationHandler.executeCommand(
-        projectExtractor.extractMembershipDetails(user, projectKey), integrationId, command,
-        executionParams
-    );
+    return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectKey), user);
   }
 
 }

@@ -18,6 +18,8 @@ package com.epam.reportportal.base.ws.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.epam.reportportal.api.model.PluginCommandContext;
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.plugin.GetPluginHandler;
 import com.epam.reportportal.base.core.integration.plugin.binary.PluginFilesProvider;
@@ -76,7 +78,10 @@ public class PluginPublicController {
   @Operation(summary = "Execute public command without authentication")
   public Object executePublicPluginCommand(@PathVariable("pluginName") String pluginName,
       @PathVariable("command") String command, @RequestBody Map<String, Object> executionParams) {
-    return executeIntegrationHandler.executePublicCommand(pluginName, command, executionParams);
+    PluginCommandRQ pluginCommandRQ = new PluginCommandRQ()
+        .context(new PluginCommandContext())
+        .arguments(executionParams);
+    return executeIntegrationHandler.executeExtensionCommand(pluginName, command, pluginCommandRQ);
   }
 
   @GetMapping

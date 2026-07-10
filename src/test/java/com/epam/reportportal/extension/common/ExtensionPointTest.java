@@ -24,9 +24,8 @@ public class ExtensionPointTest {
 
   @Test
   public void findByExtensionPositive() {
-    Assertions.assertTrue(
-        ExtensionPoint.findByExtension(ExtensionPoint.BTS.getExtensionClass()).isPresent(),
-        "Incorrect find by extension");
+    Assertions.assertTrue(ExtensionPoint.findByExtension(ExtensionPoint.REPORT_PORTAL.getExtensionClass())
+        .isPresent(), "Incorrect find by extension");
   }
 
   @Test

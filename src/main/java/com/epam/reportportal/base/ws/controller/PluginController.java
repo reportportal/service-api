@@ -140,6 +140,7 @@ public class PluginController {
             () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
         );
     var membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
+    executionParams.put("projectName", membershipDetails.getProjectKey());
     PluginCommandRQ pluginCommandRQ = new PluginCommandRQ()
         .context(new PluginCommandContext(membershipDetails.getOrgId(), membershipDetails.getProjectId(), null))
         .arguments(executionParams);

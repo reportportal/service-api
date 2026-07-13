@@ -66,6 +66,7 @@ dependencies {
     api(libs.pf4j)
     api(libs.jackson.databind)
     api(libs.jackson.jsr310)
+    api(libs.jackson.blackbird)
     api(libs.jooq)
     api(libs.apache.commons.collections4)
     api(libs.tika)

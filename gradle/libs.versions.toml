@@ -125,6 +125,7 @@ pf4j = { group = "org.pf4j", name = "pf4j", version.ref = "pf4j" }
 embedded-postgres = { group = "io.zonky.test", name = "embedded-postgres", version.ref = "embedded-postgres" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
 jackson-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
+jackson-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird" }
 spring-context = { group = "org.springframework", name = "spring-context" }
 spring-jdbc = { group = "org.springframework", name = "spring-jdbc" }
 spring-web = { group = "org.springframework", name = "spring-web" }

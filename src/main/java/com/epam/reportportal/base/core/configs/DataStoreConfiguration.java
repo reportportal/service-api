@@ -47,6 +47,7 @@ public class DataStoreConfiguration {
 
   private static final String ACCESS_KEY_ID = "access_key_id";
   private static final String SECRET_ACCESS_KEY = "secret_access_key";
+  private static final String BUCKET = "bucket";
   private static final String ENDPOINT = "endpoint";
   private static final String REGION = "region";
   private static final String ROOT = "root";
@@ -89,13 +90,15 @@ public class DataStoreConfiguration {
   public Operator s3CompatibleOperator(@Value("${datastore.accessKey}") String accessKey,
       @Value("${datastore.secretKey}") String secretKey,
       @Value("${datastore.endpoint}") String endpoint,
-      @Value("${datastore.region:us-east-1}") String region) {
+      @Value("${datastore.region:us-east-1}") String region,
+      @Value("${datastore.defaultBucketName}") String defaultBucketName) {
 
     Map<String, String> config = new HashMap<>();
     config.put(ACCESS_KEY_ID, accessKey);
     config.put(SECRET_ACCESS_KEY, secretKey);
     config.put(ENDPOINT, endpoint);
     config.put(REGION, region);
+    config.put(BUCKET, defaultBucketName);
 
     return Operator.of("s3", config);
   }
@@ -134,10 +137,12 @@ public class DataStoreConfiguration {
   public Operator awsS3Operator(
       @Value("${datastore.accessKey:}") String accessKey,
       @Value("${datastore.secretKey:}") String secretKey,
-      @Value("${datastore.region}") String region) {
+      @Value("${datastore.region}") String region,
+      @Value("${datastore.defaultBucketName}") String defaultBucketName) {
 
     Map<String, String> config = new HashMap<>();
     config.put(REGION, region);
+    config.put(BUCKET, defaultBucketName);
 
     if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
       config.put(ACCESS_KEY_ID, accessKey);
@@ -223,7 +228,7 @@ public class DataStoreConfiguration {
       @Value("${datastore.gcs.endpoint:}") String endpoint) {
 
     Map<String, String> config = new HashMap<>();
-    config.put("bucket", bucket);
+    config.put(BUCKET, bucket);
     if (StringUtils.isNotEmpty(credentialsPath)) {
       config.put("credential_path", credentialsPath);
     }

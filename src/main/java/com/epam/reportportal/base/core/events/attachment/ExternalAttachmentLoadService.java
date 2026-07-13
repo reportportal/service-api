@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.base.core.events.attachment;
 
+import com.epam.reportportal.api.model.PluginCommandContext;
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.plugin.PluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -23,8 +25,8 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
-import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.command.ExtensionCommand;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -34,8 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
- * Resolves the target integration and delegates the attachment download/save flow to the plugin
- * command requested in the event.
+ * Resolves the target integration and delegates the attachment download/save flow to the plugin command requested in
+ * the event.
  */
 @Slf4j
 @Service
@@ -67,27 +69,26 @@ public class ExternalAttachmentLoadService {
 
     Long projectId = resolveProjectId(event);
     if (projectId == null) {
-      log.warn("Skipping external attachment load for log {}: projectId could not be resolved",
-          event.getLogId());
+      log.warn("Skipping external attachment load for log {}: projectId could not be resolved", event.getLogId());
       return;
     }
 
     Integration integration = resolveIntegration(projectId, event.getPluginId()).orElse(null);
     if (integration == null) {
-      log.warn(
-          "Skipping external attachment load for log {}: integration for plugin '{}' not found",
+      log.warn("Skipping external attachment load for log {}: integration for plugin '{}' not found",
           event.getLogId(), event.getPluginId());
       return;
     }
 
     ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(event.getPluginId(),
-        ReportPortalExtensionPoint.class).orElse(null);
+            ReportPortalExtensionPoint.class)
+        .orElse(null);
     if (pluginInstance == null) {
       log.warn("Skipping external attachment load for log {}: plugin '{}' is unavailable",
           event.getLogId(), event.getPluginId());
       return;
     }
-    PluginCommand<?> command = pluginInstance.getIntegrationCommand(event.getPluginCommandName());
+    ExtensionCommand<?> command = pluginInstance.getIntegrationExtensionCommand(event.getPluginCommandName());
     if (command == null) {
       log.warn(
           "Skipping external attachment load for log {}: command '{}' is unavailable for plugin '{}'",
@@ -122,8 +123,7 @@ public class ExternalAttachmentLoadService {
     return integrationRepository.findAllGlobalByType(integrationType).stream().findFirst();
   }
 
-  private HashMap<String, Object> buildCommandParams(ExternalAttachmentLoadEvent event,
-      Long projectId) {
+  private PluginCommandRQ buildCommandParams(ExternalAttachmentLoadEvent event, Long projectId) {
     HashMap<String, Object> params = new HashMap<>();
     params.put("logId", event.getLogId());
     params.put("projectId", projectId);
@@ -133,6 +133,8 @@ public class ExternalAttachmentLoadService {
     if (StringUtils.hasText(event.getAttachmentAttributeKey())) {
       params.put("attachmentAttributeKey", event.getAttachmentAttributeKey());
     }
-    return params;
+    return new PluginCommandRQ()
+        .context(new PluginCommandContext(null, projectId, null))
+        .arguments(params);
   }
 }

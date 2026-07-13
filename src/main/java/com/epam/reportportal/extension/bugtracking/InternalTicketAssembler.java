@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +79,7 @@ public class InternalTicketAssembler implements Function<PostTicketRQ, InternalT
 
     }
 
-    if (!CommonPredicates.IS_MAP_EMPTY.test(input.getBackLinks())) {
+    if (MapUtils.isNotEmpty(input.getBackLinks())) {
       ticket.setBackLinks(ImmutableMap.copyOf(input.getBackLinks()));
     }
     return ticket;

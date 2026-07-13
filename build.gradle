@@ -248,14 +248,19 @@ checkCommitNeeded.dependsOn removeScripts
 drill {
     groupId = "report-portal"
     appId = "service-api"
-    packagePrefixes = ["com/epam/reportportal"]
-    enableTestAgent {
-        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.23.5"
+    packagePrefixes = ["com/epam/ta/reportportal"]
+    agent {
+        version = "0.10.2"
     }
-    enableAppAgent {
-        enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
-        version = "0.9.7"
+    if (System.getenv("DRILL_AGENT_ENABLED") == "true") {
+        coverage()
+        testTracing {
+            perTestSession = true
+            perTestLaunch = false
+        }
+        classScanning {
+            beforeRun = true
+        }
     }
 }
 

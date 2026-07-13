@@ -102,8 +102,6 @@ dependencies {
     implementation(libs.postgresql)
     jooqCodegen(libs.postgresql)
     implementation(libs.thumbnailator)
-    implementation(libs.aws.core)
-    implementation(libs.aws.sts)
     implementation(libs.jakarta.xml.bind.api)
     implementation(libs.jaxb.api)
     implementation(libs.json) // TODO get rid of

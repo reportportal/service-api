@@ -36,8 +36,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
  * @author Dzianis_Shybeka
@@ -126,8 +124,9 @@ public class DataStoreConfiguration {
   /**
    * Creates OpenDAL Operator for AWS S3.
    *
-   * @param accessKey accessKey to use (optional, if not provided uses IAM credentials)
-   * @param secretKey secretKey to use (optional, if not provided uses IAM credentials)
+   * @param accessKey accessKey to use (optional, if not provided falls back to OpenDAL's built-in AWS default
+   *                  credential chain, which also handles IAM session-token credentials and their refresh)
+   * @param secretKey secretKey to use (optional, see {@code accessKey})
    * @param region    AWS S3 region to use.
    * @return {@link Operator}
    */
@@ -147,12 +146,6 @@ public class DataStoreConfiguration {
     if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
       config.put(ACCESS_KEY_ID, accessKey);
       config.put(SECRET_ACCESS_KEY, secretKey);
-    } else {
-      // Use IAM credentials from DefaultCredentialsProvider
-      DefaultCredentialsProvider credentialsProvider = DefaultCredentialsProvider.builder().build();
-      AwsCredentials awsCredentials = credentialsProvider.resolveCredentials();
-      config.put(ACCESS_KEY_ID, awsCredentials.accessKeyId());
-      config.put(SECRET_ACCESS_KEY, awsCredentials.secretAccessKey());
     }
 
     return Operator.of("s3", config);

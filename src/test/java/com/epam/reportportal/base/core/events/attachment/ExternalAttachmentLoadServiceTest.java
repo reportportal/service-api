@@ -18,13 +18,16 @@ package com.epam.reportportal.base.core.events.attachment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.plugin.PluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -32,10 +35,9 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
-import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.command.ExtensionCommand;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,13 +68,12 @@ class ExternalAttachmentLoadServiceTest {
   private ReportPortalExtensionPoint pluginInstance;
 
   @Mock
-  private PluginCommand<Object> pluginCommand;
+  private ExtensionCommand<Object> pluginCommand;
 
   @InjectMocks
   private ExternalAttachmentLoadService service;
 
   @Test
-  @SuppressWarnings("unchecked")
   void prefersProjectIntegrationWhenAvailable() {
     IntegrationType type = integrationType();
     Integration projectIntegration = new Integration();
@@ -81,18 +82,19 @@ class ExternalAttachmentLoadServiceTest {
         .thenReturn(List.of(projectIntegration));
     when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
+    doReturn(pluginCommand).when(pluginInstance).getIntegrationExtensionCommand(COMMAND_NAME);
 
     service.loadAttachment(event(11L, 7L, 3L, 5L, "rec-1", "BBID"));
 
-    ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+    ArgumentCaptor<PluginCommandRQ> paramsCaptor = ArgumentCaptor.forClass(PluginCommandRQ.class);
     verify(pluginCommand).executeCommand(eq(projectIntegration), paramsCaptor.capture());
-    assertThat(paramsCaptor.getValue()).containsEntry("logId", 11L)
+    assertThat(paramsCaptor.getValue().getArguments()).containsEntry("logId", 11L)
         .containsEntry("projectId", 7L)
         .containsEntry("launchId", 3L)
         .containsEntry("testItemId", 5L)
         .containsEntry("attachmentExternalId", "rec-1")
         .containsEntry("attachmentAttributeKey", "BBID");
+    assertThat(paramsCaptor.getValue().getContext().getProjectId()).isEqualTo(7L);
     verify(integrationRepository, never()).findAllGlobalByType(type);
   }
 
@@ -106,15 +108,14 @@ class ExternalAttachmentLoadServiceTest {
     when(integrationRepository.findAllGlobalByType(type)).thenReturn(List.of(globalIntegration));
     when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
+    doReturn(pluginCommand).when(pluginInstance).getIntegrationExtensionCommand(COMMAND_NAME);
 
     service.loadAttachment(event(11L, 7L, 3L, null, "rec-1"));
 
-    verify(pluginCommand).executeCommand(eq(globalIntegration), anyMap());
+    verify(pluginCommand).executeCommand(eq(globalIntegration), any(PluginCommandRQ.class));
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   void resolvesProjectIdFromLogWhenEventOmitsIt() {
     IntegrationType type = integrationType();
     Integration projectIntegration = new Integration();
@@ -126,13 +127,13 @@ class ExternalAttachmentLoadServiceTest {
         .thenReturn(List.of(projectIntegration));
     when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
+    doReturn(pluginCommand).when(pluginInstance).getIntegrationExtensionCommand(COMMAND_NAME);
 
     service.loadAttachment(event(11L, null, 3L, null, "rec-1"));
 
-    ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+    ArgumentCaptor<PluginCommandRQ> paramsCaptor = ArgumentCaptor.forClass(PluginCommandRQ.class);
     verify(pluginCommand).executeCommand(eq(projectIntegration), paramsCaptor.capture());
-    assertThat(paramsCaptor.getValue()).containsEntry("projectId", 9L);
+    assertThat(paramsCaptor.getValue().getArguments()).containsEntry("projectId", 9L);
   }
 
   @Test
@@ -168,9 +169,9 @@ class ExternalAttachmentLoadServiceTest {
         .thenReturn(List.of(projectIntegration));
     when(pluginBox.getInstance(PLUGIN_ID, ReportPortalExtensionPoint.class))
         .thenReturn(Optional.of(pluginInstance));
-    when(pluginInstance.getIntegrationCommand(COMMAND_NAME)).thenReturn(pluginCommand);
-    when(pluginCommand.executeCommand(eq(projectIntegration), anyMap()))
-        .thenThrow(new RuntimeException("boom"));
+    doReturn(pluginCommand).when(pluginInstance).getIntegrationExtensionCommand(COMMAND_NAME);
+    doThrow(new RuntimeException("boom"))
+        .when(pluginCommand).executeCommand(eq(projectIntegration), any(PluginCommandRQ.class));
 
     assertThatCode(() -> service.loadAttachment(
         event(11L, 7L, 3L, 5L, "rec-1")))

@@ -17,6 +17,7 @@ apache-commons-compress = "1.28.0"
 apache-commons-csv = "1.10.0"
 apache-commons-lang3 = "3.20.0"
 apache-poi = "5.5.0"
+aws-sdk = "2.47.4"
 bouncycastle = "1.84"
 commons-validator = "1.10.0"
 embedded-postgres = "2.2.0"
@@ -114,6 +115,8 @@ caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "jdbc-driver-version" }
 tika = { group = "org.apache.tika", name = "tika-core", version.ref = "tika" }
 thumbnailator = { group = "net.coobird", name = "thumbnailator", version.ref = "thumbnailator" }
+aws-core = { group = "software.amazon.awssdk", name = "aws-core", version.ref = "aws-sdk" }
+aws-sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "aws-sdk" }
 jaxb-api = { group = "javax.xml.bind", name = "jaxb-api", version.ref = "jaxb-api" }
 jakarta-xml-bind-api = { group = "jakarta.xml.bind", name = "jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }

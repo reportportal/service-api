@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.opendal.Operator;
 
@@ -40,7 +41,7 @@ public class DataStoreClient implements DataStore {
 
   private static final String PATH_DELIMITER = "/";
 
-  private final Operator operator;
+  private final Supplier<Operator> operatorSupplier;
   private final String bucketPrefix;
   private final String bucketPostfix;
   private final String defaultBucketName;
@@ -58,7 +59,22 @@ public class DataStoreClient implements DataStore {
    */
   public DataStoreClient(Operator operator, String bucketPrefix, String bucketPostfix,
       String defaultBucketName, FeatureFlagHandler featureFlagHandler) {
-    this.operator = operator;
+    this(() -> operator, bucketPrefix, bucketPostfix, defaultBucketName, featureFlagHandler);
+  }
+
+  /**
+   * Initialises {@link DataStoreClient} with an {@link Operator} that may need to be rebuilt over
+   * the client's lifetime, e.g. when backed by rotating IAM credentials.
+   *
+   * @param operatorSupplier   supplies the current {@link Operator} to use for each operation
+   * @param bucketPrefix       Prefix for bucket name
+   * @param bucketPostfix      Postfix for bucket name
+   * @param defaultBucketName  Name of default bucket to use
+   * @param featureFlagHandler {@link FeatureFlagHandler}
+   */
+  public DataStoreClient(Supplier<Operator> operatorSupplier, String bucketPrefix, String bucketPostfix,
+      String defaultBucketName, FeatureFlagHandler featureFlagHandler) {
+    this.operatorSupplier = operatorSupplier;
     this.bucketPrefix = bucketPrefix;
     this.bucketPostfix = Objects.requireNonNullElse(bucketPostfix, "");
     this.defaultBucketName = defaultBucketName;
@@ -74,7 +90,7 @@ public class DataStoreClient implements DataStore {
     try {
       byte[] data = inputStream.readAllBytes();
       String fullPath = getFullPath(storedFile);
-      operator.write(fullPath, data);
+      operatorSupplier.get().write(fullPath, data);
       return Paths.get(filePath).toString();
     } catch (IOException e) {
       log.error("Unable to save file '{}'", filePath, e);
@@ -91,7 +107,7 @@ public class DataStoreClient implements DataStore {
     StoredFile storedFile = getStoredFile(filePath);
     String fullPath = getFullPath(storedFile);
     try {
-      byte[] data = operator.read(fullPath);
+      byte[] data = operatorSupplier.get().read(fullPath);
       return new ByteArrayInputStream(data);
     } catch (Exception e) {
       log.error("Unable to find file '{}'", filePath, e);
@@ -107,7 +123,7 @@ public class DataStoreClient implements DataStore {
     StoredFile storedFile = getStoredFile(filePath);
     String fullPath = getFullPath(storedFile);
     try {
-      operator.stat(fullPath);
+      operatorSupplier.get().stat(fullPath);
       return true;
     } catch (Exception _) {
       return false;
@@ -122,7 +138,7 @@ public class DataStoreClient implements DataStore {
     StoredFile storedFile = getStoredFile(filePath);
     String fullPath = getFullPath(storedFile);
     try {
-      operator.delete(fullPath);
+      operatorSupplier.get().delete(fullPath);
     } catch (Exception e) {
       log.error("Unable to delete file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete file");
@@ -140,7 +156,7 @@ public class DataStoreClient implements DataStore {
         String fullPath = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
             ? filePath
             : bucket + PATH_DELIMITER + filePath;
-        operator.delete(fullPath);
+        operatorSupplier.get().delete(fullPath);
       } catch (Exception e) {
         log.error("Unable to delete file '{}' from bucket '{}'", filePath, bucket, e);
       }
@@ -157,7 +173,7 @@ public class DataStoreClient implements DataStore {
       String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
           ? PATH_DELIMITER
           : bucket + PATH_DELIMITER;
-      operator.removeAll(path);
+      operatorSupplier.get().removeAll(path);
     } catch (Exception e) {
       log.error("Unable to delete container '{}'", bucket, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete container");

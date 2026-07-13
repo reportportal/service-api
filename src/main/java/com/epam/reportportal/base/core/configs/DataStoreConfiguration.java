@@ -27,6 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.filesystem.tms.TmsD
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.opendal.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,38 +123,43 @@ public class DataStoreConfiguration {
   }
 
   /**
-   * Creates OpenDAL Operator for AWS S3.
+   * Creates a {@link Supplier} of OpenDAL {@link Operator} for AWS S3.
    *
-   * @param accessKey accessKey to use (optional, if not provided falls back to OpenDAL's built-in AWS default
-   *                  credential chain, which also handles IAM session-token credentials and their refresh)
+   * <p>When no static key is configured, IAM-role credentials are resolved via the AWS SDK
+   * (env vars, IRSA web-identity token, EC2/ECS instance metadata) and the {@link Operator} is
+   * rebuilt shortly before they expire, since {@link Operator} itself cannot be refreshed in
+   * place. See {@link AwsS3OperatorSupplier}.
+   *
+   * @param accessKey accessKey to use (optional, if not provided uses IAM-role credentials)
    * @param secretKey secretKey to use (optional, see {@code accessKey})
    * @param region    AWS S3 region to use.
-   * @return {@link Operator}
+   * @return {@link Supplier} of {@link Operator}
    */
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "aws-s3")
-  @Primary
-  public Operator awsS3Operator(
+  public Supplier<Operator> awsS3Operator(
       @Value("${datastore.accessKey:}") String accessKey,
       @Value("${datastore.secretKey:}") String secretKey,
       @Value("${datastore.region}") String region,
       @Value("${datastore.defaultBucketName}") String defaultBucketName) {
 
-    Map<String, String> config = new HashMap<>();
-    config.put(REGION, region);
-    config.put(BUCKET, defaultBucketName);
-
     if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
+      Map<String, String> config = new HashMap<>();
+      config.put(REGION, region);
+      config.put(BUCKET, defaultBucketName);
       config.put(ACCESS_KEY_ID, accessKey);
       config.put(SECRET_ACCESS_KEY, secretKey);
+
+      Operator operator = Operator.of("s3", config);
+      return () -> operator;
     }
 
-    return Operator.of("s3", config);
+    return new AwsS3OperatorSupplier(region, defaultBucketName);
   }
 
   @Bean
   @ConditionalOnProperty(name = "datastore.type", havingValue = "aws-s3")
-  public DataStore s3DataStore(@Autowired Operator operator,
+  public DataStore s3DataStore(@Autowired Supplier<Operator> operator,
       @Value("${datastore.bucketPrefix}") String bucketPrefix,
       @Value("${datastore.bucketPostfix}") String bucketPostfix,
       @Value("${datastore.defaultBucketName}") String defaultBucketName,

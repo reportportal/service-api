@@ -228,7 +228,7 @@ public class DataStoreConfiguration {
       @Value("${datastore.gcs.endpoint:}") String endpoint) {
 
     Map<String, String> config = new HashMap<>();
-    config.put("bucket", bucket);
+    config.put(BUCKET, bucket);
     if (StringUtils.isNotEmpty(credentialsPath)) {
       config.put("credential_path", credentialsPath);
     }

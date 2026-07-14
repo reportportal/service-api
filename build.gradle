@@ -163,9 +163,9 @@ sourceSets {
 
 openApiGenerate {
     generatorName.set("spring")
-    inputSpec.set("$rootDir/api-registry/api/openapi/reportportal-api.yaml")
-    outputDir.set("${layout.buildDirectory.get()}/generated")
-    configFile.set("$rootDir/src/main/resources/openapi/config.json")
+    inputSpec.set(file("$rootDir/api-registry/api/openapi/reportportal-api.yaml"))
+    outputDir.set(layout.buildDirectory.dir("generated"))
+    configFile.set(file("$rootDir/src/main/resources/openapi/config.json"))
     skipOverwrite.set(false)
     cleanupOutput.set(true)
     // verbose.set(true)

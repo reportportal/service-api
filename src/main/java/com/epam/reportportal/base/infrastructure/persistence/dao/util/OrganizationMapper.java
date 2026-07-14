@@ -30,9 +30,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserAccount;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,14 +47,6 @@ import org.json.JSONObject;
  * @author Pavel Bortnik
  */
 public class OrganizationMapper {
-
-  private static final ObjectMapper objectMapper;
-
-  static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-  }
 
   private OrganizationMapper() {
   }

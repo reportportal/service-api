@@ -23,10 +23,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMapperUtils.fieldExcludingPredicate;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.CLUSTERS;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.CONTENT_FIELD;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.DASHBOARD;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.DASHBOARD_WIDGET;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.FILTER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.INTEGRATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.INTEGRATION_TYPE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ISSUE;
@@ -83,7 +81,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Retent
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
-import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
@@ -125,12 +122,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Tables;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
@@ -163,12 +155,7 @@ import org.jooq.Result;
  */
 public class RecordMappers {
 
-  private static final ObjectMapper objectMapper;
-
-  static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private RecordMappers() {
   }
 
   /**
@@ -235,32 +222,38 @@ public class RecordMappers {
 
 
   /**
-   * Maps record into {@link Project} object
+   * Builds a {@link RecordMapper} for {@link Project}, deserializing the metadata JSON column via
+   * the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the {@code metadata} JSON column
+   * @return {@link RecordMapper}
    */
-  public static final RecordMapper<? super Record, Project> PROJECT_MAPPER = r -> {
-    Project project = r.into(PROJECT.ID, PROJECT.NAME, PROJECT.ORGANIZATION, PROJECT.CREATED_AT,
-            PROJECT.ORGANIZATION_ID)
-        .into(Project.class);
-    ofNullable(r.field(PROJECT.KEY))
-        .ifPresent(f -> project.setKey(r.get(PROJECT.KEY)));
-    ofNullable(r.field(PROJECT.SLUG))
-        .ifPresent(f -> project.setSlug(r.get(PROJECT.SLUG)));
+  public static RecordMapper<? super Record, Project> projectMapper(ObjectMapper objectMapper) {
+    return r -> {
+      Project project = r.into(PROJECT.ID, PROJECT.NAME, PROJECT.ORGANIZATION, PROJECT.CREATED_AT,
+              PROJECT.ORGANIZATION_ID)
+          .into(Project.class);
+      ofNullable(r.field(PROJECT.KEY))
+          .ifPresent(f -> project.setKey(r.get(PROJECT.KEY)));
+      ofNullable(r.field(PROJECT.SLUG))
+          .ifPresent(f -> project.setSlug(r.get(PROJECT.SLUG)));
 
-    ofNullable(r.field(PROJECT.METADATA)).ifPresent(f -> {
-      String metaDataString = r.get(f, String.class);
-      ofNullable(metaDataString).ifPresent(md -> {
-        try {
-          Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
-          project.setMetadata(metadata);
-        } catch (IOException e) {
-          throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-              "Error during parsing user metadata");
-        }
+      ofNullable(r.field(PROJECT.METADATA)).ifPresent(f -> {
+        String metaDataString = r.get(f, String.class);
+        ofNullable(metaDataString).ifPresent(md -> {
+          try {
+            Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
+            project.setMetadata(metadata);
+          } catch (IOException e) {
+            throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+                "Error during parsing user metadata");
+          }
+        });
       });
-    });
 
-    return project;
-  };
+      return project;
+    };
+  }
 
 
   /**
@@ -447,22 +440,31 @@ public class RecordMappers {
       .withEmail(r.get(USERS.EMAIL))
       .build();
 
-  public static final RecordMapper<Record, User> USER_MAPPER = r -> {
-    User user = r.into(
-            USERS.fieldStream().filter(f -> fieldExcludingPredicate(USERS.METADATA).test(f))
-                .toArray(Field[]::new))
-        .into(User.class);
-    String metaDataString = r.get(USERS.METADATA, String.class);
-    ofNullable(metaDataString).ifPresent(md -> {
-      try {
-        Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
-        user.setMetadata(metadata);
-      } catch (IOException e) {
-        throw new ReportPortalException("Error during parsing user metadata");
-      }
-    });
-    return user;
-  };
+  /**
+   * Builds a {@link RecordMapper} for {@link User}, deserializing the metadata JSON column via
+   * the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the {@code metadata} JSON column
+   * @return {@link RecordMapper}
+   */
+  public static RecordMapper<Record, User> userMapper(ObjectMapper objectMapper) {
+    return r -> {
+      User user = r.into(
+              USERS.fieldStream().filter(f -> fieldExcludingPredicate(USERS.METADATA).test(f))
+                  .toArray(Field[]::new))
+          .into(User.class);
+      String metaDataString = r.get(USERS.METADATA, String.class);
+      ofNullable(metaDataString).ifPresent(md -> {
+        try {
+          Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
+          user.setMetadata(metadata);
+        } catch (IOException e) {
+          throw new ReportPortalException("Error during parsing user metadata");
+        }
+      });
+      return user;
+    };
+  }
 
   public static final RecordMapper<Record, ProjectUser> PROJECT_USER_MAPPER = r -> {
     ProjectUser projectUser = new ProjectUser();
@@ -523,48 +525,54 @@ public class RecordMappers {
     return md;
   };
 
-  public static final RecordMapper<? super Record, Activity> ACTIVITY_MAPPER = r -> {
-    Activity activity = new Activity();
-    activity.setId(r.get(ACTIVITY.ID));
-    activity.setCreatedAt(r.get(ACTIVITY.CREATED_AT, Instant.class));
-    activity.setAction(EventAction.valueOf(r.get(ACTIVITY.ACTION)));
-    activity.setEventName(r.get(ACTIVITY.EVENT_NAME));
-    activity.setPriority(EventPriority.valueOf(r.get(ACTIVITY.PRIORITY)));
-    activity.setObjectId(r.get(ACTIVITY.OBJECT_ID));
-    activity.setObjectName(r.get(ACTIVITY.OBJECT_NAME));
-    activity.setObjectType(EventObject.valueOf(r.get(ACTIVITY.OBJECT_TYPE)));
-    activity.setProjectId(r.get(ACTIVITY.PROJECT_ID));
-    activity.setProjectName(r.get(PROJECT.NAME));
-    String detailsJson = r.get(ACTIVITY.DETAILS, String.class);
-    ofNullable(detailsJson).ifPresent(s -> {
-      try {
-        ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
-        activity.setDetails(details);
-      } catch (IOException e) {
-        throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
-      }
-    });
-    activity.setSubjectId(r.get(ACTIVITY.SUBJECT_ID));
-    activity.setSubjectName(ofNullable(r.get(USERS.LOGIN)).orElse(r.get(ACTIVITY.SUBJECT_NAME)));
-    activity.setSubjectType(EventSubject.valueOf(r.get(ACTIVITY.SUBJECT_TYPE)));
-    return activity;
-  };
+  /**
+   * Builds a {@link RecordMapper} for {@link Activity}, deserializing the details JSON column via
+   * the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the {@code details} JSON column
+   * @return {@link RecordMapper}
+   */
+  public static RecordMapper<? super Record, Activity> activityMapper(ObjectMapper objectMapper) {
+    return r -> {
+      Activity activity = new Activity();
+      activity.setId(r.get(ACTIVITY.ID));
+      activity.setCreatedAt(r.get(ACTIVITY.CREATED_AT, Instant.class));
+      activity.setAction(EventAction.valueOf(r.get(ACTIVITY.ACTION)));
+      activity.setEventName(r.get(ACTIVITY.EVENT_NAME));
+      activity.setPriority(EventPriority.valueOf(r.get(ACTIVITY.PRIORITY)));
+      activity.setObjectId(r.get(ACTIVITY.OBJECT_ID));
+      activity.setObjectName(r.get(ACTIVITY.OBJECT_NAME));
+      activity.setObjectType(EventObject.valueOf(r.get(ACTIVITY.OBJECT_TYPE)));
+      activity.setProjectId(r.get(ACTIVITY.PROJECT_ID));
+      activity.setProjectName(r.get(PROJECT.NAME));
+      String detailsJson = r.get(ACTIVITY.DETAILS, String.class);
+      ofNullable(detailsJson).ifPresent(s -> {
+        try {
+          ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
+          activity.setDetails(details);
+        } catch (IOException e) {
+          throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
+        }
+      });
+      activity.setSubjectId(r.get(ACTIVITY.SUBJECT_ID));
+      activity.setSubjectName(ofNullable(r.get(USERS.LOGIN)).orElse(r.get(ACTIVITY.SUBJECT_NAME)));
+      activity.setSubjectType(EventSubject.valueOf(r.get(ACTIVITY.SUBJECT_TYPE)));
+      return activity;
+    };
+  }
 
   public static final RecordMapper<? super Record, OwnedEntity> OWNED_ENTITY_RECORD_MAPPER = r -> r.into(
       OwnedEntity.class);
 
-  private static final BiConsumer<Widget, ? super Record> WIDGET_USER_FILTER_MAPPER = (widget, res) -> ofNullable(
-      res.get(FILTER.ID)).ifPresent(
-      id -> {
-        Set<UserFilter> filters = ofNullable(widget.getFilters()).orElseGet(Sets::newLinkedHashSet);
-        UserFilter filter = new UserFilter();
-        filter.setId(id);
-        filters.add(filter);
-        widget.setFilters(filters);
-      });
-
-  private static final BiConsumer<Widget, ? super Record> WIDGET_OPTIONS_MAPPER = (widget, res) -> {
-    ofNullable(res.get(WIDGET.WIDGET_OPTIONS, String.class)).ifPresent(wo -> {
+  /**
+   * Builds a {@link BiConsumer} that fills in a {@link Widget}'s options from its JSON column via
+   * the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the {@code widget_options} JSON column
+   * @return {@link BiConsumer}
+   */
+  private static BiConsumer<Widget, ? super Record> widgetOptionsMapper(ObjectMapper objectMapper) {
+    return (widget, res) -> ofNullable(res.get(WIDGET.WIDGET_OPTIONS, String.class)).ifPresent(wo -> {
       try {
         WidgetOptions widgetOptions = objectMapper.readValue(wo, WidgetOptions.class);
         widget.setWidgetOptions(widgetOptions);
@@ -572,48 +580,7 @@ public class RecordMappers {
         throw new ReportPortalException("Error during parsing widget options");
       }
     });
-  };
-
-  private static final BiConsumer<Widget, ? super Record> WIDGET_CONTENT_FIELD_MAPPER = (widget, res) -> ofNullable(
-      res.get(CONTENT_FIELD.FIELD)).ifPresent(
-      field -> {
-        Set<String> contentFields = ofNullable(widget.getContentFields()).orElseGet(
-            Sets::newLinkedHashSet);
-        contentFields.add(field);
-        widget.setContentFields(contentFields);
-      });
-
-  public static final RecordMapper<? super Record, Widget> WIDGET_RECORD_MAPPER = r -> {
-    Widget widget = new Widget();
-    widget.setDescription(r.get(WIDGET.DESCRIPTION));
-    widget.setId(r.get(WIDGET.ID));
-    widget.setName(r.get(WIDGET.NAME));
-    widget.setItemsCount(r.get(WIDGET.ITEMS_COUNT));
-    widget.setWidgetType(r.get(WIDGET.WIDGET_TYPE));
-
-    WIDGET_USER_FILTER_MAPPER.accept(widget, r);
-    WIDGET_OPTIONS_MAPPER.accept(widget, r);
-    WIDGET_CONTENT_FIELD_MAPPER.accept(widget, r);
-
-    return widget;
-  };
-
-  public static final Function<Result<? extends Record>, List<Widget>> WIDGET_FETCHER = result -> {
-    Map<Long, Widget> widgetMap = Maps.newLinkedHashMap();
-    result.forEach(res -> {
-      Long widgetId = res.get(WIDGET.ID);
-      Widget widget = widgetMap.get(widgetId);
-      if (ofNullable(widget).isPresent()) {
-        WIDGET_USER_FILTER_MAPPER.accept(widget, res);
-        WIDGET_OPTIONS_MAPPER.accept(widget, res);
-        WIDGET_CONTENT_FIELD_MAPPER.accept(widget, res);
-      } else {
-        widgetMap.put(widgetId, WIDGET_RECORD_MAPPER.map(res));
-      }
-    });
-
-    return Lists.newArrayList(widgetMap.values());
-  };
+  }
 
   public static final Function<? super Record, Optional<List<ItemAttribute>>> ITEM_ATTRIBUTE_MAPPER = r -> {
     List<ItemAttribute> attributeList = new ArrayList<>();
@@ -662,92 +629,135 @@ public class RecordMappers {
     return Optional.empty();
   };
 
-  public static final Function<? super Record, Optional<DashboardWidget>> DASHBOARD_WIDGET_MAPPER = r -> {
-    Long widgetId = r.get(DASHBOARD_WIDGET.WIDGET_ID);
-    if (widgetId == null) {
-      return empty();
-    }
-    DashboardWidget dashboardWidget = new DashboardWidget();
-    dashboardWidget.setId(new DashboardWidgetId(r.get(DASHBOARD.ID), widgetId));
-    dashboardWidget.setPositionX(r.get(DASHBOARD_WIDGET.WIDGET_POSITION_X));
-    dashboardWidget.setPositionY(r.get(DASHBOARD_WIDGET.WIDGET_POSITION_Y));
-    dashboardWidget.setHeight(r.get(DASHBOARD_WIDGET.WIDGET_HEIGHT));
-    dashboardWidget.setWidth(r.get(DASHBOARD_WIDGET.WIDGET_WIDTH));
-    dashboardWidget.setCreatedOn(r.get(DASHBOARD_WIDGET.IS_CREATED_ON));
-    dashboardWidget.setWidgetOwner(r.get(DASHBOARD_WIDGET.WIDGET_OWNER));
-    dashboardWidget.setWidgetName(r.get(DASHBOARD_WIDGET.WIDGET_NAME));
-    dashboardWidget.setWidgetType(r.get(DASHBOARD_WIDGET.WIDGET_TYPE));
-    final Widget widget = new Widget();
-    WIDGET_OPTIONS_MAPPER.accept(widget, r);
-    dashboardWidget.setWidget(widget);
-    return Optional.of(dashboardWidget);
-  };
+  /**
+   * Builds a {@link Function} mapping a record into an {@link Optional} {@link DashboardWidget},
+   * deserializing the widget's options JSON column via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the widget's {@code widget_options} JSON column
+   * @return {@link Function}
+   */
+  public static Function<? super Record, Optional<DashboardWidget>> dashboardWidgetMapper(ObjectMapper objectMapper) {
+    return r -> {
+      Long widgetId = r.get(DASHBOARD_WIDGET.WIDGET_ID);
+      if (widgetId == null) {
+        return empty();
+      }
+      DashboardWidget dashboardWidget = new DashboardWidget();
+      dashboardWidget.setId(new DashboardWidgetId(r.get(DASHBOARD.ID), widgetId));
+      dashboardWidget.setPositionX(r.get(DASHBOARD_WIDGET.WIDGET_POSITION_X));
+      dashboardWidget.setPositionY(r.get(DASHBOARD_WIDGET.WIDGET_POSITION_Y));
+      dashboardWidget.setHeight(r.get(DASHBOARD_WIDGET.WIDGET_HEIGHT));
+      dashboardWidget.setWidth(r.get(DASHBOARD_WIDGET.WIDGET_WIDTH));
+      dashboardWidget.setCreatedOn(r.get(DASHBOARD_WIDGET.IS_CREATED_ON));
+      dashboardWidget.setWidgetOwner(r.get(DASHBOARD_WIDGET.WIDGET_OWNER));
+      dashboardWidget.setWidgetName(r.get(DASHBOARD_WIDGET.WIDGET_NAME));
+      dashboardWidget.setWidgetType(r.get(DASHBOARD_WIDGET.WIDGET_TYPE));
+      final Widget widget = new Widget();
+      widgetOptionsMapper(objectMapper).accept(widget, r);
+      dashboardWidget.setWidget(widget);
+      return Optional.of(dashboardWidget);
+    };
+  }
 
-  public static final RecordMapper<? super Record, IntegrationType> INTEGRATION_TYPE_MAPPER = r -> {
-    IntegrationType integrationType = new IntegrationType();
-    integrationType.setId(r.get(INTEGRATION_TYPE.ID, Long.class));
-    integrationType.setEnabled(r.get(INTEGRATION_TYPE.ENABLED));
-    integrationType.setCreationDate(r.get(INTEGRATION_TYPE.CREATION_DATE));
-    ofNullable(r.get(INTEGRATION_TYPE.AUTH_FLOW)).ifPresent(af -> {
-      integrationType.setAuthFlow(IntegrationAuthFlowEnum.findByName(af.getLiteral())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE)));
-    });
-
-    integrationType.setName(r.get(INTEGRATION_TYPE.NAME));
-    integrationType.setIntegrationGroup(
-        IntegrationGroupEnum.findByName(r.get(INTEGRATION_TYPE.GROUP_TYPE).getLiteral())
+  /**
+   * Builds a {@link RecordMapper} for {@link IntegrationType}, deserializing the details JSON
+   * column via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the {@code details} JSON column
+   * @return {@link RecordMapper}
+   */
+  public static RecordMapper<? super Record, IntegrationType> integrationTypeMapper(ObjectMapper objectMapper) {
+    return r -> {
+      IntegrationType integrationType = new IntegrationType();
+      integrationType.setId(r.get(INTEGRATION_TYPE.ID, Long.class));
+      integrationType.setEnabled(r.get(INTEGRATION_TYPE.ENABLED));
+      integrationType.setCreationDate(r.get(INTEGRATION_TYPE.CREATION_DATE));
+      ofNullable(r.get(INTEGRATION_TYPE.AUTH_FLOW)).ifPresent(af -> {
+        integrationType.setAuthFlow(IntegrationAuthFlowEnum.findByName(af.getLiteral())
             .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE)));
+      });
 
-    String detailsJson = r.get(INTEGRATION_TYPE.DETAILS, String.class);
-    ofNullable(detailsJson).ifPresent(s -> {
-      try {
-        IntegrationTypeDetails details = objectMapper.readValue(s, IntegrationTypeDetails.class);
-        integrationType.setDetails(details);
-      } catch (IOException e) {
-        throw new ReportPortalException("Error during parsing integration type details");
-      }
-    });
+      integrationType.setName(r.get(INTEGRATION_TYPE.NAME));
+      integrationType.setIntegrationGroup(
+          IntegrationGroupEnum.findByName(r.get(INTEGRATION_TYPE.GROUP_TYPE).getLiteral())
+              .orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE)));
 
-    return integrationType;
-  };
+      String detailsJson = r.get(INTEGRATION_TYPE.DETAILS, String.class);
+      ofNullable(detailsJson).ifPresent(s -> {
+        try {
+          IntegrationTypeDetails details = objectMapper.readValue(s, IntegrationTypeDetails.class);
+          integrationType.setDetails(details);
+        } catch (IOException e) {
+          throw new ReportPortalException("Error during parsing integration type details");
+        }
+      });
 
-  public static final BiConsumer<? super Integration, ? super Record> INTEGRATION_PARAMS_MAPPER = (i, r) -> {
-    String paramsJson = r.get(INTEGRATION.PARAMS, String.class);
-    ofNullable(paramsJson).ifPresent(s -> {
-      try {
-        IntegrationParams params = objectMapper.readValue(s, IntegrationParams.class);
-        i.setParams(params);
-      } catch (IOException e) {
-        throw new ReportPortalException("Error during parsing integration params");
-      }
-    });
-  };
+      return integrationType;
+    };
+  }
 
-  public static final RecordMapper<? super Record, Integration> GLOBAL_INTEGRATION_RECORD_MAPPER = r -> {
+  /**
+   * Builds a {@link BiConsumer} that fills in an {@link Integration}'s params from its JSON
+   * column via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the {@code params} JSON column
+   * @return {@link BiConsumer}
+   */
+  public static BiConsumer<? super Integration, ? super Record> integrationParamsMapper(ObjectMapper objectMapper) {
+    return (i, r) -> {
+      String paramsJson = r.get(INTEGRATION.PARAMS, String.class);
+      ofNullable(paramsJson).ifPresent(s -> {
+        try {
+          IntegrationParams params = objectMapper.readValue(s, IntegrationParams.class);
+          i.setParams(params);
+        } catch (IOException e) {
+          throw new ReportPortalException("Error during parsing integration params");
+        }
+      });
+    };
+  }
 
-    Integration integration = new Integration();
-    integration.setId(r.get(INTEGRATION.ID, Long.class));
-    integration.setName(r.get(INTEGRATION.NAME));
-    integration.setType(INTEGRATION_TYPE_MAPPER.map(r));
-    integration.setCreator(r.get(INTEGRATION.CREATOR));
-    integration.setCreationDate(r.get(INTEGRATION.CREATION_DATE));
-    integration.setEnabled(r.get(INTEGRATION.ENABLED));
-    INTEGRATION_PARAMS_MAPPER.accept(integration, r);
+  /**
+   * Builds a {@link RecordMapper} for {@link Integration}, deserializing its type and params JSON
+   * columns via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the integration's JSON columns
+   * @return {@link RecordMapper}
+   */
+  public static RecordMapper<? super Record, Integration> globalIntegrationRecordMapper(ObjectMapper objectMapper) {
+    return r -> {
+      Integration integration = new Integration();
+      integration.setId(r.get(INTEGRATION.ID, Long.class));
+      integration.setName(r.get(INTEGRATION.NAME));
+      integration.setType(integrationTypeMapper(objectMapper).map(r));
+      integration.setCreator(r.get(INTEGRATION.CREATOR));
+      integration.setCreationDate(r.get(INTEGRATION.CREATION_DATE));
+      integration.setEnabled(r.get(INTEGRATION.ENABLED));
+      integrationParamsMapper(objectMapper).accept(integration, r);
 
-    return integration;
-  };
+      return integration;
+    };
+  }
 
-  public static final RecordMapper<? super Record, Integration> PROJECT_INTEGRATION_RECORD_MAPPER = r -> {
+  /**
+   * Builds a {@link RecordMapper} for a project-scoped {@link Integration}, deserializing its
+   * JSON columns via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the integration's JSON columns
+   * @return {@link RecordMapper}
+   */
+  public static RecordMapper<? super Record, Integration> projectIntegrationRecordMapper(ObjectMapper objectMapper) {
+    return r -> {
+      Integration integration = globalIntegrationRecordMapper(objectMapper).map(r);
 
-    Integration integration = GLOBAL_INTEGRATION_RECORD_MAPPER.map(r);
+      Project project = new Project();
+      project.setId(r.get(INTEGRATION.PROJECT_ID));
 
-    Project project = new Project();
-    project.setId(r.get(INTEGRATION.PROJECT_ID));
+      integration.setProject(project);
 
-    integration.setProject(project);
-
-    return integration;
-  };
+      return integration;
+    };
+  }
 
   /**
    * Maps record into {@link TmsMilestone} object

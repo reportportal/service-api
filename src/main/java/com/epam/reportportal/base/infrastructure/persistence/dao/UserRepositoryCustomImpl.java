@@ -17,9 +17,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.REPORT_PORTAL_USER_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.REPORTPORTAL_USER_FETCHER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.USER_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.PROJECT;
@@ -29,10 +27,13 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,33 +55,36 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
   private final DSLContext dsl;
+  private final ObjectMapper objectMapper;
 
   @Autowired
-  public UserRepositoryCustomImpl(DSLContext dsl) {
+  public UserRepositoryCustomImpl(DSLContext dsl, ObjectMapper objectMapper) {
     this.dsl = dsl;
+    this.objectMapper = objectMapper;
   }
 
   @Override
   public List<User> findByFilter(Queryable filter) {
-    return USER_FETCHER.apply(dsl.fetch(QueryBuilder.newBuilder(filter).wrap().build()));
+    return ResultFetchers.userFetcher(objectMapper).apply(dsl.fetch(QueryBuilder.newBuilder(filter).wrap().build()));
   }
 
   @Override
   public Page<User> findByFilter(Queryable filter, Pageable pageable) {
-    return PageableExecutionUtils.getPage(USER_FETCHER.apply(dsl.fetch(
+    return PageableExecutionUtils.getPage(ResultFetchers.userFetcher(objectMapper).apply(dsl.fetch(
         QueryBuilder.newBuilder(filter).with(pageable).wrap().withWrapperSort(pageable.getSort())
             .build())), pageable, () -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build()));
   }
 
   @Override
   public Optional<User> findRawById(Long id) {
-    return dsl.select().from(USERS).where(USERS.ID.eq(id)).fetchOptional(USER_MAPPER);
+    return dsl.select().from(USERS).where(USERS.ID.eq(id))
+        .fetchOptional(RecordMappers.userMapper(objectMapper));
   }
 
   @Override
   public Page<User> findByFilterExcluding(Queryable filter, Pageable pageable, String... exclude) {
     return PageableExecutionUtils.getPage(
-        USER_FETCHER.apply(dsl.fetch(
+        ResultFetchers.userFetcher(objectMapper).apply(dsl.fetch(
             QueryBuilder.newBuilder(filter)
                 .with(pageable)
                 .with(USERS.ID, SortOrder.ASC)
@@ -97,7 +101,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
   public Page<User> findProjectUsersByFilterExcluding(String projectKey, Queryable filter,
       Pageable pageable, String... exclude) {
     return PageableExecutionUtils.getPage(
-        USER_FETCHER.apply(dsl.fetch(
+        ResultFetchers.userFetcher(objectMapper).apply(dsl.fetch(
             QueryBuilder.newBuilder(filter)
                 .with(pageable)
                 .wrapExcludingFields(exclude)

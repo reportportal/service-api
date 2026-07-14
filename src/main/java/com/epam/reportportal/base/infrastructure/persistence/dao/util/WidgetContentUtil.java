@@ -90,9 +90,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableStatisticsContent;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -131,14 +129,6 @@ import org.jooq.impl.DSL;
  * @author Pavel Bortnik
  */
 public class WidgetContentUtil {
-
-  private static final ObjectMapper objectMapper;
-
-  static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-  }
 
   private WidgetContentUtil() {
     //static only
@@ -243,33 +233,40 @@ public class WidgetContentUtil {
 
   };
 
-  public static final RecordMapper<? super Record, ActivityResource> ACTIVITY_MAPPER = r -> {
-
-    ActivityResource activityResource = new ActivityResource();
-    activityResource.setId(r.get(ACTIVITY.ID));
-    ofNullable(r.get(USERS.LOGIN))
-        .ifPresentOrElse(activityResource::setUser, () -> activityResource.setUser(r.get(ACTIVITY.SUBJECT_NAME)));
-    activityResource.setUserId(r.get(fieldName(USER_ID), Long.class));
-    activityResource.setProjectId(r.get(fieldName(PROJECT_ID), Long.class));
-    activityResource.setProjectName(r.get(PROJECT.NAME));
-    activityResource.setProjectKey(r.get(PROJECT.KEY));
-    activityResource.setActionType(r.get(ACTIVITY.EVENT_NAME));
-    activityResource.setObjectType(r.get(ACTIVITY.OBJECT_TYPE));
-    activityResource.setObjectName(r.get(ACTIVITY.OBJECT_NAME));
-    activityResource.setLastModified(r.get(ACTIVITY.CREATED_AT, Instant.class));
-    activityResource.setLoggedObjectId(r.get(ACTIVITY.OBJECT_ID));
-    String detailsJson = r.get(ACTIVITY.DETAILS, String.class);
-    ofNullable(detailsJson).ifPresent(s -> {
-      try {
-        ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
-        activityResource.setDetails(details);
-      } catch (IOException e) {
-        throw new ReportPortalException(ErrorType.OBJECT_RETRIEVAL_ERROR, "Activity details");
-      }
-    });
-    return activityResource;
-
-  };
+  /**
+   * Builds a {@link RecordMapper} for {@link ActivityResource}, deserializing the activity's JSON
+   * details column via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the {@code details} JSON column
+   * @return {@link RecordMapper}
+   */
+  public static RecordMapper<? super Record, ActivityResource> activityMapper(ObjectMapper objectMapper) {
+    return r -> {
+      ActivityResource activityResource = new ActivityResource();
+      activityResource.setId(r.get(ACTIVITY.ID));
+      ofNullable(r.get(USERS.LOGIN))
+          .ifPresentOrElse(activityResource::setUser, () -> activityResource.setUser(r.get(ACTIVITY.SUBJECT_NAME)));
+      activityResource.setUserId(r.get(fieldName(USER_ID), Long.class));
+      activityResource.setProjectId(r.get(fieldName(PROJECT_ID), Long.class));
+      activityResource.setProjectName(r.get(PROJECT.NAME));
+      activityResource.setProjectKey(r.get(PROJECT.KEY));
+      activityResource.setActionType(r.get(ACTIVITY.EVENT_NAME));
+      activityResource.setObjectType(r.get(ACTIVITY.OBJECT_TYPE));
+      activityResource.setObjectName(r.get(ACTIVITY.OBJECT_NAME));
+      activityResource.setLastModified(r.get(ACTIVITY.CREATED_AT, Instant.class));
+      activityResource.setLoggedObjectId(r.get(ACTIVITY.OBJECT_ID));
+      String detailsJson = r.get(ACTIVITY.DETAILS, String.class);
+      ofNullable(detailsJson).ifPresent(s -> {
+        try {
+          ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
+          activityResource.setDetails(details);
+        } catch (IOException e) {
+          throw new ReportPortalException(ErrorType.OBJECT_RETRIEVAL_ERROR, "Activity details");
+        }
+      });
+      return activityResource;
+    };
+  }
 
   private static final BiFunction<Map<Long, ProductStatusStatisticsContent>, Record, ProductStatusStatisticsContent> PRODUCT_STATUS_WITHOUT_ATTRIBUTES_MAPPER = (mapping, record) -> {
     ProductStatusStatisticsContent content;

@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.GLOBAL_INTEGRATION_RECORD_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.PROJECT_INTEGRATION_RECORD_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.INTEGRATION_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegration.INTEGRATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegrationType.INTEGRATION_TYPE;
@@ -25,7 +23,9 @@ import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
@@ -44,10 +44,12 @@ import org.springframework.stereotype.Repository;
 public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCustom {
 
   private final DSLContext dsl;
+  private final ObjectMapper objectMapper;
 
   @Autowired
-  public IntegrationRepositoryCustomImpl(DSLContext dsl) {
+  public IntegrationRepositoryCustomImpl(DSLContext dsl, ObjectMapper objectMapper) {
     this.dsl = dsl;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -74,7 +76,7 @@ public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCus
         .where(INTEGRATION.ID.eq(integrationId.intValue())
             .and(INTEGRATION.PROJECT_ID.isNull())
             .and(INTEGRATION.ORGANIZATION_ID.isNull()))
-        .fetchAny(GLOBAL_INTEGRATION_RECORD_MAPPER));
+        .fetchAny(RecordMappers.globalIntegrationRecordMapper(objectMapper)));
   }
 
   @Override
@@ -87,7 +89,7 @@ public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCus
         .where(INTEGRATION_TYPE.ID.in(integrationTypeIds))
         .and(INTEGRATION.PROJECT_ID.eq(projectId))
         .orderBy(INTEGRATION.CREATION_DATE.desc())
-        .fetch(PROJECT_INTEGRATION_RECORD_MAPPER);
+        .fetch(RecordMappers.projectIntegrationRecordMapper(objectMapper));
   }
 
   @Override
@@ -100,7 +102,7 @@ public class IntegrationRepositoryCustomImpl implements IntegrationRepositoryCus
         .and(INTEGRATION.PROJECT_ID.isNull())
         .and(INTEGRATION.ORGANIZATION_ID.isNull())
         .orderBy(INTEGRATION.CREATION_DATE.desc())
-        .fetch(GLOBAL_INTEGRATION_RECORD_MAPPER);
+        .fetch(RecordMappers.globalIntegrationRecordMapper(objectMapper));
   }
 
 }

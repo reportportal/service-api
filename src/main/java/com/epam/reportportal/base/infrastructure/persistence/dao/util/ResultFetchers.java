@@ -22,7 +22,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ATTACHMENT_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ATTRIBUTE_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.DASHBOARD_WIDGET_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ITEM_ATTRIBUTE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.LOG_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ORGANIZATION_USER_MAPPER;
@@ -37,7 +36,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Rec
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_FOLDER_TEST_ITEM_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TMS_TEST_PLAN_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ACTIVITY;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.FILTER_SORT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.INTEGRATION;
@@ -95,6 +93,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -123,34 +122,40 @@ public class ResultFetchers {
   }
 
   /**
-   * Fetches records from db results into list of {@link Project} objects.
+   * Builds a {@link Function} that fetches records from db results into a list of
+   * {@link Project} objects, deserializing project metadata via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the project's {@code metadata} JSON column
+   * @return {@link Function}
    */
-  public static final Function<Result<? extends Record>, List<Project>> PROJECT_FETCHER = rows -> {
-    Map<Long, Project> projects = Maps.newLinkedHashMap();
-    rows.forEach(row -> {
-      Long id = row.get(PROJECT.ID);
-      Project project;
-      if (!projects.containsKey(id)) {
-        project = RecordMappers.PROJECT_MAPPER.map(row);
-      } else {
-        project = projects.get(id);
-      }
-      ofNullable(row.field(PROJECT_ATTRIBUTE.VALUE)).flatMap(f -> ofNullable(row.get(f)))
-          .ifPresent(field -> project.getProjectAttributes()
-              .add(new ProjectAttribute().withProject(project)
-                  .withAttribute(ATTRIBUTE_MAPPER.map(row)).withValue(field)));
-      ofNullable(row.field(PROJECT_USER.PROJECT_ROLE)).flatMap(f -> ofNullable(row.get(f)))
-          .ifPresent(field -> {
-            Set<ProjectUser> projectUsers = ofNullable(project.getUsers()).orElseGet(
-                Sets::newHashSet);
-            projectUsers.add(PROJECT_USER_MAPPER.map(row));
-            project.setUsers(projectUsers);
-          });
+  public static Function<Result<? extends Record>, List<Project>> projectFetcher(ObjectMapper objectMapper) {
+    return rows -> {
+      Map<Long, Project> projects = Maps.newLinkedHashMap();
+      rows.forEach(row -> {
+        Long id = row.get(PROJECT.ID);
+        Project project;
+        if (!projects.containsKey(id)) {
+          project = RecordMappers.projectMapper(objectMapper).map(row);
+        } else {
+          project = projects.get(id);
+        }
+        ofNullable(row.field(PROJECT_ATTRIBUTE.VALUE)).flatMap(f -> ofNullable(row.get(f)))
+            .ifPresent(field -> project.getProjectAttributes()
+                .add(new ProjectAttribute().withProject(project)
+                    .withAttribute(ATTRIBUTE_MAPPER.map(row)).withValue(field)));
+        ofNullable(row.field(PROJECT_USER.PROJECT_ROLE)).flatMap(f -> ofNullable(row.get(f)))
+            .ifPresent(field -> {
+              Set<ProjectUser> projectUsers = ofNullable(project.getUsers()).orElseGet(
+                  Sets::newHashSet);
+              projectUsers.add(PROJECT_USER_MAPPER.map(row));
+              project.setUsers(projectUsers);
+            });
 
-      projects.put(id, project);
-    });
-    return new ArrayList<>(projects.values());
-  };
+        projects.put(id, project);
+      });
+      return new ArrayList<>(projects.values());
+    };
+  }
 
   /**
    * Fetches records from db results into list of {@link Organization} objects.
@@ -274,22 +279,28 @@ public class ResultFetchers {
   };
 
   /**
-   * Fetches records from db results into list of {@link Activity} objects.
+   * Builds a {@link Function} that fetches records from db results into a list of
+   * {@link Activity} objects, deserializing activity details via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the activity's {@code details} JSON column
+   * @return {@link Function}
    */
-  public static final Function<Result<? extends Record>, List<Activity>> ACTIVITY_FETCHER = rows -> {
-    Map<Long, Activity> activities = Maps.newLinkedHashMap();
-    rows.forEach(row -> {
-      Long id = row.get(ACTIVITY.ID);
-      Activity activity;
-      if (!activities.containsKey(id)) {
-        activity = RecordMappers.ACTIVITY_MAPPER.map(row);
-      } else {
-        activity = activities.get(id);
-      }
-      activities.put(id, activity);
-    });
-    return new ArrayList<>(activities.values());
-  };
+  public static Function<Result<? extends Record>, List<Activity>> activityFetcher(ObjectMapper objectMapper) {
+    return rows -> {
+      Map<Long, Activity> activities = Maps.newLinkedHashMap();
+      rows.forEach(row -> {
+        Long id = row.get(ACTIVITY.ID);
+        Activity activity;
+        if (!activities.containsKey(id)) {
+          activity = RecordMappers.activityMapper(objectMapper).map(row);
+        } else {
+          activity = activities.get(id);
+        }
+        activities.put(id, activity);
+      });
+      return new ArrayList<>(activities.values());
+    };
+  }
 
   /**
    * Fetches records from db results into list of {@link Integration} objects.
@@ -309,41 +320,50 @@ public class ResultFetchers {
     return new ArrayList<>(integrations.values());
   };
 
-  public static final Function<Result<? extends Record>, List<User>> USER_FETCHER = rows -> {
-    Map<Long, User> users = Maps.newLinkedHashMap();
-    rows.forEach(row -> {
-      Long id = row.get(USERS.ID);
-      User user;
-      if (!users.containsKey(id)) {
-        user = row.map(USER_MAPPER);
-      } else {
-        user = users.get(id);
-      }
-      if (ofNullable(row.get(PROJECT_USER.PROJECT_ROLE)).isPresent()) {
-        boolean isProjectAdded = user.getProjects().stream()
-            .map(ProjectUser::getProject)
-            .map(Project::getKey)
-            .anyMatch(prjKey -> prjKey.equals(row.get(PROJECT.KEY)));
-        if (!isProjectAdded) {
-          user.getProjects().add(PROJECT_USER_MAPPER.map(row));
+  /**
+   * Builds a {@link Function} that fetches records from db results into a list of {@link User}
+   * objects, deserializing user metadata via the given {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize the user's {@code metadata} JSON column
+   * @return {@link Function}
+   */
+  public static Function<Result<? extends Record>, List<User>> userFetcher(ObjectMapper objectMapper) {
+    return rows -> {
+      Map<Long, User> users = Maps.newLinkedHashMap();
+      rows.forEach(row -> {
+        Long id = row.get(USERS.ID);
+        User user;
+        if (!users.containsKey(id)) {
+          user = row.map(RecordMappers.userMapper(objectMapper));
+        } else {
+          user = users.get(id);
         }
-      }
-
-      if (ofNullable(row.get(ORGANIZATION_USER.ORGANIZATION_ROLE)).isPresent()) {
-        boolean isOrgAdded = user.getOrganizationUsers().stream()
-            .map(OrganizationUser::getOrganization)
-            .map(Organization::getId)
-            .anyMatch(orgId -> orgId.equals(row.get(ORGANIZATION.ID)));
-        if (!isOrgAdded) {
-          user.getOrganizationUsers()
-              .add(ORGANIZATION_USER_MAPPER.map(row));
+        if (ofNullable(row.get(PROJECT_USER.PROJECT_ROLE)).isPresent()) {
+          boolean isProjectAdded = user.getProjects().stream()
+              .map(ProjectUser::getProject)
+              .map(Project::getKey)
+              .anyMatch(prjKey -> prjKey.equals(row.get(PROJECT.KEY)));
+          if (!isProjectAdded) {
+            user.getProjects().add(PROJECT_USER_MAPPER.map(row));
+          }
         }
-      }
 
-      users.put(id, user);
-    });
-    return new ArrayList<>(users.values());
-  };
+        if (ofNullable(row.get(ORGANIZATION_USER.ORGANIZATION_ROLE)).isPresent()) {
+          boolean isOrgAdded = user.getOrganizationUsers().stream()
+              .map(OrganizationUser::getOrganization)
+              .map(Organization::getId)
+              .anyMatch(orgId -> orgId.equals(row.get(ORGANIZATION.ID)));
+          if (!isOrgAdded) {
+            user.getOrganizationUsers()
+                .add(ORGANIZATION_USER_MAPPER.map(row));
+          }
+        }
+
+        users.put(id, user);
+      });
+      return new ArrayList<>(users.values());
+    };
+  }
 
   public static final Function<Result<? extends Record>, List<UserFilter>> USER_FILTER_FETCHER = result -> {
     Map<Long, UserFilter> userFilterMap = Maps.newLinkedHashMap();
@@ -371,26 +391,36 @@ public class ResultFetchers {
     return Lists.newArrayList(userFilterMap.values());
   };
 
-  public static final Function<Result<? extends Record>, List<Dashboard>> DASHBOARD_FETCHER = result -> {
-    Map<Long, Dashboard> dashboardMap = Maps.newLinkedHashMap();
-    result.forEach(r -> {
-      Long dashboardId = r.get(ID, Long.class);
-      Dashboard dashboard;
-      if (dashboardMap.containsKey(dashboardId)) {
-        dashboard = dashboardMap.get(dashboardId);
-      } else {
-        dashboard = r.into(Dashboard.class);
-        dashboard.setOwner(r.get(OWNED_ENTITY.OWNER));
-        dashboard.setLocked(r.get(OWNED_ENTITY.LOCKED));
-        Project project = new Project();
-        project.setId(r.get(OWNED_ENTITY.PROJECT_ID, Long.class));
-        dashboard.setProject(project);
-      }
-      DASHBOARD_WIDGET_MAPPER.apply(r).ifPresent(dashboard::addWidget);
-      dashboardMap.put(dashboardId, dashboard);
-    });
-    return Lists.newArrayList(dashboardMap.values());
-  };
+  /**
+   * Builds a {@link Function} that fetches records from db results into a list of
+   * {@link Dashboard} objects, deserializing each widget's options via the given
+   * {@link ObjectMapper}.
+   *
+   * @param objectMapper mapper used to deserialize each widget's {@code widget_options} JSON column
+   * @return {@link Function}
+   */
+  public static Function<Result<? extends Record>, List<Dashboard>> dashboardFetcher(ObjectMapper objectMapper) {
+    return result -> {
+      Map<Long, Dashboard> dashboardMap = Maps.newLinkedHashMap();
+      result.forEach(r -> {
+        Long dashboardId = r.get(ID, Long.class);
+        Dashboard dashboard;
+        if (dashboardMap.containsKey(dashboardId)) {
+          dashboard = dashboardMap.get(dashboardId);
+        } else {
+          dashboard = r.into(Dashboard.class);
+          dashboard.setOwner(r.get(OWNED_ENTITY.OWNER));
+          dashboard.setLocked(r.get(OWNED_ENTITY.LOCKED));
+          Project project = new Project();
+          project.setId(r.get(OWNED_ENTITY.PROJECT_ID, Long.class));
+          dashboard.setProject(project);
+        }
+        RecordMappers.dashboardWidgetMapper(objectMapper).apply(r).ifPresent(dashboard::addWidget);
+        dashboardMap.put(dashboardId, dashboard);
+      });
+      return Lists.newArrayList(dashboardMap.values());
+    };
+  }
 
   public static final Function<Result<? extends Record>, List<Widget>> WIDGET_FETCHER = result -> {
     Map<Long, Widget> widgetMap = Maps.newLinkedHashMap();

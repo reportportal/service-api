@@ -16,13 +16,13 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.DASHBOARD_FETCHER;
-
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers;
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -44,15 +44,21 @@ import org.springframework.stereotype.Repository;
 public class DashboardRepositoryCustomImpl implements DashboardRepositoryCustom {
 
   private DSLContext dsl;
+  private ObjectMapper objectMapper;
 
   @Autowired
   public void setDsl(DSLContext dsl) {
     this.dsl = dsl;
   }
 
+  @Autowired
+  public void setObjectMapper(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
+
   @Override
   public List<Dashboard> findByFilter(Queryable filter) {
-    return DASHBOARD_FETCHER.apply(dsl.fetch(QueryBuilder.newBuilder(
+    return ResultFetchers.dashboardFetcher(objectMapper).apply(dsl.fetch(QueryBuilder.newBuilder(
         filter,
         filter.getFilterConditions()
             .stream()
@@ -73,7 +79,8 @@ public class DashboardRepositoryCustomImpl implements DashboardRepositoryCustom 
         .collect(Collectors.toSet());
     fields.addAll(pageable.getSort().get().map(Sort.Order::getProperty).collect(Collectors.toSet()));
 
-    return PageableExecutionUtils.getPage(DASHBOARD_FETCHER.apply(dsl.fetch(QueryBuilder.newBuilder(filter, fields)
+    return PageableExecutionUtils.getPage(ResultFetchers.dashboardFetcher(objectMapper).apply(
+        dsl.fetch(QueryBuilder.newBuilder(filter, fields)
         .with(pageable)
         .wrap()
         .withWrapperSort(pageable.getSort())

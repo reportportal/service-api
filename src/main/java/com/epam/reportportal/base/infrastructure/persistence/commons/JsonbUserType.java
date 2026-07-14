@@ -18,9 +18,7 @@ package com.epam.reportportal.base.infrastructure.persistence.commons;
 
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,12 +44,8 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class JsonbUserType<T> implements UserType<T> {
 
-  private final ObjectMapper mapper;
-
-  protected JsonbUserType() {
-    mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static ObjectMapper mapper() {
+    return JsonbObjectMapperHolder.getObjectMapper();
   }
 
   @Override
@@ -67,7 +61,7 @@ public abstract class JsonbUserType<T> implements UserType<T> {
     }
     PGobject pgObject = (PGobject) rs.getObject(position);
     try {
-      return mapper.readValue(pgObject.getValue(), this.returnedClass());
+      return mapper().readValue(pgObject.getValue(), this.returnedClass());
     } catch (Exception e) {
       throw new ReportPortalException(
           String.format("Failed to convert String to '%s' ", this.returnedClass().getName()), e);
@@ -85,7 +79,7 @@ public abstract class JsonbUserType<T> implements UserType<T> {
     try {
       PGobject pGobject = new PGobject();
       pGobject.setType("jsonb");
-      pGobject.setValue(mapper.writeValueAsString(value));
+      pGobject.setValue(mapper().writeValueAsString(value));
       st.setObject(index, pGobject);
     } catch (final Exception ex) {
       throw new ReportPortalException("Failed to convert Invoice to String: " + ex.getMessage(),

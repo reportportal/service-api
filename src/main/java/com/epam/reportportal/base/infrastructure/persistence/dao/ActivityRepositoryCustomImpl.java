@@ -16,13 +16,14 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ACTIVITY_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.ACTIVITY_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JActivity.ACTIVITY;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -43,10 +44,12 @@ import org.springframework.stereotype.Repository;
 public class ActivityRepositoryCustomImpl implements ActivityRepositoryCustom {
 
   private final DSLContext dsl;
+  private final ObjectMapper objectMapper;
 
   @Autowired
-  public ActivityRepositoryCustomImpl(DSLContext dsl) {
+  public ActivityRepositoryCustomImpl(DSLContext dsl, ObjectMapper objectMapper) {
     this.dsl = dsl;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -59,18 +62,18 @@ public class ActivityRepositoryCustomImpl implements ActivityRepositoryCustom {
   @Override
   public List<Activity> findByFilterWithSortingAndLimit(Queryable filter, Sort sort, int limit) {
     return dsl.fetch(QueryBuilder.newBuilder(filter).with(sort).with(limit).wrap().build())
-        .map(ACTIVITY_MAPPER);
+        .map(RecordMappers.activityMapper(objectMapper));
   }
 
   @Override
   public List<Activity> findByFilter(Queryable filter) {
-    return ACTIVITY_FETCHER.apply(dsl.fetch(QueryBuilder.newBuilder(filter).wrap().build()));
+    return ResultFetchers.activityFetcher(objectMapper).apply(dsl.fetch(QueryBuilder.newBuilder(filter).wrap().build()));
   }
 
   @Override
   public Page<Activity> findByFilter(Queryable filter, Pageable pageable) {
     return PageableExecutionUtils.getPage(
-        ACTIVITY_FETCHER.apply(dsl.fetch(QueryBuilder.newBuilder(filter)
+        ResultFetchers.activityFetcher(objectMapper).apply(dsl.fetch(QueryBuilder.newBuilder(filter)
             .with(pageable)
             .wrap()
             .withWrapperSort(pageable.getSort())

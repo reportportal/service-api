@@ -45,15 +45,15 @@ import org.springframework.util.StringUtils;
 public class HttpCookieOAuth2AuthorizationRequestRepository
     implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
   private static final String COOKIE_NAME = "oauth2_auth_request";
   private static final int COOKIE_EXPIRE_SECONDS = 180;
 
+  private final ObjectMapper objectMapper;
   private final boolean enforceHttps;
   private final AtomicBoolean secureWarningLogged = new AtomicBoolean(false);
 
-  public HttpCookieOAuth2AuthorizationRequestRepository(boolean enforceHttps) {
+  public HttpCookieOAuth2AuthorizationRequestRepository(ObjectMapper objectMapper, boolean enforceHttps) {
+    this.objectMapper = objectMapper;
     this.enforceHttps = enforceHttps;
   }
 
@@ -122,7 +122,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     response.addCookie(deletion);
   }
 
-  private static String serialize(OAuth2AuthorizationRequest authorizationRequest) throws IOException {
+  private String serialize(OAuth2AuthorizationRequest authorizationRequest) throws IOException {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("grantType", authorizationRequest.getGrantType().getValue());
     data.put("authorizationUri", authorizationRequest.getAuthorizationUri());
@@ -132,12 +132,12 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     data.put("state", authorizationRequest.getState());
     data.put("additionalParameters", authorizationRequest.getAdditionalParameters());
     data.put("attributes", authorizationRequest.getAttributes());
-    return Base64.getUrlEncoder().encodeToString(OBJECT_MAPPER.writeValueAsBytes(data));
+    return Base64.getUrlEncoder().encodeToString(objectMapper.writeValueAsBytes(data));
   }
 
   @SuppressWarnings("unchecked")
-  private static OAuth2AuthorizationRequest deserialize(String base64) throws IOException {
-    Map<String, Object> data = OBJECT_MAPPER.readValue(
+  private OAuth2AuthorizationRequest deserialize(String base64) throws IOException {
+    Map<String, Object> data = objectMapper.readValue(
         Base64.getUrlDecoder().decode(base64),
         new TypeReference<Map<String, Object>>() {
         });

@@ -36,7 +36,11 @@ import org.springframework.security.web.access.AccessDeniedHandler;
  */
 public class OAuth2ErrorResponseHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
+
+  public OAuth2ErrorResponseHandler(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   @Override
   public void commence(HttpServletRequest request,

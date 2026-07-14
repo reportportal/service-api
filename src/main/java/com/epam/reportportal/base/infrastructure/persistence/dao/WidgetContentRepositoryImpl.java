@@ -87,7 +87,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetRepositoryConstants.ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.fieldName;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils.collectJoinFields;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.WidgetContentUtil.ACTIVITY_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.WidgetContentUtil.BUG_TREND_STATISTICS_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.WidgetContentUtil.CASES_GROWTH_TREND_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.WidgetContentUtil.COMPONENT_HEALTH_CHECK_FETCHER;
@@ -148,6 +147,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Cr
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.WidgetContentUtil;
 import com.epam.reportportal.base.infrastructure.persistence.dao.widget.WidgetProviderChain;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.ChartStatisticsContent;
@@ -174,6 +174,7 @@ import com.epam.reportportal.base.infrastructure.persistence.util.WidgetSortUtil
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import jakarta.annotation.Nullable;
 import java.math.BigDecimal;
@@ -231,6 +232,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   private DSLContext dsl;
   @Autowired
   private WidgetProviderChain<HealthCheckTableGetParams, List<HealthCheckTableContent>> healthCheckTableChain;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Override
   public OverallStatisticsContent overallStatisticsContent(Filter filter, Sort sort,
@@ -872,7 +875,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   @Override
   public List<ActivityResource> activityStatistics(Filter filter, Sort sort, int limit) {
     return dsl.fetch(QueryBuilder.newBuilder(filter).with(sort).with(limit).wrap().build())
-        .map(ACTIVITY_MAPPER);
+        .map(WidgetContentUtil.activityMapper(objectMapper));
   }
 
   @Override

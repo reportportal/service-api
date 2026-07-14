@@ -28,6 +28,7 @@ import com.epam.reportportal.auth.store.MutableClientRegistrationRepository;
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import javax.crypto.SecretKey;
@@ -90,6 +91,7 @@ public class AuthorizationServerConfig {
   private final TokenBlacklistService tokenBlacklistService;
   private final DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider;
   private final DelegatingPluginOAuth2UserService delegatingPluginOAuth2UserService;
+  private final ObjectMapper objectMapper;
   @Value("${rp.jwt.signing-key}")
   private String signingKey;
   @Value("${rp.jwt.token.validity-period}")
@@ -101,7 +103,7 @@ public class AuthorizationServerConfig {
 
   @Bean
   public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
-    return new HttpCookieOAuth2AuthorizationRequestRepository(cookieSecureEnforceHttps);
+    return new HttpCookieOAuth2AuthorizationRequestRepository(objectMapper, cookieSecureEnforceHttps);
   }
 
   @Bean
@@ -180,8 +182,8 @@ public class AuthorizationServerConfig {
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
         .csrf(AbstractHttpConfigurer::disable)
         .exceptionHandling(ex -> ex
-            .authenticationEntryPoint(new OAuth2ErrorResponseHandler())
-            .accessDeniedHandler(new OAuth2ErrorResponseHandler()))
+            .authenticationEntryPoint(new OAuth2ErrorResponseHandler(objectMapper))
+            .accessDeniedHandler(new OAuth2ErrorResponseHandler(objectMapper)))
         .apply(configurer)
         .tokenEndpoint(tokenEndpoint -> {
           tokenEndpoint

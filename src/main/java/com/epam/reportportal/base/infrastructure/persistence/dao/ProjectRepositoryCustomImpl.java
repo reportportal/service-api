@@ -18,8 +18,6 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.fieldName;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils.collectJoinFields;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.PROJECT_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.PROJECT_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PROJECT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PROJECT_ATTRIBUTE;
@@ -30,8 +28,11 @@ import static org.jooq.impl.DSL.name;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.QueryBuilder;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers;
+import com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
@@ -49,17 +50,19 @@ public class ProjectRepositoryCustomImpl implements ProjectRepositoryCustom {
 
   @Autowired
   private DSLContext dsl;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Override
   public List<Project> findByFilter(Queryable filter) {
-    return PROJECT_FETCHER.apply(
+    return ResultFetchers.projectFetcher(objectMapper).apply(
         dsl.fetch(QueryBuilder.newBuilder(filter, collectJoinFields(filter)).wrap().build()));
   }
 
   @Override
   public Page<Project> findByFilter(Queryable filter, Pageable pageable) {
     return PageableExecutionUtils.getPage(
-        PROJECT_FETCHER.apply(dsl.fetch(QueryBuilder.newBuilder(filter,
+        ResultFetchers.projectFetcher(objectMapper).apply(dsl.fetch(QueryBuilder.newBuilder(filter,
             collectJoinFields(filter, pageable.getSort())
         ).with(pageable).wrap().withWrapperSort(pageable.getSort()).build())),
         pageable,
@@ -70,7 +73,7 @@ public class ProjectRepositoryCustomImpl implements ProjectRepositoryCustom {
   @Override
   public Optional<Project> findRawByName(String name) {
     return dsl.select(PROJECT.fields()).from(PROJECT).where(PROJECT.NAME.eq(name))
-        .fetchOptional(PROJECT_MAPPER);
+        .fetchOptional(RecordMappers.projectMapper(objectMapper));
   }
 
   @Override
@@ -102,7 +105,7 @@ public class ProjectRepositoryCustomImpl implements ProjectRepositoryCustom {
 
   @Override
   public List<Project> findAllByUserLogin(String login) {
-    return PROJECT_FETCHER.apply(dsl.select(PROJECT.fields())
+    return ResultFetchers.projectFetcher(objectMapper).apply(dsl.select(PROJECT.fields())
         .from(PROJECT)
         .join(PROJECT_USER)
         .on(PROJECT.ID.eq(PROJECT_USER.PROJECT_ID))
@@ -115,7 +118,7 @@ public class ProjectRepositoryCustomImpl implements ProjectRepositoryCustom {
   @Override
   public Page<Project> findAllIdsAndProjectAttributes(Pageable pageable) {
 
-    return PageableExecutionUtils.getPage(PROJECT_FETCHER.apply(dsl.fetch(dsl.with(FILTERED_PROJECT)
+    return PageableExecutionUtils.getPage(ResultFetchers.projectFetcher(objectMapper).apply(dsl.fetch(dsl.with(FILTERED_PROJECT)
             .as(QueryBuilder.newBuilder(FilterTarget.PROJECT_TARGET,
                 collectJoinFields(pageable.getSort())).with(pageable).build())
             .select(PROJECT.ID, ATTRIBUTE.NAME, PROJECT_ATTRIBUTE.VALUE)

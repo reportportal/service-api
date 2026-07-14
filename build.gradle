@@ -166,6 +166,7 @@ openApiGenerate {
     configFile.set(file("$rootDir/src/main/resources/openapi/config.json"))
     skipOverwrite.set(false)
     cleanupOutput.set(true)
+    workerIsolation.set("process")
     // verbose.set(true)
 }
 

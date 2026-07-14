@@ -21,16 +21,16 @@ import static com.epam.reportportal.base.ws.converter.converters.ServerSettingsC
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
+import com.epam.reportportal.api.model.AnalyticsSettingsRequest;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.api.model.UpdateServerSettingsRequest;
 import com.epam.reportportal.base.core.events.domain.SettingsUpdatedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.model.settings.AnalyticsResource;
 import com.epam.reportportal.base.model.settings.ServerSettingsResource;
-import com.epam.reportportal.base.model.settings.UpdateSettingsRq;
-import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.ws.converter.converters.ServerSettingsConverter;
 import java.util.Map;
 import java.util.Objects;
@@ -68,9 +68,8 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
 
 
   @Override
-  public OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource,
-      ReportPortalUser user) {
-    String analyticsType = analyticsResource.getType();
+  public SuccessfulUpdate saveAnalyticsSettings(AnalyticsSettingsRequest request, ReportPortalUser user) {
+    String analyticsType = request.getType();
     Map<String, ServerSettings> serverAnalyticsDetails = findServerSettings().entrySet().stream()
         .filter(entry -> entry.getKey().startsWith(ANALYTICS_CONFIG_PREFIX))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -85,8 +84,7 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
     ServerSettingsResource before = TO_RESOURCE.apply(analyticsDetails);
 
     analyticsDetails.setKey(formattedAnalyticsType);
-    analyticsDetails.setValue(
-        String.valueOf((ofNullable(analyticsResource.getEnabled()).orElse(false))));
+    analyticsDetails.setValue(String.valueOf((ofNullable(request.getEnabled()).orElse(false))));
 
     serverSettingsRepository.save(analyticsDetails);
 
@@ -96,15 +94,13 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
         user.getUserId(),
         user.getUsername()
     ));
-    return new OperationCompletionRS("Server Settings were successfully updated.");
+    return new SuccessfulUpdate("Server Settings were successfully updated.");
   }
 
   @Override
-  public OperationCompletionRS updateServerSettings(UpdateSettingsRq request,
-      ReportPortalUser user) {
-    ServerSettings serverSettings = serverSettingsRepository.findByKey(request.getKey().getName())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND,
-            request.getKey().getName()));
+  public SuccessfulUpdate updateServerSettings(UpdateServerSettingsRequest request, ReportPortalUser user) {
+    ServerSettings serverSettings = serverSettingsRepository.findByKey(request.getKey().getValue())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.SERVER_SETTINGS_NOT_FOUND, request.getKey().getValue()));
     ServerSettingsResource before = TO_RESOURCE.apply(serverSettings);
     var settingHandler = settingsRegistry.getHandler(serverSettings.getKey());
     settingHandler.ifPresent(handler -> handler.validate(request.getValue()));
@@ -119,7 +115,7 @@ public class ServerSettingsServiceImpl implements ServerSettingsService {
         user.getUserId(),
         user.getUsername()
     ));
-    return new OperationCompletionRS("Server Settings were successfully updated.");
+    return new SuccessfulUpdate("Server Settings were successfully updated.");
   }
 
   private Map<String, ServerSettings> findServerSettings() {

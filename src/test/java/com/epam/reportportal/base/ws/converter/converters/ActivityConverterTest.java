@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.converters;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -80,6 +81,54 @@ class ActivityConverterTest {
     final ActivityResource resource = ActivityConverter.TO_RESOURCE_WITH_USER.apply(activity,
         "username");
     assertEquals("username", resource.getUser());
+  }
+
+  @Test
+  void toProjectActivityApiModelWhenResourceHasHistoryShouldMapAllFieldsToSnakeCaseModel() {
+    ActivityResource resource = new ActivityResource();
+    resource.setId(1L);
+    resource.setUser("superadmin");
+    resource.setUserId(2L);
+    resource.setLoggedObjectId(3L);
+    resource.setLastModified(Instant.now());
+    resource.setActionType("finishLaunch");
+    resource.setObjectType("LAUNCH");
+    resource.setProjectId(4L);
+    resource.setProjectName("default_personal");
+    resource.setProjectKey("default_personal");
+    resource.setObjectName("launch name");
+    final com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails details =
+        new com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails();
+    details.setHistory(Collections.singletonList(HistoryField.of("status", "PASSED", "FAILED")));
+    resource.setDetails(details);
+
+    var apiModel = ActivityConverter.TO_PROJECT_ACTIVITY_API_MODEL.apply(resource);
+
+    assertThat(apiModel.getId()).isEqualTo(resource.getId());
+    assertThat(apiModel.getUser()).isEqualTo(resource.getUser());
+    assertThat(apiModel.getUserId()).isEqualTo(resource.getUserId());
+    assertThat(apiModel.getLoggedObjectId()).isEqualTo(resource.getLoggedObjectId());
+    assertThat(apiModel.getLastModified()).isEqualTo(resource.getLastModified());
+    assertThat(apiModel.getActionType()).isEqualTo(resource.getActionType());
+    assertThat(apiModel.getObjectType()).isEqualTo(resource.getObjectType());
+    assertThat(apiModel.getProjectId()).isEqualTo(resource.getProjectId());
+    assertThat(apiModel.getProjectName()).isEqualTo(resource.getProjectName());
+    assertThat(apiModel.getProjectKey()).isEqualTo(resource.getProjectKey());
+    assertThat(apiModel.getObjectName()).isEqualTo(resource.getObjectName());
+    assertThat(apiModel.getDetails().getHistory()).hasSize(1);
+    assertThat(apiModel.getDetails().getHistory().get(0).getField()).isEqualTo("status");
+  }
+
+  @Test
+  void toProjectActivityApiModelWhenDetailsHaveNoHistoryShouldReturnDetailsWithEmptyHistory() {
+    ActivityResource resource = new ActivityResource();
+    resource.setId(1L);
+    resource.setDetails(new com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails());
+
+    var apiModel = ActivityConverter.TO_PROJECT_ACTIVITY_API_MODEL.apply(resource);
+
+    assertThat(apiModel.getDetails()).isNotNull();
+    assertThat(apiModel.getDetails().getHistory()).isEmpty();
   }
 
   private void validate(Activity db, ActivityResource resource) {

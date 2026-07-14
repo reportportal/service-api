@@ -75,9 +75,15 @@ public class ActivityController {
     this.projectExtractor = projectExtractor;
   }
 
+  /**
+   * @deprecated Use
+   * {@link com.epam.reportportal.api.ActivitiesApi#getProjectActivity(String, Long)}
+   * ({@code GET /projects/{project_key}/activities/{activity_id}}).
+   */
+  @Deprecated(forRemoval = true)
   @GetMapping(value = "/{activityId}")
   @ResponseStatus(OK)
-  @Operation(summary = "Get an activity by its ID in a specific project", description = """
+  @Operation(summary = "Get an activity by its ID in a specific project", deprecated = true, description = """
       Fetches the activity details by its ID for a specific project.""", responses = {
       @ApiResponse(responseCode = "200", description = "Successful operation. Returns the "
           + "Activity", content = @Content(schema = @Schema(implementation =
@@ -149,9 +155,15 @@ public class ActivityController {
     return activityHandler.getActivity(membershipDetails, activityId);
   }
 
+  /**
+   * @deprecated Use
+   * {@link com.epam.reportportal.api.ActivitiesApi#getTestItemActivities(String, Long, Integer, Integer,
+   *String, String)} ({@code GET /projects/{project_key}/test-items/{item_id}/activities}).
+   */
+  @Deprecated(forRemoval = true)
   @GetMapping(value = "/item/{itemId}")
   @ResponseStatus(OK)
-  @Operation(summary = "Get a list of item activities for a specific project", description = """
+  @Operation(summary = "Get a list of item activities for a specific project", deprecated = true, description = """
       Fetches a list of item activities for a specific project.
       <p>Action field can have these values:</p>
       <ul>
@@ -318,9 +330,15 @@ public class ActivityController {
     return activityHandler.getItemActivities(membershipDetails, itemId, filter, pageable);
   }
 
+  /**
+   * @deprecated Use
+   * {@link com.epam.reportportal.api.ActivitiesApi#getTestCaseActivities(String, Long, Integer, Integer,
+   *String, String)} ({@code GET /projects/{project_key}/test-cases/{test_case_id}/activities}).
+   */
+  @Deprecated(forRemoval = true)
   @GetMapping(value = "/test-case/{testCaseId}")
   @ResponseStatus(OK)
-  @Operation(summary = "Get a list of test case activities for a specific project", description = "Fetches a list of test case activities for a specific project.")
+  @Operation(summary = "Get a list of test case activities for a specific project", deprecated = true, description = "Fetches a list of test case activities for a specific project.")
   public Page<ActivityEventResource> getTestCaseActivities(@PathVariable
       @Parameter(description = "The name of the project for which the activities should be searched")
       String projectKey, @PathVariable

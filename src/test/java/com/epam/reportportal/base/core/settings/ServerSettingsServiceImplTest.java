@@ -7,14 +7,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.AnalyticsSettingsRequest;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.base.core.events.domain.SettingsUpdatedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.model.settings.AnalyticsResource;
 import com.epam.reportportal.base.model.settings.ServerSettingsResource;
-import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +51,7 @@ class ServerSettingsServiceImplTest {
   private ArgumentCaptor<SettingsUpdatedEvent> eventCaptor;
 
   private ReportPortalUser testUser;
-  private AnalyticsResource analyticsResource;
+  private AnalyticsSettingsRequest analyticsResource;
 
   @BeforeEach
   void setUp() {
@@ -64,7 +64,7 @@ class ServerSettingsServiceImplTest {
         .withUserRole(UserRole.USER)
         .build();
 
-    analyticsResource = new AnalyticsResource();
+    analyticsResource = new AnalyticsSettingsRequest();
     analyticsResource.setType("all");
     analyticsResource.setEnabled(true);
   }
@@ -88,12 +88,12 @@ class ServerSettingsServiceImplTest {
         invocation -> invocation.getArgument(0));
 
     // when
-    OperationCompletionRS result = serverSettingsService.saveAnalyticsSettings(analyticsResource,
+    SuccessfulUpdate result = serverSettingsService.saveAnalyticsSettings(analyticsResource,
         testUser);
 
     // then
     assertNotNull(result);
-    assertEquals("Server Settings were successfully updated.", result.getResultMessage());
+    assertEquals("Server Settings were successfully updated.", result.getMessage());
     verify(serverSettingsRepository).save(settingsCaptor.capture());
     ServerSettings savedSettings = settingsCaptor.getValue();
     assertEquals(expectedKey, savedSettings.getKey());

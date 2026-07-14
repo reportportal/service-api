@@ -16,13 +16,15 @@
 
 package com.epam.reportportal.base.ws.converter.converters;
 
-import com.epam.reportportal.api.model.ActivityDetails;
-import com.epam.reportportal.api.model.HistoryField;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
+import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.activity.HistoryField;
 import com.epam.reportportal.base.model.ActivityEventResource;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Activity to ActivityEventResource Converter.
@@ -59,15 +61,42 @@ public final class ActivityEventConverter {
           .subjectType(activity.getSubjectType().getValue())
           .details(convertDetails(activity.getDetails()));
 
-  private static ActivityDetails convertDetails(
-      com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails detailsEntity) {
-    if (CollectionUtils.isEmpty(detailsEntity.getHistory())) {
-      return null;
-    }
+  /**
+   * Maps a legacy {@link com.epam.reportportal.base.model.ActivityEventResource} (used by the still-live
+   * {@code /v1/{projectKey}/activity/**} endpoints) to the generated API-first
+   * {@link com.epam.reportportal.api.model.Activity} model, so the new API-first endpoints can reuse
+   * {@link com.epam.reportportal.base.core.activity.ActivityHandler} without duplicating its query logic.
+   */
+  public static final Function<ActivityEventResource, com.epam.reportportal.api.model.Activity> TO_API_MODEL =
+      resource -> new com.epam.reportportal.api.model.Activity()
+          .id(resource.getId())
+          .createdAt(resource.getCreatedAt())
+          .eventName(resource.getEventName())
+          .objectId(resource.getObjectId())
+          .objectName(resource.getObjectName())
+          .objectType(resource.getObjectType())
+          .projectId(resource.getProjectId())
+          .projectName(resource.getProjectName())
+          .subjectName(resource.getSubjectName())
+          .subjectType(resource.getSubjectType())
+          .subjectId(resource.getSubjectId())
+          .details(convertDetails(resource.getDetails()));
 
-    return new ActivityDetails()
-        .history(detailsEntity.getHistory().stream()
-            .map(historyField -> new HistoryField()
+  /**
+   * Converts the raw activity details payload (always a
+   * {@link com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails} at runtime) into the
+   * generated {@link ActivityDetails} model. Always returns a non-null {@link ActivityDetails} with a (possibly empty)
+   * {@code history} list, matching the legacy {@code /v1/{projectKey}/activity/**} endpoints' contract of always
+   * including a {@code details} object.
+   */
+  public static com.epam.reportportal.api.model.ActivityDetails convertDetails(Object details) {
+    Collection<HistoryField> history = details instanceof ActivityDetails detailsEntity
+        ? CollectionUtils.emptyIfNull(detailsEntity.getHistory())
+        : List.of();
+
+    return new com.epam.reportportal.api.model.ActivityDetails()
+        .history(history.stream()
+            .map(historyField -> new com.epam.reportportal.api.model.HistoryField()
                 .field(historyField.getField())
                 .newValue(historyField.getNewValue())
                 .oldValue(historyField.getOldValue()))

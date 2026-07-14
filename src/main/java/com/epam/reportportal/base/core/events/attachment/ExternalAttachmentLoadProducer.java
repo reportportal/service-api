@@ -16,30 +16,19 @@
 
 package com.epam.reportportal.base.core.events.attachment;
 
-import static com.epam.reportportal.base.core.configs.rabbit.InternalConfiguration.EXCHANGE_ATTACHMENT;
-import static com.epam.reportportal.base.core.configs.rabbit.InternalConfiguration.QUEUE_ATTACHMENT_EXTERNAL_LOAD;
-
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
- * Publishes {@link ExternalAttachmentLoadEvent} messages to the {@code attachment} exchange with
- * routing key
- * {@link
- * com.epam.reportportal.base.core.configs.rabbit.InternalConfiguration#QUEUE_ATTACHMENT_EXTERNAL_LOAD}.
- * The downstream consumer is expected to execute the requested plugin command, download the
- * external binary and attach it to the log row referenced by {@code logId}.
+ * Publishes {@link ExternalAttachmentLoadEvent} application events. The events are forwarded to
+ * RabbitMQ by {@link ExternalAttachmentLoadRabbitPublisher} after the current transaction commits.
  */
 @Service
+@RequiredArgsConstructor
 public class ExternalAttachmentLoadProducer {
 
-  private final AmqpTemplate rabbitTemplate;
-
-  public ExternalAttachmentLoadProducer(
-      @Qualifier("rabbitTemplate") AmqpTemplate rabbitTemplate) {
-    this.rabbitTemplate = rabbitTemplate;
-  }
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   public void publish(String pluginId, String pluginCommandName, Long logId, Long projectId,
       Long launchId, Long testItemId, String attachmentExternalId) {
@@ -49,7 +38,7 @@ public class ExternalAttachmentLoadProducer {
 
   public void publish(String pluginId, String pluginCommandName, Long logId, Long projectId,
       Long launchId, Long testItemId, String attachmentExternalId, String attachmentAttributeKey) {
-    rabbitTemplate.convertAndSend(EXCHANGE_ATTACHMENT, QUEUE_ATTACHMENT_EXTERNAL_LOAD,
+    applicationEventPublisher.publishEvent(
         new ExternalAttachmentLoadEvent(pluginId, pluginCommandName, logId, projectId, launchId,
             testItemId, attachmentExternalId, attachmentAttributeKey));
   }

@@ -24,6 +24,8 @@ import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.epam.reportportal.api.model.PluginCommandContext;
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.events.domain.ImportFinishedEvent;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.plugin.CreatePluginHandler;
@@ -144,20 +146,26 @@ public class PluginController {
       MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(OK)
   @Operation(summary = "Send report to the specified plugin for importing")
-  public Object executeImportPluginCommand(@AuthenticationPrincipal ReportPortalUser user,
-      @PathVariable String projectKey, @PathVariable String pluginName,
+  public Object executeImportPluginCommand(
+      @AuthenticationPrincipal ReportPortalUser user,
+      @PathVariable String projectKey,
+      @PathVariable String pluginName,
       @RequestParam("file") MultipartFile file,
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
     Map<String, Object> executionParams = new HashMap<>();
     executionParams.put("file", file);
-    ofNullable(launchImportRq).ifPresentOrElse(
-        rq -> executionParams.put(ENTITY_PARAM, launchImportRq),
-        () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
-    );
+    ofNullable(launchImportRq)
+        .ifPresentOrElse(_ -> executionParams.put(ENTITY_PARAM, launchImportRq),
+            () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
+        );
     var membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
-    var importResult = executeIntegrationHandler.executeCommand(
-        membershipDetails, pluginName, "import",
-        executionParams);
+    executionParams.put("projectName", membershipDetails.getProjectKey());
+    PluginCommandRQ pluginCommandRQ = new PluginCommandRQ()
+        .context(new PluginCommandContext(membershipDetails.getOrgId(), membershipDetails.getProjectId(), null))
+        .arguments(executionParams);
+
+    var importResult =
+        executeIntegrationHandler.executeExtensionCommand(pluginName, "import", pluginCommandRQ);
     eventPublisher.publishEvent(new ImportFinishedEvent(user.getUserId(),
         user.getUsername(),
         membershipDetails.getProjectId(),

@@ -84,7 +84,8 @@ class ExternalAttachmentLoadServiceTest {
         .thenReturn(Optional.of(pluginInstance));
     doReturn(pluginCommand).when(pluginInstance).getIntegrationExtensionCommand(COMMAND_NAME);
 
-    service.loadAttachment(event(11L, 7L, 3L, 5L, "rec-1", "BBID"));
+    service.loadAttachment(
+        event(11L, 7L, 3L, 5L, "rec-1", "mobitru_selenium_recording_id"));
 
     ArgumentCaptor<PluginCommandRQ> paramsCaptor = ArgumentCaptor.forClass(PluginCommandRQ.class);
     verify(pluginCommand).executeCommand(eq(projectIntegration), paramsCaptor.capture());
@@ -93,7 +94,7 @@ class ExternalAttachmentLoadServiceTest {
         .containsEntry("launchId", 3L)
         .containsEntry("testItemId", 5L)
         .containsEntry("attachmentExternalId", "rec-1")
-        .containsEntry("attachmentAttributeKey", "BBID");
+        .containsEntry("attachmentAttributeKey", "mobitru_selenium_recording_id");
     assertThat(paramsCaptor.getValue().getContext().getProjectId()).isEqualTo(7L);
     verify(integrationRepository, never()).findAllGlobalByType(type);
   }

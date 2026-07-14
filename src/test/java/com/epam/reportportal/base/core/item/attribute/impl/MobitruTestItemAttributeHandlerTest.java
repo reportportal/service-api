@@ -49,6 +49,9 @@ class MobitruTestItemAttributeHandlerTest {
   private static final String LOAD_EXTERNAL_ATTACHMENT_COMMAND = "loadExternalAttachment";
   private static final String LOG_TYPE_NAME = "mobitru";
   private static final String LOG_MESSAGE = "Mobitru video. RecordId: %s";
+  private static final String MOBILE_RECORDING_ID_KEY = "mobitru_mobile_recording_id";
+  private static final String PLAYWRIGHT_RECORDING_ID_KEY = "mobitru_playwright_recording_id";
+  private static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
 
   @Mock
   private PluginAvailabilityChecker pluginAvailabilityChecker;
@@ -76,7 +79,7 @@ class MobitruTestItemAttributeHandlerTest {
   void doesNothingWhenPluginNotAvailable() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(false);
 
-    handler.handleTestItemFinish(itemWithAttribute("MBID", "device-1"));
+    handler.handleTestItemFinish(itemWithAttribute(MOBILE_RECORDING_ID_KEY, "device-1"));
 
     verifyNoInteractions(systemLogService);
     verifyNoInteractions(launchRepository);
@@ -84,7 +87,7 @@ class MobitruTestItemAttributeHandlerTest {
   }
 
   @Test
-  void doesNothingWhenNoMbidAttribute() {
+  void doesNothingWhenNoMobitruRecordingAttribute() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
 
     handler.handleTestItemFinish(itemWithAttribute("otherKey", "v"));
@@ -95,13 +98,13 @@ class MobitruTestItemAttributeHandlerTest {
   }
 
   @Test
-  void writesOneLogPerNonEmptyMbid() {
+  void writesOneLogPerNonEmptyMobileRecordingId() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     TestItem item = itemWithAttributes(
-        attr("MBID", "device-1"),
-        attr("MBID", "device-2"),
-        attr("MBID", ""),
-        attr("MBID", null)
+        attr(MOBILE_RECORDING_ID_KEY, "device-1"),
+        attr(MOBILE_RECORDING_ID_KEY, "device-2"),
+        attr(MOBILE_RECORDING_ID_KEY, ""),
+        attr(MOBILE_RECORDING_ID_KEY, null)
     );
     Launch launch = new Launch();
     launch.setId(99L);
@@ -122,16 +125,16 @@ class MobitruTestItemAttributeHandlerTest {
         .writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME), anyString());
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(11L), eq(7L), eq(99L), eq(10L),
-        eq("device-1"), eq("MBID"));
+        eq("device-1"), eq(MOBILE_RECORDING_ID_KEY));
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(22L), eq(7L), eq(99L), eq(10L),
-        eq("device-2"), eq("MBID"));
+        eq("device-2"), eq(MOBILE_RECORDING_ID_KEY));
   }
 
   @Test
-  void writesLogAndPublishesAttributeKeyForBbid() {
+  void writesLogAndPublishesAttributeKeyForPlaywrightRecordingId() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
-    TestItem item = itemWithAttribute("BBID", "browser-session-1");
+    TestItem item = itemWithAttribute(PLAYWRIGHT_RECORDING_ID_KEY, "browser-session-1");
     Launch launch = new Launch();
     launch.setId(99L);
     launch.setProjectId(7L);
@@ -145,7 +148,27 @@ class MobitruTestItemAttributeHandlerTest {
         eq(logMessage("browser-session-1")));
     verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
         eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(33L), eq(7L), eq(99L), eq(10L),
-        eq("browser-session-1"), eq("BBID"));
+        eq("browser-session-1"), eq(PLAYWRIGHT_RECORDING_ID_KEY));
+  }
+
+  @Test
+  void writesLogAndPublishesAttributeKeyForSeleniumRecordingId() {
+    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
+    TestItem item = itemWithAttribute(SELENIUM_RECORDING_ID_KEY, "browser-session-2");
+    Launch launch = new Launch();
+    launch.setId(99L);
+    launch.setProjectId(7L);
+    when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
+    when(systemLogService.writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
+        eq(logMessage("browser-session-2")))).thenReturn(44L);
+
+    handler.handleTestItemFinish(item);
+
+    verify(systemLogService).writeTestItemLog(eq(item), eq(launch), eq(LOG_TYPE_NAME),
+        eq(logMessage("browser-session-2")));
+    verify(externalAttachmentLoadProducer).publish(eq(PLUGIN_ID),
+        eq(LOAD_EXTERNAL_ATTACHMENT_COMMAND), eq(44L), eq(7L), eq(99L), eq(10L),
+        eq("browser-session-2"), eq(SELENIUM_RECORDING_ID_KEY));
   }
 
   @Test
@@ -162,7 +185,7 @@ class MobitruTestItemAttributeHandlerTest {
   @Test
   void skipsWhenLaunchCannotBeResolved() {
     when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
-    TestItem item = itemWithAttribute("MBID", "device-1");
+    TestItem item = itemWithAttribute(MOBILE_RECORDING_ID_KEY, "device-1");
     when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.empty());
 
     handler.handleTestItemFinish(item);

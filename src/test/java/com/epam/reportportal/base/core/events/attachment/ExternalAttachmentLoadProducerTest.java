@@ -40,7 +40,7 @@ class ExternalAttachmentLoadProducerTest {
     ExternalAttachmentLoadProducer producer = new ExternalAttachmentLoadProducer(amqpTemplate);
 
     producer.publish("mobitru", "loadExternalAttachment", 123L, 456L, 789L, 100L, "device-1",
-        "MBID");
+        "mobitru_mobile_recording_id");
 
     ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
     verify(amqpTemplate).convertAndSend(eq(EXCHANGE_ATTACHMENT),
@@ -55,6 +55,6 @@ class ExternalAttachmentLoadProducerTest {
     assertThat(event.getLaunchId()).isEqualTo(789L);
     assertThat(event.getTestItemId()).isEqualTo(100L);
     assertThat(event.getAttachmentExternalId()).isEqualTo("device-1");
-    assertThat(event.getAttachmentAttributeKey()).isEqualTo("MBID");
+    assertThat(event.getAttachmentAttributeKey()).isEqualTo("mobitru_mobile_recording_id");
   }
 }

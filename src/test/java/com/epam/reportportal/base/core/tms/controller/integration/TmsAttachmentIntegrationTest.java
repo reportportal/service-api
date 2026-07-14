@@ -28,7 +28,8 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Autowired
   private OAuthHelper oAuthHelper;
@@ -59,7 +60,7 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
 
     // Then verify response and database state
     var responseBody = result.getResponse().getContentAsString();
-    var uploadResponse = mapper.readValue(responseBody, UploadAttachmentRS.class);
+    var uploadResponse = objectMapper.readValue(responseBody, UploadAttachmentRS.class);
 
     assertNotNull(uploadResponse.getId());
     assertEquals("test-attachment.pdf", uploadResponse.getFileName());
@@ -203,7 +204,7 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
         .andReturn();
 
     // Then verify large file is stored correctly
-    var uploadResponse = mapper.readValue(result.getResponse().getContentAsString(),
+    var uploadResponse = objectMapper.readValue(result.getResponse().getContentAsString(),
         UploadAttachmentRS.class);
 
     var attachment = tmsAttachmentRepository.findById(uploadResponse.getId());
@@ -232,7 +233,7 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
         .andReturn();
 
     // Then verify special characters are preserved
-    var uploadResponse = mapper.readValue(result.getResponse().getContentAsString(),
+    var uploadResponse = objectMapper.readValue(result.getResponse().getContentAsString(),
         UploadAttachmentRS.class);
 
     var attachment = tmsAttachmentRepository.findById(uploadResponse.getId());
@@ -257,6 +258,6 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andReturn();
 
-    return mapper.readValue(result.getResponse().getContentAsString(), UploadAttachmentRS.class);
+    return objectMapper.readValue(result.getResponse().getContentAsString(), UploadAttachmentRS.class);
   }
 }

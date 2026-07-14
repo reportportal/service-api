@@ -64,7 +64,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   private static final Long TEST_CASE_NOT_IN_PLAN_ID = 204L;
   private static final Long NON_EXISTENT_TEST_PLAN_ID = 99999L;
   private static final Long NON_EXISTENT_TEST_CASE_ID = 99999L;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
   @PersistenceContext
   private EntityManager entityManager;
   @Autowired

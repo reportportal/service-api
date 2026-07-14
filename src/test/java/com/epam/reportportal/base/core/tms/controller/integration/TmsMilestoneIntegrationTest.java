@@ -19,7 +19,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMileston
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
@@ -46,8 +45,8 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
   private static final Long NON_EXISTENT_MILESTONE_ID = 99999L;
   private static final Long TEST_PLAN_IN_MILESTONE_ID = 400L;
 
-  private final ObjectMapper objectMapper = new ObjectMapper()
-      .registerModule(new JavaTimeModule());
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @PersistenceContext
   private EntityManager entityManager;

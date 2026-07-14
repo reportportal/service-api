@@ -64,7 +64,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
   private static final String DEFAULT_PROJECT_KEY = "default_personal";
-  private final ObjectMapper mapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
   @Autowired
   private LaunchRepository launchRepository;
   @Autowired
@@ -103,7 +104,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Manual Launch Full"))
@@ -118,7 +119,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andReturn();
 
     // Then
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -143,7 +144,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Launch with Test Plan Batch"))
@@ -153,7 +154,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.executionStatistic.toRun").exists())
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -184,7 +185,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Launch with Specific Test Cases Batch"))
@@ -194,7 +195,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.executionStatistic.toRun").value(2))
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -220,12 +221,12 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -275,12 +276,12 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -322,7 +323,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Minimal Manual Launch"))
@@ -343,12 +344,12 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -457,7 +458,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -526,7 +527,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Updated Launch Name"));
@@ -548,7 +549,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(200));
@@ -573,7 +574,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.attributes").isArray())
@@ -591,7 +592,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.testPlan").exists())
@@ -609,7 +610,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
@@ -636,7 +637,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(addTestCaseRQ))
+                .content(objectMapper.writeValueAsString(addTestCaseRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
@@ -659,7 +660,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(addTestCaseRQ))
+                .content(objectMapper.writeValueAsString(addTestCaseRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
@@ -675,7 +676,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(addTestCaseRQ))
+                .content(objectMapper.writeValueAsString(addTestCaseRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
@@ -691,7 +692,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999/test-case")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(addTestCaseRQ))
+                .content(objectMapper.writeValueAsString(addTestCaseRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
@@ -709,14 +710,14 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/batch")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchAddRQ))
+                .content(objectMapper.writeValueAsString(batchAddRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.successCount").value(3))
         .andExpect(jsonPath("$.failureCount").value(0))
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         BatchTestCaseOperationResultRS.class
     );
@@ -741,7 +742,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/batch")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchAddRQ))
+                .content(objectMapper.writeValueAsString(batchAddRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.successCount").value(2))
@@ -991,7 +992,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionStatus").value("PASSED"));
@@ -1019,7 +1020,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/11")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionStatus").value("FAILED"));
@@ -1036,7 +1037,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionStatus").value("SKIPPED"));
@@ -1053,7 +1054,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
@@ -1070,7 +1071,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
             patch(
                 "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/999")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
@@ -1089,7 +1090,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.comment").value("Test failed due to timeout issue"));
@@ -1107,7 +1108,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/10/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.comment").value("Updated comment text"));
@@ -1131,7 +1132,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.comment").value("See attached screenshot"))
@@ -1160,7 +1161,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.comment").value("Multiple attachments"))
@@ -1185,7 +1186,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ1))
+                .content(objectMapper.writeValueAsString(commentRQ1))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
@@ -1203,7 +1204,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ2))
+                .content(objectMapper.writeValueAsString(commentRQ2))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.attachments").isArray())
@@ -1222,7 +1223,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
@@ -1243,7 +1244,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
@@ -1260,7 +1261,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/999/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
@@ -1324,12 +1325,12 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     var createResult = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(launchRQ))
+                .content(objectMapper.writeValueAsString(launchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn();
 
-    var launch = mapper.readValue(
+    var launch = objectMapper.readValue(
         createResult.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
@@ -1345,7 +1346,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/batch")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchAddRQ))
+                .content(objectMapper.writeValueAsString(batchAddRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.successCount").value(3));
@@ -1360,7 +1361,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(status().isOk())
         .andReturn();
 
-    var executionsPage = mapper.readValue(
+    var executionsPage = objectMapper.readValue(
         executionsResult.getResponse().getContentAsString(),
         new TypeReference<com.epam.reportportal.base.model.Page<TmsTestCaseExecutionRS>>() {
         }
@@ -1375,7 +1376,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/execution/" + execution1.getId())
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(
+                .content(objectMapper.writeValueAsString(
                     TmsTestCaseExecutionRQ.builder().status("PASSED").build()
                 ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1392,7 +1393,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/execution/" + execution2.getId())
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(
+                .content(objectMapper.writeValueAsString(
                     TmsTestCaseExecutionRQ.builder().status("FAILED").build()
                 ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1412,7 +1413,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/execution/" + execution2.getId() + "/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ))
+                .content(objectMapper.writeValueAsString(commentRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.comment").exists())
@@ -1426,7 +1427,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/execution/" + execution3.getId())
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(
+                .content(objectMapper.writeValueAsString(
                     TmsTestCaseExecutionRQ.builder().status("SKIPPED").build()
                 ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1451,7 +1452,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ1))
+                .content(objectMapper.writeValueAsString(commentRQ1))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
@@ -1464,7 +1465,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ2))
+                .content(objectMapper.writeValueAsString(commentRQ2))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
@@ -1476,7 +1477,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(commentRQ3))
+                .content(objectMapper.writeValueAsString(commentRQ3))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.comment").value("Final comment v3"));
@@ -1495,14 +1496,14 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     var result = mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .content(objectMapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.successCount").value(2))
         .andExpect(jsonPath("$.failureCount").value(0))
         .andReturn();
 
-    var response = mapper.readValue(
+    var response = objectMapper.readValue(
         result.getResponse().getContentAsString(),
         BatchDeleteTestCaseExecutionsResultRS.class
     );
@@ -1522,7 +1523,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .content(objectMapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.successCount").value(1))
@@ -1541,7 +1542,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .content(objectMapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.successCount").value(0))
@@ -1559,7 +1560,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .content(objectMapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
@@ -1574,7 +1575,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999/test-case/execution")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .content(objectMapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
@@ -1590,7 +1591,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/test-case/execution")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .content(objectMapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.successCount").value(0))
@@ -1608,7 +1609,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.attributes").isEmpty());
@@ -1636,7 +1637,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(status().isOk())
         .andReturn();
 
-    return mapper.readValue(
+    return objectMapper.readValue(
         result.getResponse().getContentAsString(),
         UploadAttachmentRS.class
     );
@@ -1654,7 +1655,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/11")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionStatus").value("PASSED"))
@@ -1676,7 +1677,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionComment.comment").value("Updated partial comment via patch"));
@@ -1691,7 +1692,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(patchRQ))
+                .content(objectMapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionComment").doesNotExist());

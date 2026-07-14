@@ -58,14 +58,16 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   @Autowired
   private TmsTestCaseRepository tmsTestCaseRepository;
 
+  @Autowired
+  private ObjectMapper objectMapper;
+
   @Test
   void createRootTestFolderIntegrationTest() throws Exception {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .description("description_create")
         .name("name_create")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -95,8 +97,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .name("Child folder")
         .parentTestFolderId(3L) // Use existing folder by ID
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -126,8 +127,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .name("New Root Parent Folder")
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -163,8 +163,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .parentTestFolderId(3L) // New parent will have existing folder 3 as parent
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -195,8 +194,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .name("Child folder invalid parent")
         .parentTestFolderId(999L) // Non-existent folder ID
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -216,8 +214,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .parentTestFolderId(999L) // Non-existent grandparent folder ID
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -237,8 +234,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .name("New Parent Folder")
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -255,8 +251,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .description("description_updated")
         .name("name_updated")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
             .contentType("application/json")
@@ -280,8 +275,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .name("Updated name with new parent")
         .parentTestFolderId(4L)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
             .contentType("application/json")
@@ -309,8 +303,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .name("Brand New Parent for Update")
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/3")
             .contentType("application/json")
@@ -330,8 +323,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("patched_name")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
             .contentType("application/json")
@@ -354,8 +346,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .parentTestFolderId(5L)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/4")
             .contentType("application/json")
@@ -377,8 +368,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("patched_name")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/999")
             .contentType("application/json")
@@ -554,8 +544,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -577,7 +566,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify duplicated folder exists in database
@@ -605,8 +594,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .name("Duplicated Into Existing Parent")
         .parentTestFolderId(targetParentId)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -624,7 +612,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify duplicated folder has correct parent
@@ -646,8 +634,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .name("Brand New Parent Folder")
             .build())
         .build();
-    var mapper = new ObjectMapper();
-    var jsonContent = mapper.writeValueAsString(request);
+    var jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -664,7 +651,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify duplicated folder has correct parent
@@ -687,8 +674,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .parentTestFolderId(grandparentId)
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -706,7 +692,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify hierarchy
@@ -734,8 +720,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("Duplicated Hierarchy")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -755,7 +740,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify all folders in hierarchy are duplicated
@@ -786,8 +771,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("Duplicated With Test Cases")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -807,7 +791,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify test cases are duplicated
@@ -827,8 +811,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request1 = TmsTestFolderRQ.builder()
         .name("Duplicate Name Test")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent1 = mapper.writeValueAsString(request1);
+    String jsonContent1 = objectMapper.writeValueAsString(request1);
 
     var result1 = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/duplicate",
@@ -844,7 +827,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request2 = TmsTestFolderRQ.builder()
         .name("Duplicate Name Test")
         .build();
-    String jsonContent2 = mapper.writeValueAsString(request2);
+    String jsonContent2 = objectMapper.writeValueAsString(request2);
 
     var result2 = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/duplicate",
@@ -860,9 +843,9 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     // Parse responses
     var responseContent1 = result1.getResponse().getContentAsString();
     var responseContent2 = result2.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response1 = mapper.readValue(responseContent1,
+    DuplicateTmsTestFolderRS response1 = objectMapper.readValue(responseContent1,
         DuplicateTmsTestFolderRS.class);
-    DuplicateTmsTestFolderRS response2 = mapper.readValue(responseContent2,
+    DuplicateTmsTestFolderRS response2 = objectMapper.readValue(responseContent2,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify both folders exist with different IDs and names
@@ -879,8 +862,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("Should Not Be Created")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act & Assert
     mockMvc.perform(
@@ -903,8 +885,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .name("Duplicated Folder")
         .parentTestFolderId(nonExistentParentId)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act & Assert
     mockMvc.perform(
@@ -929,8 +910,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .name("New Parent")
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act & Assert
     mockMvc.perform(
@@ -952,8 +932,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("Multi Duplicate Test")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act - First duplication
     var result1 = mockMvc.perform(
@@ -992,11 +971,11 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     var responseContent1 = result1.getResponse().getContentAsString();
     var responseContent2 = result2.getResponse().getContentAsString();
     var responseContent3 = result3.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response1 = mapper.readValue(responseContent1,
+    DuplicateTmsTestFolderRS response1 = objectMapper.readValue(responseContent1,
         DuplicateTmsTestFolderRS.class);
-    DuplicateTmsTestFolderRS response2 = mapper.readValue(responseContent2,
+    DuplicateTmsTestFolderRS response2 = objectMapper.readValue(responseContent2,
         DuplicateTmsTestFolderRS.class);
-    DuplicateTmsTestFolderRS response3 = mapper.readValue(responseContent3,
+    DuplicateTmsTestFolderRS response3 = objectMapper.readValue(responseContent3,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - all three folders have unique IDs and names
@@ -1027,8 +1006,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("Complex Hierarchy Duplicate")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -1047,7 +1025,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify folder hierarchy
@@ -1076,8 +1054,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ createRequest = TmsTestFolderRQ.builder()
         .name("Empty Folder For Duplication")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String createJsonContent = mapper.writeValueAsString(createRequest);
+    String createJsonContent = objectMapper.writeValueAsString(createRequest);
 
     var createResult = mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .contentType("application/json")
@@ -1087,14 +1064,14 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andReturn();
 
     var createResponseContent = createResult.getResponse().getContentAsString();
-    TmsTestFolderRS createdFolder = mapper.readValue(createResponseContent, TmsTestFolderRS.class);
+    TmsTestFolderRS createdFolder = objectMapper.readValue(createResponseContent, TmsTestFolderRS.class);
     Long createdFolderId = createdFolder.getId();
 
     // Act - Duplicate empty folder
     TmsTestFolderRQ duplicateRequest = TmsTestFolderRQ.builder()
         .name("Duplicated Empty Folder")
         .build();
-    String duplicateJsonContent = mapper.writeValueAsString(duplicateRequest);
+    String duplicateJsonContent = objectMapper.writeValueAsString(duplicateRequest);
 
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/duplicate",
@@ -1113,7 +1090,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert
@@ -1136,8 +1113,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .name("Moved Subfolder Duplicate")
         .parentTestFolderId(newParentId)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -1153,7 +1129,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify folder is in new parent
@@ -1176,8 +1152,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
             .parentTestFolderId(999L) // Non-existent grandparent
             .build())
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act & Assert
     mockMvc.perform(
@@ -1198,8 +1173,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     TmsTestFolderRQ request = TmsTestFolderRQ.builder()
         .name("Root Duplicate For Name Test")
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     // Act
     var result = mockMvc.perform(
@@ -1214,7 +1188,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     // Parse response
     var responseContent = result.getResponse().getContentAsString();
-    DuplicateTmsTestFolderRS response = mapper.readValue(responseContent,
+    DuplicateTmsTestFolderRS response = objectMapper.readValue(responseContent,
         DuplicateTmsTestFolderRS.class);
 
     // Assert - verify subfolders have "-copy" suffix
@@ -1247,8 +1221,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     var request = TmsTestFolderRQ.builder()
         .parentTestFolder(NewTestFolderRQ.builder().build()) // Empty object {} means move to root
         .build();
-    var mapper = new ObjectMapper();
-    var jsonContent = mapper.writeValueAsString(request);
+    var jsonContent = objectMapper.writeValueAsString(request);
 
     // When - patch folder to move it to root level
     mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/22")
@@ -1270,8 +1243,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .index(0)
         .parentTestFolderId(3L) // Keep same parent
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/10")
             .contentType("application/json")
@@ -1291,8 +1263,7 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .parentTestFolderId(3L)
         .index(1)
         .build();
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/8")
             .contentType("application/json")

@@ -27,7 +27,8 @@ class TmsDatasetIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
   @Autowired
   private TmsDatasetRepository tmsDatasetRepository;
 

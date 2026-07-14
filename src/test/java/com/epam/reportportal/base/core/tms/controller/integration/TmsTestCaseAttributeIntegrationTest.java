@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -34,7 +35,8 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
   private static final String BASE_URL =
       "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attribute";
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Test
   void getAttributesByTestCaseIds_ShouldReturnUniqueAttributes() throws Exception {
@@ -45,7 +47,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -63,7 +65,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -81,7 +83,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -99,7 +101,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -116,7 +118,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -134,7 +136,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -153,7 +155,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // and the repository filters by project_id = 1 (superadmin_personal)
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -172,7 +174,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
             .param("limit", "2")
             .param("offset", "0")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -192,7 +194,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     mockMvc.perform(post(BASE_URL)
             .param("page.sort", "id,ASC")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].id").exists())
@@ -210,7 +212,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
@@ -251,7 +253,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then - should return only attributes from existing test cases
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -268,7 +270,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
     // When/Then
     mockMvc.perform(post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(request))
+            .content(objectMapper.writeValueAsString(request))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())

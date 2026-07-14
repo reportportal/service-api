@@ -32,11 +32,13 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Autowired
   private ProductVersionRepository productVersionRepository;
 
+  @Autowired
+  private ObjectMapper objectMapper;
+
   @Test
   void createVersionIntegrationTest() throws Exception {
     ProductVersionRQ request = new ProductVersionRQ(1L, "version1", "documentation1", 1L);
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion")
             .contentType(MediaType.APPLICATION_JSON)
@@ -55,8 +57,7 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Test
   void updateVersionIntegrationTest() throws Exception {
     ProductVersionRQ request = new ProductVersionRQ(3L, "versionUpdated", "docUpdated", 3L);
-    ObjectMapper mapper = new ObjectMapper();
-    String jsonContent = mapper.writeValueAsString(request);
+    String jsonContent = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/3")
             .contentType(MediaType.APPLICATION_JSON)

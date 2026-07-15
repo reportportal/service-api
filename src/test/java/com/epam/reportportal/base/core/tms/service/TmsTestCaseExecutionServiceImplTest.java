@@ -209,7 +209,7 @@ class TmsTestCaseExecutionServiceImplTest {
   // ==================== patch: Terminal -> Terminal ====================
 
   @Test
-  void patch_WhenBothStatusesAreTerminal_ShouldCallUpdateTestItemHandler() {
+  void patch_WhenBothStatusesAreTerminal_ShouldSaveDirectlyAndBypassHandlers() {
     // Given - current FAILED, target PASSED → Terminal -> Terminal path
     var executionId = 100L;
     var launchId = 10L;
@@ -221,20 +221,18 @@ class TmsTestCaseExecutionServiceImplTest {
 
     when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
         .thenReturn(Optional.of(execution1));
-    when(updateTestItemHandler.updateTestItem(
-        eq(membershipDetails), eq(testItem1), any(UpdateTestItemRQ.class), eq(user)))
-        .thenReturn(testItem1);
+    when(testItemRepository.save(any(TestItem.class))).thenReturn(testItem1);
     when(tmsTestCaseExecutionRepository.save(execution1)).thenReturn(execution1);
     when(tmsTestCaseExecutionMapper.convert(execution1)).thenReturn(new TmsTestCaseExecutionRS());
-    when(tmsManualLaunchService.getTestPlanIdByLaunchId(any())).thenReturn(Optional.empty());
 
     // When
     var result = sut.patch(membershipDetails, user, executionId, launchId, request);
 
     // Then
     assertNotNull(result);
-    verify(updateTestItemHandler).updateTestItem(
-        eq(membershipDetails), eq(testItem1), any(UpdateTestItemRQ.class), eq(user));
+    assertEquals(StatusEnum.PASSED, testItem1.getItemResults().getStatus());
+    verify(testItemRepository).save(testItem1);
+    verifyNoInteractions(updateTestItemHandler);
     verifyNoInteractions(finishTestItemHandler);
     verifyNoInteractions(testCaseItemBuilder);
   }

@@ -210,12 +210,12 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "launches", ignore = true)
   @Mapping(target = "testCases", ignore = true)
-  @Mapping(target = "project", source = "project")
-  @Mapping(target = "environment", source = "environment")
-  @Mapping(target = "productVersion", source = "productVersion")
-  @Mapping(target = "name", source = "name")
-  @Mapping(target = "description", source = "description")
-  @Mapping(target = "milestone", source = "milestone")
+  @Mapping(target = "project", source = "originalTestPlan.project")
+  @Mapping(target = "environment", source = "originalTestPlan.environment")
+  @Mapping(target = "productVersion", source = "originalTestPlan.productVersion")
+  @Mapping(target = "name", source = "originalTestPlan.name")
+  @Mapping(target = "description", source = "originalTestPlan.description")
+  @Mapping(target = "milestone", source = "targetMilestoneId", qualifiedByName = "milestoneIdToMilestone")
   @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestPlanDisplayId(originalTestPlan.getProject().getId()))")
-  public abstract TmsTestPlan duplicateTestPlan(TmsTestPlan originalTestPlan);
+  public abstract TmsTestPlan duplicateTestPlan(TmsTestPlan originalTestPlan, Long targetMilestoneId);
 }

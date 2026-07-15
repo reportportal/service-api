@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -1056,7 +1057,7 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
         .thenReturn(Optional.of(originalTestPlan));
-    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan))
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, (Long) null))
         .thenReturn(duplicatedTestPlan);
     when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
@@ -1078,13 +1079,13 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(expectedResponse);
 
     // When
-    var result = sut.duplicate(projectId, testPlanId);
+    var result = sut.duplicate(projectId, testPlanId, (Long) null);
 
     // Then
     assertNotNull(result);
     assertEquals(200L, result.getId());
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
-    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan, (Long) null);
     verify(testPlanRepository).save(duplicatedTestPlan);
     verify(tmsTestPlanAttributeService).duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
     verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
@@ -1115,7 +1116,7 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
         .thenReturn(Optional.of(originalTestPlan));
-    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan))
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, (Long) null))
         .thenReturn(duplicatedTestPlan);
     when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
@@ -1126,13 +1127,13 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(expectedResponse);
 
     // When
-    var result = sut.duplicate(projectId, testPlanId);
+    var result = sut.duplicate(projectId, testPlanId, (Long) null);
 
     // Then
     assertNotNull(result);
     assertEquals(200L, result.getId());
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
-    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan, (Long) null);
     verify(testPlanRepository).save(duplicatedTestPlan);
     verify(tmsTestPlanAttributeService).duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
     verify(tmsTestCaseService, never()).duplicateTestCases(anyLong(), anyList());
@@ -1147,12 +1148,12 @@ class TmsTestPlanServiceImplTest {
 
     // When/Then
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicate(projectId, testPlanId)
+        sut.duplicate(projectId, testPlanId, (Long) null)
     );
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
-    verify(tmsTestPlanMapper, never()).duplicateTestPlan(any(TmsTestPlan.class));
+    verify(tmsTestPlanMapper, never()).duplicateTestPlan(any(TmsTestPlan.class), nullable(Long.class));
     verify(testPlanRepository, never()).save(any());
   }
 
@@ -1631,7 +1632,8 @@ class TmsTestPlanServiceImplTest {
     // Setup for first duplicate call
     when(testPlanRepository.findByIdAndProjectId(testPlan1Id, projectId))
         .thenReturn(Optional.of(originalTestPlan1));
-    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan1))
+    Long targetMilestoneId = 999L;
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan1, targetMilestoneId))
         .thenReturn(duplicatedTestPlan1Entity);
     when(testPlanRepository.save(duplicatedTestPlan1Entity))
         .thenReturn(duplicatedTestPlan1Entity);
@@ -1645,7 +1647,7 @@ class TmsTestPlanServiceImplTest {
     // Setup for second duplicate call
     when(testPlanRepository.findByIdAndProjectId(testPlan2Id, projectId))
         .thenReturn(Optional.of(originalTestPlan2));
-    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan2))
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan2, targetMilestoneId))
         .thenReturn(duplicatedTestPlan2Entity);
     when(testPlanRepository.save(duplicatedTestPlan2Entity))
         .thenReturn(duplicatedTestPlan2Entity);
@@ -1655,7 +1657,7 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(duplicatedPlan2);
 
     // When
-    var result = sut.duplicateTestPlansInMilestone(projectId, milestoneId);
+    var result = sut.duplicateTestPlansInMilestone(projectId, milestoneId, targetMilestoneId);
 
     // Then
     assertNotNull(result);
@@ -1666,8 +1668,8 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
     verify(testPlanRepository).findByIdAndProjectId(testPlan1Id, projectId);
     verify(testPlanRepository).findByIdAndProjectId(testPlan2Id, projectId);
-    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan1);
-    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan2);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan1, targetMilestoneId);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan2, targetMilestoneId);
   }
 
   @Test
@@ -1677,7 +1679,7 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(List.of());
 
     // When
-    var result = sut.duplicateTestPlansInMilestone(projectId, milestoneId);
+    var result = sut.duplicateTestPlansInMilestone(projectId, milestoneId, 999L);
 
     // Then
     assertNotNull(result);
@@ -1685,7 +1687,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
     verify(testPlanRepository, never()).findByIdAndProjectId(anyLong(), anyLong());
-    verify(tmsTestPlanMapper, never()).duplicateTestPlan(any(TmsTestPlan.class));
+    verify(tmsTestPlanMapper, never()).duplicateTestPlan(any(TmsTestPlan.class), nullable(Long.class));
   }
 
   @Test

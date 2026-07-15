@@ -32,7 +32,7 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId,
       TmsTestPlanRQ duplicateTestPlanRQ);
 
-  DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId);
+  DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId, Long targetMilestoneId);
 
   /**
    * Retrieves test cases added to a test plan with pagination. Returns test cases with last execution only (without
@@ -95,7 +95,7 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
 
   List<TmsTestPlanRS> getByMilestoneId(Long projectId, Long milestoneId);
 
-  List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(Long projectId, Long milestoneId);
+  List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(Long projectId, Long sourceMilestoneId, Long targetMilestoneId);
 
   void addTestPlanMilestone(Long projectId, Long milestoneId, Long testPlanId);
 

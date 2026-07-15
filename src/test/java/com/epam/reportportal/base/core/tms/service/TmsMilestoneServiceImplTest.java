@@ -800,7 +800,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(Optional.of(originalMilestone));
     when(tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ))
         .thenReturn(newMilestoneEntity);
-    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId))
+    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId()))
         .thenReturn(duplicateTestPlansRS);
     when(tmsMilestoneRepository.save(newMilestoneEntity)).thenReturn(savedMilestoneEntity);
     when(tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
@@ -818,7 +818,7 @@ class TmsMilestoneServiceImplTest {
 
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper).toEntity(projectId, duplicateMilestoneRQ);
-    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId);
+    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId());
     verify(tmsMilestoneRepository).save(newMilestoneEntity);
     verify(tmsMilestoneMapper).convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
         duplicateTestPlansRS);
@@ -840,7 +840,7 @@ class TmsMilestoneServiceImplTest {
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper, never()).toEntity(anyLong(), any());
-    verify(tmsTestPlanService, never()).duplicateTestPlansInMilestone(anyLong(), anyLong());
+    verify(tmsTestPlanService, never()).duplicateTestPlansInMilestone(anyLong(), anyLong(), anyLong());
     verify(tmsMilestoneRepository, never()).save(any());
   }
 
@@ -872,7 +872,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(Optional.of(originalMilestone));
     when(tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ))
         .thenReturn(newMilestoneEntity);
-    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId))
+    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId()))
         .thenReturn(emptyDuplicateTestPlans);
     when(tmsMilestoneRepository.save(newMilestoneEntity)).thenReturn(savedMilestoneEntity);
     when(tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
@@ -890,7 +890,7 @@ class TmsMilestoneServiceImplTest {
 
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper).toEntity(projectId, duplicateMilestoneRQ);
-    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId);
+    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId());
     verify(tmsMilestoneRepository).save(newMilestoneEntity);
     verify(tmsMilestoneMapper).convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
         emptyDuplicateTestPlans);
@@ -928,7 +928,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(Optional.of(originalMilestone));
     when(tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ))
         .thenReturn(newMilestoneEntity);
-    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId))
+    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId()))
         .thenReturn(duplicateTestPlansRS);
     when(tmsMilestoneRepository.save(newMilestoneEntity)).thenReturn(savedMilestoneEntity);
     when(tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
@@ -946,7 +946,7 @@ class TmsMilestoneServiceImplTest {
 
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper).toEntity(projectId, duplicateMilestoneRQ);
-    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId);
+    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId());
     verify(tmsMilestoneRepository).save(newMilestoneEntity);
     verify(tmsMilestoneMapper).convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
         duplicateTestPlansRS);

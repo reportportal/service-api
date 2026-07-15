@@ -3,7 +3,6 @@ package com.epam.reportportal.base.core.tms.service;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.base.core.item.TestItemService;
-import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
 import com.epam.reportportal.base.core.item.FinishTestItemHandler;
 import com.epam.reportportal.base.core.tms.dto.NestedStepResult;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
@@ -34,7 +33,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
-import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
@@ -71,7 +69,6 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private final TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
   private final TmsTestCaseExecutionFilterableRepository tmsTestCaseExecutionFilterableRepository;
   private final TmsTestCaseVersionService tmsTestCaseVersionService;
-  private final UpdateTestItemHandler updateTestItemHandler;
   private final FinishTestItemHandler finishTestItemHandler;
   private final TmsTestCaseExecutionCommentService tmsTestCaseExecutionCommentService;
   private final TmsTestCaseExecutionMapper tmsTestCaseExecutionMapper;
@@ -613,14 +610,9 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
                 execution.setTestItem(testItem);
               } else {
                 // Terminal -> Terminal (Update logic)
-                execution.setTestItem(
-                    updateTestItemHandler.updateTestItem(
-                        membershipDetails,
-                        testItem,
-                        UpdateTestItemRQ.builder().status(request.getStatus()).build(),
-                        user
-                    )
-                );
+                testItem.getItemResults().setStatus(targetStatus);
+                testItem = testItemRepository.save(testItem);
+                execution.setTestItem(testItem);
               }
               // Add the test case to test plan for PASSED or FAILED status
               addTestCaseToTestPlan(execution, request.getStatus());

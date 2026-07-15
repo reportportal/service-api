@@ -171,11 +171,11 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
     // Create a new milestone with data from request
     var newMilestone = tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ);
 
-    var duplicateTestPlansRS = tmsTestPlanService.duplicateTestPlansInMilestone(
-        projectId, milestoneId
-    );
-
     var savedMilestone = tmsMilestoneRepository.save(newMilestone);
+
+    var duplicateTestPlansRS = tmsTestPlanService.duplicateTestPlansInMilestone(
+        projectId, milestoneId, savedMilestone.getId()
+    );
 
     return tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(
         savedMilestone, duplicateTestPlansRS

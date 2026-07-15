@@ -301,7 +301,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId) {
+  public DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId, Long targetMilestoneId) {
     // Get original test plan
     var originalTestPlan = testPlanRepository
         .findByIdAndProjectId(testPlanId, projectId)
@@ -310,7 +310,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         );
 
     // Duplicate test plan entity
-    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan);
+    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, targetMilestoneId);
 
     duplicatedTestPlan = testPlanRepository.save(duplicatedTestPlan);
 
@@ -474,9 +474,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(Long projectId,
-      Long milestoneId) {
+      Long sourceMilestoneId, Long targetMilestoneId) {
     var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneId(
-        projectId, milestoneId
+        projectId, sourceMilestoneId
     );
 
     if (testPlanIds.isEmpty()) {
@@ -484,7 +484,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     }
     var result = new ArrayList<DuplicateTmsTestPlanRS>();
     for (var testPlanId : testPlanIds) {
-      var duplicatedTestPlanRS = duplicate(projectId, testPlanId);
+      var duplicatedTestPlanRS = duplicate(projectId, testPlanId, targetMilestoneId);
       result.add(duplicatedTestPlanRS);
     }
     return result;

@@ -208,6 +208,9 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         log.trace("Nested steps created: {} for TEST item: {}", nestedSteps.size(),
             testItem.getItemId());
       }
+      
+      testItem.setHasChildren(false);
+      testItem = testItemRepository.save(testItem);
     }
 
     // Step 4: Create TmsTestCaseExecution record

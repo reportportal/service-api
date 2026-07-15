@@ -208,9 +208,6 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         log.trace("Nested steps created: {} for TEST item: {}", nestedSteps.size(),
             testItem.getItemId());
       }
-      
-      testItem.setHasChildren(false);
-      testItem = testItemRepository.save(testItem);
     }
 
     // Step 4: Create TmsTestCaseExecution record
@@ -230,6 +227,11 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
           execution.getId(), nestedSteps, launch, tmsStepIds
       );
       log.trace("Step execution records created: {}", nestedSteps.size());
+
+      // Override DB trigger to mark test case as a leaf node
+      testItem = testItemRepository.findById(testItem.getItemId()).orElseThrow();
+      testItem.setHasChildren(false);
+      testItemRepository.save(testItem);
     }
 
     log.debug("Successfully created execution for test case: {} in launch: {}",

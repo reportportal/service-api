@@ -211,9 +211,14 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     var projectId = membershipDetails.getProjectId();
     log.debug("Deleting manual launch: {} for project: {}", launchId, projectId);
 
-    if (!launchRepository.existsByIdAndProjectId(launchId, projectId)) {
-      throw new ReportPortalException(
-          NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId));
+    var launch = launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
+        );
+
+    if (StatusEnum.IN_PROGRESS.equals(launch.getStatus())) {
+      launch.setStatus(StatusEnum.INTERRUPTED);
+      launchRepository.save(launch);
     }
 
     // Delete tms step executions
@@ -497,14 +502,20 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     for (var launchId : launchIds) {
       try {
         // Check if launch exists and belongs to project
-        if (!launchRepository.existsByIdAndProjectIdAndLaunchType(launchId, projectId,
-            LaunchTypeEnum.MANUAL)) {
+        var launchOptional = launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId);
+        if (launchOptional.isEmpty()) {
           log.warn("Launch {} not found in project {}", launchId, projectId);
           errors.add(new BatchManualLaunchOperationError(
               launchId,
               "Manual Launch not found in project"
           ));
           continue;
+        }
+        var launch = launchOptional.get();
+
+        if (StatusEnum.IN_PROGRESS.equals(launch.getStatus())) {
+          launch.setStatus(StatusEnum.INTERRUPTED);
+          launchRepository.save(launch);
         }
 
         // Delete tms step executions

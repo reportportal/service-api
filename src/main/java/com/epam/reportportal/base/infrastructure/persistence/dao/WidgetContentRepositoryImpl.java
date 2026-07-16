@@ -257,17 +257,17 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   @Override
   public long overallStatisticsInterruptedCount(Filter filter, Sort sort, boolean latest, int limit) {
     return ofNullable(dsl.with(LAUNCHES)
-        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest).with(sort)
+        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest)
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
             .with(limit).build())
         .select(count().cast(Long.class))
         .from(TEST_ITEM)
         .join(LAUNCHES)
         .on(TEST_ITEM.LAUNCH_ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
-        .join(LAUNCH).on(TEST_ITEM.LAUNCH_ID.eq(LAUNCH.ID))
         .join(TEST_ITEM_RESULTS)
         .on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
         .where(TEST_ITEM.TYPE.eq(JTestItemTypeEnum.STEP))
-        .and(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .and(TEST_ITEM.HAS_STATS.eq(Boolean.TRUE))
         .and(TEST_ITEM.HAS_CHILDREN.eq(false))
         .and(TEST_ITEM.RETRY_OF.isNull())
@@ -463,7 +463,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         WidgetSortUtils.fieldTransformer(filter.getTarget()).apply(sort, LAUNCHES));
 
     return LAUNCHES_STATISTICS_FETCHER.apply(dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NUMBER,
@@ -483,7 +486,6 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
             .where(STATISTICS_FIELD.NAME.in(contentFields))
             .asTable(STATISTICS_TABLE))
         .on(LAUNCH.ID.eq(fieldName(STATISTICS_TABLE, LAUNCH_ID).cast(Long.class)))
-        .where(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .groupBy(groupingFields)
         .orderBy(WidgetSortUtils.sortingTransformer(filter.getTarget()).apply(sort, LAUNCHES))
         .fetch());
@@ -778,7 +780,9 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
       boolean isLatest, int limit) {
 
     return dsl.with(LAUNCHES)
-        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, isLatest).with(sort)
+        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, isLatest)
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
             .with(limit).build())
         .select(LAUNCH.ID,
             LAUNCH.NAME,
@@ -792,7 +796,6 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .from(LAUNCH)
         .join(LAUNCHES)
         .on(LAUNCH.ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
-        .where(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .orderBy(WidgetSortUtils.sortingTransformer(filter.getTarget()).apply(sort, LAUNCHES))
         .fetchInto(LaunchesDurationContent.class);
   }

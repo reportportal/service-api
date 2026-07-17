@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.epam.reportportal.api.model.ServerSettingKey;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.model.settings.UpdateSettingsRq.SettingsKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -103,6 +103,6 @@ class SidebarLinksSettingHandlerTest {
 
   @Test
   void getKeyShouldReturnSidebarLinksKey() {
-    assertEquals(SettingsKey.SERVER_SIDEBAR_LINKS.getName(), handler.getKey());
+    assertEquals(ServerSettingKey.SERVER_SIDEBAR_LINKS.getValue(), handler.getKey());
   }
 }

@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.base.core.settings;
 
+import com.epam.reportportal.api.model.ServerSettingKey;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.model.settings.UpdateSettingsRq.SettingsKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SidebarLinksSettingHandler implements ServerSettingHandler {
 
-  private static final String SETTING_KEY = SettingsKey.SERVER_SIDEBAR_LINKS.getName();
+  private static final String SETTING_KEY = ServerSettingKey.SERVER_SIDEBAR_LINKS.getValue();
   private static final String URL_FIELD = "url";
   private static final Set<String> ALLOWED_SCHEMES = Set.of("https://", "http://", "mailto:");
 

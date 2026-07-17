@@ -18,12 +18,13 @@ package com.epam.reportportal.base.ws.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.base.model.settings.AnalyticsResource;
-import com.epam.reportportal.base.model.settings.UpdateSettingsRq;
-import com.epam.reportportal.base.model.settings.UpdateSettingsRq.SettingsKey;
+import com.epam.reportportal.api.model.AnalyticsSettingsRequest;
+import com.epam.reportportal.api.model.ServerSettingKey;
+import com.epam.reportportal.api.model.UpdateServerSettingsRequest;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -55,8 +56,8 @@ class SettingsControllerTest extends BaseMvcTest {
 
   @Test
   void updateSettings() throws Exception {
-    UpdateSettingsRq mockRequest = new UpdateSettingsRq();
-    mockRequest.setKey(SettingsKey.fromValue("server.users.sso"));
+    UpdateServerSettingsRequest mockRequest = new UpdateServerSettingsRequest();
+    mockRequest.setKey(ServerSettingKey.fromValue("server.users.sso"));
     mockRequest.setValue("true");
 
     mockMvc.perform(put("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))
@@ -67,7 +68,7 @@ class SettingsControllerTest extends BaseMvcTest {
 
   @Test
   void updateAnalyticsSettings() throws Exception {
-    AnalyticsResource resource = new AnalyticsResource();
+    AnalyticsSettingsRequest resource = new AnalyticsSettingsRequest();
     resource.setType("server.analytics.all");
     resource.setEnabled(true);
     mockMvc.perform(put("/v1/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
@@ -76,8 +77,18 @@ class SettingsControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void updateAnalyticsSettingsViaPostOnNewApi() throws Exception {
+    AnalyticsSettingsRequest resource = new AnalyticsSettingsRequest();
+    resource.setType("all");
+    resource.setEnabled(true);
+    mockMvc.perform(post("/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
+            .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(resource)))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   void saveAnalyticsSettingsNegative() throws Exception {
-    AnalyticsResource resource = new AnalyticsResource();
+    AnalyticsSettingsRequest resource = new AnalyticsSettingsRequest();
     resource.setEnabled(true);
     resource.setType("");
     mockMvc.perform(put("/v1/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))

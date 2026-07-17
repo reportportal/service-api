@@ -167,6 +167,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableGetParams;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableInitParams;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute;
@@ -256,7 +257,9 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   @Override
   public long overallStatisticsInterruptedCount(Filter filter, Sort sort, boolean latest, int limit) {
     return ofNullable(dsl.with(LAUNCHES)
-        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest).with(sort)
+        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest)
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
             .with(limit).build())
         .select(count().cast(Long.class))
         .from(TEST_ITEM)
@@ -460,7 +463,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         WidgetSortUtils.fieldTransformer(filter.getTarget()).apply(sort, LAUNCHES));
 
     return LAUNCHES_STATISTICS_FETCHER.apply(dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NUMBER,
@@ -774,7 +780,9 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
       boolean isLatest, int limit) {
 
     return dsl.with(LAUNCHES)
-        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, isLatest).with(sort)
+        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, isLatest)
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
             .with(limit).build())
         .select(LAUNCH.ID,
             LAUNCH.NAME,

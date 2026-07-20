@@ -26,6 +26,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsResultRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
@@ -612,6 +613,39 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void deleteManualLaunch_InProgress_ShouldSucceed() throws Exception {
+    // When
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/202")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then
+    var launch = launchRepository.findById(202L);
+    assertTrue(launch.isEmpty());
+  }
+
+  @Test
+  void batchDeleteManualLaunches_InProgress_ShouldSucceed() throws Exception {
+    // Given
+    var batchDeleteRQ = BatchDeleteManualLaunchesRQ.builder()
+        .launchIds(List.of(202L))
+        .build();
+
+    // When
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then
+    var launch = launchRepository.findById(202L);
+    assertTrue(launch.isEmpty());
   }
 
   @Test

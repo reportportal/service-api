@@ -18,6 +18,7 @@ package com.epam.reportportal.base.ws.converter.converters;
 
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.api.model.ProjectActivity;
 import com.epam.reportportal.base.infrastructure.model.ActivityResource;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import java.util.function.BiFunction;
@@ -48,6 +49,26 @@ public final class ActivityConverter {
     resource.setUser(username);
     return resource;
   };
+
+  /**
+   * Maps a legacy {@link ActivityResource} (used by the still-live {@code GET /v1/{projectKey}/activity/{activityId}}
+   * endpoint) to the generated API-first {@link com.epam.reportportal.api.model.ProjectActivity} model, so the new
+   * API-first endpoint can reuse {@link com.epam.reportportal.base.core.activity.ActivityHandler} without duplicating
+   * its lookup/validation logic.
+   */
+  public static final Function<ActivityResource, ProjectActivity> TO_PROJECT_ACTIVITY_API_MODEL = resource -> new ProjectActivity()
+      .id(resource.getId())
+      .user(resource.getUser())
+      .userId(resource.getUserId())
+      .loggedObjectId(resource.getLoggedObjectId())
+      .lastModified(resource.getLastModified())
+      .actionType(resource.getActionType())
+      .objectType(resource.getObjectType())
+      .projectId(resource.getProjectId())
+      .projectName(resource.getProjectName())
+      .projectKey(resource.getProjectKey())
+      .objectName(resource.getObjectName())
+      .details(ActivityEventConverter.convertDetails(resource.getDetails()));
 
   private ActivityConverter() {
     //static only

@@ -423,6 +423,8 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
     String jsonContent = objectMapper.writeValueAsString(duplicateRQ);
 
     long initialTestPlanCount = tmsTestPlanRepository.count();
+    long initialManualScenarioCount = countManualScenariosByMilestoneId(milestoneId);
+    long totalManualScenarioCountBeforeDuplication = countManualScenarios();
 
     // When/Then
     MvcResult result = mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY
@@ -446,6 +448,16 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
     String content = result.getResponse().getContentAsString();
     var duplicatedMilestone = objectMapper.readValue(content, DuplicateTmsMilestoneRS.class);
     assertEquals(3, duplicatedMilestone.getTestPlans().size());
+
+    // Verify duplicated test plans contain duplicated manual scenarios
+    long duplicatedMilestoneId = duplicatedMilestone.getId();
+    long duplicatedMilestoneManualScenarioCount = countManualScenariosByMilestoneId(
+        duplicatedMilestoneId);
+    long totalManualScenarioCountAfterDuplication = countManualScenarios();
+
+    assertEquals(initialManualScenarioCount, duplicatedMilestoneManualScenarioCount);
+    assertEquals(totalManualScenarioCountBeforeDuplication + initialManualScenarioCount,
+        totalManualScenarioCountAfterDuplication);
   }
 
   @Test
@@ -542,5 +554,27 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.name").value("Custom Name"))
         .andExpect(jsonPath("$.status").value("TESTING"))
         .andExpect(jsonPath("$.type").value("SPRINT"));
+  }
+
+  private long countManualScenarios() {
+    var result = (Number) entityManager.createNativeQuery("""
+            SELECT COUNT(ms.id)
+            FROM tms_manual_scenario ms
+            """).getSingleResult();
+    return result.longValue();
+  }
+
+  private long countManualScenariosByMilestoneId(Long milestoneId) {
+    var result = (Number) entityManager.createNativeQuery("""
+            SELECT COUNT(ms.id)
+            FROM tms_manual_scenario ms
+            JOIN tms_test_case_version tcv ON tcv.id = ms.test_case_version_id
+            JOIN tms_test_plan_test_case tptc ON tptc.test_case_id = tcv.test_case_id
+            JOIN tms_test_plan tp ON tp.id = tptc.test_plan_id
+            WHERE tp.milestone_id = :milestoneId
+            """)
+        .setParameter("milestoneId", milestoneId)
+        .getSingleResult();
+    return result.longValue();
   }
 }

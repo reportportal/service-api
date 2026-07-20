@@ -82,6 +82,7 @@ public class SecurityConfiguration {
             "/groups/**",
             "/projects/**",
             "/plugins/**",
+            "/settings/**",
             "/swagger-resources/**",
             "/certificate/**",
             "/api-internal/**",

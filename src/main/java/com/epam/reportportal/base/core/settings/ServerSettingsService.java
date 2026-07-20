@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.base.core.settings;
 
+import com.epam.reportportal.api.model.AnalyticsSettingsRequest;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.api.model.UpdateServerSettingsRequest;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.model.settings.AnalyticsResource;
-import com.epam.reportportal.base.model.settings.UpdateSettingsRq;
-import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import java.util.Map;
 
 /**
@@ -49,17 +49,18 @@ public interface ServerSettingsService {
   /**
    * Update analytics settings
    *
-   * @param analyticsResource {@link AnalyticsResource}
-   * @param user              User
-   * @return Operation results
+   * @param request {@link AnalyticsSettingsRequest}
+   * @param user    User
+   * @return {@link SuccessfulUpdate}
    */
-  OperationCompletionRS saveAnalyticsSettings(AnalyticsResource analyticsResource, ReportPortalUser user);
+  SuccessfulUpdate saveAnalyticsSettings(AnalyticsSettingsRequest request, ReportPortalUser user);
 
   /**
    * Update server settings
    *
-   * @param request {@link UpdateSettingsRq}
-   * @return Operation results
+   * @param request {@link UpdateServerSettingsRequest}
+   * @param user    User
+   * @return {@link SuccessfulUpdate}
    */
-  OperationCompletionRS updateServerSettings(UpdateSettingsRq request, ReportPortalUser user);
+  SuccessfulUpdate updateServerSettings(UpdateServerSettingsRequest request, ReportPortalUser user);
 }

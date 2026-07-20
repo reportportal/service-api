@@ -18,11 +18,11 @@ package com.epam.reportportal.base.ws.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
 
+import com.epam.reportportal.api.model.AnalyticsSettingsRequest;
+import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.api.model.UpdateServerSettingsRequest;
 import com.epam.reportportal.base.core.settings.ServerSettingsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.model.settings.AnalyticsResource;
-import com.epam.reportportal.base.model.settings.UpdateSettingsRq;
-import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
@@ -59,30 +59,48 @@ public class SettingsController {
     this.serverHandler = serverHandler;
   }
 
+  /**
+   * @deprecated Use
+   * {@link com.epam.reportportal.api.SettingsApi#saveAnalyticsSettings(
+   *com.epam.reportportal.api.model.AnalyticsSettingsRequest)} ({@code PUT /settings/analytics}) or
+   * {@link com.epam.reportportal.api.SettingsApi#saveAnalyticsSettingsViaPost(
+   *com.epam.reportportal.api.model.AnalyticsSettingsRequest)} ({@code POST /settings/analytics}).
+   */
+  @Deprecated(forRemoval = true)
   @Transactional
   @RequestMapping(value = "/analytics", method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Update analytics settings")
-  public OperationCompletionRS saveAnalyticsSettings(
-      @RequestBody @Validated AnalyticsResource request,
+  @Operation(summary = "Update analytics settings", deprecated = true)
+  public SuccessfulUpdate saveAnalyticsSettings(
+      @RequestBody @Validated AnalyticsSettingsRequest request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return serverHandler.saveAnalyticsSettings(request, user);
   }
 
+  /**
+   * @deprecated Use
+   * {@link com.epam.reportportal.api.SettingsApi#updateServerSettings(
+   *com.epam.reportportal.api.model.UpdateServerSettingsRequest)} ({@code PUT /settings}).
+   */
+  @Deprecated(forRemoval = true)
   @Transactional
   @PutMapping
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Update server settings with specified key")
-  public OperationCompletionRS updateServerSettings(
-      @RequestBody @Validated UpdateSettingsRq request,
+  @Operation(summary = "Update server settings with specified key", deprecated = true)
+  public SuccessfulUpdate updateServerSettings(
+      @RequestBody @Validated UpdateServerSettingsRequest request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return serverHandler.updateServerSettings(request, user);
   }
 
+  /**
+   * @deprecated Use {@link com.epam.reportportal.api.SettingsApi#getServerSettings()} ({@code GET /settings}).
+   */
+  @Deprecated(forRemoval = true)
   @Transactional(readOnly = true)
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Get server settings")
+  @Operation(summary = "Get server settings", deprecated = true)
   public Map<String, String> getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
     return serverHandler.getServerSettings();
   }

@@ -23,6 +23,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualLaunchMapper;
 import com.epam.reportportal.base.core.user.GetUserHandler;
@@ -218,12 +219,16 @@ class TmsManualLaunchServiceImplTest {
 
   @Test
   void delete_WhenLaunchExists_ShouldDeleteAllRelatedDataAndLaunch() {
-    when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(true);
+    launch.setStatus(StatusEnum.IN_PROGRESS);
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
     when(membershipDetails.getProjectId()).thenReturn(projectId);
   
     sut.delete(membershipDetails, launchId, user);
 
-    verify(launchRepository).existsByIdAndProjectId(launchId, projectId);
+    assertEquals(StatusEnum.INTERRUPTED, launch.getStatus());
+    verify(launchRepository).findManualLaunchByIdAndProjectId(launchId, projectId);
+    verify(launchRepository).save(launch);
     verify(tmsStepExecutionService).deleteByLaunchId(launchId);
     verify(tmsTestCaseExecutionService).deleteByLaunchId(launchId);
     verify(testFolderItemService).deleteByLaunchId(launchId);
@@ -235,13 +240,34 @@ class TmsManualLaunchServiceImplTest {
   @Test
   void delete_WhenLaunchDoesNotExist_ShouldThrowNotFoundException() {
     when(membershipDetails.getProjectId()).thenReturn(projectId);
-    when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(false);
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.empty());
   
     var exception = assertThrows(ReportPortalException.class,
         () -> sut.delete(membershipDetails, launchId, user));
     assertEquals(NOT_FOUND, exception.getErrorType());
   
     verify(deleteLaunchHandler, never()).deleteLaunch(anyLong(), any(), any());
+  }
+
+  @Test
+  void batchDeleteManualLaunches_WhenLaunchesExist_ShouldInterruptInProgressAndCallDelete() {
+    launch.setStatus(StatusEnum.IN_PROGRESS);
+    when(membershipDetails.getProjectId()).thenReturn(projectId);
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
+
+    sut.batchDeleteManualLaunches(membershipDetails, new BatchDeleteManualLaunchesRQ(List.of(launchId)), user);
+
+    assertEquals(StatusEnum.INTERRUPTED, launch.getStatus());
+    verify(launchRepository).findManualLaunchByIdAndProjectId(launchId, projectId);
+    verify(launchRepository).save(launch);
+    verify(tmsStepExecutionService).deleteByLaunchId(launchId);
+    verify(tmsTestCaseExecutionService).deleteByLaunchId(launchId);
+    verify(testFolderItemService).deleteByLaunchId(launchId);
+    verify(testItemService).deleteByLaunchId(projectId, launchId);
+    verify(tmsManualLaunchAttributeService).deleteAllByLaunchId(launchId);
+    verify(deleteLaunchHandler).deleteLaunch(launchId, membershipDetails, user);
   }
 
   // -------------------------------------------------------------------------

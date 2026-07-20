@@ -33,6 +33,7 @@ public enum ProjectAttributeEnum {
   NOTIFICATIONS_EMAIL_ENABLED(Prefix.NOTIFICATIONS + "email.enabled", String.valueOf(true)),
   NOTIFICATIONS_TELEGRAM_ENABLED(Prefix.NOTIFICATIONS + "telegram.enabled", String.valueOf(true)),
   NOTIFICATIONS_SLACK_ENABLED(Prefix.NOTIFICATIONS + "slack.enabled", String.valueOf(true)),
+  NOTIFICATIONS_TEAMS_ENABLED(Prefix.NOTIFICATIONS + "teams.enabled", String.valueOf(true)),
 
   INTERRUPT_JOB_TIME(Prefix.JOB + "interruptJobTime",
       String.valueOf(Duration.ofDays(1).toSeconds())),

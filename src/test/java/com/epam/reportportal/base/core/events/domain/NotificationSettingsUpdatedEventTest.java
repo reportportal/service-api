@@ -30,6 +30,7 @@ class NotificationSettingsUpdatedEventTest {
     cfgBefore.put("notifications.email.enabled", "false");
     cfgBefore.put("notifications.telegram.enabled", "false");
     cfgBefore.put("notifications.slack.enabled", "false");
+    cfgBefore.put("notifications.teams.enabled", "false");
     before.setConfig(cfgBefore);
 
     ProjectAttributesActivityResource after = new ProjectAttributesActivityResource();

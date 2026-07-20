@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetails
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum.NOTIFICATIONS_EMAIL_ENABLED;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum.NOTIFICATIONS_ENABLED;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum.NOTIFICATIONS_SLACK_ENABLED;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum.NOTIFICATIONS_TEAMS_ENABLED;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum.NOTIFICATIONS_TELEGRAM_ENABLED;
 
 import com.epam.reportportal.base.core.events.domain.NotificationSettingsUpdatedEvent;
@@ -58,7 +59,7 @@ public class NotificationSettingsUpdatedEventConverter
         .addSubjectType(EventSubject.USER);
 
     Stream.of(NOTIFICATIONS_ENABLED, NOTIFICATIONS_EMAIL_ENABLED, NOTIFICATIONS_TELEGRAM_ENABLED,
-            NOTIFICATIONS_SLACK_ENABLED)
+            NOTIFICATIONS_SLACK_ENABLED, NOTIFICATIONS_TEAMS_ENABLED)
         .map(type -> processParameter(event.getBefore().getConfig(), event.getAfter().getConfig(),
             type.getAttribute()))
         .forEach(activityBuilder::addHistoryField);

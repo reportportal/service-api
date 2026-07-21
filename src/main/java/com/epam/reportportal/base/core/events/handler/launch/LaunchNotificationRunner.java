@@ -258,22 +258,14 @@ public class LaunchNotificationRunner
    * @return TRUE of success rate is enough for notification
    */
   private boolean isSuccessRateEnough(Launch launch, SendCase option) {
-    switch (option) {
-      case ALWAYS:
-        return true;
-      case FAILED:
-        return getLaunchHandler.hasItemsWithIssues(launch);
-      case TO_INVESTIGATE:
-        return extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()) > 0;
-      case MORE_10:
-        return getSuccessRate(launch) > 0.1;
-      case MORE_20:
-        return getSuccessRate(launch) > 0.2;
-      case MORE_50:
-        return getSuccessRate(launch) > 0.5;
-      default:
-        return false;
-    }
+    return switch (option) {
+      case ALWAYS -> true;
+      case FAILED -> getLaunchHandler.hasItemsWithIssues(launch);
+      case TO_INVESTIGATE -> extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()) > 0;
+      case MORE_10 -> getSuccessRate(launch) > 0.1;
+      case MORE_20 -> getSuccessRate(launch) > 0.2;
+      case MORE_50 -> getSuccessRate(launch) > 0.5;
+    };
   }
 
   private void sendNotificationEvent(LaunchFinishedEvent launchFinishedEvent) {

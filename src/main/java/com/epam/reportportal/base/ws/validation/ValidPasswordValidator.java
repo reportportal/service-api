@@ -21,20 +21,18 @@ import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Bean Validation ConstraintValidator for {@link ValidPassword}. Delegates the actual policy check to
  * {@link PasswordPolicyService}.
  *
  */
+@RequiredArgsConstructor
 public class ValidPasswordValidator implements ConstraintValidator<ValidPassword, String> {
 
   private final PasswordPolicyService passwordPolicyService;
   private boolean allowNull;
-
-  public ValidPasswordValidator(PasswordPolicyService passwordPolicyService) {
-    this.passwordPolicyService = passwordPolicyService;
-  }
 
   @Override
   public void initialize(ValidPassword constraintAnnotation) {

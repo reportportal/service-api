@@ -65,12 +65,12 @@ public class PasswordPolicyService {
   public void validate(String password) {
     if (!matchesComplexity(password)) {
       throw new ReportPortalException(INCORRECT_REQUEST,
-          "[Field 'password' should match '%s' pattern.]".formatted(USER_PASSWORD_REGEXP));
+          "Field 'password' should match '%s' pattern.".formatted(USER_PASSWORD_REGEXP));
     }
     int minLength = resolveMinLength();
     if (password.length() < minLength) {
       throw new ReportPortalException(INCORRECT_REQUEST,
-          "[Field 'password' should be at least %d characters long.]".formatted(minLength));
+          "Field 'password' should be at least %d characters long.".formatted(minLength));
     }
   }
 
@@ -84,13 +84,14 @@ public class PasswordPolicyService {
     return serverSettingsRepository.findByKey(MIN_LENGTH_KEY)
         .map(ServerSettings::getValue)
         .flatMap(this::parseIntegerSafely)
+        .filter(minLength -> minLength > 0 && minLength <= MAX_LENGTH)
         .orElse(DEFAULT_MIN_LENGTH);
   }
 
   private Optional<Integer> parseIntegerSafely(String value) {
     try {
       return Optional.of(Integer.parseInt(value));
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException _) {
       return Optional.empty();
     }
   }

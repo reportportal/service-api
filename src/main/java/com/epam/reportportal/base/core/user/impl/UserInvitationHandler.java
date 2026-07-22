@@ -40,6 +40,7 @@ import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
+import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -93,6 +94,7 @@ public class UserInvitationHandler {
   private final PasswordEncoder passwordEncoder;
   private final UserInvitationService userInvitationService;
   private final LinkGenerator linkGenerator;
+  private final PasswordPolicyService passwordPolicyService;
 
   /**
    * Sends invitation for external user or assigns existing user on organizations and projects.
@@ -141,6 +143,8 @@ public class UserInvitationHandler {
         .findByUuidAndType(invitationId, INTERNAL_BID_TYPE)
         .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
             "Impossible to register user. UUID expired or already registered."));
+
+    passwordPolicyService.validate(invitationActivation.getPassword());
 
     var createdUser = saveUser(invitationActivation, bid);
     publishUserCreatedEvent(createdUser);

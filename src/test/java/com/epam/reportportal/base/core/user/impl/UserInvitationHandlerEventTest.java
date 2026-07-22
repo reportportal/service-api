@@ -17,9 +17,12 @@
 package com.epam.reportportal.base.core.user.impl;
 
 import static com.epam.reportportal.base.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +33,7 @@ import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
+import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
@@ -44,6 +48,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserCreationBid;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +101,9 @@ class UserInvitationHandlerEventTest {
 
   @Mock
   private LinkGenerator linkGenerator;
+
+  @Mock
+  private PasswordPolicyService passwordPolicyService;
 
   @InjectMocks
   private UserInvitationHandler handler;
@@ -165,5 +174,32 @@ class UserInvitationHandlerEventTest {
     // then
     verify(eventPublisher).publishEvent(any(UserCreatedEvent.class));
     verify(eventPublisher, times(2)).publishEvent(any(AssignUserEvent.class));
+  }
+
+  @Test
+  void activateInvitationWhenPasswordViolatesPolicyShouldThrowAndNotCreateUser() {
+    // given
+    InvitationActivation activation = new InvitationActivation();
+    activation.setFullName("Test User");
+    activation.setPassword("Pass123+");
+
+    UserCreationBid bid = new UserCreationBid();
+    bid.setUuid("baf08d9f-72ea-46f6-81ef-3950a34deae9");
+    bid.setEmail("newuser@example.com");
+
+    when(userCreationBidRepository.findByUuidAndType("baf08d9f-72ea-46f6-81ef-3950a34deae9",
+        INTERNAL_BID_TYPE))
+        .thenReturn(Optional.of(bid));
+    doThrow(new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+        "[Field 'password' should be at least 12 characters long.]"))
+        .when(passwordPolicyService).validate("Pass123+");
+
+    // when + then
+    assertThrows(ReportPortalException.class,
+        () -> handler.activate(activation, "baf08d9f-72ea-46f6-81ef-3950a34deae9"));
+
+    verify(passwordPolicyService).validate("Pass123+");
+    verify(userRepository, never()).save(any(User.class));
+    verify(eventPublisher, never()).publishEvent(any());
   }
 }

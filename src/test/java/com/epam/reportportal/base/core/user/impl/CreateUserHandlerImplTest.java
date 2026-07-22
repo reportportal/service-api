@@ -20,9 +20,11 @@ import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.NewUserRequest;
+import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
@@ -48,6 +50,9 @@ class CreateUserHandlerImplTest {
 
   @Mock
   private UserMutationService userMutationService;
+
+  @Mock
+  private PasswordPolicyService passwordPolicyService;
 
   @InjectMocks
   private CreateUserHandlerImpl handler;
@@ -137,6 +142,32 @@ class CreateUserHandlerImplTest {
         "User with 'correct@domain.com' already exists. You couldn't create the duplicate.",
         exception.getMessage()
     );
+  }
+
+  @Test
+  void createByAdminWhenPasswordViolatesPolicyShouldThrow() {
+    final ReportPortalUser rpUser =
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+            1L);
+
+    when(userMutationService.normalizeAndValidateEmail("new_user@example.com"))
+        .thenReturn("new_user@example.com");
+    doThrow(new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+        "[Field 'password' should be at least 12 characters long.]"))
+        .when(passwordPolicyService).validate("Pass123+");
+
+    var request = new NewUserRequest();
+    request.setEmail("new_user@example.com");
+    request.setPassword("Pass123+");
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.createUser(request, rpUser, "url")
+    );
+    assertEquals(
+        "Incorrect Request. [Field 'password' should be at least 12 characters long.]",
+        exception.getMessage()
+    );
+    verify(passwordPolicyService).validate("Pass123+");
   }
 
 }

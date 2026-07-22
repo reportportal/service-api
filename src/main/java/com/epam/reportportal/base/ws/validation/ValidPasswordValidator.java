@@ -17,33 +17,23 @@
 package com.epam.reportportal.base.ws.validation;
 
 
-import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.USER_PASSWORD_REGEXP;
-
-import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
-import com.google.common.base.Strings;
+import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 /**
- * Bean Validation ConstraintValidator for {@link ValidPassword}.
+ * Bean Validation ConstraintValidator for {@link ValidPassword}. Delegates the actual policy check to
+ * {@link PasswordPolicyService}.
  *
  */
 public class ValidPasswordValidator implements ConstraintValidator<ValidPassword, String> {
 
-  private static final String MIN_LENGTH_KEY = "server.password.min.length";
-  private static final Pattern COMPLEXITY = Pattern.compile(USER_PASSWORD_REGEXP);
-  private static final int DEFAULT_MIN = 8;
-  private static final int MAX = 36;
-
-  private final ServerSettingsRepository serverSettingsRepository;
+  private final PasswordPolicyService passwordPolicyService;
   private boolean allowNull;
 
-  public ValidPasswordValidator(ServerSettingsRepository serverSettingsRepository) {
-    this.serverSettingsRepository = serverSettingsRepository;
+  public ValidPasswordValidator(PasswordPolicyService passwordPolicyService) {
+    this.passwordPolicyService = passwordPolicyService;
   }
 
   @Override
@@ -56,28 +46,6 @@ public class ValidPasswordValidator implements ConstraintValidator<ValidPassword
     if (allowNull && Objects.isNull(value)) {
       return true;
     }
-
-    if (Strings.isNullOrEmpty(value)) {
-      return false;
-    }
-
-    if (!COMPLEXITY.matcher(value).matches() || value.length() > MAX) {
-      return false;
-    }
-
-    int minLength = serverSettingsRepository.findByKey(MIN_LENGTH_KEY)
-        .map(ServerSettings::getValue)
-        .flatMap(this::parseIntegerSafely)
-        .orElse(DEFAULT_MIN);
-
-    return value.length() >= minLength;
-  }
-
-  private Optional<Integer> parseIntegerSafely(String value) {
-    try {
-      return Optional.of(Integer.parseInt(value));
-    } catch (NumberFormatException e) {
-      return Optional.empty();
-    }
+    return passwordPolicyService.isValid(value);
   }
 }

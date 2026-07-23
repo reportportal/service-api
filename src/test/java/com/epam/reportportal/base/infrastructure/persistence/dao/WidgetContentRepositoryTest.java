@@ -322,6 +322,23 @@ class WidgetContentRepositoryTest extends BaseMvcTest {
   }
 
   @Test
+  @Sql({"/db/fill/widget-content/widget-content-fill.sql", "/db/fill/launch/launch-manual-type-fill.sql"})
+  void casesTrendStatisticsWhenManualLaunchExistsShouldExcludeManualLaunches() {
+    // Given
+    Filter filter = buildDefaultFilter(1L);
+    String executionContentField = "statistics$executions$total";
+    Sort sort = Sort.by(Lists.newArrayList(new Sort.Order(Sort.Direction.ASC, CRITERIA_START_TIME)));
+
+    // When
+    List<ChartStatisticsContent> result = widgetContentRepository.casesTrendStatistics(
+        filter, executionContentField, sort, 5);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(4, result.size());
+  }
+
+  @Test
   void bugTrendStatistics() {
     Map<Long, Map<String, Integer>> statistics = buildTotalDefectsMap();
     Filter filter = buildDefaultFilter(1L);

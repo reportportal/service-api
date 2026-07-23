@@ -641,7 +641,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         WidgetSortUtils.fieldTransformer(filter.getTarget()).apply(sort, LAUNCHES));
 
     return CASES_GROWTH_TREND_FETCHER.apply(dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NUMBER,

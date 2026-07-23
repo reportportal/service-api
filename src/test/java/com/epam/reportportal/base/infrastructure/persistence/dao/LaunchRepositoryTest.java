@@ -221,6 +221,22 @@ class LaunchRepositoryTest extends BaseMvcTest {
   }
 
   @Test
+  @Sql({"/db/fill/launch/launch-fill.sql", "/db/fill/launch/launch-manual-type-fill.sql"})
+  void getLaunchNamesWhenManualLaunchExistsShouldExcludeManualLaunches() {
+    // Given
+    final String manualLaunchName = "manual type launch";
+
+    // When
+    List<String> launchNames = launchRepository.getLaunchNamesByModeExcludedByStatus(
+        1L, "", LaunchModeEnum.DEFAULT, StatusEnum.CANCELLED);
+
+    // Then
+    assertNotNull(launchNames);
+    assertTrue(CollectionUtils.isNotEmpty(launchNames));
+    assertFalse(launchNames.contains(manualLaunchName));
+  }
+
+  @Test
   void findLaunchByFilterTest() {
     Sort sort = Sort.by(Sort.Direction.ASC, CRITERIA_LAST_MODIFIED);
     Page<Launch> launches = launchRepository.findByFilter(new CompositeFilter(Operator.AND,

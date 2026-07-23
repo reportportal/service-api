@@ -54,6 +54,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLev
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.util.SortUtils;
@@ -140,6 +141,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
         .where(PROJECT.ID.eq(projectId))
         .and(LAUNCH.MODE.eq(JLaunchModeEnum.valueOf(mode.name())))
         .and(LAUNCH.STATUS.notEqual(JStatusEnum.valueOf(status.name())))
+        .and(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .and(LAUNCH.NAME.likeIgnoreCase("%" + DSL.escape(value, '\\') + "%"))
         .fetch(LAUNCH.NAME);
   }

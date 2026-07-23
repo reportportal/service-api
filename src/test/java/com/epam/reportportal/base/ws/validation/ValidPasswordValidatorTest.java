@@ -1,13 +1,29 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.reportportal.base.ws.validation;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
+import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.Optional;
+import java.lang.annotation.Annotation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,10 +33,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ValidPasswordValidatorTest {
 
-  private static final String SERVER_PASSWORD_MIN_LENGTH = "server.password.min.length";
-
   @Mock
-  private ServerSettingsRepository repository;
+  private PasswordPolicyService passwordPolicyService;
   @Mock
   private ConstraintValidatorContext context;
 
@@ -28,21 +42,7 @@ class ValidPasswordValidatorTest {
   private ValidPasswordValidator validator;
 
   @Test
-  void isValidWhenPasswordMeetsPolicyAndMinFromDBShouldReturnTrue() {
-    // given
-    when(repository.findByKey(SERVER_PASSWORD_MIN_LENGTH))
-        .thenReturn(Optional.of(serverSetting("12")));
-    String value = "Abcdef!1Abcdef";
-
-    // when
-    boolean result = validator.isValid(value, context);
-
-    // then
-    assertTrue(result);
-  }
-
-  @Test
-  void isValidWhenNullAndAllowNullTrueShouldReturnTrue() {
+  void isValidWhenNullAndAllowNullTrueShouldReturnTrueWithoutDelegating() {
     // given
     initValidator(true);
 
@@ -50,76 +50,33 @@ class ValidPasswordValidatorTest {
     boolean result = validator.isValid(null, context);
 
     // then
-    assertTrue(result);
+    assertThat(result).isTrue();
+    verify(passwordPolicyService, never()).isValid(null);
   }
 
   @Test
-  void isValidWhenEmptyAndAllowNullTrueShouldReturnFalse() {
+  void isValidWhenNullAndAllowNullFalseShouldDelegate() {
     // given
-    initValidator(true);
-    // when
-    boolean result = validator.isValid("", context);
-    // then
-    assertFalse(result);
-  }
+    when(passwordPolicyService.isValid(null)).thenReturn(false);
 
-  @Test
-  void isValidWhenNullAndAllowNullFalseShouldReturnFalse() {
-    // given + when
+    // when
     boolean result = validator.isValid(null, context);
 
     // then
-    assertFalse(result);
+    assertThat(result).isFalse();
+    verify(passwordPolicyService).isValid(null);
   }
 
   @Test
-  void isValidWhenExceedsMaxShouldReturnFalse() {
+  void isValidWhenValueProvidedShouldReturnPolicyResult() {
     // given
-    String longPassword = "A".repeat(257);
+    when(passwordPolicyService.isValid("Abcdef!1Abcd")).thenReturn(true);
 
     // when
-    boolean result = validator.isValid(longPassword, context);
+    boolean result = validator.isValid("Abcdef!1Abcd", context);
 
     // then
-    assertFalse(result);
-  }
-
-  @Test
-  void isValidWhenBelowMinShouldReturnFalse() {
-    // given
-    when(repository.findByKey(SERVER_PASSWORD_MIN_LENGTH))
-        .thenReturn(Optional.of(serverSetting("16")));
-    String value = "Abcdef!1Abcd";
-
-    // when
-    boolean result = validator.isValid(value, context);
-
-    // then
-    assertFalse(result);
-  }
-
-  @Test
-  void isValidWhenWhitespacePresentShouldReturnFalse() {
-    // given + when
-    boolean result = validator.isValid("Abcd ef!1", context);
-
-    // then
-    assertFalse(result);
-  }
-
-  @Test
-  void isValidWhenNoDigitOrUpperOrLowerOrSpecialShouldReturnFalse() {
-    assertFalse(validator.isValid("aaaaaaaa", context));
-    assertFalse(validator.isValid("AAAAAAAA", context));
-    assertFalse(validator.isValid("Abcdefgh", context));
-    assertFalse(validator.isValid("Abcdefg1", context));
-  }
-
-  private ServerSettings serverSetting(String value) {
-    ServerSettings settings = new ServerSettings();
-    settings.setKey(SERVER_PASSWORD_MIN_LENGTH);
-    settings.setValue(value);
-    return settings;
+    assertThat(result).isTrue();
   }
 
   private void initValidator(boolean allowNull) {
@@ -135,7 +92,7 @@ class ValidPasswordValidatorTest {
       }
 
       @Override
-      public Class<? extends java.lang.annotation.Annotation> annotationType() {
+      public Class<? extends Annotation> annotationType() {
         return ValidPassword.class;
       }
 

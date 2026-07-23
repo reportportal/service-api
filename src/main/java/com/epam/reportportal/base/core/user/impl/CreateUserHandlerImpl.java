@@ -31,6 +31,7 @@ import com.epam.reportportal.api.model.InstanceUser;
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.user.CreateUserHandler;
+import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.RestorePasswordBidRepository;
@@ -76,12 +77,14 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final PasswordEncoder passwordEncoder;
   private final ApplicationEventPublisher eventPublisher;
   private final UserMutationService userMutationService;
+  private final PasswordPolicyService passwordPolicyService;
 
   @Override
   public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator,
       String basicUrl) {
     var email = userMutationService.normalizeAndValidateEmail(request.getEmail());
     request.setEmail(email);
+    ofNullable(request.getPassword()).ifPresent(passwordPolicyService::validate);
 
     var savedUser = saveUser(request);
 

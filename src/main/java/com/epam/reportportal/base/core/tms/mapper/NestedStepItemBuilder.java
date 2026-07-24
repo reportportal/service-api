@@ -95,6 +95,8 @@ public class NestedStepItemBuilder {
     newStep.setRetryOf(null);
     newStep.setParentId(parentRetryItem.getItemId());
     newStep.setTestCaseId(parentRetryItem.getTestCaseId());
+    newStep.setTestCaseHash(parentRetryItem.getTestCaseHash());
+    newStep.setUniqueId(originalStep.getUniqueId());
   
     var results = new TestItemResults();
     results.setStatus(StatusEnum.TO_RUN);

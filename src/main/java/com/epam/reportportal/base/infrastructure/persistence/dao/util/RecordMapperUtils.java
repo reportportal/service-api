@@ -19,6 +19,7 @@ package com.epam.reportportal.base.infrastructure.persistence.dao.util;
 import java.util.Arrays;
 import java.util.function.Predicate;
 import org.jooq.Field;
+import org.jooq.Record;
 
 /**
  * Helpers for jOOQ record field selection predicates.
@@ -36,5 +37,13 @@ public final class RecordMapperUtils {
         .noneMatch(f -> f.getName().equalsIgnoreCase(field.getName()) && f.getQualifiedName()
             .toString()
             .equalsIgnoreCase(field.getQualifiedName().toString()));
+  }
+
+  public static boolean hasField(Record record, Field<?> field) {
+    return Arrays.stream(record.fields()).anyMatch(f -> f.equals(field));
+  }
+
+  public static <T> T getFieldValue(Record record, Field<T> field) {
+    return hasField(record, field) ? record.get(field) : null;
   }
 }

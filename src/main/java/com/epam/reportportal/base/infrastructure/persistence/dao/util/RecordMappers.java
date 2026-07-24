@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.LogRepos
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.TestItemRepositoryConstants.ATTACHMENTS_COUNT;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.TestItemRepositoryConstants.HAS_CONTENT;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMapperUtils.fieldExcludingPredicate;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMapperUtils.getFieldValue;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.CLUSTERS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.CONTENT_FIELD;
@@ -865,7 +866,7 @@ public class RecordMappers {
     execution.setTestCaseVersionId(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_VERSION_ID));
     execution.setPriority(r.get(TMS_TEST_CASE_EXECUTION.PRIORITY, String.class));
     execution.setTestCaseSnapshot(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT, String.class));
-    ofNullable(r.field(TMS_TEST_CASE_EXECUTION.DISPLAY_ID)).flatMap(f -> ofNullable(r.get(f, String.class)))
+    ofNullable(getFieldValue(r, TMS_TEST_CASE_EXECUTION.DISPLAY_ID))
         .ifPresent(execution::setDisplayId);
     
     //Create TestItem with id, if test_item_id exists
@@ -874,22 +875,21 @@ public class RecordMappers {
       testItem.setItemId(testItemId);
 
       // If there is test_item from JOIN - fill that
-      ofNullable(r.field(TEST_ITEM.START_TIME)).flatMap(f -> ofNullable(r.get(f, Instant.class)))
+      ofNullable(getFieldValue(r, TEST_ITEM.START_TIME))
           .ifPresent(testItem::setStartTime);
-      ofNullable(r.field(TEST_ITEM.NAME)).flatMap(f -> ofNullable(r.get(f, String.class)))
+      ofNullable(getFieldValue(r, TEST_ITEM.NAME))
           .ifPresent(testItem::setName);
-      ofNullable(r.field(TEST_ITEM.PARENT_ID)).flatMap(f -> ofNullable(r.get(f, Long.class)))
+      ofNullable(getFieldValue(r, TEST_ITEM.PARENT_ID))
           .ifPresent(testItem::setParentId);
 
       // Get TestItemResults
-      ofNullable(r.field(TEST_ITEM_RESULTS.RESULT_ID))
-          .flatMap(f -> ofNullable(r.get(f, Long.class)))
+      ofNullable(getFieldValue(r, TEST_ITEM_RESULTS.RESULT_ID))
           .ifPresent(resultId -> {
             TestItemResults results = new TestItemResults();
             results.setItemId(resultId);
-            ofNullable(r.field(TEST_ITEM_RESULTS.STATUS)).flatMap(f -> ofNullable(r.get(f)))
+            ofNullable(getFieldValue(r, TEST_ITEM_RESULTS.STATUS))
                 .ifPresent(status -> results.setStatus(StatusEnum.valueOf(status.getLiteral())));
-            ofNullable(r.field(TEST_ITEM_RESULTS.END_TIME)).flatMap(f -> ofNullable(r.get(f, Instant.class)))
+            ofNullable(getFieldValue(r, TEST_ITEM_RESULTS.END_TIME))
                 .ifPresent(results::setEndTime);
             testItem.setItemResults(results);
           });
@@ -897,13 +897,11 @@ public class RecordMappers {
       execution.setTestItem(testItem);
     });
 
-    ofNullable(r.field(TMS_TEST_CASE_EXECUTION_COMMENT.ID))
-        .flatMap(f -> ofNullable(r.get(f, Long.class)))
+    ofNullable(getFieldValue(r, TMS_TEST_CASE_EXECUTION_COMMENT.ID))
         .ifPresent(commentId -> {
           TmsTestCaseExecutionComment comment = new TmsTestCaseExecutionComment();
           comment.setId(commentId);
-          ofNullable(r.field(TMS_TEST_CASE_EXECUTION_COMMENT.COMMENT))
-              .flatMap(f -> ofNullable(r.get(f, String.class)))
+          ofNullable(getFieldValue(r, TMS_TEST_CASE_EXECUTION_COMMENT.COMMENT))
               .ifPresent(comment::setComment);
           execution.setExecutionComment(comment);
         });

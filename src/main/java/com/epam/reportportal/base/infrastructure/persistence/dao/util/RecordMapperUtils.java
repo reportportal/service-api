@@ -46,4 +46,8 @@ public final class RecordMapperUtils {
   public static <T> T getFieldValue(Record record, Field<T> field) {
     return hasField(record, field) ? record.get(field) : null;
   }
+
+  public static <T> T getFieldValue(Record record, Field<?> field, Class<T> type) {
+    return hasField(record, field) ? record.get(field, type) : null;
+  }
 }

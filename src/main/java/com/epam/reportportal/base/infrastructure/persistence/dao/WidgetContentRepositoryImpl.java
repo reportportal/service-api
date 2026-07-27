@@ -239,7 +239,9 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
       int limit) {
 
     return OVERALL_STATISTICS_FETCHER.apply(dsl.with(LAUNCHES)
-        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest).with(sort)
+        .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest)
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
             .with(limit).build())
         .select(STATISTICS_FIELD.NAME, sum(STATISTICS.S_COUNTER).as(SUM))
         .from(LAUNCH)

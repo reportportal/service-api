@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.item.utils;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_TYPE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -26,6 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.ObjectType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
@@ -71,6 +73,11 @@ public class DefaultLaunchFilterProvider {
             .build())
         .withCondition(
             FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, Mode.DEFAULT.toString()).build())
+        .withCondition(FilterCondition.builder()
+            .withCondition(Condition.NOT_EQUALS)
+            .withSearchCriteria(CRITERIA_LAUNCH_TYPE)
+            .withValue(LaunchTypeEnum.MANUAL.name())
+            .build())
         .build();
     filter.getFilterConditions().addAll(launchFilter.getFilterCondition());
     return filter;

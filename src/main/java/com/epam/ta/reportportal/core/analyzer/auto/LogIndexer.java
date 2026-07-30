@@ -75,7 +75,7 @@ public interface LogIndexer {
    * @param analyzerConfig Analyzer config for indexing
    * @param testItems      Test items must be updated
    */
-  void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
+  CompletableFuture<Void> indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
 
   /**
    * Async handle of items that should be removed from index.

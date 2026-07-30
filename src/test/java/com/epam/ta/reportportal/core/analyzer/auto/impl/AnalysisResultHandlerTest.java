@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -73,10 +75,13 @@ class AnalysisResultHandlerTest {
 
   private final LogIndexer logIndexer = mock(LogIndexer.class);
 
+  private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter =
+      mock(UniqueErrorAnalysisStarter.class);
+
   private final AnalysisResultHandler analysisResultHandler =
       new AnalysisResultHandler(testItemRepository, launchRepository, projectRepository,
           issueTypeHandler, messageBus, testItemStatisticsService, defectUpdateStatisticsService,
-          logIndexer);
+          logIndexer, uniqueErrorAnalysisStarter);
 
   @Test
   void processResultsOverwritesIssuesWritesStatsAndIndexes() {
@@ -92,6 +97,8 @@ class AnalysisResultHandlerTest {
     when(projectRepository.findById(projectId)).thenReturn(Optional.of(project(projectId)));
     when(issueTypeHandler.defineIssueType(eq(projectId), eq(PRODUCT_BUG.getLocator())))
         .thenReturn(productBug().getIssueType());
+    when(logIndexer.indexDefectsUpdate(any(), any(), anyList()))
+        .thenReturn(CompletableFuture.completedFuture(null));
 
     analysisResultHandler.processResults(analyzed, "test-analyzer");
 
@@ -100,7 +107,7 @@ class AnalysisResultHandlerTest {
         eq(PRODUCT_BUG.getLocator()));
     verify(defectUpdateStatisticsService, times(1))
         .saveAutoAnalyzedDefectStatistics(itemsCount, itemsCount, 0, projectId);
-    verify(logIndexer, times(1)).indexItemsLogs(eq(projectId), eq(launchId), anyList(), any());
+    verify(logIndexer, times(1)).indexDefectsUpdate(eq(projectId), any(), anyList());
     verify(messageBus, times(itemsCount))
         .publishActivity(any(ItemIssueTypeDefinedEvent.class));
   }
@@ -127,14 +134,15 @@ class AnalysisResultHandlerTest {
     when(projectRepository.findById(projectId)).thenReturn(Optional.of(project(projectId)));
     when(issueTypeHandler.defineIssueType(eq(projectId), eq(PRODUCT_BUG.getLocator())))
         .thenReturn(productBug().getIssueType());
+    when(logIndexer.indexDefectsUpdate(any(), any(), anyList()))
+        .thenReturn(CompletableFuture.completedFuture(null));
 
     analysisResultHandler.processResults(List.of(analyzedRetryItem), "test-analyzer");
 
     verify(testItemRepository).save(originalItem);
     verify(defectUpdateStatisticsService)
         .saveAutoAnalyzedDefectStatistics(1, 1, 0, projectId);
-    verify(logIndexer).indexItemsLogs(eq(projectId), eq(launchId), eq(List.of(originalItemId)),
-        any());
+    verify(logIndexer).indexDefectsUpdate(eq(projectId), any(), anyList());
   }
 
   @Test
@@ -142,7 +150,7 @@ class AnalysisResultHandlerTest {
     analysisResultHandler.processResults(Collections.emptyList(), "test-analyzer");
 
     verify(testItemRepository, never()).save(any());
-    verify(logIndexer, never()).indexItemsLogs(any(), any(), anyList(), any());
+    verify(logIndexer, never()).indexDefectsUpdate(any(), any(), anyList());
     verify(defectUpdateStatisticsService, never())
         .saveAutoAnalyzedDefectStatistics(anyInt(), anyInt(), anyInt(), any());
   }

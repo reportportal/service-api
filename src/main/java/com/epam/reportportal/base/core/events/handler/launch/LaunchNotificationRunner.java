@@ -197,8 +197,7 @@ public class LaunchNotificationRunner
               () -> LOGGER.warn("Unable to find email integration for project {}", launchFinishedEvent.getProjectId()));
     }
 
-    if (BooleanUtils.toBoolean(
-        projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))) {
+    if (BooleanUtils.toBoolean(projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))) {
       sendNotificationEvent(launchFinishedEvent);
     }
   }

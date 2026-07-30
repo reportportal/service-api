@@ -36,6 +36,5 @@ public interface DemoDataFacade {
    * @param membershipDetails Membership details
    * @return {@link List} of generated launch ids
    */
-  List<Long> generateDemoLaunches(ReportPortalUser user,
-      MembershipDetails membershipDetails);
+  List<Long> generateDemoLaunches(ReportPortalUser user, MembershipDetails membershipDetails, String baseUrl);
 }

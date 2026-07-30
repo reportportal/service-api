@@ -21,13 +21,12 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 
 import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
-import com.epam.reportportal.base.core.project.ProjectService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
@@ -40,7 +39,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
+@RequiredArgsConstructor
 public class DemoDataLaunchService {
 
   private final String[] platformValues =
@@ -58,21 +58,9 @@ public class DemoDataLaunchService {
           "windows 10", "windows 7", "windows server", "debian", "alpine"};
 
   private final LaunchRepository launchRepository;
-  private final ProjectService projectService;
   private final TestItemRepository testItemRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final LaunchAttributeHandlerService launchAttributeHandlerService;
-
-  @Autowired
-  public DemoDataLaunchService(LaunchRepository launchRepository, ProjectService projectService,
-      TestItemRepository testItemRepository, ApplicationEventPublisher eventPublisher,
-      LaunchAttributeHandlerService launchAttributeHandlerService) {
-    this.launchRepository = launchRepository;
-    this.projectService = projectService;
-    this.testItemRepository = testItemRepository;
-    this.eventPublisher = eventPublisher;
-    this.launchAttributeHandlerService = launchAttributeHandlerService;
-  }
 
   @Transactional
   public Launch startLaunch(String name, User user,
@@ -100,7 +88,8 @@ public class DemoDataLaunchService {
   }
 
   @Transactional
-  public void finishLaunch(String launchId) {
+  public void finishLaunch(String launchId, ReportPortalUser user, MembershipDetails membershipDetails,
+      String baseUrl) {
     Launch launch = launchRepository.findByUuid(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
     if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
@@ -119,7 +108,7 @@ public class DemoDataLaunchService {
 
     launchRepository.save(launch);
 
-    Project project = projectService.findProjectById(launch.getProjectId());
-    eventPublisher.publishEvent(new LaunchFinishedEvent(launch, project.getOrganizationId()));
+    eventPublisher.publishEvent(
+        new LaunchFinishedEvent(launch, user, baseUrl, membershipDetails.getOrgId(), membershipDetails.getOrgSlug()));
   }
 }

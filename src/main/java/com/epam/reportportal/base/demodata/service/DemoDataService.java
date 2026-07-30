@@ -21,7 +21,7 @@ import com.epam.reportportal.base.demodata.model.DemoDataRs;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,22 +30,16 @@ import org.springframework.stereotype.Service;
  * @author Ihar Kahadouski
  */
 @Service
+@RequiredArgsConstructor
 public class DemoDataService {
 
   private final DemoDashboardsService demoDashboardsService;
   private final DemoDataFacade demoDataFacade;
 
-  @Autowired
-  public DemoDataService(DemoDashboardsService demoDashboardsService,
-      DemoDataFacade demoDataFacade) {
-    this.demoDashboardsService = demoDashboardsService;
-    this.demoDataFacade = demoDataFacade;
-  }
-
-  public DemoDataRs generate(DemoDataRq demoDataRq, MembershipDetails membershipDetails,
-      ReportPortalUser user) {
+  public DemoDataRs generate(DemoDataRq demoDataRq, MembershipDetails membershipDetails, ReportPortalUser user,
+      String baseUrl) {
     DemoDataRs demoDataRs = new DemoDataRs();
-    final List<Long> launchIds = demoDataFacade.generateDemoLaunches(user, membershipDetails);
+    final List<Long> launchIds = demoDataFacade.generateDemoLaunches(user, membershipDetails, baseUrl);
     demoDataRs.setLaunchIds(launchIds);
     if (demoDataRq.isCreateDashboard()) {
       demoDashboardsService.generate(user, membershipDetails.getProjectId())

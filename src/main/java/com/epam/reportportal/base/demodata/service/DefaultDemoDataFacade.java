@@ -85,14 +85,14 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
   @Override
   public List<Long> generateDemoLaunches(ReportPortalUser user,
-      MembershipDetails membershipDetails) {
+      MembershipDetails membershipDetails, String baseUrl) {
     return CompletableFuture.supplyAsync(
         () -> Stream.of(sources).map(source -> resourceFolder + source).map(source -> {
           try {
             final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(source),
                 new TypeReference<DemoLaunch>() {
                 });
-            return generateLaunch(demoLaunch, user, membershipDetails);
+            return generateLaunch(demoLaunch, user, membershipDetails, baseUrl);
           } catch (IOException e) {
             throw new ReportPortalException("Unable to load suites description. " + e.getMessage(),
                 e);
@@ -101,7 +101,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
   }
 
   private Long generateLaunch(DemoLaunch demoLaunch, ReportPortalUser user,
-      MembershipDetails membershipDetails) {
+      MembershipDetails membershipDetails, String baseUrl) {
 
     final User creator = userRepository.findById(user.getUserId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
@@ -116,7 +116,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
     final List<Log> logs = demoLogsService.generateLaunchLogs(LAUNCH_LOGS_COUNT, launch.getUuid(),
         launch.getStatus());
-    demoDataLaunchService.finishLaunch(launch.getUuid());
+    demoDataLaunchService.finishLaunch(launch.getUuid(), user, membershipDetails, baseUrl);
     demoLogsService.attachFiles(logs, membershipDetails.getProjectId(), launch.getUuid());
     return launch.getId();
   }

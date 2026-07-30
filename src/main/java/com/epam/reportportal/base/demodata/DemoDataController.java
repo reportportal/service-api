@@ -18,6 +18,7 @@ package com.epam.reportportal.base.demodata;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 
+import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.demodata.model.DemoDataRq;
 import com.epam.reportportal.base.demodata.model.DemoDataRs;
 import com.epam.reportportal.base.demodata.service.DemoDataService;
@@ -25,6 +26,8 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -41,21 +44,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/demo/{projectKey}")
 @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @Tag(name = "Demo Data", description = "Demo data API collection")
+@RequiredArgsConstructor
 class DemoDataController {
 
   private final DemoDataService demoDataService;
-
   private final ProjectExtractor projectExtractor;
-
-  DemoDataController(DemoDataService demoDataService, ProjectExtractor projectExtractor) {
-    this.demoDataService = demoDataService;
-    this.projectExtractor = projectExtractor;
-  }
+  private final LinkGenerator linkGenerator;
 
   @PostMapping("/generate")
   @Operation(summary = "generate")
   public DemoDataRs generate(@PathVariable String projectKey, @Validated @RequestBody DemoDataRq demoDataRq,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(projectKey), user);
+      @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
+    return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(projectKey), user,
+        linkGenerator.composeBaseUrl(request));
   }
 }

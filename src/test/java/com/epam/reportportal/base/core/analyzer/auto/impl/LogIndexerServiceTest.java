@@ -114,6 +114,14 @@ class LogIndexerServiceTest {
     verify(indexerServiceClient, times(1)).indexItemsRemoveAsync(1L, list);
   }
 
+  @Test
+  void testCleanIndex() {
+    List<Long> list = Lists.newArrayList(1L);
+    doNothing().when(indexerServiceClient).cleanIndex(1L, list);
+    logIndexerService.cleanIndex(1L, list);
+    verify(indexerServiceClient, times(1)).cleanIndex(1L, list);
+  }
+
   private AnalyzerConfig analyzerConfig() {
     AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setAnalyzerMode(ALL_LAUNCHES.getValue());

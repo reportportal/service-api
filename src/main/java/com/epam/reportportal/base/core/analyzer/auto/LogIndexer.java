@@ -54,13 +54,12 @@ public interface LogIndexer {
   void deleteIndex(Long project);
 
   /**
-   * Remove documents with specified ids from index
+   * Sends a request to remove documents with specified ids from index
    *
    * @param index Index to to be cleaned
    * @param ids   The {@link List} of the {@link Log#id}
-   * @return Amount of deleted logs
    */
-  CompletableFuture<Long> cleanIndex(Long index, List<Long> ids);
+  void cleanIndex(Long index, List<Long> ids);
 
   /**
    * Async handle of updated items for indexing.
@@ -70,15 +69,6 @@ public interface LogIndexer {
    * @param testItems      Test items must be updated
    */
   void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
-
-  /**
-   * Handle of items that should be removed from index.
-   *
-   * @param projectId           Project id
-   * @param itemsForIndexRemove Ids of items
-   * @return number of removed items
-   */
-  int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
 
   /**
    * Async handle of items that should be removed from index.

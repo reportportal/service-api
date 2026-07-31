@@ -45,13 +45,14 @@ public class LaunchUniqueErrorAnalysisRunner implements
 
   @Override
   public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
-    if (!BooleanUtils.toBoolean(projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()))) {
-      return;
+    final boolean enabled = BooleanUtils.toBoolean(
+        projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()));
+    if (enabled) {
+      uniqueErrorAnalysisStarter.start(
+          ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.getProjectId()),
+          projectConfig
+      );
     }
-    uniqueErrorAnalysisStarter.start(
-        ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.getProjectId()),
-        projectConfig
-    );
   }
 
 }

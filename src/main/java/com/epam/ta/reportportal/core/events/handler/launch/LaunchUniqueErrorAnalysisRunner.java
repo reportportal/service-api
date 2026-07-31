@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.events.handler.launch;
 
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_ANALYZER_ENABLED;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
@@ -47,10 +46,6 @@ public class LaunchUniqueErrorAnalysisRunner implements
   @Override
   public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
     if (!BooleanUtils.toBoolean(projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()))) {
-      return;
-    }
-    if (BooleanUtils.toBoolean(projectConfig.get(AUTO_ANALYZER_ENABLED.getAttribute()))) {
-      // Cluster will be triggered by AnalysisResultHandler after auto-analysis results arrive
       return;
     }
     uniqueErrorAnalysisStarter.start(

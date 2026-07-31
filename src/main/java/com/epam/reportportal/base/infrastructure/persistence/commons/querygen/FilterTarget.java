@@ -735,7 +735,8 @@ public enum FilterTarget {
               String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_UUID, TEST_ITEM.UUID, String.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TEST_CASE_ID, TEST_ITEM.TEST_CASE_HASH,
-              String.class).get(),
+                  String.class).withValueConverter(String::hashCode)
+              .withAllowedConditions(Condition.EQUALS, Condition.NOT_EQUALS).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TEST_CASE_HASH, TEST_ITEM.TEST_CASE_HASH,
               Integer.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_PARENT_ID, TEST_ITEM.PARENT_ID,

@@ -193,15 +193,21 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
                         .on(TEST_ITEM.PARENT_ID.eq(dItemId))
                 )
         );
+
+    Field<Long> ddItemId = DSL.field(DSL.name("distinct_descendants", "item_id"), Long.class);
+    Field<Long> ddRootId = DSL.field(DSL.name("distinct_descendants", "root_id"), Long.class);
+    Table<?> distinctDescendants = dsl.selectDistinct(dItemId, dRootId)
+        .on(dItemId)
+        .from(descendants)
+        .asTable("distinct_descendants", "item_id", "root_id");
+
     return INDEX_LOG_FETCHER.apply(
         dsl.withRecursive(descendants)
-            .selectDistinct(LOG.ID, LOG.LOG_LEVEL, LOG.LOG_MESSAGE, LOG.LOG_TIME,
-                dRootId.as(ROOT_ITEM_ID), CLUSTERS.INDEX_ID)
-            .on(LOG.ID)
-            .from(descendants)
+            .select(LOG.ID, LOG.LOG_LEVEL, LOG.LOG_MESSAGE, LOG.LOG_TIME, ddRootId.as(ROOT_ITEM_ID), CLUSTERS.INDEX_ID)
+            .from(distinctDescendants)
             .join(LOG)
-            .on(LOG.ITEM_ID.eq(dItemId)
-                .and(logLevelInStandardRange(logLevel)))
+            .on(LOG.ITEM_ID.eq(ddItemId)
+                .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel)))
             .leftJoin(CLUSTERS)
             .on(LOG.CLUSTER_ID.eq(CLUSTERS.ID))
             .fetch());

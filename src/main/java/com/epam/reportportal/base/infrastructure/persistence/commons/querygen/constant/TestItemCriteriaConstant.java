@@ -41,6 +41,7 @@ public final class TestItemCriteriaConstant {
   public static final String CRITERIA_TICKET_ID = "ticketId";
   public static final String CRITERIA_CLUSTER_ID = "clusterId";
   public static final String RETRY_PARENT = "retry_parent";
+  public static final String CRITERIA_LAUNCH_OWNER = "launchOwner";
 
   private TestItemCriteriaConstant() {
     //static only

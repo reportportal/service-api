@@ -142,5 +142,7 @@ public class WidgetContentRepositoryConstants {
   public static final String CUSTOM_COLUMN = "custom_column";
   public static final String CUSTOM_COLUMN_SORTING = "customColumn";
   public static final String EXCLUDE_SKIPPED_TABLE = "exclude_skipped_table";
+  public static final String OWNER_LEVEL_KEY = "$launchOwner";
+  public static final String DELETED_USER = "deleted_user";
 
 }

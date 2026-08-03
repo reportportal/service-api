@@ -106,6 +106,38 @@ class AnalysisResultHandlerTest {
   }
 
   @Test
+  void processResultsResolvesRetryItemBeforeLaunchFiltering() {
+    Long launchId = 1L;
+    Long projectId = 1L;
+    Long originalItemId = 1L;
+    Long retryItemId = 99L;
+
+    TestItem originalItem = testItemsTI(1, launchId).get(0);
+    TestItem retryItem = new TestItem();
+    retryItem.setItemId(retryItemId);
+    retryItem.setRetryOf(originalItemId);
+
+    AnalyzedItemRs analyzedRetryItem = new AnalyzedItemRs();
+    analyzedRetryItem.setItemId(retryItemId);
+    analyzedRetryItem.setLocator(PRODUCT_BUG.getLocator());
+
+    when(testItemRepository.findAllById(any())).thenReturn(List.of(retryItem));
+    when(testItemRepository.findById(originalItemId)).thenReturn(Optional.of(originalItem));
+    when(launchRepository.findById(launchId)).thenReturn(Optional.of(launch(launchId, projectId)));
+    when(projectService.findProjectById(projectId)).thenReturn(project(projectId));
+    when(issueTypeHandler.defineIssueType(eq(projectId), eq(PRODUCT_BUG.getLocator())))
+        .thenReturn(productBug().getIssueType());
+
+    analysisResultHandler.processResults(List.of(analyzedRetryItem), "test-analyzer");
+
+    verify(testItemRepository).save(originalItem);
+    verify(defectUpdateStatisticsService)
+        .saveAutoAnalyzedDefectStatistics(1, 1, 0, projectId);
+    verify(logIndexer).indexItemsLogs(eq(projectId), eq(launchId), eq(List.of(originalItemId)),
+        any());
+  }
+
+  @Test
   void processResultsIgnoresEmptyBatch() {
     analysisResultHandler.processResults(Collections.emptyList(), "test-analyzer");
 

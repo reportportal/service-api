@@ -20,7 +20,6 @@ import static com.epam.reportportal.base.ws.converter.converters.TestItemConvert
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.base.core.analytics.DefectUpdateStatisticsService;
@@ -70,6 +69,7 @@ import org.springframework.util.CollectionUtils;
 public class AnalysisResultHandler {
 
   private static final String DEFAULT_ANALYZER_NAME = "analyzer";
+  private static final boolean IS_AUTO_ANALYZED = true;
 
   private final TestItemRepository testItemRepository;
 
@@ -160,13 +160,10 @@ public class AnalysisResultHandler {
       }
     }
 
-    List<Long> indexItemIds = testItems.stream().map(TestItem::getItemId).collect(toList());
-
     defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(testItems.size(),
         analyzedAmount, 0, projectId);
 
-    logIndexer.indexItemsLogs(projectId, launchId, indexItemIds,
-        AnalyzerUtils.getAnalyzerConfig(project));
+    logIndexer.indexDefectsUpdate(projectId, AnalyzerUtils.getAnalyzerConfig(project), testItems, IS_AUTO_ANALYZED);
   }
 
   /**

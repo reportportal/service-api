@@ -74,8 +74,11 @@ public interface LogIndexer {
    * @param projectId      Project id
    * @param analyzerConfig Analyzer config for indexing
    * @param testItems      Test items must be updated
+   * @param autoAnalyzed   {@code true} if the update was triggered by auto-analysis, {@code false} for manual user
+   *                       updates
    */
-  void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
+  void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems,
+      boolean autoAnalyzed);
 
   /**
    * Async handle of items that should be removed from index.

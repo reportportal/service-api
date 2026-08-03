@@ -72,8 +72,7 @@ public class LaunchAutoAnalysisConfig {
 
   @Bean
   public CollectingAutoAnalysisStarter collectingAutoAnalysisStarter() {
-    return new CollectingAutoAnalysisStarter(getLaunchHandler, analyzeCollectorFactory,
-        analyzerService, logIndexer);
+    return new CollectingAutoAnalysisStarter(getLaunchHandler, analyzeCollectorFactory, analyzerService);
   }
 
   @Bean

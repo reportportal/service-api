@@ -99,11 +99,11 @@ class LogIndexerServiceTest {
   @Test
   void testIndexDefectsUpdate() {
     final Map<Long, String> toUpdate = Maps.newHashMap(1L, "pb001");
-    when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate)).thenReturn(Collections.emptyList());
+    when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate, false)).thenReturn(Collections.emptyList());
     logIndexerService.indexDefectsUpdate(1L, new AnalyzerConfig(),
-        Lists.newArrayList(createTestItem(1L, TestItemIssueGroup.PRODUCT_BUG))
+        Lists.newArrayList(createTestItem(1L, TestItemIssueGroup.PRODUCT_BUG)), false
     );
-    verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate);
+    verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate, false);
   }
 
   @Test

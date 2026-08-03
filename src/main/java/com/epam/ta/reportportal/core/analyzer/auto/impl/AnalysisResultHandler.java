@@ -16,8 +16,6 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
@@ -32,8 +30,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
-import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -53,11 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -71,6 +65,7 @@ import org.springframework.util.CollectionUtils;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AnalysisResultHandler {
 
 
@@ -91,30 +86,6 @@ public class AnalysisResultHandler {
   private final DefectUpdateStatisticsService defectUpdateStatisticsService;
 
   private final LogIndexer logIndexer;
-
-  private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
-
-  @Autowired
-  public AnalysisResultHandler(
-      TestItemRepository testItemRepository,
-      LaunchRepository launchRepository,
-      ProjectRepository projectRepository,
-      IssueTypeHandler issueTypeHandler,
-      MessageBus messageBus,
-      TestItemStatisticsService testItemStatisticsService,
-      DefectUpdateStatisticsService defectUpdateStatisticsService,
-      LogIndexer logIndexer,
-      @Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
-    this.testItemRepository = testItemRepository;
-    this.launchRepository = launchRepository;
-    this.projectRepository = projectRepository;
-    this.issueTypeHandler = issueTypeHandler;
-    this.messageBus = messageBus;
-    this.testItemStatisticsService = testItemStatisticsService;
-    this.defectUpdateStatisticsService = defectUpdateStatisticsService;
-    this.logIndexer = logIndexer;
-    this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
-  }
 
   /**
    * Applies analysis results that arrived in a single reply message. A message always belongs to a single launch and
@@ -193,18 +164,7 @@ public class AnalysisResultHandler {
     defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(testItems.size(),
         analyzedAmount, 0, projectId);
 
-    Map<String, String> projectConfig = getConfigParameters(project.getProjectAttributes());
-
-    logIndexer.indexDefectsUpdate(projectId, AnalyzerUtils.getAnalyzerConfig(project), testItems)
-        .thenRun(() -> {
-          if (BooleanUtils.toBoolean(projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()))) {
-            uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launchId, projectId), projectConfig);
-          }
-        })
-        .exceptionally(e -> {
-          log.error("Unique error analysis failed for launch {}", launchId, e);
-          return null;
-        });
+    logIndexer.indexDefectsUpdate(projectId, AnalyzerUtils.getAnalyzerConfig(project), testItems);
   }
 
   /**

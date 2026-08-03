@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -49,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -75,13 +73,10 @@ class AnalysisResultHandlerTest {
 
   private final LogIndexer logIndexer = mock(LogIndexer.class);
 
-  private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter =
-      mock(UniqueErrorAnalysisStarter.class);
-
   private final AnalysisResultHandler analysisResultHandler =
       new AnalysisResultHandler(testItemRepository, launchRepository, projectRepository,
           issueTypeHandler, messageBus, testItemStatisticsService, defectUpdateStatisticsService,
-          logIndexer, uniqueErrorAnalysisStarter);
+          logIndexer);
 
   @Test
   void processResultsOverwritesIssuesWritesStatsAndIndexes() {
@@ -97,9 +92,6 @@ class AnalysisResultHandlerTest {
     when(projectRepository.findById(projectId)).thenReturn(Optional.of(project(projectId)));
     when(issueTypeHandler.defineIssueType(eq(projectId), eq(PRODUCT_BUG.getLocator())))
         .thenReturn(productBug().getIssueType());
-    when(logIndexer.indexDefectsUpdate(any(), any(), anyList()))
-        .thenReturn(CompletableFuture.completedFuture(null));
-
     analysisResultHandler.processResults(analyzed, "test-analyzer");
 
     verify(testItemRepository, times(itemsCount)).save(any());
@@ -134,9 +126,6 @@ class AnalysisResultHandlerTest {
     when(projectRepository.findById(projectId)).thenReturn(Optional.of(project(projectId)));
     when(issueTypeHandler.defineIssueType(eq(projectId), eq(PRODUCT_BUG.getLocator())))
         .thenReturn(productBug().getIssueType());
-    when(logIndexer.indexDefectsUpdate(any(), any(), anyList()))
-        .thenReturn(CompletableFuture.completedFuture(null));
-
     analysisResultHandler.processResults(List.of(analyzedRetryItem), "test-analyzer");
 
     verify(testItemRepository).save(originalItem);

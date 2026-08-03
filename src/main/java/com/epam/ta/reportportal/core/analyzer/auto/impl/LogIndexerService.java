@@ -150,10 +150,10 @@ public class LogIndexerService implements LogIndexer {
 
   @Async("autoAnalyzeTaskExecutor")
   @Override
-  public CompletableFuture<Void> indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
+  public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
       List<TestItem> testItems) {
     if (CollectionUtils.isEmpty(testItems)) {
-      return CompletableFuture.completedFuture(null);
+      return;
     }
 
     Map<Long, String> itemsForIndexUpdate = testItems.stream()
@@ -170,7 +170,6 @@ public class LogIndexerService implements LogIndexer {
           missedItems);
       indexerServiceClient.index(indexLaunchList);
     }
-    return CompletableFuture.completedFuture(null);
   }
 
   @Override

@@ -20,7 +20,6 @@ import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -58,10 +57,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Handles {@link AnalyzedItemRs} results delivered asynchronously through the analyzer reply queue.
- * Every result is treated as the actual one and overwrites the item's issue (no priority,
- * last-write-wins). For every processed message it also records auto-analysis statistics and
- * triggers log indexing of the affected items.
+ * Handles {@link AnalyzedItemRs} results delivered asynchronously through the analyzer reply queue. Every result is
+ * treated as the actual one and overwrites the item's issue (no priority, last-write-wins). For every processed message
+ * it also records auto-analysis statistics and triggers log indexing of the affected items.
  *
  * @author Pavel Bortnik
  */
@@ -72,6 +70,7 @@ public class AnalysisResultHandler {
 
 
   private static final String DEFAULT_ANALYZER_NAME = "analyzer";
+  private static final boolean IS_AUTO_ANALYZED = true;
 
   private final TestItemRepository testItemRepository;
 
@@ -90,9 +89,8 @@ public class AnalysisResultHandler {
   private final LogIndexer logIndexer;
 
   /**
-   * Applies analysis results that arrived in a single reply message. A message always belongs to a
-   * single launch and project, so the launch/project context is resolved once and reused for the
-   * whole batch.
+   * Applies analysis results that arrived in a single reply message. A message always belongs to a single launch and
+   * project, so the launch/project context is resolved once and reused for the whole batch.
    *
    * @param analyzed         results from the reply queue
    * @param analyzerInstance analyzer instance name (from the message header), may be {@code null}
@@ -164,13 +162,10 @@ public class AnalysisResultHandler {
       }
     }
 
-    List<Long> indexItemIds = testItems.stream().map(TestItem::getItemId).collect(toList());
-
     defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(testItems.size(),
         analyzedAmount, 0, projectId);
 
-    logIndexer.indexItemsLogs(projectId, launchId, indexItemIds,
-        AnalyzerUtils.getAnalyzerConfig(project));
+    logIndexer.indexDefectsUpdate(projectId, AnalyzerUtils.getAnalyzerConfig(project), testItems, IS_AUTO_ANALYZED);
   }
 
   /**

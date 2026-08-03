@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
@@ -44,15 +43,13 @@ public class CollectingAutoAnalysisStarter implements LaunchAutoAnalysisStarter 
   private final GetLaunchHandler getLaunchHandler;
   private final AnalyzeCollectorFactory analyzeCollectorFactory;
   private final AnalyzerService analyzerService;
-  private final LogIndexer logIndexer;
 
   public CollectingAutoAnalysisStarter(GetLaunchHandler getLaunchHandler,
       AnalyzeCollectorFactory analyzeCollectorFactory,
-      AnalyzerService analyzerService, LogIndexer logIndexer) {
+      AnalyzerService analyzerService) {
     this.getLaunchHandler = getLaunchHandler;
     this.analyzeCollectorFactory = analyzeCollectorFactory;
     this.analyzerService = analyzerService;
-    this.logIndexer = logIndexer;
   }
 
   @Override
@@ -64,8 +61,6 @@ public class CollectingAutoAnalysisStarter implements LaunchAutoAnalysisStarter 
         config.getUser());
 
     analyzerService.runAnalyzers(launch, itemIds, config.getAnalyzerConfig());
-    logIndexer.indexItemsLogs(launch.getProjectId(), launch.getId(), itemIds,
-        config.getAnalyzerConfig());
   }
 
   /**

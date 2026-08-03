@@ -70,6 +70,7 @@ public class AnalysisResultHandler {
 
 
   private static final String DEFAULT_ANALYZER_NAME = "analyzer";
+  private static final boolean IS_AUTO_ANALYZED = true;
 
   private final TestItemRepository testItemRepository;
 
@@ -164,7 +165,7 @@ public class AnalysisResultHandler {
     defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(testItems.size(),
         analyzedAmount, 0, projectId);
 
-    logIndexer.indexDefectsUpdate(projectId, AnalyzerUtils.getAnalyzerConfig(project), testItems);
+    logIndexer.indexDefectsUpdate(projectId, AnalyzerUtils.getAnalyzerConfig(project), testItems, IS_AUTO_ANALYZED);
   }
 
   /**

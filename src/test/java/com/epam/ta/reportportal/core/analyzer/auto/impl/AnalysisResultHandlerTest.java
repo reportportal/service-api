@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -99,7 +100,7 @@ class AnalysisResultHandlerTest {
         eq(PRODUCT_BUG.getLocator()));
     verify(defectUpdateStatisticsService, times(1))
         .saveAutoAnalyzedDefectStatistics(itemsCount, itemsCount, 0, projectId);
-    verify(logIndexer, times(1)).indexDefectsUpdate(eq(projectId), any(), anyList());
+    verify(logIndexer, times(1)).indexDefectsUpdate(eq(projectId), any(), anyList(), eq(true));
     verify(messageBus, times(itemsCount))
         .publishActivity(any(ItemIssueTypeDefinedEvent.class));
   }
@@ -131,7 +132,7 @@ class AnalysisResultHandlerTest {
     verify(testItemRepository).save(originalItem);
     verify(defectUpdateStatisticsService)
         .saveAutoAnalyzedDefectStatistics(1, 1, 0, projectId);
-    verify(logIndexer).indexDefectsUpdate(eq(projectId), any(), anyList());
+    verify(logIndexer).indexDefectsUpdate(eq(projectId), any(), anyList(), eq(true));
   }
 
   @Test
@@ -139,7 +140,7 @@ class AnalysisResultHandlerTest {
     analysisResultHandler.processResults(Collections.emptyList(), "test-analyzer");
 
     verify(testItemRepository, never()).save(any());
-    verify(logIndexer, never()).indexDefectsUpdate(any(), any(), anyList());
+    verify(logIndexer, never()).indexDefectsUpdate(any(), any(), anyList(), anyBoolean());
     verify(defectUpdateStatisticsService, never())
         .saveAutoAnalyzedDefectStatistics(anyInt(), anyInt(), anyInt(), any());
   }

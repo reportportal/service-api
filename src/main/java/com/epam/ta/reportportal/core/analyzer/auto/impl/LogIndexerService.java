@@ -150,8 +150,8 @@ public class LogIndexerService implements LogIndexer {
 
   @Async("autoAnalyzeTaskExecutor")
   @Override
-  public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
-      List<TestItem> testItems) {
+  public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems,
+      boolean autoAnalyzed) {
     if (CollectionUtils.isEmpty(testItems)) {
       return;
     }
@@ -160,8 +160,7 @@ public class LogIndexerService implements LogIndexer {
         .collect(Collectors.toMap(TestItem::getItemId,
             it -> it.getItemResults().getIssue().getIssueType().getLocator()));
 
-    List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId,
-        itemsForIndexUpdate);
+    List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate, autoAnalyzed);
     List<TestItem> missedItems = testItems.stream()
         .filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
 

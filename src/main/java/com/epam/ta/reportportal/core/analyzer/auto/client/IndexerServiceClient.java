@@ -60,9 +60,11 @@ public interface IndexerServiceClient {
    *
    * @param projectId           Project id
    * @param itemsForIndexUpdate Pair of itemId - issue type
+   * @param autoAnalyzed        {@code true} if the update was triggered by auto-analysis,
+   *                            {@code false} for manual user updates
    * @return List of missed items in analyzer
    */
-  List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
+  List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate, boolean autoAnalyzed);
 
   /**
    * Sends a message to the queue with a list of items which must be removed from index

@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -96,6 +97,15 @@ public class TestConfig {
   @Profile("unittest")
   protected RabbitMqManagementClient managementTemplate() {
     return new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
+  }
+
+  @Bean(name = "analyzerRabbitListenerContainerFactory")
+  public SimpleRabbitListenerContainerFactory analyzerRabbitListenerContainerFactory(
+      ConnectionFactory connectionFactory) {
+    SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+    factory.setConnectionFactory(connectionFactory);
+    factory.setAutoStartup(false);
+    return factory;
   }
 
   @Bean

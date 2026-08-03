@@ -47,11 +47,18 @@ public interface LogIndexer {
       AnalyzerConfig analyzerConfig);
 
   /**
-   * Delete index of specified project
+   * Delete index of specified project and wait for analyzer response.
    *
    * @param project Project/index
    */
   void deleteIndex(Long project);
+
+  /**
+   * Sends a request to delete index of specified project without waiting for analyzer response.
+   *
+   * @param project Project/index
+   */
+  void deleteIndexAsync(Long project);
 
   /**
    * Sends a request to remove documents with specified ids from index

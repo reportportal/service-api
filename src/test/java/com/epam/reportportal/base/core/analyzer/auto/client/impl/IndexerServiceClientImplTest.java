@@ -21,6 +21,7 @@ import com.epam.reportportal.base.core.analyzer.auto.client.model.IndexItemsRemo
 import com.epam.reportportal.base.core.analyzer.auto.client.model.IndexLaunchRemove;
 import com.epam.reportportal.base.model.analyzer.CleanIndexRq;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,22 @@ class IndexerServiceClientImplTest {
   @Test
   void deleteIndex() {
     when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
+    when(rabbitTemplate.convertSendAndReceiveAsType(AUTO_ANALYZER_KEY, DELETE_ROUTE, 1L,
+        new ParameterizedTypeReference<Integer>() {
+        })).thenReturn(1);
     indexerServiceClient.deleteIndex(1L);
+    verify(rabbitTemplate, times(1)).convertSendAndReceiveAsType(AUTO_ANALYZER_KEY,
+        DELETE_ROUTE,
+        1L,
+        new ParameterizedTypeReference<Integer>() {
+        }
+    );
+  }
+
+  @Test
+  void deleteIndexAsync() {
+    when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
+    indexerServiceClient.deleteIndexAsync(1L);
     verify(rabbitTemplate, times(1)).convertAndSend(AUTO_ANALYZER_KEY, DELETE_ROUTE, 1L);
   }
 
@@ -56,7 +72,7 @@ class IndexerServiceClientImplTest {
         indexDefectsUpdate,
         new ParameterizedTypeReference<List<Long>>() {
         }
-    )).thenReturn(Lists.emptyList());
+    )).thenReturn(Collections.emptyList());
     indexerServiceClient.indexDefectsUpdate(1L, update);
     verify(rabbitTemplate, times(1)).convertSendAndReceiveAsType(AUTO_ANALYZER_KEY,
         DEFECT_UPDATE_ROUTE,

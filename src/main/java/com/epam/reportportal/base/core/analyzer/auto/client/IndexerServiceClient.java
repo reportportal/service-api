@@ -37,11 +37,18 @@ public interface IndexerServiceClient {
   void cleanIndex(Long index, List<Long> ids);
 
   /**
-   * Delete index
+   * Delete index and wait for analyzer response.
    *
    * @param index Index to be deleted
    */
   void deleteIndex(Long index);
+
+  /**
+   * Sends a request to delete index without waiting for analyzer response.
+   *
+   * @param index Index to be deleted
+   */
+  void deleteIndexAsync(Long index);
 
   /**
    * Index list of launches

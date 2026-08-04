@@ -1,8 +1,9 @@
 package com.epam.reportportal.base.core.tms.mapper;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.base.core.tms.sync.dto.RemoteAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import java.time.Duration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -44,4 +45,19 @@ public abstract class TmsAttachmentMapper {
   @Mapping(target = "manualScenarioPreconditions", ignore = true)
   public abstract TmsAttachment duplicateAttachment(TmsAttachment originalAttachment,
       String newFileId, String newThumbnailPath);
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "fileName", source = "remoteAttachment.filename")
+  @Mapping(target = "fileType", source = "remoteAttachment.mimeType")
+  @Mapping(target = "fileSize", source = "remoteAttachment.size")
+  @Mapping(target = "pathToFile", source = "fileId")
+  @Mapping(target = "thumbnailPath", source = "thumbnailPath")
+  @Mapping(target = "expiresAt", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "textManualScenarios", ignore = true)
+  @Mapping(target = "steps", ignore = true)
+  @Mapping(target = "manualScenarioPreconditions", ignore = true)
+  @Mapping(target = "executionComments", ignore = true)
+  @Mapping(target = "environment", ignore = true)
+  public abstract TmsAttachment convertFromRemote(RemoteAttachment remoteAttachment, String fileId, String thumbnailPath);
 }

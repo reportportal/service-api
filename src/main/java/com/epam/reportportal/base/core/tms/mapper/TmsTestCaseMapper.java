@@ -12,6 +12,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
+import com.epam.reportportal.base.core.tms.sync.dto.RemoteTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
@@ -281,6 +282,28 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       folder.setId(folderId);
       folder.setProject(project);
       testCase.setTestFolder(folder);
+    }
+
+    return testCase;
+  }
+
+  public TmsTestCase convertFromRemote(RemoteTestCase remoteTestCase, TmsTestCase existing, Long projectId, Long localFolderId) {
+    TmsTestCase testCase = existing != null ? existing : new TmsTestCase();
+    if (existing == null) {
+      var project = new Project();
+      project.setId(projectId);
+      testCase.setProject(project);
+      testCase.setExternalId(remoteTestCase.getId());
+      testCase.setDisplayId(tmsDisplayIdService.generateTestCaseDisplayId(projectId));
+    }
+
+    testCase.setPriority(remoteTestCase.getPriority() != null ? remoteTestCase.getPriority().toUpperCase() : null);
+    testCase.setName(remoteTestCase.getName());
+    testCase.setDescription(remoteTestCase.getDescription());
+    testCase.setSourceUpdatedAt(remoteTestCase.getUpdatedAt());
+
+    if (localFolderId != null) {
+      testCase.setTestFolder(convertToTmsTestFolder(localFolderId, projectId));
     }
 
     return testCase;

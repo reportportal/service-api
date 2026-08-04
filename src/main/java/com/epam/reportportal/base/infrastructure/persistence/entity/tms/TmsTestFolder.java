@@ -37,6 +37,9 @@ public class TmsTestFolder implements Serializable {
   @Column(name = "description")
   private String description;
 
+  @Column(name = "external_id")
+  private String externalId;
+
   @Column(name = "index")
   private Integer index;
 

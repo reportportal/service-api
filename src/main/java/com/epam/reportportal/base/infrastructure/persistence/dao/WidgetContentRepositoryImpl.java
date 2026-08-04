@@ -621,6 +621,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .on(STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
         .and(STATISTICS_FIELD.NAME.in(EXECUTIONS_PASSED, EXECUTIONS_TOTAL, EXECUTIONS_SKIPPED))
         .where(LAUNCH.ID.eq(launchId))
+        .and(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .groupBy(LAUNCH.ID)
         .fetchOneInto(PassingRateStatisticsResult.class);
   }

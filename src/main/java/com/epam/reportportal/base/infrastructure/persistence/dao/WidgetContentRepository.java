@@ -307,14 +307,23 @@ public interface WidgetContentRepository {
   /**
    * Load component health check data containing items count and passing rate. Multi-level widget with
    * {@link ItemAttribute#getKey()} on each level. Previous levels are built based on
-   * {@link ItemAttribute#getKey()}-{@link ItemAttribute#getValue()} pairs
+   * {@link ItemAttribute#getKey()}-{@link ItemAttribute#getValue()} pairs.
+   *
+   * <p>When {@code currentLevelKey} equals
+   * {@link com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants#OWNER_LEVEL_KEY}
+   * the query groups by launch owner login (via {@code COALESCE(users.login, 'deleted_user')}). Drill-down
+   * predicates for prior owner levels are encoded directly in {@code testItemFilter} using the
+   * {@code launchOwner} search criterion — no separate out-of-band parameter is needed.
    *
    * @param launchFilter    {@link Filter} with {@link FilterTarget#LAUNCH_TARGET}
    * @param launchSort      {@link Sort} for launches query
    * @param isLatest        Flag for retrieving only latest launches
    * @param launchesLimit   launches limit
-   * @param testItemFilter  {@link Filter} with {@link FilterTarget#TEST_ITEM_TARGET}
-   * @param currentLevelKey {@link ItemAttribute#getKey()} for query level select
+   * @param testItemFilter  {@link Filter} with {@link FilterTarget#TEST_ITEM_TARGET}; may include a
+   *                        {@code launchOwner} predicate for prior owner-level drill-down
+   * @param currentLevelKey {@link ItemAttribute#getKey()} for the current grouping level, or
+   *                        {@link com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants#OWNER_LEVEL_KEY}
+   * @param excludeSkipped  when {@code true} exclude items with only skipped executions
    * @return {@link List} of {@link ComponentHealthCheckContent}
    */
   List<ComponentHealthCheckContent> componentHealthCheck(Filter launchFilter, Sort launchSort,

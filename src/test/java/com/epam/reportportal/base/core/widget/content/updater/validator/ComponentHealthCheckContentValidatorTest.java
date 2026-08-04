@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.widget.content.updater.validator;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.MIN_PASSING_RATE;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.OWNER_LEVEL_KEY;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -52,6 +53,33 @@ class ComponentHealthCheckContentValidatorTest {
         new HashMap<>(),
         100
     );
+  }
+
+  @Test
+  void validateWhenOwnerLevelAddedTwiceShouldThrowException() {
+    WidgetOptions widgetOptions = new WidgetOptions(getWidgetOptionsContentWithDuplicateOwnerLevel());
+    Exception exception = assertThrows(ReportPortalException.class,
+        () -> componentHealthCheckContentValidator.validate(Collections.singletonList("test"),
+            new HashMap<>(),
+            widgetOptions,
+            new String[]{},
+            new HashMap<>(),
+            100
+        )
+    );
+
+    assertTrue(exception.getMessage()
+        .contains("Owner level can be added only once"));
+  }
+
+  private Map<String, Object> getWidgetOptionsContentWithDuplicateOwnerLevel() {
+    Map<String, Object> content = new HashMap<>();
+
+    content.put(ATTRIBUTE_KEYS, Lists.newArrayList(OWNER_LEVEL_KEY, OWNER_LEVEL_KEY));
+    content.put(MIN_PASSING_RATE, 50);
+    content.put(EXCLUDE_SKIPPED, true);
+
+    return content;
   }
 
   private Map<String, Object> getWidgetOptionsContent() {

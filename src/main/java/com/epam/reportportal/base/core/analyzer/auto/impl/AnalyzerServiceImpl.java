@@ -17,52 +17,33 @@
 package com.epam.reportportal.base.core.analyzer.auto.impl;
 
 import static com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.SKIPPED;
-import static com.epam.reportportal.base.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
-import com.epam.reportportal.base.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.base.core.analyzer.auto.AnalyzerService;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
-import com.epam.reportportal.base.core.events.domain.ItemIssueTypeDefinedEvent;
-import com.epam.reportportal.base.core.events.domain.LinkTicketEvent;
-import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
-import com.epam.reportportal.base.core.project.ProjectService;
-import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.AnalyzeMode;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.model.activity.TestItemActivityResource;
-import com.epam.reportportal.base.model.analyzer.AnalyzedItemRs;
-import com.epam.reportportal.base.model.analyzer.RelevantItemInfo;
-import com.epam.reportportal.base.ws.converter.builders.IssueEntityBuilder;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default implementation of {@link AnalyzerService}.
+ *
+ * <p>Auto-analysis is fire-and-forget: each partition is dispatched to all analyzers at once, and the results are
+ * applied asynchronously by {@link AnalysisResultHandler} once they arrive on the reply queue. The in-progress
+ * status is held only for the duration of the dispatch.
  *
  * @author Ivan Sharamet
  * @author Pavel Bortnik
@@ -79,42 +60,24 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private final AnalyzerServiceClient analyzerServicesClient;
 
-  private final IssueTypeHandler issueTypeHandler;
-
   private final TestItemRepository testItemRepository;
 
   private final LaunchRepository launchRepository;
 
-  private final ApplicationEventPublisher eventPublisher;
-
   private final Integer itemsBatchSize;
-
-  private final DefectUpdateStatisticsService defectUpdateStatisticsService;
-
-  private final ProjectService projectService;
-
-  private final TestItemStatisticsService testItemStatisticsService;
 
   @Autowired
   public AnalyzerServiceImpl(
       @Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize,
       AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
-      AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler,
-      TestItemRepository testItemRepository,
-      ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository,
-      DefectUpdateStatisticsService defectUpdateStatisticsService, ProjectService projectService,
-      TestItemStatisticsService testItemStatisticsService) {
+      AnalyzerServiceClient analyzerServicesClient, TestItemRepository testItemRepository,
+      LaunchRepository launchRepository) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
     this.launchPreparerService = launchPreparerService;
     this.analyzerServicesClient = analyzerServicesClient;
-    this.issueTypeHandler = issueTypeHandler;
     this.testItemRepository = testItemRepository;
-    this.eventPublisher = eventPublisher;
     this.launchRepository = launchRepository;
-    this.defectUpdateStatisticsService = defectUpdateStatisticsService;
-    this.projectService = projectService;
-    this.testItemStatisticsService = testItemStatisticsService;
   }
 
   @Override
@@ -138,7 +101,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
   }
 
   /**
-   * Prepare and analyze the number of provided test item ids.
+   * Prepare and dispatch the number of provided test item ids to all analyzers asynchronously.
    *
    * @param launch         Launch
    * @param testItemIds    Item ids for analyzing
@@ -152,123 +115,9 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze,
         analyzerConfig);
     rqLaunch.ifPresent(rq -> {
-      int amountToAnalyze = rq.getTestItems().size();
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
-      Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
-
-      if (!MapUtils.isEmpty(analyzedMap)) {
-        analyzedMap.forEach(
-            (key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
-      }
-
-      // save data for analytics
-      int skipped = (int) toAnalyze.stream()
-          .filter(ti -> ti.getItemResults().getStatus().equals(SKIPPED))
-          .count();
-      int analyzedAmount = (int) analyzedMap.values().stream()
-          .mapToLong(Collection::size)
-          .sum();
-
-      defectUpdateStatisticsService
-          .saveAutoAnalyzedDefectStatistics(amountToAnalyze, analyzedAmount, skipped,
-              rq.getProjectId());
+      analyzerServicesClient.analyze(rq);
     });
-  }
-
-
-  /**
-   * Update issue types for analyzed items and posted events for updated
-   *
-   * @param rs        Results of analyzing
-   * @param testItems items to be updated
-   * @return List of updated items
-   */
-  private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs,
-      List<TestItem> testItems, Long projectId) {
-    return rs.stream().map(analyzed -> {
-      Optional<TestItem> toUpdate = testItemRepository.findById(analyzed.getItemId());
-      toUpdate = toUpdate.map(testItem -> {
-        LOGGER.debug("Analysis has found a match: {}", analyzed);
-        if (testItem.getRetryOf() != null) {
-          LOGGER.info("Analyzed item is retry {}, replacing with original {} for update",
-              testItem.getItemId(), testItem.getRetryOf());
-          testItem = testItemRepository.findById(testItem.getRetryOf())
-              .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND));
-        }
-        IssueType beforeIssue = testItem.getItemResults().getIssue().getIssueType();
-        if (!beforeIssue.getLocator().equals(analyzed.getLocator())) {
-          TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
-          RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
-          TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
-
-          testItemStatisticsService.changeDefectStatistics(testItem, beforeIssue,
-              testItem.getItemResults().getIssue().getIssueType());
-          testItemRepository.save(testItem);
-          var project = projectService.findProjectById(projectId);
-          eventPublisher.publishEvent(
-              new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo,
-                  project.getOrganizationId()));
-          ofNullable(after.getTickets()).ifPresent(
-              it -> eventPublisher.publishEvent(
-                  new LinkTicketEvent(before, after, analyzerInstance,
-                      project.getOrganizationId())));
-        }
-        return testItem;
-      });
-      return toUpdate;
-    }).filter(Optional::isPresent).map(Optional::get).collect(toList());
-  }
-
-  /**
-   * Updates issue for a specified test item
-   *
-   * @param projectId - Project id
-   * @param rs        - Response from an analyzer
-   * @param testItem  - Test item to be updated
-   * @return Updated issue entity
-   */
-  private RelevantItemInfo updateTestItemIssue(Long projectId, AnalyzedItemRs rs,
-      TestItem testItem) {
-    IssueType issueType = issueTypeHandler.defineIssueType(projectId, rs.getLocator());
-    IssueEntity issueEntity = new IssueEntityBuilder(
-        testItem.getItemResults().getIssue()).addIssueType(issueType)
-        .addIgnoreFlag(testItem.getItemResults().getIssue().getIgnoreAnalyzer())
-        .addAutoAnalyzedFlag(true)
-        .get();
-    issueEntity.setIssueId(testItem.getItemId());
-    issueEntity.setTestItemResults(testItem.getItemResults());
-    testItem.getItemResults().setIssue(issueEntity);
-
-    RelevantItemInfo relevantItemInfo = null;
-    if (rs.getRelevantItemId() != null) {
-      Optional<TestItem> relevantItemOptional = testItemRepository.findById(rs.getRelevantItemId());
-      if (relevantItemOptional.isPresent()) {
-        if (relevantItemOptional.get().getRetryOf() != null) {
-          relevantItemOptional = testItemRepository.findById(
-              relevantItemOptional.get().getRetryOf());
-        }
-        relevantItemInfo = updateIssueFromRelevantItem(issueEntity, relevantItemOptional.get());
-      } else {
-        LOGGER.error(ErrorType.TEST_ITEM_NOT_FOUND.getDescription(), rs.getRelevantItemId());
-      }
-    }
-
-    return relevantItemInfo;
-  }
-
-  /**
-   * Updates issue with values are taken from most relevant item
-   *
-   * @param issue        Issue to update
-   * @param relevantItem Relevant item
-   */
-  private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, TestItem relevantItem) {
-    ofNullable(relevantItem.getItemResults().getIssue()).ifPresent(relevantIssue -> {
-      issue.setIssueDescription(relevantIssue.getIssueDescription());
-      issue.setTickets(Sets.newHashSet(relevantIssue.getTickets()));
-    });
-
-    return AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(relevantItem);
   }
 
   /**

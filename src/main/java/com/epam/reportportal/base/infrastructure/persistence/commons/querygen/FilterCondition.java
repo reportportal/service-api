@@ -163,7 +163,10 @@ public class FilterCondition implements ConvertibleCondition, Serializable {
             Suppliers.formattedSupplier("Filter parameter {} is not defined", searchCriteria)
         );
 
-    org.jooq.Condition condition = this.condition.toCondition(this, criteriaHolder.get());
+    CriteriaHolder holder = criteriaHolder.get();
+    holder.validateCondition(this.condition, ErrorType.INCORRECT_FILTER_PARAMETERS);
+
+    org.jooq.Condition condition = this.condition.toCondition(this, holder);
 
     /* Does FilterCondition contains negative=true? */
     if (negative) {

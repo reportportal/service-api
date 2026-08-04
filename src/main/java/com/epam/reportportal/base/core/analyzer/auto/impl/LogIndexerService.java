@@ -139,17 +139,21 @@ public class LogIndexerService implements LogIndexer {
   }
 
   @Override
-  public CompletableFuture<Long> cleanIndex(Long index, List<Long> ids) {
-    return CollectionUtils.isEmpty(ids) ?
-        CompletableFuture.completedFuture(0L) :
-        CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids),
-            taskExecutor);
+  public void deleteIndexAsync(Long project) {
+    indexerServiceClient.deleteIndexAsync(project);
+  }
+
+  @Override
+  public void cleanIndex(Long index, List<Long> ids) {
+    if (CollectionUtils.isNotEmpty(ids)) {
+      indexerServiceClient.cleanIndex(index, ids);
+    }
   }
 
   @Async("autoAnalyzeTaskExecutor")
   @Override
-  public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig,
-      List<TestItem> testItems) {
+  public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems,
+      boolean autoAnalyzed) {
     if (CollectionUtils.isEmpty(testItems)) {
       return;
     }
@@ -158,8 +162,7 @@ public class LogIndexerService implements LogIndexer {
         .collect(Collectors.toMap(TestItem::getItemId,
             it -> it.getItemResults().getIssue().getIssueType().getLocator()));
 
-    List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId,
-        itemsForIndexUpdate);
+    List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate, autoAnalyzed);
     List<TestItem> missedItems = testItems.stream()
         .filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
 
@@ -171,17 +174,10 @@ public class LogIndexerService implements LogIndexer {
   }
 
   @Override
-  public int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
-    return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
-  }
-
-  @Async("autoAnalyzeTaskExecutor")
-  @Override
   public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
     indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
   }
 
-  @Async("autoAnalyzeTaskExecutor")
   @Override
   public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
     indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);

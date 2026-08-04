@@ -197,7 +197,7 @@ public class FlushingDataJob implements Job {
         LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
       }
     }
-    logIndexer.deleteIndex(project.getId());
+    logIndexer.deleteIndexAsync(project.getId());
     projectRepository.flush();
     attachmentRepository.moveForDeletionByProjectId(project.getId());
     LOGGER.info("Project with id = '" + project.getId() + "' has been successfully deleted.");

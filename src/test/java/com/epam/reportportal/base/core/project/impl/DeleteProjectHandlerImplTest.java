@@ -235,7 +235,7 @@ class DeleteProjectHandlerImplTest {
     OperationCompletionRS response = handler.deleteProject(1L, user);
 
     verify(projectContentRemover, times(1)).remove(project);
-    verify(logIndexer, times(1)).deleteIndex(projectId);
+    verify(logIndexer, times(1)).deleteIndexAsync(projectId);
     verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
 
     ArgumentCaptor<ProjectDeletedEvent> eventCaptor =

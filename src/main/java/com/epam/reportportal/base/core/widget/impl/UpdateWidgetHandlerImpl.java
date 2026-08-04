@@ -87,7 +87,6 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
     if (!isEligibleForLockBypass(widget, updateRQ)) {
       validateOwnedEntityLocked(widget, membershipDetails, user);
     }
-    widgetContentFieldsValidator.validate(widget);
 
     if (!widget.getName().equals(updateRQ.getName())) {
       BusinessRule.expect(
@@ -105,6 +104,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
         .addWidgetRq(updateRQ)
         .addFilters(userFilter)
         .get();
+    widgetContentFieldsValidator.validate(widget);
     widgetRepository.save(widget);
 
     eventPublisher.publishEvent(

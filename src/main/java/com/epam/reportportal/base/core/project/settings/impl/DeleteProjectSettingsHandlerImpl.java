@@ -32,6 +32,7 @@ import static com.epam.reportportal.base.ws.converter.converters.IssueTypeConver
 import com.epam.reportportal.base.core.events.domain.DefectTypeDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.PatternDeletedEvent;
 import com.epam.reportportal.base.core.project.settings.DeleteProjectSettingsHandler;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
@@ -85,6 +86,8 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 
   private final ApplicationEventPublisher eventPublisher;
 
+  private final TestItemStatisticsService testItemStatisticsService;
+
   @Override
   public OperationCompletionRS deleteProjectIssueSubType(String projectKey, ReportPortalUser user,
       Long id) {
@@ -106,6 +109,20 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
         )))
     ).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
+    IssueType defaultGroupIssueType = issueTypeRepository.findByLocator(type.getIssueType()
+            .getIssueGroup()
+            .getTestItemIssueGroup()
+            .getLocator())
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, type.getIssueType()));
+    List<IssueEntity> allByIssueTypeId = issueEntityRepository.findAllByIssueTypeId(id);
+    allByIssueTypeId.forEach(issueEntity -> {
+      testItemStatisticsService.changeDefectStatistics(
+          issueEntity.getTestItemResults().getTestItem(), issueEntity.getIssueType(),
+          defaultGroupIssueType);
+      issueEntity.setIssueType(defaultGroupIssueType);
+    });
+
     String issueField =
         "statistics$defects$" + TestItemIssueGroup.fromValue(
                 type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue())
@@ -114,15 +131,6 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
             .getValue()
             .toLowerCase() + "$" + type.getIssueType().getLocator();
     statisticsFieldRepository.deleteByName(issueField);
-
-    IssueType defaultGroupIssueType = issueTypeRepository.findByLocator(type.getIssueType()
-            .getIssueGroup()
-            .getTestItemIssueGroup()
-            .getLocator())
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, type.getIssueType()));
-    List<IssueEntity> allByIssueTypeId = issueEntityRepository.findAllByIssueTypeId(id);
-    allByIssueTypeId.forEach(issueEntity -> issueEntity.setIssueType(defaultGroupIssueType));
 
     project.getProjectIssueTypes().remove(type);
     projectRepository.save(project);

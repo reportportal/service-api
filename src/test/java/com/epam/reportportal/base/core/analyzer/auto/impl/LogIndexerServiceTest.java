@@ -99,11 +99,11 @@ class LogIndexerServiceTest {
   @Test
   void testIndexDefectsUpdate() {
     final Map<Long, String> toUpdate = Maps.newHashMap(1L, "pb001");
-    when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate)).thenReturn(Collections.emptyList());
+    when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate, false)).thenReturn(Collections.emptyList());
     logIndexerService.indexDefectsUpdate(1L, new AnalyzerConfig(),
-        Lists.newArrayList(createTestItem(1L, TestItemIssueGroup.PRODUCT_BUG))
+        Lists.newArrayList(createTestItem(1L, TestItemIssueGroup.PRODUCT_BUG)), false
     );
-    verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate);
+    verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate, false);
   }
 
   @Test
@@ -112,6 +112,14 @@ class LogIndexerServiceTest {
     doNothing().when(indexerServiceClient).indexItemsRemoveAsync(1L, list);
     logIndexerService.indexItemsRemoveAsync(1L, list);
     verify(indexerServiceClient, times(1)).indexItemsRemoveAsync(1L, list);
+  }
+
+  @Test
+  void testCleanIndex() {
+    List<Long> list = Lists.newArrayList(1L);
+    doNothing().when(indexerServiceClient).cleanIndex(1L, list);
+    logIndexerService.cleanIndex(1L, list);
+    verify(indexerServiceClient, times(1)).cleanIndex(1L, list);
   }
 
   private AnalyzerConfig analyzerConfig() {

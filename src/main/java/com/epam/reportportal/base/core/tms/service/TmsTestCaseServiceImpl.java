@@ -346,10 +346,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional
   public List<TmsTestFolderRS> importFromFile(
-      long projectId,
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
       Long testFolderId,
       String testFolderName,
       MultipartFile file) {
+
+    var projectId = membershipDetails.getProjectId();
 
     // 1. Parse file
     var parseResult = parseImportFile(file);
@@ -379,7 +382,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     validateFolderAssignment(preparationResult.getPreparedTestCases());
 
     // 7. Batch create all test cases
-    importTestCases(projectId, preparationResult.getPreparedTestCases(),
+    importTestCases(membershipDetails, user, preparationResult.getPreparedTestCases(),
         keyToAttributeId);
     
     return tmsTestFolderService.getFoldersWithCountByIds(projectId, affectedFolderIds);
@@ -460,9 +463,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   }
 
   private List<Long> importTestCases(
-      long projectId,
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
       List<PreparedTestCase> preparedTestCases,
       Map<String, Long> keyToAttributeId) {
+
+    var projectId = membershipDetails.getProjectId();
 
     // 1. Create all test case entities
     var testCaseEntities = preparedTestCases.stream()
@@ -484,8 +490,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             keyToAttributeId);
       }
 
-      tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
+      var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
           importRQ.getManualScenario());
+
+      var resource = tmsTestCaseActivityResourceMapper.buildActivityResource(savedTestCase, defaultVersion);
+      var event = tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(membershipDetails, user, resource);
+      eventPublisher.publishEvent(event);
     }
 
     return savedTestCases

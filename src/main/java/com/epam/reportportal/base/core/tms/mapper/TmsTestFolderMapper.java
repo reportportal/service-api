@@ -9,6 +9,8 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResul
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.base.core.tms.statistics.FolderDuplicationStatistics;
 import com.epam.reportportal.base.core.tms.statistics.TestCaseDuplicationStatistics;
+import com.epam.reportportal.base.core.tms.sync.dto.RemoteFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
@@ -272,6 +274,7 @@ public abstract class TmsTestFolderMapper {
   @Mapping(target = "description", source = "sourceFolder.description")
   @Mapping(target = "parentTestFolder", source = "targetParent")
   @Mapping(target = "project", source = "sourceFolder.project")
+  @Mapping(target = "externalId", source = "sourceFolder.externalId")
   @Mapping(target = "index", source = "sourceFolder.index")
   @Mapping(target = "subFolders", ignore = true)
   @Mapping(target = "testCases", ignore = true)
@@ -295,5 +298,31 @@ public abstract class TmsTestFolderMapper {
     var parent = new TmsTestFolder();
     parent.setId(testFolderRQ.getParentTestFolderId());
     return parent;
+  }
+
+  public TmsTestFolder convertFromRemote(
+      RemoteFolder remoteFolder,
+      TmsTestFolder existing,
+      Project project,
+      Long parentFolderId,
+      Integer index) {
+
+    TmsTestFolder folder = existing != null ? existing : new TmsTestFolder();
+
+    if (existing == null) {
+      folder.setProject(project);
+      folder.setExternalId(remoteFolder.getId());
+      if (index != null) {
+        folder.setIndex(index);
+      }
+    }
+
+    folder.setName(remoteFolder.getName());
+
+    if (parentFolderId != null) {
+      folder.setParentTestFolder(convertFromId(parentFolderId));
+    }
+
+    return folder;
   }
 }

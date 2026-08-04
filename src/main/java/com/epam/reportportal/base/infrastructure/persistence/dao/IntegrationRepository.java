@@ -21,10 +21,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Integr
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -63,6 +65,10 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @return Optional of integration
    */
   Optional<Integration> findByIdAndProjectId(Long id, Long projectId);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT i FROM Integration i WHERE i.id = :id AND i.project.id = :projectId")
+  Optional<Integration> findByIdAndProjectIdForUpdate(@Param("id") Long id, @Param("projectId") Long projectId);
 
   /**
    * @param name              {@code Integration#getName()}

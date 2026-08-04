@@ -56,7 +56,8 @@ public interface TmsTestCaseService {
   BatchPatchTestCasesRS patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
 
   List<TmsTestFolderRS> importFromFile(
-      long projectId,
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
       Long testFolderId,
       String testFolderName,
       MultipartFile file

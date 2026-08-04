@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.AnalysisEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,23 +30,14 @@ public class StartAnalysisEventHandler {
 
   private final AnalyzerServiceAsync analyzerServiceAsync;
 
-  private final LogIndexer logIndexer;
-
   @Autowired
-  public StartAnalysisEventHandler(AnalyzerServiceAsync analyzerServiceAsync,
-      LogIndexer logIndexer) {
+  public StartAnalysisEventHandler(AnalyzerServiceAsync analyzerServiceAsync) {
     this.analyzerServiceAsync = analyzerServiceAsync;
-    this.logIndexer = logIndexer;
   }
 
   @TransactionalEventListener
   public void handleEvent(AnalysisEvent event) {
-    analyzerServiceAsync.analyze(event.getLaunch(), event.getItemIds(), event.getAnalyzerConfig())
-        .thenApply(it -> logIndexer.indexItemsLogs(event.getLaunch().getProjectId(),
-            event.getLaunch().getId(),
-            event.getItemIds(),
-            event.getAnalyzerConfig()
-        ));
+    analyzerServiceAsync.analyze(event.getLaunch(), event.getItemIds(), event.getAnalyzerConfig());
   }
 
 }

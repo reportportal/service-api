@@ -63,7 +63,7 @@ ext['kotlin.version'] = '2.1.0'
 // SNYK-JAVA-ORGSPRINGFRAMEWORKRETRY-17260993: resource allocation fixed in 2.0.13
 ext['spring-retry.version'] = '2.0.13'
 // CVE-2026-1225 (logback-core): минимум 1.5.25
-ext['logback.version'] = '1.5.25'
+ext['logback.version'] = '1.5.34'
 
 // Transitive-security overrides until upstream BOMs/deps are bumped:
 // - tika-core: commons-bom pins 1.28.x (vulnerable); require 3.2.2+ (CVE-2025-66516).
@@ -96,8 +96,8 @@ configurations.configureEach {
 
 println("Release mode: $releaseMode")
 dependencies {
-    implementation 'com.github.reportportal:commons:fc3532b'
-    implementation 'com.github.reportportal:commons-dao:5e8286d'
+    implementation 'com.github.reportportal:commons:5.15.2'
+    implementation 'com.github.reportportal:commons-dao:5.15.5'
     implementation('com.github.reportportal:plugin-api:5.15.0') {
         exclude group: 'com.github.reportportal', module: 'commons-dao'
         exclude group: 'com.github.reportportal', module: 'commons'

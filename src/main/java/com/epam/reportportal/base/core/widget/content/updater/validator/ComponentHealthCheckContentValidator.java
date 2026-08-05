@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.widget.content.updater.validator;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.MIN_PASSING_RATE;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.OWNER_LEVEL_KEY;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
@@ -71,6 +72,11 @@ public class ComponentHealthCheckContentValidator implements MultilevelValidator
             "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
     attributeKeys.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
         .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not blank"));
+    long ownerCount = attributeKeys.stream()
+        .filter(OWNER_LEVEL_KEY::equals)
+        .count();
+    BusinessRule.expect(ownerCount, count -> count <= 1)
+        .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Owner level can be added only once");
   }
 
   private void validateWidgetOptions(WidgetOptions widgetOptions) {

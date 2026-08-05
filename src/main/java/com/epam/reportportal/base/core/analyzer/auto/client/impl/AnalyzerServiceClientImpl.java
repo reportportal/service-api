@@ -20,7 +20,6 @@ import static com.epam.reportportal.base.core.analyzer.auto.client.impl.Analyzer
 import static com.epam.reportportal.base.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_SEARCH;
 import static com.epam.reportportal.base.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_SUGGEST;
 import static com.epam.reportportal.base.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
-import static java.util.stream.Collectors.toList;
 
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.client.RabbitMqManagementClient;
@@ -31,24 +30,19 @@ import com.epam.reportportal.base.core.analyzer.auto.client.model.cluster.Genera
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.model.analyzer.AnalyzedItemRs;
 import com.epam.reportportal.base.model.analyzer.SearchRq;
 import com.epam.reportportal.base.model.analyzer.SearchRs;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 @Service
 public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
@@ -64,15 +58,11 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
   private final RabbitTemplate rabbitTemplate;
 
-  private String virtualHost;
-
   @Autowired
   public AnalyzerServiceClientImpl(RabbitMqManagementClient rabbitMqManagementClient,
-      @Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate,
-      @Value("${rp.amqp.analyzer-vhost}") String virtualHost) {
+      @Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
     this.rabbitMqManagementClient = rabbitMqManagementClient;
     this.rabbitTemplate = rabbitTemplate;
-    this.virtualHost = virtualHost;
   }
 
   @Override
@@ -81,11 +71,10 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
   }
 
   @Override
-  public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
-    List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo();
-    Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
-    analyzerExchanges.forEach(exchange -> analyze(rq, resultMap, exchange));
-    return resultMap;
+  public void analyze(IndexLaunch rq) {
+    rabbitMqManagementClient.getAnalyzerExchangesInfo()
+        .forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), ANALYZE_ROUTE,
+            Collections.singletonList(rq)));
   }
 
   @Override
@@ -145,33 +134,6 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
         "There are no analyzer services with suggest items support deployed."
     ));
-  }
-
-  private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap,
-      ExchangeInfo exchangeInfo) {
-    List<AnalyzedItemRs> result =
-        rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(), ANALYZE_ROUTE,
-            Collections.singletonList(rq), new ParameterizedTypeReference<>() {
-            }
-        );
-    if (!CollectionUtils.isEmpty(result)) {
-      resultMap.put(
-          (String) exchangeInfo.getArguments().getOrDefault(virtualHost, exchangeInfo.getName()),
-          result
-      );
-      removeAnalyzedFromRq(rq, result);
-    }
-  }
-
-  /**
-   * Removes form rq analyzed items to make rq for the next analyzer.
-   *
-   * @param rq       Request
-   * @param analyzed List of analyzer items
-   */
-  private void removeAnalyzedFromRq(IndexLaunch rq, List<AnalyzedItemRs> analyzed) {
-    List<Long> analyzedItemIds = analyzed.stream().map(AnalyzedItemRs::getItemId).collect(toList());
-    rq.getTestItems().removeIf(it -> analyzedItemIds.contains(it.getTestItemId()));
   }
 
 }

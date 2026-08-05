@@ -37,6 +37,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DEFECTS_PRODUCT_BUG_TOTAL;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DEFECTS_SYSTEM_ISSUE_TOTAL;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DEFECTS_TO_INVESTIGATE_TOTAL;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DELETED_USER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DELTA;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DURATION;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_FAILED;
@@ -60,6 +61,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.MOST_FAILED_CRITERIA_LIMIT;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.NUMBER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.OWNER_LEVEL_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.PASSED;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.PASSING_RATE;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.PATTERNS_COUNT;
@@ -1089,43 +1091,57 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .build()
         .asTable(LAUNCHES);
 
-    return COMPONENT_HEALTH_CHECK_FETCHER.apply(dsl.select(fieldName(ITEMS, VALUE),
-            DSL.count(fieldName(ITEMS, ITEM_ID)).as(TOTAL),
-            round(DSL.val(PERCENTAGE_MULTIPLIER)
-                .mul(DSL.count(fieldName(ITEMS, ITEM_ID))
-                    .filterWhere(
-                        fieldName(ITEMS, STATUS).cast(JStatusEnum.class).eq(JStatusEnum.PASSED)))
-                .div(nullif(DSL.count(fieldName(ITEMS, ITEM_ID)), 0)), 2).as(PASSING_RATE)
-        )
-        .from(dsl.with(ITEMS)
-            .as(QueryBuilder.newBuilder(testItemFilter, collectJoinFields(testItemFilter))
-                .addJointToStart(launchesTable,
-                    JoinType.JOIN,
-                    TEST_ITEM.LAUNCH_ID.eq(fieldName(launchesTable.getName(), ID).cast(Long.class))
-                )
-                .build())
-            .select(TEST_ITEM.ITEM_ID, TEST_ITEM_RESULTS.STATUS, ITEM_ATTRIBUTE.KEY,
-                ITEM_ATTRIBUTE.VALUE)
-            .from(TEST_ITEM)
-            .join(ITEMS)
-            .on(TEST_ITEM.ITEM_ID.eq(fieldName(ITEMS, ID).cast(Long.class)))
-            .join(TEST_ITEM_RESULTS)
-            .on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
-            .join(ITEM_ATTRIBUTE)
-            .on((TEST_ITEM.ITEM_ID.eq(ITEM_ATTRIBUTE.ITEM_ID)
-                .or(TEST_ITEM.LAUNCH_ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID))).and(
-                ITEM_ATTRIBUTE.KEY.eq(currentLevelKey).and(ITEM_ATTRIBUTE.SYSTEM.isFalse())))
-            .groupBy(TEST_ITEM.ITEM_ID, TEST_ITEM_RESULTS.STATUS, ITEM_ATTRIBUTE.KEY,
-                ITEM_ATTRIBUTE.VALUE)
-            .having(filterSkippedTests(excludeSkipped))
-            .asTable(ITEMS))
-        .groupBy(fieldName(ITEMS, VALUE))
-        .orderBy(round(DSL.val(PERCENTAGE_MULTIPLIER)
-            .mul(DSL.count(fieldName(ITEMS, ITEM_ID))
-                .filterWhere(
-                    fieldName(ITEMS, STATUS).cast(JStatusEnum.class).eq(JStatusEnum.PASSED)))
-            .div(nullif(DSL.count(fieldName(ITEMS, ITEM_ID)), 0)), 2))
-        .fetch());
+    var itemsCte = dsl.with(ITEMS).as(
+        QueryBuilder.newBuilder(testItemFilter, collectJoinFields(testItemFilter))
+            .addJointToStart(launchesTable, JoinType.JOIN,
+                TEST_ITEM.LAUNCH_ID.eq(fieldName(launchesTable.getName(), ID).cast(Long.class)))
+            .build());
+
+    Select<? extends Record> items;
+    if (OWNER_LEVEL_KEY.equals(currentLevelKey)) {
+      Field<String> ownerValue = coalesce(USERS.LOGIN, val(DELETED_USER));
+      items = itemsCte
+          .select(TEST_ITEM.ITEM_ID, TEST_ITEM_RESULTS.STATUS,
+              val(OWNER_LEVEL_KEY).as(KEY), ownerValue.as(VALUE))
+          .from(TEST_ITEM)
+          .join(ITEMS).on(TEST_ITEM.ITEM_ID.eq(fieldName(ITEMS, ID).cast(Long.class)))
+          .join(TEST_ITEM_RESULTS).on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
+          .join(LAUNCH).on(TEST_ITEM.LAUNCH_ID.eq(LAUNCH.ID))
+          .leftJoin(USERS).on(LAUNCH.USER_ID.eq(USERS.ID))
+          .groupBy(TEST_ITEM.ITEM_ID, TEST_ITEM_RESULTS.STATUS, USERS.LOGIN)
+          .having(filterSkippedTests(excludeSkipped));
+    } else {
+      items = itemsCte
+          .select(TEST_ITEM.ITEM_ID, TEST_ITEM_RESULTS.STATUS,
+              ITEM_ATTRIBUTE.KEY, ITEM_ATTRIBUTE.VALUE)
+          .from(TEST_ITEM)
+          .join(ITEMS).on(TEST_ITEM.ITEM_ID.eq(fieldName(ITEMS, ID).cast(Long.class)))
+          .join(TEST_ITEM_RESULTS).on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
+          .join(ITEM_ATTRIBUTE).on(
+              (TEST_ITEM.ITEM_ID.eq(ITEM_ATTRIBUTE.ITEM_ID)
+                  .or(TEST_ITEM.LAUNCH_ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID)))
+                  .and(ITEM_ATTRIBUTE.KEY.eq(currentLevelKey))
+                  .and(ITEM_ATTRIBUTE.SYSTEM.isFalse()))
+          .groupBy(TEST_ITEM.ITEM_ID, TEST_ITEM_RESULTS.STATUS,
+              ITEM_ATTRIBUTE.KEY, ITEM_ATTRIBUTE.VALUE)
+          .having(filterSkippedTests(excludeSkipped));
+    }
+
+    var itemCount = count(fieldName(ITEMS, ITEM_ID));
+    var passedCount = count(fieldName(ITEMS, ITEM_ID))
+        .filterWhere(fieldName(ITEMS, STATUS).cast(JStatusEnum.class).eq(JStatusEnum.PASSED));
+
+    Field<Double> passingRate = round(val(PERCENTAGE_MULTIPLIER)
+            .mul(passedCount)
+            .div(nullif(itemCount, 0)), 2)
+        .as(PASSING_RATE);
+
+    return COMPONENT_HEALTH_CHECK_FETCHER.apply(
+        dsl.select(fieldName(ITEMS, VALUE), itemCount.as(TOTAL), passingRate)
+            .from(items.asTable(ITEMS))
+            .groupBy(fieldName(ITEMS, VALUE))
+            .orderBy(passingRate)
+            .fetch());
   }
 
   private Condition filterSkippedTests(boolean excludeSkipped) {
@@ -1299,6 +1315,18 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
       removeWidgetView(params.getViewName());
     }
 
+    List<String> attributeKeys = params.getAttributeKeys();
+    String customKey = params.getCustomKey();
+    boolean hasOwnerLevel = attributeKeys.contains(OWNER_LEVEL_KEY);
+    List<String> regularAttributeKeys = attributeKeys.stream()
+        .filter(key -> !OWNER_LEVEL_KEY.equals(key))
+        .toList();
+
+    if (!hasOwnerLevel && regularAttributeKeys.isEmpty()) {
+      throw new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+          "Health Check widget requires at least one grouping level");
+    }
+
     Table<? extends Record> launchesTable = QueryUtils.createQueryBuilderWithLatestLaunchesOption(
             launchFilter, launchSort, isLatest)
         .with(launchesLimit)
@@ -1306,41 +1334,96 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .build()
         .asTable(LAUNCHES);
 
-    List<Field<?>> selectFields = Lists.newArrayList(TEST_ITEM.ITEM_ID, ITEM_ATTRIBUTE.KEY,
+    Condition itemConditions = TEST_ITEM.HAS_STATS.isTrue()
+        .and(TEST_ITEM.HAS_CHILDREN.isFalse())
+        .and(TEST_ITEM.TYPE.eq(JTestItemTypeEnum.STEP))
+        .and(TEST_ITEM.RETRY_OF.isNull())
+        .and(TEST_ITEM_RESULTS.STATUS.notEqual(JStatusEnum.IN_PROGRESS));
+
+    Select<? extends Record> materializedViewSelect;
+    if (!regularAttributeKeys.isEmpty()) {
+      SelectHavingStep<Record> attributes = buildAttributeBranch(launchesTable, regularAttributeKeys, customKey,
+          itemConditions);
+      materializedViewSelect = hasOwnerLevel
+          ? attributes.unionAll(buildOwnerBranch(launchesTable, customKey, itemConditions))
+          : attributes;
+    } else {
+      materializedViewSelect = buildOwnerBranch(launchesTable, customKey, itemConditions);
+    }
+
+    dsl.execute(dsl.renderInlined(
+        dsl.createMaterializedView(params.getViewName()).as(materializedViewSelect)));
+  }
+
+  private SelectHavingStep<Record> buildAttributeBranch(Table<? extends Record> launchesTable,
+      List<String> regularAttributeKeys, String customKey, Condition itemConditions) {
+
+    List<Field<?>> selectFields = selectFieldsWithOptionalCustom(customKey, TEST_ITEM.ITEM_ID, ITEM_ATTRIBUTE.KEY,
         ITEM_ATTRIBUTE.VALUE);
 
-    ofNullable(params.getCustomKey()).ifPresent(
-        key -> selectFields.add(DSL.arrayAggDistinct(fieldName(CUSTOM_ATTRIBUTE, VALUE))
-            .filterWhere(fieldName(CUSTOM_ATTRIBUTE, VALUE).isNotNull())
-            .as(CUSTOM_COLUMN)));
-
-    SelectOnConditionStep<Record> baseQuery = dsl.select(selectFields).from(TEST_ITEM)
+    SelectOnConditionStep<Record> query = dsl.select(selectFields)
+        .from(TEST_ITEM)
         .join(launchesTable)
         .on(TEST_ITEM.LAUNCH_ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
         .join(TEST_ITEM_RESULTS)
         .on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
         .join(ITEM_ATTRIBUTE)
-        .on(and(TEST_ITEM.ITEM_ID.eq(ITEM_ATTRIBUTE.ITEM_ID)
-            .or(TEST_ITEM.LAUNCH_ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID)))
-            .and(ITEM_ATTRIBUTE.KEY.in(params.getAttributeKeys())).and(ITEM_ATTRIBUTE.SYSTEM.isFalse()));
+        .on(and(
+            TEST_ITEM.ITEM_ID.eq(ITEM_ATTRIBUTE.ITEM_ID)
+                .or(TEST_ITEM.LAUNCH_ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID)),
+            ITEM_ATTRIBUTE.KEY.in(regularAttributeKeys),
+            ITEM_ATTRIBUTE.SYSTEM.isFalse()));
 
-    dsl.execute(dsl.renderInlined(dsl.createMaterializedView(params.getViewName())
-        .as(ofNullable(params.getCustomKey()).map(key -> {
-              JItemAttribute customAttribute = ITEM_ATTRIBUTE.as(CUSTOM_ATTRIBUTE);
-              return baseQuery.leftJoin(customAttribute)
-                  .on(DSL.condition(Operator.OR,
-                      TEST_ITEM.ITEM_ID.eq(customAttribute.ITEM_ID),
-                      TEST_ITEM.LAUNCH_ID.eq(customAttribute.LAUNCH_ID)
-                  ).and(customAttribute.KEY.eq(key)));
-            })
-            .orElse(baseQuery)
-            .where(TEST_ITEM.HAS_STATS.isTrue()
-                .and(TEST_ITEM.HAS_CHILDREN.isFalse())
-                .and(TEST_ITEM.TYPE.eq(JTestItemTypeEnum.STEP))
-                .and(TEST_ITEM.RETRY_OF.isNull())
-                .and(TEST_ITEM_RESULTS.STATUS.notEqual(JStatusEnum.IN_PROGRESS)))
-            .groupBy(TEST_ITEM.ITEM_ID, ITEM_ATTRIBUTE.KEY, ITEM_ATTRIBUTE.VALUE)
-            .getQuery())));
+    return joinCustomAttributeIfPresent(query, customKey)
+        .where(itemConditions)
+        .groupBy(TEST_ITEM.ITEM_ID, ITEM_ATTRIBUTE.KEY, ITEM_ATTRIBUTE.VALUE);
+  }
+
+  private SelectHavingStep<Record> buildOwnerBranch(Table<? extends Record> launchesTable, String customKey,
+      Condition itemConditions) {
+
+    Field<String> ownerValue = coalesce(USERS.LOGIN, val(DELETED_USER));
+
+    List<Field<?>> selectFields = selectFieldsWithOptionalCustom(customKey, TEST_ITEM.ITEM_ID,
+        val(OWNER_LEVEL_KEY).as(KEY), ownerValue.as(VALUE));
+
+    SelectOnConditionStep<Record> query = dsl.select(selectFields)
+        .from(TEST_ITEM)
+        .join(launchesTable)
+        .on(TEST_ITEM.LAUNCH_ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
+        .join(TEST_ITEM_RESULTS)
+        .on(TEST_ITEM.ITEM_ID.eq(TEST_ITEM_RESULTS.RESULT_ID))
+        .join(LAUNCH)
+        .on(TEST_ITEM.LAUNCH_ID.eq(LAUNCH.ID))
+        .leftJoin(USERS)
+        .on(LAUNCH.USER_ID.eq(USERS.ID));
+
+    return joinCustomAttributeIfPresent(query, customKey)
+        .where(itemConditions)
+        .groupBy(TEST_ITEM.ITEM_ID, USERS.LOGIN);
+  }
+
+  private List<Field<?>> selectFieldsWithOptionalCustom(String customKey, Field<?>... base) {
+    List<Field<?>> fields = Lists.newArrayList(base);
+    if (customKey != null) {
+      fields.add(DSL.arrayAggDistinct(fieldName(CUSTOM_ATTRIBUTE, VALUE))
+          .filterWhere(fieldName(CUSTOM_ATTRIBUTE, VALUE).isNotNull())
+          .as(CUSTOM_COLUMN));
+    }
+    return fields;
+  }
+
+  private SelectOnConditionStep<Record> joinCustomAttributeIfPresent(SelectOnConditionStep<Record> query,
+      String customKey) {
+    if (customKey == null) {
+      return query;
+    }
+    JItemAttribute customAttribute = ITEM_ATTRIBUTE.as(CUSTOM_ATTRIBUTE);
+    return query.leftJoin(customAttribute)
+        .on(DSL.condition(Operator.OR,
+            TEST_ITEM.ITEM_ID.eq(customAttribute.ITEM_ID),
+            TEST_ITEM.LAUNCH_ID.eq(customAttribute.LAUNCH_ID)
+        ).and(customAttribute.KEY.eq(customKey)));
   }
 
   @Override

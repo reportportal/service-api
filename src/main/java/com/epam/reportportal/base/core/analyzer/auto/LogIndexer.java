@@ -47,20 +47,26 @@ public interface LogIndexer {
       AnalyzerConfig analyzerConfig);
 
   /**
-   * Delete index of specified project
+   * Delete index of specified project and wait for analyzer response.
    *
    * @param project Project/index
    */
   void deleteIndex(Long project);
 
   /**
-   * Remove documents with specified ids from index
+   * Sends a request to delete index of specified project without waiting for analyzer response.
+   *
+   * @param project Project/index
+   */
+  void deleteIndexAsync(Long project);
+
+  /**
+   * Sends a request to remove documents with specified ids from index
    *
    * @param index Index to to be cleaned
    * @param ids   The {@link List} of the {@link Log#id}
-   * @return Amount of deleted logs
    */
-  CompletableFuture<Long> cleanIndex(Long index, List<Long> ids);
+  void cleanIndex(Long index, List<Long> ids);
 
   /**
    * Async handle of updated items for indexing.
@@ -68,17 +74,11 @@ public interface LogIndexer {
    * @param projectId      Project id
    * @param analyzerConfig Analyzer config for indexing
    * @param testItems      Test items must be updated
+   * @param autoAnalyzed   {@code true} if the update was triggered by auto-analysis, {@code false} for manual user
+   *                       updates
    */
-  void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
-
-  /**
-   * Handle of items that should be removed from index.
-   *
-   * @param projectId           Project id
-   * @param itemsForIndexRemove Ids of items
-   * @return number of removed items
-   */
-  int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
+  void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems,
+      boolean autoAnalyzed);
 
   /**
    * Async handle of items that should be removed from index.

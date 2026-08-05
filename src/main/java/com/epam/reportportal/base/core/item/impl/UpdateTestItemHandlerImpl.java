@@ -108,6 +108,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
   public static final String INITIAL_STATUS_ATTRIBUTE_KEY = "initialStatus";
   private static final String MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY = "manually";
+  private static final boolean IS_AUTO_ANALYZED = false;
 
   private final TestItemService testItemService;
 
@@ -209,8 +210,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
         FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
     if (CollectionUtils.isNotEmpty(itemsForIndexUpdate)) {
-      logIndexerService.indexDefectsUpdate(
-          project.getId(), AnalyzerUtils.getAnalyzerConfig(project), itemsForIndexUpdate);
+      logIndexerService.indexDefectsUpdate(project.getId(), AnalyzerUtils.getAnalyzerConfig(project),
+          itemsForIndexUpdate, IS_AUTO_ANALYZED);
     }
     if (CollectionUtils.isNotEmpty(itemsForIndexRemove)) {
       logIndexerService.indexItemsRemoveAsync(project.getId(), itemsForIndexRemove);

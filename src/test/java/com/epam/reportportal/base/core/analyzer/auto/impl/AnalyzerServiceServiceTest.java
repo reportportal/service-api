@@ -17,81 +17,51 @@
 package com.epam.reportportal.base.core.analyzer.auto.impl;
 
 import static com.epam.reportportal.base.infrastructure.persistence.entity.AnalyzeMode.ALL_LAUNCHES;
-import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-import com.epam.reportportal.base.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
-import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
-import com.epam.reportportal.base.core.project.ProjectService;
-import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
-import com.epam.reportportal.base.core.statistics.TestItemStatisticsServiceImpl;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
-import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLog;
-import com.epam.reportportal.base.infrastructure.model.analyzer.IndexTestItem;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.model.analyzer.AnalyzedItemRs;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author Pavel Bortnik
  */
 class AnalyzerServiceServiceTest {
 
-  private AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
+  private final AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
-  private IssueTypeHandler issueTypeHandler = mock(IssueTypeHandler.class);
+  private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
-  private TestItemRepository testItemRepository = mock(TestItemRepository.class);
+  private final LaunchRepository launchRepository = mock(LaunchRepository.class);
 
-  private LaunchRepository launchRepository = mock(LaunchRepository.class);
+  private final LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
-  private DefectUpdateStatisticsService defectUpdateStatisticsService = mock(
-      DefectUpdateStatisticsService.class);
+  private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-  private ApplicationEventPublisher applicationEventPublisher = mock(
-      ApplicationEventPublisher.class);
-
-  private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
-
-  private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
-  private ProjectService projectService = mock(ProjectService.class);
-  private TestItemStatisticsService statisticsService = mock(TestItemStatisticsServiceImpl.class);
-
-  private AnalyzerServiceImpl issuesAnalyzer =
+  private final AnalyzerServiceImpl issuesAnalyzer =
       new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
-          analyzerServiceClient, issueTypeHandler, testItemRepository, applicationEventPublisher,
-          launchRepository,
-          defectUpdateStatisticsService, projectService, statisticsService);
+          analyzerServiceClient,
+          testItemRepository, launchRepository);
 
   @Test
   void hasAnalyzers() {
@@ -100,62 +70,33 @@ class AnalyzerServiceServiceTest {
   }
 
   @Test
-  @Disabled
-  void analyze() {
+  void runAnalyzersDispatchesToClient() {
     int itemsCount = 2;
 
     Launch launch = launch();
-
     List<TestItem> items = testItemsTI(itemsCount);
     items.forEach(item -> item.setLaunchId(launch.getId()));
 
     AnalyzerConfig analyzerConfig = analyzerConfig();
 
-    final IndexLaunch indexLaunch = new IndexLaunch();
+    IndexLaunch indexLaunch = new IndexLaunch();
     indexLaunch.setLaunchId(launch.getId());
     indexLaunch.setAnalyzerConfig(analyzerConfig);
 
-    final List<IndexTestItem> indexTestItems =
-        items.stream()
-            .map(AnalyzerUtils::fromTestItem)
-            .peek(item -> item.setLogs(errorLogs(2)))
-            .collect(Collectors.toList());
-    indexLaunch.setTestItems(indexTestItems);
-
     when(testItemRepository.findAllById(anyList())).thenReturn(items);
-
-    var mockProject = new Project();
-    mockProject.setOrganizationId(1L);
-    when(projectService.findProjectById(any())).thenReturn(mockProject);
-
-    when(launchPreparerService.prepare(any(Launch.class), anyList(),
-        any(AnalyzerConfig.class)
-    )).thenReturn(Optional.of(indexLaunch));
-
-    when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
-
-    when(issueTypeHandler.defineIssueType(anyLong(), eq("pb001"))).thenReturn(
-        issueProductBug().getIssueType());
+    when(launchPreparerService.prepare(any(Launch.class), anyList(), any(AnalyzerConfig.class)))
+        .thenReturn(Optional.of(indexLaunch));
 
     issuesAnalyzer.runAnalyzers(launch,
-        items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig
-    );
+        items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig);
 
     verify(analyzerServiceClient, times(1)).analyze(any());
-    verify(testItemRepository, times(itemsCount)).save(any());
-    verify(applicationEventPublisher, times(4)).publishEvent(any());
   }
 
   private AnalyzerConfig analyzerConfig() {
     AnalyzerConfig analyzerConfig = new AnalyzerConfig();
     analyzerConfig.setAnalyzerMode(ALL_LAUNCHES.getValue());
     return analyzerConfig;
-  }
-
-  private Project project() {
-    Project project = new Project();
-    project.setId(1L);
-    return project;
   }
 
   private Launch launch() {
@@ -187,37 +128,5 @@ class AnalyzerServiceServiceTest {
     IssueEntity issueEntity = new IssueEntity();
     issueEntity.setIssueType(issueType);
     return issueEntity;
-  }
-
-  private IssueEntity issueProductBug() {
-    IssueType issueType = new IssueType();
-    issueType.setLocator("pb001");
-    IssueEntity issueEntity = new IssueEntity();
-    issueEntity.setIssueType(issueType);
-    return issueEntity;
-  }
-
-  private Set<IndexLog> errorLogs(int count) {
-    Set<IndexLog> logs = new HashSet<>(count);
-    for (int i = 1; i <= count; i++) {
-      IndexLog log = new IndexLog();
-      log.setMessage("Error message " + i);
-      log.setLogLevel(LogLevel.ERROR.toInt());
-      logs.add(log);
-    }
-    return logs;
-  }
-
-  private Map<String, List<AnalyzedItemRs>> analyzedItems(int itemsCount) {
-    Map<String, List<AnalyzedItemRs>> res = new HashMap<>();
-    List<AnalyzedItemRs> list = new ArrayList<>();
-    for (int i = 1; i <= itemsCount; i++) {
-      AnalyzedItemRs testItem = new AnalyzedItemRs();
-      testItem.setItemId((long) i);
-      testItem.setLocator(PRODUCT_BUG.getLocator());
-      list.add(testItem);
-    }
-    res.put("test", list);
-    return res;
   }
 }

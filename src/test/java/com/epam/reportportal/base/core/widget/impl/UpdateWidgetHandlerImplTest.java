@@ -43,6 +43,7 @@ import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +52,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -64,6 +67,10 @@ class UpdateWidgetHandlerImplTest {
   private static final Long PROJECT_ID = 1L;
   private static final String WIDGET_NAME = "Test Widget";
   private static final String WIDGET_TYPE = "launchStatistics";
+  private static final String COMPONENT_HEALTH_CHECK_TYPE = "componentHealthCheck";
+
+  @Captor
+  private ArgumentCaptor<Widget> widgetCaptor;
 
   @Mock
   private WidgetRepository widgetRepository;
@@ -93,6 +100,29 @@ class UpdateWidgetHandlerImplTest {
 
     lockedWidget = createWidget(true, project);
     unlockedWidget = createWidget(false, project);
+  }
+
+  @Test
+  void updateWidgetWhenOwnerLevelRequestedShouldValidateRebuiltWidgetNotPersistedState()
+      throws Exception {
+    // Given
+    ReportPortalUser user = getRpUser("member", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+    WidgetRQ request = createComponentHealthCheckUpdateRequest(Lists.newArrayList("$launchOwner"));
+    Widget persistedWidget = createComponentHealthCheckWidget();
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
+        .thenReturn(Optional.of(persistedWidget));
+    doNothing().when(widgetContentFieldsValidator).validate(any(Widget.class));
+    when(widgetRepository.save(any(Widget.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    // When
+    handler.updateWidget(WIDGET_ID, request, projectDetails, user);
+
+    // Then
+    verify(widgetContentFieldsValidator).validate(widgetCaptor.capture());
+    assertEquals(Lists.newArrayList("$launchOwner"),
+        widgetCaptor.getValue().getWidgetOptions().getOptions().get("attributeKeys"));
   }
 
   @Test
@@ -301,6 +331,34 @@ class UpdateWidgetHandlerImplTest {
     request.setName(name);
     request.setWidgetType(UpdateWidgetHandlerImplTest.WIDGET_TYPE);
     request.setContentParameters(params);
+    return request;
+  }
+
+  private Widget createComponentHealthCheckWidget() {
+    Project project = new Project();
+    project.setId(PROJECT_ID);
+    Widget widget = createWidget(false, project);
+    widget.setWidgetType(COMPONENT_HEALTH_CHECK_TYPE);
+    Map<String, Object> options = new HashMap<>();
+    options.put("attributeKeys", Lists.newArrayList("build"));
+    options.put("minPassingRate", 50);
+    options.put("excludeSkipped", true);
+    widget.setWidgetOptions(new WidgetOptions(options));
+    return widget;
+  }
+
+  private WidgetRQ createComponentHealthCheckUpdateRequest(List<String> attributeKeys) {
+    ContentParameters params = new ContentParameters();
+    params.setItemsCount(10);
+    params.setContentFields(List.of("field1"));
+    Map<String, Object> options = new HashMap<>();
+    options.put("attributeKeys", attributeKeys);
+    options.put("minPassingRate", 50);
+    options.put("excludeSkipped", true);
+    params.setWidgetOptions(options);
+
+    WidgetRQ request = createWidgetRequest(WIDGET_NAME, params);
+    request.setWidgetType(COMPONENT_HEALTH_CHECK_TYPE);
     return request;
   }
 }

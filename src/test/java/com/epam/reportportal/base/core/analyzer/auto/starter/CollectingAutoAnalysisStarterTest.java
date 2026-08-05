@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.analyzer.auto.AnalyzerService;
-import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
@@ -51,20 +50,16 @@ import org.junit.jupiter.api.Test;
  */
 class CollectingAutoAnalysisStarterTest {
 
-  public static final Long INDEXED_LOG_COUNT = 5L;
-
   private final GetLaunchHandler getLaunchHandler = mock(GetLaunchHandler.class);
   private final AnalyzeCollectorFactory analyzeCollectorFactory = mock(
       AnalyzeCollectorFactory.class);
   private final AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
   private final AnalyzerService analyzerService = mock(AnalyzerService.class);
-  private final LogIndexer logIndexer = mock(LogIndexer.class);
 
   private final CollectingAutoAnalysisStarter starter = new CollectingAutoAnalysisStarter(
       getLaunchHandler,
       analyzeCollectorFactory,
-      analyzerService,
-      logIndexer
+      analyzerService
   );
 
   @Test
@@ -89,9 +84,8 @@ class CollectingAutoAnalysisStarterTest {
     when(analyzerService.hasAnalyzers()).thenReturn(true);
 
     when(getLaunchHandler.get(event.getId())).thenReturn(launch);
-    when(logIndexer.indexLaunchLogs(eq(launch), any(AnalyzerConfig.class))).thenReturn(INDEXED_LOG_COUNT);
-
-    when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
+    when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(
+        analyzeItemsCollector);
     final List<Long> itemIds = Lists.newArrayList(1L, 2L);
     when(analyzeItemsCollector.collectItems(launch.getProjectId(), launch.getId(), 1L, "user"))
         .thenReturn(itemIds);
@@ -100,8 +94,6 @@ class CollectingAutoAnalysisStarterTest {
 
     verify(analyzerService, times(1)).runAnalyzers(eq(launch), eq(itemIds),
         any(AnalyzerConfig.class));
-    verify(logIndexer, times(1)).indexItemsLogs(eq(launch.getProjectId()), eq(launch.getId()),
-        eq(itemIds), any(AnalyzerConfig.class));
   }
 
 }

@@ -168,6 +168,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
   @Override
   public ProjectInfo createProject(Long orgId, ProjectBase projectBase) {
+    projectBase.setName(projectBase.getName().trim());
+
     Organization organization = organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 

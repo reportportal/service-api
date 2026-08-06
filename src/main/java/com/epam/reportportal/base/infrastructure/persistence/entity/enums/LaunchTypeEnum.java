@@ -2,10 +2,12 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.enums;
 
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Getter;
 
 /**
  * Launch type enum.
  */
+@Getter
 public enum LaunchTypeEnum {
 
   AUTOMATION("AUTOMATION"),
@@ -16,10 +18,6 @@ public enum LaunchTypeEnum {
 
   LaunchTypeEnum(String value) {
     this.value = value;
-  }
-
-  public String getValue() {
-    return value;
   }
 
   public static Optional<LaunchTypeEnum> fromValue(String value) {

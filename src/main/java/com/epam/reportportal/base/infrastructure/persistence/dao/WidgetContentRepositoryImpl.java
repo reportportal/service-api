@@ -508,7 +508,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         WidgetSortUtils.fieldTransformer(filter.getTarget()).apply(sort, LAUNCHES));
 
     return INVESTIGATED_STATISTICS_FETCHER.apply(dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NUMBER,
@@ -564,7 +567,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         WidgetSortUtils.fieldTransformer(filter.getTarget()).apply(sort, LAUNCHES));
 
     return dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NUMBER,
@@ -617,6 +623,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .on(STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
         .and(STATISTICS_FIELD.NAME.in(EXECUTIONS_PASSED, EXECUTIONS_TOTAL, EXECUTIONS_SKIPPED))
         .where(LAUNCH.ID.eq(launchId))
+        .and(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .groupBy(LAUNCH.ID)
         .fetchOneInto(PassingRateStatisticsResult.class);
   }
@@ -681,7 +688,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
       Sort sort, int limit) {
 
     return BUG_TREND_STATISTICS_FETCHER.apply(dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NAME,
@@ -811,7 +821,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   public List<NotPassedCasesContent> notPassedCasesStatistics(Filter filter, Sort sort, int limit) {
 
     return dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NAME,
@@ -1431,7 +1444,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
       boolean isAttributePresent) {
 
     SelectOnConditionStep<? extends Record> select = dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(selectFields)
         .from(LAUNCH)
@@ -1460,7 +1476,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   private SelectOnConditionStep<? extends Record> buildPassingRateSelect(Filter filter, Sort sort,
       int limit) {
     return dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(
             sum(when(fieldName(STATISTICS_TABLE, SF_NAME).cast(String.class).eq(EXECUTIONS_PASSED),

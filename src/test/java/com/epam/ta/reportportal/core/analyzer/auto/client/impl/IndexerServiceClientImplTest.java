@@ -64,7 +64,7 @@ class IndexerServiceClientImplTest {
   @Test
   void indexDefectsUpdate() {
     Map<Long, String> update = Maps.newHashMap(1L, "pb001");
-    IndexDefectsUpdate indexDefectsUpdate = new IndexDefectsUpdate(1L, update);
+    IndexDefectsUpdate indexDefectsUpdate = new IndexDefectsUpdate(1L, update, false);
     when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
     when(rabbitTemplate.convertSendAndReceiveAsType(AUTO_ANALYZER_KEY,
         DEFECT_UPDATE_ROUTE,
@@ -72,10 +72,10 @@ class IndexerServiceClientImplTest {
         new ParameterizedTypeReference<List<Long>>() {
         }
     )).thenReturn(Lists.emptyList());
-    indexerServiceClient.indexDefectsUpdate(1L, update);
+    indexerServiceClient.indexDefectsUpdate(1L, update, false);
     verify(rabbitTemplate, times(1)).convertSendAndReceiveAsType(AUTO_ANALYZER_KEY,
         DEFECT_UPDATE_ROUTE,
-        indexDefectsUpdate,
+        new IndexDefectsUpdate(1L, update, false),
         new ParameterizedTypeReference<List<Long>>() {
         }
     );

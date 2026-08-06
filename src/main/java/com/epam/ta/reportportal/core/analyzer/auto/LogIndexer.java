@@ -31,9 +31,8 @@ import java.util.concurrent.CompletableFuture;
 public interface LogIndexer {
 
   /**
-   * Index logs with it's level greater than
-   * {@link com.epam.ta.reportportal.entity.enums.LogLevel#ERROR} for all given test items within
-   * launch
+   * Index logs with it's level greater than {@link com.epam.ta.reportportal.entity.enums.LogLevel#ERROR} for all given
+   * test items within launch
    *
    * @param projectId      - project id
    * @param analyzerConfig - anlayzer config
@@ -74,8 +73,11 @@ public interface LogIndexer {
    * @param projectId      Project id
    * @param analyzerConfig Analyzer config for indexing
    * @param testItems      Test items must be updated
+   * @param autoAnalyzed   {@code true} if the update was triggered by auto-analysis, {@code false} for manual user
+   *                       updates
    */
-  void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
+  void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems,
+      boolean autoAnalyzed);
 
   /**
    * Async handle of items that should be removed from index.

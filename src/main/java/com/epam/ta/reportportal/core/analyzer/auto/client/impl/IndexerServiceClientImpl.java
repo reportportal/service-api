@@ -73,11 +73,11 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
   }
 
   @Override
-  public List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
+  public List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate, boolean autoAnalyzed) {
     return rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX)
         .flatMap(exchange -> ofNullable(
             rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(), DEFECT_UPDATE_ROUTE,
-                new IndexDefectsUpdate(projectId, itemsForIndexUpdate),
+                new IndexDefectsUpdate(projectId, itemsForIndexUpdate, autoAnalyzed),
                 new ParameterizedTypeReference<List<Long>>() {
                 }
             )).orElse(Collections.emptyList()).stream()).collect(toList());

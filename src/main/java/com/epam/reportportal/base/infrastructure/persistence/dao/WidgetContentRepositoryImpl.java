@@ -726,7 +726,10 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .filter(cf -> cf.contains(DEFECTS_KEY)).collect(toList());
 
     return LAUNCHES_STATISTICS_FETCHER.apply(dsl.with(LAUNCHES)
-        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort)).with(sort).with(limit)
+        .as(QueryBuilder.newBuilder(filter, collectJoinFields(filter, sort))
+            .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
+            .with(sort)
+            .with(limit)
             .build())
         .select(LAUNCH.ID,
             LAUNCH.NAME,
@@ -1086,6 +1089,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
     Table<? extends Record> launchesTable = QueryUtils.createQueryBuilderWithLatestLaunchesOption(
             launchFilter, launchSort, isLatest)
+        .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .with(launchesLimit)
         .with(launchSort)
         .build()
@@ -1172,6 +1176,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
             FIRST_LEVEL)
         .as(dsl.with(LAUNCHES)
             .as(QueryBuilder.newBuilder(launchFilter, collectJoinFields(launchFilter))
+                .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
                 .with(launchesSort)
                 .with(launchesLimit)
                 .build())
@@ -1329,6 +1334,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
     Table<? extends Record> launchesTable = QueryUtils.createQueryBuilderWithLatestLaunchesOption(
             launchFilter, launchSort, isLatest)
+        .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
         .with(launchesLimit)
         .with(launchSort)
         .build()

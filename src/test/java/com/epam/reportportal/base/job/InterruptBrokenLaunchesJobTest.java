@@ -144,7 +144,7 @@ class InterruptBrokenLaunchesJobTest {
 
   @Test
   void shouldExcludeManualLaunchesFromInterruptQuery() {
-    Project project = new Project();
+    final Project project = new Project();
     final ProjectAttribute projectAttribute = new ProjectAttribute();
     final Attribute attribute = new Attribute();
     attribute.setName("job.interruptJobTime");

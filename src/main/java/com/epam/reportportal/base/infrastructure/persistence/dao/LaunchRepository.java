@@ -109,6 +109,16 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
   Stream<Long> streamIdsByStartTimeBefore(@Param("projectId") Long projectId,
       @Param("before") Instant before);
 
+  /**
+   * Streams launch IDs filtered by status, project, and start-time cutoff, excluding launches of the specified launch
+   * type.
+   *
+   * @param projectId          the project to filter launches by
+   * @param status             the launch status to filter by
+   * @param before             the start-time cutoff; only launches started before this instant are included
+   * @param excludedLaunchType the launch type to exclude from the results
+   * @return a stream of matching launch IDs
+   */
   @QueryHints(@QueryHint(name = HINT_FETCH_SIZE, value = "1"))
   @Query("""
       SELECT l.id

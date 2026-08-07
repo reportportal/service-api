@@ -268,6 +268,11 @@ public class LaunchNotificationRunner
   }
 
   private void sendNotificationEvent(LaunchFinishedEvent launchFinishedEvent) {
+    final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
+    if (launch.getLaunchType().isManual()) {
+      return;
+    }
+
     final Project project = getProjectHandler.get(launchFinishedEvent.getProjectId());
 
     String launchLink = linkGenerator.generateLaunchLink(launchFinishedEvent.getBaseUrl(),

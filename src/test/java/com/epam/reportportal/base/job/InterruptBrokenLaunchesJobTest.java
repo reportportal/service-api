@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.job;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +29,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attribute.Attribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -89,7 +91,7 @@ class InterruptBrokenLaunchesJobTest {
 
     when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(
         new PageImpl<>(Collections.singletonList(project)));
-    when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(
+    when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any(), any())).thenReturn(
         Stream.of(launchId));
     when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(
         false);
@@ -120,7 +122,7 @@ class InterruptBrokenLaunchesJobTest {
 
     when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(
         new PageImpl<>(Collections.singletonList(project)));
-    when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(
+    when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any(), any())).thenReturn(
         Stream.of(launchId));
     when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(
         true);
@@ -138,5 +140,26 @@ class InterruptBrokenLaunchesJobTest {
     verify(launchRepository, times(1)).findById(launchId);
     verify(launchRepository, times(1)).save(any());
 
+  }
+
+  @Test
+  void shouldExcludeManualLaunchesFromInterruptQuery() {
+    final Project project = new Project();
+    final ProjectAttribute projectAttribute = new ProjectAttribute();
+    final Attribute attribute = new Attribute();
+    attribute.setName("job.interruptJobTime");
+    projectAttribute.setAttribute(attribute);
+    projectAttribute.setValue(String.valueOf(3600 * 24));
+    project.setProjectAttributes(Sets.newHashSet(projectAttribute));
+
+    when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(
+        new PageImpl<>(Collections.singletonList(project)));
+    when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any(),
+        eq(LaunchTypeEnum.MANUAL))).thenReturn(Stream.empty());
+
+    interruptBrokenLaunchesJob.execute(null);
+
+    verify(launchRepository).streamIdsWithStatusAndStartTimeBefore(any(), eq(StatusEnum.IN_PROGRESS),
+        any(), eq(LaunchTypeEnum.MANUAL));
   }
 }

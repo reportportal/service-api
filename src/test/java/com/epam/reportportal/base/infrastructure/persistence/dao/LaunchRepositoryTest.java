@@ -39,6 +39,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -148,7 +149,8 @@ class LaunchRepositoryTest extends BaseMvcTest {
 
     Stream<Long> stream = launchRepository.streamIdsWithStatusAndStartTimeBefore(1L,
         StatusEnum.IN_PROGRESS,
-        Instant.now().minusSeconds(Duration.ofDays(13).getSeconds())
+        Instant.now().minusSeconds(Duration.ofDays(13).getSeconds()),
+        LaunchTypeEnum.MANUAL
     );
 
     assertNotNull(stream);

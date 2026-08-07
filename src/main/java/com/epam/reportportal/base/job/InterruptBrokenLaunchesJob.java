@@ -27,6 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepositor
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Finds jobs witn duration more than defined and finishes them with interrupted {@link StatusEnum#INTERRUPTED} status
+ * Finds jobs with duration more than defined and finishes them with interrupted {@link StatusEnum#INTERRUPTED} status
  *
  * @author Andrei Varabyeu
  */
@@ -85,7 +86,8 @@ public class InterruptBrokenLaunchesJob implements Job {
                 try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(
                     project.getId(),
                     StatusEnum.IN_PROGRESS,
-                    Instant.now().minus(maxDuration.toSeconds(), ChronoUnit.SECONDS)
+                    Instant.now().minus(maxDuration.toSeconds(), ChronoUnit.SECONDS),
+                    LaunchTypeEnum.MANUAL
                 )) {
                   ids.forEach(launchId -> {
                     if (!testItemRepository.hasItemsInStatusByLaunch(launchId,

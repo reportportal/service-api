@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.project.patch;
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.base.core.project.ProjectService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -54,7 +55,7 @@ public class PatchProjectNameHandler extends BasePatchProjectHandler {
    */
   @Override
   public void replace(PatchOperation operation, Long orgId, Long projectId) {
-    projectService.updateProjectName(orgId, projectId, (String) operation.getValue());
+    projectService.updateProjectName(orgId, projectId, StringUtils.trim((String) operation.getValue()));
   }
 
 }

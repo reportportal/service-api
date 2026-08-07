@@ -37,6 +37,7 @@ import com.epam.reportportal.base.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.project.OrganizationProjectHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
+import com.epam.reportportal.base.infrastructure.model.ValidationConstraints;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
@@ -59,6 +60,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SlugifyUtils;
@@ -168,6 +170,12 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
   @Override
   public ProjectInfo createProject(Long orgId, ProjectBase projectBase) {
+    projectBase.setName(projectBase.getName().trim());
+    expect(projectBase.getName().length(), (Integer length) -> length >= ValidationConstraints.MIN_NAME_LENGTH)
+        .verify(ErrorType.INCORRECT_REQUEST,
+            Suppliers.formattedSupplier("Project name '{}' is too short after trimming whitespaces",
+                projectBase.getName()));
+
     Organization organization = organizationRepositoryCustom.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 

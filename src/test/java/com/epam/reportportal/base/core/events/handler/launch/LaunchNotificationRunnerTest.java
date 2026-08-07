@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,7 @@ import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
@@ -45,6 +47,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
+import com.epam.reportportal.extension.event.LaunchFinishedNotificationEvent;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Optional;
@@ -176,6 +179,27 @@ class LaunchNotificationRunnerTest {
         eq(event.getProjectId()), eq(event.getOrganizationId()), eq(ReservedIntegrationTypeEnum.EMAIL.getName()));
     verify(mailServiceFactory).getDefaultEmailService(emailIntegration);
     verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
+  }
+
+  @Test
+  void shouldNotSendChatNotificationForManualLaunch() {
+    final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
+    launch.setName("name1");
+    launch.setLaunchType(LaunchTypeEnum.MANUAL);
+    final ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER,
+        launch.getProjectId());
+    final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl", 1L, "helen");
+
+    final Map<String, String> mapping = ImmutableMap.<String, String>builder()
+        .put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute(), "true")
+        .build();
+
+    when(getLaunchHandler.get(event.getId())).thenReturn(launch);
+
+    runner.handle(event, mapping);
+
+    verify(eventPublisher, never()).publishEvent(any(LaunchFinishedNotificationEvent.class));
   }
 
 }

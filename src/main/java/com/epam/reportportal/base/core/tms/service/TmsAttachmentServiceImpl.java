@@ -6,6 +6,7 @@ import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttac
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -40,6 +41,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   private final TmsStepAttachmentRepository tmsStepAttachmentRepository;
   private final TmsTextManualScenarioAttachmentRepository tmsTextManualScenarioAttachmentRepository;
   private final TmsManualScenarioPreconditionsAttachmentRepository tmsManualScenarioPreconditionsAttachmentRepository;
+  private final TmsTestCaseExecutionCommentAttachmentRepository tmsTestCaseExecutionCommentAttachmentRepository;
 
   @Value("${rp.tms.attachment.ttl:PT24H}")
   private Duration ttl;
@@ -288,6 +290,12 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     var preconditionsAttachmentIds = tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds();
     usedIds.addAll(preconditionsAttachmentIds);
     log.debug("Found {} attachment IDs in preconditions attachments", preconditionsAttachmentIds.size());
+
+    // Get attachment IDs from test case execution comment attachments
+    var testCaseExecutionCommentAttachmentIds = tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds();
+    usedIds.addAll(testCaseExecutionCommentAttachmentIds);
+    log.debug("Found {} attachment IDs in test case execution comment attachments",
+        testCaseExecutionCommentAttachmentIds.size());
 
     log.debug("Total unique attachment IDs in use: {}", usedIds.size());
     return usedIds;

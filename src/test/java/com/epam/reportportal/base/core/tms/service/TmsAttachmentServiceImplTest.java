@@ -16,14 +16,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
+import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
 import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
-import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
-import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.ByteArrayInputStream;
@@ -66,6 +67,9 @@ class TmsAttachmentServiceImplTest {
   @Mock
   private TmsManualScenarioPreconditionsAttachmentRepository tmsManualScenarioPreconditionsAttachmentRepository;
 
+  @Mock
+  private TmsTestCaseExecutionCommentAttachmentRepository tmsTestCaseExecutionCommentAttachmentRepository;
+
   @InjectMocks
   private TmsAttachmentServiceImpl sut;
 
@@ -105,8 +109,10 @@ class TmsAttachmentServiceImplTest {
   @Test
   void uploadAttachment_ShouldSucceed_WhenValidFile() throws Exception {
     // Given valid file to upload
-    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(fileId);
-    when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file))).thenReturn(attachment);
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
+        fileId);
+    when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file))).thenReturn(
+        attachment);
     when(tmsAttachmentRepository.save(attachment)).thenReturn(attachment);
     when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
         uploadAttachmentRS);
@@ -135,9 +141,12 @@ class TmsAttachmentServiceImplTest {
         () -> sut.uploadAttachment(emptyFile));
 
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
-    assertEquals("Error in handled Request. Please, check specified parameters: 'File cannot be empty'", exception.getMessage());
+    assertEquals(
+        "Error in handled Request. Please, check specified parameters: 'File cannot be empty'",
+        exception.getMessage());
 
-    verifyNoInteractions(tmsAttachmentDataStoreService, tmsAttachmentMapper, tmsAttachmentRepository);
+    verifyNoInteractions(tmsAttachmentDataStoreService, tmsAttachmentMapper,
+        tmsAttachmentRepository);
   }
 
   @Test
@@ -221,7 +230,8 @@ class TmsAttachmentServiceImplTest {
   void deleteAttachment_ShouldThrowException_WhenDataStoreDeleteFails() {
     // Given attachment exists but data store delete operation fails
     when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
-    doThrow(new RuntimeException("Delete failed")).when(tmsAttachmentDataStoreService).delete(fileId);
+    doThrow(new RuntimeException("Delete failed")).when(tmsAttachmentDataStoreService)
+        .delete(fileId);
 
     // When/Then exception should be thrown when data store delete fails
     var exception = assertThrows(ReportPortalException.class,
@@ -405,7 +415,8 @@ class TmsAttachmentServiceImplTest {
   @Test
   void duplicateTmsAttachment_ShouldThrowException_WhenOriginalFileNotFound() {
     // Given original file does not exist in data store
-    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile())).thenReturn(Optional.empty());
+    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile())).thenReturn(
+        Optional.empty());
 
     // When/Then exception should be thrown when original file is not found
     var exception = assertThrows(ReportPortalException.class,
@@ -454,6 +465,8 @@ class TmsAttachmentServiceImplTest {
         Collections.emptyList());
     when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
         Collections.emptyList());
+    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
+        Collections.emptyList());
     when(tmsAttachmentRepository.setExpirationForAttachments(anyList(),
         any(Instant.class))).thenReturn(2);
 
@@ -465,6 +478,7 @@ class TmsAttachmentServiceImplTest {
     verify(tmsStepAttachmentRepository).findAllAttachmentIds();
     verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
     verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
+    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
 
     var idsCaptor = ArgumentCaptor.forClass(List.class);
     var instantCaptor = ArgumentCaptor.forClass(Instant.class);
@@ -493,6 +507,7 @@ class TmsAttachmentServiceImplTest {
     verifyNoInteractions(tmsStepAttachmentRepository);
     verifyNoInteractions(tmsTextManualScenarioAttachmentRepository);
     verifyNoInteractions(tmsManualScenarioPreconditionsAttachmentRepository);
+    verifyNoInteractions(tmsTestCaseExecutionCommentAttachmentRepository);
     verify(tmsAttachmentRepository, never()).setExpirationForAttachments(anyList(),
         any(Instant.class));
   }
@@ -514,6 +529,8 @@ class TmsAttachmentServiceImplTest {
         Collections.emptyList());
     when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
         Collections.emptyList());
+    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
+        Collections.emptyList());
 
     // When setting expiration for unused attachments
     sut.setExpirationForUnusedAttachments();
@@ -523,6 +540,7 @@ class TmsAttachmentServiceImplTest {
     verify(tmsStepAttachmentRepository).findAllAttachmentIds();
     verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
     verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
+    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
     verify(tmsAttachmentRepository, never()).setExpirationForAttachments(anyList(),
         any(Instant.class));
   }
@@ -547,6 +565,8 @@ class TmsAttachmentServiceImplTest {
         List.of(2L));
     when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
         Collections.emptyList());
+    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
+        Collections.emptyList());
     when(tmsAttachmentRepository.setExpirationForAttachments(anyList(),
         any(Instant.class))).thenReturn(1);
 
@@ -554,6 +574,11 @@ class TmsAttachmentServiceImplTest {
     sut.setExpirationForUnusedAttachments();
 
     // Then expiration should be set only for genuinely unused attachment
+    verify(tmsStepAttachmentRepository).findAllAttachmentIds();
+    verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
+    verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
+    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
+
     var idsCaptor = ArgumentCaptor.forClass(List.class);
     verify(tmsAttachmentRepository).setExpirationForAttachments(idsCaptor.capture(),
         any(Instant.class));
@@ -582,6 +607,8 @@ class TmsAttachmentServiceImplTest {
         List.of(1L)); // Same ID in multiple tables
     when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
         Collections.emptyList());
+    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
+        Collections.emptyList());
     when(tmsAttachmentRepository.setExpirationForAttachments(anyList(),
         any(Instant.class))).thenReturn(1);
 
@@ -589,6 +616,11 @@ class TmsAttachmentServiceImplTest {
     sut.setExpirationForUnusedAttachments();
 
     // Then expiration should be set only for attachment not used in any table
+    verify(tmsStepAttachmentRepository).findAllAttachmentIds();
+    verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
+    verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
+    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
+
     var idsCaptor = ArgumentCaptor.forClass(List.class);
     verify(tmsAttachmentRepository).setExpirationForAttachments(idsCaptor.capture(),
         any(Instant.class));

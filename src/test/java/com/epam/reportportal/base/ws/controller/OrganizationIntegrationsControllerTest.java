@@ -65,6 +65,13 @@ class OrganizationIntegrationsControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void getIntegrations_blankOrgId_badRequest() throws Exception {
+    mockMvc.perform(get("/organizations/ /integrations")
+            .with(token(adminToken)))
+        .andExpect(status().is4xxClientError());
+  }
+
+  @Test
   void getIntegrations_manager_ok() throws Exception {
     mockMvc.perform(get("/organizations/201/integrations")
             .with(token(managerToken)))

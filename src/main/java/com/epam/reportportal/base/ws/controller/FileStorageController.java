@@ -20,10 +20,12 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO
 import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.reportportal.base.core.file.DeleteFilesHandler;
+import com.epam.reportportal.base.core.file.FileSignedLinkService;
 import com.epam.reportportal.base.core.file.GetFileHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.SignedFileLinkRs;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,19 +34,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
+import java.time.Instant;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRange;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * File storage controller.
@@ -60,6 +59,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
  * @author Dzianis_Shybeka
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/data")
 @Tag(name = "File Storage", description = "Files Storage API collection")
 public class FileStorageController {
@@ -67,20 +67,8 @@ public class FileStorageController {
   private final ProjectExtractor projectExtractor;
   private final GetFileHandler getFileHandler;
   private final DeleteFilesHandler deleteFilesHandler;
-
-  /**
-   * Constructor with mandatory fields.
-   */
-  @Autowired
-  public FileStorageController(
-      ProjectExtractor projectExtractor,
-      GetFileHandler getFileHandler,
-      DeleteFilesHandler deleteFilesHandler
-  ) {
-    this.projectExtractor = projectExtractor;
-    this.getFileHandler = getFileHandler;
-    this.deleteFilesHandler = deleteFilesHandler;
-  }
+  private final FileSignedLinkService fileSignedLinkService;
+  private final AttachmentStreamResponseFactory attachmentStreamResponseFactory;
 
   /**
    * Get file by its ID.
@@ -94,12 +82,8 @@ public class FileStorageController {
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @GetMapping(value = "/{projectKey}/{dataId}")
   @Operation(summary = "Get file")
-  public void getFile(
-      @PathVariable String projectKey,
-      @PathVariable("dataId") Long dataId,
-      HttpServletResponse response,
-      @AuthenticationPrincipal ReportPortalUser user
-  ) {
+  public void getFile(@PathVariable String projectKey, @PathVariable("dataId") Long dataId,
+      HttpServletResponse response, @AuthenticationPrincipal ReportPortalUser user) {
     var membership = projectExtractor.extractMembershipDetails(user, projectKey);
     var binaryData = getFileHandler.loadFileById(dataId, membership);
     toResponse(response, binaryData);
@@ -118,15 +102,48 @@ public class FileStorageController {
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @GetMapping(value = "/{projectKey}/streams/{dataId}")
   @Operation(summary = "Get file stream")
-  public ResponseEntity<StreamingResponseBody> getFileStream(
-      @PathVariable String projectKey,
-      @PathVariable("dataId") Long dataId,
-      @AuthenticationPrincipal ReportPortalUser user,
-      HttpServletRequest request
-  ) {
+  public ResponseEntity<StreamingResponseBody> getFileStream(@PathVariable String projectKey,
+      @PathVariable("dataId") Long dataId, @AuthenticationPrincipal ReportPortalUser user,
+      HttpServletRequest request) {
     var membership = projectExtractor.extractMembershipDetails(user, projectKey);
-    var binaryData = getFileHandler.loadFileById(dataId, membership);
-    return toStreamingResponse(binaryData, request);
+    var metadata = getFileHandler.getFileMetadataForStreaming(dataId, membership);
+    var range = attachmentStreamResponseFactory.resolveRange(request, metadata.fileSize());
+    if (range.type() == AttachmentStreamRange.Type.UNSATISFIABLE) {
+      return attachmentStreamResponseFactory.toStreamingResponse(
+          new BinaryData(metadata.fileName(), metadata.contentType(), metadata.fileSize(), null),
+          range);
+    }
+
+    var binaryData = getFileHandler.loadFileForStreaming(metadata, range.offset(),
+        range.contentLength());
+    if (range.type() == AttachmentStreamRange.Type.FULL) {
+      return toStreamingResponse(binaryData, request);
+    }
+    return attachmentStreamResponseFactory.toStreamingResponse(binaryData, range);
+  }
+
+  /**
+   * Creates a signed public stream URL for an attachment.
+   *
+   * @param projectKey Project key
+   * @param dataId     File ID
+   * @param user       Current user
+   * @return signed stream URL and expiration time
+   */
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @PostMapping("/{projectKey}/streams/{dataId}/link")
+  @Operation(summary = "Create public file stream link")
+  public SignedFileLinkRs createSignedLink(@PathVariable String projectKey,
+      @PathVariable("dataId") Long dataId, @AuthenticationPrincipal ReportPortalUser user) {
+    var membership = projectExtractor.extractMembershipDetails(user, projectKey);
+    var signedLink = fileSignedLinkService.createLink(dataId, membership.getProjectKey(),
+        user.getUserId());
+    var url = UriComponentsBuilder.fromPath("/v1/public/data/streams/{dataId}")
+        .queryParam("pk", membership.getProjectKey()).queryParam("uid", user.getUserId())
+        .queryParam("exp", signedLink.expiresAtEpochSecond())
+        .queryParam("sig", signedLink.signature()).buildAndExpand(dataId).encode().toUriString();
+
+    return new SignedFileLinkRs(url, Instant.ofEpochSecond(signedLink.expiresAtEpochSecond()));
   }
 
   /**
@@ -139,9 +156,7 @@ public class FileStorageController {
   @PreAuthorize(IS_ADMIN)
   @PostMapping(value = "/clean", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   @Operation(summary = "Remove attachments from file storage according to uploaded csv file")
-  public OperationCompletionRS removeAttachmentsByCsv(
-      @RequestParam("file") MultipartFile file
-  ) {
+  public OperationCompletionRS removeAttachmentsByCsv(@RequestParam("file") MultipartFile file) {
     return deleteFilesHandler.removeFilesByCsv(file);
   }
 
@@ -168,92 +183,9 @@ public class FileStorageController {
     }
   }
 
-  private ResponseEntity<StreamingResponseBody> toStreamingResponse(
-      BinaryData binaryData,
-      HttpServletRequest request
-  ) {
-    final var binaryStream = binaryData.getInputStream();
-    if (binaryStream == null) {
-      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    var headers = new HttpHeaders();
-
-    headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
-
-    Optional.ofNullable(binaryData.getContentType())
-        .map(MediaType::parseMediaType)
-        .ifPresent(headers::setContentType);
-
-    Optional.ofNullable(binaryData.getFileName())
-        .map(n -> ContentDisposition.builder("inline").filename(sanitizeFileName(n)).build())
-        .ifPresent(headers::setContentDisposition);
-
-    var fileLength = binaryData.getLength();
-    var requestHeader = request.getHeader(HttpHeaders.RANGE);
-
-    HttpRange range = null;
-    if (fileLength != null && requestHeader != null && !requestHeader.isBlank()) {
-      range = parseRange(requestHeader);
-    }
-
-    if (range == null) {
-      if (fileLength != null) {
-        headers.setContentLength(fileLength);
-      }
-
-      StreamingResponseBody responseBody = outputStream -> {
-        try (InputStream inputStream = binaryStream) {
-          IOUtils.copy(inputStream, outputStream);
-        } catch (IOException e) {
-          throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
-        }
-      };
-
-      return ResponseEntity.ok()
-          .headers(headers)
-          .body(responseBody);
-    }
-
-    long rangeStart = range.getRangeStart(fileLength);
-    long rangeEnd = Math.min(range.getRangeEnd(fileLength), fileLength - 1);
-
-    if (rangeStart >= fileLength || rangeStart > rangeEnd) {
-      try {
-        binaryStream.close();
-      } catch (IOException ignored) {
-      }
-
-      headers.set(HttpHeaders.CONTENT_RANGE, "bytes */" + fileLength);
-      return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
-          .headers(headers)
-          .build();
-    }
-
-    headers.set(HttpHeaders.CONTENT_RANGE,
-        "bytes " + rangeStart + "-" + rangeEnd + "/" + fileLength);
-    headers.setContentLength(rangeEnd - rangeStart + 1);
-
-    StreamingResponseBody responseBody = outputStream -> {
-      try (InputStream inputStream = binaryStream) {
-        StreamUtils.copyRange(inputStream, outputStream, rangeStart, rangeEnd);
-      } catch (IOException e) {
-        throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
-      }
-    };
-
-    return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-        .headers(headers)
-        .body(responseBody);
-  }
-
-  private HttpRange parseRange(String rangeHeader) {
-    try {
-      var ranges = HttpRange.parseRanges(rangeHeader);
-      return ranges.size() == 1 ? ranges.getFirst() : null;
-    } catch (IllegalArgumentException ex) {
-      return null;
-    }
+  private ResponseEntity<StreamingResponseBody> toStreamingResponse(BinaryData binaryData,
+      HttpServletRequest request) {
+    return attachmentStreamResponseFactory.toStreamingResponse(binaryData, request);
   }
 
   private String sanitizeFileName(String fileName) {

@@ -87,10 +87,21 @@ public class ProjectExtractor {
    */
   public Optional<MembershipDetails> findMembershipDetails(ReportPortalUser user,
       String projectKey) {
-    return projectUserRepository.findDetailsByUserIdAndProjectKey(user.getUserId(), projectKey)
+    return findMembershipDetails(user.getUserId(), projectKey);
+  }
+
+  /**
+   * Find project details for specified user ID by specified project name.
+   *
+   * @param userId     User ID
+   * @param projectKey Project unique key
+   * @return {@link Optional} with Project Details found in ProjectUserRepository or GroupRepository
+   */
+  public Optional<MembershipDetails> findMembershipDetails(Long userId, String projectKey) {
+    return projectUserRepository.findDetailsByUserIdAndProjectKey(userId, projectKey)
         .map(details -> {
           var projectRoles = groupMembershipRepository.findUserProjectRoles(
-              user.getUserId(),
+              userId,
               details.getProjectId()
           );
 

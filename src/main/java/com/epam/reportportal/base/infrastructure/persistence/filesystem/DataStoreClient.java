@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.opendal.Operator;
+import org.apache.opendal.ReadOptions;
 
 /**
  * Implementation of basic operations with blob storages using Apache OpenDAL.
@@ -100,6 +101,32 @@ public class DataStoreClient implements DataStore {
   }
 
   @Override
+  public InputStream loadRange(String filePath, long offset, long length) {
+    if (filePath == null) {
+      log.error("Unable to find file");
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
+    }
+    if (offset < 0 || length < 0) {
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+          "Range offset and length must be non-negative");
+    }
+    if (length == 0) {
+      return InputStream.nullInputStream();
+    }
+
+    StoredFile storedFile = getStoredFile(filePath);
+    String fullPath = getFullPath(storedFile);
+    try {
+      var options = ReadOptions.builder().offset(offset).length(length).build();
+      return operator.createInputStream(fullPath, options);
+    } catch (Exception e) {
+      log.error("Unable to load range [{}, {}) from file '{}'", offset, offset + length, filePath,
+          e);
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
+    }
+  }
+
+  @Override
   public boolean exists(String filePath) {
     if (filePath == null) {
       return false;
@@ -131,14 +158,12 @@ public class DataStoreClient implements DataStore {
 
   @Override
   public void deleteAll(List<String> filePaths, String bucketName) {
-    String bucket = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-        ? bucketName
+    String bucket = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET) ? bucketName
         : bucketPrefix + bucketName + bucketPostfix;
 
     for (String filePath : filePaths) {
       try {
-        String fullPath = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-            ? filePath
+        String fullPath = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET) ? filePath
             : bucket + PATH_DELIMITER + filePath;
         operator.delete(fullPath);
       } catch (Exception e) {
@@ -149,13 +174,11 @@ public class DataStoreClient implements DataStore {
 
   @Override
   public void deleteContainer(String bucketName) {
-    String bucket = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-        ? bucketName
+    String bucket = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET) ? bucketName
         : bucketPrefix + bucketName + bucketPostfix;
 
     try {
-      String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)
-          ? PATH_DELIMITER
+      String path = featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET) ? PATH_DELIMITER
           : bucket + PATH_DELIMITER;
       operator.removeAll(path);
     } catch (Exception e) {

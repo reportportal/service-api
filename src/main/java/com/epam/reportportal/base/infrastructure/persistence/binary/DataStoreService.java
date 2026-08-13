@@ -38,4 +38,6 @@ public interface DataStoreService {
   void deleteContainer(String containerName);
 
   Optional<InputStream> load(String fileId);
+
+  Optional<InputStream> loadRange(String fileId, long offset, long length);
 }

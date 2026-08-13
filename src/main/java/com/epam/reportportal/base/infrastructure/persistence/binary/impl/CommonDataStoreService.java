@@ -58,9 +58,7 @@ public abstract class CommonDataStoreService implements DataStoreService {
 
   @Override
   public void deleteAll(List<String> fileIds, String bucketName) {
-    var decodedPaths = fileIds.stream()
-        .map(dataEncoder::decode)
-        .toList();
+    var decodedPaths = fileIds.stream().map(dataEncoder::decode).toList();
     dataStore.deleteAll(decodedPaths, bucketName);
   }
 
@@ -72,5 +70,10 @@ public abstract class CommonDataStoreService implements DataStoreService {
   @Override
   public Optional<InputStream> load(String fileId) {
     return ofNullable(dataStore.load(dataEncoder.decode(fileId)));
+  }
+
+  @Override
+  public Optional<InputStream> loadRange(String fileId, long offset, long length) {
+    return ofNullable(dataStore.loadRange(dataEncoder.decode(fileId), offset, length));
   }
 }

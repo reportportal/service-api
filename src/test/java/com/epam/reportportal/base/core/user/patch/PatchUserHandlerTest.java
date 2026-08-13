@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -197,6 +198,80 @@ class PatchUserHandlerTest {
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
     verify(userMutationService).updateEmail(targetUser, "admin_new@example.com", principalUser);
+  }
+
+  // --- Test Cases for Admin Self-Update Restrictions ---
+
+  @Test
+  @DisplayName("Admin updates own account_type - Should fail with ACCESS_DENIED")
+  void adminUpdatesOwnAccountTypeShouldFail() {
+    targetUser.setId(principalUser.getUserId());
+    mockPrincipal(principalUser, true);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/account_type");
+    op.setValue("SCIM");
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    verify(userMutationService, never()).updateAccountType(any(), any(), anyBoolean());
+  }
+
+  @Test
+  @DisplayName("Admin updates own external_id - Should fail with ACCESS_DENIED")
+  void adminUpdatesOwnExternalIdShouldFail() {
+    targetUser.setId(principalUser.getUserId());
+    mockPrincipal(principalUser, true);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/external_id");
+    op.setValue("new_external_id");
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    verify(userMutationService, never()).updateExternalId(any(), any());
+  }
+
+  @Test
+  @DisplayName("Admin updates own active status - Should fail with ACCESS_DENIED")
+  void adminUpdatesOwnActiveShouldFail() {
+    targetUser.setId(principalUser.getUserId());
+    mockPrincipal(principalUser, true);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/active");
+    op.setValue(Boolean.FALSE);
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    verify(userMutationService, never()).updateActive(any(), any());
+  }
+
+  @Test
+  @DisplayName("Admin updates own instance_role - Should fail with ACCESS_DENIED")
+  void adminUpdatesOwnInstanceRoleShouldFail() {
+    targetUser.setId(principalUser.getUserId());
+    mockPrincipal(principalUser, true);
+    when(userService.findById(targetUser.getId())).thenReturn(targetUser);
+
+    PatchOperation op = new PatchOperation();
+    op.setOp(REPLACE);
+    op.setPath("/instance_role");
+    op.setValue(UserRole.USER.name());
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    verify(userMutationService, never()).updateInstanceRole(any(), any(), any());
   }
 
   // --- Test Cases for UPSA Users ---
@@ -461,7 +536,7 @@ class PatchUserHandlerTest {
     op.setValue("INTERNAL");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    verify(userMutationService).updateAccountType(targetUser, "INTERNAL");
+    verify(userMutationService).updateAccountType(targetUser, "INTERNAL", false);
   }
 
   @Test
@@ -476,6 +551,6 @@ class PatchUserHandlerTest {
     op.setValue("SCIM");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    verify(userMutationService).updateAccountType(targetUser, "SCIM");
+    verify(userMutationService).updateAccountType(targetUser, "SCIM", false);
   }
 }

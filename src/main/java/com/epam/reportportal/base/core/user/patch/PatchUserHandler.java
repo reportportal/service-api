@@ -40,7 +40,9 @@ import org.springframework.util.Assert;
  * <p>Authorization rules:
  * <ul>
  *   <li>Administrators may update email, full_name, role, active, account_type and external_id of
- *       any user.</li>
+ *       any other user.</li>
+ *   <li>Administrators may not change their own account_type, external_id, active or
+ *       instance_role (only email and full_name).</li>
  *   <li>Regular users may update only their own email and full name.</li>
  * </ul>
  *
@@ -59,6 +61,8 @@ public class PatchUserHandler {
   public static final String EXTERNAL_ID_PATH = "/external_id";
   private static final String UNEXPECTED_PATH_MESSAGE = "Unexpected path: '%s'";
   private static final Set<String> ALLOWED_SELF_UPDATE_PATHS = Set.of(EMAIL_PATH, FULL_NAME_PATH);
+  private static final Set<String> ADMIN_SELF_RESTRICTED_PATHS =
+      Set.of(ACCOUNT_TYPE_PATH, EXTERNAL_ID_PATH, ACTIVE_PATH, ROLE_PATH);
 
   private final UserService userService;
   private final UserMutationService userMutationService;
@@ -90,12 +94,12 @@ public class PatchUserHandler {
    *
    * <p>Authorization rules enforced:
    * <ul>
-   *   <li>Administrators can update any field for any user</li>
+   *   <li>Administrators can update any field for any other user</li>
+   *   <li>Administrators cannot update their own account_type, external_id, active or
+   *       instance_role</li>
    *   <li>Regular users can only update their own profile</li>
    *   <li>Regular users are restricted to updating only their email and full name</li>
    * </ul>
-   *
-   * <p>Additionally enforces field-level restrictions for non-administrators.
    *
    * @param user      the target user whose profile is being modified
    * @param operation the patch operation containing the field path and new value
@@ -107,11 +111,15 @@ public class PatchUserHandler {
     Assert.isTrue(StringUtils.isNotEmpty(path), "The 'path' must not be null");
 
     boolean isAdmin = SecurityContextUtils.isAdminRole();
+    boolean isOwnProfile = SecurityContextUtils.getPrincipal().getUserId().equals(user.getId());
+
     if (isAdmin) {
+      if (isOwnProfile && ADMIN_SELF_RESTRICTED_PATHS.contains(path)) {
+        throw new ReportPortalException(ErrorType.ACCESS_DENIED,
+            "Administrators cannot change their own account type, external ID, active status or instance role.");
+      }
       return;
     }
-
-    boolean isOwnProfile = SecurityContextUtils.getPrincipal().getUserId().equals(user.getId());
 
     if (!isOwnProfile) {
       throw new ReportPortalException(ErrorType.ACCESS_DENIED, "You are not allowed to update this user's profile.");
@@ -150,7 +158,8 @@ public class PatchUserHandler {
           case ACTIVE_PATH ->
               userMutationService.updateActive(user, validateAndGetTypedValue(operation, path, Boolean.class));
           case ACCOUNT_TYPE_PATH ->
-              userMutationService.updateAccountType(user, validateAndGetTypedValue(operation, path, String.class));
+              userMutationService.updateAccountType(user, validateAndGetTypedValue(operation, path, String.class),
+                  false);
           case EXTERNAL_ID_PATH ->
               userMutationService.updateExternalId(user, validateAndGetTypedValue(operation, path, String.class));
           case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));

@@ -60,12 +60,13 @@ public interface UserMutationService {
   void updateActive(User user, Object value);
 
   /**
-   * Updates user account type (INTERNAL or SCIM only).
+   * Updates user account type.
    *
-   * @param user        the user entity to update
-   * @param accountType the new account type as string
+   * @param user                 the user entity to update
+   * @param accountType          the new account type as string
+   * @param restrictAllowedTypes when {@code true}, only INTERNAL or SCIM are allowed
    */
-  void updateAccountType(User user, String accountType);
+  void updateAccountType(User user, String accountType, boolean restrictAllowedTypes);
 
   /**
    * Updates user external ID with duplicate checking.

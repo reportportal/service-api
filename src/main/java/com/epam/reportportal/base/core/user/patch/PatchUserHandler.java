@@ -150,7 +150,8 @@ public class PatchUserHandler {
           case ACTIVE_PATH ->
               userMutationService.updateActive(user, validateAndGetTypedValue(operation, path, Boolean.class));
           case ACCOUNT_TYPE_PATH ->
-              userMutationService.updateAccountType(user, validateAndGetTypedValue(operation, path, String.class));
+              userMutationService.updateAccountType(user, validateAndGetTypedValue(operation, path, String.class),
+                  false);
           case EXTERNAL_ID_PATH ->
               userMutationService.updateExternalId(user, validateAndGetTypedValue(operation, path, String.class));
           case null, default -> throw new IllegalArgumentException(UNEXPECTED_PATH_MESSAGE.formatted(path));

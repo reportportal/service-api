@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -216,7 +217,7 @@ class PatchUserHandlerTest {
         () -> patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op)));
 
     assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
-    verify(userMutationService, never()).updateAccountType(any(), any());
+    verify(userMutationService, never()).updateAccountType(any(), any(), anyBoolean());
   }
 
   @Test

@@ -535,7 +535,7 @@ class PatchUserHandlerTest {
     op.setValue("INTERNAL");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    verify(userMutationService).updateAccountType(targetUser, "INTERNAL");
+    verify(userMutationService).updateAccountType(targetUser, "INTERNAL", false);
   }
 
   @Test
@@ -550,6 +550,6 @@ class PatchUserHandlerTest {
     op.setValue("SCIM");
     patchUserHandler.patchUser(targetUser.getId(), Collections.singletonList(op));
 
-    verify(userMutationService).updateAccountType(targetUser, "SCIM");
+    verify(userMutationService).updateAccountType(targetUser, "SCIM", false);
   }
 }

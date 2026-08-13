@@ -294,7 +294,7 @@ class UserMutationServiceImplTest {
     @Test
     @DisplayName("Should reject blank account type")
     void updateAccountTypeWhenBlankShouldThrow() {
-      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "  "))
+      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "  ", true))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("must not be empty");
     }
@@ -302,39 +302,39 @@ class UserMutationServiceImplTest {
     @Test
     @DisplayName("Should reject null account type")
     void updateAccountTypeWhenNullShouldThrow() {
-      assertThatThrownBy(() -> userMutationService.updateAccountType(user, null))
+      assertThatThrownBy(() -> userMutationService.updateAccountType(user, null, true))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("must not be empty");
     }
 
     @Test
-    @DisplayName("Should reject UPSA account type")
+    @DisplayName("Should reject UPSA account type when restricted")
     void updateAccountTypeWhenUpsaShouldThrow() {
-      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "UPSA"))
+      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "UPSA", true))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("can only be set to INTERNAL or SCIM");
     }
 
     @Test
-    @DisplayName("Should reject LDAP account type")
+    @DisplayName("Should reject LDAP account type when restricted")
     void updateAccountTypeWhenLdapShouldThrow() {
-      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "LDAP"))
+      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "LDAP", true))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("can only be set to INTERNAL or SCIM");
     }
 
     @Test
-    @DisplayName("Should reject SAML account type")
+    @DisplayName("Should reject SAML account type when restricted")
     void updateAccountTypeWhenSamlShouldThrow() {
-      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "SAML"))
+      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "SAML", true))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("can only be set to INTERNAL or SCIM");
     }
 
     @Test
-    @DisplayName("Should reject GITHUB account type")
+    @DisplayName("Should reject GITHUB account type when restricted")
     void updateAccountTypeWhenGithubShouldThrow() {
-      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "GITHUB"))
+      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "GITHUB", true))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("can only be set to INTERNAL or SCIM");
     }
@@ -342,7 +342,7 @@ class UserMutationServiceImplTest {
     @Test
     @DisplayName("Should reject invalid account type")
     void updateAccountTypeWhenInvalidShouldThrow() {
-      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "UNKNOWN"))
+      assertThatThrownBy(() -> userMutationService.updateAccountType(user, "UNKNOWN", true))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("Incorrect specified Account Type");
     }
@@ -350,7 +350,7 @@ class UserMutationServiceImplTest {
     @Test
     @DisplayName("Should accept INTERNAL account type")
     void updateAccountTypeWhenInternalShouldUpdate() {
-      userMutationService.updateAccountType(user, "INTERNAL");
+      userMutationService.updateAccountType(user, "INTERNAL", true);
 
       assertThat(user.getUserType()).isEqualTo(UserType.INTERNAL);
     }
@@ -358,9 +358,17 @@ class UserMutationServiceImplTest {
     @Test
     @DisplayName("Should accept SCIM account type")
     void updateAccountTypeWhenScimShouldUpdate() {
-      userMutationService.updateAccountType(user, "SCIM");
+      userMutationService.updateAccountType(user, "SCIM", true);
 
       assertThat(user.getUserType()).isEqualTo(UserType.SCIM);
+    }
+
+    @Test
+    @DisplayName("Should accept GITHUB account type when unrestricted")
+    void updateAccountTypeWhenGithubAndUnrestrictedShouldUpdate() {
+      userMutationService.updateAccountType(user, "GITHUB", false);
+
+      assertThat(user.getUserType()).isEqualTo(UserType.GITHUB);
     }
   }
 

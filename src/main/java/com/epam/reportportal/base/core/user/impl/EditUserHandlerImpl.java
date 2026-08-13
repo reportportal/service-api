@@ -224,7 +224,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
     });
     ofNullable(editUserRq.getAccountType()).ifPresent(accountType -> {
       checkPossibilityToEdit(editor, user, "accountType");
-      userMutationService.updateAccountType(user, accountType);
+      userMutationService.updateAccountType(user, accountType, true);
     });
   }
 

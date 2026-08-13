@@ -125,7 +125,7 @@ public class UserMutationServiceImpl implements UserMutationService {
   }
 
   @Override
-  public void updateAccountType(User user, String accountType) {
+  public void updateAccountType(User user, String accountType, boolean restrictAllowedTypes) {
     expect(StringUtils.isNotBlank(accountType), Boolean.TRUE::equals)
         .verify(BAD_REQUEST_ERROR, "Account type must not be empty.");
 
@@ -133,8 +133,10 @@ public class UserMutationServiceImpl implements UserMutationService {
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             "Incorrect specified Account Type parameter."));
 
-    expect(ALLOWED_ACCOUNT_TYPES.contains(type), Boolean.TRUE::equals)
-        .verify(BAD_REQUEST_ERROR, "Account type can only be set to INTERNAL or SCIM.");
+    if (restrictAllowedTypes) {
+      expect(ALLOWED_ACCOUNT_TYPES.contains(type), Boolean.TRUE::equals)
+          .verify(BAD_REQUEST_ERROR, "Account type can only be set to INTERNAL or SCIM.");
+    }
 
     user.setUserType(type);
   }

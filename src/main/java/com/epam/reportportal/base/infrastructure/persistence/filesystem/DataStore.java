@@ -30,6 +30,16 @@ public interface DataStore {
 
   InputStream load(String filePath);
 
+  /**
+   * Loads a bounded byte range from a file.
+   *
+   * @param filePath file path
+   * @param offset   zero-based byte offset
+   * @param length   number of bytes to load
+   * @return bounded input stream
+   */
+  InputStream loadRange(String filePath, long offset, long length);
+
   boolean exists(String filePath);
 
   void delete(String filePath);

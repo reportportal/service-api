@@ -24,6 +24,7 @@ import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBi
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentStreamMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectUtils;
@@ -100,6 +101,23 @@ public class GetFileHandlerImpl implements GetFileHandler {
   @Override
   public BinaryData loadFileById(Long fileId, MembershipDetails membershipDetails) {
     return attachmentBinaryDataService.load(fileId, membershipDetails);
+  }
+
+  @Override
+  public AttachmentStreamMetadata getFileMetadataForStreaming(
+      Long fileId,
+      MembershipDetails membershipDetails
+  ) {
+    return attachmentBinaryDataService.getMetadataForStreaming(fileId, membershipDetails);
+  }
+
+  @Override
+  public BinaryData loadFileForStreaming(
+      AttachmentStreamMetadata metadata,
+      long offset,
+      long length
+  ) {
+    return attachmentBinaryDataService.loadForStreaming(metadata, offset, length);
   }
 
   private BinaryData getDefaultPhoto() {

@@ -30,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.BinaryDataM
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentMetaInfo;
+import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentStreamMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -61,8 +62,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataService {
 
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(AttachmentBinaryDataServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      AttachmentBinaryDataServiceImpl.class);
 
   private final ContentTypeResolver contentTypeResolver;
 
@@ -105,8 +106,7 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
   public Optional<BinaryDataMetaInfo> saveAttachment(AttachmentMetaInfo metaInfo,
       MultipartFile file) {
     Optional<BinaryDataMetaInfo> result = Optional.empty();
-    try (InputStream inputStream = file.getInputStream();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+    try (InputStream inputStream = file.getInputStream(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
       inputStream.transferTo(outputStream);
       String contentType = resolveContentType(file.getContentType(), outputStream);
       String fileName = resolveFileName(metaInfo, file, contentType);
@@ -135,8 +135,7 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
 
   private String resolveFileName(AttachmentMetaInfo metaInfo, MultipartFile file,
       String contentType) {
-    String extension = resolveExtension(contentType)
-        .orElse(resolveExtension(true, file));
+    String extension = resolveExtension(contentType).orElse(resolveExtension(true, file));
     return metaInfo.getLogUuid() + "-" + file.getName() + extension;
   }
 
@@ -179,16 +178,41 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
       InputStream data = dataStoreService.load(attachment.getFileId()).orElseThrow(
           () -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileId));
       expect(attachment.getProjectId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
-          ErrorType.ACCESS_DENIED,
-          formattedSupplier("You are not assigned to project '{}'", membershipDetails.getProjectName())
-      );
-      return new BinaryData(
-          attachment.getFileName(), attachment.getContentType(), (long) data.available(), data);
+          ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
+              membershipDetails.getProjectName()));
+      return new BinaryData(attachment.getFileName(), attachment.getContentType(),
+          (long) data.available(), data);
     } catch (IOException e) {
       LOGGER.error("Unable to load binary data", e);
-      throw new ReportPortalException(
-          ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Unable to load binary data");
+      throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+          "Unable to load binary data");
     }
+  }
+
+  @Override
+  public BinaryData loadForStreaming(Long fileId, MembershipDetails membershipDetails) {
+    var metadata = getMetadataForStreaming(fileId, membershipDetails);
+    return loadForStreaming(metadata, 0, metadata.fileSize());
+  }
+
+  @Override
+  public AttachmentStreamMetadata getMetadataForStreaming(Long fileId,
+      MembershipDetails membershipDetails) {
+    Attachment attachment = attachmentRepository.findById(fileId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ATTACHMENT_NOT_FOUND, fileId));
+    expect(attachment.getProjectId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
+        ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
+            membershipDetails.getProjectName()));
+    return new AttachmentStreamMetadata(attachment.getFileId(), attachment.getFileName(),
+        attachment.getContentType(), attachment.getFileSize());
+  }
+
+  @Override
+  public BinaryData loadForStreaming(AttachmentStreamMetadata metadata, long offset, long length) {
+    InputStream data = dataStoreService.loadRange(metadata.storageFileId(), offset, length)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
+            metadata.storageFileId()));
+    return new BinaryData(metadata.fileName(), metadata.contentType(), metadata.fileSize(), data);
   }
 
   @Override
@@ -203,9 +227,7 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
   public void deleteAllByProjectId(Long projectId) {
     if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       dataStoreService.deleteAll(
-          attachmentRepository.findAllByProjectId(projectId)
-              .stream()
-              .map(Attachment::getFileId)
+          attachmentRepository.findAllByProjectId(projectId).stream().map(Attachment::getFileId)
               .collect(Collectors.toList()), projectId.toString());
     } else {
       dataStoreService.deleteContainer(projectId.toString());

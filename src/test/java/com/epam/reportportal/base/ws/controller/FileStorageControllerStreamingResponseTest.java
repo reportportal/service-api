@@ -7,10 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.file.DeleteFilesHandler;
-import com.epam.reportportal.base.core.file.GetFileHandler;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
-import com.epam.reportportal.base.util.ProjectExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,29 +22,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @ExtendWith(MockitoExtension.class)
 class FileStorageControllerStreamingResponseTest {
 
   @Mock
-  private ProjectExtractor projectExtractor;
-
-  @Mock
-  private GetFileHandler getFileHandler;
-
-  @Mock
-  private DeleteFilesHandler deleteFilesHandler;
-
-  @Mock
   private HttpServletRequest request;
 
-  private FileStorageController fileStorageController;
+  private AttachmentStreamResponseFactory responseFactory;
 
   @BeforeEach
   void setUp() {
-    fileStorageController = new FileStorageController(projectExtractor, getFileHandler, deleteFilesHandler);
+    responseFactory = new AttachmentStreamResponseFactory();
   }
 
   @Test
@@ -137,7 +124,32 @@ class FileStorageControllerStreamingResponseTest {
     assertNull(response.getBody());
   }
 
+  @Test
+  void returnsAlreadyBoundedPartialStreamWithoutSkippingAgain() throws IOException {
+    var data = "lloW".getBytes(StandardCharsets.UTF_8);
+    var binaryData = mock(BinaryData.class);
+    when(binaryData.getInputStream()).thenReturn(new ByteArrayInputStream(data));
+    when(binaryData.getContentType()).thenReturn(MediaType.TEXT_PLAIN_VALUE);
+    when(binaryData.getFileName()).thenReturn("greeting.txt");
+    when(request.getHeader(HttpHeaders.RANGE)).thenReturn("bytes=2-5");
+
+    var range = responseFactory.resolveRange(request, 10);
+    var response = responseFactory.toStreamingResponse(binaryData, range);
+
+    assertEquals(AttachmentStreamRange.Type.PARTIAL, range.type());
+    assertEquals(2, range.offset());
+    assertEquals(4, range.contentLength());
+    assertEquals(HttpStatus.PARTIAL_CONTENT, response.getStatusCode());
+    assertEquals("bytes 2-5/10", response.getHeaders().getFirst(HttpHeaders.CONTENT_RANGE));
+
+    var body = response.getBody();
+    assertNotNull(body);
+    var output = new ByteArrayOutputStream();
+    body.writeTo(output);
+    assertArrayEquals(data, output.toByteArray());
+  }
+
   private ResponseEntity<StreamingResponseBody> invokeToStreamingResponse(BinaryData binaryData) {
-    return ReflectionTestUtils.invokeMethod(fileStorageController, "toStreamingResponse", binaryData, request);
+    return responseFactory.toStreamingResponse(binaryData, request);
   }
 }

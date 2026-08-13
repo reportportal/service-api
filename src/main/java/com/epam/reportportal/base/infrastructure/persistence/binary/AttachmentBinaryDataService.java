@@ -18,6 +18,7 @@ package com.epam.reportportal.base.infrastructure.persistence.binary;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.BinaryDataMetaInfo;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentMetaInfo;
+import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentStreamMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import java.util.Optional;
@@ -39,6 +40,13 @@ public interface AttachmentBinaryDataService {
   void attachToLog(BinaryDataMetaInfo binaryDataMetaInfo, AttachmentMetaInfo attachmentMetaInfo);
 
   BinaryData load(Long fileId, MembershipDetails membershipDetails);
+
+  BinaryData loadForStreaming(Long fileId, MembershipDetails membershipDetails);
+
+  AttachmentStreamMetadata getMetadataForStreaming(Long fileId,
+      MembershipDetails membershipDetails);
+
+  BinaryData loadForStreaming(AttachmentStreamMetadata metadata, long offset, long length);
 
   void delete(String fileId);
 

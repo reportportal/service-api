@@ -16,6 +16,10 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.filesystem.distributed.s3;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,9 +30,12 @@ import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStor
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import java.io.InputStream;
 import org.apache.opendal.Operator;
+import org.apache.opendal.OperatorInputStream;
+import org.apache.opendal.ReadOptions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -76,6 +83,28 @@ class DataStoreClientTest {
     InputStream loaded = dataStoreClient.load(filePath);
 
     Assertions.assertArrayEquals(content, loaded.readAllBytes());
+  }
+
+  @Test
+  @DisplayName("Load range opens an operator stream with bounded read options")
+  void loadRange() {
+    long offset = 100;
+    long length = 200;
+    String filePath = DEFAULT_BUCKET_NAME + "/" + FILE_NAME;
+    String fullPath = BUCKET_PREFIX + DEFAULT_BUCKET_NAME + BUCKET_POSTFIX + "/" + FILE_NAME;
+    OperatorInputStream rangeStream = mock(OperatorInputStream.class);
+
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
+    when(operator.createInputStream(eq(fullPath), any(ReadOptions.class)))
+        .thenReturn(rangeStream);
+
+    InputStream loaded = dataStoreClient.loadRange(filePath, offset, length);
+
+    assertSame(rangeStream, loaded);
+    var optionsCaptor = ArgumentCaptor.forClass(ReadOptions.class);
+    verify(operator).createInputStream(eq(fullPath), optionsCaptor.capture());
+    assertEquals(offset, optionsCaptor.getValue().offset);
+    assertEquals(length, optionsCaptor.getValue().length);
   }
 
   @Test

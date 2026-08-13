@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.file;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentStreamMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
@@ -67,4 +68,9 @@ public interface GetFileHandler {
    * @return {@link BinaryData} file data
    */
   BinaryData loadFileById(Long fileId, MembershipDetails membershipDetails);
+
+  AttachmentStreamMetadata getFileMetadataForStreaming(Long fileId,
+      MembershipDetails membershipDetails);
+
+  BinaryData loadFileForStreaming(AttachmentStreamMetadata metadata, long offset, long length);
 }

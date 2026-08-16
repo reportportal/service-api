@@ -32,7 +32,7 @@ public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttrib
   boolean existsByProjectIdAndKeyAndValue(@Param("projectId") Long projectId,
       @Param("key") String key, @Param("value") String value);
 
-  @Query(value = "SELECT DISTINCT key FROM tms_attribute " +
+  @Query(value = "SELECT DISTINCT LOWER(key) FROM tms_attribute " +
       "WHERE project_id = :projectId " +
       "AND (:search IS NULL OR key ILIKE '%' || :search || '%')",
       nativeQuery = true)
@@ -40,7 +40,7 @@ public interface TmsAttributeRepository extends ReportPortalRepository<TmsAttrib
       @Param("projectId") Long projectId,
       @Param("search") String search);
 
-  @Query(value = "SELECT DISTINCT key FROM tms_attribute " +
+  @Query(value = "SELECT DISTINCT LOWER(value) FROM tms_attribute " +
       "WHERE project_id = :projectId " +
       "AND (:search IS NULL OR value ILIKE '%' || :search || '%')",
       nativeQuery = true)

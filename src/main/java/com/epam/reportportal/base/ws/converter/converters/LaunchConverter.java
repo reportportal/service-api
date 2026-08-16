@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toSet;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.model.activity.LaunchActivityResource;
 import com.epam.reportportal.base.model.launch.LaunchViewModel;
@@ -98,7 +99,11 @@ public class LaunchConverter {
     resource.setName(db.getName());
     resource.setNumber(db.getNumber());
     resource.setDescription(db.getDescription());
-    resource.setStatus(db.getStatus() == null ? null : db.getStatus().toString());
+    if (db.getLaunchType() == LaunchTypeEnum.MANUAL || db.getStatus() == null) {
+      resource.setStatus(null);
+    } else {
+      resource.setStatus(db.getStatus().toString());
+    }
     resource.setStartTime(db.getStartTime() == null ? null : db.getStartTime());
     resource.setEndTime(db.getEndTime() == null ? null : db.getEndTime());
     ofNullable(db.getLastModified()).ifPresent(resource::setLastModified);

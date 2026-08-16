@@ -78,8 +78,7 @@ public class LaunchResource extends OwnedResource {
   @JsonDeserialize(using = MultiFormatDateDeserializer.class)
   private Instant lastModified;
 
-  @NotNull
-  @JsonProperty(value = "status", required = true)
+  @JsonProperty(value = "status")
   private String status;
 
   @JsonProperty(value = "statistics")

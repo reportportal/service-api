@@ -37,7 +37,7 @@ public class DefaultLogTypeProvider {
    */
   public List<ProjectLogType> provideDefaultLogTypes(Long projectId) {
     return List.of(
-        createLogType(projectId, "mobitru", 90000, "#E3E7EC", false),
+        createLogType(projectId, "mobitru", 90000, "#23A6DE", false),
         createLogType(projectId, "unknown", 60000, "#E3E7EC", false),
         createLogType(projectId, "fatal", 50000, "#8B0000", true),
         createLogType(projectId, "error", 40000, "#DC5959", true),

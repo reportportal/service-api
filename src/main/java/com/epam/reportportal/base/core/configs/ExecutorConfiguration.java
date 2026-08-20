@@ -169,4 +169,21 @@ public class ExecutorConfiguration {
     return threadPoolTaskExecutor;
   }
 
+  /**
+   * Single-threaded on purpose: plugin loading already runs one plugin at a time
+   * ({@link com.epam.reportportal.base.plugin.Pf4jPluginManager#startUp()}), and running several
+   * plugin classloaders concurrently would only raise the peak memory this executor is meant to
+   * avoid.
+   */
+  @Bean(name = "pluginStartupExecutor")
+  public TaskExecutor pluginStartupExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(1);
+    executor.setMaxPoolSize(1);
+    executor.setQueueCapacity(1);
+    executor.setThreadNamePrefix("plugin-startup-exec");
+    executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    return executor;
+  }
+
 }

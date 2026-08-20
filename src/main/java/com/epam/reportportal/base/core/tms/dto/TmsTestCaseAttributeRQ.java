@@ -1,6 +1,7 @@
 package com.epam.reportportal.base.core.tms.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,5 +16,6 @@ public class TmsTestCaseAttributeRQ {
 
   private Long id;
 
+  @Size(max = 512)
   private String key;
 }

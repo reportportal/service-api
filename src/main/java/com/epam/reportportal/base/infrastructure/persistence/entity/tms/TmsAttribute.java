@@ -29,10 +29,10 @@ public class TmsAttribute implements Serializable {
   @Column(name = "id")
   private Long id;
 
-  @Column(name = "key", nullable = false)
+  @Column(name = "key", nullable = false, length = 512)
   private String key;
 
-  @Column(name = "value")
+  @Column(name = "value", length = 512)
   private String value;
 
   @ManyToOne

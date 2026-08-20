@@ -8,16 +8,15 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioAttribute.JTmsManualScenarioAttributePath;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenario.JTmsManualScenarioPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute.JTmsTestCaseAttributePath;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanAttribute.JTmsTestPlanAttributePath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsAttributeRecord;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.jooq.Condition;
@@ -28,13 +27,8 @@ import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.Name;
 import org.jooq.Path;
-import org.jooq.PlainSQL;
-import org.jooq.QueryPart;
 import org.jooq.Record;
-import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
-import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -73,12 +67,12 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
     /**
      * The column <code>public.tms_attribute.key</code>.
      */
-    public final TableField<JTmsAttributeRecord, String> KEY = createField(DSL.name("key"), SQLDataType.VARCHAR(255).nullable(false), this, "");
+    public final TableField<JTmsAttributeRecord, String> KEY = createField(DSL.name("key"), SQLDataType.VARCHAR(512).nullable(false), this, "");
 
     /**
      * The column <code>public.tms_attribute.value</code>.
      */
-    public final TableField<JTmsAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(512), this, "");
 
     /**
      * The column <code>public.tms_attribute.project_id</code>.
@@ -289,89 +283,5 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
     @Override
     public JTmsAttribute rename(Table<?> name) {
         return new JTmsAttribute(name.getQualifiedName(), null);
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    public JTmsAttribute where(Condition condition) {
-        return new JTmsAttribute(getQualifiedName(), aliased() ? this : null, null, condition);
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    public JTmsAttribute where(Collection<? extends Condition> conditions) {
-        return where(DSL.and(conditions));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    public JTmsAttribute where(Condition... conditions) {
-        return where(DSL.and(conditions));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    public JTmsAttribute where(Field<Boolean> condition) {
-        return where(DSL.condition(condition));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    @PlainSQL
-    public JTmsAttribute where(SQL condition) {
-        return where(DSL.condition(condition));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    @PlainSQL
-    public JTmsAttribute where(@Stringly.SQL String condition) {
-        return where(DSL.condition(condition));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    @PlainSQL
-    public JTmsAttribute where(@Stringly.SQL String condition, Object... binds) {
-        return where(DSL.condition(condition, binds));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    @PlainSQL
-    public JTmsAttribute where(@Stringly.SQL String condition, QueryPart... parts) {
-        return where(DSL.condition(condition, parts));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    public JTmsAttribute whereExists(Select<?> select) {
-        return where(DSL.exists(select));
-    }
-
-    /**
-     * Create an inline derived table from this table
-     */
-    @Override
-    public JTmsAttribute whereNotExists(Select<?> select) {
-        return where(DSL.notExists(select));
     }
 }

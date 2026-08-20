@@ -107,7 +107,8 @@ project.ext {
             (migrationsUrl + '/migrations/218_increase_activity_name_length.up.sql')                     : 'V218__increase_activity_name_length.up.sql',
             (migrationsUrl + '/migrations/219_revoked_token.up.sql')                                     : 'V219__revoked_token.up.sql',
             (migrationsUrl + '/migrations/220_increase_tms_test_plan_description_length.up.sql')         : 'V220__increase_tms_test_plan_description_length.up.sql',
-            (migrationsUrl + '/migrations/221_increase_tms_manual_scenario_preconditions_length.up.sql') : 'V221__increase_tms_manual_scenario_preconditions_length.up.sql'
+            (migrationsUrl + '/migrations/221_increase_tms_manual_scenario_preconditions_length.up.sql') : 'V221__increase_tms_manual_scenario_preconditions_length.up.sql',
+            (migrationsUrl + '/migrations/222_increase_tms_attribute_length.up.sql')                     : 'V222__increase_tms_attribute_length.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

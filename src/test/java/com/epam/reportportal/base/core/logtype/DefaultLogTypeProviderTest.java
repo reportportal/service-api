@@ -23,7 +23,7 @@ class DefaultLogTypeProviderTest {
 
     // then
     assertThat(logTypes).hasSize(8);
-    assertLogType(logTypes.get(0), projectId, "mobitru", 90000, "#E3E7EC", false);
+    assertLogType(logTypes.get(0), projectId, "mobitru", 90000, "#23A6DE", false);
     assertLogType(logTypes.get(1), projectId, "unknown", 60000, "#E3E7EC", false);
     assertLogType(logTypes.get(2), projectId, "fatal", 50000, "#8B0000", true);
     assertLogType(logTypes.get(3), projectId, "error", 40000, "#DC5959", true);

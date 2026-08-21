@@ -156,8 +156,26 @@ sourceSets {
         java {
             srcDirs "$buildDir/generated/src/main/java"
         }
+        resources {
+            srcDir "$buildDir/generated/spring-modulith"
+        }
     }
 }
+
+tasks.register('generateModulithMetadata', JavaExec) {
+    dependsOn tasks.named('compileJava')
+    group = 'build'
+    description = 'Precomputes Spring Modulith application module metadata (ArchUnit classpath scan) at build ' +
+            'time, so the app loads it from the classpath instead of repeating the scan on every startup.'
+    mainClass.set('com.epam.reportportal.base.modulith.ApplicationModulesMetadataGenerator')
+    classpath = files(sourceSets.main.java.classesDirectory) + configurations.runtimeClasspath
+    def outputFile = layout.buildDirectory.file(
+            'generated/spring-modulith/META-INF/spring-modulith/application-modules.json')
+    outputs.file(outputFile)
+    args = [outputFile.get().asFile.absolutePath]
+}
+
+processResources.dependsOn tasks.named('generateModulithMetadata')
 
 openApiGenerate {
     generatorName.set("spring")
@@ -165,7 +183,7 @@ openApiGenerate {
     outputDir.set(layout.buildDirectory.dir("generated"))
     configFile.set(file("$rootDir/src/main/resources/openapi/config.json"))
     skipOverwrite.set(false)
-    cleanupOutput.set(true)
+    cleanupOutput.set(false)
     workerIsolation.set("process")
     // verbose.set(true)
 }

@@ -145,19 +145,26 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   @Override
   public void startUp() {
     // load and start all enabled plugins of application
-    integrationTypeRepository.findAll()
+    List<IntegrationType> pluginsToLoad = integrationTypeRepository.findAll()
         .stream()
         .filter(IntegrationType::isEnabled)
         .filter(it -> it.getPluginType() == EXTENSION)
-        .forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(
-            integrationTypeDetails -> {
-              try {
-                loadPlugin(integrationType.getName(), integrationTypeDetails);
-              } catch (Exception ex) {
-                LOGGER.error("Unable to load plugin '{}'", integrationType.getName());
-              }
-            }));
+        .toList();
 
+    LOGGER.info("Plugin startup: loading {} enabled extension plugin(s)", pluginsToLoad.size());
+    long startUpBegin = System.currentTimeMillis();
+
+    pluginsToLoad.forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(
+        integrationTypeDetails -> {
+          try {
+            loadPlugin(integrationType.getName(), integrationTypeDetails);
+          } catch (Exception ex) {
+            LOGGER.error("Unable to load plugin '{}'", integrationType.getName());
+          }
+        }));
+
+    LOGGER.info("Plugin startup: finished loading {} plugin(s) in {} ms", pluginsToLoad.size(),
+        System.currentTimeMillis() - startUpBegin);
   }
 
   @Override
@@ -180,6 +187,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   @Override
   public boolean loadPlugin(String pluginId, IntegrationTypeDetails integrationTypeDetails) {
+    long loadBegin = System.currentTimeMillis();
     return ofNullable(integrationTypeDetails.getDetails()).map(details -> {
       String fileName = IntegrationTypeProperties.FILE_NAME.getValue(details)
           .map(String::valueOf)
@@ -189,7 +197,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
           ));
 
       Path pluginPath = Paths.get(pluginsDir, fileName);
-      if (Files.notExists(pluginPath)) {
+      boolean cached = Files.exists(pluginPath);
+      if (!cached) {
         String fileId = IntegrationTypeProperties.FILE_ID.getValue(details)
             .map(String::valueOf)
             .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
@@ -208,7 +217,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
         copyPluginResources(pluginPath, pluginId);
       }
 
-      return ofNullable(pluginManager.loadPlugin(pluginPath)).map(id -> {
+      boolean result = ofNullable(pluginManager.loadPlugin(pluginPath)).map(id -> {
         if (PluginState.STARTED == pluginManager.startPlugin(pluginId)) {
           initPlugin(pluginId);
           applicationEventPublisher.publishEvent(
@@ -219,8 +228,23 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
           return false;
         }
       }).orElse(Boolean.FALSE);
+
+      LOGGER.info(
+          "Plugin '{}' load finished: success={} cached={} sizeBytes={} tookMs={}",
+          pluginId, result, cached, fileSizeOrUnknown(pluginPath),
+          System.currentTimeMillis() - loadBegin
+      );
+      return result;
     }).orElse(Boolean.FALSE);
 
+  }
+
+  private long fileSizeOrUnknown(Path path) {
+    try {
+      return Files.size(path);
+    } catch (IOException e) {
+      return -1;
+    }
   }
 
   private void initPlugin(String pluginId) {

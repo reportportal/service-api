@@ -22,7 +22,6 @@ import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.google.common.collect.Lists;
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -39,10 +38,18 @@ import org.pf4j.update.SimpleFileDownloader;
 import org.pf4j.update.UpdateManager;
 import org.pf4j.update.UpdateRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
  * Optional download and load of default plugins on application startup.
+ *
+ * <p>Runs after the application context has finished refreshing and readiness probes can pass,
+ * rather than blocking context startup ({@code @PostConstruct}) - loading every enabled plugin
+ * eagerly on the same thread as the rest of the bean graph stacks its memory footprint on top of
+ * Spring's own startup peak.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -57,7 +64,8 @@ public class PluginStartUpService {
   @Value("${rp.plugins.default.load}")
   private boolean defaultPluginsLoad;
 
-  @PostConstruct
+  @Async("pluginStartupExecutor")
+  @EventListener(ApplicationReadyEvent.class)
   public void loadPlugins() {
     pluginBox.startUp();
     if (defaultPluginsLoad) {

@@ -25,7 +25,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanTestCaseId;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -57,6 +59,9 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
   @Autowired
   private TmsTestCaseRepository tmsTestCaseRepository;
+
+  @Autowired
+  private TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
 
   @Test
   void createRootTestFolderIntegrationTest() throws Exception {
@@ -463,6 +468,39 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
     boolean exists = tmsTestFolderRepository.existsById(5L);
     assertFalse(exists);
+  }
+
+  @Test
+  void deleteTestFolderWithSubfoldersAndTestCasesInTestPlanIntegrationTest() throws Exception {
+    long folderId = 3L;
+    long projectId = 1L;
+
+    Optional<TmsTestFolder> folder = tmsTestFolderRepository.findById(folderId);
+    assertTrue(folder.isPresent());
+
+    List<Long> folderIds = tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, folderId);
+    assertTrue(folderIds.size() > 1, "Folder hierarchy must contain subfolders");
+
+    List<Long> testCaseIds = tmsTestCaseRepository.findIdsByProjectIdAndTestFolderId(projectId, folderId);
+    assertFalse(testCaseIds.isEmpty(), "Folder hierarchy must contain test cases");
+
+    // Precondition: ensure at least one descendant test case in the folder hierarchy is associated with a test plan
+    Long targetTestCaseId = testCaseIds.get(testCaseIds.size() - 1);
+    Long testPlanId = 4L;
+    tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, targetTestCaseId);
+
+    var associationId = new TmsTestPlanTestCaseId(testPlanId, targetTestCaseId);
+    assertTrue(tmsTestPlanTestCaseRepository.existsById(associationId),
+        "Precondition failed: test case must be linked to a test plan before deletion");
+
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/" + folderId)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    boolean exists = tmsTestFolderRepository.existsById(folderId);
+    assertFalse(exists);
+    assertFalse(tmsTestPlanTestCaseRepository.existsById(associationId),
+        "Test plan-test case association must be deleted when folder is deleted");
   }
 
   @Test

@@ -52,18 +52,30 @@ public interface TmsTestPlanTestCaseRepository extends
 
   /**
    * Deletes all test plan-test case associations for test cases that belong to the specified folder
-   * within the project.
+   * or any of its subfolders within the project.
    *
    * @param projectId the ID of the project
    * @param folderId  the ID of the test folder
    */
   @Modifying
-  @Query("DELETE FROM TmsTestPlanTestCase tptc "
-      + "WHERE tptc.id.testCaseId IN ("
-      + "SELECT tc.id FROM TmsTestCase tc "
-      + "WHERE tc.testFolder.id = :folderId "
-      + "AND tc.testFolder.project.id = :projectId"
-      + ")")
+  @Query(value = "DELETE FROM tms_test_plan_test_case tptc "
+      + "WHERE tptc.test_case_id IN ("
+      + "  SELECT tc.id FROM tms_test_case tc "
+      + "  WHERE tc.project_id = :projectId "
+      + "  AND tc.test_folder_id IN ("
+      + "    WITH RECURSIVE folder_hierarchy AS ("
+      + "      SELECT tf.id FROM tms_test_folder tf "
+      + "      JOIN project p ON tf.project_id = p.id "
+      + "      WHERE tf.id = :folderId AND p.id = :projectId "
+      + "      UNION ALL "
+      + "      SELECT tf.id FROM tms_test_folder tf "
+      + "      JOIN folder_hierarchy fh ON tf.parent_id = fh.id "
+      + "      WHERE tf.project_id = :projectId "
+      + "    ) "
+      + "    SELECT id FROM folder_hierarchy "
+      + "  ) "
+      + ") ",
+      nativeQuery = true)
   void deleteAllByTestFolderId(@Param("projectId") Long projectId,
       @Param("folderId") Long folderId);
 

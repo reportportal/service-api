@@ -85,12 +85,13 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * recursive Common Table Expression (CTE) to identify all subfolders at any level of nesting and
    * then deletes test cases associated with those folders.
    *
-   * @param folderId  The ID of the folder
    * @param projectId The project ID to ensure folder belongs to the correct project
+   * @param folderId  The ID of the folder
    */
   @Modifying
   @Query(value = "DELETE FROM tms_test_case tc " +
-      "WHERE tc.test_folder_id IN (" +
+      "WHERE tc.project_id = :projectId " +
+      "AND tc.test_folder_id IN (" +
       "  WITH RECURSIVE folder_hierarchy AS (" +
       "    SELECT tf.id FROM tms_test_folder tf " +
       "    JOIN project p ON tf.project_id = p.id " +
@@ -98,6 +99,7 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       "    UNION ALL " +
       "    SELECT tf.id FROM tms_test_folder tf " +
       "    JOIN folder_hierarchy fh ON tf.parent_id = fh.id " +
+      "    WHERE tf.project_id = :projectId " +
       "  ) " +
       "  SELECT id FROM folder_hierarchy" +
       ")",
@@ -196,9 +198,28 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   List<Long> findExistingTestCaseIds(@Param("projectId") Long projectId,
       @Param("testCaseIds") List<Long> testCaseIds);
 
-  @Query("SELECT tc.id FROM TmsTestCase tc " +
-      "WHERE tc.project.id = :projectId AND tc.testFolder.id = :testFolderId"
-  )
+  /**
+   * Finds all test case IDs that belong to the specified folder or any of its subfolders within the project.
+   *
+   * @param projectId    the project ID
+   * @param testFolderId the root test folder ID
+   * @return list of test case IDs within the folder hierarchy
+   */
+  @Query(value = "SELECT tc.id FROM tms_test_case tc "
+      + "WHERE tc.project_id = :projectId "
+      + "AND tc.test_folder_id IN ("
+      + "  WITH RECURSIVE folder_hierarchy AS ("
+      + "    SELECT tf.id FROM tms_test_folder tf "
+      + "    JOIN project p ON tf.project_id = p.id "
+      + "    WHERE tf.id = :testFolderId AND p.id = :projectId "
+      + "    UNION ALL "
+      + "    SELECT tf.id FROM tms_test_folder tf "
+      + "    JOIN folder_hierarchy fh ON tf.parent_id = fh.id "
+      + "    WHERE tf.project_id = :projectId "
+      + "  ) "
+      + "  SELECT id FROM folder_hierarchy "
+      + ")",
+      nativeQuery = true)
   List<Long> findIdsByProjectIdAndTestFolderId(@Param("projectId") Long projectId,
       @Param("testFolderId") Long testFolderId);
 }

@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.base.core.tms.mapper;
 
+import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_TEST_ITEM_NAME_LENGTH;
+
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -25,6 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestF
 import java.time.Instant;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,10 +57,12 @@ public class SuiteTestItemBuilder {
     log.debug("Building SUITE item for test folder: {} in launch: {}", testFolderId,
         launch.getId());
 
+    var suiteName = testFolder != null ? testFolder.getName()
+        : "Test Folder " + testFolderId;
+
     var suiteItem = new TestItem();
     suiteItem.setUuid(UUID.randomUUID().toString());
-    suiteItem.setName(testFolder != null ? testFolder.getName()
-        : "Test Folder " + testFolderId);
+    suiteItem.setName(StringUtils.substring(suiteName, 0, MAX_TEST_ITEM_NAME_LENGTH));
     suiteItem.setDescription(testFolder != null ? testFolder.getDescription() : null);
     suiteItem.setType(TestItemTypeEnum.SUITE);
     suiteItem.setStartTime(Instant.now());

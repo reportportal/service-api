@@ -106,12 +106,14 @@ public interface TmsTestFolderService {
   /**
    * Duplicates a test folder with all its subfolders and test cases.
    *
-   * @param projectId The ID of the project.
-   * @param folderId  The ID of the folder to duplicate.
-   * @param inputDto  The request containing name and parent folder information.
+   * @param membershipDetails The membership details of user.
+   * @param user              The authenticated user.
+   * @param folderId          The ID of the folder to duplicate.
+   * @param inputDto          The request containing name and parent folder information.
    * @return The duplicated folder details with duplication statistics.
    */
-  DuplicateTmsTestFolderRS duplicateFolder(long projectId, Long folderId, TmsTestFolderRQ inputDto);
+  DuplicateTmsTestFolderRS duplicateFolder(MembershipDetails membershipDetails, ReportPortalUser user,
+      Long folderId, TmsTestFolderRQ inputDto);
 
   /**
    * Retrieves test folders by test plan ID with pagination.

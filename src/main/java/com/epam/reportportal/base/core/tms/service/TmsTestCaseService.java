@@ -101,16 +101,19 @@ public interface TmsTestCaseService {
   /**
    * Duplicates multiple test cases with all their related data.
    *
-   * @param projectId        The ID of the project.
+   * @param membershipDetails The membership details.
+   * @param user The report portal user.
    * @param duplicateRequest Request containing test case IDs to duplicate.
    * @return A list of data transfer objects containing details of the duplicated test cases.
    */
-  BatchDuplicateTestCasesRS duplicate(long projectId, BatchDuplicateTestCasesRQ duplicateRequest);
+  BatchDuplicateTestCasesRS duplicate(MembershipDetails membershipDetails, ReportPortalUser user,
+      BatchDuplicateTestCasesRQ duplicateRequest);
 
-  BatchTestCaseOperationResultRS duplicateTestCases(long projectId, List<Long> originalTestCaseIds);
-
-  BatchTestCaseOperationResultRS duplicateTestCases(long projectId, TmsTestFolder targetFolder,
+  BatchTestCaseOperationResultRS duplicateTestCases(MembershipDetails membershipDetails, ReportPortalUser user,
       List<Long> originalTestCaseIds);
+
+  BatchTestCaseOperationResultRS duplicateTestCases(MembershipDetails membershipDetails, ReportPortalUser user,
+      TmsTestFolder targetFolder, List<Long> originalTestCaseIds);
 
   /**
    * Retrieves test cases added to a test plan with pagination. Returns test cases with last execution only (without

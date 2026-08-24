@@ -4,9 +4,11 @@ import com.epam.reportportal.base.core.tms.dto.DuplicateTmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsMilestoneMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsMilestoneFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -163,8 +165,10 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
 
   @Override
   @Transactional
-  public DuplicateTmsMilestoneRS duplicate(Long projectId, Long milestoneId,
+  public DuplicateTmsMilestoneRS duplicate(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long milestoneId,
       TmsMilestoneRQ duplicateMilestoneRQ) {
+    var projectId = membershipDetails.getProjectId();
     // Verify an original milestone exists
     var originalMilestone = findMilestoneByIdAndProjectId(projectId, milestoneId);
 
@@ -174,7 +178,7 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
     var savedMilestone = tmsMilestoneRepository.save(newMilestone);
 
     var duplicateTestPlansRS = tmsTestPlanService.duplicateTestPlansInMilestone(
-        projectId, milestoneId, savedMilestone.getId()
+        membershipDetails, user, milestoneId, savedMilestone.getId()
     );
 
     return tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(

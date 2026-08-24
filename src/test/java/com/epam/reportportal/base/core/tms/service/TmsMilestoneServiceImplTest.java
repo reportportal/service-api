@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -20,10 +21,12 @@ import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsMilestoneMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsMilestoneFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -57,6 +60,12 @@ class TmsMilestoneServiceImplTest {
   @Mock
   private TmsTestPlanService tmsTestPlanService;
 
+  @Mock
+  private MembershipDetails membershipDetails;
+
+  @Mock
+  private ReportPortalUser user;
+
   @InjectMocks
   private TmsMilestoneServiceImpl sut;
 
@@ -71,6 +80,7 @@ class TmsMilestoneServiceImplTest {
     milestoneId = 100L;
     testPlanId = 200L;
     pageable = PageRequest.of(0, 10);
+    lenient().when(membershipDetails.getProjectId()).thenReturn(projectId);
   }
 
   // Tests for create method
@@ -800,7 +810,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(Optional.of(originalMilestone));
     when(tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ))
         .thenReturn(newMilestoneEntity);
-    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId()))
+    when(tmsTestPlanService.duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, savedMilestoneEntity.getId()))
         .thenReturn(duplicateTestPlansRS);
     when(tmsMilestoneRepository.save(newMilestoneEntity)).thenReturn(savedMilestoneEntity);
     when(tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
@@ -808,7 +818,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(expectedRS);
 
     // When
-    var result = sut.duplicate(projectId, milestoneId, duplicateMilestoneRQ);
+    var result = sut.duplicate(membershipDetails, user, milestoneId, duplicateMilestoneRQ);
 
     // Then
     assertNotNull(result);
@@ -818,7 +828,7 @@ class TmsMilestoneServiceImplTest {
 
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper).toEntity(projectId, duplicateMilestoneRQ);
-    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId());
+    verify(tmsTestPlanService).duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, savedMilestoneEntity.getId());
     verify(tmsMilestoneRepository).save(newMilestoneEntity);
     verify(tmsMilestoneMapper).convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
         duplicateTestPlansRS);
@@ -835,12 +845,12 @@ class TmsMilestoneServiceImplTest {
 
     // When/Then
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.duplicate(projectId, milestoneId, duplicateMilestoneRQ));
+        () -> sut.duplicate(membershipDetails, user, milestoneId, duplicateMilestoneRQ));
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper, never()).toEntity(anyLong(), any());
-    verify(tmsTestPlanService, never()).duplicateTestPlansInMilestone(anyLong(), anyLong(), anyLong());
+    verify(tmsTestPlanService, never()).duplicateTestPlansInMilestone(any(), any(), anyLong(), anyLong());
     verify(tmsMilestoneRepository, never()).save(any());
   }
 
@@ -872,7 +882,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(Optional.of(originalMilestone));
     when(tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ))
         .thenReturn(newMilestoneEntity);
-    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId()))
+    when(tmsTestPlanService.duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, savedMilestoneEntity.getId()))
         .thenReturn(emptyDuplicateTestPlans);
     when(tmsMilestoneRepository.save(newMilestoneEntity)).thenReturn(savedMilestoneEntity);
     when(tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
@@ -880,7 +890,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(expectedRS);
 
     // When
-    var result = sut.duplicate(projectId, milestoneId, duplicateMilestoneRQ);
+    var result = sut.duplicate(membershipDetails, user, milestoneId, duplicateMilestoneRQ);
 
     // Then
     assertNotNull(result);
@@ -890,7 +900,7 @@ class TmsMilestoneServiceImplTest {
 
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper).toEntity(projectId, duplicateMilestoneRQ);
-    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId());
+    verify(tmsTestPlanService).duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, savedMilestoneEntity.getId());
     verify(tmsMilestoneRepository).save(newMilestoneEntity);
     verify(tmsMilestoneMapper).convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
         emptyDuplicateTestPlans);
@@ -928,7 +938,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(Optional.of(originalMilestone));
     when(tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ))
         .thenReturn(newMilestoneEntity);
-    when(tmsTestPlanService.duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId()))
+    when(tmsTestPlanService.duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, savedMilestoneEntity.getId()))
         .thenReturn(duplicateTestPlansRS);
     when(tmsMilestoneRepository.save(newMilestoneEntity)).thenReturn(savedMilestoneEntity);
     when(tmsMilestoneMapper.convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
@@ -936,7 +946,7 @@ class TmsMilestoneServiceImplTest {
         .thenReturn(expectedRS);
 
     // When
-    var result = sut.duplicate(projectId, milestoneId, duplicateMilestoneRQ);
+    var result = sut.duplicate(membershipDetails, user, milestoneId, duplicateMilestoneRQ);
 
     // Then
     assertNotNull(result);
@@ -946,7 +956,7 @@ class TmsMilestoneServiceImplTest {
 
     verify(tmsMilestoneRepository).findByIdAndProjectId(milestoneId, projectId);
     verify(tmsMilestoneMapper).toEntity(projectId, duplicateMilestoneRQ);
-    verify(tmsTestPlanService).duplicateTestPlansInMilestone(projectId, milestoneId, savedMilestoneEntity.getId());
+    verify(tmsTestPlanService).duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, savedMilestoneEntity.getId());
     verify(tmsMilestoneRepository).save(newMilestoneEntity);
     verify(tmsMilestoneMapper).convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
         duplicateTestPlansRS);

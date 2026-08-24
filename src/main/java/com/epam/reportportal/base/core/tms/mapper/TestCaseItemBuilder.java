@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.base.core.tms.mapper;
 
+import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_TEST_ITEM_NAME_LENGTH;
+
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
@@ -28,6 +30,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -61,7 +64,7 @@ public class TestCaseItemBuilder {
     var testItem = new TestItem();
     testItem.setUuid(UUID.randomUUID().toString());
     testItem.setTestCaseId(String.valueOf(tmsTestCaseRS.getId()));
-    testItem.setName(tmsTestCaseRS.getName());
+    testItem.setName(StringUtils.substring(tmsTestCaseRS.getName(), 0, MAX_TEST_ITEM_NAME_LENGTH));
     testItem.setDescription(tmsTestCaseRS.getDescription());
     testItem.setType(
         TestItemTypeEnum.STEP); //as per the RPP philosophy test case is the step, but test cases steps are inner steps for this step
@@ -77,7 +80,7 @@ public class TestCaseItemBuilder {
   public TestItem buildRetryTestCaseItem(TestItem originalItem, StatusEnum newStatus) {
     var retryItem = new TestItem();
     retryItem.setUuid(UUID.randomUUID().toString());
-    retryItem.setName(originalItem.getName());
+    retryItem.setName(StringUtils.substring(originalItem.getName(), 0, MAX_TEST_ITEM_NAME_LENGTH));
     retryItem.setCodeRef(originalItem.getCodeRef());
     retryItem.setType(originalItem.getType());
     retryItem.setStartTime(Instant.now());

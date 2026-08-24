@@ -332,10 +332,11 @@ public class TmsTestFolderController {
       @Parameter(description = "Duplicated folder details", required = true)
       @RequestBody final TmsTestFolderRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membershipDetails = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     return tmsTestFolderService.duplicateFolder(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membershipDetails,
+        user,
         folderId,
         inputDto
     );

@@ -3,7 +3,9 @@ package com.epam.reportportal.base.core.tms.service;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRS;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.model.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -79,10 +81,12 @@ public interface TmsMilestoneService {
   /**
    * Duplicates an existing milestone.
    *
-   * @param projectId            the project ID
+   * @param membershipDetails    the membership details of user
+   * @param user                 the authenticated user
    * @param milestoneId          the milestone ID to duplicate
    * @param duplicateMilestoneRQ the duplicate milestone request data
    * @return duplicated milestone details
    */
-  DuplicateTmsMilestoneRS duplicate(Long projectId, Long milestoneId, TmsMilestoneRQ duplicateMilestoneRQ);
+  DuplicateTmsMilestoneRS duplicate(MembershipDetails membershipDetails, ReportPortalUser user,
+      Long milestoneId, TmsMilestoneRQ duplicateMilestoneRQ);
 }

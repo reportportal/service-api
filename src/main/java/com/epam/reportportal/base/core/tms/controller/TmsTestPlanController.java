@@ -313,10 +313,11 @@ public class TmsTestPlanController {
       @PathVariable("id") Long testPlanId,
       @RequestBody TmsTestPlanRQ duplicateTestPlanRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membershipDetails = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     return tmsTestPlanService.duplicate(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membershipDetails,
+        user,
         testPlanId,
         duplicateTestPlanRQ);
   }

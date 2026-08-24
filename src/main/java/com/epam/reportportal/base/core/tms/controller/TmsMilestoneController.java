@@ -227,9 +227,8 @@ public class TmsMilestoneController {
       @PathVariable("id") Long milestoneId,
       @Valid @RequestBody TmsMilestoneRQ duplicateMilestoneRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
-    var projectId = projectExtractor
-        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-        .getProjectId();
-    return tmsMilestoneService.duplicate(projectId, milestoneId, duplicateMilestoneRQ);
+    var membershipDetails = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
+    return tmsMilestoneService.duplicate(membershipDetails, user, milestoneId, duplicateMilestoneRQ);
   }
 }

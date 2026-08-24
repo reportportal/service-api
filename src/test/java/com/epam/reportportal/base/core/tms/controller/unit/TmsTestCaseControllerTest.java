@@ -1008,7 +1008,7 @@ public class TmsTestCaseControllerTest {
         .testFolderId(5L)
         .testCases(List.of(new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS()))
         .build();
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
+    given(tmsTestCaseService.duplicate(membershipDetails, testUser, duplicateRequest)).willReturn(duplicateResponse);
 
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
@@ -1017,7 +1017,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).duplicate(projectId, duplicateRequest);
+    verify(tmsTestCaseService).duplicate(membershipDetails, testUser, duplicateRequest);
   }
 
   @Test
@@ -1030,7 +1030,7 @@ public class TmsTestCaseControllerTest {
         .testFolderId(5L)
         .testCases(List.of(new TmsTestCaseRS()))
         .build();
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
+    given(tmsTestCaseService.duplicate(membershipDetails, testUser, duplicateRequest)).willReturn(duplicateResponse);
 
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
@@ -1039,7 +1039,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).duplicate(projectId, duplicateRequest);
+    verify(tmsTestCaseService).duplicate(membershipDetails, testUser, duplicateRequest);
   }
 
   @Test
@@ -1054,7 +1054,7 @@ public class TmsTestCaseControllerTest {
             new TmsTestCaseRS(), new TmsTestCaseRS(), new TmsTestCaseRS(),
             new TmsTestCaseRS(), new TmsTestCaseRS()))
         .build();
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
+    given(tmsTestCaseService.duplicate(membershipDetails, testUser, duplicateRequest)).willReturn(duplicateResponse);
 
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
@@ -1063,7 +1063,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).duplicate(projectId, duplicateRequest);
+    verify(tmsTestCaseService).duplicate(membershipDetails, testUser, duplicateRequest);
   }
 
   @Test
@@ -1079,7 +1079,7 @@ public class TmsTestCaseControllerTest {
         .testFolderId(15L)
         .testCases(List.of(new TmsTestCaseRS(), new TmsTestCaseRS()))
         .build();
-    given(tmsTestCaseService.duplicate(projectId, duplicateRequest)).willReturn(duplicateResponse);
+    given(tmsTestCaseService.duplicate(membershipDetails, testUser, duplicateRequest)).willReturn(duplicateResponse);
 
     mockMvc.perform(
             post("/v1/project/{projectKey}/tms/test-case/batch/duplicate", projectKey)
@@ -1088,7 +1088,7 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).duplicate(projectId, duplicateRequest);
+    verify(tmsTestCaseService).duplicate(membershipDetails, testUser, duplicateRequest);
   }
 
   @Test
@@ -1103,6 +1103,6 @@ public class TmsTestCaseControllerTest {
                 .content(objectMapper.writeValueAsString(duplicateRequest)))
         .andExpect(status().isBadRequest());
 
-    verify(tmsTestCaseService, never()).duplicate(projectId, duplicateRequest);
+    verify(tmsTestCaseService, never()).duplicate(eq(membershipDetails), eq(testUser), any());
   }
 }

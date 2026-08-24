@@ -74,6 +74,7 @@ public class TmsTestFolderControllerTest {
 
   private MockMvc mockMvc;
   private ReportPortalUser testUser;
+  private MembershipDetails membershipDetails;
   private ObjectMapper objectMapper;
 
   @BeforeEach
@@ -125,7 +126,7 @@ public class TmsTestFolderControllerTest {
         .build();
 
     // Setup the project extractor mock to return a MembershipDetails with the projectId
-    MembershipDetails membershipDetails = MembershipDetails.builder()
+    membershipDetails = MembershipDetails.builder()
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
@@ -770,7 +771,7 @@ public class TmsTestFolderControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(request);
 
-    given(tmsTestFolderService.duplicateFolder(projectId, folderId, request))
+    given(tmsTestFolderService.duplicateFolder(membershipDetails, testUser, folderId, request))
         .willReturn(expectedResponse);
 
     mockMvc.perform(
@@ -790,7 +791,7 @@ public class TmsTestFolderControllerTest {
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.failureCount").value(0));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).duplicateFolder(projectId, folderId, request);
+    verify(tmsTestFolderService).duplicateFolder(membershipDetails, testUser, folderId, request);
   }
 
   @Test
@@ -829,7 +830,7 @@ public class TmsTestFolderControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(request);
 
-    given(tmsTestFolderService.duplicateFolder(projectId, folderId, request))
+    given(tmsTestFolderService.duplicateFolder(membershipDetails, testUser, folderId, request))
         .willReturn(expectedResponse);
 
     mockMvc.perform(
@@ -843,7 +844,7 @@ public class TmsTestFolderControllerTest {
         .andExpect(jsonPath("$.countOfTestCases").value(2));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).duplicateFolder(projectId, folderId, request);
+    verify(tmsTestFolderService).duplicateFolder(membershipDetails, testUser, folderId, request);
   }
 
   @Test
@@ -884,7 +885,7 @@ public class TmsTestFolderControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(request);
 
-    given(tmsTestFolderService.duplicateFolder(projectId, folderId, request))
+    given(tmsTestFolderService.duplicateFolder(membershipDetails, testUser, folderId, request))
         .willReturn(expectedResponse);
 
     mockMvc.perform(
@@ -898,7 +899,7 @@ public class TmsTestFolderControllerTest {
         .andExpect(jsonPath("$.countOfTestCases").value(3));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).duplicateFolder(projectId, folderId, request);
+    verify(tmsTestFolderService).duplicateFolder(membershipDetails, testUser, folderId, request);
   }
 
   @Test
@@ -940,7 +941,7 @@ public class TmsTestFolderControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(request);
 
-    given(tmsTestFolderService.duplicateFolder(projectId, folderId, request))
+    given(tmsTestFolderService.duplicateFolder(membershipDetails, testUser, folderId, request))
         .willReturn(expectedResponse);
 
     mockMvc.perform(
@@ -965,7 +966,7 @@ public class TmsTestFolderControllerTest {
             jsonPath("$.testCaseDuplicationStatistic.errors[0].errorMessage").value("Failed to duplicate test case"));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).duplicateFolder(projectId, folderId, request);
+    verify(tmsTestFolderService).duplicateFolder(membershipDetails, testUser, folderId, request);
   }
 
   @Test
@@ -1001,7 +1002,7 @@ public class TmsTestFolderControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(request);
 
-    given(tmsTestFolderService.duplicateFolder(projectId, folderId, request))
+    given(tmsTestFolderService.duplicateFolder(membershipDetails, testUser, folderId, request))
         .willReturn(expectedResponse);
 
     mockMvc.perform(
@@ -1016,6 +1017,6 @@ public class TmsTestFolderControllerTest {
         .andExpect(jsonPath("$.testCaseDuplicationStatistic.totalCount").value(0));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestFolderService).duplicateFolder(projectId, folderId, request);
+    verify(tmsTestFolderService).duplicateFolder(membershipDetails, testUser, folderId, request);
   }
 }

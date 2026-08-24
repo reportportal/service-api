@@ -409,10 +409,11 @@ public class TestCaseController {
   public BatchDuplicateTestCasesRS duplicateTestCases(@PathVariable("projectKey") String projectKey,
       @Valid @RequestBody BatchDuplicateTestCasesRQ duplicateRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membershipDetails = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     return tmsTestCaseService.duplicate(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membershipDetails,
+        user,
         duplicateRequest
     );
   }

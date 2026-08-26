@@ -155,12 +155,12 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
   protected void validateIntegrationRole(Integration integration, PluginCommandRQ pluginCommandRq) {
     var orgId = integration.getOrganizationId();
     var projectId = integration.getProject() != null ? integration.getProject().getId() : null;
+    var context = Optional.ofNullable(pluginCommandRq).map(PluginCommandRQ::getContext);
     if (projectId == null) {
-      var context = Optional.ofNullable(pluginCommandRq).map(PluginCommandRQ::getContext);
       projectId = context.map(PluginCommandContext::getProjectId).orElse(null);
-      if (orgId == null) {
-        orgId = context.map(PluginCommandContext::getOrgId).orElse(null);
-      }
+    }
+    if (orgId == null) {
+      orgId = context.map(PluginCommandContext::getOrgId).orElse(null);
     }
 
     if (minUserRole == null) {

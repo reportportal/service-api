@@ -22,10 +22,14 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.QueueInfo;
-import com.rabbitmq.http.client.domain.ShovelDetails;
-import com.rabbitmq.http.client.domain.ShovelInfo;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,58 +37,90 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Scheduled job that removes stale per-instance RabbitMQ reporting queues via the RabbitMQ Management API.
+ * Safety net for reporting queues left behind by instances that died without releasing them.
+ *
+ * <p>A queue is only considered abandoned when it lives in the vhost of this deployment, is not
+ * owned by this instance, and has been without consumers for longer than the configured grace
+ * period. The grace period is what keeps the job from deleting the queues of an instance that has
+ * just declared them but has not attached its consumers yet, or of an instance that is reconnecting
+ * after a network glitch.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 @Component
 public class OutdatedQueuesManagementJob {
 
   private final Client managementClient;
 
-  private final List<String> queues;
+  private final ReportingShovelService shovelService;
 
-  private final String address;
+  private final Set<String> ownQueues;
 
   private final String vhost;
 
-  public OutdatedQueuesManagementJob(Client managementClient,
+  private final Duration gracePeriod;
+
+  private final Map<String, Instant> withoutConsumersSince = new ConcurrentHashMap<>();
+
+  public OutdatedQueuesManagementJob(Client managementClient, ReportingShovelService shovelService,
       @Qualifier("reportingQueues") List<Queue> currentReportingQueues,
-      @Value("${rp.amqp.addresses}") String address,
-      @Value("${rp.amqp.base-vhost}") String virtualHost) {
+      @Value("${rp.amqp.base-vhost}") String virtualHost,
+      @Value("${reporting.queues.cleanup.grace-period:PT2M}") Duration gracePeriod) {
     this.managementClient = managementClient;
-    this.queues = currentReportingQueues.stream().map(Queue::getName).collect(Collectors.toList());
-    this.address = address;
+    this.shovelService = shovelService;
+    this.ownQueues = currentReportingQueues.stream().map(Queue::getName)
+        .collect(Collectors.toUnmodifiableSet());
     this.vhost = virtualHost;
+    this.gracePeriod = gracePeriod;
   }
 
-
-  @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
+  @Scheduled(fixedDelayString = "${reporting.queues.cleanup.interval:PT1M}", initialDelayString = "${reporting.queues.cleanup.initial-delay:PT2M}")
   public void run() {
-    var idleQueues = getIdleQueues();
-    idleQueues.forEach(
-        q -> managementClient.unbindQueue(q.getVhost(), q.getName(), REPORTING_EXCHANGE,
-            DEFAULT_QUEUE_ROUTING_KEY));
+    List<QueueInfo> candidates;
+    try {
+      candidates = findQueuesWithoutConsumers();
+    } catch (Exception e) {
+      log.warn("Unable to list the reporting queues of vhost '{}'", vhost, e);
+      return;
+    }
 
-    idleQueues.forEach(q -> {
-      if (q.getMessagesReady() > 0) {
-        var shovelDetails = new ShovelDetails(address, address, 60L, false, null);
-        shovelDetails.setSourceQueue(q.getName());
-        shovelDetails.setSourceDeleteAfter("queue-length");
-        shovelDetails.setDestinationExchange(REPORTING_EXCHANGE);
-        var shovelInfo = new ShovelInfo(q.getName(), shovelDetails);
-        managementClient.declareShovel(vhost, shovelInfo);
-      } else {
-        managementClient.deleteQueue(vhost, q.getName());
-        managementClient.deleteShovel(vhost, q.getName());
-      }
-    });
+    withoutConsumersSince.keySet()
+        .retainAll(candidates.stream().map(QueueInfo::getName).collect(Collectors.toSet()));
+
+    Instant now = Instant.now();
+    candidates.stream().filter(queue -> graceExpired(queue.getName(), now)).forEach(this::release);
   }
 
-  private List<QueueInfo> getIdleQueues() {
-    return managementClient.getQueues().stream()
-        .filter(q -> !queues.contains(q.getName()) && q.getName().startsWith(REPORTING_QUEUE_PREFIX)
-            && q.getConsumerCount() == 0).collect(
-            Collectors.toList());
+  private List<QueueInfo> findQueuesWithoutConsumers() {
+    List<QueueInfo> queues = managementClient.getQueues(vhost);
+    if (queues == null) {
+      return List.of();
+    }
+    return queues.stream().filter(queue -> queue.getName().startsWith(REPORTING_QUEUE_PREFIX))
+        .filter(queue -> !ownQueues.contains(queue.getName()))
+        .filter(queue -> queue.getConsumerCount() == 0).toList();
+  }
+
+  private boolean graceExpired(String queueName, Instant now) {
+    Instant since = withoutConsumersSince.computeIfAbsent(queueName, name -> now);
+    return Duration.between(since, now).compareTo(gracePeriod) >= 0;
+  }
+
+  private void release(QueueInfo queue) {
+    String queueName = queue.getName();
+    try {
+      managementClient.unbindQueue(vhost, queueName, REPORTING_EXCHANGE, DEFAULT_QUEUE_ROUTING_KEY);
+      if (queue.getMessagesReady() > 0) {
+        shovelService.republishToReportingExchange(queueName);
+      } else {
+        shovelService.removeShovel(queueName);
+        managementClient.deleteQueue(vhost, queueName);
+        withoutConsumersSince.remove(queueName);
+        log.info("Removed outdated reporting queue '{}'", queueName);
+      }
+    } catch (Exception e) {
+      log.warn("Unable to clean up outdated reporting queue '{}'", queueName, e);
+    }
   }
 }

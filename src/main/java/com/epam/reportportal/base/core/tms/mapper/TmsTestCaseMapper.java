@@ -260,9 +260,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testCaseIds", source = "patchRequest.testCaseIds",
       nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-  @Mapping(target = "priority", source = "patchRequest.priority",
-      nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-      nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+  @Mapping(target = "priority", expression = "java(patchRequest.getPriority() != null ? patchRequest.getPriority().toUpperCase() : null)")
   public abstract BatchPatchTestCasesRS toBatchPatchTestCasesRS(
       Long testFolderId, BatchPatchTestCasesRQ patchRequest
   );
@@ -274,7 +272,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     testCase.setProject(project);
     testCase.setName(importRQ.getName());
     testCase.setDescription(importRQ.getDescription());
-    testCase.setPriority(importRQ.getPriority());
+    testCase.setPriority(importRQ.getPriority() != null ? importRQ.getPriority().toUpperCase() : null);
     testCase.setExternalId(importRQ.getExternalId());
     testCase.setDisplayId(tmsDisplayIdService.generateTestCaseDisplayId(projectId));
 

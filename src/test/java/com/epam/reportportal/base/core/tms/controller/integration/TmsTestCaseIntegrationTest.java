@@ -921,7 +921,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   void batchPatchTestCasesWithPriorityIntegrationTest() throws Exception {
     // Given
     List<Long> testCaseIds = List.of(13L, 14L);
-    String newPriority = "HIGH";
+    String newPriority = "high";
 
     BatchPatchTestCasesRQ batchPatchRequest = BatchPatchTestCasesRQ.builder()
         .testCaseIds(testCaseIds)
@@ -943,8 +943,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     assertTrue(testCase13After.isPresent());
     assertTrue(testCase14After.isPresent());
-    assertEquals(newPriority, testCase13After.get().getPriority());
-    assertEquals(newPriority, testCase14After.get().getPriority());
+    assertEquals("HIGH", testCase13After.get().getPriority());
+    assertEquals("HIGH", testCase14After.get().getPriority());
   }
 
   @Test
@@ -1331,6 +1331,20 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .param("testFolderId", String.valueOf(4L))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
+
+    // Then
+    var testCase1 = testCaseRepository.findAll().stream()
+        .filter(tc -> "CSV Test Case 1".equals(tc.getName()))
+        .findFirst();
+    var testCase2 = testCaseRepository.findAll().stream()
+        .filter(tc -> "CSV Test Case 2".equals(tc.getName()))
+        .findFirst();
+
+    assertTrue(testCase1.isPresent());
+    assertEquals("HIGH", testCase1.get().getPriority());
+
+    assertTrue(testCase2.isPresent());
+    assertEquals("MEDIUM", testCase2.get().getPriority());
   }
 
   @Test

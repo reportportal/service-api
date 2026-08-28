@@ -334,12 +334,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           projectId, patchRequest.getTestFolderId(), patchRequest.getTestFolder()
       );
     }
+    var priority = patchRequest.getPriority() != null ? patchRequest.getPriority().toUpperCase() : null;
     if (nonNull(testFolderId)
-        || nonNull(patchRequest.getPriority())) {
+        || nonNull(priority)) {
       tmsTestCaseRepository.patch(projectId,
           testCaseIds,
           testFolderId,
-          patchRequest.getPriority());
+          priority);
     }
     return tmsTestCaseMapper.toBatchPatchTestCasesRS(
         testFolderId, patchRequest

@@ -101,6 +101,17 @@ class MarketplaceClientTest {
   }
 
   @Test
+  void catalogueEncodesFilterValuesAsValues() {
+    // '+' would otherwise reach the registry literally and be form-decoded back into a space.
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins?q=a%2Bb%3Dc%26d"))
+        .andRespond(withSuccess("{\"plugins\":[]}", MediaType.APPLICATION_JSON));
+
+    client.getCatalogue(null, "a+b=c&d");
+
+    server.verify();
+  }
+
+  @Test
   void catalogueToleratesMissingPf4jIdAndUnknownFields() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
         .andRespond(withSuccess("""
@@ -336,6 +347,48 @@ class MarketplaceClientTest {
     assertEquals(404, ex.getStatus());
     assertEquals("NOT_FOUND", ex.getRegistryCode());
     assertEquals("Plugin not found", ex.getRegistryMessage());
+  }
+
+  @Test
+  void forbiddenOnCatalogueIsNotALicenceRejection() {
+    // No licence is presented here, so a 403 is a gateway or proxy denial, not an entitlement one.
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
+        .andRespond(withStatus(HttpStatus.FORBIDDEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("{\"code\":\"FORBIDDEN\",\"message\":\"Blocked by proxy\"}"));
+
+    var ex = assertThrows(RegistryResponseException.class,
+        () -> client.getCatalogue(null, null));
+
+    assertEquals(RegistryResponseException.class, ex.getClass());
+    assertEquals(403, ex.getStatus());
+    assertEquals("FORBIDDEN", ex.getRegistryCode());
+    assertEquals("Blocked by proxy", ex.getRegistryMessage());
+  }
+
+  @Test
+  void unauthorizedOnPluginDetailIsNotALicenceRejection() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira"))
+        .andRespond(withStatus(HttpStatus.UNAUTHORIZED)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("{\"code\":\"UNAUTHORIZED\",\"message\":\"Gateway credentials required\"}"));
+
+    var ex = assertThrows(RegistryResponseException.class, () -> client.getPlugin("jira"));
+
+    assertEquals(RegistryResponseException.class, ex.getClass());
+    assertEquals(401, ex.getStatus());
+    assertEquals("Gateway credentials required", ex.getRegistryMessage());
+  }
+
+  @Test
+  void forbiddenOnVersionListIsNotALicenceRejection() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions"))
+        .andRespond(withStatus(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON)
+            .body("{\"code\":\"FORBIDDEN\",\"message\":\"Blocked by proxy\"}"));
+
+    var ex = assertThrows(RegistryResponseException.class, () -> client.listVersions("jira"));
+
+    assertEquals(RegistryResponseException.class, ex.getClass());
   }
 
   @Test

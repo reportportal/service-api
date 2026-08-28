@@ -35,8 +35,11 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
 import com.epam.reportportal.base.model.marketplace.PluginTombstoneBody;
 import com.epam.reportportal.base.model.marketplace.RegistryErrorBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InterruptedIOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
@@ -83,12 +86,24 @@ public class MarketplaceClient {
    * @return catalogue entries, never null
    */
   public List<MarketplacePlugin> getCatalogue(String category, String q) {
-    var uri = plugins()
-        .queryParamIfPresent("category", Optional.ofNullable(StringUtils.trimToNull(category)))
-        .queryParamIfPresent("q", Optional.ofNullable(StringUtils.trimToNull(q)))
-        .build().encode().toUri();
-    var response = get(uri, MarketplacePluginList.class, null, null);
+    var builder = plugins();
+    var values = new HashMap<String, Object>();
+    filter(builder, values, "category", category);
+    filter(builder, values, "q", q);
+    // Encode the template first, expand after: a value is then encoded as a value, so a '+' or a
+    // '&' inside a search term cannot reach the registry as query syntax.
+    var uri = builder.encode().buildAndExpand(values).toUri();
+    var response = get(uri, MarketplacePluginList.class, null);
     return response == null || response.plugins() == null ? List.of() : response.plugins();
+  }
+
+  private static void filter(UriComponentsBuilder builder, Map<String, Object> values, String name,
+      String value) {
+    var trimmed = StringUtils.trimToNull(value);
+    if (trimmed != null) {
+      builder.queryParam(name, "{" + name + "}");
+      values.put(name, trimmed);
+    }
   }
 
   /**
@@ -96,7 +111,7 @@ public class MarketplaceClient {
    */
   public MarketplacePluginDetail getPlugin(String pluginId) {
     var uri = plugins().pathSegment(pluginId).build().encode().toUri();
-    return get(uri, MarketplacePluginDetail.class, pluginId, null);
+    return get(uri, MarketplacePluginDetail.class, pluginId);
   }
 
   /**
@@ -106,7 +121,7 @@ public class MarketplaceClient {
    */
   public List<MarketplaceVersionSummary> listVersions(String pluginId) {
     var uri = plugins().pathSegment(pluginId, "versions").build().encode().toUri();
-    var response = get(uri, MarketplaceVersionList.class, pluginId, null);
+    var response = get(uri, MarketplaceVersionList.class, pluginId);
     return response == null || response.versions() == null ? List.of() : response.versions();
   }
 
@@ -115,7 +130,7 @@ public class MarketplaceClient {
    */
   public MarketplaceVersionDetail getVersion(String pluginId, String version) {
     var uri = plugins().pathSegment(pluginId, "versions", version).build().encode().toUri();
-    return get(uri, MarketplaceVersionDetail.class, pluginId, version);
+    return get(uri, MarketplaceVersionDetail.class, pluginId);
   }
 
   /**
@@ -140,9 +155,9 @@ public class MarketplaceClient {
       response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers),
           String.class);
     } catch (RestClientResponseException e) {
-      throw mapError(e, pluginId, version);
-    } catch (ResourceAccessException e) {
-      throw new RegistryUnreachableException(registryHost, e);
+      throw mapArtifactError(e, pluginId, version);
+    } catch (RestClientException e) {
+      throw mapTransportFailure(e);
     }
     if (response.getStatusCode().is3xxRedirection()) {
       var location = response.getHeaders().getLocation();
@@ -170,25 +185,23 @@ public class MarketplaceClient {
     return UriComponentsBuilder.fromUriString(registryUrl).path(PLUGINS_PATH);
   }
 
-  private <T> T get(URI uri, Class<T> type, String pluginId, String version) {
+  private <T> T get(URI uri, Class<T> type, String pluginId) {
     try {
       return restTemplate.getForObject(uri, type);
     } catch (RestClientResponseException e) {
-      throw mapError(e, pluginId, version);
-    } catch (ResourceAccessException e) {
-      throw new RegistryUnreachableException(registryHost, e);
+      throw mapError(e, pluginId);
     } catch (RestClientException e) {
-      throw new RegistryProtocolException(
-          "Unreadable response from marketplace registry at '" + registryHost + "'", e);
+      throw mapTransportFailure(e);
     }
   }
 
   /**
-   * Maps a non-2xx response onto a typed exception. A 403 is ambiguous — only the body tells a
-   * blocked version from a licence rejection.
+   * Maps a non-2xx response onto a typed exception. Only the artifact route presents a licence, so
+   * a 401 or 403 anywhere else is someone in front of the registry saying no — reporting it as a
+   * licence rejection would send an operator hunting for an entitlement problem that does not
+   * exist.
    */
-  private MarketplaceException mapError(RestClientResponseException e, String pluginId,
-      String version) {
+  private MarketplaceException mapError(RestClientResponseException e, String pluginId) {
     var status = e.getStatusCode().value();
     var body = e.getResponseBodyAsString();
     if (status == HttpStatus.GONE.value()) {
@@ -198,6 +211,19 @@ public class MarketplaceClient {
           : new PluginRemovedException(pluginId, tombstone.removalReason(), tombstone.removed(),
               tombstone.removedBy());
     }
+    var error = parse(body, RegistryErrorBody.class);
+    return new RegistryResponseException(status, error == null ? null : error.code(),
+        error == null ? null : error.message());
+  }
+
+  /**
+   * Artifact route only: this is the one call that presents a licence and the one that can be
+   * refused for a blocked version. A 403 is ambiguous — only the body tells the two apart.
+   */
+  private MarketplaceException mapArtifactError(RestClientResponseException e, String pluginId,
+      String version) {
+    var status = e.getStatusCode().value();
+    var body = e.getResponseBodyAsString();
     if (status == HttpStatus.FORBIDDEN.value()) {
       var blocked = parse(body, BlockedArtifactBody.class);
       if (blocked != null && Boolean.TRUE.equals(blocked.blocked())) {
@@ -205,14 +231,39 @@ public class MarketplaceClient {
             blocked.blockedAt());
       }
     }
-    var error = parse(body, RegistryErrorBody.class);
-    var code = error == null ? null : error.code();
-    var message = error == null ? null : error.message();
     if (status == HttpStatus.FORBIDDEN.value() || status == HttpStatus.UNAUTHORIZED.value()) {
+      var error = parse(body, RegistryErrorBody.class);
+      var code = error == null ? null : error.code();
       return new LicenceRejectedException(pluginId, version, status,
-          LicenceFailure.from(code, status), code, message);
+          LicenceFailure.from(code, status), code, error == null ? null : error.message());
     }
-    return new RegistryResponseException(status, code, message);
+    return mapError(e, pluginId);
+  }
+
+  /**
+   * Maps a failure to complete the exchange. A read timeout can strike while the body is still
+   * streaming, and the converter then reports it as an unreadable response — a stalled registry
+   * must still be named as one.
+   */
+  private MarketplaceException mapTransportFailure(RestClientException e) {
+    var timeout = timeoutCause(e);
+    if (timeout != null) {
+      return new RegistryUnreachableException(registryHost, timeout);
+    }
+    if (e instanceof ResourceAccessException) {
+      return new RegistryUnreachableException(registryHost, e);
+    }
+    return new RegistryProtocolException(
+        "Unreadable response from marketplace registry at '" + registryHost + "'", e);
+  }
+
+  private static Throwable timeoutCause(Throwable e) {
+    for (var cause = e; cause != null; cause = cause.getCause()) {
+      if (cause instanceof InterruptedIOException) {
+        return cause;
+      }
+    }
+    return null;
   }
 
   /**

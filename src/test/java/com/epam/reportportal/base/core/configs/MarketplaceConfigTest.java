@@ -29,9 +29,12 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -46,13 +49,14 @@ import org.springframework.web.client.RestTemplate;
 class MarketplaceConfigTest {
 
   @Test
-  void connectTimeoutIsApplied() {
+  void connectAndReadTimeoutsAreApplied() {
     var config = new MarketplaceConfig("http://registry.internal",
         Duration.ofSeconds(3), Duration.ofSeconds(15));
 
-    HttpClient httpClient = config.httpClient();
+    var connectionConfig = config.connectionConfig();
 
-    assertEquals(Duration.ofSeconds(3), httpClient.connectTimeout().orElse(null));
+    assertEquals(Timeout.ofSeconds(3), connectionConfig.getConnectTimeout());
+    assertEquals(Timeout.ofSeconds(15), connectionConfig.getSocketTimeout());
   }
 
   @Test
@@ -68,6 +72,40 @@ class MarketplaceConfigTest {
             () -> client.getCatalogue(null, null));
         assertEquals("127.0.0.1", ex.getHost());
       });
+    }
+  }
+
+  @Test
+  void bodyStallTimesOutInsteadOfHangingTheCaller() throws IOException {
+    // 200 + headers, a first chunk, then silence: the response never completes.
+    var release = new CountDownLatch(1);
+    var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    server.createContext("/api/v1/plugins", exchange -> {
+      exchange.getResponseHeaders().add("Content-Type", "application/json");
+      exchange.sendResponseHeaders(200, 4096);
+      exchange.getResponseBody().write("{\"plugins\":[".getBytes(StandardCharsets.UTF_8));
+      exchange.getResponseBody().flush();
+      try {
+        release.await(30, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      exchange.close();
+    });
+    server.start();
+    try {
+      var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
+          Duration.ofSeconds(3), Duration.ofMillis(300));
+      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+
+      assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+        var ex = assertThrows(RegistryUnreachableException.class,
+            () -> client.getCatalogue(null, null));
+        assertEquals("127.0.0.1", ex.getHost());
+      });
+    } finally {
+      release.countDown();
+      server.stop(0);
     }
   }
 

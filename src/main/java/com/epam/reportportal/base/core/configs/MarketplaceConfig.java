@@ -18,15 +18,20 @@ package com.epam.reportportal.base.core.configs;
 
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceJson;
-import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -49,7 +54,7 @@ public class MarketplaceConfig {
    *
    * @param registryUrl    registry base URL
    * @param connectTimeout TCP connect timeout
-   * @param readTimeout    response timeout
+   * @param readTimeout    socket read timeout, bounding headers and body alike
    */
   public MarketplaceConfig(
       @Value("${marketplace.registry.url:https://marketplace.reportportal.io}") String registryUrl,
@@ -64,11 +69,34 @@ public class MarketplaceConfig {
     return registryUrl;
   }
 
-  HttpClient httpClient() {
-    return HttpClient.newBuilder()
-        .connectTimeout(connectTimeout)
+  /**
+   * The read timeout is a socket timeout, so it bounds every read of the response — a registry
+   * that sends headers and then stalls mid-body fails instead of pinning the caller. The JDK
+   * client is not used here: its request timeout only closes the body stream, and the stall then
+   * surfaces as an unreadable response rather than a timeout.
+   */
+  ConnectionConfig connectionConfig() {
+    return ConnectionConfig.custom()
+        .setConnectTimeout(Timeout.of(connectTimeout))
+        .setSocketTimeout(Timeout.of(readTimeout))
+        .build();
+  }
+
+  CloseableHttpClient httpClient() {
+    var connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+        .setDefaultConnectionConfig(connectionConfig())
+        .setMaxConnPerRoute(20)
+        .setMaxConnTotal(20)
+        .build();
+    return HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        // Queuing for a pooled connection is another way to stall a request thread; the default
+        // wait is three minutes.
+        .setDefaultRequestConfig(RequestConfig.custom()
+            .setConnectionRequestTimeout(Timeout.of(connectTimeout))
+            .build())
         // The artifact route's 302 is data: the Location must be read, not chased.
-        .followRedirects(HttpClient.Redirect.NEVER)
+        .disableRedirectHandling()
         .build();
   }
 
@@ -78,8 +106,7 @@ public class MarketplaceConfig {
    */
   @Bean("marketplaceRestTemplate")
   public RestTemplate marketplaceRestTemplate() {
-    var requestFactory = new JdkClientHttpRequestFactory(httpClient());
-    requestFactory.setReadTimeout(readTimeout);
+    var requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient());
     var restTemplate = new RestTemplate(List.of(
         new ByteArrayHttpMessageConverter(),
         new StringHttpMessageConverter(StandardCharsets.UTF_8),

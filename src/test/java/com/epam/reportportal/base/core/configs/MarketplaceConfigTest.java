@@ -51,7 +51,7 @@ class MarketplaceConfigTest {
   @Test
   void connectAndReadTimeoutsAreApplied() {
     var config = new MarketplaceConfig("http://registry.internal",
-        Duration.ofSeconds(3), Duration.ofSeconds(15));
+        Duration.ofSeconds(3), Duration.ofSeconds(15), Duration.ofSeconds(30));
 
     var connectionConfig = config.connectionConfig();
 
@@ -64,7 +64,7 @@ class MarketplaceConfigTest {
     // Accepts the connection, then never answers.
     try (var blackHole = new ServerSocket(0)) {
       var config = new MarketplaceConfig("http://127.0.0.1:" + blackHole.getLocalPort(),
-          Duration.ofSeconds(3), Duration.ofMillis(300));
+          Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30));
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
@@ -95,7 +95,7 @@ class MarketplaceConfigTest {
     server.start();
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
-          Duration.ofSeconds(3), Duration.ofMillis(300));
+          Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30));
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
@@ -105,6 +105,119 @@ class MarketplaceConfigTest {
       });
     } finally {
       release.countDown();
+      server.stop(0);
+    }
+  }
+
+  @Test
+  void bodyDripIsCutOffByTheWholeRequestDeadline() throws IOException {
+    // One byte every 50ms, forever. Every single read lands far inside the 2s socket timeout, so
+    // the per-read timeout can never fire and only a whole-exchange deadline ends this.
+    var release = new CountDownLatch(1);
+    var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    server.createContext("/api/v1/plugins", exchange -> {
+      exchange.getResponseHeaders().add("Content-Type", "application/json");
+      exchange.sendResponseHeaders(200, 0);
+      try (var body = exchange.getResponseBody()) {
+        while (!release.await(50, TimeUnit.MILLISECONDS)) {
+          // Whitespace keeps the JSON parser reading and never completes a value.
+          body.write(' ');
+          body.flush();
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      } catch (IOException ignored) {
+        // The client hung up, which is the point of the test.
+      }
+      exchange.close();
+    });
+    server.start();
+    try {
+      var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
+          Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500));
+      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+
+      assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+        var ex = assertThrows(RegistryUnreachableException.class,
+            () -> client.getCatalogue(null, null));
+        assertEquals("127.0.0.1", ex.getHost());
+      });
+    } finally {
+      release.countDown();
+      server.stop(0);
+    }
+  }
+
+  @Test
+  void headerDripIsCutOffByTheWholeRequestDeadline() throws IOException, InterruptedException {
+    // Status line and headers dripped a byte at a time: the response never even starts, so a
+    // deadline that only guards the body would never see this exchange.
+    try (var server = new ServerSocket(0)) {
+      var stop = new CountDownLatch(1);
+      var dripper = new Thread(() -> {
+        try (var socket = server.accept();
+            var out = socket.getOutputStream();
+            var in = socket.getInputStream()) {
+          while (in.read() != '\n') {
+            // Drain the request line; the client sends more, we never need it.
+          }
+          out.write("HTTP/1.1 200 OK\r\nX-Pad: ".getBytes(StandardCharsets.US_ASCII));
+          out.flush();
+          // A header line that is never terminated: the response headers never complete, so the
+          // client stays blocked in the header-parsing read however long it waits.
+          while (!stop.await(50, TimeUnit.MILLISECONDS)) {
+            out.write('a');
+            out.flush();
+          }
+        } catch (IOException | InterruptedException ignored) {
+          Thread.currentThread().interrupt();
+        }
+      });
+      dripper.setDaemon(true);
+      dripper.start();
+      try {
+        var config = new MarketplaceConfig("http://127.0.0.1:" + server.getLocalPort(),
+            Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500));
+        var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () ->
+            assertThrows(RegistryUnreachableException.class,
+                () -> client.getCatalogue(null, null)));
+      } finally {
+        stop.countDown();
+        dripper.join(TimeUnit.SECONDS.toMillis(2));
+      }
+    }
+  }
+
+  @Test
+  void slowButCompletingResponseIsNotCutOff() throws IOException, InterruptedException {
+    // The budget bounds stalls, not healthy latency. The second call, made after the first call's
+    // deadline has passed, also proves a late abort cannot poison the pooled connection.
+    var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    server.createContext("/api/v1/plugins", exchange -> {
+      try {
+        TimeUnit.MILLISECONDS.sleep(300);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      var body = "{\"plugins\":[{\"id\":\"jira\",\"name\":\"Jira\"}]}"
+          .getBytes(StandardCharsets.UTF_8);
+      exchange.getResponseHeaders().add("Content-Type", "application/json");
+      exchange.sendResponseHeaders(200, body.length);
+      exchange.getResponseBody().write(body);
+      exchange.close();
+    });
+    server.start();
+    try {
+      var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
+          Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(700));
+      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+
+      assertEquals(1, client.getCatalogue(null, null).size());
+      TimeUnit.MILLISECONDS.sleep(900);
+      assertEquals(1, client.getCatalogue(null, null).size());
+    } finally {
       server.stop(0);
     }
   }
@@ -132,7 +245,7 @@ class MarketplaceConfigTest {
     server.start();
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
-          Duration.ofSeconds(3), Duration.ofSeconds(5));
+          Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30));
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       var artifact = client.resolveArtifact("jira", "1.4.2", null);

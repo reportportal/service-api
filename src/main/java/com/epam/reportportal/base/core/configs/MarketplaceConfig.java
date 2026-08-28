@@ -16,11 +16,15 @@
 
 package com.epam.reportportal.base.core.configs;
 
+import com.epam.reportportal.base.core.marketplace.DeadlineHttpRequestFactory;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceJson;
+import jakarta.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -31,7 +35,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -48,21 +51,36 @@ public class MarketplaceConfig {
   private final String registryUrl;
   private final Duration connectTimeout;
   private final Duration readTimeout;
+  private final Duration requestDeadline;
+  private final ScheduledExecutorService deadlineWatchdog =
+      Executors.newSingleThreadScheduledExecutor(runnable -> {
+        var thread = new Thread(runnable, "marketplace-deadline");
+        thread.setDaemon(true);
+        return thread;
+      });
 
   /**
    * Reads the marketplace client settings.
    *
-   * @param registryUrl    registry base URL
-   * @param connectTimeout TCP connect timeout
-   * @param readTimeout    socket read timeout, bounding headers and body alike
+   * @param registryUrl     registry base URL
+   * @param connectTimeout  TCP connect timeout
+   * @param readTimeout     socket read timeout, bounding a single read
+   * @param requestDeadline whole-exchange deadline, bounding all reads together
    */
   public MarketplaceConfig(
       @Value("${marketplace.registry.url:https://marketplace.reportportal.io}") String registryUrl,
       @Value("${marketplace.client.connect-timeout:PT3S}") Duration connectTimeout,
-      @Value("${marketplace.client.read-timeout:PT15S}") Duration readTimeout) {
+      @Value("${marketplace.client.read-timeout:PT15S}") Duration readTimeout,
+      @Value("${marketplace.client.request-deadline:PT30S}") Duration requestDeadline) {
     this.registryUrl = registryUrl;
     this.connectTimeout = connectTimeout;
     this.readTimeout = readTimeout;
+    this.requestDeadline = requestDeadline;
+  }
+
+  @PreDestroy
+  void stopDeadlineWatchdog() {
+    deadlineWatchdog.shutdownNow();
   }
 
   public String registryUrl() {
@@ -106,7 +124,8 @@ public class MarketplaceConfig {
    */
   @Bean("marketplaceRestTemplate")
   public RestTemplate marketplaceRestTemplate() {
-    var requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient());
+    var requestFactory =
+        new DeadlineHttpRequestFactory(httpClient(), requestDeadline, deadlineWatchdog);
     var restTemplate = new RestTemplate(List.of(
         new ByteArrayHttpMessageConverter(),
         new StringHttpMessageConverter(StandardCharsets.UTF_8),

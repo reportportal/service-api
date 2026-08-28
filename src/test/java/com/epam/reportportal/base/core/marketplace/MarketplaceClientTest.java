@@ -34,7 +34,9 @@ import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedExcept
 import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.core.marketplace.exception.VersionBlockedException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +62,8 @@ class MarketplaceClientTest {
   @BeforeEach
   void setUp() {
     // Real bean wiring: the tolerant ObjectMapper and converters are under test too.
-    restTemplate = new MarketplaceConfig(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(15))
+    restTemplate = new MarketplaceConfig(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(15),
+        Duration.ofSeconds(30))
         .marketplaceRestTemplate();
     server = MockRestServiceServer.bindTo(restTemplate).build();
     client = new MarketplaceClient(restTemplate, BASE_URL);
@@ -332,6 +335,46 @@ class MarketplaceClientTest {
     // startsWith, not contains: the wrapped cause quotes the URL and would mask a lost host.
     assertTrue(ex.getMessage().startsWith("Marketplace registry at 'registry.internal'"),
         ex.getMessage());
+  }
+
+  @Test
+  void artifactTransportFailureStillLeavesAsATypedException() {
+    // The artifact route has its own catch chain; without the transport arm a raw
+    // ResourceAccessException would escape the client untyped.
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.2/artifact"))
+        .andRespond(request -> {
+          throw new SocketTimeoutException("Read timed out");
+        });
+
+    var ex = assertThrows(RegistryUnreachableException.class,
+        () -> client.resolveArtifact("jira", "1.4.2", null));
+
+    assertEquals("registry.internal", ex.getHost());
+  }
+
+  @Test
+  void connectionRefusedIsUnreachableNotAProtocolError() {
+    // A registry that is simply down fails before any byte is read, so nothing in the cause chain
+    // is a timeout. It must still be reported as unreachable, not as a broken protocol.
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
+        .andRespond(request -> {
+          throw new ConnectException("Connection refused");
+        });
+
+    var ex = assertThrows(RegistryUnreachableException.class,
+        () -> client.getCatalogue(null, null));
+
+    assertEquals("registry.internal", ex.getHost());
+  }
+
+  @Test
+  void unknownHostIsUnreachableNotAProtocolError() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira"))
+        .andRespond(request -> {
+          throw new UnknownHostException("registry.internal");
+        });
+
+    assertThrows(RegistryUnreachableException.class, () -> client.getPlugin("jira"));
   }
 
   @Test

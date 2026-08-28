@@ -23,6 +23,8 @@ import com.rabbitmq.http.client.domain.ShovelDetails;
 import com.rabbitmq.http.client.domain.ShovelInfo;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -43,14 +45,14 @@ public class ReportingShovelService {
 
   private final Client managementClient;
   private final String vhost;
-  private final String shovelUri;
+  private final List<String> shovelUris;
 
   public ReportingShovelService(Client managementClient,
       @Value("${rp.amqp.addresses}") String address,
       @Value("${rp.amqp.base-vhost}") String virtualHost) {
     this.managementClient = managementClient;
     this.vhost = virtualHost;
-    this.shovelUri = shovelUri(address, virtualHost);
+    this.shovelUris = shovelUris(address, virtualHost);
   }
 
   /**
@@ -61,7 +63,7 @@ public class ReportingShovelService {
    */
   public void republishToReportingExchange(String queueName) {
     ShovelDetails details =
-        new ShovelDetails(shovelUri, shovelUri, RECONNECT_DELAY_SECONDS, false, null);
+        new ShovelDetails(shovelUris, shovelUris, RECONNECT_DELAY_SECONDS, false, null);
     details.setSourceQueue(queueName);
     details.setSourceDeleteAfter(DELETE_AFTER_QUEUE_LENGTH);
     details.setDestinationExchange(REPORTING_EXCHANGE);
@@ -80,8 +82,16 @@ public class ReportingShovelService {
     managementClient.deleteShovel(vhost, queueName);
   }
 
-  private static String shovelUri(String address, String vhost) {
-    String base = StringUtils.trimTrailingCharacter(address, '/');
-    return base + "/" + URLEncoder.encode(vhost, StandardCharsets.UTF_8);
+  private static List<String> shovelUris(String addresses, String vhost) {
+    List<String> uris = Arrays.stream(StringUtils.commaDelimitedListToStringArray(addresses))
+        .map(String::trim)
+        .filter(StringUtils::hasText)
+        .map(address -> StringUtils.trimTrailingCharacter(address, '/') + "/"
+            + URLEncoder.encode(vhost, StandardCharsets.UTF_8))
+        .toList();
+    if (uris.isEmpty()) {
+      throw new IllegalArgumentException("At least one AMQP address is required");
+    }
+    return uris;
   }
 }

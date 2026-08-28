@@ -63,6 +63,8 @@ public class OutdatedQueuesManagementJob {
 
   private final Map<String, Instant> withoutConsumersSince = new ConcurrentHashMap<>();
 
+  private final Set<String> activeRepublishes = ConcurrentHashMap.newKeySet();
+
   public OutdatedQueuesManagementJob(Client managementClient, ReportingShovelService shovelService,
       @Qualifier("reportingQueues") List<Queue> currentReportingQueues,
       @Value("${rp.amqp.base-vhost}") String virtualHost,
@@ -85,8 +87,9 @@ public class OutdatedQueuesManagementJob {
       return;
     }
 
-    withoutConsumersSince.keySet()
-        .retainAll(candidates.stream().map(QueueInfo::getName).collect(Collectors.toSet()));
+    Set<String> candidateNames =
+        candidates.stream().map(QueueInfo::getName).collect(Collectors.toSet());
+    withoutConsumersSince.keySet().retainAll(candidateNames);
 
     Instant now = Instant.now();
     candidates.stream().filter(queue -> graceExpired(queue.getName(), now)).forEach(this::release);
@@ -112,15 +115,28 @@ public class OutdatedQueuesManagementJob {
     try {
       managementClient.unbindQueue(vhost, queueName, REPORTING_EXCHANGE, DEFAULT_QUEUE_ROUTING_KEY);
       if (queue.getMessagesReady() > 0) {
-        shovelService.republishToReportingExchange(queueName);
+        republish(queueName);
       } else {
         shovelService.removeShovel(queueName);
         managementClient.deleteQueue(vhost, queueName);
+        activeRepublishes.remove(queueName);
         withoutConsumersSince.remove(queueName);
         log.info("Removed outdated reporting queue '{}'", queueName);
       }
     } catch (Exception e) {
       log.warn("Unable to clean up outdated reporting queue '{}'", queueName, e);
+    }
+  }
+
+  private void republish(String queueName) {
+    if (!activeRepublishes.add(queueName)) {
+      return;
+    }
+    try {
+      shovelService.republishToReportingExchange(queueName);
+    } catch (Exception e) {
+      activeRepublishes.remove(queueName);
+      throw e;
     }
   }
 }

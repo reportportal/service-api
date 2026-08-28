@@ -100,7 +100,7 @@ public class ReportingTopologyConfiguration {
     for (int i = 0; i < queuesCount; i++) {
       queues.add(declareQueue(REPORTING_QUEUE_PREFIX + instanceId + "." + i));
     }
-    log.info("Declared {} reporting queues for instance '{}'", queues.size(), instanceId);
+    log.info("Configured {} reporting queues for instance '{}'", queues.size(), instanceId);
     return queues;
   }
 
@@ -175,17 +175,17 @@ public class ReportingTopologyConfiguration {
 
   /**
    * Resolves the identifier embedded into the names of the queues owned by this instance. A
-   * hostname is preferred over a random value because it stays the same across restarts of the same
-   * pod, which lets the instance pick up its own queues instead of leaving them behind for the
-   * cleanup job.
+   * hostname keeps queue ownership recognizable, while a random suffix prevents collisions between
+   * deployments that use the same hostnames and RabbitMQ vhost.
    */
   private static String resolveInstanceId() {
+    String uuid = UUID.randomUUID().toString();
+    String uniqueSuffix = uuid.substring(uuid.lastIndexOf('-') + 1);
     String hostname = System.getenv("HOSTNAME");
     if (StringUtils.hasText(hostname)) {
-      return sanitizeInstanceId(hostname);
+      return sanitizeInstanceId(hostname) + "." + uniqueSuffix;
     }
-    String uuid = UUID.randomUUID().toString();
-    return uuid.substring(uuid.lastIndexOf('-') + 1);
+    return uniqueSuffix;
   }
 
   private static String sanitizeInstanceId(String instanceId) {
@@ -196,14 +196,12 @@ public class ReportingTopologyConfiguration {
     Binding queueBinding = BindingBuilder.bind(queue).to(reportingConsistentExchange())
         .with(DEFAULT_QUEUE_ROUTING_KEY).noargs();
     queueBinding.setAdminsThatShouldDeclare(amqpAdmin);
-    amqpAdmin.declareBinding(queueBinding);
     return queueBinding;
   }
 
   private Queue declareQueue(String queueName) {
     Queue queue = QueueBuilder.durable(queueName).build();
     queue.setAdminsThatShouldDeclare(amqpAdmin);
-    amqpAdmin.declareQueue(queue);
     return queue;
   }
 

@@ -17,7 +17,9 @@
 package com.epam.reportportal.base.reporting.async;
 
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
@@ -89,10 +91,10 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
       return;
     }
     running = false;
-    stopRouting();
+    Set<String> queuesWithStoppedRouting = stopRouting();
     awaitDrain();
     stopContainers();
-    releaseQueues();
+    releaseQueues(queuesWithStoppedRouting);
   }
 
   @Override
@@ -105,15 +107,18 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
     return PHASE;
   }
 
-  private void stopRouting() {
+  private Set<String> stopRouting() {
+    Set<String> queuesWithStoppedRouting = new HashSet<>(queues);
     bindings.forEach(binding -> {
       try {
         amqpAdmin.removeBinding(binding);
       } catch (Exception e) {
+        queuesWithStoppedRouting.remove(binding.getDestination());
         log.warn("Unable to unbind reporting queue '{}' from '{}'", binding.getDestination(),
             binding.getExchange(), e);
       }
     });
+    return queuesWithStoppedRouting;
   }
 
   private void awaitDrain() {
@@ -138,10 +143,11 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
     });
   }
 
-  private void releaseQueues() {
+  private void releaseQueues(Set<String> queuesWithStoppedRouting) {
     queues.forEach(queue -> {
       try {
-        if (readyMessages(queue) > 0 || !deleteQueue(queue)) {
+        if (queuesWithStoppedRouting.contains(queue)
+            && (readyMessages(queue) > 0 || !deleteQueue(queue))) {
           shovelService.republishToReportingExchange(queue);
         }
       } catch (Exception e) {

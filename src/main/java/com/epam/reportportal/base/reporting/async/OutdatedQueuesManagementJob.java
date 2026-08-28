@@ -75,7 +75,7 @@ public class OutdatedQueuesManagementJob {
     this.gracePeriod = gracePeriod;
   }
 
-  @Scheduled(fixedDelayString = "${reporting.queues.cleanup.interval:PT1M}", initialDelayString = "${reporting.queues.cleanup.initial-delay:PT2M}")
+  @Scheduled(fixedDelayString = "${reporting.queues.cleanup.interval:PT1M}", initialDelayString = "${reporting.queues.cleanup.initial-delay:PT1M}")
   public void run() {
     List<QueueInfo> candidates;
     try {

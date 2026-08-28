@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2023 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.reporting.async;
+package com.epam.ta.reportportal.reporting.async;
 
 import java.time.Duration;
 import java.util.List;
@@ -57,7 +57,6 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
   private final List<Binding> bindings;
   private final List<String> queues;
   private final AmqpAdmin amqpAdmin;
-  private final ReportingShovelService shovelService;
   private final Duration drainTimeout;
 
   private volatile boolean running;
@@ -66,13 +65,11 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
       @Qualifier("listenerContainers") List<AbstractMessageListenerContainer> containers,
       @Qualifier("reportingBindings") List<Binding> bindings,
       @Qualifier("reportingQueues") List<Queue> queues, AmqpAdmin amqpAdmin,
-      ReportingShovelService shovelService,
       @Value("${reporting.shutdown.drain-timeout:PT10S}") Duration drainTimeout) {
     this.containers = containers;
     this.bindings = bindings;
     this.queues = queues.stream().map(Queue::getName).collect(Collectors.toList());
     this.amqpAdmin = amqpAdmin;
-    this.shovelService = shovelService;
     this.drainTimeout = drainTimeout;
   }
 
@@ -141,24 +138,11 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
   private void releaseQueues() {
     queues.forEach(queue -> {
       try {
-        if (readyMessages(queue) > 0 || !deleteQueue(queue)) {
-          shovelService.republishToReportingExchange(queue);
-        }
+        amqpAdmin.deleteQueue(queue, true, true);
       } catch (Exception e) {
         log.warn("Unable to release reporting queue '{}' on shutdown", queue, e);
       }
     });
-  }
-
-  private boolean deleteQueue(String queue) {
-    try {
-      shovelService.removeShovel(queue);
-      amqpAdmin.deleteQueue(queue, true, true);
-      return true;
-    } catch (Exception e) {
-      log.debug("Reporting queue '{}' cannot be deleted yet", queue, e);
-      return false;
-    }
   }
 
   private long readyMessages() {

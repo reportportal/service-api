@@ -25,16 +25,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
-import com.epam.reportportal.base.core.marketplace.handler.InstallMarketplacePluginHandler;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
 /**
@@ -42,14 +41,8 @@ import org.springframework.http.MediaType;
  */
 class MarketplaceControllerTest extends BaseMvcTest {
 
-  @MockBean
-  private MarketplaceClient marketplaceClient;
-
-  @MockBean
-  private InstallMarketplacePluginHandler installMarketplacePluginHandler;
-
-  // The handler is a singleton in the shared context and remembers an unreachable host for a
-  // while, so each test speaks to a registry of its own rather than to a shared verdict.
+  // marketplaceClient and installMarketplacePluginHandler are mocked on BaseMvcTest so this class
+  // shares its context; both are reset between tests, so each test speaks to a registry of its own.
 
   @Test
   void catalogueIsReadableByAnyAuthenticatedUser() throws Exception {
@@ -101,6 +94,49 @@ class MarketplaceControllerTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.integrationTypeId").value(9))
         .andExpect(jsonPath("$.version").value("2.0.0"));
+  }
+
+  // The three the reviewer has to be able to tell apart on the wire: a version that does not
+  // exist, a registry that answered unusably, and a registry that did not answer at all.
+
+  @Test
+  void aVersionTheRegistryDoesNotHaveIsNotFound() throws Exception {
+    when(installMarketplacePluginHandler.install(eq("slack"), any(), any())).thenThrow(
+        new ReportPortalException(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND,
+            "version '9.9.9' of plugin 'slack' is not in the registry at 'registry.test'"));
+
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":\"9.9.9\"}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("9.9.9")));
+  }
+
+  @Test
+  void aRegistryThatAnsweredUnusablyIsABadGateway() throws Exception {
+    when(installMarketplacePluginHandler.install(eq("slack"), any(), any())).thenThrow(
+        new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR,
+            "Unreadable artifact response for 'slack:2.0.0'"));
+
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":\"2.0.0\"}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadGateway());
+  }
+
+  @Test
+  void aRegistryThatCannotBeReachedIsServiceUnavailable() throws Exception {
+    when(installMarketplacePluginHandler.install(eq("slack"), any(), any())).thenThrow(
+        new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE,
+            "Marketplace registry at 'registry.test' is unreachable: connect timed out"));
+
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":\"2.0.0\"}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isServiceUnavailable());
   }
 
   @Test

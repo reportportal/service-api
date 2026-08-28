@@ -20,6 +20,7 @@ import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
 import com.epam.reportportal.base.core.marketplace.exception.MarketplaceException;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryNotFoundException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryProtocolException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
@@ -137,7 +138,7 @@ public class MarketplaceClient {
    */
   public MarketplaceVersionDetail getVersion(String pluginId, String version) {
     var uri = plugins().pathSegment(pluginId, "versions", version).build().encode().toUri();
-    return get(uri, MarketplaceVersionDetail.class, pluginId);
+    return get(uri, MarketplaceVersionDetail.class, pluginId, version);
   }
 
   /**
@@ -193,10 +194,14 @@ public class MarketplaceClient {
   }
 
   private <T> T get(URI uri, Class<T> type, String pluginId) {
+    return get(uri, type, pluginId, null);
+  }
+
+  private <T> T get(URI uri, Class<T> type, String pluginId, String version) {
     try {
       return restTemplate.getForObject(uri, type);
     } catch (RestClientResponseException e) {
-      throw mapError(e, pluginId);
+      throw mapError(e, pluginId, version);
     } catch (RestClientException e) {
       throw mapTransportFailure(e);
     }
@@ -206,9 +211,11 @@ public class MarketplaceClient {
    * Maps a non-2xx response onto a typed exception. Only the artifact route presents a licence, so
    * a 401 or 403 anywhere else is someone in front of the registry saying no — reporting it as a
    * licence rejection would send an operator hunting for an entitlement problem that does not
-   * exist.
+   * exist. A 404 gets its own type for the same reason: it is a working registry answering, and
+   * the caller, not the network, is what needs correcting.
    */
-  private MarketplaceException mapError(RestClientResponseException e, String pluginId) {
+  private MarketplaceException mapError(RestClientResponseException e, String pluginId,
+      String version) {
     var status = e.getStatusCode().value();
     var body = e.getResponseBodyAsString();
     if (status == HttpStatus.GONE.value()) {
@@ -219,8 +226,12 @@ public class MarketplaceClient {
               tombstone.removedBy());
     }
     var error = parse(body, RegistryErrorBody.class);
-    return new RegistryResponseException(status, error == null ? null : error.code(),
-        error == null ? null : error.message());
+    var code = error == null ? null : error.code();
+    var message = error == null ? null : error.message();
+    if (status == HttpStatus.NOT_FOUND.value()) {
+      return new RegistryNotFoundException(pluginId, version, code, message);
+    }
+    return new RegistryResponseException(status, code, message);
   }
 
   /**
@@ -244,7 +255,7 @@ public class MarketplaceClient {
       return new LicenceRejectedException(pluginId, version, status,
           LicenceFailure.from(code, status), code, error == null ? null : error.message());
     }
-    return mapError(e, pluginId);
+    return mapError(e, pluginId, version);
   }
 
   /**

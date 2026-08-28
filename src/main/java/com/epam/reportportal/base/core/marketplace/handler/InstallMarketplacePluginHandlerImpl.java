@@ -25,6 +25,9 @@ import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
 import com.epam.reportportal.base.core.marketplace.exception.MarketplaceException;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryNotFoundException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryProtocolException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.core.marketplace.exception.VersionBlockedException;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
@@ -125,7 +128,8 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
     // landed a minute ago has to be seen now, and so does the checksum.
     var detail = registry(() -> client.getVersion(registryId, version));
     if (detail == null) {
-      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE,
+      // An empty 200 is the registry answering unusably, not a registry that cannot be reached.
+      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR,
           "no answer for '" + registryId + ":" + version + "' from '" + client.registryHost()
               + "'");
     }
@@ -150,7 +154,7 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
 
     var artifact = registry(() -> client.resolveArtifact(registryId, version, licenceJwt));
     if (artifact == null || StringUtils.isBlank(artifact.downloadUrl())) {
-      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE,
+      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR,
           "no download URL for '" + registryId + ":" + version + "' from '" + client.registryHost()
               + "'");
     }
@@ -291,9 +295,11 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   }
 
   /**
-   * Turns a registry failure into the one the caller can act on. Each stays distinguishable: a
-   * blocked version and a removed plugin carry the operator's own words, and an unreachable
-   * registry names the host so it is clear which one is down.
+   * Turns a registry failure into the one the caller can act on, and above all names the right
+   * actor. A 404 is a healthy registry answering that it holds no such thing — sending an operator
+   * to check DNS for a version they mistyped wastes the one thing an incident costs. A garbled
+   * body, a bad download URL or a CDN that refused is the registry's own fault (502); only a
+   * registry that could not be talked to at all is unreachable (503), and that one names the host.
    */
   private <T> T registry(RegistryCall<T> call) {
     try {
@@ -306,11 +312,30 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
           reason(e.getPluginId(), e.getVersion(), e.getReason()));
     } catch (LicenceRejectedException e) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_LICENCE_REJECTED, e.getMessage());
+    } catch (RegistryNotFoundException e) {
+      throw new ReportPortalException(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND, missing(e));
+    } catch (RegistryProtocolException | RegistryResponseException e) {
+      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR, e.getMessage());
     } catch (RegistryUnreachableException e) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE, e.getMessage());
     } catch (MarketplaceException e) {
-      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE, e.getMessage());
+      // A subtype added after this mapping was written. Absorbing it into one of the arms above
+      // would blame an actor at random, so it is named instead — in the log and to the caller.
+      LOGGER.error("Unmapped marketplace failure {}", e.getClass().getName(), e);
+      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR,
+          e.getClass().getSimpleName() + ": " + e.getMessage());
     }
+  }
+
+  /** Names whichever of plugin and version the registry said was missing, and no more. */
+  private String missing(RegistryNotFoundException e) {
+    var subject = switch (e.getSubject()) {
+      case PLUGIN -> "plugin '" + e.getPluginId() + "'";
+      case VERSION -> "version '" + e.getVersion() + "' of plugin '" + e.getPluginId() + "'";
+      case UNSPECIFIED -> "'" + e.getPluginId()
+          + (e.getVersion() == null ? "" : ":" + e.getVersion()) + "'";
+    };
+    return subject + " is not in the registry at '" + client.registryHost() + "'";
   }
 
   private static String reason(String pluginId, String version, String operatorReason) {

@@ -31,6 +31,7 @@ import com.epam.reportportal.base.core.configs.MarketplaceConfig;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryNotFoundException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.core.marketplace.exception.VersionBlockedException;
@@ -378,18 +379,50 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void unexpectedStatusesArePassedThroughWithStatusAndCode() {
+  void anUnknownPluginIsItsOwnFailureNotAGenericStatus() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/absent"))
         .andRespond(withStatus(HttpStatus.NOT_FOUND)
             .contentType(MediaType.APPLICATION_JSON)
             .body("{\"code\":\"NOT_FOUND\",\"message\":\"Plugin not found\"}"));
 
-    var ex = assertThrows(RegistryResponseException.class, () -> client.getPlugin("absent"));
+    var ex = assertThrows(RegistryNotFoundException.class, () -> client.getPlugin("absent"));
 
-    assertEquals(RegistryResponseException.class, ex.getClass());
     assertEquals(404, ex.getStatus());
     assertEquals("NOT_FOUND", ex.getRegistryCode());
     assertEquals("Plugin not found", ex.getRegistryMessage());
+    assertEquals(RegistryNotFoundException.Subject.PLUGIN, ex.getSubject());
+    assertEquals("absent", ex.getPluginId());
+  }
+
+  @Test
+  void anUnknownVersionIsAttributedToTheVersionAndCarriesIt() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/9.9.9"))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("{\"code\":\"NOT_FOUND\",\"message\":\"Version not found\"}"));
+
+    var ex = assertThrows(RegistryNotFoundException.class,
+        () -> client.getVersion("jira", "9.9.9"));
+
+    assertEquals(RegistryNotFoundException.Subject.VERSION, ex.getSubject());
+    assertEquals("jira", ex.getPluginId());
+    assertEquals("9.9.9", ex.getVersion());
+  }
+
+  @Test
+  void aNotFoundTheRegistryCannotAttributeStaysUnspecified() {
+    // The artifact route answers "Plugin or version not found"; guessing one of the two would be
+    // worse than naming both.
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/9.9.9/artifact"))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("{\"code\":\"NOT_FOUND\",\"message\":\"Plugin or version not found\"}"));
+
+    var ex = assertThrows(RegistryNotFoundException.class,
+        () -> client.resolveArtifact("jira", "9.9.9", null));
+
+    assertEquals(RegistryNotFoundException.Subject.UNSPECIFIED, ex.getSubject());
+    assertEquals("9.9.9", ex.getVersion());
   }
 
   @Test

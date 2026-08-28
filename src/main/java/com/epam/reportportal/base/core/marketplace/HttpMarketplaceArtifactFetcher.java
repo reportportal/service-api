@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import org.apache.hc.client5.http.ClientProtocolException;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
@@ -56,6 +57,12 @@ public class HttpMarketplaceArtifactFetcher implements MarketplaceArtifactFetche
         return null;
       });
     } catch (ResourceAccessException e) {
+      // A protocol violation — a redirect chain past the bound, a malformed answer — arrives here
+      // wrapped as an I/O failure. The host answered, so it is not the one to report as down.
+      if (timeoutCause(e) == null && causeOfType(e, ClientProtocolException.class) != null) {
+        throw new RegistryProtocolException(
+            "Marketplace artifact could not be downloaded from '" + host(uri) + "'", e);
+      }
       throw new RegistryUnreachableException(host(uri), e);
     } catch (RestClientException e) {
       var timeout = timeoutCause(e);
@@ -76,8 +83,12 @@ public class HttpMarketplaceArtifactFetcher implements MarketplaceArtifactFetche
    * still a registry that went quiet, not a broken artifact.
    */
   private static Throwable timeoutCause(Throwable e) {
+    return causeOfType(e, InterruptedIOException.class);
+  }
+
+  private static Throwable causeOfType(Throwable e, Class<? extends Throwable> type) {
     for (var cause = e; cause != null; cause = cause.getCause()) {
-      if (cause instanceof InterruptedIOException) {
+      if (type.isInstance(cause)) {
         return cause;
       }
     }

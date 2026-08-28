@@ -537,6 +537,17 @@ public enum ErrorType {
   MARKETPLACE_CHECKSUM_MISMATCH(40051, "Marketplace artifact failed checksum verification: {}"),
 
   /**
+   * The registry holds no such plugin or version. A healthy registry answering correctly, which is
+   * the opposite diagnosis from {@link #MARKETPLACE_REGISTRY_UNREACHABLE}.
+   */
+  MARKETPLACE_PLUGIN_NOT_FOUND(40052, "Marketplace registry has no such plugin or version: {}"),
+
+  /**
+   * The registry answered, but unusably — a garbled body, a bad download URL, a CDN that refused.
+   */
+  MARKETPLACE_REGISTRY_ERROR(40053, "Marketplace registry answered unusably: {}"),
+
+  /**
    * Bad save user filter request
    */
   PROJECT_DOESNT_CONTAIN_USER(4220, "Project '{}' doesn't contain user '{}'"),

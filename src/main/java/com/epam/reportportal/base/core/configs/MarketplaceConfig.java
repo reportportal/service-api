@@ -169,6 +169,9 @@ public class MarketplaceConfig {
             .build())
         .setDefaultRequestConfig(RequestConfig.custom()
             .setConnectionRequestTimeout(Timeout.of(connectTimeout))
+            // A CDN hands off once or twice; the default fifty hops is a chain nobody meant to
+            // publish, and each one is a request this instance makes to a host it was told to.
+            .setMaxRedirects(5)
             .build())
         .build();
     return downloadHttpClient;

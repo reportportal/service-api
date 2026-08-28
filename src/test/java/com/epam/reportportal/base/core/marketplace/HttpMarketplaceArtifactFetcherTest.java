@@ -20,8 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.configs.MarketplaceConfig;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryProtocolException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -30,6 +32,7 @@ import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -68,6 +71,35 @@ class HttpMarketplaceArtifactFetcherTest {
       fetcher.fetch("http://127.0.0.1:" + server.getAddress().getPort() + "/artifact", target);
 
       assertArrayEquals(JAR, Files.readAllBytes(target));
+    } finally {
+      Files.deleteIfExists(target);
+      server.stop(0);
+    }
+  }
+
+  @Test
+  void anEndlessRedirectChainIsCutOffRatherThanFollowed() throws IOException {
+    // Every hop is a request this instance makes to a host the previous answer chose, so the chain
+    // is bounded. A fresh path each time keeps the circular-redirect check out of the way.
+    var hops = new AtomicInteger();
+    var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    server.createContext("/hop", exchange -> {
+      exchange.getResponseHeaders().add("Location", "/hop/" + hops.incrementAndGet());
+      exchange.sendResponseHeaders(302, -1);
+      exchange.close();
+    });
+    server.start();
+    var target = Files.createTempFile("fetcher-test-", ".jar");
+    try {
+      var fetcher = config("http://127.0.0.1:" + server.getAddress().getPort())
+          .marketplaceArtifactFetcher(Duration.ofSeconds(30));
+
+      // The CDN answered, just uselessly: that is the CDN's fault, not the network's.
+      assertThrows(RegistryProtocolException.class, () -> fetcher.fetch(
+          "http://127.0.0.1:" + server.getAddress().getPort() + "/hop", target));
+
+      // Six: the first request plus the five redirects that are allowed to be taken.
+      assertTrue(hops.get() <= 6, "followed " + hops.get() + " hops");
     } finally {
       Files.deleteIfExists(target);
       server.stop(0);

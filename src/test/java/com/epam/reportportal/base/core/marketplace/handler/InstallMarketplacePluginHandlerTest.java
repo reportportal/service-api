@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.marketplace.handler;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +38,11 @@ import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
+import com.epam.reportportal.base.core.marketplace.exception.MarketplaceException;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryNotFoundException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryProtocolException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.core.marketplace.exception.VersionBlockedException;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
@@ -175,10 +180,11 @@ class InstallMarketplacePluginHandlerTest {
   // --- the one step that must never be reordered ------------------------------------------------
 
   @Test
-  void checksumMismatchAbortsBeforePf4jIsTouched() {
+  void checksumMismatchAbortsBeforePf4jIsTouchedAndLeavesNoTamperedFile() {
     registryServes(version("public", ">=25.1", sha256(JAR), false, null));
     publicPluginAt("https://cdn.example/jira-1.4.2.jar");
     downloads(TAMPERED);
+    var target = ArgumentCaptor.forClass(Path.class);
 
     var thrown = install();
 
@@ -186,6 +192,9 @@ class InstallMarketplacePluginHandlerTest {
     verifyNoInteractions(pluginBox);
     verifyNoInteractions(eventPublisher);
     verify(integrationTypeRepository, never()).save(any(IntegrationType.class));
+    // The bytes that failed verification are the ones that must not survive on disk.
+    verify(fetcher).fetch(anyString(), target.capture());
+    assertTrue(Files.notExists(target.getValue()), "tampered artifact left on disk");
   }
 
   @Test
@@ -342,6 +351,111 @@ class InstallMarketplacePluginHandlerTest {
     verifyNoInteractions(pluginBox);
   }
 
+  // --- who is actually at fault -----------------------------------------------------------------
+
+  @Test
+  void anUnknownVersionIsNotFoundRatherThanAnUnreachableRegistry() {
+    when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(
+        new RegistryNotFoundException(PLUGIN_ID, "1.4.2", "NOT_FOUND", "Version not found"));
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("version '1.4.2'"), thrown.getMessage());
+    assertTrue(thrown.getMessage().contains(PLUGIN_ID), thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  void anUnknownPluginIdNamesThePluginRatherThanTheVersion() {
+    when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(
+        new RegistryNotFoundException(PLUGIN_ID, "1.4.2", "NOT_FOUND", "Plugin not found"));
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("plugin '" + PLUGIN_ID + "'"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("version '1.4.2'"), thrown.getMessage());
+  }
+
+  @Test
+  void aNotFoundTheRegistryDidNotAttributeNamesBoth() {
+    when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(
+        new RegistryNotFoundException(PLUGIN_ID, "1.4.2", "NOT_FOUND",
+            "Plugin or version not found"));
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("'jira:1.4.2'"), thrown.getMessage());
+  }
+
+  @Test
+  void aGarbledRegistryAnswerIsTheRegistrysFaultNotTheNetworks() {
+    registryServes(version("public", ">=25.1", sha256(JAR), false, null));
+    when(client.resolveArtifact(eq(PLUGIN_ID), eq("1.4.2"), any())).thenThrow(
+        new RegistryProtocolException("Unreadable artifact response for 'jira:1.4.2'"));
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_REGISTRY_ERROR, thrown.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  void aCdnThatRefusesTheDownloadIsTheRegistrysFaultNotTheNetworks() {
+    registryServes(version("public", ">=25.1", sha256(JAR), false, null));
+    publicPluginAt("https://cdn.example/jira-1.4.2.jar");
+    org.mockito.Mockito.doThrow(new RegistryProtocolException(
+            "Marketplace artifact could not be downloaded from 'cdn.example'"))
+        .when(fetcher).fetch(anyString(), any());
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_REGISTRY_ERROR, thrown.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  void aRegistryStatusNobodyCanActOnIsReportedAsTheRegistryAnsweringUnusably() {
+    when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(
+        new RegistryResponseException(500, "INTERNAL_ERROR", "boom"));
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_REGISTRY_ERROR, thrown.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  void anEmptyRegistryAnswerIsReportedAsTheRegistryAnsweringUnusably() {
+    when(client.getVersion(PLUGIN_ID, "1.4.2")).thenReturn(null);
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_REGISTRY_ERROR, thrown.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  /** A subtype the mapping has never seen; the catch-all must not file it under something else. */
+  private static class FutureMarketplaceException extends MarketplaceException {
+
+    FutureMarketplaceException() {
+      super("a failure mode added after this mapping was written");
+    }
+  }
+
+  @Test
+  void anUnmappedFailureIsNamedRatherThanSwallowedAsUnreachable() {
+    when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(new FutureMarketplaceException());
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_REGISTRY_ERROR, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("FutureMarketplaceException"), thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+  }
+
   @Test
   void unreachableRegistryNamesTheHost() {
     when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(new RegistryUnreachableException(
@@ -355,16 +469,20 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void aDownloadThatCannotBeCompletedNeverReachesPf4j() {
+  void aDownloadThatCannotBeCompletedNeverReachesPf4jAndLeavesNoPartialFile() {
     registryServes(version("public", ">=25.1", sha256(JAR), false, null));
     publicPluginAt("https://cdn.example/jira-1.4.2.jar");
     org.mockito.Mockito.doThrow(new RegistryUnreachableException("cdn.example",
         new SocketTimeoutException("read timed out"))).when(fetcher).fetch(anyString(), any());
+    var target = ArgumentCaptor.forClass(Path.class);
 
     var thrown = install();
 
     assertEquals(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE, thrown.getErrorType());
     verifyNoInteractions(pluginBox);
+    // The temp file exists from the moment it is named, so a failed download still leaves one.
+    verify(fetcher).fetch(anyString(), target.capture());
+    assertTrue(Files.notExists(target.getValue()), "partial artifact left on disk");
   }
 
   // --- the happy path ---------------------------------------------------------------------------
@@ -403,6 +521,20 @@ class InstallMarketplacePluginHandlerTest {
     assertEquals("jira", event.getValue().getPluginActivityResource().getName());
     assertEquals(7L, event.getValue().getUserId());
     assertEquals("admin", event.getValue().getUserLogin());
+  }
+
+  @Test
+  void pf4jIsHandedTheRegistryIdAndVersionAsTheJarFileName() {
+    // PF4J derives the file it places in the plugins directory from this name, so both halves and
+    // the extension are part of the contract, not a label.
+    registryServes(version("public", ">=25.1", sha256(JAR), false, null));
+    publicPluginAt("https://cdn.example/jira-1.4.2.jar");
+    var fileName = ArgumentCaptor.forClass(String.class);
+
+    handler().install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user);
+
+    verify(pluginBox).uploadPlugin(fileName.capture(), any(InputStream.class));
+    assertEquals("jira-1.4.2.jar", fileName.getValue());
   }
 
   @Test

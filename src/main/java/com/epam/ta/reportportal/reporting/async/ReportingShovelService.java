@@ -25,7 +25,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,7 +35,7 @@ import org.springframework.util.StringUtils;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j
-@Component
+@Service
 public class ReportingShovelService {
 
   private static final long RECONNECT_DELAY_SECONDS = 60L;

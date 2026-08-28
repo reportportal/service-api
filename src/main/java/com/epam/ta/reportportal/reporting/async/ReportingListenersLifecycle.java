@@ -34,10 +34,9 @@ import org.springframework.stereotype.Component;
  * Owns the lifecycle of the reporting listener containers.
  *
  * <p>Consuming starts only after the application context has been refreshed. On shutdown the
- * queues
- * of this instance are first unbound so that the exchange stops routing to a dying instance, then
- * the consumers are given a chance to drain what is left before they are stopped and the queues are
- * released.
+ * queues of this instance are first unbound so that the exchange stops routing to a dying instance,
+ * then the consumers are given a chance to drain what is left before they are stopped and the
+ * queues are released.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -58,7 +57,6 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
   private final List<Binding> bindings;
   private final List<String> queues;
   private final AmqpAdmin amqpAdmin;
-  private final ReportingShovelService shovelService;
   private final Duration drainTimeout;
 
   private volatile boolean running;
@@ -67,13 +65,11 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
       @Qualifier("listenerContainers") List<AbstractMessageListenerContainer> containers,
       @Qualifier("reportingBindings") List<Binding> bindings,
       @Qualifier("reportingQueues") List<Queue> queues, AmqpAdmin amqpAdmin,
-      ReportingShovelService shovelService,
       @Value("${reporting.shutdown.drain-timeout:PT10S}") Duration drainTimeout) {
     this.containers = containers;
     this.bindings = bindings;
     this.queues = queues.stream().map(Queue::getName).collect(Collectors.toList());
     this.amqpAdmin = amqpAdmin;
-    this.shovelService = shovelService;
     this.drainTimeout = drainTimeout;
   }
 
@@ -142,24 +138,11 @@ public class ReportingListenersLifecycle implements SmartLifecycle {
   private void releaseQueues() {
     queues.forEach(queue -> {
       try {
-        if (readyMessages(queue) > 0 || !deleteQueue(queue)) {
-          shovelService.republishToReportingExchange(queue);
-        }
+        amqpAdmin.deleteQueue(queue, true, true);
       } catch (Exception e) {
         log.warn("Unable to release reporting queue '{}' on shutdown", queue, e);
       }
     });
-  }
-
-  private boolean deleteQueue(String queue) {
-    try {
-      shovelService.removeShovel(queue);
-      amqpAdmin.deleteQueue(queue, true, true);
-      return true;
-    } catch (Exception e) {
-      log.debug("Reporting queue '{}' cannot be deleted yet", queue, e);
-      return false;
-    }
   }
 
   private long readyMessages() {

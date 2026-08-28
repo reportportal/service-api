@@ -16,11 +16,13 @@
 
 package com.epam.reportportal.base.core.marketplace;
 
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
  * Stands in until licence storage exists. Answering "not configured" makes every premium plugin
- * show as locked, which is the truthful state of an instance that cannot yet hold a licence.
+ * show as locked, which is the truthful state of an instance that cannot yet hold a licence, and
+ * makes every premium install refuse before it reaches the registry.
  */
 @Component
 public class UnconfiguredMarketplaceLicence implements MarketplaceLicence {
@@ -28,5 +30,10 @@ public class UnconfiguredMarketplaceLicence implements MarketplaceLicence {
   @Override
   public boolean isConfigured() {
     return false;
+  }
+
+  @Override
+  public Optional<String> signArtifactToken(String pluginId) {
+    return Optional.empty();
   }
 }

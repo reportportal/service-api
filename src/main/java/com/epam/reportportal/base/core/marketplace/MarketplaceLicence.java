@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.base.core.marketplace;
 
+import java.util.Optional;
+
 /**
  * Whether this instance holds credentials for premium plugins.
  *
@@ -26,4 +28,15 @@ package com.epam.reportportal.base.core.marketplace;
 public interface MarketplaceLicence {
 
   boolean isConfigured();
+
+  /**
+   * Signs a short-lived licence JWT for one premium artifact download.
+   *
+   * <p>The registry keeps the URL it hands back valid for about 60 seconds, so the token is signed
+   * at the moment of the download and never cached or queued.
+   *
+   * @param pluginId registry plugin id the token is scoped to
+   * @return the token, or empty when this instance holds no licence credentials
+   */
+  Optional<String> signArtifactToken(String pluginId);
 }

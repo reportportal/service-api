@@ -73,6 +73,22 @@ public final class CompatibilityRange {
     return constraints.stream().allMatch(constraint -> constraint.matches(productVersion));
   }
 
+  /**
+   * The bounds a product version fails, in the order they were declared.
+   *
+   * <p>An install refusal has to name which bound failed — "too old" and "too new" send an operator
+   * in opposite directions, and {@link #matches} cannot tell them apart.
+   *
+   * @param productVersion the running ReportPortal version
+   * @return the unsatisfied constraints as written, empty when the range matches
+   */
+  public List<String> failedBounds(String productVersion) {
+    return constraints.stream()
+        .filter(constraint -> !constraint.matches(productVersion))
+        .map(Constraint::text)
+        .toList();
+  }
+
   private record Constraint(String operator, String version) {
 
     private static final List<String> OPERATORS = List.of(">=", "<=", "==", ">", "<", "=");
@@ -98,6 +114,10 @@ public final class CompatibilityRange {
 
     private static Constraint of(String operator, String version) {
       return VERSION.matcher(version).matches() ? new Constraint(operator, version) : null;
+    }
+
+    String text() {
+      return operator + version;
     }
 
     boolean matches(String productVersion) {

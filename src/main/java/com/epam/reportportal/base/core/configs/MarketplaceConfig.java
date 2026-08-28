@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.core.configs;
 
 import com.epam.reportportal.base.core.marketplace.DeadlineHttpRequestFactory;
+import com.epam.reportportal.base.core.marketplace.HttpMarketplaceArtifactFetcher;
+import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceJson;
 import jakarta.annotation.PreDestroy;
@@ -56,6 +58,7 @@ public class MarketplaceConfig {
   private final Duration requestDeadline;
   private PoolingHttpClientConnectionManager connectionManager;
   private CloseableHttpClient httpClient;
+  private CloseableHttpClient downloadHttpClient;
   private final ScheduledExecutorService deadlineWatchdog =
       Executors.newSingleThreadScheduledExecutor(runnable -> {
         var thread = new Thread(runnable, "marketplace-deadline");
@@ -88,6 +91,9 @@ public class MarketplaceConfig {
     deadlineWatchdog.shutdownNow();
     if (httpClient != null) {
       httpClient.close(CloseMode.GRACEFUL);
+    }
+    if (downloadHttpClient != null) {
+      downloadHttpClient.close(CloseMode.GRACEFUL);
     }
   }
 
@@ -147,5 +153,38 @@ public class MarketplaceConfig {
   public MarketplaceClient marketplaceClient(
       @Qualifier("marketplaceRestTemplate") RestTemplate marketplaceRestTemplate) {
     return new MarketplaceClient(marketplaceRestTemplate, registryUrl);
+  }
+
+  /**
+   * Artifact downloads, which are a different job from reading JSON: a jar takes minutes rather
+   * than seconds, so the exchange deadline is its own, and the CDN a download URL points at may
+   * redirect again — here the redirect is not data, so it is followed.
+   */
+  CloseableHttpClient downloadHttpClient() {
+    downloadHttpClient = HttpClients.custom()
+        .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connectionConfig())
+            .setMaxConnPerRoute(4)
+            .setMaxConnTotal(8)
+            .build())
+        .setDefaultRequestConfig(RequestConfig.custom()
+            .setConnectionRequestTimeout(Timeout.of(connectTimeout))
+            .build())
+        .build();
+    return downloadHttpClient;
+  }
+
+  /**
+   * Downloader of plugin artifacts, on its own template so the registry's deadline stays short.
+   *
+   * @param downloadDeadline how long one artifact download may take in total
+   */
+  @Bean
+  public MarketplaceArtifactFetcher marketplaceArtifactFetcher(
+      @Value("${marketplace.client.download-deadline:PT5M}") Duration downloadDeadline) {
+    var restTemplate = new RestTemplate(List.of(new ByteArrayHttpMessageConverter()));
+    restTemplate.setRequestFactory(
+        new DeadlineHttpRequestFactory(downloadHttpClient(), downloadDeadline, deadlineWatchdog));
+    return new HttpMarketplaceArtifactFetcher(restTemplate);
   }
 }

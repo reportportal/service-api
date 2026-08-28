@@ -496,6 +496,47 @@ public enum ErrorType {
   PATTERN_ANALYSIS_ERROR(40042, "Pattern analysis error. {}"),
 
   /**
+   * A marketplace plugin version does not run on this ReportPortal release.
+   */
+  MARKETPLACE_PLUGIN_INCOMPATIBLE(40044, "Marketplace plugin is not compatible: {}"),
+
+  /**
+   * Compatibility could not be decided at all, so the install was refused rather than guessed.
+   */
+  MARKETPLACE_COMPATIBILITY_UNKNOWN(40045,
+      "Marketplace plugin compatibility cannot be determined: {}"),
+
+  /**
+   * A premium plugin was asked for on an instance holding no licence credentials.
+   */
+  MARKETPLACE_LICENCE_NOT_CONFIGURED(40046, "Marketplace licence is not configured: {}"),
+
+  /**
+   * The registry refused this instance's licence.
+   */
+  MARKETPLACE_LICENCE_REJECTED(40047, "Marketplace registry rejected the licence: {}"),
+
+  /**
+   * An operator blocked this version in the registry; the reason travels with the error.
+   */
+  MARKETPLACE_VERSION_BLOCKED(40048, "Marketplace plugin version is blocked: {}"),
+
+  /**
+   * The plugin was removed from the registry; the removal reason travels with the error.
+   */
+  MARKETPLACE_PLUGIN_REMOVED(40049, "Marketplace plugin was removed: {}"),
+
+  /**
+   * The registry could not be talked to; the host is named.
+   */
+  MARKETPLACE_REGISTRY_UNREACHABLE(40050, "Marketplace registry is unreachable: {}"),
+
+  /**
+   * The downloaded artifact did not match the checksum the registry published for it.
+   */
+  MARKETPLACE_CHECKSUM_MISMATCH(40051, "Marketplace artifact failed checksum verification: {}"),
+
+  /**
    * Bad save user filter request
    */
   PROJECT_DOESNT_CONTAIN_USER(4220, "Project '{}' doesn't contain user '{}'"),

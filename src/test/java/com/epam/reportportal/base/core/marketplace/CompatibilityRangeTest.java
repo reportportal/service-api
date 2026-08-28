@@ -16,9 +16,11 @@
 
 package com.epam.reportportal.base.core.marketplace;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -88,6 +90,16 @@ class CompatibilityRangeTest {
     // Missing segments are zero, so the pin still holds across an equivalent spelling.
     assertTrue(matches("25.5", "25.5.0"));
     assertFalse(matches("25.5.0", "25.6.0"));
+  }
+
+  @Test
+  void aRefusalCanNameWhichBoundFailed() {
+    // "too old" and "too new" send an operator in opposite directions, so a verdict is not enough;
+    // the install error has to say which end of the window was hit.
+    var window = CompatibilityRange.parse(">=25.1, <26.0").orElseThrow();
+    assertEquals(List.of("<26.0"), window.failedBounds("26.4"));
+    assertEquals(List.of(">=25.1"), window.failedBounds("24.9"));
+    assertEquals(List.of(), window.failedBounds("25.5"));
   }
 
   @Test

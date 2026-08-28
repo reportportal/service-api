@@ -17,19 +17,25 @@
 package com.epam.reportportal.base.ws.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
+import com.epam.reportportal.base.core.marketplace.handler.InstallMarketplacePluginHandler;
+import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 
 /**
  * Routing, guard and offline shape of {@code /v1/plugins}.
@@ -38,6 +44,9 @@ class MarketplaceControllerTest extends BaseMvcTest {
 
   @MockBean
   private MarketplaceClient marketplaceClient;
+
+  @MockBean
+  private InstallMarketplacePluginHandler installMarketplacePluginHandler;
 
   // The handler is a singleton in the shared context and remembers an unreachable host for a
   // while, so each test speaks to a registry of its own rather than to a shared verdict.
@@ -59,6 +68,39 @@ class MarketplaceControllerTest extends BaseMvcTest {
   @Test
   void catalogueIsNotReadableWithoutAuthentication() throws Exception {
     mockMvc.perform(get("/v1/plugins")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void installIsAdminOnly() throws Exception {
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":\"2.0.0\"}")
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
+    verifyNoInteractions(installMarketplacePluginHandler);
+  }
+
+  @Test
+  void installIsNotReachableWithoutAuthentication() throws Exception {
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":\"2.0.0\"}"))
+        .andExpect(status().isUnauthorized());
+    verifyNoInteractions(installMarketplacePluginHandler);
+  }
+
+  @Test
+  void installReachesTheHandlerForAnAdmin() throws Exception {
+    when(installMarketplacePluginHandler.install(eq("slack"), any(), any()))
+        .thenReturn(new MarketplaceInstallResource(9L, "slack", "slack", "2.0.0"));
+
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":\"2.0.0\"}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.integrationTypeId").value(9))
+        .andExpect(jsonPath("$.version").value("2.0.0"));
   }
 
   @Test

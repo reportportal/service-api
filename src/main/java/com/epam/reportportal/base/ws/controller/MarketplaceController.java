@@ -16,15 +16,25 @@
 
 package com.epam.reportportal.base.ws.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
+
 import com.epam.reportportal.base.core.marketplace.handler.GetMarketplaceCatalogueHandler;
+import com.epam.reportportal.base.core.marketplace.handler.InstallMarketplacePluginHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.model.marketplace.MarketplaceInstallRQ;
+import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -50,6 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MarketplaceController {
 
   private final GetMarketplaceCatalogueHandler getMarketplaceCatalogueHandler;
+  private final InstallMarketplacePluginHandler installMarketplacePluginHandler;
 
   /**
    * Everything the Plugins page renders, offline state included, in one response.
@@ -67,5 +78,29 @@ public class MarketplaceController {
       @RequestParam(value = "category", required = false) String category,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getMarketplaceCatalogueHandler.getCatalogue(q, category);
+  }
+
+  /**
+   * Makes one registry version the active one. Install, update and rollback are the same request —
+   * only the version differs — and all three change what code runs on the instance, which is why
+   * this one carries {@link com.epam.reportportal.base.auth.permissions.Permissions#IS_ADMIN} while
+   * reading the catalogue does not.
+   *
+   * <p>Not transactional on purpose: the flow downloads an artifact over the network, and holding
+   * a pooled connection for that long would be paid for by every other request.
+   *
+   * @param registryId registry plugin id
+   * @param request    the version to activate
+   * @param user       the admin performing it
+   * @return what is now active
+   */
+  @PostMapping("/{registryId}/install")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Install, update or roll back a marketplace plugin")
+  @PreAuthorize(IS_ADMIN)
+  public MarketplaceInstallResource install(@PathVariable("registryId") String registryId,
+      @RequestBody @Valid MarketplaceInstallRQ request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return installMarketplacePluginHandler.install(registryId, request, user);
   }
 }

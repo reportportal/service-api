@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.reporting.async;
+package com.epam.reportportal.base.reporting.async;
 
 import java.time.Duration;
 import java.util.List;

@@ -79,6 +79,13 @@ public class MarketplaceClient {
   }
 
   /**
+   * Host of the configured registry, as named to operators when it cannot be reached.
+   */
+  public String registryHost() {
+    return registryHost;
+  }
+
+  /**
    * GET /api/v1/plugins — the catalogue. Blank filters are not sent.
    *
    * @param category registry category, may be null or blank

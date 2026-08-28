@@ -21,6 +21,7 @@ import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.PluginVersions;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.exception.MarketplaceException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
@@ -33,6 +34,7 @@ import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceEntryRe
 import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
 import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatusResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.UpdateAvailableResource;
+import com.google.common.base.Ticker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.time.Duration;
@@ -47,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -74,8 +77,11 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   private final MarketplaceLicence licence;
 
   private final Cache<CatalogueKey, List<MarketplacePlugin>> catalogueCache;
-  private final Cache<CatalogueKey, Boolean> offlineCache;
+  /** One entry, keyed by host: "we cannot reach the registry" is not a fact about a filter. */
+  private final Cache<String, Boolean> hostDownCache;
+  private final Cache<CatalogueKey, Boolean> catalogueFailureCache;
   private final Cache<String, MarketplaceVersionDetail> versionCache;
+  private final Cache<String, Boolean> versionFailureCache;
 
   /**
    * Creates the handler.
@@ -88,24 +94,39 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    * @param offlineTtl                how long a registry failure is remembered
    * @param versionTtl                how long a version detail is reused
    */
+  @Autowired
   public GetMarketplaceCatalogueHandlerImpl(MarketplaceClient client,
       IntegrationTypeRepository integrationTypeRepository, ProductVersion productVersion,
       MarketplaceLicence licence,
       @Value("${marketplace.cache.catalogue-ttl:PT60S}") Duration catalogueTtl,
       @Value("${marketplace.cache.offline-ttl:PT30S}") Duration offlineTtl,
       @Value("${marketplace.cache.version-ttl:PT5M}") Duration versionTtl) {
+    this(client, integrationTypeRepository, productVersion, licence, catalogueTtl, offlineTtl,
+        versionTtl, Ticker.systemTicker());
+  }
+
+  /**
+   * As above, with the clock the caches age against — a test can cross a TTL without sleeping.
+   */
+  GetMarketplaceCatalogueHandlerImpl(MarketplaceClient client,
+      IntegrationTypeRepository integrationTypeRepository, ProductVersion productVersion,
+      MarketplaceLicence licence, Duration catalogueTtl, Duration offlineTtl, Duration versionTtl,
+      Ticker ticker) {
     this.client = client;
     this.integrationTypeRepository = integrationTypeRepository;
     this.productVersion = productVersion;
     this.licence = licence;
-    this.catalogueCache = expiring(catalogueTtl);
-    this.offlineCache = expiring(offlineTtl);
-    this.versionCache = expiring(versionTtl);
+    this.catalogueCache = expiring(catalogueTtl, ticker);
+    this.hostDownCache = expiring(offlineTtl, ticker);
+    this.catalogueFailureCache = expiring(offlineTtl, ticker);
+    this.versionCache = expiring(versionTtl, ticker);
+    this.versionFailureCache = expiring(offlineTtl, ticker);
   }
 
-  private static <K, V> Cache<K, V> expiring(Duration ttl) {
+  private static <K, V> Cache<K, V> expiring(Duration ttl, Ticker ticker) {
     return CacheBuilder.newBuilder()
         .expireAfterWrite(ttl.toMillis(), TimeUnit.MILLISECONDS)
+        .ticker(ticker)
         .maximumSize(256)
         .build();
   }
@@ -152,9 +173,13 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    * The registry's answer for these filters, or null when it could not be had. Every registry
    * failure is offline here: a page that cannot be told what the registry thinks leaves the user
    * in the same position whichever way the call failed.
+   *
+   * <p>A host known to be down short-circuits even a catalogue still inside its own TTL. Serving
+   * that page would have to claim the registry is ONLINE, and the whole point of the status is
+   * that it is true.
    */
   private List<MarketplacePlugin> registryCatalogue(CatalogueKey key) {
-    if (offlineCache.getIfPresent(key) != null) {
+    if (registryUnreachable() || catalogueFailureCache.getIfPresent(key) != null) {
       return null;
     }
     var cached = catalogueCache.getIfPresent(key);
@@ -168,9 +193,32 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     } catch (MarketplaceException e) {
       LOGGER.warn("Marketplace registry at '{}' could not be read; serving the plugins page"
           + " offline: {}", client.registryHost(), e.getMessage());
-      offlineCache.put(key, Boolean.TRUE);
+      if (!rememberIfHostIsDown(e)) {
+        catalogueFailureCache.put(key, Boolean.TRUE);
+      }
       return null;
     }
+  }
+
+  private boolean registryUnreachable() {
+    return hostDownCache.getIfPresent(client.registryHost()) != null;
+  }
+
+  /**
+   * Records a failure that is about the host rather than about one request, and says whether it
+   * was one.
+   *
+   * <p>An unreachable host is the expensive case: every probe of it costs the whole request
+   * deadline, and the answer is the same for every filter string a user types and for every
+   * plugin whose version detail we wanted. A registry that answered at all is up, and its refusal
+   * is only evidence about the request that drew it.
+   */
+  private boolean rememberIfHostIsDown(MarketplaceException e) {
+    if (e instanceof RegistryUnreachableException) {
+      hostDownCache.put(client.registryHost(), Boolean.TRUE);
+      return true;
+    }
+    return false;
   }
 
   private static Map<String, MarketplacePlugin> index(List<MarketplacePlugin> plugins,
@@ -186,18 +234,24 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   }
 
   /**
-   * The registry id persisted at install time first, then the entry's {@code pf4jId} against the
-   * PF4J id — byte for byte. Case-folding would merge {@code github} and {@code GitHub}, which are
-   * two different plugins that can both be installed at once.
+   * A registry id persisted at install time is the only key we will match on; otherwise the
+   * entry's {@code pf4jId} against the PF4J id, byte for byte. Case-folding would merge
+   * {@code github} and {@code GitHub}, which are two different plugins that can both be installed
+   * at once.
+   *
+   * <p>A persisted id that no longer resolves does not fall back to the name. The id is a record
+   * of where this plugin actually came from; the name is a guess that a different registry entry
+   * happens to share. Falling back would replace strong evidence with weak, and could name that
+   * other entry as this plugin's origin and offer its versions as updates. The catalogue is also
+   * filtered, so an id can be missing merely because the filter excluded it — and the name of a
+   * surviving entry would then match by accident. Not matching says what is true: with the id
+   * gone, nothing about this plugin can be verified.
    */
   private MarketplacePlugin match(IntegrationType type, Map<String, MarketplacePlugin> byRegistryId,
       Map<String, MarketplacePlugin> byPf4jId) {
     var persisted = detail(type, MARKETPLACE_PLUGIN_ID_KEY);
     if (persisted != null) {
-      var byId = byRegistryId.get(persisted);
-      if (byId != null) {
-        return byId;
-      }
+      return byRegistryId.get(persisted);
     }
     return type.getName() == null ? null : byPf4jId.get(type.getName());
   }
@@ -281,21 +335,34 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     return productVersion.satisfies(range) ? new UpdateAvailableResource(latest) : null;
   }
 
+  /**
+   * The version detail, or null when it could not be had. Failures are remembered as well as
+   * successes: a registry that serves the catalogue but not the version route would otherwise be
+   * asked again for every plugin with a pending update, on every page view.
+   */
   private MarketplaceVersionDetail versionDetail(String pluginId, String version) {
     var key = pluginId + ":" + version;
+    if (registryUnreachable() || versionFailureCache.getIfPresent(key) != null) {
+      return null;
+    }
     var cached = versionCache.getIfPresent(key);
     if (cached != null) {
       return cached;
     }
     try {
       var detail = client.getVersion(pluginId, version);
-      if (detail != null) {
+      if (detail == null) {
+        versionFailureCache.put(key, Boolean.TRUE);
+      } else {
         versionCache.put(key, detail);
       }
       return detail;
     } catch (MarketplaceException e) {
       LOGGER.warn("Could not read version '{}' of marketplace plugin '{}', offering no update: {}",
           version, pluginId, e.getMessage());
+      if (!rememberIfHostIsDown(e)) {
+        versionFailureCache.put(key, Boolean.TRUE);
+      }
       return null;
     }
   }

@@ -44,6 +44,7 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
+import com.google.common.base.Ticker;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.util.HashMap;
@@ -60,6 +61,7 @@ class GetMarketplaceCatalogueHandlerTest {
   private MarketplaceClient client;
   private IntegrationTypeRepository integrationTypeRepository;
   private MarketplaceLicence licence;
+  private FakeTicker ticker;
   private GetMarketplaceCatalogueHandlerImpl handler;
 
   @BeforeEach
@@ -67,6 +69,7 @@ class GetMarketplaceCatalogueHandlerTest {
     client = mock(MarketplaceClient.class);
     integrationTypeRepository = mock(IntegrationTypeRepository.class);
     licence = mock(MarketplaceLicence.class);
+    ticker = new FakeTicker();
     when(client.registryHost()).thenReturn("marketplace.reportportal.io");
     when(licence.isConfigured()).thenReturn(false);
     handler = newHandler(new ProductVersion("25.2"));
@@ -74,7 +77,22 @@ class GetMarketplaceCatalogueHandlerTest {
 
   private GetMarketplaceCatalogueHandlerImpl newHandler(ProductVersion productVersion) {
     return new GetMarketplaceCatalogueHandlerImpl(client, integrationTypeRepository, productVersion,
-        licence, Duration.ofSeconds(60), Duration.ofSeconds(30), Duration.ofMinutes(5));
+        licence, Duration.ofSeconds(60), Duration.ofSeconds(30), Duration.ofMinutes(5), ticker);
+  }
+
+  /** Guava reads expiry off the ticker, so the TTLs can be crossed without sleeping. */
+  private static final class FakeTicker extends Ticker {
+
+    private long nanos;
+
+    @Override
+    public long read() {
+      return nanos;
+    }
+
+    void advance(Duration duration) {
+      nanos += duration.toNanos();
+    }
   }
 
   private static IntegrationType installed(long id, String name, IntegrationGroupEnum group,
@@ -171,6 +189,26 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
+  void aPersistedRegistryIdTheRegistryNoLongerKnowsIsNotDowngradedToANameGuess() {
+    // The persisted id was written by the install path — hard evidence of where this plugin came
+    // from. A pf4jId name match is a guess. When the id no longer resolves we cannot verify
+    // anything about this plugin, and saying so beats naming a different registry entry as its
+    // origin and offering that entry's versions as updates.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(5L, "jira", IntegrationGroupEnum.BTS, "1.0.0", "renamed-jira")));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("legacy-jira", "Old Jira", "9.9.9", "bug-tracking", "public", "jira")));
+
+    var catalogue = handler.getCatalogue(null, null);
+
+    assertNull(installedNamed(catalogue, "jira").marketplace());
+    // Unmatched, so the entry the name happened to hit is still just something on offer.
+    assertEquals(List.of("legacy-jira"),
+        catalogue.available().stream().map(entry -> entry.id()).toList());
+    verify(client, never()).getVersion(anyString(), anyString());
+  }
+
+  @Test
   void unmatchedInstalledPluginIsReturnedWithoutAMarketplaceBlock() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(3L, "homegrown", IntegrationGroupEnum.OTHER, "0.1.0", null)));
@@ -263,6 +301,48 @@ class GetMarketplaceCatalogueHandlerTest {
         registryPlugin("jira", "Jira", "2.0.0", "bug-tracking", "public", "jira")));
     when(client.getVersion("jira", "2.0.0"))
         .thenReturn(versionDetail("jira", "2.0.0", ">=27.0", false));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+  }
+
+  @Test
+  void noUpdateWhenThisReleaseIsAboveTheUpperBoundOfTheDeclaredWindow() {
+    // 26.0 is past the '<26.0' end of the window, so the jar would not run here.
+    handler = newHandler(new ProductVersion("26.0"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.9", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.10", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.10"))
+        .thenReturn(versionDetail("jira", "1.4.10", ">=25.1, <26.0", false));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+  }
+
+  @Test
+  void noUpdateWhenTheDeclaredCompatibilityRangeCannotBeRead() {
+    // An unreadable claim of compatibility is not a claim of compatibility.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.3"))
+        .thenReturn(versionDetail("jira", "1.4.3", ">=25.x", false));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+  }
+
+  @Test
+  void noUpdateWhenTheNewerVersionDeclaresNoCompatibilityAtAll() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.3"))
+        .thenReturn(versionDetail("jira", "1.4.3", null, false));
 
     assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
         .updateAvailable());
@@ -391,14 +471,149 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void offlineFailureIsCachedPerFilterCombinationNotGlobally() {
+  void aRegistryThatAnsweredOneFilterBadlyIsStillAskedAboutAnother() {
+    // The registry answered, so it is up; the refusal is about this request, not about the host.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
-    when(client.getCatalogue(null, "jira")).thenThrow(new RegistryUnreachableException(
-        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
+    when(client.getCatalogue(null, "jira"))
+        .thenThrow(new RegistryResponseException(400, "BAD_REQUEST", "boom"));
     when(client.getCatalogue(null, "slack")).thenReturn(List.of(
         registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
 
     assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("jira", null).registry().status());
     assertEquals(RegistryStatus.ONLINE, handler.getCatalogue("slack", null).registry().status());
+  }
+
+  @Test
+  void aDeadHostIsNotProbedAgainForEveryFilterTheUserTypes() {
+    // Each probe of an unreachable host costs the whole request deadline, so keying that verdict
+    // by filter lets a user pay it once per keystroke.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(any(), any())).thenThrow(new RegistryUnreachableException(
+        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
+
+    assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("j", null).registry().status());
+    assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("ji", null).registry().status());
+    assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("jir", null).registry().status());
+    assertEquals(RegistryStatus.OFFLINE,
+        handler.getCatalogue(null, "bug-tracking").registry().status());
+
+    verify(client, times(1)).getCatalogue(any(), any());
+  }
+
+  @Test
+  void aRecoveredRegistryIsProbedAgainOnceTheOfflineVerdictExpires() {
+    // A suppression that never lapses is strictly worse than probing: "down" becomes permanent.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null))
+        .thenThrow(new RegistryUnreachableException("marketplace.reportportal.io",
+            new SocketTimeoutException("Read timed out")))
+        .thenReturn(List.of(
+            registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+
+    assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue(null, null).registry().status());
+    ticker.advance(Duration.ofSeconds(29));
+    assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue(null, null).registry().status());
+    verify(client, times(1)).getCatalogue(null, null);
+
+    ticker.advance(Duration.ofSeconds(2));
+
+    assertEquals(RegistryStatus.ONLINE, handler.getCatalogue(null, null).registry().status());
+    verify(client, times(2)).getCatalogue(null, null);
+  }
+
+  @Test
+  void aCataloguePageIsNotRebuiltFromTheRegistryUntilItsOwnTtlExpires() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of());
+
+    handler.getCatalogue(null, null);
+    ticker.advance(Duration.ofSeconds(59));
+    handler.getCatalogue(null, null);
+    verify(client, times(1)).getCatalogue(null, null);
+
+    ticker.advance(Duration.ofSeconds(2));
+    handler.getCatalogue(null, null);
+
+    verify(client, times(2)).getCatalogue(null, null);
+  }
+
+  @Test
+  void aFailingVersionDetailIsNotRefetchedOnEveryPageView() {
+    // The catalogue is served but the version route is not, so without a negative cache this
+    // costs one probe per pending-update plugin per page view.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.3"))
+        .thenThrow(new RegistryResponseException(500, "INTERNAL_ERROR", "boom"));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+
+    verify(client, times(1)).getVersion("jira", "1.4.3");
+  }
+
+  @Test
+  void aFailingVersionDetailIsRetriedOnceTheNegativeVerdictExpires() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.3"))
+        .thenThrow(new RegistryResponseException(500, "INTERNAL_ERROR", "boom"))
+        .thenReturn(versionDetail("jira", "1.4.3", ">=25.1, <26.0", false));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+    ticker.advance(Duration.ofSeconds(31));
+
+    var update = installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable();
+
+    assertNotNull(update);
+    assertEquals("1.4.3", update.version());
+  }
+
+  @Test
+  void oneUnreachableVersionCallStopsTheRestOfThePageProbingTheSameDeadHost() {
+    // Both plugins have a pending update, so both want a version detail. The first call proves
+    // the host is unreachable; paying the deadline again for the second is time already known to
+    // be wasted, and a page with ten pending updates would pay it ten times.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of(
+        installed(1L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null),
+        installed(2L, "slack", IntegrationGroupEnum.NOTIFICATION, "1.0.0", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira"),
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+    when(client.getVersion("jira", "1.4.3")).thenThrow(new RegistryUnreachableException(
+        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
+
+    var catalogue = handler.getCatalogue(null, null);
+
+    assertNull(installedNamed(catalogue, "jira").marketplace().updateAvailable());
+    assertNull(installedNamed(catalogue, "slack").marketplace().updateAvailable());
+    verify(client, never()).getVersion("slack", "2.0.0");
+  }
+
+  @Test
+  void anUnreachableVersionRouteMarksTheWholeHostDown() {
+    // The host verdict is one verdict wherever it was learned: a version call that times out has
+    // already proved the catalogue call for the next filter will time out too.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(any(), any())).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.3")).thenThrow(new RegistryUnreachableException(
+        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
+
+    assertEquals(RegistryStatus.ONLINE, handler.getCatalogue(null, null).registry().status());
+
+    assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("jira", null).registry().status());
+    verify(client, never()).getCatalogue(null, "jira");
   }
 }

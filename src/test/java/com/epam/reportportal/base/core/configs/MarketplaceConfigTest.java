@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.convert.ApplicationConversionService;
@@ -252,6 +253,36 @@ class MarketplaceConfigTest {
 
       assertEquals(cdnUrl, artifact.downloadUrl());
       assertNull(artifact.expiresAt());
+    } finally {
+      server.stop(0);
+    }
+  }
+
+  @Test
+  void shutdownClosesThePooledHttpClient() throws IOException {
+    var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    server.createContext("/api/v1/plugins", exchange -> {
+      var body = "{\"plugins\":[{\"id\":\"jira\",\"name\":\"Jira\"}]}"
+          .getBytes(StandardCharsets.UTF_8);
+      exchange.getResponseHeaders().add("Content-Type", "application/json");
+      exchange.sendResponseHeaders(200, body.length);
+      exchange.getResponseBody().write(body);
+      exchange.close();
+    });
+    server.start();
+    try {
+      var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
+          Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30));
+      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+      assertEquals(1, client.getCatalogue(null, null).size());
+      var pool = (PoolingHttpClientConnectionManager)
+          ReflectionTestUtils.getField(config, "connectionManager");
+      // Keep-alive leaves the socket in the pool, held open until something closes it.
+      assertEquals(1, pool.getTotalStats().getAvailable());
+
+      config.shutdown();
+
+      assertEquals(0, pool.getTotalStats().getAvailable());
     } finally {
       server.stop(0);
     }

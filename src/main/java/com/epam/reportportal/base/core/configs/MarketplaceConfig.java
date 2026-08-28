@@ -29,7 +29,9 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +54,8 @@ public class MarketplaceConfig {
   private final Duration connectTimeout;
   private final Duration readTimeout;
   private final Duration requestDeadline;
+  private PoolingHttpClientConnectionManager connectionManager;
+  private CloseableHttpClient httpClient;
   private final ScheduledExecutorService deadlineWatchdog =
       Executors.newSingleThreadScheduledExecutor(runnable -> {
         var thread = new Thread(runnable, "marketplace-deadline");
@@ -78,9 +82,13 @@ public class MarketplaceConfig {
     this.requestDeadline = requestDeadline;
   }
 
+  /** The pool holds its connections open until told otherwise, so hand them back on the way out. */
   @PreDestroy
-  void stopDeadlineWatchdog() {
+  void shutdown() {
     deadlineWatchdog.shutdownNow();
+    if (httpClient != null) {
+      httpClient.close(CloseMode.GRACEFUL);
+    }
   }
 
   public String registryUrl() {
@@ -101,12 +109,12 @@ public class MarketplaceConfig {
   }
 
   CloseableHttpClient httpClient() {
-    var connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+    connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
         .setDefaultConnectionConfig(connectionConfig())
         .setMaxConnPerRoute(20)
         .setMaxConnTotal(20)
         .build();
-    return HttpClients.custom()
+    httpClient = HttpClients.custom()
         .setConnectionManager(connectionManager)
         // Queuing for a pooled connection is another way to stall a request thread; the default
         // wait is three minutes.
@@ -116,6 +124,7 @@ public class MarketplaceConfig {
         // The artifact route's 302 is data: the Location must be read, not chased.
         .disableRedirectHandling()
         .build();
+    return httpClient;
   }
 
   /**

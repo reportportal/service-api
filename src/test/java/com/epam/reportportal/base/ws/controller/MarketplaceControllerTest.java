@@ -39,6 +39,9 @@ class MarketplaceControllerTest extends BaseMvcTest {
   @MockBean
   private MarketplaceClient marketplaceClient;
 
+  // The handler is a singleton in the shared context and remembers an unreachable host for a
+  // while, so each test speaks to a registry of its own rather than to a shared verdict.
+
   @Test
   void catalogueIsReadableByAnyAuthenticatedUser() throws Exception {
     when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
@@ -60,14 +63,14 @@ class MarketplaceControllerTest extends BaseMvcTest {
 
   @Test
   void unreachableRegistryStillRendersThePage() throws Exception {
-    when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
+    when(marketplaceClient.registryHost()).thenReturn("offline.reportportal.test");
     when(marketplaceClient.getCatalogue(any(), any())).thenThrow(new RegistryUnreachableException(
-        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
+        "offline.reportportal.test", new SocketTimeoutException("Read timed out")));
 
     mockMvc.perform(get("/v1/plugins?q=jira").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.registry.status").value("OFFLINE"))
-        .andExpect(jsonPath("$.registry.host").value("marketplace.reportportal.io"))
+        .andExpect(jsonPath("$.registry.host").value("offline.reportportal.test"))
         .andExpect(jsonPath("$.available").isEmpty());
   }
 }

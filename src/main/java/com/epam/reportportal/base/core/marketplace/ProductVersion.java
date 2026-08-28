@@ -64,11 +64,26 @@ public class ProductVersion {
   /**
    * Whether a declared compatibility range covers this instance.
    *
+   * <p>A range that does not parse is unknown compatibility, not compatibility: it answers no and
+   * is logged, because it is a defect in what the registry published and nothing here can repair
+   * it. A range that is simply absent answers no too, but silently — that is the registry saying
+   * nothing rather than saying something broken.
+   *
    * @param range the version detail's {@code compatibility.reportportal}, may be null
    * @return true only when the product version is known, the range parses, and it matches
    */
   public boolean satisfies(String range) {
-    return version != null
-        && CompatibilityRange.parse(range).map(parsed -> parsed.matches(version)).orElse(false);
+    if (version == null) {
+      return false;
+    }
+    var parsed = CompatibilityRange.parse(range);
+    if (parsed.isEmpty()) {
+      if (StringUtils.isNotBlank(range)) {
+        LOGGER.warn("Marketplace compatibility range '{}' cannot be read, so it is treated as"
+            + " unknown compatibility and no update is offered for it.", range);
+      }
+      return false;
+    }
+    return parsed.get().matches(version);
   }
 }

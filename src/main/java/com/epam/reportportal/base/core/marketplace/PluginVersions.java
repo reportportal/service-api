@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.marketplace;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -37,6 +36,10 @@ public final class PluginVersions {
    * {@code 2.0.0}. Two different suffixes on the same numbers are ordered lexically, which is a
    * guess, but the alternative is calling them equal and silently offering no update.
    *
+   * <p>Build metadata carries no precedence, as semver says: {@code 2.0.0+build.5} is
+   * {@code 2.0.0}. Ordering on it would rank a release candidate above the release itself, since
+   * {@code +} sorts below {@code -}.
+   *
    * @param left  a version, may be null
    * @param right a version, may be null
    * @return negative, zero or positive as left is below, equal to or above right; a null version
@@ -46,13 +49,11 @@ public final class PluginVersions {
     if (left == null || right == null) {
       return left == null ? (right == null ? 0 : -1) : 1;
     }
-    var leftCore = core(left);
-    var rightCore = core(right);
-    var numbers = compareNumbers(leftCore, rightCore);
+    var numbers = compareNumbers(core(left), core(right));
     if (numbers != 0) {
       return numbers;
     }
-    return comparePreRelease(suffix(left), suffix(right));
+    return comparePreRelease(preRelease(left), preRelease(right));
   }
 
   private static int compareNumbers(String left, String right) {
@@ -60,12 +61,32 @@ public final class PluginVersions {
     var rightParts = right.split("\\.");
     var length = Math.max(leftParts.length, rightParts.length);
     for (var i = 0; i < length; i++) {
-      var result = Long.compare(segment(leftParts, i), segment(rightParts, i));
+      var result = compareDigits(segment(leftParts, i), segment(rightParts, i));
       if (result != 0) {
         return result;
       }
     }
     return 0;
+  }
+
+  /**
+   * Numeric order over digit strings, without parsing them. The registry chooses these strings and
+   * a segment longer than a {@code long} would otherwise throw out of the plugins page.
+   */
+  private static int compareDigits(String left, String right) {
+    var trimmedLeft = stripLeadingZeroes(left);
+    var trimmedRight = stripLeadingZeroes(right);
+    return trimmedLeft.length() == trimmedRight.length()
+        ? trimmedLeft.compareTo(trimmedRight)
+        : Integer.compare(trimmedLeft.length(), trimmedRight.length());
+  }
+
+  private static String stripLeadingZeroes(String digits) {
+    var first = 0;
+    while (first < digits.length() - 1 && digits.charAt(first) == '0') {
+      first++;
+    }
+    return digits.substring(first);
   }
 
   private static int comparePreRelease(String left, String right) {
@@ -81,27 +102,31 @@ public final class PluginVersions {
     return left.compareTo(right);
   }
 
-  private static long segment(String[] parts, int index) {
+  private static String segment(String[] parts, int index) {
     if (index >= parts.length) {
-      return 0L;
+      return "0";
     }
     var digits = parts[index].chars().takeWhile(Character::isDigit)
         .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
         .toString();
-    return digits.isEmpty() ? 0L : Long.parseLong(digits);
+    return digits.isEmpty() ? "0" : digits;
+  }
+
+  /** The version with its build metadata dropped: that part has no precedence. */
+  private static String withoutBuildMetadata(String version) {
+    var trimmed = StringUtils.trimToEmpty(version);
+    var plus = trimmed.indexOf('+');
+    return plus < 0 ? trimmed : trimmed.substring(0, plus);
   }
 
   private static String core(String version) {
-    var trimmed = StringUtils.trimToEmpty(version);
-    var cut = Arrays.stream(new int[] {trimmed.indexOf('-'), trimmed.indexOf('+')})
-        .filter(index -> index >= 0)
-        .min()
-        .orElse(trimmed.length());
-    return trimmed.substring(0, cut);
+    var significant = withoutBuildMetadata(version);
+    var dash = significant.indexOf('-');
+    return dash < 0 ? significant : significant.substring(0, dash);
   }
 
-  private static String suffix(String version) {
-    var trimmed = StringUtils.trimToEmpty(version);
-    return trimmed.substring(core(version).length());
+  private static String preRelease(String version) {
+    var significant = withoutBuildMetadata(version);
+    return significant.substring(core(version).length());
   }
 }

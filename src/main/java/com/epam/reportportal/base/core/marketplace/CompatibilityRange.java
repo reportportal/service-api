@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.marketplace;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -76,17 +77,27 @@ public final class CompatibilityRange {
 
     private static final List<String> OPERATORS = List.of(">=", "<=", "==", ">", "<", "=");
 
+    /**
+     * A dotted number, optionally pre-release, optionally with build metadata. Anything else is
+     * not a version: {@code >=25.x} would otherwise compare as {@code >=25.0} and {@code >=next}
+     * as {@code >=0}, i.e. every unreadable bound would silently mean "everything is compatible".
+     */
+    private static final Pattern VERSION =
+        Pattern.compile("\\d+(\\.\\d+)*(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?");
+
     static Constraint parse(String text) {
       var trimmed = StringUtils.trimToEmpty(text);
       for (var operator : OPERATORS) {
         if (trimmed.startsWith(operator)) {
-          var version = StringUtils.trimToNull(trimmed.substring(operator.length()));
-          return version == null ? null : new Constraint(operator, version);
+          return of(operator, StringUtils.trimToEmpty(trimmed.substring(operator.length())));
         }
       }
       // A bare version is an exact pin, as in the plan's '=25.5.0' row without the sign.
-      return trimmed.isEmpty() || !Character.isDigit(trimmed.charAt(0)) ? null
-          : new Constraint("=", trimmed);
+      return of("=", trimmed);
+    }
+
+    private static Constraint of(String operator, String version) {
+      return VERSION.matcher(version).matches() ? new Constraint(operator, version) : null;
     }
 
     boolean matches(String productVersion) {

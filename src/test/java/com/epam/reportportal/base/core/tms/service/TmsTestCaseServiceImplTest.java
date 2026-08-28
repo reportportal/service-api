@@ -883,6 +883,26 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
+  void patch_WithLowercasePriority_ShouldNormalizeToUpperCaseAndCallRepositoryPatch() {
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var priority = "low";
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(null)
+        .priority(priority)
+        .build();
+
+    sut.patch(projectId, patchRequest);
+
+    verify(tmsTestCaseRepository, never()).findAllById(any());
+    verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(eq(projectId), any(), any());
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, null, "LOW");
+    verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(null, patchRequest);
+  }
+
+  @Test
   void patch_WithNullValuesOnly_ShouldNotCallAnyPatchMethods() {
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
 

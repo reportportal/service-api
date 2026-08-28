@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.base.core.tms.mapper;
 
+import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_TEST_ITEM_NAME_LENGTH;
+
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -24,6 +26,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import java.time.Instant;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,7 +59,7 @@ public class NestedStepItemBuilder {
 
     var nestedStep = new TestItem();
     nestedStep.setUuid(UUID.randomUUID().toString());
-    nestedStep.setName(name);
+    nestedStep.setName(StringUtils.substring(name, 0, MAX_TEST_ITEM_NAME_LENGTH));
     nestedStep.setDescription(description);
     nestedStep.setType(TestItemTypeEnum.STEP);
     nestedStep.setStartTime(Instant.now());
@@ -85,7 +88,7 @@ public class NestedStepItemBuilder {
   public TestItem buildRetryNestedStepItem(TestItem originalStep, TestItem parentRetryItem) {
     var newStep = new TestItem();
     newStep.setUuid(UUID.randomUUID().toString());
-    newStep.setName(originalStep.getName());
+    newStep.setName(StringUtils.substring(originalStep.getName(), 0, MAX_TEST_ITEM_NAME_LENGTH));
     newStep.setDescription(originalStep.getDescription());
     newStep.setType(TestItemTypeEnum.STEP);
     newStep.setStartTime(Instant.now());

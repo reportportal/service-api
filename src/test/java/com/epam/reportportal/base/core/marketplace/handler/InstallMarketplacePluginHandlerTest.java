@@ -39,6 +39,7 @@ import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicenceCredentials;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicenceStore;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
+import com.epam.reportportal.base.core.marketplace.ServerSettingsMarketplaceLicenceStore;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
 import com.epam.reportportal.base.core.marketplace.exception.MarketplaceException;
@@ -51,6 +52,8 @@ import com.epam.reportportal.base.core.marketplace.exception.VersionBlockedExcep
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -75,6 +78,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -395,6 +399,52 @@ class InstallMarketplacePluginHandlerTest {
     verify(client, never()).resolveArtifact(anyString(), anyString(), any());
   }
 
+  /**
+   * The same real chain after an admin removed the credentials, and with the real store rather
+   * than the stub above: an instance that cannot sign refuses premium installs again, which is the
+   * state deleting the credentials exists to reach.
+   */
+  @Test
+  void premiumInstallAfterTheLicenceWasDeletedIsRefusedByTheRealLicence() throws Exception {
+    var store = storeHolding("acme-gmbh", seed());
+    licence = new Ed25519MarketplaceLicence(store, Duration.ofSeconds(60), Clock.systemUTC());
+    registryServes(version("premium", ">=25.1", sha256(JAR), false, null));
+
+    store.clear();
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_LICENCE_NOT_CONFIGURED, thrown.getErrorType());
+    verify(client, never()).resolveArtifact(anyString(), anyString(), any());
+    verifyNoInteractions(pluginBox);
+  }
+
+  private static String seed() throws Exception {
+    var pkcs8 = KeyPairGenerator.getInstance("Ed25519").generateKeyPair().getPrivate().getEncoded();
+    return Base64.getEncoder()
+        .encodeToString(Arrays.copyOfRange(pkcs8, pkcs8.length - 32, pkcs8.length));
+  }
+
+  /** The production store over rows held in a map: encryption and deletion as they really are. */
+  private static ServerSettingsMarketplaceLicenceStore storeHolding(String customerId, String key) {
+    var rows = new HashMap<String, ServerSettings>();
+    var repository = mock(ServerSettingsRepository.class);
+    when(repository.findByKey(anyString()))
+        .thenAnswer(invocation -> Optional.ofNullable(rows.get(invocation.getArgument(0))));
+    when(repository.save(any(ServerSettings.class))).thenAnswer(invocation -> {
+      var saved = invocation.getArgument(0, ServerSettings.class);
+      rows.put(saved.getKey(), saved);
+      return saved;
+    });
+    org.mockito.Mockito.doAnswer(
+            invocation -> rows.remove(invocation.getArgument(0, ServerSettings.class).getKey()))
+        .when(repository).delete(any(ServerSettings.class));
+    var encryptor = new BasicTextEncryptor();
+    encryptor.setPassword("the-instance-secret");
+    var store = new ServerSettingsMarketplaceLicenceStore(repository, encryptor);
+    store.save(customerId, key);
+    return store;
+  }
+
   /** Whatever an admin set, held in memory — the storage round trip has its own test. */
   private record HeldCredentials(MarketplaceLicenceCredentials held)
       implements MarketplaceLicenceStore {
@@ -411,6 +461,11 @@ class InstallMarketplacePluginHandlerTest {
 
     @Override
     public void save(String customerId, String privateKey) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
       throw new UnsupportedOperationException();
     }
   }

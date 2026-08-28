@@ -261,5 +261,10 @@ class Ed25519MarketplaceLicenceTest {
     public void save(String customerId, String privateKey) {
       credentials = new MarketplaceLicenceCredentials(customerId, privateKey);
     }
+
+    @Override
+    public void clear() {
+      credentials = null;
+    }
   }
 }

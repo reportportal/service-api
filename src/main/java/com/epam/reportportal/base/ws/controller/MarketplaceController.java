@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -142,5 +143,21 @@ public class MarketplaceController {
   @PreAuthorize(IS_ADMIN)
   public MarketplaceLicenceResource getLicence(@AuthenticationPrincipal ReportPortalUser user) {
     return marketplaceLicenceHandler.getLicence();
+  }
+
+  /**
+   * Removes the credentials, so premium plugins are locked again and a premium install is refused
+   * as not configured. This is what an operator who pasted the wrong key, or whose entitlement
+   * ended, needs; it is idempotent, so deleting when there is nothing configured succeeds.
+   *
+   * @param user the admin doing it
+   * @return what {@link #getLicence} now answers
+   */
+  @DeleteMapping("/licence")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Remove this instance's marketplace licence credentials")
+  @PreAuthorize(IS_ADMIN)
+  public MarketplaceLicenceResource deleteLicence(@AuthenticationPrincipal ReportPortalUser user) {
+    return marketplaceLicenceHandler.deleteLicence(user);
   }
 }

@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +64,8 @@ class ServerSettingsMarketplaceLicenceStoreTest {
       rows.put(saved.getKey(), saved);
       return saved;
     });
+    doAnswer(invocation -> rows.remove(invocation.getArgument(0, ServerSettings.class).getKey()))
+        .when(repository).delete(any(ServerSettings.class));
     encryptor = encryptorWith("the-instance-secret");
     store = new ServerSettingsMarketplaceLicenceStore(repository, encryptor);
   }
@@ -97,6 +100,25 @@ class ServerSettingsMarketplaceLicenceStoreTest {
     var loaded = store.credentials().orElseThrow();
     assertEquals("other-gmbh", loaded.customerId());
     assertEquals("b3RoZXIta2V5", loaded.privateKey());
+  }
+
+  /** Not just unreadable: the ciphertext must not stay in the table after an admin removes it. */
+  @Test
+  void clearingRemovesBothRows() {
+    store.save(CUSTOMER, PRIVATE_KEY);
+
+    store.clear();
+
+    assertTrue(store.credentials().isEmpty());
+    assertTrue(store.customerId().isEmpty());
+    assertTrue(rows.isEmpty(), rows.keySet().toString());
+  }
+
+  @Test
+  void clearingAnInstanceThatHoldsNothingIsNotAnError() {
+    store.clear();
+
+    assertTrue(store.customerId().isEmpty());
   }
 
   @Test

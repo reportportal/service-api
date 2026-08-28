@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -244,6 +245,57 @@ class MarketplaceControllerTest extends BaseMvcTest {
 
     mockMvc.perform(get("/v1/plugins?q=locked-probe").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(jsonPath("$.available[0].locked").value(false));
+  }
+
+  @Test
+  void deletingTheLicenceIsAdminOnly() throws Exception {
+    mockMvc.perform(delete("/v1/plugins/licence").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void deletingTheLicenceIsNotReachableWithoutAuthentication() throws Exception {
+    mockMvc.perform(delete("/v1/plugins/licence")).andExpect(status().isUnauthorized());
+  }
+
+  /**
+   * What an operator who pasted the wrong key, or whose entitlement ended, has to be able to do:
+   * put the instance back to holding nothing, with premium plugins locked again.
+   */
+  @Test
+  void deletingCredentialsUnconfiguresTheInstanceAndRelocksPremiumPlugins() throws Exception {
+    when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
+    // A q of its own keeps this test off the catalogue cache the other tests share.
+    when(marketplaceClient.getCatalogue(any(), eq("delete-probe"))).thenReturn(List.of(
+        new MarketplacePlugin("premium-jira", "Jira Premium", "3.0.0", "Tracker", "bug-tracking",
+            "premium", "official", "premium-jira")));
+    mockMvc.perform(put("/v1/plugins/licence")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(licenceBody("acme-gmbh", anEd25519PrivateKey()))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+    mockMvc.perform(get("/v1/plugins?q=delete-probe").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(jsonPath("$.available[0].locked").value(false));
+
+    mockMvc.perform(delete("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.configured").value(false))
+        .andExpect(jsonPath("$.customerId").doesNotExist());
+
+    mockMvc.perform(get("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(jsonPath("$.configured").value(false));
+    mockMvc.perform(get("/v1/plugins?q=delete-probe").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(jsonPath("$.available[0].locked").value(true));
+  }
+
+  /** Removing what is not there is the state being asked for, so it answers rather than fails. */
+  @Test
+  void deletingWhenNothingIsConfiguredIsNotAnError() throws Exception {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      mockMvc.perform(delete("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.configured").value(false));
+    }
   }
 
   @Test

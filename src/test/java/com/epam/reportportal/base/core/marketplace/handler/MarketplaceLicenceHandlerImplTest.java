@@ -30,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.marketplace.MarketplaceLicenceRQ;
+import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Arrays;
 import java.util.Base64;
@@ -53,6 +54,20 @@ class MarketplaceLicenceHandlerImplTest {
     var pkcs8 = KeyPairGenerator.getInstance("Ed25519").generateKeyPair().getPrivate().getEncoded();
     privateKey = Base64.getEncoder()
         .encodeToString(Arrays.copyOfRange(pkcs8, pkcs8.length - 32, pkcs8.length));
+  }
+
+  private static KeyPair keyPair() throws Exception {
+    return KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+  }
+
+  /** Go prints the key as the 32-byte seed followed by the 32-byte public key. */
+  private static String goStyleKey(KeyPair seedFrom, KeyPair publicHalfFrom) {
+    var pkcs8 = seedFrom.getPrivate().getEncoded();
+    var x509 = publicHalfFrom.getPublic().getEncoded();
+    var raw = new byte[64];
+    System.arraycopy(pkcs8, pkcs8.length - 32, raw, 0, 32);
+    System.arraycopy(x509, x509.length - 32, raw, 32, 32);
+    return Base64.getEncoder().encodeToString(raw);
   }
 
   @Test
@@ -106,9 +121,77 @@ class MarketplaceLicenceHandlerImplTest {
     assertNull(store.held);
   }
 
+  /**
+   * The operator who pasted the wrong key, or whose entitlement ended, gets the instance back to
+   * holding nothing — which is the only honest state for one that cannot use premium plugins.
+   */
+  @Test
+  void deletingCredentialsLeavesTheInstanceHoldingNothing() {
+    handler.setLicence(new MarketplaceLicenceRQ("acme-gmbh", privateKey), user);
+
+    var resource = handler.deleteLicence(user);
+
+    assertFalse(resource.configured());
+    assertNull(resource.customerId());
+    assertNull(store.held);
+    assertFalse(handler.getLicence().configured());
+  }
+
+  /** Deleting what is not there is the state being asked for, so it is not a failure. */
+  @Test
+  void deletingWhenNothingIsConfiguredIsNotAnError() {
+    var resource = handler.deleteLicence(user);
+
+    assertFalse(resource.configured());
+    assertTrue(store.cleared);
+  }
+
+  /** The 64-byte form the registry hands out, with both halves from the same key pair. */
+  @Test
+  void aGoStyleKeyWhoseHalvesBelongTogetherIsStored() throws Exception {
+    var pair = keyPair();
+
+    handler.setLicence(new MarketplaceLicenceRQ("acme-gmbh", goStyleKey(pair, pair)), user);
+
+    assertEquals(goStyleKey(pair, pair), store.held.privateKey());
+  }
+
+  /**
+   * A key spliced from two pastes is still 64 base64 bytes, so length alone accepts it. The next
+   * seam that would notice is the registry's 403, which cannot say a key is malformed — this is
+   * the only place the operator can be told.
+   */
+  @Test
+  void aKeyWhosePublicHalfDoesNotMatchItsSeedIsRefusedAsMalformed() throws Exception {
+    var spliced = goStyleKey(keyPair(), keyPair());
+
+    var thrown = assertThrows(ReportPortalException.class,
+        () -> handler.setLicence(new MarketplaceLicenceRQ("acme-gmbh", spliced), user));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("malformed"), thrown.getMessage());
+    assertNull(store.held);
+  }
+
+  /** A public half that is not a curve point at all is the same bad request, not a 500. */
+  @Test
+  void aCorruptedPublicHalfIsRefusedRatherThanEscapingAsAServerError() throws Exception {
+    var raw = Base64.getDecoder().decode(goStyleKey(keyPair(), keyPair()));
+    Arrays.fill(raw, 32, 64, (byte) 0xFF);
+    var corrupted = Base64.getEncoder().encodeToString(raw);
+
+    var thrown = assertThrows(ReportPortalException.class,
+        () -> handler.setLicence(new MarketplaceLicenceRQ("acme-gmbh", corrupted), user));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("malformed"), thrown.getMessage());
+    assertNull(store.held);
+  }
+
   private static final class StubStore implements MarketplaceLicenceStore {
 
     private MarketplaceLicenceCredentials held;
+    private boolean cleared;
 
     @Override
     public Optional<String> customerId() {
@@ -123,6 +206,12 @@ class MarketplaceLicenceHandlerImplTest {
     @Override
     public void save(String customerId, String privateKey) {
       held = new MarketplaceLicenceCredentials(customerId, privateKey);
+    }
+
+    @Override
+    public void clear() {
+      held = null;
+      cleared = true;
     }
   }
 }

@@ -70,4 +70,11 @@ public class MarketplaceLicenceHandlerImpl implements MarketplaceLicenceHandler 
         user.getUsername());
     return new MarketplaceLicenceResource(true, customerId);
   }
+
+  @Override
+  public MarketplaceLicenceResource deleteLicence(ReportPortalUser user) {
+    store.clear();
+    LOGGER.info("Marketplace licence credentials removed by '{}'", user.getUsername());
+    return new MarketplaceLicenceResource(false, null);
+  }
 }

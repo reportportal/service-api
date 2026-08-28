@@ -38,4 +38,13 @@ public interface MarketplaceLicenceHandler {
    * @return the same answer {@link #getLicence()} now gives
    */
   MarketplaceLicenceResource setLicence(MarketplaceLicenceRQ request, ReportPortalUser user);
+
+  /**
+   * Removes the credentials, putting the instance back to premium plugins being locked. Idempotent:
+   * an instance that holds none is the state this asks for, not an error.
+   *
+   * @param user the admin doing it
+   * @return the same answer {@link #getLicence()} now gives
+   */
+  MarketplaceLicenceResource deleteLicence(ReportPortalUser user);
 }

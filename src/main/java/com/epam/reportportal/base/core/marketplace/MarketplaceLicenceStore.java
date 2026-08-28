@@ -48,4 +48,10 @@ public interface MarketplaceLicenceStore {
    * @param privateKey base64 Ed25519 private key
    */
   void save(String customerId, String privateKey);
+
+  /**
+   * Removes the stored credentials, leaving the instance as one that never had any. Holding none
+   * is a state and not a failure, so clearing when there is nothing to clear does nothing.
+   */
+  void clear();
 }

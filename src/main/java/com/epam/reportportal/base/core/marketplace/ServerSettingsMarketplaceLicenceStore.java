@@ -84,8 +84,25 @@ public class ServerSettingsMarketplaceLicenceStore implements MarketplaceLicence
     write(PRIVATE_KEY_KEY, encryptor.encrypt(privateKey));
   }
 
+  /**
+   * The rows are deleted, not blanked: a key an operator has removed should not stay in the table
+   * as ciphertext waiting for the instance secret to leak. Both go in one transaction, for the
+   * reason {@link #save} writes both in one.
+   */
+  @Override
+  @Transactional
+  public void clear() {
+    remove(CUSTOMER_ID_KEY);
+    remove(PRIVATE_KEY_KEY);
+  }
+
   private Optional<String> value(String key) {
     return repository.findByKey(key).map(ServerSettings::getValue);
+  }
+
+  /** Nothing to remove is the state being asked for, so a missing row is not a failure. */
+  private void remove(String key) {
+    repository.findByKey(key).ifPresent(repository::delete);
   }
 
   private void write(String key, String value) {

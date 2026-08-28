@@ -32,9 +32,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
+import com.epam.reportportal.base.core.marketplace.Ed25519MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
+import com.epam.reportportal.base.core.marketplace.MarketplaceLicenceCredentials;
+import com.epam.reportportal.base.core.marketplace.MarketplaceLicenceStore;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
@@ -56,13 +59,19 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceArtifact;
 import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplaceInstallRQ;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
+import io.jsonwebtoken.Jwts;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -309,6 +318,101 @@ class InstallMarketplacePluginHandlerTest {
     assertEquals(ErrorType.MARKETPLACE_LICENCE_REJECTED, thrown.getErrorType());
     assertTrue(thrown.getMessage().contains("Invalid license"), thrown.getMessage());
     verifyNoInteractions(pluginBox);
+  }
+
+  /**
+   * The registry answers an unknown customer, a signature it cannot match, an expired entitlement
+   * and one that does not cover this plugin with the same 403. Naming one of the four would send
+   * an operator to fix something that is not broken, so the message names all four.
+   */
+  @Test
+  void anUnexplainedLicenceRejectionNamesEveryModeTheRegistryCannotTellApart() {
+    registryServes(version("premium", ">=25.1", sha256(JAR), false, null));
+    when(licence.signArtifactToken(PLUGIN_ID)).thenReturn(Optional.of("signed.jwt"));
+    when(client.resolveArtifact(eq(PLUGIN_ID), eq("1.4.2"), any())).thenThrow(
+        new LicenceRejectedException(PLUGIN_ID, "1.4.2", 403, LicenceFailure.UNSPECIFIED,
+            "FORBIDDEN", "Invalid license"));
+
+    var message = install().getMessage();
+
+    assertTrue(message.contains("customer id"), message);
+    assertTrue(message.contains("public keys"), message);
+    assertTrue(message.contains("expired"), message);
+    assertTrue(message.contains("cover this plugin"), message);
+  }
+
+  /** A reason the registry does give is reported as itself, not flattened back into all four. */
+  @Test
+  void aRejectionTheRegistryDidExplainIsReportedAsWhatItSaid() {
+    registryServes(version("premium", ">=25.1", sha256(JAR), false, null));
+    when(licence.signArtifactToken(PLUGIN_ID)).thenReturn(Optional.of("signed.jwt"));
+    when(client.resolveArtifact(eq(PLUGIN_ID), eq("1.4.2"), any())).thenThrow(
+        new LicenceRejectedException(PLUGIN_ID, "1.4.2", 403, LicenceFailure.EXPIRED,
+            "LICENSE_EXPIRED", "License entitlement has expired"));
+
+    var message = install().getMessage();
+
+    assertTrue(message.contains("EXPIRED"), message);
+    assertFalse(message.contains("customer id"), message);
+  }
+
+  /**
+   * The whole chain with nothing stubbed in the middle: stored credentials, a real signature, and
+   * a token the registry's own verification would accept. Every other premium test here stubs
+   * {@link MarketplaceLicence}, which cannot catch an install that presents a token nobody signed.
+   */
+  @Test
+  void premiumInstallPresentsATokenTheRegistryCanVerify() throws Exception {
+    var keyPair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+    var pkcs8 = keyPair.getPrivate().getEncoded();
+    var seed = Base64.getEncoder()
+        .encodeToString(Arrays.copyOfRange(pkcs8, pkcs8.length - 32, pkcs8.length));
+    var store = new HeldCredentials(new MarketplaceLicenceCredentials("acme-gmbh", seed));
+    licence = new Ed25519MarketplaceLicence(store, Duration.ofSeconds(60), Clock.systemUTC());
+    registryServes(version("premium", ">=25.1", sha256(JAR), false, null));
+    publicPluginAt("https://cdn.example/signed");
+
+    handler().install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user);
+
+    var token = ArgumentCaptor.forClass(String.class);
+    verify(client).resolveArtifact(eq(PLUGIN_ID), eq("1.4.2"), token.capture());
+    var claims = Jwts.parser().verifyWith(keyPair.getPublic()).build()
+        .parseSignedClaims(token.getValue()).getPayload();
+    assertEquals("acme-gmbh", claims.get("customerId"));
+    assertEquals(PLUGIN_ID, claims.get("pluginId"));
+  }
+
+  /** The same real chain with nothing stored: refused here, before the registry is asked. */
+  @Test
+  void premiumInstallWithNoStoredCredentialsIsRefusedByTheRealLicence() {
+    licence = new Ed25519MarketplaceLicence(new HeldCredentials(null), Duration.ofSeconds(60),
+        Clock.systemUTC());
+    registryServes(version("premium", ">=25.1", sha256(JAR), false, null));
+
+    var thrown = install();
+
+    assertEquals(ErrorType.MARKETPLACE_LICENCE_NOT_CONFIGURED, thrown.getErrorType());
+    verify(client, never()).resolveArtifact(anyString(), anyString(), any());
+  }
+
+  /** Whatever an admin set, held in memory — the storage round trip has its own test. */
+  private record HeldCredentials(MarketplaceLicenceCredentials held)
+      implements MarketplaceLicenceStore {
+
+    @Override
+    public Optional<String> customerId() {
+      return Optional.ofNullable(held).map(MarketplaceLicenceCredentials::customerId);
+    }
+
+    @Override
+    public Optional<MarketplaceLicenceCredentials> credentials() {
+      return Optional.ofNullable(held);
+    }
+
+    @Override
+    public void save(String customerId, String privateKey) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   // --- what the operator did --------------------------------------------------------------------

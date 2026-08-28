@@ -277,6 +277,20 @@ class MarketplaceClientTest {
     assertEquals("LICENSE_EXPIRED", ex.getRegistryCode());
   }
 
+  /** The code is spelled as the registry spells it: {@code LICENSE_ENTITLEMENT_DENIED}. */
+  @Test
+  void entitlementDeniedIsReadUnderTheCodeTheRegistryActuallySends() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/premium/versions/2.0.0/artifact"))
+        .andRespond(withStatus(HttpStatus.FORBIDDEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("{\"code\":\"LICENSE_ENTITLEMENT_DENIED\",\"message\":\"Not covered\"}"));
+
+    var ex = assertThrows(LicenceRejectedException.class,
+        () -> client.resolveArtifact("premium", "2.0.0", "licence-jwt"));
+
+    assertEquals(LicenceFailure.ENTITLEMENT_DENIED, ex.getFailure());
+  }
+
   @Test
   void missingLicenceJwtIsUnauthorized() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/premium/versions/2.0.0/artifact"))

@@ -22,6 +22,7 @@ import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
+import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
 import com.epam.reportportal.base.core.marketplace.exception.MarketplaceException;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
@@ -311,7 +312,7 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
       throw new ReportPortalException(ErrorType.MARKETPLACE_VERSION_BLOCKED,
           reason(e.getPluginId(), e.getVersion(), e.getReason()));
     } catch (LicenceRejectedException e) {
-      throw new ReportPortalException(ErrorType.MARKETPLACE_LICENCE_REJECTED, e.getMessage());
+      throw new ReportPortalException(ErrorType.MARKETPLACE_LICENCE_REJECTED, rejected(e));
     } catch (RegistryNotFoundException e) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND, missing(e));
     } catch (RegistryProtocolException | RegistryResponseException e) {
@@ -325,6 +326,26 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
       throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR,
           e.getClass().getSimpleName() + ": " + e.getMessage());
     }
+  }
+
+  /**
+   * Says what a licence rejection actually establishes and no more. The registry answers unknown
+   * customer, a signature its stored public keys do not match, an expired entitlement and one that
+   * does not cover this plugin with the same 403, so it cannot be asked which happened. Naming one
+   * of the four would send an operator to rotate a key that is fine, so all four are named — the
+   * honest answer, and the one that stops being needed the day the registry sends distinct codes,
+   * which {@link LicenceFailure} already reads.
+   */
+  private static String rejected(LicenceRejectedException e) {
+    if (e.getFailure() != LicenceFailure.UNSPECIFIED) {
+      return e.getMessage();
+    }
+    return "the registry rejected this instance's licence for '" + e.getPluginId() + ":"
+        + e.getVersion() + "' without saying why: the customer id may be unknown to it, the key"
+        + " may not match the entitlement's public keys, the entitlement may have expired, or it"
+        + " may not cover this plugin"
+        + (e.getRegistryMessage() == null ? "" : " (registry said: " + e.getRegistryMessage()
+            + ")");
   }
 
   /** Names whichever of plugin and version the registry said was missing, and no more. */

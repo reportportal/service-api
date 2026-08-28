@@ -51,7 +51,7 @@ public enum LicenceFailure {
       case "LICENSE_JWT_MISSING" -> MISSING;
       case "LICENSE_JWT_INVALID" -> INVALID;
       case "LICENSE_EXPIRED" -> EXPIRED;
-      case "ENTITLEMENT_DENIED" -> ENTITLEMENT_DENIED;
+      case "LICENSE_ENTITLEMENT_DENIED" -> ENTITLEMENT_DENIED;
       default -> status == 401 ? MISSING : UNSPECIFIED;
     };
   }

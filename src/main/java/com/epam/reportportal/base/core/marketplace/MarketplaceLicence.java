@@ -23,10 +23,16 @@ import java.util.Optional;
  *
  * <p>Asked locally and never of the registry: the registry would have to be told who is asking
  * before it could answer, and a locked badge is not worth a round trip that leaks the instance.
- * Stage 4 replaces the default answer with real encrypted storage.
  */
 public interface MarketplaceLicence {
 
+  /**
+   * Whether an admin has configured licence credentials on this instance.
+   *
+   * <p>Asked on every catalogue request, so it must not need the private key to answer.
+   *
+   * @return true when credentials are stored
+   */
   boolean isConfigured();
 
   /**

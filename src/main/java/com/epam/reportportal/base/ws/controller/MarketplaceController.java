@@ -20,9 +20,12 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.reportportal.base.core.marketplace.handler.GetMarketplaceCatalogueHandler;
 import com.epam.reportportal.base.core.marketplace.handler.InstallMarketplacePluginHandler;
+import com.epam.reportportal.base.core.marketplace.handler.MarketplaceLicenceHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.marketplace.MarketplaceInstallRQ;
 import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
+import com.epam.reportportal.base.model.marketplace.MarketplaceLicenceRQ;
+import com.epam.reportportal.base.model.marketplace.MarketplaceLicenceResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,6 +37,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -61,6 +65,7 @@ public class MarketplaceController {
 
   private final GetMarketplaceCatalogueHandler getMarketplaceCatalogueHandler;
   private final InstallMarketplacePluginHandler installMarketplacePluginHandler;
+  private final MarketplaceLicenceHandler marketplaceLicenceHandler;
 
   /**
    * Everything the Plugins page renders, offline state included, in one response.
@@ -102,5 +107,40 @@ public class MarketplaceController {
       @RequestBody @Valid MarketplaceInstallRQ request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return installMarketplacePluginHandler.install(registryId, request, user);
+  }
+
+  /**
+   * Stores the credentials an operator got from the registry when their entitlement was created.
+   * Idempotent, so re-submitting after a key rotation is the same request.
+   *
+   * @param request customer id and base64 Ed25519 private key
+   * @param user    the admin doing it
+   * @return what {@link #getLicence} now answers
+   */
+  @PutMapping("/licence")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Set this instance's marketplace licence credentials")
+  @PreAuthorize(IS_ADMIN)
+  public MarketplaceLicenceResource setLicence(@RequestBody @Valid MarketplaceLicenceRQ request,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return marketplaceLicenceHandler.setLicence(request, user);
+  }
+
+  /**
+   * Whether this instance holds licence credentials, and who it signs as.
+   *
+   * <p>The private key is not in the answer and there is no endpoint that returns it. A key is
+   * written once and only ever read by the signer; an operator who has lost theirs asks the
+   * registry to rotate it.
+   *
+   * @param user the admin asking
+   * @return configured state and customer id
+   */
+  @GetMapping("/licence")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Whether marketplace licence credentials are configured")
+  @PreAuthorize(IS_ADMIN)
+  public MarketplaceLicenceResource getLicence(@AuthenticationPrincipal ReportPortalUser user) {
+    return marketplaceLicenceHandler.getLicence();
   }
 }

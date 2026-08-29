@@ -32,6 +32,7 @@ import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryNotFoundException;
+import com.epam.reportportal.base.core.marketplace.exception.RegistryProtocolException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.core.marketplace.exception.VersionBlockedException;
@@ -494,5 +495,27 @@ class MarketplaceClientTest {
     // Not a subclass: 5xx is neither a blocked version nor a licence problem.
     assertEquals(RegistryResponseException.class, ex.getClass());
     assertEquals(500, ex.getStatus());
+  }
+  @Test
+  void aPublishedDocumentIsReadAsText() {
+    server.expect(requestTo("http://cdn.internal/jira/1.6.0/CHANGELOG.md"))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withSuccess("Fixed a crash\nDropped the legacy field", MediaType.TEXT_PLAIN));
+
+    assertEquals("Fixed a crash\nDropped the legacy field",
+        client.getDocument("http://cdn.internal/jira/1.6.0/CHANGELOG.md"));
+    server.verify();
+  }
+
+  /**
+   * The URL is the registry's, and this instance acts on it. A scheme other than http(s) would
+   * have this client reading a local file or opening a socket the registry chose — no document is
+   * worth that.
+   */
+  @Test
+  void aDocumentUrlThatIsNotHttpIsRefusedWithoutBeingFetched() {
+    assertThrows(RegistryProtocolException.class,
+        () -> client.getDocument("file:///etc/passwd"));
+    server.verify();
   }
 }

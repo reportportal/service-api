@@ -21,11 +21,18 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * offline or the plugin could not be matched — the UI renders both the same way, because in both
  * cases the user is equally unable to know.
  *
+ * <p>{@code advisory} and {@code blocked} are about the version installed here, not about the
+ * latest one: they are the row's badges, and a badge on an installed row is a statement about the
+ * code this instance is running. {@code removed} is about the plugin as a whole.
+ *
  * @param pluginId        registry plugin id
  * @param access          {@code public} or {@code premium}
  * @param tier            trust tier, e.g. {@code official}
  * @param latestVersion   latest version the registry publishes
  * @param updateAvailable newer, compatible, unblocked version, or null
+ * @param advisory        advisory on the installed version, or null
+ * @param blocked         block state of the installed version, or null
+ * @param removed         registry tombstone, or null
  * @param locked          premium and no licence configured on this instance
  */
 public record MarketplaceEntryResource(
@@ -34,6 +41,9 @@ public record MarketplaceEntryResource(
     String tier,
     String latestVersion,
     UpdateAvailableResource updateAvailable,
+    MarketplaceAdvisoryResource advisory,
+    MarketplaceBlockedResource blocked,
+    MarketplaceRemovedResource removed,
     boolean locked
 ) {
 

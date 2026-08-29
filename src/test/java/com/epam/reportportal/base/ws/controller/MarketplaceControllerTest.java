@@ -19,6 +19,8 @@ package com.epam.reportportal.base.ws.controller;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -32,9 +34,14 @@ import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachable
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
+import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
+import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
+import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
 import com.epam.reportportal.base.ws.BaseMvcTest;
+import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
 import java.net.SocketTimeoutException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import org.junit.jupiter.api.Test;
@@ -321,5 +328,57 @@ class MarketplaceControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.registry.status").value("OFFLINE"))
         .andExpect(jsonPath("$.registry.host").value("offline.reportportal.test"))
         .andExpect(jsonPath("$.available").isEmpty());
+  }
+  @Test
+  void aPluginsMarketplacePageIsReadableByAnyAuthenticatedUser() throws Exception {
+    when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
+    when(marketplaceClient.getPlugin("detail-jira")).thenReturn(
+        new MarketplacePluginDetail("detail-jira", "Jira", "1.6.0", "Tracks issues", null, null,
+            "bug-tracking", new MarketplaceCompatibility(">=25.0"), null, "public", null,
+            "official", "1.6.0", "jira"));
+    when(marketplaceClient.listVersions("detail-jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", Instant.parse("2026-03-12T10:15:30Z"), false, null,
+            null)));
+
+    mockMvc.perform(get("/v1/plugins/detail-jira").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value("detail-jira"))
+        .andExpect(jsonPath("$.latestVersion").value("1.6.0"))
+        .andExpect(jsonPath("$.versions[0].version").value("1.6.0"))
+        .andExpect(jsonPath("$.locked").value(false));
+  }
+
+  @Test
+  void aPluginsMarketplacePageIsNotReadableWithoutAuthentication() throws Exception {
+    mockMvc.perform(get("/v1/plugins/detail-anon")).andExpect(status().isUnauthorized());
+  }
+
+  /**
+   * The page has to be able to say "removed from the marketplace, still running here", so the
+   * registry's 410 arrives as state on a 200 rather than as a 404.
+   */
+  @Test
+  void aRemovedPluginIsServedAsRemovedRatherThanAsNotFound() throws Exception {
+    when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
+    when(marketplaceClient.getPlugin("detail-gone")).thenThrow(new PluginRemovedException(
+        "detail-gone", "Vendor withdrew it", Instant.parse("2026-01-05T12:00:00Z"),
+        "operator@rp.io"));
+
+    mockMvc.perform(get("/v1/plugins/detail-gone").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.removed.removalReason").value("Vendor withdrew it"))
+        .andExpect(jsonPath("$.removed.removedBy").value("operator@rp.io"));
+  }
+
+  /**
+   * {@code /licence} is a route, not a plugin id: the detail template must not swallow it, or an
+   * admin reading the licence would get a registry lookup for a plugin called "licence".
+   */
+  @Test
+  void theLicenceRouteIsNotSwallowedByThePluginDetailTemplate() throws Exception {
+    mockMvc.perform(get("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.configured").exists());
+    verify(marketplaceClient, never()).getPlugin("licence");
   }
 }

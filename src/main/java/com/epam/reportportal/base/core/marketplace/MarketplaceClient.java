@@ -40,6 +40,7 @@ import java.io.InterruptedIOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -187,6 +188,33 @@ public class MarketplaceClient {
           + pluginId + ":" + version + "'");
     }
     return artifact;
+  }
+
+  /**
+   * Reads a text document the registry published a URL for, such as a version's changelog.
+   *
+   * <p>The URL comes from the registry and is fetched on the registry's own template, so it is
+   * bounded by the same connect, read and exchange deadlines as every other registry read. Only
+   * http(s) is followed: a URL naming any other scheme is the registry asking this client to do
+   * something it was never meant to do.
+   *
+   * @param url absolute document URL, as published by the registry
+   * @return the document body, or null when the registry served an empty one
+   */
+  public String getDocument(String url) {
+    URI uri;
+    try {
+      uri = URI.create(url);
+    } catch (IllegalArgumentException e) {
+      throw new RegistryProtocolException(
+          "Marketplace registry published an unusable document URL '" + url + "'", e);
+    }
+    var scheme = uri.getScheme() == null ? null : uri.getScheme().toLowerCase(Locale.ROOT);
+    if (!"http".equals(scheme) && !"https".equals(scheme)) {
+      throw new RegistryProtocolException(
+          "Marketplace registry published a document URL that is not http(s): '" + url + "'");
+    }
+    return get(uri, String.class, null);
   }
 
   private UriComponentsBuilder plugins() {

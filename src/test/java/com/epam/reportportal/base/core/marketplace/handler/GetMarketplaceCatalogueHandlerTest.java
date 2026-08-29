@@ -32,14 +32,17 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
+import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
+import com.epam.reportportal.base.model.marketplace.MarketplaceAdvisory;
 import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
+import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
@@ -47,6 +50,7 @@ import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
 import com.google.common.base.Ticker;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -289,8 +293,9 @@ class GetMarketplaceCatalogueHandlerTest {
 
     assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
         .updateAvailable());
-    // Nothing newer to consider, so the version detail is never fetched.
-    verify(client, never()).getVersion(anyString(), anyString());
+    // Nothing newer to consider, so no update probe is made. The one call is the badge read for
+    // the version installed here, which happens to be the latest one.
+    verify(client, times(1)).getVersion("jira", "1.4.2");
   }
 
   @Test
@@ -615,5 +620,138 @@ class GetMarketplaceCatalogueHandlerTest {
 
     assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("jira", null).registry().status());
     verify(client, never()).getCatalogue(null, "jira");
+  }
+  private static MarketplaceVersionDetail advisedVersion(String id, String version,
+      MarketplaceAdvisory advisory, boolean blocked, Instant blockedAt, String blockReason) {
+    return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
+        new MarketplaceCompatibility(">=25.0"), null, "public", null, "official", null, blocked,
+        blockedAt, blockReason, advisory, "sha", null, null);
+  }
+
+  @Test
+  void theAdvisoryOnTheInstalledVersionIsWhatTheRowCarries() {
+    // The badge on an installed row is a statement about the code this instance runs, so it is
+    // read for 1.4.1 — what is installed — and not for the latest version nobody is running.
+    var attachedAt = Instant.parse("2026-02-01T09:00:00Z");
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.5.0", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1",
+        new MarketplaceAdvisory("high", "Leaks the API key into the log", attachedAt), false, null,
+        null));
+    // The latest version is clean; reading it instead would report no advisory at all.
+    when(client.getVersion("jira", "1.5.0")).thenReturn(advisedVersion("jira", "1.5.0", null, false,
+        null, null));
+
+    var row = installedNamed(handler.getCatalogue(null, null), "jira");
+
+    assertNotNull(row.marketplace().advisory());
+    assertEquals("high", row.marketplace().advisory().severity());
+    assertEquals("Leaks the API key into the log", row.marketplace().advisory().text());
+    assertEquals(attachedAt, row.marketplace().advisory().attachedAt());
+    assertNull(row.marketplace().blocked());
+    assertNull(row.marketplace().removed());
+  }
+
+  @Test
+  void theBlockOnTheInstalledVersionIsWhatTheRowCarries() {
+    var blockedAt = Instant.parse("2026-02-02T09:00:00Z");
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.5.0", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1", null, true,
+        blockedAt, "Signed with a revoked key"));
+    // The latest version is servable; reading it instead would report no block at all.
+    when(client.getVersion("jira", "1.5.0")).thenReturn(advisedVersion("jira", "1.5.0", null, false,
+        null, null));
+
+    var row = installedNamed(handler.getCatalogue(null, null), "jira");
+
+    assertNotNull(row.marketplace().blocked());
+    assertEquals("1.4.1", row.marketplace().blocked().version());
+    assertEquals(blockedAt, row.marketplace().blocked().blockedAt());
+    assertEquals("Signed with a revoked key", row.marketplace().blocked().reason());
+    assertNull(row.marketplace().advisory());
+  }
+
+  @Test
+  void anUnblockedVersionCarriesNoBlockEvenWhenTheRegistrySentTheOtherTwoFields() {
+    // blockedAt and blockReason merely describe; only 'blocked' decides.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.1", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1", null, false,
+        Instant.parse("2026-02-02T09:00:00Z"), "lifted"));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira")
+        .marketplace().blocked());
+  }
+
+  @Test
+  void aPluginTheRegistryRemovedIsSaidToBeRemovedRatherThanLeftBlank() {
+    // Removal is how a plugin leaves the catalogue, so the id no longer matches anything. Leaving
+    // the row blank would make it indistinguishable from an offline registry, and the user must be
+    // told the difference: this one keeps running here but can never be updated again.
+    var removedAt = Instant.parse("2026-01-05T12:00:00Z");
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(9L, "jira", IntegrationGroupEnum.BTS, "1.4.1", "plugin-bts-jira")));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+    when(client.getPlugin("plugin-bts-jira")).thenThrow(new PluginRemovedException(
+        "plugin-bts-jira", "Vendor withdrew it", removedAt, "operator@rp.io"));
+
+    var row = installedNamed(handler.getCatalogue(null, null), "jira");
+
+    assertNotNull(row.marketplace());
+    assertEquals("plugin-bts-jira", row.marketplace().pluginId());
+    assertNotNull(row.marketplace().removed());
+    assertEquals(removedAt, row.marketplace().removed().removed());
+    assertEquals("Vendor withdrew it", row.marketplace().removed().removalReason());
+    assertEquals("operator@rp.io", row.marketplace().removed().removedBy());
+  }
+
+  @Test
+  void aPluginMissingFromTheCatalogueForAnyOtherReasonIsStillLeftBlank() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(9L, "jira", IntegrationGroupEnum.BTS, "1.4.1", "still-there")));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+    when(client.getPlugin("still-there")).thenReturn(
+        new MarketplacePluginDetail("still-there", "Jira", "1.4.1", null, null, null,
+            "bug-tracking", null, null, "public", null, "official", "1.4.1", "jira"));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace());
+  }
+
+  @Test
+  void aPluginThatIsOnlyOnOfferCostsNoVersionCall() {
+    // The registry publishes hundreds of plugins and this data lives on version detail; asking per
+    // listed plugin would turn one page view into one registry request per catalogue entry.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack"),
+        registryPlugin("teams", "Teams", "3.0.0", "notifications", "public", "teams")));
+
+    assertEquals(2, handler.getCatalogue(null, null).available().size());
+    verify(client, never()).getVersion(anyString(), anyString());
+    verify(client, never()).getPlugin(anyString());
+  }
+
+  @Test
+  void anInstalledVersionIsAskedForOnceAcrossPageViews() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.1", "bug-tracking", "public", "jira")));
+    when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1", null, false,
+        null, null));
+
+    handler.getCatalogue(null, null);
+    handler.getCatalogue(null, null);
+
+    verify(client, times(1)).getVersion("jira", "1.4.1");
   }
 }

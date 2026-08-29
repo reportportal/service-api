@@ -19,6 +19,7 @@ package com.epam.reportportal.base.ws.controller;
 import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
 
 import com.epam.reportportal.base.core.marketplace.handler.GetMarketplaceCatalogueHandler;
+import com.epam.reportportal.base.core.marketplace.handler.GetMarketplacePluginDetailHandler;
 import com.epam.reportportal.base.core.marketplace.handler.InstallMarketplacePluginHandler;
 import com.epam.reportportal.base.core.marketplace.handler.MarketplaceLicenceHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -27,6 +28,7 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
 import com.epam.reportportal.base.model.marketplace.MarketplaceLicenceRQ;
 import com.epam.reportportal.base.model.marketplace.MarketplaceLicenceResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
+import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginDetailResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -65,6 +67,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MarketplaceController {
 
   private final GetMarketplaceCatalogueHandler getMarketplaceCatalogueHandler;
+  private final GetMarketplacePluginDetailHandler getMarketplacePluginDetailHandler;
   private final InstallMarketplacePluginHandler installMarketplacePluginHandler;
   private final MarketplaceLicenceHandler marketplaceLicenceHandler;
 
@@ -84,6 +87,28 @@ public class MarketplaceController {
       @RequestParam(value = "category", required = false) String category,
       @AuthenticationPrincipal ReportPortalUser user) {
     return getMarketplaceCatalogueHandler.getCatalogue(q, category);
+  }
+
+  /**
+   * One plugin's marketplace page: description, latest version, version history, changelog,
+   * screenshots and the registry's advisory, block and removal state.
+   *
+   * <p>Guarded like {@link #getCatalogue} and not like {@link #install} — this is the same read of
+   * the same catalogue, one plugin at a time, and nothing here changes what runs on the instance.
+   *
+   * <p>A removed plugin answers 200 with {@code removed} set, not 404. It is gone from the
+   * marketplace and still running here, and the page has to be able to say both.
+   *
+   * @param registryId registry plugin id
+   * @param user       the caller
+   * @return the registry's view of that plugin
+   */
+  @GetMapping("/{registryId}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Get one marketplace plugin")
+  public MarketplacePluginDetailResource getPlugin(@PathVariable("registryId") String registryId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return getMarketplacePluginDetailHandler.getPluginDetail(registryId);
   }
 
   /**

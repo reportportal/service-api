@@ -107,6 +107,34 @@ class MarketplaceControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.version").value("2.0.0"));
   }
 
+  /**
+   * The constraint published to service-ui in {@code __fixtures__/request-constraints.json}:
+   * {@code version} is mandatory, and a body without one is refused before anything is installed.
+   * A consumer that learns the field name and not the rule earns this 400 in production.
+   */
+  @Test
+  void anInstallWithNoVersionIsRefusedBeforeTheHandlerRuns() throws Exception {
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+
+    verify(installMarketplacePluginHandler, never()).install(any(), any(), any());
+  }
+
+  /** A blank one is not a version either: an empty string is refused like an absent field. */
+  @Test
+  void anInstallWithABlankVersionIsRefusedBeforeTheHandlerRuns() throws Exception {
+    mockMvc.perform(post("/v1/plugins/slack/install")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":\"   \"}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+
+    verify(installMarketplacePluginHandler, never()).install(any(), any(), any());
+  }
+
   // The three the reviewer has to be able to tell apart on the wire: a version that does not
   // exist, a registry that answered unusably, and a registry that did not answer at all.
 
@@ -307,6 +335,28 @@ class MarketplaceControllerTest extends BaseMvcTest {
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.configured").value(false));
     }
+  }
+
+  /**
+   * The other constraint published to service-ui: a blank customer id is not a customer id. The
+   * key is valid here, so nothing but {@code @NotBlank} stands between this and an instance stored
+   * as signing for nobody.
+   */
+  @Test
+  void aLicenceWithABlankCustomerIdIsRefusedBeforeAnythingIsStored() throws Exception {
+    // Deleting first is idempotent and makes "nothing was stored" mean something wherever this
+    // test lands in the order.
+    mockMvc.perform(delete("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(put("/v1/plugins/licence")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(licenceBody("   ", anEd25519PrivateKey()))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+
+    mockMvc.perform(get("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(jsonPath("$.configured").value(false));
   }
 
   @Test

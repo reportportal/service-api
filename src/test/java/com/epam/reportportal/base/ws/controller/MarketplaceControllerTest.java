@@ -60,7 +60,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
     when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
     when(marketplaceClient.getCatalogue(any(), any())).thenReturn(List.of(
         new MarketplacePlugin("slack", "Slack", "2.0.0", "Notifier", "notifications", "public",
-            "official", "slack")));
+            "official", null, "slack")));
 
     mockMvc.perform(get("/v1/plugins").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())
@@ -239,10 +239,12 @@ class MarketplaceControllerTest extends BaseMvcTest {
     // getCatalogue takes (category, q): a unique q keeps this test off the shared catalogue cache.
     when(marketplaceClient.getCatalogue(any(), eq("locked-probe"))).thenReturn(List.of(
         new MarketplacePlugin("premium-jira", "Jira Premium", "3.0.0", "Tracker", "bug-tracking",
-            "premium", "official", "premium-jira")));
+            "premium", "official", "https://reportportal.io/contact", "premium-jira")));
 
     mockMvc.perform(get("/v1/plugins?q=locked-probe").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(jsonPath("$.available[0].locked").value(true));
+        .andExpect(jsonPath("$.available[0].locked").value(true))
+        .andExpect(jsonPath("$.available[0].contactUrl")
+            .value("https://reportportal.io/contact"));
 
     mockMvc.perform(put("/v1/plugins/licence")
             .contentType(MediaType.APPLICATION_JSON)
@@ -275,7 +277,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
     // A q of its own keeps this test off the catalogue cache the other tests share.
     when(marketplaceClient.getCatalogue(any(), eq("delete-probe"))).thenReturn(List.of(
         new MarketplacePlugin("premium-jira", "Jira Premium", "3.0.0", "Tracker", "bug-tracking",
-            "premium", "official", "premium-jira")));
+            "premium", "official", "https://reportportal.io/contact", "premium-jira")));
     mockMvc.perform(put("/v1/plugins/licence")
             .contentType(MediaType.APPLICATION_JSON)
             .content(licenceBody("acme-gmbh", anEd25519PrivateKey()))
@@ -292,7 +294,9 @@ class MarketplaceControllerTest extends BaseMvcTest {
     mockMvc.perform(get("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(jsonPath("$.configured").value(false));
     mockMvc.perform(get("/v1/plugins?q=delete-probe").with(token(oAuthHelper.getDefaultToken())))
-        .andExpect(jsonPath("$.available[0].locked").value(true));
+        .andExpect(jsonPath("$.available[0].locked").value(true))
+        .andExpect(jsonPath("$.available[0].contactUrl")
+            .value("https://reportportal.io/contact"));
   }
 
   /** Removing what is not there is the state being asked for, so it answers rather than fails. */
@@ -342,10 +346,29 @@ class MarketplaceControllerTest extends BaseMvcTest {
 
     mockMvc.perform(get("/v1/plugins/detail-jira").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value("detail-jira"))
-        .andExpect(jsonPath("$.latestVersion").value("1.6.0"))
+        .andExpect(jsonPath("$.registry.status").value("ONLINE"))
+        .andExpect(jsonPath("$.registry.host").value("marketplace.reportportal.io"))
+        .andExpect(jsonPath("$.plugin.id").value("detail-jira"))
+        .andExpect(jsonPath("$.plugin.latestVersion").value("1.6.0"))
         .andExpect(jsonPath("$.versions[0].version").value("1.6.0"))
         .andExpect(jsonPath("$.locked").value(false));
+  }
+
+  /**
+   * The page degrades exactly as the catalogue does, because the UI reads one envelope for both.
+   */
+  @Test
+  void anUnreachableRegistryStillRendersThePluginPage() throws Exception {
+    when(marketplaceClient.registryHost()).thenReturn("offline.reportportal.test");
+    when(marketplaceClient.getPlugin("detail-offline")).thenThrow(new RegistryUnreachableException(
+        "offline.reportportal.test", new SocketTimeoutException("Read timed out")));
+
+    mockMvc.perform(get("/v1/plugins/detail-offline").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.registry.status").value("OFFLINE"))
+        .andExpect(jsonPath("$.registry.host").value("offline.reportportal.test"))
+        .andExpect(jsonPath("$.plugin").doesNotExist())
+        .andExpect(jsonPath("$.versions").isEmpty());
   }
 
   @Test
@@ -366,6 +389,8 @@ class MarketplaceControllerTest extends BaseMvcTest {
 
     mockMvc.perform(get("/v1/plugins/detail-gone").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.registry.status").value("ONLINE"))
+        .andExpect(jsonPath("$.plugin.id").value("detail-gone"))
         .andExpect(jsonPath("$.removed.removalReason").value("Vendor withdrew it"))
         .andExpect(jsonPath("$.removed.removedBy").value("operator@rp.io"));
   }

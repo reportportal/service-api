@@ -261,9 +261,15 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
         locked(plugin.access()));
   }
 
+  /**
+   * A registry plugin offered for install. {@code contactUrl} travels with it because a locked
+   * premium row offers no install, only an enquiry, and without the URL that action is drawn and
+   * does nothing.
+   */
   private AvailablePluginResource toAvailable(MarketplacePlugin plugin) {
     return new AvailablePluginResource(plugin.id(), plugin.name(), plugin.latestVersion(),
-        plugin.description(), group(plugin.category()).map(Enum::name).orElse(null),
+        plugin.description(), plugin.contactUrl(),
+        group(plugin.category()).map(Enum::name).orElse(null),
         plugin.access(), plugin.tier(), locked(plugin.access()));
   }
 

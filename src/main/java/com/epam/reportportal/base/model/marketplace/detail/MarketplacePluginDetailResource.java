@@ -18,38 +18,39 @@ package com.epam.reportportal.base.model.marketplace.detail;
 
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceAdvisoryResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceBlockedResource;
+import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceRemovedResource;
+import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatusResource;
 import java.util.List;
 
 /**
  * The marketplace half of a single plugin's page. Nothing local is in here: what is installed
  * comes from the catalogue, and this answer is only what the registry says.
  *
- * <p>A removed plugin is not a missing one. The registry answers its tombstone, and it arrives
- * here as {@code removed} on an otherwise empty answer, so the page can say "removed from the
- * marketplace, still running here" instead of "no such plugin".
+ * <p>It carries the same {@code registry} envelope
+ * {@link MarketplaceCatalogueResource} does, and for the same reason: the UI has one rule for
+ * whether a marketplace-sourced signal may be believed, and that rule reads the envelope. A
+ * response that could not say "the registry was unreachable" would force the page to grow a
+ * second rule, and two rules drift.
  *
- * @param id            registry plugin id
- * @param name          display name, null for a removed plugin
- * @param description   short description, null for a removed plugin
- * @param latestVersion latest published version, null for a removed plugin
- * @param access        {@code public} or {@code premium}
- * @param tier          trust tier
- * @param versions      version history, never null, empty for a removed plugin
- * @param changelog     changelog of the latest version, or null
- * @param screenshots   screenshot URLs of the latest version, never null
- * @param advisory      advisory on the latest version, or null
- * @param blocked       block state of the latest version, or null
- * @param removed       registry tombstone, or null
- * @param locked        premium and no licence configured on this instance
+ * <p>Offline is therefore a 200 with everything registry-derived absent, not an error. A removed
+ * plugin is not a missing one either: the registry answers its tombstone, and it arrives here as
+ * {@code removed} beside a {@code plugin} that carries only its id, so the page can say "removed
+ * from the marketplace, still running here" instead of "no such plugin".
+ *
+ * @param registry    registry reachability and host, never null
+ * @param plugin      the registry's manifest for it, null when the registry could not be asked
+ * @param versions    version history, never null, empty when offline or removed
+ * @param changelog   changelog of the latest version, or null
+ * @param screenshots screenshot URLs of the latest version, never null
+ * @param advisory    advisory on the latest version, or null
+ * @param blocked     block state of the latest version, or null
+ * @param removed     registry tombstone, or null
+ * @param locked      premium and no licence configured on this instance
  */
 public record MarketplacePluginDetailResource(
-    String id,
-    String name,
-    String description,
-    String latestVersion,
-    String access,
-    String tier,
+    RegistryStatusResource registry,
+    MarketplacePluginResource plugin,
     List<MarketplaceVersionResource> versions,
     MarketplaceChangelogResource changelog,
     List<String> screenshots,

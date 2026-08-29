@@ -122,7 +122,7 @@ class GetMarketplaceCatalogueHandlerTest {
   private static MarketplacePlugin registryPlugin(String id, String name, String latestVersion,
       String category, String access, String pf4jId) {
     return new MarketplacePlugin(id, name, latestVersion, name + " description", category, access,
-        "official", pf4jId);
+        "official", null, pf4jId);
   }
 
   private static MarketplaceVersionDetail versionDetail(String id, String version, String range,
@@ -239,6 +239,23 @@ class GetMarketplaceCatalogueHandlerTest {
     assertEquals("2.0.0", entry.latestVersion());
     assertEquals("NOTIFICATION", entry.groupType());
     assertFalse(entry.locked());
+  }
+
+  /**
+   * A locked premium row offers nothing but "get in touch", and that action opens this URL. Drop
+   * it and the button is still drawn and still does nothing.
+   */
+  @Test
+  void anAvailableEntryCarriesTheContactUrlTheDiscoverPremiumActionOpens() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        new MarketplacePlugin("premium-bts", "Premium BTS", "1.0.0", "Tracker", "bug-tracking",
+            "premium", "official", "https://reportportal.io/contact", "premium-bts")));
+
+    var entry = handler.getCatalogue(null, null).available().get(0);
+
+    assertTrue(entry.locked());
+    assertEquals("https://reportportal.io/contact", entry.contactUrl());
   }
 
   @Test

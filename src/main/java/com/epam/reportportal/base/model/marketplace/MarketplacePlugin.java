@@ -22,6 +22,10 @@ package com.epam.reportportal.base.model.marketplace;
  * <p>{@code pf4jId} is optional — the registry is only now growing the field, so entries published
  * before it exists omit it. {@code category}/{@code access}/{@code tier} stay Strings so a new
  * registry value cannot break deserialization.
+ *
+ * <p>{@code contactUrl} is a manifest field the listing carries too. Reading it here rather than
+ * from plugin detail is what keeps the catalogue at one registry request: a page full of premium
+ * entries would otherwise cost one detail fetch each just to learn where "get in touch" points.
  */
 public record MarketplacePlugin(
     String id,
@@ -31,6 +35,7 @@ public record MarketplacePlugin(
     String category,
     String access,
     String tier,
+    String contactUrl,
     String pf4jId
 ) {
 

@@ -23,8 +23,11 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
+import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
+import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatusResource;
 import com.epam.reportportal.base.model.marketplace.detail.MarketplaceChangelogResource;
 import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginDetailResource;
+import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginResource;
 import com.epam.reportportal.base.model.marketplace.detail.MarketplaceVersionResource;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -61,8 +64,15 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
   public MarketplacePluginDetailResource getPluginDetail(String registryId) {
     var plugin = registry.plugin(registryId);
     if (plugin == null) {
-      throw new ReportPortalException(registry.registryUnreachable()
-          ? ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE : ErrorType.MARKETPLACE_REGISTRY_ERROR,
+      if (registry.registryUnreachable()) {
+        // The host is down, which is a state of the marketplace and not of this page. The
+        // catalogue answers 200/OFFLINE for it, and the UI reads one envelope for both screens,
+        // so this one says the same thing rather than inventing a second way to be degraded.
+        return offline();
+      }
+      // The registry answered and refused this one request. It is up, so OFFLINE would be a lie,
+      // and nothing about the plugin was learned, so there is no page to serve either.
+      throw new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR,
           "The marketplace registry at '" + registry.registryHost()
               + "' could not be asked about plugin '" + registryId + "'");
     }
@@ -71,8 +81,10 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
     }
     if (plugin.removed()) {
       // Removed is a state of the page, not an error: the plugin is gone from the marketplace and
-      // still running here, and answering 404 would say the opposite of both halves.
-      return new MarketplacePluginDetailResource(registryId, null, null, null, null, null,
+      // still running here, and answering 404 would say the opposite of both halves. The registry
+      // did answer, so the envelope stays ONLINE — the tombstone is something it told us.
+      return new MarketplacePluginDetailResource(online(),
+          new MarketplacePluginResource(registryId, null, null, null, null, null),
           List.of(), null, List.of(), null, null, MarketplaceState.removed(plugin.tombstone()),
           false);
     }
@@ -81,12 +93,9 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
     var latestDetail = StringUtils.isBlank(latest) ? null
         : registry.versionDetail(registryId, latest);
     return new MarketplacePluginDetailResource(
-        detail.id(),
-        detail.name(),
-        detail.description(),
-        latest,
-        detail.access(),
-        detail.tier(),
+        online(),
+        new MarketplacePluginResource(detail.id(), detail.name(), detail.description(), latest,
+            detail.access(), detail.tier()),
         versions(registryId),
         changelog(latest, latestDetail),
         screenshots(latestDetail),
@@ -94,6 +103,21 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
         MarketplaceState.blocked(latestDetail),
         null,
         PREMIUM.equalsIgnoreCase(detail.access()) && !licence.isConfigured());
+  }
+
+  /**
+   * The answer when the registry host could not be reached: the status, the host the operator has
+   * to go and look at, and nothing registry-derived at all. Not even the id is echoed back into
+   * {@code plugin} — that block is the registry's manifest, and there is no manifest here.
+   */
+  private MarketplacePluginDetailResource offline() {
+    return new MarketplacePluginDetailResource(
+        new RegistryStatusResource(RegistryStatus.OFFLINE, registry.registryHost()), null,
+        List.of(), null, List.of(), null, null, null, false);
+  }
+
+  private RegistryStatusResource online() {
+    return new RegistryStatusResource(RegistryStatus.ONLINE, registry.registryHost());
   }
 
   private List<MarketplaceVersionResource> versions(String registryId) {

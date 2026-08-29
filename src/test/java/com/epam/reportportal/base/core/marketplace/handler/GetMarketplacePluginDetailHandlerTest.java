@@ -42,6 +42,7 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
+import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
 import com.google.common.base.Ticker;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
@@ -98,18 +99,56 @@ class GetMarketplacePluginDetailHandlerTest {
 
     var detail = handler.getPluginDetail("jira");
 
-    assertEquals("jira", detail.id());
-    assertEquals("Jira", detail.name());
-    assertEquals("Tracks issues", detail.description());
-    assertEquals("1.6.0", detail.latestVersion());
-    assertEquals("public", detail.access());
-    assertEquals("official", detail.tier());
+    assertEquals("jira", detail.plugin().id());
+    assertEquals("Jira", detail.plugin().name());
+    assertEquals("Tracks issues", detail.plugin().description());
+    assertEquals("1.6.0", detail.plugin().latestVersion());
+    assertEquals("public", detail.plugin().access());
+    assertEquals("official", detail.plugin().tier());
     assertEquals(List.of("1.5.2", "1.6.0"),
         detail.versions().stream().map(entry -> entry.version()).toList());
     assertEquals(WHEN, detail.versions().get(0).publishedAt());
     assertTrue(detail.versions().get(0).blocked());
     assertFalse(detail.versions().get(1).blocked());
     assertEquals(List.of("https://cdn.rp.io/jira/1.png"), detail.screenshots());
+    assertNull(detail.advisory());
+    assertNull(detail.blocked());
+    assertNull(detail.removed());
+    assertFalse(detail.locked());
+  }
+
+  /**
+   * The page and the catalogue share one degradation rule in the UI, so they have to share the
+   * envelope that rule reads.
+   */
+  @Test
+  void thePageCarriesTheSameRegistryEnvelopeTheCatalogueDoes() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+
+    var detail = handler.getPluginDetail("jira");
+
+    assertEquals(RegistryStatus.ONLINE, detail.registry().status());
+    assertEquals("marketplace.reportportal.io", detail.registry().host());
+  }
+
+  /**
+   * A host that is down is a state of the marketplace, not a failure of this page: the catalogue
+   * answers 200/OFFLINE for it, and the page has to be able to say the same thing or the UI's one
+   * degradation rule cannot fire here.
+   */
+  @Test
+  void anUnreachableRegistryAnswersTheOfflineEnvelopeRatherThanFailingThePage() {
+    when(client.getPlugin("jira")).thenThrow(new RegistryUnreachableException(
+        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
+
+    var detail = handler.getPluginDetail("jira");
+
+    assertEquals(RegistryStatus.OFFLINE, detail.registry().status());
+    assertEquals("marketplace.reportportal.io", detail.registry().host());
+    assertNull(detail.plugin());
+    assertEquals(List.of(), detail.versions());
+    assertEquals(List.of(), detail.screenshots());
+    assertNull(detail.changelog());
     assertNull(detail.advisory());
     assertNull(detail.blocked());
     assertNull(detail.removed());
@@ -158,7 +197,7 @@ class GetMarketplacePluginDetailHandlerTest {
     var detail = handler.getPluginDetail("jira");
 
     assertNull(detail.changelog());
-    assertEquals("1.6.0", detail.latestVersion());
+    assertEquals("1.6.0", detail.plugin().latestVersion());
   }
 
   @Test
@@ -182,12 +221,14 @@ class GetMarketplacePluginDetailHandlerTest {
 
     var detail = handler.getPluginDetail("jira");
 
-    assertEquals("jira", detail.id());
+    // The registry answered, so the envelope is ONLINE: the tombstone is a fact it told us.
+    assertEquals(RegistryStatus.ONLINE, detail.registry().status());
+    assertEquals("jira", detail.plugin().id());
+    assertNull(detail.plugin().latestVersion());
     assertEquals(WHEN, detail.removed().removed());
     assertEquals("Vendor withdrew it", detail.removed().removalReason());
     assertEquals("operator@rp.io", detail.removed().removedBy());
     assertEquals(List.of(), detail.versions());
-    assertNull(detail.latestVersion());
     // Nothing else is worth asking for: every other route answers 410 too.
     verify(client, never()).listVersions(anyString());
     verify(client, never()).getVersion(anyString(), anyString());
@@ -203,16 +244,11 @@ class GetMarketplacePluginDetailHandlerTest {
     assertEquals(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND, thrown.getErrorType());
   }
 
-  @Test
-  void anUnreachableRegistryIsReportedAsUnreachableAndNotAsAMissingPlugin() {
-    when(client.getPlugin("jira")).thenThrow(new RegistryUnreachableException(
-        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
-
-    var thrown = assertThrows(ReportPortalException.class, () -> handler.getPluginDetail("jira"));
-
-    assertEquals(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE, thrown.getErrorType());
-  }
-
+  /**
+   * A refusal is not the host being down. The registry is up and said no to this one request, so
+   * nothing about this page could be learned — that is a failure, and OFFLINE would claim the
+   * marketplace as a whole is unavailable when it is not.
+   */
   @Test
   void aRegistryThatAnsweredButRefusedIsAnErrorAboutTheRegistryNotAboutTheHost() {
     when(client.getPlugin("jira"))

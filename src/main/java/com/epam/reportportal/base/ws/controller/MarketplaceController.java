@@ -99,6 +99,10 @@ public class MarketplaceController {
    * <p>A removed plugin answers 200 with {@code removed} set, not 404. It is gone from the
    * marketplace and still running here, and the page has to be able to say both.
    *
+   * <p>An unreachable registry answers 200 with {@code registry.status} OFFLINE and no
+   * registry-derived content, exactly as the catalogue does. The UI has one rule for whether a
+   * marketplace-sourced signal may be believed, and it reads that envelope on both screens.
+   *
    * @param registryId registry plugin id
    * @param user       the caller
    * @return the registry's view of that plugin

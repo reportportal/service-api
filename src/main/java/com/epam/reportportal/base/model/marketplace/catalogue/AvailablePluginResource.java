@@ -23,6 +23,7 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * @param name          display name
  * @param latestVersion latest published version
  * @param description   short description
+ * @param contactUrl    where a "get in touch" enquiry goes, null when the manifest carried none
  * @param groupType     integration group the registry category maps to, null when unknown
  * @param access        {@code public} or {@code premium}
  * @param tier          trust tier
@@ -33,6 +34,7 @@ public record AvailablePluginResource(
     String name,
     String latestVersion,
     String description,
+    String contactUrl,
     String groupType,
     String access,
     String tier,

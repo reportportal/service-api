@@ -21,6 +21,9 @@ import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginDeta
 /**
  * Builds the marketplace half of one plugin's page: what the registry publishes about it, and
  * nothing about what is installed here.
+ *
+ * <p>The answer carries the catalogue's registry envelope, so "the registry could not be reached"
+ * is a state of the page rather than a failure to produce one.
  */
 public interface GetMarketplacePluginDetailHandler {
 
@@ -28,7 +31,7 @@ public interface GetMarketplacePluginDetailHandler {
    * Reads one plugin's registry detail.
    *
    * @param registryId registry plugin id
-   * @return the registry's view of that plugin, removed state included
+   * @return the registry's view of that plugin, removed and offline state included
    */
   MarketplacePluginDetailResource getPluginDetail(String registryId);
 }

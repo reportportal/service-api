@@ -476,6 +476,55 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
+  void theCategoryFilterSpeaksTheGroupNamesTheRowsCarry() {
+    // Every row this endpoint returns carries groupType — an IntegrationGroupEnum name — so that
+    // is what a caller filtering on the result sends back. The registry's own vocabulary is a
+    // different one, and translating between them is this handler's job, not the UI's. Sending
+    // "BTS" straight through emptied both halves of the page: no available group at all, and
+    // installed rows stripped of every badge, because their marketplace block went missing too.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of(
+        installed(1L, "jira", IntegrationGroupEnum.BTS, "1.0.0", null),
+        installed(2L, "slack", IntegrationGroupEnum.NOTIFICATION, "1.0.0", null)));
+    when(client.getCatalogue("bug-tracking", null)).thenReturn(List.of(
+        registryPlugin("azure-devops", "Azure DevOps", "2.1.0", "bug-tracking", "public", null)));
+
+    var catalogue = handler.getCatalogue(null, "BTS");
+
+    assertEquals(List.of("jira"), catalogue.installed().stream().map(row -> row.name()).toList());
+    assertEquals(List.of("Azure DevOps"),
+        catalogue.available().stream().map(row -> row.name()).toList());
+  }
+
+  @Test
+  void aCategoryNobodyRecognisesNarrowsToNothingRatherThanWidensToEverything() {
+    // A filter that is not understood must not quietly become "no filter". It reaches the
+    // registry untouched, which knows no such category either, and the page comes back empty.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(1L, "jira", IntegrationGroupEnum.BTS, "1.0.0", null)));
+    when(client.getCatalogue("ANALYZER", null)).thenReturn(List.of());
+
+    var catalogue = handler.getCatalogue(null, "ANALYZER");
+
+    assertTrue(catalogue.installed().isEmpty());
+    assertTrue(catalogue.available().isEmpty());
+  }
+
+  @Test
+  void anInstalledRowCarriesTheRegistrysNameAndDescription() {
+    // A PF4J plugin is identified by an id like "jira", and without these two fields that id is
+    // all the list has to print — while the available half beside it shows "Jira Server".
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(1L, "jira", IntegrationGroupEnum.BTS, "1.0.0", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira Server", "1.0.0", "bug-tracking", "public", "jira")));
+
+    var entry = handler.getCatalogue(null, null).installed().get(0).marketplace();
+
+    assertEquals("Jira Server", entry.name());
+    assertEquals("Jira Server description", entry.description());
+  }
+
+  @Test
   void aFilteredOutInstalledPluginIsStillNotOfferedAsAvailable() {
     // Filtering decides what is shown, never what is installed. The local group and the registry
     // category are two independent declarations and can disagree, so a category filter can hide

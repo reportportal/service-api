@@ -59,6 +59,13 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   /** Written by the install path in a later stage; read here whenever it is already there. */
   private static final String MARKETPLACE_PLUGIN_ID_KEY = "marketplacePluginId";
   private static final String PREMIUM = "premium";
+  /** The two category vocabularies this endpoint sits between. Only these groups are filterable. */
+  private static final Map<IntegrationGroupEnum, String> REGISTRY_CATEGORY_BY_GROUP = Map.of(
+      IntegrationGroupEnum.BTS, "bug-tracking",
+      IntegrationGroupEnum.NOTIFICATION, "notifications",
+      IntegrationGroupEnum.AUTH, "authorization",
+      IntegrationGroupEnum.IMPORT, "import",
+      IntegrationGroupEnum.OTHER, "other");
 
   private final MarketplaceRegistryCache registry;
   private final IntegrationTypeRepository integrationTypeRepository;
@@ -98,7 +105,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   @Override
   public MarketplaceCatalogueResource getCatalogue(String q, String category) {
     var key = new CatalogueKey(StringUtils.trimToNull(q), StringUtils.trimToNull(category));
-    var registryPlugins = registry.catalogue(key.q(), key.category());
+    var registryPlugins = registry.catalogue(key.q(), registryCategory(key.category()));
     // Read the DB outside any registry call: the merge needs current local state, and the HTTP
     // exchange must not sit inside a transaction holding a connection.
     var installedTypes = integrationTypeRepository.findAllByOrderByCreationDate();
@@ -192,18 +199,32 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   }
 
   /**
-   * Registry categories to the integration groups the local rows carry. An unknown category maps
-   * to nothing, so the installed list empties rather than quietly ignoring the filter.
+   * The registry's category for a filter value.
+   *
+   * <p>The vocabulary of this endpoint is the one it answers in: every row it returns carries
+   * {@code groupType}, an {@link IntegrationGroupEnum} name, so that is what a caller filtering on
+   * the result sends back. The registry speaks its own, and the translation happens here rather
+   * than being pushed onto the UI, which would otherwise have had to know both.
+   *
+   * <p>An unrecognised value is forwarded untouched rather than dropped: a filter nobody
+   * understands must narrow to nothing, never silently widen to everything.
+   */
+  private static String registryCategory(String filter) {
+    return group(filter).map(REGISTRY_CATEGORY_BY_GROUP::get).orElse(filter);
+  }
+
+  /**
+   * The integration group a filter value names — either half of {@link
+   * #REGISTRY_CATEGORY_BY_GROUP} is accepted, so a caller written against the registry's names
+   * keeps working. An unknown value maps to nothing, so the installed list empties rather than
+   * quietly ignoring the filter.
    */
   private static Optional<IntegrationGroupEnum> group(String category) {
-    return switch (StringUtils.trimToEmpty(category)) {
-      case "bug-tracking" -> Optional.of(IntegrationGroupEnum.BTS);
-      case "notifications" -> Optional.of(IntegrationGroupEnum.NOTIFICATION);
-      case "authorization" -> Optional.of(IntegrationGroupEnum.AUTH);
-      case "import" -> Optional.of(IntegrationGroupEnum.IMPORT);
-      case "other" -> Optional.of(IntegrationGroupEnum.OTHER);
-      default -> Optional.empty();
-    };
+    var value = StringUtils.trimToEmpty(category);
+    return REGISTRY_CATEGORY_BY_GROUP.entrySet().stream()
+        .filter(entry -> entry.getKey().name().equals(value) || entry.getValue().equals(value))
+        .map(Map.Entry::getKey)
+        .findFirst();
   }
 
   private InstalledPluginResource toInstalled(IntegrationType type, MarketplacePlugin match,
@@ -237,7 +258,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     if (plugin == null || !plugin.removed()) {
       return null;
     }
-    return new MarketplaceEntryResource(persisted, null, null, null, null, null, null,
+    return new MarketplaceEntryResource(persisted, null, null, null, null, null, null, null, null,
         MarketplaceState.removed(plugin.tombstone()), false);
   }
 
@@ -255,7 +276,8 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   private MarketplaceEntryResource toEntry(MarketplacePlugin plugin, String installedVersion) {
     var installed = StringUtils.isBlank(installedVersion) ? null
         : registry.versionDetail(plugin.id(), installedVersion);
-    return new MarketplaceEntryResource(plugin.id(), plugin.access(), plugin.tier(),
+    return new MarketplaceEntryResource(plugin.id(), plugin.name(), plugin.description(),
+        plugin.access(), plugin.tier(),
         plugin.latestVersion(), updateFor(plugin, installedVersion),
         MarketplaceState.advisory(installed), MarketplaceState.blocked(installed), null,
         locked(plugin.access()));

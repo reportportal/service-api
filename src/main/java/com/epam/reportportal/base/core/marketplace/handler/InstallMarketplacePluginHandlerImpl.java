@@ -174,7 +174,7 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
       // 6. The existing upload path, which owns the unload/load/rollback that makes this atomic.
       IntegrationType installed;
       try (InputStream jar = Files.newInputStream(downloaded)) {
-        installed = pluginBox.uploadPlugin(fileName(registryId, version), jar);
+        installed = uploaded(registryId, version, downloaded, jar);
       }
 
       // 7. and 8. — the same event an upload publishes, and the id-mapping record.
@@ -188,6 +188,33 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
               + e.getMessage());
     } finally {
       delete(downloaded);
+    }
+  }
+
+  /**
+   * The upload, with anything the loader throws by surprise turned into a plugin-upload error
+   * that names what was being installed.
+   *
+   * <p>The loader is written for a jar a human chose and can look at; here the bytes came from
+   * the registry, and the operator never saw them. A jar with no manifest, for instance, reaches
+   * {@code Manifest.getMainAttributes()} on a null and the page ends up showing
+   * "Unclassified error [Cannot invoke ...]" — true, and useless. A ReportPortalException is left
+   * alone: the loader's own refusals already say what is wrong.
+   */
+  private IntegrationType uploaded(String registryId, String version, Path artifact,
+      InputStream jar) {
+    try {
+      return pluginBox.uploadPlugin(fileName(registryId, version), jar);
+    } catch (ReportPortalException e) {
+      throw e;
+    } catch (RuntimeException e) {
+      LOGGER.error("Loading the artifact of '{}:{}' downloaded to '{}' failed", registryId, version,
+          artifact, e);
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          "'" + registryId + ":" + version + "' downloaded from '" + client.registryHost()
+              + "' is not a plugin this ReportPortal can load. The artifact is intact — its"
+              + " checksum matched — so this is a problem with the plugin itself, not with the"
+              + " download.");
     }
   }
 

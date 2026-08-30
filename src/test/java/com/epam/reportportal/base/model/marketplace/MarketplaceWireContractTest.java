@@ -223,8 +223,10 @@ class MarketplaceWireContractTest {
       "installed[].marketplace.blocked.blockedAt",
       "installed[].marketplace.blocked.reason",
       "installed[].marketplace.blocked.version",
+      "installed[].marketplace.description",
       "installed[].marketplace.latestVersion",
       "installed[].marketplace.locked",
+      "installed[].marketplace.name",
       "installed[].marketplace.pluginId",
       "installed[].marketplace.removed.removalReason",
       "installed[].marketplace.removed.removed",
@@ -316,8 +318,9 @@ class MarketplaceWireContractTest {
   /** The plugin whose installed version has both a badge and an update waiting. */
   private static InstalledPluginResource installedMatched() {
     return new InstalledPluginResource(7L, "jira", "1.5.2", true, "BTS",
-        new MarketplaceEntryResource("plugin-bts-jira", "premium", "official", "1.6.0",
-            new UpdateAvailableResource("1.6.0"), advisory(),
+        new MarketplaceEntryResource("plugin-bts-jira", "Jira Cloud",
+            "Post and link Jira Cloud issues from a failed test item.", "premium", "official",
+            "1.6.0", new UpdateAvailableResource("1.6.0"), advisory(),
             new MarketplaceBlockedResource("1.5.2", WHEN, "Signed with a revoked key"), null,
             true));
   }
@@ -325,15 +328,19 @@ class MarketplaceWireContractTest {
   /** Matched, current, nothing wrong with it — the row every badge rule must leave alone. */
   private static InstalledPluginResource installedClean() {
     return new InstalledPluginResource(8L, "rally", "5.0.0", true, "BTS",
-        new MarketplaceEntryResource("plugin-bts-rally", "public", "official", "5.0.0", null, null,
-            null, null, false));
+        new MarketplaceEntryResource("plugin-bts-rally", "Rally", "Rally work-item integration.",
+            "public", "official", "5.0.0", null, null, null, null, false));
   }
 
-  /** Removed from the marketplace, still running here: a tombstone on an otherwise bare block. */
+  /**
+   * Removed from the marketplace, still running here: a tombstone on an otherwise bare block.
+   * Name and description are absent along with everything else — a removed plugin has no
+   * catalogue entry left to read them from, so the row falls back to the local name.
+   */
   private static InstalledPluginResource installedRemoved() {
     return new InstalledPluginResource(9L, "gitlab", "2.1.0", false, "BTS",
-        new MarketplaceEntryResource("plugin-bts-gitlab", null, null, null, null, null, null,
-            removed(), false));
+        new MarketplaceEntryResource("plugin-bts-gitlab", null, null, null, null, null, null, null,
+            null, removed(), false));
   }
 
   /**
@@ -535,7 +542,7 @@ class MarketplaceWireContractTest {
    * proves only that someone ran the test, while this changes exactly when the wire changes.
    */
   private static final String CONTRACT_HASH =
-      "4ee18b47c86f23106e076df5211bd02c29f449971c74f101f8357bbe9e51feb8";
+      "5b73a7c0489f1ca709e5fe289a6ea32b45e6ccf5b6f22780bc161f8c9d5e8b2f";
 
   private static final String HASH_ALGORITHM =
       "SHA-256, hex, over the routes below in the order given: the route on a line of its own,"

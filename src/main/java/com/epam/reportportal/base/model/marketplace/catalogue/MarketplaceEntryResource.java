@@ -25,7 +25,14 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * latest one: they are the row's badges, and a badge on an installed row is a statement about the
  * code this instance is running. {@code removed} is about the plugin as a whole.
  *
+ * <p>{@code name} and {@code description} are the registry's, and they are here because a local
+ * row often has neither: a PF4J plugin is identified by an id like {@code jira}, and that is what
+ * the plugins list would otherwise have to print. They are null for a plugin known only by its
+ * tombstone — a removed plugin has no catalogue entry left to read them from.
+ *
  * @param pluginId        registry plugin id
+ * @param name            display name in the registry, or null
+ * @param description     one-line description in the registry, or null
  * @param access          {@code public} or {@code premium}
  * @param tier            trust tier, e.g. {@code official}
  * @param latestVersion   latest version the registry publishes
@@ -37,6 +44,8 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  */
 public record MarketplaceEntryResource(
     String pluginId,
+    String name,
+    String description,
     String access,
     String tier,
     String latestVersion,

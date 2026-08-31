@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.integration.grafana.GrafanaSessionCookieIssuer;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.ApiKeyHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
@@ -109,13 +110,15 @@ public class UserController {
 
   private final GetJasperReportHandler<User> jasperReportHandler;
   private final LinkGenerator linkGenerator;
+  private final GrafanaSessionCookieIssuer grafanaSessionCookieIssuer;
 
   @Autowired
   public UserController(CreateUserHandler createUserMessageHandler,
       EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
       GetUserHandler getUserHandler,
       @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
-      ApiKeyHandler apiKeyHandler, LinkGenerator linkGenerator) {
+      ApiKeyHandler apiKeyHandler, LinkGenerator linkGenerator,
+      GrafanaSessionCookieIssuer grafanaSessionCookieIssuer) {
     this.createUserMessageHandler = createUserMessageHandler;
     this.editUserMessageHandler = editUserMessageHandler;
     this.deleteUserHandler = deleteUserHandler;
@@ -123,6 +126,7 @@ public class UserController {
     this.jasperReportHandler = jasperReportHandler;
     this.apiKeyHandler = apiKeyHandler;
     this.linkGenerator = linkGenerator;
+    this.grafanaSessionCookieIssuer = grafanaSessionCookieIssuer;
   }
 
   @PostMapping
@@ -202,8 +206,11 @@ public class UserController {
   @Transactional(readOnly = true)
   @GetMapping(value = {"", "/"})
   @Operation(summary = "Return information about current logged-in user")
-  public UserResource getMyself(@AuthenticationPrincipal UserDetails currentUser) {
-    return getUserHandler.getUser((ReportPortalUser) currentUser);
+  public UserResource getMyself(@AuthenticationPrincipal UserDetails currentUser,
+      HttpServletRequest request, HttpServletResponse response) {
+    ReportPortalUser reportPortalUser = (ReportPortalUser) currentUser;
+    grafanaSessionCookieIssuer.issue(reportPortalUser, request, response);
+    return getUserHandler.getUser(reportPortalUser);
   }
 
   @Transactional(readOnly = true)

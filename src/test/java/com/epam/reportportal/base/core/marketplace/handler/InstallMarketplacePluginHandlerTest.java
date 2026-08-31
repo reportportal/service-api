@@ -81,8 +81,10 @@ import java.util.Optional;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * The install flow, whose order is the safety property: nothing reaches PF4J until a downloaded
@@ -102,6 +104,9 @@ class InstallMarketplacePluginHandlerTest {
   private ApplicationEventPublisher eventPublisher;
   private ReportPortalUser user;
   private byte[] uploaded;
+
+  @TempDir
+  Path pluginsTempDir;
 
   @BeforeEach
   void setUp() {
@@ -128,9 +133,14 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   private InstallMarketplacePluginHandlerImpl handler(String productVersion) {
-    return new InstallMarketplacePluginHandlerImpl(client, fetcher,
+    var created = new InstallMarketplacePluginHandlerImpl(client, fetcher,
         new ProductVersion(productVersion), licence, pluginBox, integrationTypeRepository,
         eventPublisher);
+    // The staging directory is a @Value field, so a hand-built handler has to be told where it
+    // is; a real one gets rp.plugins.temp.path. Pointed at a per-test directory so nothing here
+    // touches the system temp either.
+    ReflectionTestUtils.setField(created, "pluginsTempPath", pluginsTempDir.toString());
+    return created;
   }
 
   private InstallMarketplacePluginHandlerImpl handler() {

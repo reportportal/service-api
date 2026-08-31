@@ -57,6 +57,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -95,6 +96,15 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   private final Pf4jPluginBox pluginBox;
   private final IntegrationTypeRepository integrationTypeRepository;
   private final ApplicationEventPublisher eventPublisher;
+
+  /**
+   * Where the downloaded artifact waits to be verified. The application's own plugins staging
+   * directory, not the system temp: the shared one is writable by every local account, and what
+   * sits here between the download and the checksum is an unverified jar — for a premium plugin,
+   * one someone paid for.
+   */
+  @Value("${rp.plugins.temp.path}")
+  private String pluginsTempPath;
 
   /**
    * Creates the handler.
@@ -417,23 +427,22 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   /**
    * The scratch file a downloaded artifact lands in before it is verified.
    *
-   * <p>Created readable and writable by this process alone. The default temp directory is
-   * world-writable, and what sits here between the download and the checksum is an unverified
-   * jar — for a premium plugin, one someone paid for. NIO already narrows the permissions on
-   * POSIX, but saying so in the code is what makes it survive a umask, a platform change, or a
-   * later edit that adds an attribute of its own.
-   *
-   * <p>A filesystem with no POSIX view (Windows) falls back to the plain call, where the default
-   * temp directory is per-user rather than shared.
+   * <p>In the application's plugins staging directory, and readable by this process alone. Two
+   * separate reasons: the system temp directory is writable by every local account on the host,
+   * and the permissions stop another account on a shared one from reading the jar. NIO already
+   * narrows permissions on POSIX, but saying it in the code is what makes it survive a umask, a
+   * platform change, or a later edit that adds an attribute of its own; a filesystem with no
+   * POSIX view falls back to the default mode.
    */
-  private static Path tempFile(String registryId, String version) throws IOException {
+  private Path tempFile(String registryId, String version) throws IOException {
+    var directory = Files.createDirectories(Path.of(pluginsTempPath));
     var prefix = "rp-marketplace-" + registryId + "-" + version + "-";
     if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
       var ownerOnly = PosixFilePermissions.asFileAttribute(
           PosixFilePermissions.fromString("rw-------"));
-      return Files.createTempFile(prefix, ".jar", ownerOnly);
+      return Files.createTempFile(directory, prefix, ".jar", ownerOnly);
     }
-    return Files.createTempFile(prefix, ".jar");
+    return Files.createTempFile(directory, prefix, ".jar");
   }
 
   private static void delete(Path file) {

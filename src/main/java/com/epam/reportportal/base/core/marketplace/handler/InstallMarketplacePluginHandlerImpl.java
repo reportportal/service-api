@@ -44,8 +44,10 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -412,8 +414,26 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
     return registryId + "-" + version + ".jar";
   }
 
+  /**
+   * The scratch file a downloaded artifact lands in before it is verified.
+   *
+   * <p>Created readable and writable by this process alone. The default temp directory is
+   * world-writable, and what sits here between the download and the checksum is an unverified
+   * jar — for a premium plugin, one someone paid for. NIO already narrows the permissions on
+   * POSIX, but saying so in the code is what makes it survive a umask, a platform change, or a
+   * later edit that adds an attribute of its own.
+   *
+   * <p>A filesystem with no POSIX view (Windows) falls back to the plain call, where the default
+   * temp directory is per-user rather than shared.
+   */
   private static Path tempFile(String registryId, String version) throws IOException {
-    return Files.createTempFile("rp-marketplace-" + registryId + "-" + version + "-", ".jar");
+    var prefix = "rp-marketplace-" + registryId + "-" + version + "-";
+    if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+      var ownerOnly = PosixFilePermissions.asFileAttribute(
+          PosixFilePermissions.fromString("rw-------"));
+      return Files.createTempFile(prefix, ".jar", ownerOnly);
+    }
+    return Files.createTempFile(prefix, ".jar");
   }
 
   private static void delete(Path file) {

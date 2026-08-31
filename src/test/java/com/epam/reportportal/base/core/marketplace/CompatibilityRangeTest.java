@@ -149,4 +149,22 @@ class CompatibilityRangeTest {
     assertFalse(matches(">=99999999999999999999.0", "25.2"));
     assertTrue(matches("<99999999999999999999.0", "25.2"));
   }
+
+  @Test
+  void aPathologicalRangeIsRefusedRatherThanTakingTheThreadDown() {
+    // This string comes from a manifest the registry serves, so it is not ours. The greedy form
+    // of the version pattern nests a repetition inside a repetition, and Java backtracks through
+    // that recursively — long enough input ends the thread with a StackOverflowError instead of
+    // returning "not a version". Kills dropping the possessive quantifiers or the length bound.
+    var pathological = "1" + ".1".repeat(20000) + "!";
+
+    assertTrue(CompatibilityRange.parse(">=" + pathological).isEmpty());
+  }
+
+  @Test
+  void aVersionLongerThanAnyRealOneIsNotAVersion() {
+    var tooLong = "1." + "2".repeat(300);
+
+    assertTrue(CompatibilityRange.parse(">=" + tooLong).isEmpty());
+  }
 }

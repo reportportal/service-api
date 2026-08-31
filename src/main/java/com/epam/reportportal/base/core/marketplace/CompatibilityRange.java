@@ -97,9 +97,22 @@ public final class CompatibilityRange {
      * A dotted number, optionally pre-release, optionally with build metadata. Anything else is
      * not a version: {@code >=25.x} would otherwise compare as {@code >=25.0} and {@code >=next}
      * as {@code >=0}, i.e. every unreadable bound would silently mean "everything is compatible".
+     *
+     * <p>Possessive throughout. This string arrives in a manifest the registry serves, so it is
+     * not ours; the greedy form nests a repetition inside a repetition, and Java's engine
+     * backtracks through that recursively — a long enough run of digits and dots takes the
+     * thread down with a StackOverflowError rather than returning no match. Possessive
+     * quantifiers do not backtrack at all, which removes the recursion instead of bounding it.
      */
-    private static final Pattern VERSION =
-        Pattern.compile("\\d+(\\.\\d+)*(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?");
+    private static final Pattern VERSION_PATTERN =
+        Pattern.compile("\\d++(\\.\\d++)*+(-[0-9A-Za-z.-]++)?+(\\+[0-9A-Za-z.-]++)?+");
+
+    /**
+     * Longer than any real version, and short enough that nothing downstream has to think about
+     * size. A bound as well as the possessive form: the two answer different questions, one how
+     * much work a match may cost and the other what a version may plausibly be.
+     */
+    private static final int MAX_VERSION_LENGTH = 256;
 
     static Constraint parse(String text) {
       var trimmed = StringUtils.trimToEmpty(text);
@@ -113,7 +126,10 @@ public final class CompatibilityRange {
     }
 
     private static Constraint of(String operator, String version) {
-      return VERSION.matcher(version).matches() ? new Constraint(operator, version) : null;
+      if (version.length() > MAX_VERSION_LENGTH) {
+        return null;
+      }
+      return VERSION_PATTERN.matcher(version).matches() ? new Constraint(operator, version) : null;
     }
 
     String text() {

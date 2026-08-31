@@ -61,22 +61,38 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class MarketplaceClient {
 
+  static final String INSTANCE_ID_HEADER = "X-RP-Instance-Id";
+
   private static final String PLUGINS_PATH = "/api/v1/plugins";
 
   private final RestTemplate restTemplate;
   private final ObjectMapper objectMapper = MarketplaceJson.mapper();
   private final String registryUrl;
   private final String registryHost;
+  private final MarketplaceInstanceId instanceId;
+
+  /**
+   * Creates a client that reports no instance id — analytics off.
+   *
+   * @param restTemplate the marketplace-only template, with its own timeouts
+   * @param registryUrl  registry base URL, e.g. {@code https://marketplace.reportportal.io}
+   */
+  public MarketplaceClient(RestTemplate restTemplate, String registryUrl) {
+    this(restTemplate, registryUrl, Optional::empty);
+  }
 
   /**
    * Creates a client.
    *
    * @param restTemplate the marketplace-only template, with its own timeouts
    * @param registryUrl  registry base URL, e.g. {@code https://marketplace.reportportal.io}
+   * @param instanceId   the opaque id sent with an artifact request, or empty when opted out
    */
-  public MarketplaceClient(RestTemplate restTemplate, String registryUrl) {
+  public MarketplaceClient(RestTemplate restTemplate, String registryUrl,
+      MarketplaceInstanceId instanceId) {
     this.restTemplate = restTemplate;
     this.registryUrl = registryUrl;
+    this.instanceId = instanceId;
     this.registryHost = Optional.ofNullable(URI.create(registryUrl).getHost()).orElse(registryUrl);
   }
 
@@ -158,6 +174,9 @@ public class MarketplaceClient {
     if (StringUtils.isNotBlank(licenceJwt)) {
       headers.setBearerAuth(licenceJwt);
     }
+    // Only here. Browse, list and detail go without it, and the download that follows this call
+    // goes to the CDN or to a signed GCS URL — neither of which may ever see it (FR-L-06).
+    instanceId.current().ifPresent(id -> headers.set(INSTANCE_ID_HEADER, id));
     ResponseEntity<String> response;
     try {
       // String, not the DTO: the 302 carries an HTML body no JSON converter can read.

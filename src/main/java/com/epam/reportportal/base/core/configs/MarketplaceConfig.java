@@ -20,6 +20,7 @@ import com.epam.reportportal.base.core.marketplace.DeadlineHttpRequestFactory;
 import com.epam.reportportal.base.core.marketplace.HttpMarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
+import com.epam.reportportal.base.core.marketplace.MarketplaceInstanceId;
 import com.epam.reportportal.base.core.marketplace.MarketplaceJson;
 import jakarta.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
@@ -151,8 +152,9 @@ public class MarketplaceConfig {
 
   @Bean
   public MarketplaceClient marketplaceClient(
-      @Qualifier("marketplaceRestTemplate") RestTemplate marketplaceRestTemplate) {
-    return new MarketplaceClient(marketplaceRestTemplate, registryUrl);
+      @Qualifier("marketplaceRestTemplate") RestTemplate marketplaceRestTemplate,
+      MarketplaceInstanceId instanceId) {
+    return new MarketplaceClient(marketplaceRestTemplate, registryUrl, instanceId);
   }
 
   /**

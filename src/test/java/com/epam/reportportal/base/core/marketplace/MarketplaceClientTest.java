@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,6 +41,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.Optional;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -516,6 +518,51 @@ class MarketplaceClientTest {
   void aDocumentUrlThatIsNotHttpIsRefusedWithoutBeingFetched() {
     assertThrows(RegistryProtocolException.class,
         () -> client.getDocument("file:///etc/passwd"));
+    server.verify();
+  }
+
+  // FR-L-06. The registry counts artifact requests per instance so twenty downloads by one
+  // instance do not read as twenty instances; the id is a random UUID carrying nothing about
+  // who or where the instance is.
+  @Test
+  void theInstanceIdRidesOnTheArtifactRequest() {
+    var withId = new MarketplaceClient(restTemplate, BASE_URL,
+        () -> Optional.of("3f2b1a44-0000-4000-8000-000000000001"));
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.2/artifact"))
+        .andExpect(header(MarketplaceClient.INSTANCE_ID_HEADER,
+            "3f2b1a44-0000-4000-8000-000000000001"))
+        .andRespond(withStatus(HttpStatus.FOUND)
+            .header(HttpHeaders.LOCATION, "https://cdn.rp.io/jira/1.4.2.jar"));
+
+    assertNotNull(withId.resolveArtifact("jira", "1.4.2", null));
+    server.verify();
+  }
+
+  @Test
+  void anOptedOutInstanceSendsNoIdAtAll() {
+    // Empty is the opt-out, and it must mean "no header" rather than a header with nothing in
+    // it: the registry treats a present-but-blank id as an id.
+    var optedOut = new MarketplaceClient(restTemplate, BASE_URL, Optional::empty);
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.2/artifact"))
+        .andExpect(headerDoesNotExist(MarketplaceClient.INSTANCE_ID_HEADER))
+        .andRespond(withStatus(HttpStatus.FOUND)
+            .header(HttpHeaders.LOCATION, "https://cdn.rp.io/jira/1.4.2.jar"));
+
+    assertNotNull(optedOut.resolveArtifact("jira", "1.4.2", null));
+    server.verify();
+  }
+
+  @Test
+  void browsingCarriesNoInstanceId() {
+    // "only on that endpoint; never on browse/list/detail" — browsing is unauthenticated and
+    // uncounted, and an id on it would turn reading the catalogue into a tracked event.
+    var withId = new MarketplaceClient(restTemplate, BASE_URL,
+        () -> Optional.of("3f2b1a44-0000-4000-8000-000000000001"));
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
+        .andExpect(headerDoesNotExist(MarketplaceClient.INSTANCE_ID_HEADER))
+        .andRespond(withSuccess("{\"plugins\":[]}", MediaType.APPLICATION_JSON));
+
+    withId.getCatalogue(null, null);
     server.verify();
   }
 }

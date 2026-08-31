@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
+import com.epam.reportportal.base.core.marketplace.MarketplaceInstanceId;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.health.JobsHealthIndicator;
 import com.sun.net.httpserver.HttpServer;
@@ -32,6 +33,7 @@ import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -296,6 +298,9 @@ class MarketplaceConfigTest {
           Map.of("rp.jobs.baseUrl", "http://jobs")));
       ctx.register(PropertySourcesPlaceholderConfigurer.class, RestTemplateConfig.class,
           MarketplaceConfig.class, JobsHealthIndicator.class);
+      // This context is about which RestTemplate each bean gets, so the instance id is a stub:
+      // the real one is a @Component that needs a datasource, and none of that is under test.
+      ctx.registerBean(MarketplaceInstanceId.class, () -> Optional::empty);
       ctx.refresh();
 
       var shared = ctx.getBean("restTemplate", RestTemplate.class);

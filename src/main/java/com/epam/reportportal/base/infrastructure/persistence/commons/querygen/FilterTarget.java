@@ -78,6 +78,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_LAST_LAUNCH_RUN;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_LAUNCHES;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_PROJECTS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_SLUG;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_TYPE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.OrganizationCriteriaConstant.CRITERIA_ORG_UPDATED_AT;
@@ -256,6 +257,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationExportFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -1627,6 +1629,85 @@ public enum FilterTarget {
       query.addJoin(ORGANIZATION_USER,
           JoinType.LEFT_OUTER_JOIN,
           ORGANIZATION_USER.ORGANIZATION_ID.eq(ORGANIZATION.ID));
+    }
+
+    @Override
+    protected Field<Long> idField() {
+      return ORGANIZATION.ID.cast(Long.class);
+    }
+
+  },
+
+  ORGANIZATION_EXPORT_TARGET(OrganizationExportFilter.class, Arrays.asList(
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ID, ORGANIZATION.ID, Long.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_NAME, ORGANIZATION.NAME, String.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_SLUG, ORGANIZATION.SLUG, String.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_CREATED_AT, ORGANIZATION.CREATED_AT,
+          Timestamp.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_UPDATED_AT, ORGANIZATION.UPDATED_AT,
+          Timestamp.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_TYPE, ORGANIZATION.ORGANIZATION_TYPE,
+          String.class).get(),
+      new CriteriaHolderBuilder()
+          .newBuilder(CRITERIA_ORG_USER_ID, ORGANIZATION_USER.USER_ID, Long.class)
+          .get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_USERS, USERS_QUANTITY, Long.class)
+          .withAggregateCriteria(DSL.countDistinct(ORGANIZATION_USER.USER_ID).toString())
+          .get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_PROJECTS, PROJECTS_QUANTITY, Long.class)
+          .withAggregateCriteria(DSL.countDistinct(PROJECT.ID).toString()).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_LAST_LAUNCH_RUN, LAST_RUN, Timestamp.class)
+          .withAggregateCriteria(DSL.max(LAUNCH.START_TIME).toString())
+          .get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_ORG_LAUNCHES, LAUNCHES_QUANTITY, Long.class)
+          .withAggregateCriteria(DSL.countDistinct(LAUNCH.ID).toString())
+          .get()
+  )) {
+    @Override
+    public QuerySupplier getQuery() {
+      SelectQuery<? extends Record> query = DSL.select(selectFields()).getQuery();
+      addFrom(query);
+      query.addGroupBy(ORGANIZATION.ID);
+      QuerySupplier querySupplier = new QuerySupplier(query);
+      joinTables(querySupplier);
+      return querySupplier;
+    }
+
+    @Override
+    protected Collection<? extends SelectField> selectFields() {
+      return Lists.newArrayList(ORGANIZATION.ID,
+          ORGANIZATION.NAME,
+          ORGANIZATION.SLUG,
+          ORGANIZATION.CREATED_AT,
+          ORGANIZATION.UPDATED_AT,
+          ORGANIZATION.EXTERNAL_ID,
+          ORGANIZATION.ORGANIZATION_TYPE,
+          ORGANIZATION.OWNER_ID,
+          DSL.countDistinct(ORGANIZATION_USER.USER_ID).as(USERS_QUANTITY),
+          DSL.countDistinct(PROJECT.ID).as(PROJECTS_QUANTITY),
+          DSL.countDistinct(LAUNCH.ID).as(LAUNCHES_QUANTITY),
+          DSL.max(LAUNCH.START_TIME).as(LAST_RUN)
+      );
+    }
+
+    @Override
+    protected void addFrom(SelectQuery<? extends Record> query) {
+      query.addFrom(ORGANIZATION);
+    }
+
+    @Override
+    protected void joinTables(QuerySupplier query) {
+      query.addJoin(ORGANIZATION_USER,
+          JoinType.LEFT_OUTER_JOIN,
+          ORGANIZATION_USER.ORGANIZATION_ID.eq(ORGANIZATION.ID));
+
+      query.addJoin(PROJECT,
+          JoinType.LEFT_OUTER_JOIN,
+          PROJECT.ORGANIZATION_ID.eq(ORGANIZATION.ID));
+
+      query.addJoin(LAUNCH,
+          JoinType.LEFT_OUTER_JOIN,
+          PROJECT.ID.eq(LAUNCH.PROJECT_ID).and(LAUNCH.STATUS.ne(JStatusEnum.IN_PROGRESS)));
     }
 
     @Override

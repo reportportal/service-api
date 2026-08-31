@@ -16,11 +16,11 @@
 
 package com.epam.reportportal.base.ws.rabbit;
 
-import com.epam.reportportal.base.ws.rabbit.activity.converter.EventConverterRegistry;
 import com.epam.reportportal.base.core.events.domain.AbstractEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ActivityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Activity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.ActivityDetails;
+import com.epam.reportportal.base.ws.rabbit.activity.converter.EventConverterRegistry;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +36,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Consumes domain events from RabbitMQ, converts them to Activity entities, and persists them. Listens to all domain
- * events via the "domain.#" routing key pattern.
+ * Consumes domain events from RabbitMQ, converts them to Activity entities, and persists them.
+ * Listens to all domain events via the "domain.#" routing key pattern.
  *
  * @author Andrei Varabyeu
  */
@@ -64,7 +64,7 @@ public class ActivityConsumer {
           value = @Queue(value = QUEUE_ACTIVITY, durable = "true", autoDelete = "false"),
           exchange = @Exchange(value = "domain.events", type = ExchangeTypes.TOPIC),
           key = ROUTING_KEY_DOMAIN_ALL
-      ), containerFactory = "rabbitListenerContainerFactory"
+      ), containerFactory = "rabbitListenerContainerFactory", admin = "amqpAdmin"
   )
   public void onEvent(@Payload AbstractEvent<?> event) {
     Optional.ofNullable(event)

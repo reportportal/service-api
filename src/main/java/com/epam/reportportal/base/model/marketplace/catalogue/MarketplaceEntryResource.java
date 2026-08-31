@@ -33,6 +33,7 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * @param pluginId        registry plugin id
  * @param name            display name in the registry, or null
  * @param description     one-line description in the registry, or null
+ * @param author          who wrote it, per the registry, or null
  * @param access          {@code public} or {@code premium}
  * @param tier            trust tier, e.g. {@code official}
  * @param latestVersion   latest version the registry publishes
@@ -46,6 +47,7 @@ public record MarketplaceEntryResource(
     String pluginId,
     String name,
     String description,
+    String author,
     String access,
     String tier,
     String latestVersion,

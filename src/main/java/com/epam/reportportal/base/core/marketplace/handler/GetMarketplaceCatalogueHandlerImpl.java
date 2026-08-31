@@ -25,6 +25,7 @@ import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
+import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.model.marketplace.catalogue.AvailablePluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
@@ -259,7 +260,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
       return null;
     }
     return new MarketplaceEntryResource(persisted, null, null, null, null, null, null, null, null,
-        MarketplaceState.removed(plugin.tombstone()), false);
+        null, MarketplaceState.removed(plugin.tombstone()), false);
   }
 
   /**
@@ -277,7 +278,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     var installed = StringUtils.isBlank(installedVersion) ? null
         : registry.versionDetail(plugin.id(), installedVersion);
     return new MarketplaceEntryResource(plugin.id(), plugin.name(), plugin.description(),
-        plugin.access(), plugin.tier(),
+        MarketplaceAuthor.nameOf(plugin.author()), plugin.access(), plugin.tier(),
         plugin.latestVersion(), updateFor(plugin, installedVersion),
         MarketplaceState.advisory(installed), MarketplaceState.blocked(installed), null,
         locked(plugin.access()));
@@ -290,7 +291,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    */
   private AvailablePluginResource toAvailable(MarketplacePlugin plugin) {
     return new AvailablePluginResource(plugin.id(), plugin.name(), plugin.latestVersion(),
-        plugin.description(), plugin.contactUrl(),
+        plugin.description(), MarketplaceAuthor.nameOf(plugin.author()), plugin.contactUrl(),
         group(plugin.category()).map(Enum::name).orElse(null),
         plugin.access(), plugin.tier(), locked(plugin.access()));
   }

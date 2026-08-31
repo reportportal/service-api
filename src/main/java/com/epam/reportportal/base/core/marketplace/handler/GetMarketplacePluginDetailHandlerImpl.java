@@ -21,6 +21,7 @@ import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
 import com.epam.reportportal.base.core.marketplace.MarketplaceState;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
 import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
@@ -84,7 +85,7 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
       // still running here, and answering 404 would say the opposite of both halves. The registry
       // did answer, so the envelope stays ONLINE — the tombstone is something it told us.
       return new MarketplacePluginDetailResource(online(),
-          new MarketplacePluginResource(registryId, null, null, null, null, null),
+          new MarketplacePluginResource(registryId, null, null, null, null, null, null),
           List.of(), null, List.of(), null, null, MarketplaceState.removed(plugin.tombstone()),
           false);
     }
@@ -94,8 +95,8 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
         : registry.versionDetail(registryId, latest);
     return new MarketplacePluginDetailResource(
         online(),
-        new MarketplacePluginResource(detail.id(), detail.name(), detail.description(), latest,
-            detail.access(), detail.tier()),
+        new MarketplacePluginResource(detail.id(), detail.name(), detail.description(),
+            MarketplaceAuthor.nameOf(detail.author()), latest, detail.access(), detail.tier()),
         versions(registryId),
         changelog(latest, latestDetail),
         screenshots(latestDetail),

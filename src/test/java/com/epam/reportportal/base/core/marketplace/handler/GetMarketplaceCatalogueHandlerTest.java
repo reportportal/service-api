@@ -41,6 +41,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAdvisory;
 import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
+import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
@@ -122,7 +123,7 @@ class GetMarketplaceCatalogueHandlerTest {
   private static MarketplacePlugin registryPlugin(String id, String name, String latestVersion,
       String category, String access, String pf4jId) {
     return new MarketplacePlugin(id, name, latestVersion, name + " description", category, access,
-        "official", null, pf4jId);
+        "official", null, new MarketplaceAuthor(name + " Team", null, null), pf4jId);
   }
 
   private static MarketplaceVersionDetail versionDetail(String id, String version, String range,
@@ -250,7 +251,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenReturn(List.of(
         new MarketplacePlugin("premium-bts", "Premium BTS", "1.0.0", "Tracker", "bug-tracking",
-            "premium", "official", "https://reportportal.io/contact", "premium-bts")));
+            "premium", "official", "https://reportportal.io/contact", new MarketplaceAuthor("Premium BTS" + " Team", null, null), "premium-bts")));
 
     var entry = handler.getCatalogue(null, null).available().get(0);
 

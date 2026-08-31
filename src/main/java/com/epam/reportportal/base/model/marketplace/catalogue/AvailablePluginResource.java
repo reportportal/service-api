@@ -34,6 +34,7 @@ public record AvailablePluginResource(
     String name,
     String latestVersion,
     String description,
+    String author,
     String contactUrl,
     String groupType,
     String access,

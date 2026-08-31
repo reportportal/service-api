@@ -35,6 +35,7 @@ public record MarketplacePluginResource(
     String id,
     String name,
     String description,
+    String author,
     String latestVersion,
     String access,
     String tier

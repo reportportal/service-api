@@ -36,6 +36,7 @@ public record MarketplacePlugin(
     String access,
     String tier,
     String contactUrl,
+    MarketplaceAuthor author,
     String pf4jId
 ) {
 

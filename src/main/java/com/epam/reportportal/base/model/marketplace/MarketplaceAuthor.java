@@ -21,4 +21,16 @@ package com.epam.reportportal.base.model.marketplace;
  */
 public record MarketplaceAuthor(String name, String email, String url) {
 
+  /**
+   * The author's name, or null when the registry named nobody.
+   *
+   * <p>Only the name crosses to the UI. The email and URL are contact details the screens do not
+   * use, and putting an address on the wire for no consumer is how addresses end up scraped.
+   *
+   * @param author the registry's author block, may be null
+   * @return the name, or null
+   */
+  public static String nameOf(MarketplaceAuthor author) {
+    return author == null ? null : author.name();
+  }
 }

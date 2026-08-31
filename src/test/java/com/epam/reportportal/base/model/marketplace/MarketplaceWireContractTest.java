@@ -205,6 +205,7 @@ class MarketplaceWireContractTest {
    */
   private static final List<String> CATALOGUE_FIELDS = List.of(
       "available[].access",
+      "available[].author",
       "available[].contactUrl",
       "available[].description",
       "available[].groupType",
@@ -217,6 +218,7 @@ class MarketplaceWireContractTest {
       "installed[].groupType",
       "installed[].integrationTypeId",
       "installed[].marketplace.access",
+      "installed[].marketplace.author",
       "installed[].marketplace.advisory.attachedAt",
       "installed[].marketplace.advisory.severity",
       "installed[].marketplace.advisory.text",
@@ -255,6 +257,7 @@ class MarketplaceWireContractTest {
       "changelog.version",
       "locked",
       "plugin.access",
+      "plugin.author",
       "plugin.description",
       "plugin.id",
       "plugin.latestVersion",
@@ -319,7 +322,8 @@ class MarketplaceWireContractTest {
   private static InstalledPluginResource installedMatched() {
     return new InstalledPluginResource(7L, "jira", "1.5.2", true, "BTS",
         new MarketplaceEntryResource("plugin-bts-jira", "Jira Cloud",
-            "Post and link Jira Cloud issues from a failed test item.", "premium", "official",
+            "Post and link Jira Cloud issues from a failed test item.", "Atlassian", "premium",
+            "official",
             "1.6.0", new UpdateAvailableResource("1.6.0"), advisory(),
             new MarketplaceBlockedResource("1.5.2", WHEN, "Signed with a revoked key"), null,
             true));
@@ -329,7 +333,7 @@ class MarketplaceWireContractTest {
   private static InstalledPluginResource installedClean() {
     return new InstalledPluginResource(8L, "rally", "5.0.0", true, "BTS",
         new MarketplaceEntryResource("plugin-bts-rally", "Rally", "Rally work-item integration.",
-            "public", "official", "5.0.0", null, null, null, null, false));
+            "Broadcom", "public", "official", "5.0.0", null, null, null, null, false));
   }
 
   /**
@@ -340,7 +344,7 @@ class MarketplaceWireContractTest {
   private static InstalledPluginResource installedRemoved() {
     return new InstalledPluginResource(9L, "gitlab", "2.1.0", false, "BTS",
         new MarketplaceEntryResource("plugin-bts-gitlab", null, null, null, null, null, null, null,
-            null, removed(), false));
+            null, null, removed(), false));
   }
 
   /**
@@ -357,11 +361,11 @@ class MarketplaceWireContractTest {
         List.of(installedMatched(), installedClean(), installedRemoved(), installedUnmatched()),
         List.of(
             new AvailablePluginResource("plugin-notify-slack", "Slack", "2.0.0",
-                "Posts a message when a launch finishes", null, "NOTIFICATION", "public",
-                "official", false),
+                "Posts a message when a launch finishes", "ReportPortal", null, "NOTIFICATION",
+                "public", "official", false),
             new AvailablePluginResource("plugin-bts-azure", "Azure DevOps", "1.2.0",
-                "Tracks issues in Azure Boards", "https://reportportal.io/contact", "BTS",
-                "premium", "verified", true)));
+                "Tracks issues in Azure Boards", "Microsoft", "https://reportportal.io/contact",
+                "BTS", "premium", "verified", true)));
   }
 
   /**
@@ -377,8 +381,8 @@ class MarketplaceWireContractTest {
 
   private static MarketplacePluginDetailResource pluginDetail() {
     return new MarketplacePluginDetailResource(online(),
-        new MarketplacePluginResource("plugin-bts-jira", "Jira", "Tracks issues in Jira", "1.6.0",
-            "premium", "official"),
+        new MarketplacePluginResource("plugin-bts-jira", "Jira", "Tracks issues in Jira",
+            "Atlassian", "1.6.0", "premium", "official"),
         List.of(new MarketplaceVersionResource("1.6.0", WHEN, false),
             new MarketplaceVersionResource("1.5.2", EARLIER, true)),
         new MarketplaceChangelogResource("1.6.0",
@@ -393,7 +397,7 @@ class MarketplaceWireContractTest {
   /** The registry answered with a tombstone: the id survives, the manifest does not. */
   private static MarketplacePluginDetailResource removedPluginDetail() {
     return new MarketplacePluginDetailResource(online(),
-        new MarketplacePluginResource("plugin-bts-gitlab", null, null, null, null, null),
+        new MarketplacePluginResource("plugin-bts-gitlab", null, null, null, null, null, null),
         List.of(), null, List.of(), null, null, removed(), false);
   }
 
@@ -542,7 +546,7 @@ class MarketplaceWireContractTest {
    * proves only that someone ran the test, while this changes exactly when the wire changes.
    */
   private static final String CONTRACT_HASH =
-      "5b73a7c0489f1ca709e5fe289a6ea32b45e6ccf5b6f22780bc161f8c9d5e8b2f";
+      "48f99867bdf5c7bf523686615329c66033c023466b0ae756e70738e9744927ea";
 
   private static final String HASH_ALGORITHM =
       "SHA-256, hex, over the routes below in the order given: the route on a line of its own,"

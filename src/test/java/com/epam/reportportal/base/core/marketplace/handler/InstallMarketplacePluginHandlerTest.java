@@ -644,6 +644,46 @@ class InstallMarketplacePluginHandlerTest {
     assertTrue(Files.notExists(target.getValue()), "partial artifact left on disk");
   }
 
+  // --- what the loader throws -------------------------------------------------------------------
+
+  @Test
+  void aPluginBuiltAgainstAnotherReportPortalIsRefusedInPlainWords() {
+    // Real case: a 5.7.0 plugin installed into a build that renamed com.epam.ta.reportportal to
+    // com.epam.reportportal.base. PF4J resolves it, starts it, and dies instantiating the
+    // extension class. NoClassDefFoundError is an Error, so a catch of RuntimeException let it
+    // escape and the page showed "Unclassified error [Handler dispatch failed:
+    // java.lang.NoClassDefFoundError: com/epam/ta/reportportal/...]".
+    registryServes(version("public", ">=25.1", sha256(JAR), false, null));
+    publicPluginAt("https://cdn.example/jira-1.4.2.jar");
+    when(pluginBox.uploadPlugin(anyString(), any(InputStream.class)))
+        .thenThrow(new NoClassDefFoundError("com/epam/ta/reportportal/exception/ReportPortalException"));
+
+    var thrown = assertThrows(ReportPortalException.class,
+        () -> handler().install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user));
+
+    assertEquals(ErrorType.PLUGIN_UPLOAD_ERROR, thrown.getErrorType());
+    var message = thrown.getMessage();
+    assertTrue(message.contains(PLUGIN_ID), message);
+    assertTrue(message.contains("1.4.2"), message);
+    assertTrue(message.contains("built against a different version of ReportPortal"), message);
+    // the class it could not find is what tells an operator which plugin build this is
+    assertTrue(message.contains("com/epam/ta/reportportal"), message);
+  }
+
+  @Test
+  void anOutOfMemoryErrorIsNotReportedAsABadPlugin() {
+    // Only LinkageError is a statement about the jar. Everything else in the Error hierarchy is
+    // about the JVM, and dressing it up as "this plugin is broken" would send an operator to
+    // debug the wrong thing entirely.
+    registryServes(version("public", ">=25.1", sha256(JAR), false, null));
+    publicPluginAt("https://cdn.example/jira-1.4.2.jar");
+    when(pluginBox.uploadPlugin(anyString(), any(InputStream.class)))
+        .thenThrow(new OutOfMemoryError("Java heap space"));
+
+    assertThrows(OutOfMemoryError.class,
+        () -> handler().install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user));
+  }
+
   // --- the happy path ---------------------------------------------------------------------------
 
   @Test

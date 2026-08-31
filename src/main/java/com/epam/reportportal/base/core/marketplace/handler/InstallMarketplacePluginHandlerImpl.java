@@ -200,6 +200,14 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
    * {@code Manifest.getMainAttributes()} on a null and the page ends up showing
    * "Unclassified error [Cannot invoke ...]" — true, and useless. A ReportPortalException is left
    * alone: the loader's own refusals already say what is wrong.
+   *
+   * <p>{@link LinkageError} is caught alongside the runtime exceptions, and it is the case that
+   * matters most: a plugin built against a different ReportPortal fails when its extension class
+   * is instantiated, with {@code NoClassDefFoundError} naming a package this build renamed. That
+   * is an Error, not an Exception — catching only RuntimeException let it straight through, and
+   * the page showed "Unclassified error [Handler dispatch failed: java.lang.NoClassDefFoundError:
+   * com/epam/ta/reportportal/...]". Nothing else in the Error hierarchy is caught: an
+   * OutOfMemoryError is not a statement about this jar and must not be reported as one.
    */
   private IntegrationType uploaded(String registryId, String version, Path artifact,
       InputStream jar) {
@@ -207,6 +215,14 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
       return pluginBox.uploadPlugin(fileName(registryId, version), jar);
     } catch (ReportPortalException e) {
       throw e;
+    } catch (LinkageError e) {
+      LOGGER.error("Loading the artifact of '{}:{}' downloaded to '{}' failed to link", registryId,
+          version, artifact, e);
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          "'" + registryId + ":" + version + "' downloaded from '" + client.registryHost()
+              + "' was built against a different version of ReportPortal and cannot run on this"
+              + " one (" + e.getMessage() + "). The artifact is intact — its checksum matched."
+              + " Nothing was installed, and the previously active version is untouched.");
     } catch (RuntimeException e) {
       LOGGER.error("Loading the artifact of '{}:{}' downloaded to '{}' failed", registryId, version,
           artifact, e);

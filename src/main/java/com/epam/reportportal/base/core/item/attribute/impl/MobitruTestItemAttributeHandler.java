@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 /**
  * On test item finish, scans merged attributes for Mobitru recording keys (case-sensitive). For
  * every non-empty value a system log of type {@code mobitru} is created and attached to the test
- * item. No-op when the Mobitru plugin is not currently loaded and enabled.
+ * item.
  */
 @Slf4j
 @Component
@@ -42,7 +42,7 @@ public class MobitruTestItemAttributeHandler implements TestItemAttributeHandler
 
   @Override
   public void handleTestItemFinish(TestItem testItem) {
-    if (testItem == null || !mobitruAttachmentService.isPluginAvailable()) {
+    if (testItem == null) {
       return;
     }
 

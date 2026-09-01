@@ -17,7 +17,6 @@
 package com.epam.reportportal.base.core.log;
 
 import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
-import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -31,8 +30,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * Shared logic for the Mobitru attribute handlers (launch and test item). Encapsulates the
- * recording key recognition, the plugin availability check, and the creation of a {@code mobitru}
- * system log together with the external attachment load event for a single recording attribute.
+ * recording key recognition and the creation of a {@code mobitru} system log together with the
+ * external attachment load event for a single recording attribute.
  */
 @Service
 @RequiredArgsConstructor
@@ -49,16 +48,8 @@ public class MobitruAttachmentService {
   private static final Set<String> RECORDING_KEYS = Set.of(MOBILE_RECORDING_ID_KEY,
       PLAYWRIGHT_RECORDING_ID_KEY, SELENIUM_RECORDING_ID_KEY);
 
-  private final PluginAvailabilityChecker pluginAvailabilityChecker;
   private final SystemLogService systemLogService;
   private final ExternalAttachmentLoadProducer externalAttachmentLoadProducer;
-
-  /**
-   * @return {@code true} when the Mobitru plugin is currently loaded and enabled.
-   */
-  public boolean isPluginAvailable() {
-    return pluginAvailabilityChecker.isAvailable(PLUGIN_ID);
-  }
 
   /**
    * Extracts the non-empty Mobitru recording attributes from the given attribute set, preserving

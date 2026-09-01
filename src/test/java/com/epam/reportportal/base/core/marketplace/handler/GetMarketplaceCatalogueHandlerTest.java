@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * The merge matrix, the derivations and the offline degradation of the catalogue endpoint.
@@ -81,8 +82,12 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   private GetMarketplaceCatalogueHandlerImpl newHandler(ProductVersion productVersion) {
-    return new GetMarketplaceCatalogueHandlerImpl(client, integrationTypeRepository, productVersion,
-        licence, Duration.ofSeconds(60), Duration.ofSeconds(30), Duration.ofMinutes(5), ticker);
+    var created = new GetMarketplaceCatalogueHandlerImpl(client, integrationTypeRepository,
+        productVersion, licence, Duration.ofSeconds(60), Duration.ofSeconds(30),
+        Duration.ofMinutes(5), ticker);
+    // A @Value field is null on a hand-built handler; the property's own default is true.
+    ReflectionTestUtils.setField(created, "uploadAllowed", true);
+    return created;
   }
 
   /** Guava reads expiry off the ticker, so the TTLs can be crossed without sleeping. */
@@ -474,6 +479,21 @@ class GetMarketplaceCatalogueHandlerTest {
     var catalogue = handler.getCatalogue(null, "notifications");
 
     assertEquals(List.of("slack"), catalogue.installed().stream().map(row -> row.name()).toList());
+  }
+
+  @Test
+  void theInstanceSaysWhetherAJarMayBeUploadedByHand() {
+    // Not a registry fact and not a permission: the capability is switched off by environment,
+    // and the page then leaves the control out rather than drawing a disabled one. It is
+    // reported separately from the registry because the two fail independently — manual upload
+    // is the escape valve precisely when the registry cannot be reached.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of());
+
+    assertTrue(handler.getCatalogue(null, null).instance().uploadAllowed());
+
+    ReflectionTestUtils.setField(handler, "uploadAllowed", false);
+    assertFalse(handler.getCatalogue(null, null).instance().uploadAllowed());
   }
 
   @Test

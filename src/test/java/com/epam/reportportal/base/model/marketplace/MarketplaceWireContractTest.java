@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import com.epam.reportportal.base.core.configs.JacksonConfiguration;
 import com.epam.reportportal.base.model.marketplace.catalogue.AvailablePluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
+import com.epam.reportportal.base.model.marketplace.catalogue.InstanceCapabilitiesResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceAdvisoryResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceBlockedResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
@@ -205,6 +206,7 @@ class MarketplaceWireContractTest {
    */
   private static final List<String> CATALOGUE_FIELDS = List.of(
       "available[].access",
+      "instance.uploadAllowed",
       "available[].author",
       "available[].contactUrl",
       "available[].description",
@@ -356,8 +358,12 @@ class MarketplaceWireContractTest {
     return new InstalledPluginResource(10L, "custom-scanner", "0.9.0", true, "OTHER", null);
   }
 
+  private static InstanceCapabilitiesResource uploadAllowed() {
+    return new InstanceCapabilitiesResource(true);
+  }
+
   private static MarketplaceCatalogueResource catalogue() {
-    return new MarketplaceCatalogueResource(online(),
+    return new MarketplaceCatalogueResource(online(), uploadAllowed(),
         List.of(installedMatched(), installedClean(), installedRemoved(), installedUnmatched()),
         List.of(
             new AvailablePluginResource("plugin-notify-slack", "Slack", "2.0.0",
@@ -373,7 +379,8 @@ class MarketplaceWireContractTest {
    * sourced claim, and nothing is offered for install.
    */
   private static MarketplaceCatalogueResource offlineCatalogue() {
-    return new MarketplaceCatalogueResource(offline(),
+    // Upload stays allowed with the registry down: it is the escape valve for exactly this.
+    return new MarketplaceCatalogueResource(offline(), uploadAllowed(),
         List.of(new InstalledPluginResource(7L, "jira", "1.5.2", true, "BTS", null),
             installedUnmatched()),
         List.of());
@@ -546,7 +553,7 @@ class MarketplaceWireContractTest {
    * proves only that someone ran the test, while this changes exactly when the wire changes.
    */
   private static final String CONTRACT_HASH =
-      "48f99867bdf5c7bf523686615329c66033c023466b0ae756e70738e9744927ea";
+      "74cb316e28f6344062ac99cd40d40de8dd141e4ce26c044b786dc11654bd43a8";
 
   private static final String HASH_ALGORITHM =
       "SHA-256, hex, over the routes below in the order given: the route on a line of its own,"

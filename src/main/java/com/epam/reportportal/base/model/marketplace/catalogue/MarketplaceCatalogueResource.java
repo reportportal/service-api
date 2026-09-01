@@ -21,12 +21,14 @@ import java.util.List;
 /**
  * Everything the Plugins page renders, including its offline state, in one response.
  *
+ * @param instance what this instance itself permits, independent of the registry
  * @param registry  registry reachability and host
  * @param installed plugins installed here, never null
  * @param available registry plugins not installed here, empty when the registry is offline
  */
 public record MarketplaceCatalogueResource(
     RegistryStatusResource registry,
+    InstanceCapabilitiesResource instance,
     List<InstalledPluginResource> installed,
     List<AvailablePluginResource> available
 ) {

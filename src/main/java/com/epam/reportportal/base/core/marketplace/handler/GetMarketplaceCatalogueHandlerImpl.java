@@ -29,6 +29,7 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.model.marketplace.catalogue.AvailablePluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
+import com.epam.reportportal.base.model.marketplace.catalogue.InstanceCapabilitiesResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceEntryResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
@@ -45,6 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -72,6 +74,14 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   private final IntegrationTypeRepository integrationTypeRepository;
   private final ProductVersion productVersion;
   private final MarketplaceLicence licence;
+
+  /**
+   * Whether a jar may be uploaded by hand on this instance. Switched off by environment, and the
+   * page then leaves the control out entirely rather than showing a disabled one — the capability
+   * is off, which is not the same as the user lacking permission for it.
+   */
+  @Value("${rp.plugins.upload.allowed:true}")
+  private boolean uploadAllowed;
 
   /**
    * Creates the handler.
@@ -138,7 +148,8 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
             .toList();
     var status = registryPlugins == null ? RegistryStatus.OFFLINE : RegistryStatus.ONLINE;
     return new MarketplaceCatalogueResource(
-        new RegistryStatusResource(status, registry.registryHost()), installed, available);
+        new RegistryStatusResource(status, registry.registryHost()),
+        new InstanceCapabilitiesResource(uploadAllowed), installed, available);
   }
 
   private static Map<String, MarketplacePlugin> index(List<MarketplacePlugin> plugins,

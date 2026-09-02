@@ -19,7 +19,6 @@ package com.epam.reportportal.base.core.analyzer.auto.impl;
 import com.epam.reportportal.base.model.analyzer.AnalyzedItemRs;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Pavel Bortnik
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AnalysisResultConsumer {
@@ -43,7 +41,6 @@ public class AnalysisResultConsumer {
       containerFactory = "analyzerRabbitListenerContainerFactory")
   public void onReply(@Payload List<AnalyzedItemRs> analyzed,
       @Header(name = "analyzer_id", required = false) String analyzerInstance) {
-    log.info("RRR" + analyzed);
     analysisResultHandler.processResults(analyzed, analyzerInstance);
   }
 }

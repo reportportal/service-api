@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
 import com.epam.reportportal.base.core.log.MobitruAttachmentService;
 import com.epam.reportportal.base.core.log.SystemLogService;
-import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.LinkedHashSet;
@@ -52,9 +51,6 @@ class MobitruLaunchAttributeHandlerTest {
   private static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
 
   @Mock
-  private PluginAvailabilityChecker pluginAvailabilityChecker;
-
-  @Mock
   private SystemLogService systemLogService;
 
   @Mock
@@ -65,24 +61,12 @@ class MobitruLaunchAttributeHandlerTest {
   @BeforeEach
   void setUp() {
     MobitruAttachmentService recordingAttachmentService =
-        new MobitruAttachmentService(pluginAvailabilityChecker, systemLogService,
-            externalAttachmentLoadProducer);
+        new MobitruAttachmentService(systemLogService, externalAttachmentLoadProducer);
     handler = new MobitruLaunchAttributeHandler(recordingAttachmentService);
   }
 
   @Test
-  void doesNothingWhenPluginNotAvailable() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(false);
-
-    handler.handleLaunchFinish(launchWithAttribute(MOBILE_RECORDING_ID_KEY, "device-1"));
-
-    verifyNoInteractions(systemLogService);
-    verifyNoInteractions(externalAttachmentLoadProducer);
-  }
-
-  @Test
   void writesOneLogPerMobileRecordingAttribute() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttributes(
         attr(MOBILE_RECORDING_ID_KEY, "device-1"),
         attr(MOBILE_RECORDING_ID_KEY, "device-2"),
@@ -111,7 +95,6 @@ class MobitruLaunchAttributeHandlerTest {
 
   @Test
   void writesOneLogPerPlaywrightRecordingAttribute() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttributes(
         attr(PLAYWRIGHT_RECORDING_ID_KEY, "device-1"),
         attr(PLAYWRIGHT_RECORDING_ID_KEY, "device-2"),
@@ -140,7 +123,6 @@ class MobitruLaunchAttributeHandlerTest {
 
   @Test
   void writesLogForSeleniumRecordingAttribute() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttribute(SELENIUM_RECORDING_ID_KEY, "device-1");
     when(systemLogService.writeLaunchLog(eq(launch), eq(LOG_TYPE_NAME), eq(logMessage("device-1"))))
         .thenReturn(11L);
@@ -154,7 +136,6 @@ class MobitruLaunchAttributeHandlerTest {
 
   @Test
   void writesLogsForMixedMobitruRecordingAttributes() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttributes(
         attr(MOBILE_RECORDING_ID_KEY, "device-mobile"),
         attr(PLAYWRIGHT_RECORDING_ID_KEY, "device-playwright"),
@@ -188,8 +169,6 @@ class MobitruLaunchAttributeHandlerTest {
 
   @Test
   void doesNothingWhenNoMbidAttribute() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
-
     handler.handleLaunchFinish(launchWithAttribute("retentionPolicy", "important"));
 
     verify(systemLogService, never()).writeLaunchLog(any(), anyString(), anyString());
@@ -198,7 +177,6 @@ class MobitruLaunchAttributeHandlerTest {
 
   @Test
   void skipsEmptyAndNullValues() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     Launch launch = launchWithAttributes(
         attr(MOBILE_RECORDING_ID_KEY, ""),
         attr(MOBILE_RECORDING_ID_KEY, null),
@@ -219,8 +197,6 @@ class MobitruLaunchAttributeHandlerTest {
 
   @Test
   void isCaseSensitiveOnKey() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
-
     handler.handleLaunchFinish(launchWithAttribute("mbid", "device-1"));
 
     verify(systemLogService, never()).writeLaunchLog(any(), anyString(), anyString());

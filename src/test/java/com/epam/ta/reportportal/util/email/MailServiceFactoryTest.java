@@ -62,6 +62,9 @@ class MailServiceFactoryTest {
   @Mock
   private IntegrationTypeRepository integrationTypeRepository;
 
+  @Mock
+  private MicrosoftOAuth2TokenService oAuth2TokenService;
+
   private Integration integration = mock(Integration.class);
 
   private IntegrationType integrationType = mock(IntegrationType.class);
@@ -79,7 +82,7 @@ class MailServiceFactoryTest {
     basicTextEncryptor = new BasicTextEncryptor();
     basicTextEncryptor.setPassword("123");
     mailServiceFactory = new MailServiceFactory(templateEngine, basicTextEncryptor,
-        integrationRepository, integrationTypeRepository);
+        integrationRepository, integrationTypeRepository, oAuth2TokenService);
   }
 
   @Test
@@ -194,6 +197,53 @@ class MailServiceFactoryTest {
     String sslClass = (String) javaMailProperties.get("mail.smtp.socketFactory.class");
     Assertions.assertEquals("javax.net.ssl.SSLSocketFactory", sslClass);
 
+  }
+
+  @Test
+  void shouldReturnEmailServiceWithOAuth2WhenEnabled() {
+
+    Map<String, Object> config = ImmutableMap.<String, Object>builder()
+        .put(OAuth2EmailSettings.AUTH_MODE.getAttribute(), "OAUTH2")
+        .put(EmailSettingsEnum.USERNAME.getAttribute(), "notifications@example.com")
+        .put(OAuth2EmailSettings.TENANT_ID.getAttribute(), "tenant-id")
+        .put(OAuth2EmailSettings.CLIENT_ID.getAttribute(), "client-id")
+        .put(OAuth2EmailSettings.CLIENT_SECRET.getAttribute(), basicTextEncryptor.encrypt("client-secret"))
+        .build();
+
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(config);
+    when(oAuth2TokenService.getAccessToken("tenant-id", "client-id", "client-secret"))
+        .thenReturn("mock-access-token");
+
+    Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
+
+    Assertions.assertTrue(emailService.isPresent());
+
+    EmailService service = emailService.get();
+
+    Assertions.assertEquals("notifications@example.com", service.getUsername());
+    Assertions.assertEquals("mock-access-token", service.getPassword());
+    Properties javaMailProperties = service.getJavaMailProperties();
+    Assertions.assertEquals("XOAUTH2", javaMailProperties.get("mail.smtp.auth.mechanisms"));
+  }
+
+  @Test
+  void shouldFailWhenOAuth2UsernameIsMissing() {
+
+    Map<String, Object> config = ImmutableMap.<String, Object>builder()
+        .put(OAuth2EmailSettings.AUTH_MODE.getAttribute(), "OAUTH2")
+        .put(OAuth2EmailSettings.TENANT_ID.getAttribute(), "tenant-id")
+        .put(OAuth2EmailSettings.CLIENT_ID.getAttribute(), "client-id")
+        .put(OAuth2EmailSettings.CLIENT_SECRET.getAttribute(), basicTextEncryptor.encrypt("client-secret"))
+        .build();
+
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(config);
+
+    assertThrows(ReportPortalException.class,
+        () -> mailServiceFactory.getEmailService(integration));
   }
 
   @Test

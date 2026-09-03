@@ -62,15 +62,18 @@ public class MailServiceFactory {
   private final BasicTextEncryptor encryptor;
   private final IntegrationRepository integrationRepository;
   private final IntegrationTypeRepository integrationTypeRepository;
+  private final MicrosoftOAuth2TokenService oAuth2TokenService;
 
   @Autowired
   public MailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor,
       IntegrationRepository integrationRepository,
-      IntegrationTypeRepository integrationTypeRepository) {
+      IntegrationTypeRepository integrationTypeRepository,
+      MicrosoftOAuth2TokenService oAuth2TokenService) {
     this.templateEngine = templateEngine;
     this.encryptor = encryptor;
     this.integrationRepository = integrationRepository;
     this.integrationTypeRepository = integrationTypeRepository;
+    this.oAuth2TokenService = oAuth2TokenService;
   }
 
   /**
@@ -92,10 +95,8 @@ public class MailServiceFactory {
 
     if (MapUtils.isNotEmpty(config)) {
 
-      boolean authRequired = ofNullable(
-          config.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).map(
-          e -> BooleanUtils.toBoolean(
-              String.valueOf(e))).orElse(false);
+      EmailAuthMode authMode = EmailAuthMode.resolve(config);
+      boolean authRequired = authMode != EmailAuthMode.OFF;
 
       Properties javaMailProperties = new Properties();
       javaMailProperties.put("mail.smtp.timeout", 20000);
@@ -117,6 +118,13 @@ public class MailServiceFactory {
         javaMailProperties.put("mail.smtp.ssl.checkserveridentity", true);
       }
 
+      if (authMode == EmailAuthMode.OAUTH2) {
+        /* Force XOAUTH2: the "password" JavaMail sends is the bearer access token, not a secret. */
+        javaMailProperties.put("mail.smtp.auth.mechanisms", "XOAUTH2");
+        javaMailProperties.put("mail.smtp.auth.login.disable", "true");
+        javaMailProperties.put("mail.smtp.auth.plain.disable", "true");
+      }
+
       EmailService service = new EmailService(javaMailProperties);
       service.setTemplateEngine(templateEngine);
 
@@ -127,16 +135,47 @@ public class MailServiceFactory {
           .orElse(25));
       EmailSettingsEnum.PROTOCOL.getAttribute(config).ifPresent(service::setProtocol);
       EmailSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFrom);
-      if (authRequired) {
-        EmailSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setUsername);
-        EmailSettingsEnum.PASSWORD.getAttribute(config)
-            .ifPresent(password -> service.setPassword(encryptor.decrypt(password)));
+
+      switch (authMode) {
+        case BASIC:
+          EmailSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setUsername);
+          EmailSettingsEnum.PASSWORD.getAttribute(config)
+              .ifPresent(password -> service.setPassword(encryptor.decrypt(password)));
+          break;
+        case OAUTH2:
+          applyOAuth2Credentials(service, config);
+          break;
+        case OFF:
+        default:
+          break;
       }
       return Optional.of(service);
 
     }
 
     return Optional.empty();
+  }
+
+  /**
+   * Acquires an OAuth2 access token for the integration's Entra app registration and wires it into
+   * the {@link EmailService} the same way a basic-auth password would be: username stays the
+   * mailbox address, the "password" JavaMail sends over XOAUTH2 is the bearer token.
+   */
+  private void applyOAuth2Credentials(EmailService service, Map<String, Object> config) {
+    String tenantId = OAuth2EmailSettings.TENANT_ID.getAttribute(config)
+        .orElseThrow(() -> emailConfigurationFail(null));
+    String clientId = OAuth2EmailSettings.CLIENT_ID.getAttribute(config)
+        .orElseThrow(() -> emailConfigurationFail(null));
+    String clientSecret = OAuth2EmailSettings.CLIENT_SECRET.getAttribute(config)
+        .map(encryptor::decrypt)
+        .orElseThrow(() -> emailConfigurationFail(null));
+    String mailbox = EmailSettingsEnum.USERNAME.getAttribute(config)
+        .orElseThrow(() -> emailConfigurationFail(null));
+
+    String accessToken = oAuth2TokenService.getAccessToken(tenantId, clientId, clientSecret);
+
+    service.setUsername(mailbox);
+    service.setPassword(accessToken);
   }
 
   /**

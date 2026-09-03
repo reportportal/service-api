@@ -17,13 +17,12 @@
 package com.epam.reportportal.base.info;
 
 import com.epam.reportportal.base.core.analyzer.auto.client.RabbitMqManagementClient;
-import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,21 +31,26 @@ import org.springframework.stereotype.Component;
  * @author Pavel Bortnik
  */
 @Component
+@RequiredArgsConstructor
 public class AnalyzerInfoContributor implements ExtensionContributor {
+
+  static final String AVAILABLE_KEY = "available";
 
   private final RabbitMqManagementClient managementClient;
 
-  @Autowired
-  public AnalyzerInfoContributor(RabbitMqManagementClient managementClient) {
-    this.managementClient = managementClient;
-  }
-
   @Override
   public Map<String, ?> contribute() {
-    Set<Object> analyzersInfo = managementClient.getAnalyzerExchangesInfo()
+    Set<String> exchangesWithConsumers = managementClient.getExchangesWithActiveConsumers();
+    Set<Map<String, Object>> analyzersInfo = managementClient.getAnalyzerExchangesInfo()
         .stream()
-        .map((Function<ExchangeInfo, Object>) ExchangeInfo::getArguments)
+        .map(exchange -> toAnalyzerInfo(exchange, exchangesWithConsumers))
         .collect(Collectors.toSet());
-    return ImmutableMap.<String, Object>builder().put("analyzers", analyzersInfo).build();
+    return Map.of("analyzers", analyzersInfo);
+  }
+
+  private Map<String, Object> toAnalyzerInfo(ExchangeInfo exchange, Set<String> exchangesWithConsumers) {
+    Map<String, Object> info = new HashMap<>(exchange.getArguments());
+    info.put(AVAILABLE_KEY, exchangesWithConsumers.contains(exchange.getName()));
+    return info;
   }
 }

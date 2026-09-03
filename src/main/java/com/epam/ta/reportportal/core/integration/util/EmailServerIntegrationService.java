@@ -29,13 +29,16 @@ import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.model.integration.IntegrationRQ;
+import com.epam.ta.reportportal.util.email.EmailAuthMode;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.util.email.OAuth2EmailSettings;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.mail.MessagingException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -111,24 +114,62 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         .ifPresent(
             username -> resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), username));
 
-    ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute()))
-        .ifPresent(
-            authEnabledAttribute -> {
-              boolean isAuthEnabled = BooleanUtils.toBoolean(String.valueOf(authEnabledAttribute));
-              if (isAuthEnabled) {
-                EmailSettingsEnum.PASSWORD
-                    .getAttribute(integrationParams)
-                    .ifPresent(
-                        password ->
-                            resultParams.put(
-                                EmailSettingsEnum.PASSWORD.getAttribute(),
-                                basicTextEncryptor.encrypt(password)));
-              } else {
-                /* Auto-drop values on switched-off authentication */
-                resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
-              }
-              resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
-            });
+    boolean authKeyProvided = integrationParams.containsKey(OAuth2EmailSettings.AUTH_MODE.getAttribute())
+        || integrationParams.containsKey(EmailSettingsEnum.AUTH_ENABLED.getAttribute());
+    if (authKeyProvided) {
+      EmailAuthMode authMode = EmailAuthMode.resolve(integrationParams);
+      resultParams.put(OAuth2EmailSettings.AUTH_MODE.getAttribute(), authMode.name());
+      /* Kept for older clients still reading the legacy boolean flag. */
+      resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), authMode != EmailAuthMode.OFF);
+
+      switch (authMode) {
+        case BASIC:
+          EmailSettingsEnum.PASSWORD
+              .getAttribute(integrationParams)
+              .ifPresent(
+                  password ->
+                      resultParams.put(
+                          EmailSettingsEnum.PASSWORD.getAttribute(),
+                          basicTextEncryptor.encrypt(password)));
+          /* Auto-drop the other mode's secret so it never lingers on a switched-away integration. */
+          resultParams.put(OAuth2EmailSettings.CLIENT_SECRET.getAttribute(), null);
+          break;
+        case OAUTH2:
+          BusinessRule.expect(
+                  EmailSettingsEnum.USERNAME.getAttribute(integrationParams).orElse(null),
+                  StringUtils::isNotBlank)
+              .verify(ErrorType.INCORRECT_REQUEST, "'Username' is required for OAuth2 authorization.");
+          BusinessRule.expect(
+                  OAuth2EmailSettings.TENANT_ID.getAttribute(integrationParams).orElse(null),
+                  StringUtils::isNotBlank)
+              .verify(ErrorType.INCORRECT_REQUEST, "'Tenant Id' is required for OAuth2 authorization.");
+          BusinessRule.expect(
+                  OAuth2EmailSettings.CLIENT_ID.getAttribute(integrationParams).orElse(null),
+                  StringUtils::isNotBlank)
+              .verify(ErrorType.INCORRECT_REQUEST, "'Client Id' is required for OAuth2 authorization.");
+          BusinessRule.expect(
+                  OAuth2EmailSettings.CLIENT_SECRET.getAttribute(integrationParams).orElse(null),
+                  StringUtils::isNotBlank)
+              .verify(ErrorType.INCORRECT_REQUEST, "'Client Secret' is required for OAuth2 authorization.");
+
+          OAuth2EmailSettings.TENANT_ID.getAttribute(integrationParams)
+              .ifPresent(attr -> resultParams.put(OAuth2EmailSettings.TENANT_ID.getAttribute(), attr));
+          OAuth2EmailSettings.CLIENT_ID.getAttribute(integrationParams)
+              .ifPresent(attr -> resultParams.put(OAuth2EmailSettings.CLIENT_ID.getAttribute(), attr));
+          OAuth2EmailSettings.CLIENT_SECRET.getAttribute(integrationParams)
+              .ifPresent(attr -> resultParams.put(OAuth2EmailSettings.CLIENT_SECRET.getAttribute(),
+                  basicTextEncryptor.encrypt(attr)));
+          /* Auto-drop the other mode's secret so it never lingers on a switched-away integration. */
+          resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
+          break;
+        case OFF:
+        default:
+          /* Auto-drop both modes' secrets when authorization is switched off. */
+          resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
+          resultParams.put(OAuth2EmailSettings.CLIENT_SECRET.getAttribute(), null);
+          break;
+      }
+    }
 
     EmailSettingsEnum.STAR_TLS_ENABLED
         .getAttribute(integrationParams)
@@ -194,10 +235,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
   }
 
   private void sendConnectionTestEmail(Integration integration, boolean isNewIntegration) {
-    boolean isAuthEnabled = BooleanUtils.toBoolean(
-        EmailSettingsEnum.AUTH_ENABLED
-            .getAttribute(integration.getParams().getParams())
-            .orElse("false"));
+    boolean isAuthEnabled = EmailAuthMode.resolve(integration.getParams().getParams()) != EmailAuthMode.OFF;
     emailServiceFactory.getEmailService(integration).ifPresent(emailService -> {
       if (isAuthEnabled) {
         try {

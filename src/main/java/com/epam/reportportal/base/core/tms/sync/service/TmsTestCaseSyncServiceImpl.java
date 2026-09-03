@@ -103,27 +103,26 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
         .map(Project::getOrganizationId)
         .orElse(null);
 
-    // 1. Fetch existing in one query
-    var existingTestCases = transactionTemplate.execute(status ->
-        tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, externalIds)
-            .stream()
-            .collect(
-                Collectors.toMap(TmsTestCase::getExternalId, Function.identity())
-            )
-    );
-
+    // 1. Fetch existing test cases and capture beforeSnapshots in a single transaction
+    var existingTestCases = new HashMap<String, TmsTestCase>();
     var beforeSnapshots = new HashMap<String, TestCaseActivityResource>();
-    if (existingTestCases != null && !existingTestCases.isEmpty()) {
-      transactionTemplate.executeWithoutResult(status -> {
-        var existingTestCaseIds = existingTestCases.values().stream().map(TmsTestCase::getId).toList();
+
+    transactionTemplate.executeWithoutResult(status -> {
+      var foundTestCases = tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, externalIds)
+          .stream()
+          .collect(Collectors.toMap(TmsTestCase::getExternalId, Function.identity()));
+      existingTestCases.putAll(foundTestCases);
+
+      if (!foundTestCases.isEmpty()) {
+        var existingTestCaseIds = foundTestCases.values().stream().map(TmsTestCase::getId).toList();
         var defaultVersionsBefore = tmsTestCaseVersionService.getDefaultVersions(existingTestCaseIds);
-        for (var entry : existingTestCases.entrySet()) {
+        for (var entry : foundTestCases.entrySet()) {
           var tc = entry.getValue();
           var ver = defaultVersionsBefore != null ? defaultVersionsBefore.get(tc.getId()) : null;
           beforeSnapshots.put(entry.getKey(), tmsTestCaseActivityResourceMapper.buildActivityResource(tc, ver));
         }
-      });
-    }
+      }
+    });
 
     var testCaseSyncContext = new TestCaseSyncContext(
         projectId, connector, integration, localFolderId

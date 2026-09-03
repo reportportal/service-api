@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.info;
 
-import static com.epam.reportportal.base.info.AnalyzerInfoContributor.AVAILABLE_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +54,7 @@ class AnalyzerInfoContributorTest {
 
     // then
     assertEquals("5.15.5", analyzer.get("version"));
-    assertEquals(true, analyzer.get(AVAILABLE_KEY));
+    assertEquals(true, analyzer.get("available"));
   }
 
   @Test
@@ -72,7 +71,7 @@ class AnalyzerInfoContributorTest {
 
     // then
     assertEquals("5.15.5", analyzer.get("version"));
-    assertEquals(false, analyzer.get(AVAILABLE_KEY));
+    assertEquals(false, analyzer.get("available"));
   }
 
   private static ExchangeInfo analyzerExchange() {

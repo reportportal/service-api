@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AnalyzerInfoContributor implements ExtensionContributor {
 
-  static final String AVAILABLE_KEY = "available";
+  private static final String AVAILABLE_KEY = "available";
 
   private final RabbitMqManagementClient managementClient;
 

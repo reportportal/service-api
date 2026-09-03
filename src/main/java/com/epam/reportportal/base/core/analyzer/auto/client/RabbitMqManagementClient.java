@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.analyzer.auto.client;
 
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.List;
+import java.util.Set;
 
 /**
  * HTTP management API for listing analyzer-related RabbitMQ exchanges.
@@ -28,4 +29,5 @@ public interface RabbitMqManagementClient {
 
   List<ExchangeInfo> getAnalyzerExchangesInfo();
 
+  Set<String> getExchangesWithActiveConsumers();
 }

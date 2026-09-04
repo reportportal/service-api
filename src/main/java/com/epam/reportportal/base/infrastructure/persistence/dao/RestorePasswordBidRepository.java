@@ -39,7 +39,7 @@ public interface RestorePasswordBidRepository extends
   Optional<RestorePasswordBid> findByEmail(String email);
 
   /**
-   * Deletes bid by specified email
+   * Deletes bid by specified email.
    *
    * @param email email
    */

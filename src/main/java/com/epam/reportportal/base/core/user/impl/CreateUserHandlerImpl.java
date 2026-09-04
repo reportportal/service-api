@@ -120,7 +120,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     expect(user.get().getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
         "Unable to change password for external user");
 
-    restorePasswordBidRepository.deleteByEmail(rq.getEmail());
+    restorePasswordBidRepository.deleteByEmail(email);
+    rq.setEmail(email);
     RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
     restorePasswordBidRepository.save(bid);
 

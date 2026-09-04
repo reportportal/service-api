@@ -30,6 +30,12 @@ import org.springframework.data.repository.query.Param;
 public interface RestorePasswordBidRepository extends
     ReportPortalRepository<RestorePasswordBid, String> {
 
+  /**
+   * Finds a restore password bid by email address.
+   *
+   * @param email normalized email address to search for
+   * @return Optional containing the bid if found, empty otherwise
+   */
   Optional<RestorePasswordBid> findByEmail(String email);
 
   /**

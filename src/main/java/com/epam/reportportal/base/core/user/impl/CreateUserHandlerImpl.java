@@ -49,9 +49,12 @@ import com.epam.reportportal.base.ws.converter.builders.UserBuilder;
 import com.epam.reportportal.base.ws.converter.converters.RestorePasswordBidConverter;
 import com.epam.reportportal.base.ws.converter.converters.UserConverter;
 import jakarta.persistence.PersistenceException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -78,6 +81,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   private final ApplicationEventPublisher eventPublisher;
   private final UserMutationService userMutationService;
   private final PasswordPolicyService passwordPolicyService;
+
+  // Kept in sync with rp.environment.variable.clean.restorePasswordBid.retentionPeriod (service-jobs).
+  @Value("${rp.restore.password.bid.ttl:PT24H}")
+  private Duration restorePasswordBidTtl;
 
   @Override
   public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator,
@@ -110,18 +117,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
     }
 
-    Optional<RestorePasswordBid> bidOptional =
-        restorePasswordBidRepository.findByEmail(rq.getEmail());
+    expect(user.get().getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
+        "Unable to change password for external user");
 
-    RestorePasswordBid bid;
-    if (bidOptional.isEmpty()) {
-      expect(user.get().getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
-          "Unable to change password for external user");
-      bid = RestorePasswordBidConverter.TO_BID.apply(rq);
-      restorePasswordBidRepository.save(bid);
-    } else {
-      bid = bidOptional.get();
-    }
+    restorePasswordBidRepository.deleteByEmail(email);
+    rq.setEmail(email);
+    RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
+    restorePasswordBidRepository.save(bid);
 
     emailServiceFactory.getDefaultEmailService(true)
         .sendRestorePasswordEmail("Password recovery",
@@ -139,6 +141,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
         .orElseThrow(() -> new ReportPortalException(
             ACCESS_DENIED, "The password change link is no longer valid."));
 
+    if (isExpired(bid)) {
+      throw new ReportPortalException(ACCESS_DENIED, "The password change link is no longer valid.");
+    }
+
     User user = userRepository.findByEmail(NORMALIZE_EMAIL.apply(bid.getEmail()))
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND));
 
@@ -154,8 +160,15 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
   @Override
   public YesNoRS isResetPasswordBidExist(String uuid) {
-    Optional<RestorePasswordBid> bid = restorePasswordBidRepository.findById(uuid);
-    return new YesNoRS(bid.isPresent());
+    boolean exists = restorePasswordBidRepository.findById(uuid)
+        .filter(bid -> !isExpired(bid))
+        .isPresent();
+    return new YesNoRS(exists);
+  }
+
+  private boolean isExpired(RestorePasswordBid bid) {
+    Instant issuedAt = bid.getLastModified();
+    return issuedAt.plus(restorePasswordBidTtl).isBefore(Instant.now());
   }
 
   private User saveUser(NewUserRequest request) {

@@ -21,12 +21,16 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.Modifiable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * One-time token row for the forgot-password e-mail flow.
@@ -35,6 +39,9 @@ import org.springframework.data.annotation.LastModifiedDate;
  */
 @Entity
 @Table(name = "restore_password_bid")
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
 public class RestorePasswordBid implements Serializable, Modifiable {
 
   /**
@@ -53,29 +60,9 @@ public class RestorePasswordBid implements Serializable, Modifiable {
   @Column(name = "email")
   private String email;
 
-  public String getUuid() {
-    return uuid;
-  }
-
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
   @Override
   public Instant getLastModified() {
     return lastModifiedDate;
-  }
-
-  public void setLastModifiedDate(Instant lastModifiedDate) {
-    this.lastModifiedDate = lastModifiedDate;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
   }
 
   @Override

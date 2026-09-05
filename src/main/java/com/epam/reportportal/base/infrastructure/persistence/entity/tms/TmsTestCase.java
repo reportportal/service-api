@@ -78,6 +78,10 @@ public class TmsTestCase implements Serializable {
   @Convert(converter = JpaInstantConverter.class)
   private Instant updatedAt;
 
+  @Column(name = "source_updated_at")
+  @Convert(converter = JpaInstantConverter.class)
+  private Instant sourceUpdatedAt;
+
   @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)
   @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude

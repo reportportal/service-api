@@ -189,6 +189,8 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(mock(TestCaseActivityResource.class));
     lenient().when(tmsTestCaseActivityResourceMapper.buildTestCaseCreatedEvent(any(), any(), any()))
         .thenReturn(mock(TestCaseCreatedEvent.class));
+    lenient().when(tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(any(), any(), any()))
+        .thenReturn(mock(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
 
     attributes = new ArrayList<>();
     var attribute = new TmsTestCaseAttributeRQ();
@@ -1105,13 +1107,14 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
     
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
     
     assertNotNull(result);
     assertEquals(1, result.size());
     verify(importerFactory).getImporter("test.csv");
     verify(importer).parse(any(InputStream.class));
     verify(tmsTestCaseRepository).saveAll(anyList());
+    verify(eventPublisher).publishEvent(any(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
   }
 
   @Test
@@ -1127,7 +1130,7 @@ class TmsTestCaseServiceImplTest {
     when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, testFolderId, null, file));
+        () -> sut.importFromFile(membershipDetails, user, testFolderId, null, file));
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     verify(tmsTestCaseRepository, never()).saveAll(any());
   }
@@ -1160,11 +1163,12 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
     
-    var result = sut.importFromFile(projectId, null, null, file);
+    var result = sut.importFromFile(membershipDetails, user, null, null, file);
     
     assertNotNull(result);
     assertEquals(1, result.size());
     verify(tmsTestFolderService).resolveFolderPathsBatch(eq(projectId), eq(null), anyList());
+    verify(eventPublisher).publishEvent(any(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
   }
 
   @Test
@@ -1194,11 +1198,12 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
     assertNotNull(result);
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseMapper).convertFromImportRQ(projectId, importRQ, testFolderId);
+    verify(eventPublisher).publishEvent(any(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
   }
 
   @Test
@@ -1231,7 +1236,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
-    var result = sut.importFromFile(projectId, null, folderName, file);
+    var result = sut.importFromFile(membershipDetails, user, null, folderName, file);
 
     assertNotNull(result);
     verify(tmsTestFolderService).resolveFolderPath(projectId, null, List.of(folderName));
@@ -1255,7 +1260,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.existsById(projectId, nonExistentFolderId)).thenReturn(false);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, nonExistentFolderId, null, file));
+        () -> sut.importFromFile(membershipDetails, user, nonExistentFolderId, null, file));
     assertEquals(NOT_FOUND, exception.getErrorType());
     verify(tmsTestCaseRepository, never()).saveAll(any());
   }
@@ -1277,7 +1282,7 @@ class TmsTestCaseServiceImplTest {
     when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, null, null, file));
+        () -> sut.importFromFile(membershipDetails, user, null, null, file));
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     verify(tmsTestCaseRepository, never()).saveAll(any());
   }
@@ -1319,7 +1324,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(List.of(savedTestCase1, savedTestCase2));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS(), new TmsTestFolderRS()));
     
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
     
     assertNotNull(result);
     assertEquals(2, result.size());
@@ -1333,7 +1338,7 @@ class TmsTestCaseServiceImplTest {
     when(importerFactory.getImporter("test.csv")).thenReturn(importer);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, testFolderId, null, file));
+        () -> sut.importFromFile(membershipDetails, user, testFolderId, null, file));
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     assertTrue(exception.getMessage().contains("Failed to read file"));
   }
@@ -1369,7 +1374,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
     assertNotNull(result);
     verify(tmsAttributeService).resolveAttributes(eq(projectId), anySet());

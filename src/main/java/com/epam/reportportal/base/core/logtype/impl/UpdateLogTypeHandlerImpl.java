@@ -93,8 +93,8 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
     LogTypeActivityResource after = LogTypeConverter.TO_ACTIVITY_RESOURCE.apply(updatedLogType);
 
     eventPublisher.publishEvent(
-        new LogTypeUpdatedEvent(before, after, user.getUserId(), user.getUsername()
-        ));
+        new LogTypeUpdatedEvent(before, after, user.getUserId(), user.getUsername(), project.getId(),
+            project.getOrganizationId()));
 
     return new SuccessfulUpdate("The update was completed successfully.");
   }

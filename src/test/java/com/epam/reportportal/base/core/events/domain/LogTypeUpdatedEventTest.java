@@ -38,7 +38,7 @@ class LogTypeUpdatedEventTest {
     // given
     var before = buildActivityResource("#00ff00", "bold", true);
     var after = buildActivityResource("#ff0000", "normal", false);
-    LogTypeUpdatedEvent event = new LogTypeUpdatedEvent(before, after, 100L, "user");
+    LogTypeUpdatedEvent event = new LogTypeUpdatedEvent(before, after, 100L, "user", 22L, 33L);
 
     // when
     LogTypeUpdatedEventConverter converter = new LogTypeUpdatedEventConverter();

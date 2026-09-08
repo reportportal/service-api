@@ -34,9 +34,13 @@ public class LogTypeUpdatedEvent extends AbstractEvent<LogTypeActivityResource> 
    * @param after     The log type state after the update
    * @param userId    The ID of the user who updated the log type
    * @param userLogin The login of the user who updated the log type
+   * @param projectId The ID of the project
+   * @param orgId     The ID of the organization
    */
-  public LogTypeUpdatedEvent(LogTypeActivityResource before, LogTypeActivityResource after,
-      Long userId, String userLogin) {
+  public LogTypeUpdatedEvent(LogTypeActivityResource before, LogTypeActivityResource after, Long userId,
+      String userLogin, Long projectId, Long orgId) {
     super(userId, userLogin, before, after);
+    this.projectId = projectId;
+    this.organizationId = orgId;
   }
 }

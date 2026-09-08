@@ -17,7 +17,7 @@
 package com.epam.reportportal.base.core.log;
 
 import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.Collection;
@@ -58,7 +58,8 @@ public class MobitruAttachmentService {
    * @param attributes Merged attributes of a launch or test item (may be {@code null}/empty)
    * @return Recording attributes to process, never {@code null}
    */
-  public List<RecordingAttribute> extractRecordingAttributes(Collection<ItemAttribute> attributes) {
+  public List<RecordingAttribute> extractRecordingAttributes(
+      Collection<? extends Attribute> attributes) {
     if (CollectionUtils.isEmpty(attributes)) {
       return List.of();
     }

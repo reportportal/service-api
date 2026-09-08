@@ -16,17 +16,17 @@
 
 package com.epam.reportportal.base.ws.converter.builders;
 
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_LAUNCH_RESOURCE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
-import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import com.epam.reportportal.base.reporting.AttributeResource;
+import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.google.common.base.Preconditions;
@@ -85,32 +85,32 @@ public class LaunchBuilder implements Supplier<Launch> {
   }
 
   public LaunchBuilder addAttribute(
-      com.epam.reportportal.base.reporting.ItemAttributeResource attributeResource) {
-    ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
-    itemAttribute.setLaunch(launch);
-    launch.getAttributes().add(itemAttribute);
+      AttributeResource attributeResource) {
+    LaunchAttribute launchAttribute = FROM_LAUNCH_RESOURCE.apply(attributeResource);
+    launchAttribute.setLaunch(launch);
+    launch.getAttributes().add(launchAttribute);
     return this;
   }
 
-  public LaunchBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
+  public LaunchBuilder addAttributes(Set<AttributesRQ> attributes) {
     ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
-      ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-      itemAttribute.setLaunch(launch);
-      return itemAttribute;
+      LaunchAttribute launchAttribute = FROM_LAUNCH_RESOURCE.apply(val);
+      launchAttribute.setLaunch(launch);
+      return launchAttribute;
     }).collect(Collectors.toSet())));
     return this;
   }
 
-  public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
+  public LaunchBuilder overwriteAttributes(Set<AttributeResource> attributes) {
     if (attributes != null) {
-      final Set<ItemAttribute> overwrittenAttributes =
-          launch.getAttributes().stream().filter(ItemAttribute::isSystem)
+      final Set<LaunchAttribute> overwrittenAttributes =
+          launch.getAttributes().stream().filter(LaunchAttribute::isSystem)
               .collect(Collectors.toSet());
 
       attributes.stream().map(val -> {
-        ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-        itemAttribute.setLaunch(launch);
-        return itemAttribute;
+        LaunchAttribute launchAttribute = FROM_LAUNCH_RESOURCE.apply(val);
+        launchAttribute.setLaunch(launch);
+        return launchAttribute;
       }).forEach(overwrittenAttributes::add);
 
       launch.setAttributes(overwrittenAttributes);

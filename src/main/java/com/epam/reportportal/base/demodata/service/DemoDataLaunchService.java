@@ -29,7 +29,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.epam.reportportal.base.ws.converter.builders.LaunchBuilder;
@@ -72,9 +72,9 @@ public class DemoDataLaunchService {
     rq.setName(name);
     rq.setStartTime(Instant.now());
     rq.setUuid(UUID.randomUUID().toString());
-    Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
+    Set<AttributesRQ> attributes = Sets.newHashSet(new AttributesRQ("platform",
         platformValues[new SecureRandom().nextInt(platformValues.length)]
-    ), new ItemAttributesRQ(null, "demo"), new ItemAttributesRQ("build",
+    ), new AttributesRQ(null, "demo"), new AttributesRQ("build",
         "3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "."
             + now.getSecond()
     ));

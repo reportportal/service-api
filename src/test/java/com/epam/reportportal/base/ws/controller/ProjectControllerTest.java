@@ -47,7 +47,7 @@ import com.epam.reportportal.base.model.project.UpdateProjectRQ;
 import com.epam.reportportal.base.model.project.config.ProjectConfigurationUpdate;
 import com.epam.reportportal.base.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -625,7 +625,7 @@ class ProjectControllerTest extends BaseMvcTest {
     senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
     senderCaseDTO.setEnabled(true);
     senderCaseDTO.setRuleName("rule #1");
-    ItemAttributeResource launchAttribute = new ItemAttributeResource();
+    AttributeResource launchAttribute = new AttributeResource();
     launchAttribute.setKey("key");
     launchAttribute.setValue("val");
     senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));

@@ -18,7 +18,7 @@ package com.epam.reportportal.base.core.launch.cluster.pipeline;
 
 import com.epam.reportportal.base.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.reportportal.base.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.pipeline.PipelinePart;
 import com.epam.reportportal.base.pipeline.PipelinePartProvider;
 import java.time.Instant;
@@ -33,10 +33,10 @@ public class SaveLastRunAttributePartProvider implements
 
   public static final String RP_CLUSTER_LAST_RUN_KEY = "rp.cluster.lastRun";
 
-  private final ItemAttributeRepository itemAttributeRepository;
+  private final LaunchAttributeRepository launchAttributeRepository;
 
-  public SaveLastRunAttributePartProvider(ItemAttributeRepository itemAttributeRepository) {
-    this.itemAttributeRepository = itemAttributeRepository;
+  public SaveLastRunAttributePartProvider(LaunchAttributeRepository launchAttributeRepository) {
+    this.launchAttributeRepository = launchAttributeRepository;
   }
 
   @Override
@@ -47,9 +47,9 @@ public class SaveLastRunAttributePartProvider implements
       }
       final String lastRunDate = String.valueOf(Instant.now().toEpochMilli());
       final ClusterEntityContext entityContext = config.getEntityContext();
-      itemAttributeRepository.deleteAllByLaunchIdAndKeyAndSystem(entityContext.getLaunchId(),
+      launchAttributeRepository.deleteAllByLaunchIdAndKeyAndSystem(entityContext.getLaunchId(),
           RP_CLUSTER_LAST_RUN_KEY, true);
-      itemAttributeRepository.saveByLaunchId(entityContext.getLaunchId(),
+      launchAttributeRepository.saveByLaunchId(entityContext.getLaunchId(),
           RP_CLUSTER_LAST_RUN_KEY,
           lastRunDate,
           true

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.ws.converter.resource.handler.attribute.matcher;
-
-import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
-import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType;
+package com.epam.reportportal.base.infrastructure.persistence.entity.statistics;
 
 /**
- * Tests whether an item attribute matches a specific {@link ItemAttributeType} bucket.
- *
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * Common view of persisted statistics used by API resource converters.
  */
-public interface ItemAttributeTypeMatcher {
+public interface StatisticsView {
 
-  boolean matches(Attribute attribute);
+  StatisticsField getStatisticsField();
 
-  ItemAttributeType getType();
+  int getCounter();
 }

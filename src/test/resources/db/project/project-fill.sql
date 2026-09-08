@@ -59,7 +59,7 @@ values (2, 2, 'CONTAINS', 'kek', 'name', false);
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
 values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 3, now(), 'DEFAULT', 'FAILED', false);
 
-insert into item_attribute(id, "key", "value", item_id, launch_id, system) values (1, 'key', 'val', null, 1, false);
+insert into launch_attribute(id, "key", "value", launch_id, system) values (1, 'key', 'val', 1, false);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
 values (1, 1, 'uuid1', 'test item 1', 'STEP', now(), 'desc', 'uuid1', now(), '1', null, 1);
@@ -197,13 +197,13 @@ insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 9)
 -- Item 10: FAILED, to_investigate (ti001)
 insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
 
--- Launch statistics (launch_id, item_id NULL for launches)
+-- Launch statistics
 -- Launch 1: 5 total, 2 passed, 3 failed, 1 automation_bug, 1 product_bug, 1 to_investigate
-insert into statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+insert into launch_statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
 -- Launch 2: 5 total, 1 passed, 3 failed, 1 skipped, 2 to_investigate, 1 product_bug
-insert into statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
+insert into launch_statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
 -- Launch 3: empty launch, 0 total
-insert into statistics(s_counter, statistics_field_id, launch_id) values (0, 1, 3);
+insert into launch_statistics(s_counter, statistics_field_id, launch_id) values (0, 1, 3);
 
 alter sequence project_id_seq restart with 4;
 alter sequence users_id_seq restart with 4;

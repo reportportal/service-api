@@ -24,8 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +43,9 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
 
   @Autowired
   private ItemAttributeRepository repository;
+
+  @Autowired
+  private LaunchAttributeRepository launchAttributeRepository;
 
   @Test
   void findAttributesByProjectId() {
@@ -65,8 +68,8 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
     final String launchKeyName = "key1";
     final Long launchId = 1L;
 
-    final Optional<ItemAttribute> optionalAttr =
-        repository.findByLaunchIdAndKeyAndSystem(launchId,
+    final Optional<LaunchAttribute> optionalAttr =
+        launchAttributeRepository.findByLaunchIdAndKeyAndSystem(launchId,
             launchKeyName, false);
     assertTrue(optionalAttr.isPresent(), "Should be present");
     assertEquals(launchId, optionalAttr.get().getLaunch().getId(),
@@ -197,8 +200,8 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
 
     Assertions.assertEquals(1, result);
 
-    final Optional<ItemAttribute> attribute =
-        repository.findByLaunchIdAndKeyAndSystem(1L, "new",
+    final Optional<LaunchAttribute> attribute =
+        launchAttributeRepository.findByLaunchIdAndKeyAndSystem(1L, "new",
             false);
 
     Assertions.assertTrue(attribute.isPresent());
@@ -213,20 +216,24 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
     repository.saveByLaunchId(1L, "first", "first", true);
     repository.saveByLaunchId(1L, "second", "second", false);
 
-    final Optional<ItemAttribute> first = repository.findByLaunchIdAndKeyAndSystem(1L, "first",
+    final Optional<LaunchAttribute> first = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L, "first",
         true);
-    final Optional<ItemAttribute> second = repository.findByLaunchIdAndKeyAndSystem(1L, "second",
+    final Optional<LaunchAttribute> second = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L, "second",
         false);
 
     Assertions.assertTrue(first.isPresent());
     Assertions.assertTrue(second.isPresent());
 
-    repository.deleteAllByKeyAndSystem("first", true);
-    repository.deleteAllByKeyAndSystem("second", false);
+    launchAttributeRepository.deleteAllByKeyAndSystem("first", true);
+    launchAttributeRepository.deleteAllByKeyAndSystem("second", false);
 
-    final Optional<ItemAttribute> firstAfterRemove = repository.findByLaunchIdAndKeyAndSystem(1L,
+    final Optional<LaunchAttribute> firstAfterRemove = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L,
         "first", true);
-    final Optional<ItemAttribute> secondAfterRemove = repository.findByLaunchIdAndKeyAndSystem(1L,
+    final Optional<LaunchAttribute> secondAfterRemove = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L,
         "second", false);
 
     Assertions.assertFalse(firstAfterRemove.isPresent());
@@ -239,20 +246,24 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
     repository.saveByLaunchId(1L, "first", "first", true);
     repository.saveByLaunchId(1L, "second", "second", false);
 
-    final Optional<ItemAttribute> first = repository.findByLaunchIdAndKeyAndSystem(1L, "first",
+    final Optional<LaunchAttribute> first = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L, "first",
         true);
-    final Optional<ItemAttribute> second = repository.findByLaunchIdAndKeyAndSystem(1L, "second",
+    final Optional<LaunchAttribute> second = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L, "second",
         false);
 
     Assertions.assertTrue(first.isPresent());
     Assertions.assertTrue(second.isPresent());
 
-    repository.deleteAllByKeyAndSystem("first", true);
-    repository.deleteAllByKeyAndSystem("second", false);
+    launchAttributeRepository.deleteAllByKeyAndSystem("first", true);
+    launchAttributeRepository.deleteAllByKeyAndSystem("second", false);
 
-    final Optional<ItemAttribute> firstAfterRemove = repository.findByLaunchIdAndKeyAndSystem(1L,
+    final Optional<LaunchAttribute> firstAfterRemove = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L,
         "first", true);
-    final Optional<ItemAttribute> secondAfterRemove = repository.findByLaunchIdAndKeyAndSystem(1L,
+    final Optional<LaunchAttribute> secondAfterRemove = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
+        1L,
         "second", false);
 
     Assertions.assertFalse(firstAfterRemove.isPresent());

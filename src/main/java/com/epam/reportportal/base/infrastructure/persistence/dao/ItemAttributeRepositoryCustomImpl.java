@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.LAUNCH_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.LAUNCHES;
@@ -84,12 +85,12 @@ public class ItemAttributeRepositoryCustomImpl implements ItemAttributeRepositor
             .on(TEST_ITEM.LAUNCH_ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
             .where(ITEM_ATTRIBUTE.SYSTEM.isFalse())
             .and(ITEM_ATTRIBUTE.KEY.likeIgnoreCase(DSL.val("%" + DSL.escape(keyPart, '\\') + "%")))
-            .unionAll(dslContext.selectDistinct(ITEM_ATTRIBUTE.KEY)
-                .from(ITEM_ATTRIBUTE)
+            .unionAll(dslContext.selectDistinct(LAUNCH_ATTRIBUTE.KEY)
+                .from(LAUNCH_ATTRIBUTE)
                 .join(LAUNCHES)
-                .on(ITEM_ATTRIBUTE.LAUNCH_ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
-                .where(ITEM_ATTRIBUTE.SYSTEM.isFalse())
-                .and(ITEM_ATTRIBUTE.KEY.likeIgnoreCase(
+                .on(LAUNCH_ATTRIBUTE.LAUNCH_ID.eq(fieldName(LAUNCHES, ID).cast(Long.class)))
+                .where(LAUNCH_ATTRIBUTE.SYSTEM.isFalse())
+                .and(LAUNCH_ATTRIBUTE.KEY.likeIgnoreCase(
                     DSL.val("%" + DSL.escape(keyPart, '\\') + "%")))))
         .groupBy(fieldName(KEY))
         .orderBy(DSL.length(fieldName(KEY).cast(String.class)))
@@ -99,30 +100,36 @@ public class ItemAttributeRepositoryCustomImpl implements ItemAttributeRepositor
 
   @Override
   public List<String> findLaunchAttributeKeys(Long projectId, String value, boolean system) {
-    return dslContext.selectDistinct(ITEM_ATTRIBUTE.KEY)
-        .from(ITEM_ATTRIBUTE)
+    return dslContext.selectDistinct(LAUNCH_ATTRIBUTE.KEY)
+        .from(LAUNCH_ATTRIBUTE)
         .leftJoin(LAUNCH)
-        .on(ITEM_ATTRIBUTE.LAUNCH_ID.eq(LAUNCH.ID))
+        .on(LAUNCH_ATTRIBUTE.LAUNCH_ID.eq(LAUNCH.ID))
         .leftJoin(PROJECT)
         .on(LAUNCH.PROJECT_ID.eq(PROJECT.ID))
         .where(PROJECT.ID.eq(projectId))
-        .and(ITEM_ATTRIBUTE.SYSTEM.eq(system))
-        .and(ITEM_ATTRIBUTE.KEY.likeIgnoreCase("%" + DSL.escape(value, '\\') + "%"))
-        .fetch(ITEM_ATTRIBUTE.KEY);
+        .and(LAUNCH_ATTRIBUTE.SYSTEM.eq(system))
+        .and(LAUNCH_ATTRIBUTE.KEY.likeIgnoreCase("%" + DSL.escape(value, '\\') + "%"))
+        .fetch(LAUNCH_ATTRIBUTE.KEY);
   }
 
   @Override
   public List<String> findLaunchAttributeValues(Long projectId, String key, String value,
       boolean system) {
-    Condition condition = prepareFetchingValuesCondition(PROJECT.ID, projectId, key, value, system);
-    return dslContext.selectDistinct(ITEM_ATTRIBUTE.VALUE)
-        .from(ITEM_ATTRIBUTE)
+    Condition condition = PROJECT.ID.eq(projectId)
+        .and(LAUNCH_ATTRIBUTE.SYSTEM.eq(system))
+        .and(LAUNCH_ATTRIBUTE.VALUE.likeIgnoreCase(
+            "%" + (value == null ? "" : DSL.escape(value, '\\') + "%")));
+    if (key != null) {
+      condition = condition.and(LAUNCH_ATTRIBUTE.KEY.eq(key));
+    }
+    return dslContext.selectDistinct(LAUNCH_ATTRIBUTE.VALUE)
+        .from(LAUNCH_ATTRIBUTE)
         .leftJoin(LAUNCH)
-        .on(ITEM_ATTRIBUTE.LAUNCH_ID.eq(LAUNCH.ID))
+        .on(LAUNCH_ATTRIBUTE.LAUNCH_ID.eq(LAUNCH.ID))
         .leftJoin(PROJECT)
         .on(LAUNCH.PROJECT_ID.eq(PROJECT.ID))
         .where(condition)
-        .fetch(ITEM_ATTRIBUTE.VALUE);
+        .fetch(LAUNCH_ATTRIBUTE.VALUE);
   }
 
   @Override
@@ -228,9 +235,9 @@ public class ItemAttributeRepositoryCustomImpl implements ItemAttributeRepositor
 
   @Override
   public int saveByLaunchId(Long launchId, String key, String value, boolean isSystem) {
-    return dslContext.insertInto(ITEM_ATTRIBUTE)
-        .columns(ITEM_ATTRIBUTE.KEY, ITEM_ATTRIBUTE.VALUE, ITEM_ATTRIBUTE.LAUNCH_ID,
-            ITEM_ATTRIBUTE.SYSTEM)
+    return dslContext.insertInto(LAUNCH_ATTRIBUTE)
+        .columns(LAUNCH_ATTRIBUTE.KEY, LAUNCH_ATTRIBUTE.VALUE, LAUNCH_ATTRIBUTE.LAUNCH_ID,
+            LAUNCH_ATTRIBUTE.SYSTEM)
         .values(key, value, launchId, isSystem)
         .execute();
   }

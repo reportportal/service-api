@@ -57,7 +57,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ProjectFilter;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -108,7 +108,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   private final GetClusterHandler getClusterHandler;
   private final LaunchRepository launchRepository;
   private final TestItemRepository testItemRepository;
-  private final ItemAttributeRepository itemAttributeRepository;
+  private final LaunchAttributeRepository launchAttributeRepository;
   private final ProjectRepository projectRepository;
   private final WidgetContentRepository widgetContentRepository;
   private final UserRepository userRepository;
@@ -193,7 +193,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   @Override
   public List<String> getAttributeKeys(MembershipDetails membershipDetails,
       String value) {
-    return itemAttributeRepository.findLaunchAttributeKeys(membershipDetails.getProjectId(), value,
+    return launchAttributeRepository.findLaunchAttributeKeys(membershipDetails.getProjectId(),
+        value,
         false
     );
   }
@@ -201,7 +202,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   @Override
   public List<String> getAttributeValues(MembershipDetails membershipDetails, String key,
       String value) {
-    return itemAttributeRepository.findLaunchAttributeValues(membershipDetails.getProjectId(), key,
+    return launchAttributeRepository.findLaunchAttributeValues(membershipDetails.getProjectId(),
+        key,
         value, false
     );
   }
@@ -271,7 +273,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
             formattedSupplier("Mode - {} doesn't exist.", mode)
         ));
 
-    return launchRepository.getOwnerNames(membershipDetails.getProjectId(), value, launchMode.name());
+    return launchRepository.getOwnerNames(membershipDetails.getProjectId(), value,
+        launchMode.name());
   }
 
   @Override
@@ -308,7 +311,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
   }
 
   @Override
-  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments, boolean flatAttachments,
+  public void exportLaunch(Long launchId, String reportFormat, boolean includeAttachments,
+      boolean flatAttachments,
       HttpServletResponse response,
       ReportPortalUser user, MembershipDetails membershipDetails) {
     var launch = launchRepository.findById(launchId)
@@ -324,7 +328,8 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
 
     if (includeAttachments) {
-      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat, flatAttachments, response);
+      launchExportService.exportLaunchWithAttachments(launch, userFullName, reportFormat,
+          flatAttachments, response);
     } else {
       launchExportService.exportLaunch(launch, userFullName, reportFormat, response);
     }

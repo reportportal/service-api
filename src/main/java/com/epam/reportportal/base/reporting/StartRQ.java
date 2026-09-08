@@ -54,7 +54,7 @@ public class StartRQ {
   @Valid
   @JsonProperty("attributes")
   @JsonAlias({"attributes", "tags"})
-  private Set<ItemAttributesRQ> attributes;
+  private Set<AttributesRQ> attributes;
 
   @NotNull
   @JsonProperty(required = true)

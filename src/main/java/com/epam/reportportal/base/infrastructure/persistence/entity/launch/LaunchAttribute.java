@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.persistence.entity;
+package com.epam.reportportal.base.infrastructure.persistence.entity.launch;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -28,17 +28,17 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * Name/value (and system flag) attribute attached to a test item, launch, or other entity.
- *
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * Name/value (and system flag) attribute attached to a launch.
  */
-@Data
+@Getter
+@Setter
 @Entity
-@Table(name = "item_attribute")
-public class ItemAttribute implements Attribute, Serializable {
+@Table(name = "launch_attribute")
+public class LaunchAttribute implements Attribute, Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,44 +52,25 @@ public class ItemAttribute implements Attribute, Serializable {
   private String value;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "item_id")
-  private TestItem testItem;
+  @JoinColumn(name = "launch_id")
+  private Launch launch;
 
   @Column(name = "system")
   private Boolean system;
 
-  public ItemAttribute() {
+  public LaunchAttribute() {
   }
 
-  public ItemAttribute(String key, String value, Boolean system) {
+  public LaunchAttribute(String key, String value, Boolean system) {
     this.key = key;
     this.value = value;
     this.system = system;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public String getKey() {
-    return key;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  public TestItem getTestItem() {
-    return testItem;
   }
 
   public Boolean isSystem() {
     return system;
   }
 
-  /*
-   *	DO NOT REGENERATE EQUALS AND HASHCODE!
-   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -98,39 +79,24 @@ public class ItemAttribute implements Attribute, Serializable {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ItemAttribute that = (ItemAttribute) o;
+    LaunchAttribute that = (LaunchAttribute) o;
 
     return Objects.equals(key, that.key) && Objects.equals(value, that.value)
         && Objects.equals(system, that.system) && Objects.equals(
-        testItem != null ? "testItem:" + (testItem.getItemId() != null ? testItem.getItemId() : "")
-            : "testItem:",
-        that.testItem != null ? "testItem:" + (that.testItem.getItemId() != null
-            ? that.testItem.getItemId() : "") : "testItem:"
+        launch != null ? "launch:" + (launch.getId() != null ? launch.getId() : "")
+            : "launch:",
+        that.launch != null ? "launch:" + (that.launch.getId() != null
+            ? that.launch.getId() : "") : "launch:"
     );
   }
 
-  /*
-   *	DO NOT REGENERATE EQUALS AND HASHCODE!
-   */
   @Override
   public int hashCode() {
     return Objects.hash(key,
         value,
         system,
-        testItem != null ? "testItem:" + (testItem.getItemId() != null ? testItem.getItemId() : "")
-            : "testItem:"
+        launch != null ? "launch:" + (launch.getId() != null ? launch.getId() : "")
+            : "launch:"
     );
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("ItemAttribute{");
-    sb.append("id=").append(id);
-    sb.append(", key='").append(key).append('\'');
-    sb.append(", value='").append(value).append('\'');
-    sb.append(", system=").append(system);
-    sb.append(testItem != null ? ", testItem=" + testItem.getItemId() : "");
-    sb.append('}');
-    return sb.toString();
   }
 }

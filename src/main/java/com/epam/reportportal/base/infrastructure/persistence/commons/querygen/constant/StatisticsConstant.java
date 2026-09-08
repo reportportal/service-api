@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.ws.converter.resource.handler.attribute.matcher;
+package com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
-import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics;
 
 /**
- * Tests whether an item attribute matches a specific {@link ItemAttributeType} bucket.
- *
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * Field aliases for statistics query generation.
  */
-public interface ItemAttributeTypeMatcher {
+public final class StatisticsConstant {
 
-  boolean matches(Attribute attribute);
+  public static final JStatistics LAUNCH_STATISTICS = JStatistics.STATISTICS
+      .rename("launch_statistics")
+      .as("launchStatistics");
 
-  ItemAttributeType getType();
+  private StatisticsConstant() {
+    //static only
+  }
 }

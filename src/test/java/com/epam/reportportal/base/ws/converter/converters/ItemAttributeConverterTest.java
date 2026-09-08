@@ -19,7 +19,7 @@ package com.epam.reportportal.base.ws.converter.converters;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -29,7 +29,7 @@ class ItemAttributeConverterTest {
 
   @Test
   void fromResource() {
-    ItemAttributeResource resource = new ItemAttributeResource("key", "val");
+    AttributeResource resource = new AttributeResource("key", "val");
     final ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(resource);
 
     assertEquals(itemAttribute.getKey(), resource.getKey());

@@ -24,9 +24,9 @@ import com.epam.reportportal.base.core.launch.attribute.AttributeHandler;
 import com.epam.reportportal.base.core.project.ProjectService;
 import com.epam.reportportal.base.core.settings.ServerSettingsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import java.util.Objects;
 import java.util.Set;
@@ -63,11 +63,11 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
       return;
     }
 
-    Set<ItemAttribute> attributes = launch.getAttributes();
-    ItemAttribute importantAttribute = null;
-    ItemAttribute regularAttribute = null;
+    Set<LaunchAttribute> attributes = launch.getAttributes();
+    LaunchAttribute importantAttribute = null;
+    LaunchAttribute regularAttribute = null;
 
-    for (ItemAttribute attribute : attributes) {
+    for (LaunchAttribute attribute : attributes) {
       if (attribute.isSystem() && RETENTION_POLICY_KEY.equals(attribute.getKey())) {
         if ("important".equalsIgnoreCase(attribute.getValue())) {
           importantAttribute = attribute;
@@ -104,11 +104,11 @@ public class RetentionPolicyAttributeHandler implements AttributeHandler {
       return;
     }
 
-    Set<ItemAttribute> itemAttributes = launch.getAttributes();
-    ItemAttribute retentionPolicyOldAttribute = null;
-    ItemAttribute retentionPolicyNewAttribute = null;
+    Set<LaunchAttribute> itemAttributes = launch.getAttributes();
+    LaunchAttribute retentionPolicyOldAttribute = null;
+    LaunchAttribute retentionPolicyNewAttribute = null;
 
-    for (ItemAttribute attribute : itemAttributes) {
+    for (LaunchAttribute attribute : itemAttributes) {
 
       if (RETENTION_POLICY_KEY.equalsIgnoreCase(attribute.getKey())) {
         if (attribute.isSystem()) {

@@ -612,9 +612,7 @@ VALUES (14, 'FAILED', now(), 1.644);
 
 
 INSERT INTO public.item_attribute (key, value, item_id, launch_id, system)
-VALUES ('skippedIssue', 'true', null, 1, true),
-       ('testKey', 'testValue', null, 1, false),
-       (null, 'tag', 1, null, false),
+VALUES (null, 'tag', 1, null, false),
        (null, 'suite', 1, null, false),
        (null, 'tag', 2, null, false),
        (null, 'test', 2, null, false),
@@ -645,11 +643,6 @@ VALUES ('skippedIssue', 'true', null, 1, true),
        ('os', 'win', 12, null, false),
        ('os', 'mac', 13, null, false),
        (null, 'test', 13, null, false),
-       ('finish', 'passed', null, 1, false),
-       (null, 'launch', null, 1, false),
-       ('skippedIssue', 'true', null, 2, true),
-       ('testKey', 'testValue', null, 2, false),
-       ('sendBy', 'postman', null, 2, false),
        (null, 'suite', 14, null, false),
        (null, 'test', 15, null, false),
        (null, 'step', 16, null, false),
@@ -663,10 +656,20 @@ VALUES ('skippedIssue', 'true', null, 1, true),
        (null, 'step', 19, null, false),
        ('browser', 'safari', 19, null, false),
        (null, 'finish', 19, null, false),
-       ('finish', 'failed', null, 2, false),
-       (null, 'suite', null, 2, false),
-       ('testKey', 'testValue', null, 3, false),
-       ('testKey', 'testValue', null, 4, false);
+       (null, 'finish', 19, null, false);
+
+INSERT INTO public.launch_attribute (key, value, launch_id, system)
+VALUES ('skippedIssue', 'true', 1, true),
+       ('testKey', 'testValue', 1, false),
+       ('finish', 'passed', 1, false),
+       (null, 'launch', 1, false),
+       ('skippedIssue', 'true', 2, true),
+       ('testKey', 'testValue', 2, false),
+       ('sendBy', 'postman', 2, false),
+       ('finish', 'failed', 2, false),
+       (null, 'suite', 2, false),
+       ('testKey', 'testValue', 3, false),
+       ('testKey', 'testValue', 4, false);
 
 INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
 VALUES (5, 1, null, 3, 1);

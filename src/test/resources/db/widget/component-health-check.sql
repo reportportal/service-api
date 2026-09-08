@@ -136,12 +136,12 @@ INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
 VALUES (44, 'platform', 'longest', 44, null, false);
 INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
 VALUES (280, 'platform', 'arch', 93, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (8, null, 'demo', null, 6, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (13, 'build', '3.29.11.0', null, 6, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (16, 'platform', 'arch', null, 6, false);
+INSERT INTO public.launch_attribute (id, key, value, launch_id, system)
+VALUES (8, null, 'demo', 6, false);
+INSERT INTO public.launch_attribute (id, key, value, launch_id, system)
+VALUES (13, 'build', '3.29.11.0', 6, false);
+INSERT INTO public.launch_attribute (id, key, value, launch_id, system)
+VALUES (16, 'platform', 'arch', 6, false);
 INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
 VALUES (23, 'os', 'android', 37, null, false);
 INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)

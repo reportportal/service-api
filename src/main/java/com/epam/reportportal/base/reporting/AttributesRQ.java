@@ -16,38 +16,41 @@
 
 package com.epam.reportportal.base.reporting;
 
-import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MIN_ITEM_ATTRIBUTE_VALUE_LENGTH;
-
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * REST resource representing a key-value attribute associated with a test item or launch.
+ * Request object for setting or updating attributes on a test item.
  *
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Setter
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
-public class ItemAttributeResource implements Serializable {
+public class AttributesRQ extends AttributeResource implements Serializable {
 
-  private String key;
+  @Schema(example = "false")
+  private boolean system;
 
-  @NotBlank
-  @Size(min = MIN_ITEM_ATTRIBUTE_VALUE_LENGTH)
-  private String value;
+  public AttributesRQ(String value) {
+    super(null, value);
+  }
+
+  public AttributesRQ(String key, String value) {
+    super(key, value);
+  }
+
+  public AttributesRQ(String key, String value, boolean system) {
+    super(key, value);
+    this.system = system;
+  }
 
   @Override
   public String toString() {
-    return "ItemAttributeResource{" + "key='" + key + '\''
-        + ", value='" + value + '\''
-        + '}';
+    return "ItemAttributesRQ{" + "system=" + system + "} " + super.toString();
   }
 
   @Override
@@ -58,19 +61,19 @@ public class ItemAttributeResource implements Serializable {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-
-    ItemAttributeResource that = (ItemAttributeResource) o;
-
-    if (key != null ? !key.equals(that.key) : that.key != null) {
+    if (!super.equals(o)) {
       return false;
     }
-    return value != null ? value.equals(that.value) : that.value == null;
+
+    AttributesRQ that = (AttributesRQ) o;
+
+    return system == that.system;
   }
 
   @Override
   public int hashCode() {
-    int result = key != null ? key.hashCode() : 0;
-    result = 31 * result + (value != null ? value.hashCode() : 0);
+    int result = super.hashCode();
+    result = 31 * result + (system ? 1 : 0);
     return result;
   }
 }

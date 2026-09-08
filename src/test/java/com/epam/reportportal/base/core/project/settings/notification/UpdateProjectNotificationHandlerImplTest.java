@@ -41,7 +41,7 @@ import com.epam.reportportal.base.model.project.ProjectConfiguration;
 import com.epam.reportportal.base.model.project.ProjectResource;
 import com.epam.reportportal.base.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.ws.converter.converters.ProjectConverter;
 import com.epam.reportportal.base.ws.rabbit.activity.converter.NotificationRuleUpdatedEventConverter;
 import com.google.common.collect.Sets;
@@ -95,7 +95,7 @@ class UpdateProjectNotificationHandlerImplTest {
     updateNotificationRQ.setRecipients(Collections.singletonList("OWNER"));
     updateNotificationRQ.setLaunchNames(Collections.singletonList("test launch"));
     updateNotificationRQ.setEnabled(true);
-    ItemAttributeResource launchAttribute = new ItemAttributeResource();
+    AttributeResource launchAttribute = new AttributeResource();
     launchAttribute.setKey("key");
     launchAttribute.setValue("val");
     updateNotificationRQ.setAttributes(Sets.newHashSet(launchAttribute));

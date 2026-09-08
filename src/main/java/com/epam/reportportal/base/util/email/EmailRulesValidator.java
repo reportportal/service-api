@@ -34,7 +34,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.util.UserUtils;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.google.common.base.Function;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -100,7 +100,7 @@ public final class EmailRulesValidator {
    *
    * @param attribute Launch attribute
    */
-  public static void validateLaunchAttribute(ItemAttributeResource attribute) {
+  public static void validateLaunchAttribute(AttributeResource attribute) {
     expect(attribute, notNull()).verify(ErrorType.BAD_REQUEST_ERROR,
         "Launch attribute cannot be null.");
     expect(isNullOrEmpty(attribute.getValue()), equalTo(false)).verify(BAD_REQUEST_ERROR,

@@ -58,7 +58,7 @@ public class TestItemResource {
   private List<ParameterResource> parameters;
 
   @JsonProperty(value = "attributes")
-  private Set<ItemAttributeResource> attributes;
+  private Set<AttributeResource> attributes;
 
   @JsonProperty(value = "type")
   private String type;

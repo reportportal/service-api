@@ -20,7 +20,7 @@ import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_NAM
 import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_PARAMETERS_LENGTH;
 import static com.epam.reportportal.base.reporting.ValidationConstraints.MIN_LAUNCH_NAME_LENGTH;
 
-import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,7 +53,7 @@ public class LaunchImportRQ {
   @Valid
   @JsonProperty("attributes")
   @JsonAlias({"attributes", "tags"})
-  private Set<ItemAttributesRQ> attributes;
+  private Set<AttributesRQ> attributes;
 
   @JsonProperty
   @JsonAlias({"startTime", "start_time"})

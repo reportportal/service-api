@@ -1,10 +1,9 @@
 package com.epam.reportportal.base.core.tms.dto;
 
-import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,5 +32,5 @@ public class CreateTmsManualLaunchRQ {
 
   private List<Long> testCaseIds;
 
-  private List<ItemAttributesRQ> attributes;
+  private List<AttributesRQ> attributes;
 }

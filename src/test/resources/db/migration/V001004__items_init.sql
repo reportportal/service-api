@@ -42,14 +42,14 @@ BEGIN
             VALUES (launchcounter, 'uuid ' || launchcounter, 1, 1, 'name ' || launchcounter, now(),
                     1, now(), 'DEFAULT', 'IN_PROGRESS');
 
-            INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-            VALUES ('key' || launchcounter % 4, 'value' || launchcounter, NULL, launchcounter,
+            INSERT INTO launch_attribute (key, value, launch_id, system)
+            VALUES ('key' || launchcounter % 4, 'value' || launchcounter, launchcounter,
                     FALSE);
 
             IF floor(random() * (3 - 1 + 1) + 1) = 2
             THEN
-                INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-                VALUES ('systemKey', 'systemValue', NULL, launchcounter, TRUE);
+                INSERT INTO launch_attribute (key, value, launch_id, system)
+                VALUES ('systemKey', 'systemValue', launchcounter, TRUE);
             END IF;
 
             launchcounter = launchcounter + 1;

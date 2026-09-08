@@ -19,9 +19,9 @@ package com.epam.reportportal.base.core.launch.attribute.impl;
 
 import com.epam.reportportal.base.core.launch.attribute.AttributeHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +39,7 @@ public class LaunchTypeAttributeHandler implements AttributeHandler {
     if (launch == null || launch.getAttributes() == null) {
       return;
     }
-    for (ItemAttribute attribute : launch.getAttributes()) {
+    for (LaunchAttribute attribute : launch.getAttributes()) {
       if (Boolean.TRUE.equals(attribute.isSystem()) && IS_AGENTIC_KEY.equalsIgnoreCase(
           attribute.getKey())) {
         launch.setLaunchType(

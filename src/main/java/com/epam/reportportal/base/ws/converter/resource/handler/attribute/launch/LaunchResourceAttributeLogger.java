@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.resource.handler.attribute.launch;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import java.util.Collection;
@@ -39,7 +39,7 @@ public class LaunchResourceAttributeLogger implements ResourceAttributeHandler<L
   }
 
   @Override
-  public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
+  public void handle(LaunchResource resource, Collection<? extends Attribute> attributes) {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(baseMessage + " Launch - {}, attributes - {}", resource.getLaunchId(),
           attributes);

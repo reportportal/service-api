@@ -34,6 +34,7 @@ import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
@@ -71,6 +72,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   protected final LaunchRepository launchRepository;
   protected final TestItemRepository testItemRepository;
   protected final ItemAttributeRepository itemAttributeRepository;
+  protected final LaunchAttributeRepository launchAttributeRepository;
   protected final IssueEntityRepository issueEntityRepository;
   private final RetryHandler retryHandler;
   private final IssueTypeHandler issueTypeHandler;
@@ -91,6 +93,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   public AbstractFinishHierarchyHandler(LaunchRepository launchRepository,
       TestItemRepository testItemRepository,
       ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
+      LaunchAttributeRepository launchAttributeRepository,
       RetryHandler retryHandler,
       IssueTypeHandler issueTypeHandler,
       ChangeStatusHandler changeStatusHandler,
@@ -98,6 +101,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     this.launchRepository = launchRepository;
     this.testItemRepository = testItemRepository;
     this.itemAttributeRepository = itemAttributeRepository;
+    this.launchAttributeRepository = launchAttributeRepository;
     this.issueEntityRepository = issueEntityRepository;
     this.retryHandler = retryHandler;
     this.issueTypeHandler = issueTypeHandler;
@@ -134,7 +138,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
    */
   protected boolean evaluateSkippedAttributeValue(StatusEnum status, Long launchId) {
     if (SKIPPED.equals(status)) {
-      return itemAttributeRepository.findByLaunchIdAndKeyAndSystem(launchId, SKIPPED_ISSUE_KEY,
+      return launchAttributeRepository.findByLaunchIdAndKeyAndSystem(launchId, SKIPPED_ISSUE_KEY,
               true)
           .map(attribute -> BooleanUtils.toBoolean(attribute.getValue()))
           .orElse(false);

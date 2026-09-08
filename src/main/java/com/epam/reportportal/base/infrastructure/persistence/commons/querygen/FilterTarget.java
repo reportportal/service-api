@@ -92,6 +92,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ORGANIZATION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ORGANIZATION_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.StatisticsConstant.LAUNCH_STATISTICS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_CLUSTER_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_DURATION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_CHILDREN;
@@ -593,26 +594,26 @@ public enum FilterTarget {
           Boolean.class).get(),
 
       new CriteriaHolderBuilder().newBuilder(CRITERIA_ITEM_ATTRIBUTE_KEY,
-          ITEM_ATTRIBUTE.KEY,
+          LAUNCH_ATTRIBUTE.KEY,
           String.class,
-          Lists.newArrayList(JoinEntity.of(ITEM_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
-              LAUNCH.ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID)))
+          Lists.newArrayList(JoinEntity.of(LAUNCH_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
+              LAUNCH.ID.eq(LAUNCH_ATTRIBUTE.LAUNCH_ID)))
       ).withAggregateCriteria(
-          DSL.arrayAggDistinct(ITEM_ATTRIBUTE.KEY).filterWhere(ITEM_ATTRIBUTE.SYSTEM.eq(false))
+          DSL.arrayAggDistinct(LAUNCH_ATTRIBUTE.KEY).filterWhere(LAUNCH_ATTRIBUTE.SYSTEM.eq(false))
               .toString()).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_ITEM_ATTRIBUTE_VALUE,
-              ITEM_ATTRIBUTE.VALUE,
+              LAUNCH_ATTRIBUTE.VALUE,
               String.class,
-              Lists.newArrayList(JoinEntity.of(ITEM_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
-                  LAUNCH.ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID)))
+              Lists.newArrayList(JoinEntity.of(LAUNCH_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
+                  LAUNCH.ID.eq(LAUNCH_ATTRIBUTE.LAUNCH_ID)))
           )
-          .withAggregateCriteria(DSL.arrayAggDistinct(ITEM_ATTRIBUTE.VALUE)
-              .filterWhere(ITEM_ATTRIBUTE.SYSTEM.eq(false))
+          .withAggregateCriteria(DSL.arrayAggDistinct(LAUNCH_ATTRIBUTE.VALUE)
+              .filterWhere(LAUNCH_ATTRIBUTE.SYSTEM.eq(false))
               .toString())
           .get(),
       new CriteriaHolderBuilder().newBuilder(
           CRITERIA_COMPOSITE_ATTRIBUTE,
-          ITEM_ATTRIBUTE.KEY,
+          LAUNCH_ATTRIBUTE.KEY,
           String[].class,
           Lists.newArrayList(JoinEntity.of(LAUNCH_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
               LAUNCH.ID.eq(LAUNCH_ATTRIBUTE.LAUNCH_ID)))
@@ -651,12 +652,13 @@ public enum FilterTarget {
 
     @Override
     protected void joinTables(QuerySupplier query) {
-      query.addJoin(ITEM_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
-          LAUNCH.ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID));
+      query.addJoin(LAUNCH_ATTRIBUTE, JoinType.LEFT_OUTER_JOIN,
+          LAUNCH.ID.eq(LAUNCH_ATTRIBUTE.LAUNCH_ID));
       query.addJoin(USERS, JoinType.LEFT_OUTER_JOIN, LAUNCH.USER_ID.eq(USERS.ID));
-      query.addJoin(STATISTICS, JoinType.LEFT_OUTER_JOIN, LAUNCH.ID.eq(STATISTICS.LAUNCH_ID));
+      query.addJoin(LAUNCH_STATISTICS, JoinType.LEFT_OUTER_JOIN,
+          LAUNCH.ID.eq(LAUNCH_STATISTICS.LAUNCH_ID));
       query.addJoin(STATISTICS_FIELD, JoinType.LEFT_OUTER_JOIN,
-          STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID));
+          LAUNCH_STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID));
     }
 
     @Override
@@ -698,7 +700,7 @@ public enum FilterTarget {
           LAUNCH.LAUNCH_TYPE,
           LAUNCH.TEST_PLAN_ID,
           LAUNCH.DISPLAY_ID,
-          STATISTICS.S_COUNTER,
+          LAUNCH_STATISTICS.S_COUNTER,
           STATISTICS_FIELD.NAME,
           USERS.ID,
           USERS.LOGIN
@@ -708,9 +710,9 @@ public enum FilterTarget {
     private List<Field<?>> getSelectAggregatedFields() {
       return Lists.newArrayList(
           DSL.arrayAgg(DSL.jsonArray(
-                  coalesce(ITEM_ATTRIBUTE.KEY, ""),
-                  coalesce(ITEM_ATTRIBUTE.VALUE, ""),
-                  ITEM_ATTRIBUTE.SYSTEM
+                  coalesce(LAUNCH_ATTRIBUTE.KEY, ""),
+                  coalesce(LAUNCH_ATTRIBUTE.VALUE, ""),
+                  LAUNCH_ATTRIBUTE.SYSTEM
               ))
               .as(ATTRIBUTE_ALIAS));
     }

@@ -40,7 +40,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventSubject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.HistoryField;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -90,8 +90,8 @@ public class NotificationRuleUpdatedEventConverter implements
         .get();
   }
 
-  private static Optional<HistoryField> processAttributesSet(Set<ItemAttributeResource> before,
-      Set<ItemAttributeResource> after) {
+  private static Optional<HistoryField> processAttributesSet(Set<AttributeResource> before,
+      Set<AttributeResource> after) {
     List<String> left = normalizeAttributes(before);
     List<String> right = normalizeAttributes(after);
     if (!left.equals(right)) {
@@ -103,7 +103,7 @@ public class NotificationRuleUpdatedEventConverter implements
   }
 
   private static List<String> normalizeAttributes(
-      Set<ItemAttributeResource> attrs) {
+      Set<AttributeResource> attrs) {
     if (attrs == null) {
       return List.of();
     }

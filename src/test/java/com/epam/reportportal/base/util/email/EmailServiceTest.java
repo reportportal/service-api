@@ -26,8 +26,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Launch
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import com.google.common.collect.Sets;
 import java.time.Instant;
@@ -82,7 +82,7 @@ class EmailServiceTest {
     launch.setDescription("description");
     launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false)));
     StatisticsField statisticsField = new StatisticsField("statistics$executions$total");
-    Statistics statistics = new Statistics(statisticsField, 1, 1L);
+    LaunchStatistics statistics = new LaunchStatistics(statisticsField, 1);
     launch.setStatistics(Sets.newHashSet(statistics));
     return launch;
   }

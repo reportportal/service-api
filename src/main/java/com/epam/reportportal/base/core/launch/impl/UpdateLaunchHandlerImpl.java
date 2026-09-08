@@ -44,11 +44,11 @@ import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ProjectAttributeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -194,7 +194,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
   @Override
   public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq,
       MembershipDetails membershipDetails) {
-    expect(getProjectHandler.exists(membershipDetails.getProjectId()), Predicate.isEqual(true)).verify(
+    expect(getProjectHandler.exists(membershipDetails.getProjectId()),
+        Predicate.isEqual(true)).verify(
         NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
@@ -209,7 +210,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
       switch (it.getAction()) {
         case DELETE: {
           launches.forEach(launch -> {
-            ItemAttribute toDelete =
+            LaunchAttribute toDelete =
                 ItemInfoUtils.findAttributeByResource(launch.getAttributes(), it.getFrom());
             launch.getAttributes().remove(toDelete);
           });
@@ -223,10 +224,10 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
           launches.stream()
               .filter(launch -> ItemInfoUtils.containsAttribute(launch.getAttributes(), it.getTo()))
               .forEach(launch -> {
-                ItemAttribute itemAttribute =
-                    ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
-                itemAttribute.setLaunch(launch);
-                launch.getAttributes().add(itemAttribute);
+                LaunchAttribute launchAttribute =
+                    ItemAttributeConverter.FROM_LAUNCH_RESOURCE.apply(it.getTo());
+                launchAttribute.setLaunch(launch);
+                launch.getAttributes().add(launchAttribute);
               });
           break;
         }
@@ -263,7 +264,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         membershipDetails.getOrgRole())) {
       expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId()))
           .verify(ACCESS_DENIED);
-      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER) && membershipDetails.getProjectRole()
+      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+          && membershipDetails.getProjectRole()
           .equals(ProjectRole.VIEWER))) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED);
       }

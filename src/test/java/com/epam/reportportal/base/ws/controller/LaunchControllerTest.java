@@ -39,15 +39,14 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepositor
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.BulkRQ;
 import com.epam.reportportal.base.model.DeleteBulkRQ;
 import com.epam.reportportal.base.model.launch.AnalyzeLaunchRQ;
 import com.epam.reportportal.base.model.launch.UpdateLaunchRQ;
+import com.epam.reportportal.base.reporting.AttributeResource;
+import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
-import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
@@ -87,7 +86,7 @@ class LaunchControllerTest extends BaseMvcTest {
     startLaunchRQ.setName(name);
     startLaunchRQ.setStartTime(Instant.now());
     startLaunchRQ.setMode(DEFAULT);
-    startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
+    startLaunchRQ.setAttributes(Sets.newHashSet(new AttributesRQ("key", "value")));
 
     mockMvc.perform(
             post(DEFAULT_PROJECT_BASE_URL + "/launch").with(token(oAuthHelper.getDefaultToken()))
@@ -113,7 +112,7 @@ class LaunchControllerTest extends BaseMvcTest {
     UpdateLaunchRQ rq = new UpdateLaunchRQ();
     rq.setMode(DEFAULT);
     rq.setDescription("description");
-    rq.setAttributes(Sets.newHashSet(new ItemAttributeResource("test", "test")));
+    rq.setAttributes(Sets.newHashSet(new AttributeResource("test", "test")));
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/update").with(
             token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().is(200));
@@ -364,8 +363,8 @@ class LaunchControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.UPDATE);
-    updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
-    updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
+    updateItemAttributeRQ.setFrom(new AttributeResource("testKey", "testValue"));
+    updateItemAttributeRQ.setTo(new AttributeResource("updatedKey", "updatedValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
@@ -399,7 +398,7 @@ class LaunchControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
-    updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
+    updateItemAttributeRQ.setTo(new AttributeResource("createdKey", "createdValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
@@ -431,7 +430,7 @@ class LaunchControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.DELETE);
-    updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
+    updateItemAttributeRQ.setFrom(new AttributeResource("testKey", "testValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(

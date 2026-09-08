@@ -19,7 +19,7 @@ package com.epam.reportportal.base.core.item.impl.merge.strategy;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_LAUNCH_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -32,16 +32,16 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepos
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
@@ -156,17 +156,18 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   }
 
   /**
-   * Merges launches attributes. Collect all system attributes from existed launches and all unique not system
-   * attributes from request(if preset, or from exited launches if not) to resulted launch.
+   * Merges launches attributes. Collect all system attributes from existed launches and all unique
+   * not system attributes from request(if preset, or from exited launches if not) to resulted
+   * launch.
    *
    * @param attributesFromRq {@link Set} of attributes from request
    * @param launchesToMerge  {@link List} of {@link Launch} to be merged
    * @param resultedLaunch   {@link Launch} - result of merge
    */
 
-  private void mergeAttributes(Set<ItemAttributeResource> attributesFromRq,
+  private void mergeAttributes(Set<AttributeResource> attributesFromRq,
       List<Launch> launchesToMerge, Launch resultedLaunch) {
-    Set<ItemAttribute> mergedAttributes = Sets.newHashSet();
+    Set<LaunchAttribute> mergedAttributes = Sets.newHashSet();
 
     if (attributesFromRq == null) {
       mergedAttributes.addAll(
@@ -176,18 +177,19 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     } else {
       mergedAttributes.addAll(
           launchesToMerge.stream().map(Launch::getAttributes).flatMap(Collection::stream)
-              .filter(ItemAttribute::isSystem)
+              .filter(LaunchAttribute::isSystem)
               .filter(this::shouldSkipAttribute)
               .peek(it -> it.setLaunch(resultedLaunch))
               .collect(Collectors.toSet()));
       mergedAttributes.addAll(
-          attributesFromRq.stream().map(FROM_RESOURCE).peek(attr -> attr.setLaunch(resultedLaunch))
+          attributesFromRq.stream().map(FROM_LAUNCH_RESOURCE)
+              .peek(attr -> attr.setLaunch(resultedLaunch))
               .collect(Collectors.toSet()));
     }
     resultedLaunch.setAttributes(mergedAttributes);
   }
 
-  private boolean shouldSkipAttribute(ItemAttribute attribute) {
+  private boolean shouldSkipAttribute(LaunchAttribute attribute) {
     return !"rp.cluster.lastRun".equals(attribute.getKey());
   }
 

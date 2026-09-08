@@ -28,15 +28,15 @@ import com.epam.reportportal.base.core.item.impl.IssueTypeHandler;
 import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
@@ -60,7 +60,7 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 
   public static final String SKIPPED_ISSUE_KEY = "skippedIssue";
 
-  private final ItemAttributeRepository itemAttributeRepository;
+  private final LaunchAttributeRepository launchAttributeRepository;
 
   @Autowired
   protected ToSkippedStatusChangingStrategy(TestItemService testItemService,
@@ -69,11 +69,11 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
       ApplicationEventPublisher eventPublisher, IssueEntityRepository issueEntityRepository,
       LogRepository logRepository, LogIndexer logIndexer,
       TestItemStatisticsService testItemStatisticsService,
-      ItemAttributeRepository itemAttributeRepository) {
+      LaunchAttributeRepository launchAttributeRepository) {
     super(testItemService, projectRepository, launchRepository, testItemRepository,
         issueTypeHandler, eventPublisher, issueEntityRepository, logRepository, logIndexer, testItemStatisticsService
     );
-    this.itemAttributeRepository = itemAttributeRepository;
+    this.launchAttributeRepository = launchAttributeRepository;
   }
 
   @Override
@@ -88,8 +88,8 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
     testItem.getItemResults().setStatus(providedStatus);
 
     if (Objects.isNull(testItem.getRetryOf())) {
-      Optional<ItemAttribute> skippedIssueAttribute =
-          itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunchId(),
+      Optional<LaunchAttribute> skippedIssueAttribute =
+          launchAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunchId(),
               SKIPPED_ISSUE_KEY, true
           );
 

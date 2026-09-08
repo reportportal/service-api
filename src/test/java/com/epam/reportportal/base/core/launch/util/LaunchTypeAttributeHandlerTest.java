@@ -6,9 +6,9 @@ import static org.mockito.Mockito.mock;
 
 import com.epam.reportportal.base.core.launch.attribute.impl.LaunchTypeAttributeHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,8 +32,8 @@ class LaunchTypeAttributeHandlerTest {
   void handleLaunchStartWhenNoIsAgenticAttributeKeepsLaunchType() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.AUTOMATION);
-    Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(new ItemAttribute("other", "v", true));
+    Set<LaunchAttribute> attributes = new HashSet<>();
+    attributes.add(new LaunchAttribute("other", "v", true));
     launch.setAttributes(attributes);
 
     handler.handleLaunchStart(launch);
@@ -45,8 +45,8 @@ class LaunchTypeAttributeHandlerTest {
   @Test
   void handleLaunchStartWithSystemIsAgenticTrue() {
     Launch launch = new Launch();
-    ItemAttribute attr = new ItemAttribute("isAgentic", "true", true);
-    Set<ItemAttribute> attributes = new HashSet<>();
+    LaunchAttribute attr = new LaunchAttribute("isAgentic", "true", true);
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(attr);
     launch.setAttributes(attributes);
 
@@ -60,8 +60,8 @@ class LaunchTypeAttributeHandlerTest {
   void handleLaunchStartWithSystemIsAgenticFalse() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.AGENTIC);
-    ItemAttribute attr = new ItemAttribute("isAgentic", "false", true);
-    Set<ItemAttribute> attributes = new HashSet<>();
+    LaunchAttribute attr = new LaunchAttribute("isAgentic", "false", true);
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(attr);
     launch.setAttributes(attributes);
 
@@ -75,8 +75,8 @@ class LaunchTypeAttributeHandlerTest {
   void handleLaunchStartIgnoresNonSystemIsAgentic() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.AUTOMATION);
-    Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(new ItemAttribute("isAgentic", "true", false));
+    Set<LaunchAttribute> attributes = new HashSet<>();
+    attributes.add(new LaunchAttribute("isAgentic", "true", false));
     launch.setAttributes(attributes);
 
     handler.handleLaunchStart(launch);
@@ -88,8 +88,8 @@ class LaunchTypeAttributeHandlerTest {
   void handleLaunchUpdateDoesNotChangeLaunchType() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.AUTOMATION);
-    Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(new ItemAttribute("isAgentic", "true", true));
+    Set<LaunchAttribute> attributes = new HashSet<>();
+    attributes.add(new LaunchAttribute("isAgentic", "true", true));
     launch.setAttributes(attributes);
     ReportPortalUser user = mock(ReportPortalUser.class);
 

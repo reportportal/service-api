@@ -47,7 +47,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.ItemCreatedRS;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
@@ -146,7 +146,7 @@ class RerunHandlerImplTest {
     request.setName(launchName);
     request.setMode(Mode.DEFAULT);
     request.setDescription("desc");
-    request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("test", "test")));
+    request.setAttributes(Sets.newHashSet(new AttributesRQ("test", "test")));
     ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 

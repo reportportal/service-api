@@ -20,9 +20,9 @@ import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
@@ -31,6 +31,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
@@ -52,6 +53,8 @@ class FinishLaunchHierarchyHandlerTest {
   private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
   private final ItemAttributeRepository itemAttributeRepository = mock(
       ItemAttributeRepository.class);
+  private final LaunchAttributeRepository launchAttributeRepository = mock(
+      LaunchAttributeRepository.class);
   private final RetryHandler retryHandler = mock(RetryHandler.class);
   private final IssueTypeHandler issueTypeHandler = mock(IssueTypeHandler.class);
   private final IssueEntityRepository issueEntityRepository = mock(IssueEntityRepository.class);
@@ -65,6 +68,7 @@ class FinishLaunchHierarchyHandlerTest {
       retryHandler,
       issueTypeHandler,
       issueEntityRepository,
+      launchAttributeRepository,
       changeStatusHandler,
       statisticsService
   );
@@ -118,10 +122,10 @@ class FinishLaunchHierarchyHandlerTest {
 
     Launch launch = getLaunch();
 
-    when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(launch.getId(),
+    when(launchAttributeRepository.findByLaunchIdAndKeyAndSystem(launch.getId(),
         SKIPPED_ISSUE_KEY,
         true
-    )).thenReturn(java.util.Optional.of(new ItemAttribute(SKIPPED_ISSUE_KEY, "true", true)));
+    )).thenReturn(java.util.Optional.of(new LaunchAttribute(SKIPPED_ISSUE_KEY, "true", true)));
 
     when(issueTypeHandler.defineIssueType(anyLong(), anyString())).thenReturn(
         getToInvestigateIssueType());

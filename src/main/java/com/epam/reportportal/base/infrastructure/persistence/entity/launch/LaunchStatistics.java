@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.infrastructure.persistence.entity.statistics;
+package com.epam.reportportal.base.infrastructure.persistence.entity.launch;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsView;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,20 +29,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
-import java.util.Objects;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 /**
- * A counter row (pass/fail/etc.) for a test item, launch, or other aggregate.
- *
- * @author Ivan Budayeu
+ * A counter row (pass/fail/etc.) attached to a launch.
  */
-@Setter
-@Getter
+@Data
 @Entity
-@Table(name = "statistics")
-public class Statistics implements StatisticsView, Serializable {
+@Table(name = "launch_statistics")
+public class LaunchStatistics implements StatisticsView, Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,33 +51,15 @@ public class Statistics implements StatisticsView, Serializable {
   @Column(name = "s_counter")
   private int counter;
 
-  @Column(name = "item_id")
-  private Long itemId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "launch_id")
+  private Launch launch;
 
-  public Statistics() {
+  public LaunchStatistics() {
   }
 
-  public Statistics(StatisticsField statisticsField, int counter) {
+  public LaunchStatistics(StatisticsField statisticsField, int counter) {
     this.statisticsField = statisticsField;
     this.counter = counter;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Statistics that = (Statistics) o;
-    return counter == that.counter && Objects.equals(id, that.id) && Objects.equals(statisticsField,
-        that.statisticsField)
-        && Objects.equals(itemId, that.itemId);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, statisticsField, counter, itemId);
   }
 }

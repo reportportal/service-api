@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
-import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
@@ -149,7 +149,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
     startLaunchRQ.setDescription("some description");
     startLaunchRQ.setStartTime(Instant.now());
     startLaunchRQ.setMode(Mode.DEFAULT);
-    startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
+    startLaunchRQ.setAttributes(Sets.newHashSet(new AttributesRQ("key", "value")));
     return startLaunchRQ;
   }
 

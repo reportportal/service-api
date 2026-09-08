@@ -18,7 +18,7 @@ package com.epam.reportportal.base.model.launch;
 
 import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_PARAMETERS_LENGTH;
 
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -45,5 +45,5 @@ public class UpdateLaunchRQ {
   @Size(max = MAX_PARAMETERS_LENGTH)
   @Valid
   @JsonProperty("attributes")
-  private Set<ItemAttributeResource> attributes;
+  private Set<AttributeResource> attributes;
 }

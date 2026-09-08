@@ -43,6 +43,7 @@ public class LogTypeDeletedEventConverter implements EventToActivityConverter<Lo
         .addObjectName(event.getBefore().getName())
         .addObjectType(EventObject.LOG_TYPE)
         .addProjectId(event.getBefore().getProjectId())
+        .addOrganizationId(event.getOrganizationId())
         .addSubjectId(event.getUserId())
         .addSubjectName(event.getUserLogin())
         .addSubjectType(EventSubject.USER)

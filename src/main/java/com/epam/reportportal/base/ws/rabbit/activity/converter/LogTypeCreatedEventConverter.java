@@ -43,6 +43,7 @@ public class LogTypeCreatedEventConverter implements EventToActivityConverter<Lo
         .addObjectName(event.getLogTypeActivityResource().getName())
         .addObjectType(EventObject.LOG_TYPE)
         .addProjectId(event.getLogTypeActivityResource().getProjectId())
+        .addOrganizationId(event.getOrganizationId())
         .addSubjectId(event.getUserId())
         .addSubjectName(event.getUserLogin())
         .addSubjectType(EventSubject.USER)

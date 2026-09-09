@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for managing TEST test items (test case executions in manual launches).
@@ -51,6 +52,16 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
       TmsTestCaseRS testCase,
       TestItem suiteItem,
       Launch launch) {
+    return createTestCaseItem(testCase, suiteItem, launch, null);
+  }
+
+  @Transactional
+  @Override
+  public TestItem createTestCaseItem(
+      TmsTestCaseRS testCase,
+      TestItem suiteItem,
+      Launch launch,
+      Map<Long, String> itemNamesCache) {
 
     log.debug("Creating TEST item for test case: {} under SUITE item: {}",
         testCase.getName(), suiteItem.getItemId());
@@ -60,13 +71,23 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
         testCase, suiteItem, launch
     );
 
-    testItem.setTestCaseHash(
-        testCaseHashGenerator.generate(
+    if (itemNamesCache != null && suiteItem.getItemId() != null && suiteItem.getName() != null) {
+      itemNamesCache.put(suiteItem.getItemId(), suiteItem.getName());
+    }
+
+    Integer testCaseHash = itemNamesCache != null
+        ? testCaseHashGenerator.generate(
+            testItem,
+            IdentityUtil.getItemTreeIds(suiteItem),
+            launch.getProjectId(),
+            itemNamesCache
+        )
+        : testCaseHashGenerator.generate(
             testItem,
             IdentityUtil.getItemTreeIds(suiteItem),
             launch.getProjectId()
-        )
-    );
+        );
+    testItem.setTestCaseHash(testCaseHash);
     
     // Save test item first to get ID
     var savedTestItem = testItemRepository.save(testItem);

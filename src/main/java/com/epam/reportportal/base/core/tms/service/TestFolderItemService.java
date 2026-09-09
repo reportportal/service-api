@@ -5,11 +5,17 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.model.Page;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
 public interface TestFolderItemService {
 
   TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch);
+
+  default TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch,
+      Map<Long, TestItem> folderSuiteCache) {
+    return findTestFolderItem(projectId, testFolderId, launch);
+  }
 
   TestItem createTestFolderSuiteItem(Long projectId, Long testFolderId,
       Launch launch);

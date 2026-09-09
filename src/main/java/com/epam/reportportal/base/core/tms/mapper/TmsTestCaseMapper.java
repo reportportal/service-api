@@ -52,7 +52,9 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
+  @Mapping(target = "priority", source = "tmsTestCase.priority")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
+  @Mapping(target = "defaultVersionId", source = "defaultCaseVersion.id")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
       TmsTestCaseVersion defaultCaseVersion
@@ -64,6 +66,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "name", source = "tmsTestCase.name")
   @Mapping(target = "priority", source = "tmsTestCase.priority")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
+  @Mapping(target = "defaultVersionId", source = "defaultCaseVersion.id")
   @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,

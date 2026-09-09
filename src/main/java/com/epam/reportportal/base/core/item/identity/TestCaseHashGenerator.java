@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.item.identity;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Produces a stable test case id hash from a test item and parents.
@@ -27,4 +28,9 @@ import java.util.List;
 public interface TestCaseHashGenerator {
 
   Integer generate(TestItem item, List<Long> parentIds, Long projectId);
+
+  default Integer generate(TestItem item, List<Long> parentIds, Long projectId,
+      Map<Long, String> itemNamesCache) {
+    return generate(item, parentIds, projectId);
+  }
 }

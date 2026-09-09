@@ -37,12 +37,14 @@ import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import jakarta.persistence.PersistenceException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.time.Instant;
 import java.util.Optional;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepExecution;
@@ -50,8 +52,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,12 +169,33 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   @Transactional
   @Override
   public void createExecution(long projectId, TmsTestCaseRS testCase,
-      Launch launch) { //TODO refactor this method
+      Launch launch) {
+    createExecution(projectId, testCase, launch, null, null, null);
+  }
+
+  @Transactional
+  @Override
+  public void createExecution(long projectId, TmsTestCaseRS testCase,
+      Launch launch, Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache) {
+    createExecution(projectId, testCase, launch, folderSuiteCache, itemNamesCache, null);
+  }
+
+  @Transactional
+  @Override
+  public void createExecution(long projectId, TmsTestCaseRS testCase,
+      Launch launch, Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache,
+      Set<Long> existingExecutionTestCaseIds) {
     log.debug("Creating execution for test case: {} in launch: {}",
         testCase.getId(), launch.getId());
 
     // Check if execution already exists - prevent duplicates
-    if (tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(
+    if (existingExecutionTestCaseIds != null) {
+      if (existingExecutionTestCaseIds.contains(testCase.getId())) {
+        log.warn("Execution for test case: {} already exists in launch: {}, skipping",
+            testCase.getId(), launch.getId());
+        return;
+      }
+    } else if (tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(
         testCase.getId(), launch.getId())) {
       log.warn("Execution for test case: {} already exists in launch: {}, skipping",
           testCase.getId(), launch.getId());
@@ -180,7 +205,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     // Step 1: Find or create SUITE item for the test folder
     var testFolderId = testCase.getTestFolder().getId();
 
-    var testFolderItem = testFolderItemService.findTestFolderItem(projectId, testFolderId, launch);
+    var testFolderItem = testFolderItemService.findTestFolderItem(projectId, testFolderId, launch, folderSuiteCache);
     testFolderItemService.markAsHavingChildren(testFolderItem);
     log.debug("SUITE item resolved: {}", testFolderItem.getItemId());
 
@@ -188,7 +213,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     var testItem = testCaseItemService.createTestCaseItem(
         testCase,
         testFolderItem,
-        launch
+        launch,
+        itemNamesCache
     );
     log.debug("TEST item created: {}", testItem.getItemId());
 
@@ -211,15 +237,21 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     }
 
     // Step 4: Create TmsTestCaseExecution record
-    var defaultVersionId = tmsTestCaseVersionService
-        .findDefaultVersionIdByTestCaseId(testCase.getId())
-        .orElse(null);
+    var defaultVersionId = testCase.getDefaultVersionId() != null
+        ? testCase.getDefaultVersionId()
+        : tmsTestCaseVersionService
+            .findDefaultVersionIdByTestCaseId(testCase.getId())
+            .orElse(null);
 
     var execution = tmsTestCaseExecutionMapper.createTestCaseExecution(
         testCase, launch, testItem, defaultVersionId
     );
     execution = tmsTestCaseExecutionRepository.save(execution);
     log.trace("TmsTestCaseExecution created: {}", execution.getId());
+
+    if (existingExecutionTestCaseIds != null) {
+      existingExecutionTestCaseIds.add(testCase.getId());
+    }
 
     // Step 5: Create TmsStepExecution records for nested steps
     if (!nestedSteps.isEmpty()) {
@@ -304,42 +336,70 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)
     );
 
-    for (var testCaseId : testCaseIds) {
-      try {
-        if (!existingTestCaseIds.contains(testCaseId)) {
-          log.warn("Test case {} for project {} does not exist", testCaseId, projectId);
-          errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
-          continue;
-        }
+    Set<Long> existingExecutionTestCaseIds = new HashSet<>(
+        tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(launch.getId())
+    );
 
-        // Check if execution already exists - prevent duplicates
-        if (tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(testCaseId,
-            launch.getId())) {
-          log.warn("Execution for test case: {} already exists in launch: {}, skipping", testCaseId,
-              launch.getId());
-          errors.add(new BatchTestCaseOperationError(testCaseId,
-              "Test case execution already exists in launch"));
-          continue;
-        }
+    Map<Long, TestItem> folderSuiteCache = new HashMap<>();
+    Map<Long, String> itemNamesCache = new HashMap<>();
 
-        // Get a test case
-        var testCase = tmsTestCaseService.getById(projectId, testCaseId);
+    // Partition testCaseIds into chunks of 1000 to batch load test case data and avoid N+1 queries
+    var chunks = ListUtils.partition(testCaseIds, 1000);
 
-        // Create execution
-        createExecution(projectId, testCase, launch);
-        successfulIds.add(testCaseId);
+    for (var chunk : chunks) {
+      // Find IDs that are valid and not already added to the launch
+      var validIdsInChunk = chunk.stream()
+          .filter(id -> {
+            if (!existingTestCaseIds.contains(id)) {
+              log.warn("Test case {} for project {} does not exist", id, projectId);
+              errors.add(new BatchTestCaseOperationError(id, "Test case does not exist in the project"));
+              return false;
+            }
+            if (existingExecutionTestCaseIds.contains(id)) {
+              log.warn("Execution for test case: {} already exists in launch: {}, skipping", id,
+                  launch.getId());
+              errors.add(new BatchTestCaseOperationError(id,
+                  "Test case execution already exists in launch"));
+              return false;
+            }
+            return true;
+          })
+          .toList();
 
-        log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
+      if (validIdsInChunk.isEmpty()) {
+        continue;
+      }
 
-      } catch (ReportPortalException e) {
-        log.warn("Failed to add test case {} to launch {}: {}", testCaseId, launch.getId(),
+      // Batch fetch test cases for the chunk in a single round-trip without last execution queries
+      var testCasesMap = tmsTestCaseService.getByIdsMap(projectId, validIdsInChunk, false);
+
+      for (var testCaseId : validIdsInChunk) {
+        try {
+          var testCase = testCasesMap.get(testCaseId);
+          if (testCase == null) {
+            log.warn("Test case {} for project {} not found in batch fetch", testCaseId, projectId);
+            errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
+            continue;
+          }
+
+          // Create execution
+          createExecution(projectId, testCase, launch, folderSuiteCache, itemNamesCache, existingExecutionTestCaseIds);
+          successfulIds.add(testCaseId);
+
+          log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
+
+        } catch (DataAccessException | PersistenceException e) {
+          throw e;
+        } catch (ReportPortalException e) {
+          log.warn("Failed to add test case {} to launch {}: {}", testCaseId, launch.getId(),
             e.getMessage());
-        errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
-      } catch (Exception e) {
-        log.error("Unexpected error adding test case {} to launch {}: {}", testCaseId,
-            launch.getId(), e.getMessage(), e);
-        errors.add(new BatchTestCaseOperationError(testCaseId,
-            "Unexpected error: " + e.getMessage()));
+          errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
+        } catch (Exception e) {
+          log.error("Unexpected error adding test case {} to launch {}: {}", testCaseId,
+              launch.getId(), e.getMessage(), e);
+          errors.add(new BatchTestCaseOperationError(testCaseId,
+              "Unexpected error: " + e.getMessage()));
+        }
       }
     }
 
@@ -362,7 +422,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   public void addTestCaseToLaunch(long projectId, Launch launch, Long testCaseId) {
     log.debug("Adding {} test case to launch: {}", testCaseId, launch.getId());
 
-    createExecution(projectId, tmsTestCaseService.getById(projectId, testCaseId), launch);
+    createExecution(projectId, tmsTestCaseService.getById(projectId, testCaseId, false), launch);
 
     log.debug("Added {} test case to launch: {}", testCaseId, launch.getId());
   }

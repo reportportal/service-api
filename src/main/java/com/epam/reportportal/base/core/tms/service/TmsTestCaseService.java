@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,10 @@ public interface TmsTestCaseService {
   List<TmsTestCaseRS> getTestCaseByProjectId(long projectId);
 
   TmsTestCaseRS getById(long projectId, Long testCaseId);
+
+  default TmsTestCaseRS getById(long projectId, Long testCaseId, boolean includeLastExecution) {
+    return getById(projectId, testCaseId);
+  }
 
   TmsTestCaseRS create(
       MembershipDetails membershipDetails,
@@ -148,6 +153,14 @@ public interface TmsTestCaseService {
   TmsTestCase getEntityById(Long testCaseId);
 
   List<TmsTestCaseRS> getByIds(long projectId, List<Long> testCaseIds);
+
+  default Map<Long, TmsTestCaseRS> getByIdsMap(long projectId, List<Long> testCaseIds) {
+    return getByIdsMap(projectId, testCaseIds, true);
+  }
+
+  default Map<Long, TmsTestCaseRS> getByIdsMap(long projectId, List<Long> testCaseIds, boolean includeLastExecution) {
+    return Map.of();
+  }
 
   List<Long> getTestCaseIdsInTestPlan(long projectId, Long testPlanId);
 }

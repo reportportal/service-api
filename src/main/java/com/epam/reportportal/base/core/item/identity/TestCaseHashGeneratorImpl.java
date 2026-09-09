@@ -20,9 +20,13 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Strings;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -42,14 +46,21 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 
   @Override
   public Integer generate(TestItem item, List<Long> parentIds, Long projectId) {
-    return prepare(item, parentIds, projectId).hashCode();
+    return generate(item, parentIds, projectId, null);
   }
 
-  private String prepare(TestItem item, List<Long> parentIds, Long projectId) {
+  @Override
+  public Integer generate(TestItem item, List<Long> parentIds, Long projectId,
+      Map<Long, String> itemNamesCache) {
+    return prepare(item, parentIds, projectId, itemNamesCache).hashCode();
+  }
+
+  private String prepare(TestItem item, List<Long> parentIds, Long projectId,
+      Map<Long, String> itemNamesCache) {
     List<CharSequence> elements = Lists.newArrayList();
 
     elements.add(projectId.toString());
-    getPathNames(parentIds).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
+    getPathNames(parentIds, itemNamesCache).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
     elements.add(item.getName());
     item.getParameters()
         .stream()
@@ -61,7 +72,24 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
     return String.join(";", elements);
   }
 
-  private List<String> getPathNames(List<Long> parentIds) {
+  private List<String> getPathNames(List<Long> parentIds, Map<Long, String> itemNamesCache) {
+    if (CollectionUtils.isEmpty(parentIds)) {
+      return Collections.emptyList();
+    }
+    if (itemNamesCache != null) {
+      List<Long> missingIds = parentIds.stream()
+          .filter(id -> !itemNamesCache.containsKey(id))
+          .toList();
+      if (!missingIds.isEmpty()) {
+        testItemRepository.findAllById(missingIds)
+            .forEach(ti -> itemNamesCache.put(ti.getItemId(), ti.getName()));
+      }
+      return parentIds.stream()
+          .sorted(Comparator.naturalOrder())
+          .map(itemNamesCache::get)
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+    }
     return testItemRepository.findAllById(parentIds)
         .stream()
         .sorted(Comparator.comparingLong(TestItem::getItemId))

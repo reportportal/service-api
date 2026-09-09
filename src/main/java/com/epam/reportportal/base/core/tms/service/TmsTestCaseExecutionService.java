@@ -9,6 +9,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
@@ -16,6 +17,7 @@ import com.epam.reportportal.base.model.Page;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 
 public interface TmsTestCaseExecutionService {
@@ -52,9 +54,23 @@ public interface TmsTestCaseExecutionService {
    * @param testCase  test case entity
    * @param launch    launch entity
    */
-
   void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch);
 
+  default void createExecution(long projectId, 
+      TmsTestCaseRS testCase, Launch launch,
+      Map<Long, TestItem> suiteItemsByIds, 
+      Map<Long, String> testItemNamesByIds) {
+    createExecution(projectId, testCase, launch);
+  }
+
+  default void createExecution(long projectId, 
+      TmsTestCaseRS testCase, 
+      Launch launch,
+      Map<Long, TestItem> suiteItemsByIds, 
+      Map<Long, String> testItemNamesByIds,
+      Set<Long> existingExecutionTestCaseIds) {
+    createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds);
+  }
 
   /**
    * Adds test cases to launch (creates executions).

@@ -94,26 +94,36 @@ class TokenBlacklistServiceImplTest {
   }
 
   @Test
-  @DisplayName("Should revoke tokens by user login")
-  void revokeUserTokensWhenCalledShouldRevokeLoginSubject() {
+  @DisplayName("Should revoke tokens by user login only when external id is absent")
+  void revokeUserTokensWhenExternalIdAbsentShouldRevokeLoginSubjectOnly() {
+    // Given
     var user = new User();
     user.setLogin("user@example.com");
+    var captor = ArgumentCaptor.forClass(RevokedToken.class);
 
+    // When
     service.revokeUserTokens(user);
 
-    verify(revokedTokenRepository).save(RevokedToken.forSubject("user@example.com"));
+    // Then
+    verify(revokedTokenRepository).save(captor.capture());
+    assertEquals("user@example.com", captor.getValue().getSubject());
+    assertNull(captor.getValue().getJti());
+    assertNotNull(captor.getValue().getRevokedAt());
   }
 
   @Test
   @DisplayName("Should revoke tokens by login and external id when external id is present")
   void revokeUserTokensWhenExternalIdPresentShouldRevokeBothSubjects() {
+    // Given
     var user = new User();
     user.setLogin("user@example.com");
     user.setExternalId("ext-123");
     var captor = ArgumentCaptor.forClass(RevokedToken.class);
 
+    // When
     service.revokeUserTokens(user);
 
+    // Then
     verify(revokedTokenRepository, times(2)).save(captor.capture());
     assertEquals("user@example.com", captor.getAllValues().get(0).getSubject());
     assertEquals("ext-123", captor.getAllValues().get(1).getSubject());

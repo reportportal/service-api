@@ -253,33 +253,63 @@ class UserMutationServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should update role and publish event")
-    void updateInstanceRoleWhenValidShouldUpdateAndPublishEvent() {
+    @DisplayName("Should update role when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldUpdateRole() {
+      // When
       userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
 
+      // Then
       assertThat(user.getRole()).isEqualTo(UserRole.ADMINISTRATOR);
+    }
+
+    @Test
+    @DisplayName("Should publish change event when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldPublishChangeUserTypeEvent() {
+      // When
+      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+
+      // Then
       verify(eventPublisher).publishEvent(any(ChangeUserTypeEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should revoke user tokens when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldRevokeUserTokens() {
+      // When
+      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+
+      // Then
       verify(tokenBlacklistService).revokeUserTokens(user);
     }
 
     @Test
-    @DisplayName("Should not publish event or revoke tokens when role is unchanged")
-    void updateInstanceRoleWhenRoleUnchangedShouldNotPublishEventOrRevokeTokens() {
+    @DisplayName("Should not change role when requested role is the same")
+    void updateInstanceRoleWhenRoleUnchangedShouldKeepRole() {
+      // When
       userMutationService.updateInstanceRole(user, "USER", adminEditor);
 
+      // Then
       assertThat(user.getRole()).isEqualTo(UserRole.USER);
-      verify(eventPublisher, never()).publishEvent(any());
-      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
 
     @Test
-    @DisplayName("Should revoke user tokens when role changes and external id is present")
-    void updateInstanceRoleWhenExternalIdPresentShouldRevokeUserTokens() {
-      user.setExternalId("ext-123");
+    @DisplayName("Should not publish event when role is unchanged")
+    void updateInstanceRoleWhenRoleUnchangedShouldNotPublishEvent() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
 
-      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+      // Then
+      verify(eventPublisher, never()).publishEvent(any());
+    }
 
-      verify(tokenBlacklistService).revokeUserTokens(user);
+    @Test
+    @DisplayName("Should not revoke tokens when role is unchanged")
+    void updateInstanceRoleWhenRoleUnchangedShouldNotRevokeTokens() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      // Then
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
   }
 

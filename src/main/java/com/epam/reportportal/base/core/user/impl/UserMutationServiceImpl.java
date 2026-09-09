@@ -24,6 +24,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -56,6 +57,7 @@ public class UserMutationServiceImpl implements UserMutationService {
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final TokenBlacklistService tokenBlacklistService;
 
   @Override
   public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
@@ -106,11 +108,17 @@ public class UserMutationServiceImpl implements UserMutationService {
     UserRole newRole = UserRole.findByName(role)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
 
+    UserRole oldRole = user.getRole();
+    if (oldRole == newRole) {
+      return;
+    }
+
     eventPublisher.publishEvent(
-        new ChangeUserTypeEvent(user.getId(), user.getLogin(), user.getRole(), newRole,
+        new ChangeUserTypeEvent(user.getId(), user.getLogin(), oldRole, newRole,
             editor.getUserId(), editor.getUsername()));
 
     user.setRole(newRole);
+    tokenBlacklistService.revokeUserTokens(user);
   }
 
   @Override

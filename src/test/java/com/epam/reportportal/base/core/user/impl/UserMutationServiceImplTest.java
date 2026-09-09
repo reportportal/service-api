@@ -24,6 +24,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -57,6 +58,9 @@ class UserMutationServiceImplTest {
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
+
+  @Mock
+  private TokenBlacklistService tokenBlacklistService;
 
   @InjectMocks
   private UserMutationServiceImpl userMutationService;
@@ -255,6 +259,27 @@ class UserMutationServiceImplTest {
 
       assertThat(user.getRole()).isEqualTo(UserRole.ADMINISTRATOR);
       verify(eventPublisher).publishEvent(any(ChangeUserTypeEvent.class));
+      verify(tokenBlacklistService).revokeUserTokens(user);
+    }
+
+    @Test
+    @DisplayName("Should not publish event or revoke tokens when role is unchanged")
+    void updateInstanceRoleWhenRoleUnchangedShouldNotPublishEventOrRevokeTokens() {
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      assertThat(user.getRole()).isEqualTo(UserRole.USER);
+      verify(eventPublisher, never()).publishEvent(any());
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should revoke user tokens when role changes and external id is present")
+    void updateInstanceRoleWhenExternalIdPresentShouldRevokeUserTokens() {
+      user.setExternalId("ext-123");
+
+      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+
+      verify(tokenBlacklistService).revokeUserTokens(user);
     }
   }
 

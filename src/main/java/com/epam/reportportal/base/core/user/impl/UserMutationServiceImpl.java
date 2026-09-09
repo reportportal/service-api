@@ -84,7 +84,7 @@ public class UserMutationServiceImpl implements UserMutationService {
 
   @Override
   public void updateFullName(User user, String fullName, ReportPortalUser editor) {
-    expect(StringUtils.isNotBlank(fullName), Boolean.TRUE::equals)
+    expect(fullName, StringUtils::isNotBlank)
         .verify(BAD_REQUEST_ERROR, "Full name must not be empty.");
 
     expect(fullName.length() >= MIN_USER_NAME_LENGTH && fullName.length() <= MAX_USER_NAME_LENGTH,

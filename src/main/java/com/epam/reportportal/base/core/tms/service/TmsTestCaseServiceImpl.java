@@ -134,13 +134,24 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public TmsTestCaseRS getById(long projectId, Long testCaseId) {
+    return getById(projectId, testCaseId, true);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestCaseRS getById(long projectId, Long testCaseId, boolean includeLastExecution) {
+    var testCase = tmsTestCaseRepository
+        .findByProjectIdAndId(projectId, testCaseId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
+        );
+    var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
+    if (!includeLastExecution) {
+      return tmsTestCaseMapper.convert(testCase, defaultVersion);
+    }
     return tmsTestCaseMapper.convert(
-        tmsTestCaseRepository
-            .findByProjectIdAndId(projectId, testCaseId)
-            .orElseThrow(() -> new ReportPortalException(
-                NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
-            ),
-        tmsTestCaseVersionService.getDefaultVersion(testCaseId),
+        testCase,
+        defaultVersion,
         tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId));
   }
 
@@ -967,6 +978,26 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional(readOnly = true)
+  public Map<Long, TmsTestCaseRS> getByIdsMap(long projectId, List<Long> testCaseIds, boolean includeLastExecution) {
+    if (CollectionUtils.isEmpty(testCaseIds)) {
+      return Collections.emptyMap();
+    }
+    var testCases = tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds);
+    var defaultVersions = tmsTestCaseVersionService.getDefaultVersions(testCaseIds);
+    var lastExecutions = includeLastExecution
+        ? tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds)
+        : Collections.<Long, TmsTestCaseExecution>emptyMap();
+
+    return testCases.stream().collect(Collectors.toMap(
+        TmsTestCase::getId,
+        testCase -> toTestCaseResource(testCase, defaultVersions, lastExecutions,
+            includeLastExecution),
+        (first, ignored) -> first
+    ));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<Long> getTestCaseIdsInTestPlan(long projectId, Long testPlanId) {
     return PageableUtils
         .loadAll(
@@ -1035,5 +1066,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     }
 
     return new Filter(TmsTestCase.class, conditions);
+  }
+
+  private TmsTestCaseRS toTestCaseResource(
+      TmsTestCase testCase,
+      Map<Long, TmsTestCaseVersion> defaultVersions,
+      Map<Long, TmsTestCaseExecution> lastExecutions,
+      boolean includeLastExecution) {
+    var defaultVersion = defaultVersions.get(testCase.getId());
+    return includeLastExecution
+        ? tmsTestCaseMapper.convert(testCase, defaultVersion, lastExecutions.get(testCase.getId()))
+        : tmsTestCaseMapper.convert(testCase, defaultVersion);
   }
 }

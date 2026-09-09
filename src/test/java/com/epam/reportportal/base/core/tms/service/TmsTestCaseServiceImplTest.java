@@ -339,6 +339,73 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
+  void getById_WithoutLastExecution_ShouldReturnTestCaseWithoutCallingExecutionService() {
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
+        .thenReturn(Optional.of(testCase));
+    when(tmsTestCaseVersionService.getDefaultVersion(testCaseId)).thenReturn(testCaseVersion);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion))
+        .thenReturn(testCaseRS);
+
+    var result = sut.getById(projectId, testCaseId, false);
+
+    assertNotNull(result);
+    assertEquals(testCaseRS, result);
+    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
+    verify(tmsTestCaseVersionService).getDefaultVersion(testCaseId);
+    verifyNoInteractions(tmsTestCaseExecutionService);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+  }
+
+  @Test
+  void getByIdsMap_WithoutLastExecution_ShouldReturnMapWithoutCallingExecutionService() {
+    var ids = List.of(testCaseId1, testCaseId2);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, ids))
+        .thenReturn(List.of(testCase1, testCase2));
+    when(tmsTestCaseVersionService.getDefaultVersions(ids))
+        .thenReturn(Map.of(testCaseId1, version1, testCaseId2, version2));
+    when(tmsTestCaseMapper.convert(testCase1, version1)).thenReturn(testCaseRS);
+    var testCaseRS2 = new TmsTestCaseRS();
+    testCaseRS2.setId(testCaseId2);
+    when(tmsTestCaseMapper.convert(testCase2, version2)).thenReturn(testCaseRS2);
+
+    var result = sut.getByIdsMap(projectId, ids, false);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertEquals(testCaseRS, result.get(testCaseId1));
+    assertEquals(testCaseRS2, result.get(testCaseId2));
+    verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, ids);
+    verify(tmsTestCaseVersionService).getDefaultVersions(ids);
+    verifyNoInteractions(tmsTestCaseExecutionService);
+  }
+
+  @Test
+  void getByIdsMap_WithDuplicateRepositoryResults_ShouldKeepOneResourcePerTestCase() {
+    var ids = List.of(testCaseId1);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, ids))
+        .thenReturn(List.of(testCase1, testCase1));
+    when(tmsTestCaseVersionService.getDefaultVersions(ids))
+        .thenReturn(Map.of(testCaseId1, version1));
+    when(tmsTestCaseMapper.convert(testCase1, version1)).thenReturn(testCaseRS);
+
+    var result = sut.getByIdsMap(projectId, ids, false);
+
+    assertEquals(Map.of(testCaseId1, testCaseRS), result);
+    verifyNoInteractions(tmsTestCaseExecutionService);
+  }
+
+  @Test
+  void getByIdsMap_WithEmptyIds_ShouldReturnEmptyMap() {
+    var result = sut.getByIdsMap(projectId, Collections.emptyList(), false);
+
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verifyNoInteractions(tmsTestCaseRepository);
+    verifyNoInteractions(tmsTestCaseVersionService);
+    verifyNoInteractions(tmsTestCaseExecutionService);
+  }
+
+  @Test
   void getById_WhenTestCaseDoesNotExist_ShouldThrowNotFoundException() {
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
         .thenReturn(Optional.empty());

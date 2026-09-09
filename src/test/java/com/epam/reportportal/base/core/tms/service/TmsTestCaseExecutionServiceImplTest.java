@@ -19,12 +19,16 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseTestFolderRS;
 import com.epam.reportportal.base.core.tms.mapper.NestedStepItemBuilder;
 import com.epam.reportportal.base.core.tms.mapper.TestCaseItemBuilder;
+import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseExecutionMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
@@ -35,13 +39,16 @@ import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class TmsTestCaseExecutionServiceImplTest {
@@ -78,6 +85,18 @@ class TmsTestCaseExecutionServiceImplTest {
 
   @Mock
   private TmsStepExecutionService tmsStepExecutionService;
+
+  @Mock
+  private TestFolderItemService testFolderItemService;
+
+  @Mock
+  private TestCaseItemService testCaseItemService;
+
+  @Mock
+  private TmsTestCaseVersionService tmsTestCaseVersionService;
+
+  @Mock
+  private TmsManualScenarioMapper tmsManualScenarioMapper;
 
   @InjectMocks
   private TmsTestCaseExecutionServiceImpl sut;
@@ -578,6 +597,81 @@ class TmsTestCaseExecutionServiceImplTest {
     assertEquals(0, result.getTotalCount());
     assertTrue(result.getSuccessTestCaseIds().isEmpty());
     assertTrue(result.getErrors().isEmpty());
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenTestCasesProvided_ShouldPreFetchExecutionIdsAndSkipGetLastTestCaseExecution() {
+    // Given
+    var launch = new Launch();
+    launch.setId(10L);
+    var projectId = 1L;
+    var testCaseIds = List.of(testCaseId1, testCaseId2);
+
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(testCaseIds);
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(10L)).thenReturn(Set.of());
+
+    var testCaseRS1 = TmsTestCaseRS.builder()
+        .id(testCaseId1)
+        .name("TC 1")
+        .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build())
+        .defaultVersionId(1L)
+        .build();
+    var testCaseRS2 = TmsTestCaseRS.builder()
+        .id(testCaseId2)
+        .name("TC 2")
+        .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build())
+        .defaultVersionId(2L)
+        .build();
+
+    when(tmsTestCaseService.getByIdsMap(projectId, testCaseIds, false))
+        .thenReturn(Map.of(testCaseId1, testCaseRS1, testCaseId2, testCaseRS2));
+
+    var suiteItem = new TestItem();
+    suiteItem.setItemId(50L);
+    when(testFolderItemService.findTestFolderItem(eq(projectId), eq(100L), eq(launch), any())).thenReturn(suiteItem);
+    when(testCaseItemService.createTestCaseItem(any(), eq(suiteItem), eq(launch), any())).thenReturn(testItem1);
+    when(tmsTestCaseExecutionMapper.createTestCaseExecution(any(), eq(launch), any(), any())).thenReturn(execution1);
+    when(tmsTestCaseExecutionRepository.save(any(TmsTestCaseExecution.class))).thenReturn(execution1);
+
+    // When
+    var result = sut.addTestCasesToLaunch(projectId, launch, testCaseIds);
+
+    // Then
+    assertNotNull(result);
+    assertEquals(2, result.getSuccessCount());
+    assertEquals(0, result.getFailureCount());
+    verify(tmsTestCaseExecutionRepository).findTestCaseIdsByLaunchId(10L);
+    verify(tmsTestCaseService).getByIdsMap(projectId, testCaseIds, false);
+    verify(tmsTestCaseExecutionRepository, never()).existsByTestCaseIdAndLaunchId(any(), any());
+    verify(tmsTestCaseVersionService, never()).findDefaultVersionIdByTestCaseId(any());
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenPersistenceFails_ShouldPropagateException() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var projectId = 1L;
+    var testCase = TmsTestCaseRS.builder()
+        .id(testCaseId1)
+        .name("TC 1")
+        .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build())
+        .build();
+    var suiteItem = new TestItem();
+    suiteItem.setItemId(50L);
+
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, List.of(testCaseId1)))
+        .thenReturn(List.of(testCaseId1));
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(launch.getId()))
+        .thenReturn(Set.of());
+    when(tmsTestCaseService.getByIdsMap(projectId, List.of(testCaseId1), false))
+        .thenReturn(Map.of(testCaseId1, testCase));
+    when(testFolderItemService.findTestFolderItem(eq(projectId), eq(100L), eq(launch), any()))
+        .thenReturn(suiteItem);
+    when(testCaseItemService.createTestCaseItem(any(), eq(suiteItem), eq(launch), any()))
+        .thenThrow(new DataIntegrityViolationException("database failure"));
+
+    assertThrows(DataIntegrityViolationException.class,
+        () -> sut.addTestCasesToLaunch(projectId, launch, List.of(testCaseId1)));
   }
 
   // ==================== isTestCaseInLaunch ====================

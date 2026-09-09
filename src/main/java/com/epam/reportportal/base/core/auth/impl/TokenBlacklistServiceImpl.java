@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.auth.impl;
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.RevokedToken;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,15 @@ public class TokenBlacklistServiceImpl implements TokenBlacklistService {
       throw new IllegalArgumentException("subject must not be blank");
     }
     revokedTokenRepository.save(RevokedToken.forSubject(subject));
+  }
+
+  @Override
+  @Transactional
+  public void revokeUserTokens(User user) {
+    revokeSubject(user.getLogin());
+    if (StringUtils.isNotBlank(user.getExternalId())) {
+      revokeSubject(user.getExternalId());
+    }
   }
 
   @Override

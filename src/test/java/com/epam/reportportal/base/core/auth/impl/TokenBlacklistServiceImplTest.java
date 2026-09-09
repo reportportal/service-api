@@ -22,11 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.RevokedToken;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,6 +91,42 @@ class TokenBlacklistServiceImplTest {
   @DisplayName("Should throw when subject is blank")
   void revokeSubjectWhenSubjectBlankShouldThrow() {
     assertThrows(IllegalArgumentException.class, () -> service.revokeSubject(null));
+  }
+
+  @Test
+  @DisplayName("Should revoke tokens by user login only when external id is absent")
+  void revokeUserTokensWhenExternalIdAbsentShouldRevokeLoginSubjectOnly() {
+    // Given
+    var user = new User();
+    user.setLogin("user@example.com");
+    var captor = ArgumentCaptor.forClass(RevokedToken.class);
+
+    // When
+    service.revokeUserTokens(user);
+
+    // Then
+    verify(revokedTokenRepository).save(captor.capture());
+    assertEquals("user@example.com", captor.getValue().getSubject());
+    assertNull(captor.getValue().getJti());
+    assertNotNull(captor.getValue().getRevokedAt());
+  }
+
+  @Test
+  @DisplayName("Should revoke tokens by login and external id when external id is present")
+  void revokeUserTokensWhenExternalIdPresentShouldRevokeBothSubjects() {
+    // Given
+    var user = new User();
+    user.setLogin("user@example.com");
+    user.setExternalId("ext-123");
+    var captor = ArgumentCaptor.forClass(RevokedToken.class);
+
+    // When
+    service.revokeUserTokens(user);
+
+    // Then
+    verify(revokedTokenRepository, times(2)).save(captor.capture());
+    assertEquals("user@example.com", captor.getAllValues().get(0).getSubject());
+    assertEquals("ext-123", captor.getAllValues().get(1).getSubject());
   }
 
   @Test

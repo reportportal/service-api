@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.auth;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import java.time.Instant;
 
 /**
@@ -37,6 +38,13 @@ public interface TokenBlacklistService {
    * @param subject JWT subject ({@code sub} claim) — typically the user's login or external id
    */
   void revokeSubject(String subject);
+
+  /**
+   * Revokes every currently active JWT issued to the given user, by login and external id (if present).
+   *
+   * @param user the user whose tokens should be revoked
+   */
+  void revokeUserTokens(User user);
 
   /**
    * Checks whether a JWT identified by the given parameters has been revoked, either directly by {@code jti} or by a

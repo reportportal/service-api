@@ -24,7 +24,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.activity.Eve
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventObject;
 import com.epam.reportportal.base.infrastructure.persistence.entity.activity.EventPriority;
 import com.epam.reportportal.base.ws.rabbit.activity.util.ActivityDetailsUtil;
-import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,8 +32,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class UsersDeletedEventConverter implements EventToActivityConverter<UsersDeletedEvent> {
-
-  public static final String JOBS_SERVICE = "Jobs Service";
 
   @Override
   public Activity convert(UsersDeletedEvent event) {
@@ -47,16 +44,8 @@ public class UsersDeletedEventConverter implements EventToActivityConverter<User
         .addSubjectId(ActivityDetailsUtil.getSubjectId(event))
         .addSubjectName(ActivityDetailsUtil.getSubjectName(event))
         .addSubjectType(ActivityDetailsUtil.getSubjectType(event))
-        .addPriority(determinePriority(event))
+        .addPriority(EventPriority.HIGH)
         .get();
-  }
-
-  private EventPriority determinePriority(UsersDeletedEvent event) {
-    String eventSource = event.getEventSource();
-    if (Objects.nonNull(eventSource) && eventSource.equals(JOBS_SERVICE)) {
-      return EventPriority.HIGH;
-    }
-    return EventPriority.CRITICAL;
   }
 
   private String formatObjectName(int count) {

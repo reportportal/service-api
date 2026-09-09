@@ -35,6 +35,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserEventPublisher {
 
+  public static final String AUTH_SERVICE = "Auth Service";
+
   private final ApplicationEventPublisher eventPublisher;
 
   /**
@@ -48,7 +50,7 @@ public class UserEventPublisher {
     userActivityResource.setId(user.getId());
     userActivityResource.setFullName(user.getLogin());
 
-    UserCreatedEvent event = new UserCreatedEvent(userActivityResource);
+    UserCreatedEvent event = new UserCreatedEvent(userActivityResource, AUTH_SERVICE);
     eventPublisher.publishEvent(event);
     log.debug("Published domain event: {}", event);
   }

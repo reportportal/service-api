@@ -5,11 +5,22 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.model.Page;
+import java.util.Map;
 import org.springframework.data.domain.Pageable;
 
 public interface TestFolderItemService {
 
   TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch);
+
+  /**
+   * Same as {@link #findTestFolderItem(Long, Long, Launch)}, but reuses a caller-provided cache of
+   * already resolved/created SUITE items ({@code suiteItemsByIds}, keyed by test folder id) to
+   * avoid repeated lookups for folders shared by multiple test cases in the same batch.
+   */
+  default TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch,
+      Map<Long, TestItem> suiteItemsByIds) {
+    return findTestFolderItem(projectId, testFolderId, launch);
+  }
 
   TestItem createTestFolderSuiteItem(Long projectId, Long testFolderId,
       Launch launch);

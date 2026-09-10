@@ -303,7 +303,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
    * other load/unload call for the same plugin id (see {@link #pluginLocks}).
    */
   private <T> T withPluginLock(String pluginId, Supplier<T> action) {
-    Lock lock = pluginLocks.computeIfAbsent(pluginId, _ -> new ReentrantLock());
+    Lock lock = pluginLocks.computeIfAbsent(pluginId, id -> new ReentrantLock());
     lock.lock();
     try {
       return action.get();

@@ -52,7 +52,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -84,6 +88,14 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   private final String resourcesDir;
 
   private final Cache<String, Path> uploadingPlugins;
+
+  /**
+   * Per-plugin-id locks serializing load/unload so the async startup loader
+   * ({@link com.epam.reportportal.base.plugin.PluginStartUpService}) and the scheduled
+   * {@link com.epam.reportportal.base.job.LoadPluginsJob} can't race to load/register the same
+   * plugin extension bean concurrently.
+   */
+  private final Map<String, Lock> pluginLocks = new ConcurrentHashMap<>();
 
   private final PluginLoader pluginLoader;
   private final IntegrationTypeRepository integrationTypeRepository;
@@ -187,6 +199,10 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   @Override
   public boolean loadPlugin(String pluginId, IntegrationTypeDetails integrationTypeDetails) {
+    return withPluginLock(pluginId, () -> doLoadPlugin(pluginId, integrationTypeDetails));
+  }
+
+  private boolean doLoadPlugin(String pluginId, IntegrationTypeDetails integrationTypeDetails) {
     long loadBegin = System.currentTimeMillis();
     return ofNullable(integrationTypeDetails.getDetails()).map(details -> {
       String fileName = IntegrationTypeProperties.FILE_NAME.getValue(details)
@@ -273,11 +289,27 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   @Override
   public boolean unloadPlugin(IntegrationType integrationType) {
-    applicationEventPublisher.publishEvent(
-        new PluginDeletedEvent(createPluginActivityResource(integrationType))
-    );
-    destroyDependency(integrationType.getName());
-    return pluginManager.unloadPlugin(integrationType.getName());
+    return withPluginLock(integrationType.getName(), () -> {
+      applicationEventPublisher.publishEvent(
+          new PluginDeletedEvent(createPluginActivityResource(integrationType))
+      );
+      destroyDependency(integrationType.getName());
+      return pluginManager.unloadPlugin(integrationType.getName());
+    });
+  }
+
+  /**
+   * Runs {@code action} while holding the lock for {@code pluginId}, serializing it against any
+   * other load/unload call for the same plugin id (see {@link #pluginLocks}).
+   */
+  private <T> T withPluginLock(String pluginId, Supplier<T> action) {
+    Lock lock = pluginLocks.computeIfAbsent(pluginId, _ -> new ReentrantLock());
+    lock.lock();
+    try {
+      return action.get();
+    } finally {
+      lock.unlock();
+    }
   }
 
   @Override

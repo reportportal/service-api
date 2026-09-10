@@ -536,6 +536,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     String newPluginId = newPluginInfo.getId();
     startUpPlugin(newPluginId);
     validateNewPluginExtensionClasses(newPluginId, uploadedPluginName);
+    destroyDependency(newPluginId);
     pluginManager.unloadPlugin(newPluginId);
 
     if (newPluginInfo.getDetails() != null) {
@@ -569,6 +570,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
                 .get()
         ));
     if (!pluginLoader.validatePluginExtensionClasses(newPlugin)) {
+      destroyDependency(newPluginId);
       pluginManager.unloadPlugin(newPluginId);
       deleteTempPlugin(newPluginFileName);
 

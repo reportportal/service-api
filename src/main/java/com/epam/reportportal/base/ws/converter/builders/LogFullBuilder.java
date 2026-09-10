@@ -32,6 +32,8 @@ import java.util.function.Supplier;
  */
 public class LogFullBuilder implements Supplier<LogFull> {
 
+  private static final char NULL_BYTE = '\u0000';
+
   private final LogFull logFull;
 
   public LogFullBuilder() {
@@ -39,7 +41,7 @@ public class LogFullBuilder implements Supplier<LogFull> {
   }
 
   public LogFullBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
-    logFull.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
+    logFull.setLogMessage(stripNullBytes(ofNullable(createLogRQ.getMessage()).orElse("NULL")));
     logFull.setLogTime(createLogRQ.getLogTime());
     logFull.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
     return this;
@@ -68,6 +70,15 @@ public class LogFullBuilder implements Supplier<LogFull> {
   @Override
   public LogFull get() {
     return logFull;
+  }
+
+  /**
+   * PostgreSQL's UTF8 encoding rejects the null byte (0x00), so any log message containing one
+   * fails the insert and the whole message gets routed to the reporting parking lot queue instead
+   * of being saved.
+   */
+  private static String stripNullBytes(String message) {
+    return message.indexOf(NULL_BYTE) < 0 ? message : message.replace(String.valueOf(NULL_BYTE), "");
   }
 
 }

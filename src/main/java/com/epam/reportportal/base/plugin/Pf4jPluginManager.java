@@ -536,8 +536,13 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     String newPluginId = newPluginInfo.getId();
     startUpPlugin(newPluginId);
     validateNewPluginExtensionClasses(newPluginId, uploadedPluginName);
+    if (!pluginManager.unloadPlugin(newPluginId)) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          Suppliers.formattedSupplier(
+              "Failed to unload plugin with id = '{}' before replacing it", newPluginId).get()
+      );
+    }
     destroyDependency(newPluginId);
-    pluginManager.unloadPlugin(newPluginId);
 
     if (newPluginInfo.getDetails() != null) {
       pluginDetails.setDetails(newPluginInfo.getDetails());
@@ -570,8 +575,13 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
                 .get()
         ));
     if (!pluginLoader.validatePluginExtensionClasses(newPlugin)) {
+      if (!pluginManager.unloadPlugin(newPluginId)) {
+        throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+            Suppliers.formattedSupplier("Failed to unload the invalid plugin with id = '{}'",
+                newPluginId).get()
+        );
+      }
       destroyDependency(newPluginId);
-      pluginManager.unloadPlugin(newPluginId);
       deleteTempPlugin(newPluginFileName);
 
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,

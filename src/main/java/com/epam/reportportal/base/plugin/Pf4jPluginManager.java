@@ -293,8 +293,11 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
       applicationEventPublisher.publishEvent(
           new PluginDeletedEvent(createPluginActivityResource(integrationType))
       );
-      destroyDependency(integrationType.getName());
-      return pluginManager.unloadPlugin(integrationType.getName());
+      boolean unloaded = pluginManager.unloadPlugin(integrationType.getName());
+      if (unloaded) {
+        destroyDependency(integrationType.getName());
+      }
+      return unloaded;
     });
   }
 
@@ -401,6 +404,12 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   public IntegrationType uploadPlugin(final String uploadedPluginName,
       final InputStream fileStream) {
     PluginInfo newPluginInfo = resolvePluginInfo(uploadedPluginName, fileStream);
+    return withPluginLock(newPluginInfo.getId(),
+        () -> doUploadPlugin(newPluginInfo, uploadedPluginName));
+  }
+
+  private IntegrationType doUploadPlugin(PluginInfo newPluginInfo,
+      final String uploadedPluginName) {
     IntegrationTypeDetails pluginDetails = pluginLoader.resolvePluginDetails(newPluginInfo);
 
     Optional<PluginWrapper> previousPlugin = getPluginById(newPluginInfo.getId());
@@ -538,13 +547,13 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   }
 
   private void unloadPreviousPlugin(PluginWrapper pluginWrapper) {
-    destroyDependency(pluginWrapper.getPluginId());
     if (!pluginManager.unloadPlugin(pluginWrapper.getPluginId())) {
       throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
           Suppliers.formattedSupplier("Failed to stop old plugin with id = '{}'",
               pluginWrapper.getPluginId()).get()
       );
     }
+    destroyDependency(pluginWrapper.getPluginId());
   }
 
   private void destroyDependency(String name) {

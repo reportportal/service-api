@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.infrastructure.rules.commons.validation
 import com.epam.reportportal.base.core.events.domain.PluginDeletedEvent;
 import com.epam.reportportal.base.core.integration.plugin.DeletePluginHandler;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.base.core.plugin.PluginStateChangedMessage;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum;
@@ -79,12 +80,23 @@ public class DeletePluginHandlerImpl implements DeletePluginHandler {
     applicationEventPublisher.publishEvent(
         new PluginDeletedEvent(pluginActivityResource, user.getUserId(), user.getUsername()));
 
+    /*
+     * Disable first and persist before touching the shared plugin file (plugins directory /
+     * data store): other instances discover enabled plugins by polling this row, so flipping
+     * it off closes the window where they'd try to (re)load a file this instance is about to
+     * delete from the shared data store.
+     */
+    integrationType.setEnabled(false);
+    integrationTypeRepository.save(integrationType);
+
     if (!pluginBox.deletePlugin(integrationType.getName())) {
       throw new ReportPortalException(
           ErrorType.PLUGIN_REMOVE_ERROR, "Unable to remove from plugin manager.");
     }
 
     integrationTypeRepository.deleteById(integrationType.getId());
+
+    applicationEventPublisher.publishEvent(new PluginStateChangedMessage(integrationType.getName()));
 
     return new OperationCompletionRS(
         Suppliers.formattedSupplier("Plugin = '{}' has been successfully removed",

@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.integration.plugin.impl;
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.base.core.integration.plugin.CreatePluginHandler;
 import com.epam.reportportal.base.core.integration.plugin.strategy.PluginUploaderFactory;
+import com.epam.reportportal.base.core.plugin.PluginStateChangedMessage;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
@@ -81,6 +82,8 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
       pluginActivityResource.setName(integrationType.getName());
       applicationEventPublisher.publishEvent(
           new PluginUploadedEvent(pluginActivityResource, user.getUserId(), user.getUsername()));
+      applicationEventPublisher.publishEvent(
+          new PluginStateChangedMessage(integrationType.getName()));
       return new EntryCreatedRS(integrationType.getId());
     } catch (IOException e) {
       log.error("Error during file stream retrieving for plugin file '{}'", newPluginFileName, e);

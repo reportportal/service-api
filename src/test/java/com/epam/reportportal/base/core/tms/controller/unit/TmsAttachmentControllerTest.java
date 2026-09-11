@@ -123,7 +123,7 @@ public class TmsAttachmentControllerTest {
         .fileType("text/plain")
         .build();
 
-    given(tmsAttachmentService.uploadAttachment(any())).willReturn(uploadResponse);
+    given(tmsAttachmentService.uploadAttachment(eq(projectId), any())).willReturn(uploadResponse);
 
     // When/Then
     mockMvc.perform(
@@ -136,7 +136,8 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.fileSize").value(22L))
         .andExpect(jsonPath("$.fileType").value("text/plain"));
 
-    verify(tmsAttachmentService).uploadAttachment(any());
+    verify(tmsAttachmentService).uploadAttachment(eq(projectId), any());
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), eq(projectKey));
   }
 
   @Test
@@ -152,7 +153,7 @@ public class TmsAttachmentControllerTest {
         .fileType("image/png")
         .build();
 
-    given(tmsAttachmentService.uploadAttachment(any())).willReturn(uploadResponse);
+    given(tmsAttachmentService.uploadAttachment(eq(projectId), any())).willReturn(uploadResponse);
 
     // When/Then
     mockMvc.perform(
@@ -165,7 +166,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.fileSize").value(5L))
         .andExpect(jsonPath("$.fileType").value("image/png"));
 
-    verify(tmsAttachmentService).uploadAttachment(any());
+    verify(tmsAttachmentService).uploadAttachment(eq(projectId), any());
   }
 
   @Test
@@ -181,7 +182,7 @@ public class TmsAttachmentControllerTest {
         .fileType("application/pdf")
         .build();
 
-    given(tmsAttachmentService.uploadAttachment(any())).willReturn(uploadResponse);
+    given(tmsAttachmentService.uploadAttachment(eq(projectId), any())).willReturn(uploadResponse);
 
     // When/Then
     mockMvc.perform(
@@ -194,7 +195,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.fileSize").value(pdfContent.length))
         .andExpect(jsonPath("$.fileType").value("application/pdf"));
 
-    verify(tmsAttachmentService).uploadAttachment(any());
+    verify(tmsAttachmentService).uploadAttachment(eq(projectId), any());
   }
 
   @Test
@@ -364,7 +365,7 @@ public class TmsAttachmentControllerTest {
         .fileType("text/plain")
         .build();
 
-    given(tmsAttachmentService.uploadAttachment(any())).willReturn(uploadResponse);
+    given(tmsAttachmentService.uploadAttachment(eq(projectId), any())).willReturn(uploadResponse);
 
     // When/Then
     mockMvc.perform(
@@ -377,7 +378,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.fileSize").value(0L))
         .andExpect(jsonPath("$.fileType").value("text/plain"));
 
-    verify(tmsAttachmentService).uploadAttachment(any());
+    verify(tmsAttachmentService).uploadAttachment(eq(projectId), any());
   }
 
   @Test
@@ -394,7 +395,7 @@ public class TmsAttachmentControllerTest {
         .fileType("text/plain")
         .build();
 
-    given(tmsAttachmentService.uploadAttachment(any())).willReturn(uploadResponse);
+    given(tmsAttachmentService.uploadAttachment(eq(projectId), any())).willReturn(uploadResponse);
 
     // When/Then
     mockMvc.perform(
@@ -407,7 +408,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.fileSize").value(fileContent.length()))
         .andExpect(jsonPath("$.fileType").value("text/plain"));
 
-    verify(tmsAttachmentService).uploadAttachment(any());
+    verify(tmsAttachmentService).uploadAttachment(eq(projectId), any());
   }
 
   @Test

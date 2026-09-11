@@ -2,16 +2,19 @@ package com.epam.reportportal.base.core.tms.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -78,6 +81,8 @@ class TmsAttachmentServiceImplTest {
   private UploadAttachmentRS uploadAttachmentRS;
   private String fileId;
   private Long attachmentId;
+  private static final Long PROJECT_ID = 42L;
+  private static final Long OTHER_PROJECT_ID = 99L;
 
   @BeforeEach
   void setUp() {
@@ -118,14 +123,17 @@ class TmsAttachmentServiceImplTest {
         uploadAttachmentRS);
 
     // When uploading attachment
-    var result = sut.uploadAttachment(file);
+    var result = sut.uploadAttachment(PROJECT_ID, file);
 
     // Then attachment should be successfully uploaded
     assertNotNull(result);
     assertEquals(uploadAttachmentRS.getId(), result.getId());
     assertEquals(uploadAttachmentRS.getFileName(), result.getFileName());
 
-    verify(tmsAttachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
+    var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(tmsAttachmentDataStoreService).save(storageKeyCaptor.capture(), any(InputStream.class));
+    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID + "/"));
+    assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
     verify(tmsAttachmentMapper).convertToAttachment(eq(fileId), any(), eq(file));
     verify(tmsAttachmentRepository).save(attachment);
     verify(tmsAttachmentMapper).convertToUploadAttachmentRS(attachment);
@@ -138,7 +146,7 @@ class TmsAttachmentServiceImplTest {
 
     // When/Then exception should be thrown for empty file
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.uploadAttachment(emptyFile));
+        () -> sut.uploadAttachment(PROJECT_ID, emptyFile));
 
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     assertEquals(
@@ -157,13 +165,42 @@ class TmsAttachmentServiceImplTest {
 
     // When/Then exception should be thrown when storage fails
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.uploadAttachment(file));
+        () -> sut.uploadAttachment(PROJECT_ID, file));
 
     assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
     assertTrue(exception.getMessage().contains("Failed to upload attachment"));
 
-    verify(tmsAttachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
+    var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(tmsAttachmentDataStoreService).save(storageKeyCaptor.capture(), any(InputStream.class));
+    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID + "/"));
+    assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
     verifyNoInteractions(tmsAttachmentRepository);
+  }
+
+  @Test
+  void uploadAttachment_ShouldUseDistinctProjectScopedStorageKeys_WhenSameOriginalFilename() {
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
+        .thenReturn("file-id-1", "file-id-2");
+    when(tmsAttachmentMapper.convertToAttachment(anyString(), any(), eq(file))).thenReturn(
+        attachment);
+    when(tmsAttachmentRepository.save(attachment)).thenReturn(attachment);
+    when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
+        uploadAttachmentRS);
+
+    sut.uploadAttachment(PROJECT_ID, file);
+    sut.uploadAttachment(OTHER_PROJECT_ID, file);
+
+    var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(tmsAttachmentDataStoreService, times(2))
+        .save(storageKeyCaptor.capture(), any(InputStream.class));
+
+    var storageKeys = storageKeyCaptor.getAllValues();
+    assertEquals(2, storageKeys.size());
+    assertNotEquals(storageKeys.get(0), storageKeys.get(1));
+    assertTrue(storageKeys.get(0).startsWith(PROJECT_ID + "/"));
+    assertTrue(storageKeys.get(1).startsWith(OTHER_PROJECT_ID + "/"));
+    assertTrue(storageKeys.get(0).endsWith("_test.txt"));
+    assertTrue(storageKeys.get(1).endsWith("_test.txt"));
   }
 
   @Test

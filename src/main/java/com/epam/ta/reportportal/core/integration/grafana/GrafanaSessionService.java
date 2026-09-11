@@ -27,20 +27,20 @@ import java.util.UUID;
 public interface GrafanaSessionService {
 
   /** Name of the cookie that carries the session id between {@code GET /v1/users} and the nginx auth gate. */
-  String SESSION_COOKIE_NAME = "grafana_session";
+  String SESSION_COOKIE_NAME = "rp_grafana_session";
 
   /**
    * Issues a new session for the given subject.
    *
    * @param subject JWT subject ({@code sub} claim, i.e. the user's login) the session is issued to
-   * @return the new session's id, to be carried in the {@code grafana_session} cookie
+   * @return the new session's id, to be carried in the {@code rp_grafana_session} cookie
    */
   UUID create(String subject);
 
   /**
    * Checks whether the given session id is currently valid (exists and not expired).
    *
-   * @param id session id, i.e. the value carried in the {@code grafana_session} cookie
+   * @param id session id, i.e. the value carried in the {@code rp_grafana_session} cookie
    * @return {@code true} if the session is valid
    */
   boolean isValid(UUID id);

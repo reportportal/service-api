@@ -1,0 +1,10 @@
+# Python supply chain (not used by the Java app itself). Apply where a scanner/CI image has pip/setuptools, e.g.:
+#   python -m pip install --upgrade pip setuptools
+#   pip install -r requirements.txt -c constraints.txt
+#
+# CVE mapping (verify on https://github.com/advisories when bumping):
+# - CVE-2021-3572 (pip): upgrade pip (modern 25.x is sufficient).
+# - CVE-2022-40897, CVE-2024-6345 (setuptools): fixed in current setuptools lines; keep at or above PyPA advisory minimums.
+# - CVE-2025-47273 (setuptools): fixed in setuptools >= 78.1.1 (path traversal in PackageIndex).
+pip>=25.0
+setuptools>=78.1.1

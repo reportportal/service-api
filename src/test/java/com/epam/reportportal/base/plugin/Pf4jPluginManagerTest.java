@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.integration.impl.util.IntegrationTestUtil;
@@ -49,6 +51,7 @@ import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
@@ -67,7 +70,8 @@ class Pf4jPluginManagerTest {
   private final PluginLoader pluginLoader = mock(PluginLoader.class);
   private final IntegrationTypeRepository integrationTypeRepository = mock(
       IntegrationTypeRepository.class);
-  private final AutowireCapableBeanFactory beanFactory = mock(AutowireCapableBeanFactory.class);
+  private final AutowireCapableBeanFactory beanFactory = mock(
+      AbstractAutowireCapableBeanFactory.class);
   private final PluginManager pluginManager = mock(PluginManager.class);
   private final PluginWrapper previousPlugin = mock(PluginWrapper.class);
   private final PluginWrapper newPlugin = mock(PluginWrapper.class);
@@ -115,6 +119,7 @@ class Pf4jPluginManagerTest {
     when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
     when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
     when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(true);
+    when(pluginManager.unloadPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(true);
     doNothing().when(pluginLoader)
         .savePlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME), fileStream);
 
@@ -148,6 +153,7 @@ class Pf4jPluginManagerTest {
     when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
     when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
     when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(true);
+    when(pluginManager.unloadPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(true);
     String pluginFileName = NEW_JIRA_PLUGIN_ID + "-" + NEW_JIRA_PLUGIN_VERSION + ".jar";
     when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, pluginFileName))).thenReturn(
         NEW_JIRA_PLUGIN_ID);
@@ -199,6 +205,7 @@ class Pf4jPluginManagerTest {
         NEW_JIRA_PLUGIN_ID);
     when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
     when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
+    when(pluginManager.unloadPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(true);
 
     final ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
@@ -207,6 +214,72 @@ class Pf4jPluginManagerTest {
         "Error during plugin uploading: 'New plugin with id = 'new_jira' doesn't have mandatory extension classes.'",
         exception.getMessage()
     );
+  }
+
+  @Test
+  void uploadPluginWithFailedUnloadAfterValidation() throws PluginRuntimeException {
+
+    PluginInfo pluginInfo = getPluginInfo();
+    when(pluginLoader.extractPluginInfo(
+        Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(pluginInfo);
+    IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
+    IntegrationTypeDetails jiraDetails = jiraIntegrationType.getDetails();
+    when(pluginLoader.resolvePluginDetails(pluginInfo)).thenReturn(jiraDetails);
+    when(pluginManager.getPlugin("old_jira")).then((i) -> {
+      pluginInfo.setId(NEW_JIRA_PLUGIN_ID);
+      return null;
+    });
+    when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(
+        NEW_JIRA_PLUGIN_ID);
+    when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
+    when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
+    when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(true);
+    // simulate PF4J refusing to unload the freshly-validated plugin
+    when(pluginManager.unloadPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(false);
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
+    );
+    assertEquals(
+        "Error during plugin uploading: 'Failed to unload plugin with id = 'new_jira' before replacing it'",
+        exception.getMessage()
+    );
+    // the operation must stop before touching plugin artifacts
+    verify(pluginLoader, never()).saveToDataStore(any(), any());
+    verify(integrationTypeRepository, never()).save(any(IntegrationType.class));
+  }
+
+  @Test
+  void uploadPluginWithFailedUnloadDuringValidation()
+      throws PluginRuntimeException, IOException {
+
+    PluginInfo pluginInfo = getPluginInfo();
+    when(pluginLoader.extractPluginInfo(
+        Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(pluginInfo);
+    IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
+    IntegrationTypeDetails jiraDetails = jiraIntegrationType.getDetails();
+    when(pluginLoader.resolvePluginDetails(pluginInfo)).thenReturn(jiraDetails);
+    when(pluginManager.getPlugin("old_jira")).then((i) -> {
+      pluginInfo.setId(NEW_JIRA_PLUGIN_ID);
+      return null;
+    });
+    when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(
+        NEW_JIRA_PLUGIN_ID);
+    when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
+    when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
+    // extension classes invalid AND PF4J refuses to unload the rejected plugin
+    when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(false);
+    when(pluginManager.unloadPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(false);
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
+    );
+    assertEquals(
+        "Error during plugin uploading: 'Failed to unload the invalid plugin with id = 'new_jira''",
+        exception.getMessage()
+    );
+    // temp plugin artifact must be preserved since the unload never completed
+    verify(pluginLoader, never()).deleteTempPlugin(any(), any());
   }
 
   @Test

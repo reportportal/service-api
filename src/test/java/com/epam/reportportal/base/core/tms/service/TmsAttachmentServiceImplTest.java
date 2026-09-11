@@ -62,6 +62,9 @@ class TmsAttachmentServiceImplTest {
   private TmsAttachmentMapper tmsAttachmentMapper;
 
   @Mock
+  private TmsAttachmentPersistenceService tmsAttachmentPersistenceService;
+
+  @Mock
   private TmsStepAttachmentRepository tmsStepAttachmentRepository;
 
   @Mock
@@ -118,7 +121,7 @@ class TmsAttachmentServiceImplTest {
         fileId);
     when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file))).thenReturn(
         attachment);
-    when(tmsAttachmentRepository.save(attachment)).thenReturn(attachment);
+    when(tmsAttachmentPersistenceService.persist(attachment)).thenReturn(attachment);
     when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
         uploadAttachmentRS);
 
@@ -135,7 +138,7 @@ class TmsAttachmentServiceImplTest {
     assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID + "/"));
     assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
     verify(tmsAttachmentMapper).convertToAttachment(eq(fileId), any(), eq(file));
-    verify(tmsAttachmentRepository).save(attachment);
+    verify(tmsAttachmentPersistenceService).persist(attachment);
     verify(tmsAttachmentMapper).convertToUploadAttachmentRS(attachment);
   }
 
@@ -154,12 +157,12 @@ class TmsAttachmentServiceImplTest {
         exception.getMessage());
 
     verifyNoInteractions(tmsAttachmentDataStoreService, tmsAttachmentMapper,
-        tmsAttachmentRepository);
+        tmsAttachmentPersistenceService);
   }
 
   @Test
   void uploadAttachment_ShouldThrowException_WhenDataStoreServiceFails() throws Exception {
-    // Given data store service throws IOException
+    // Given data store service throws an unchecked exception
     when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
         .thenThrow(new RuntimeException("Storage error"));
 
@@ -168,13 +171,32 @@ class TmsAttachmentServiceImplTest {
         () -> sut.uploadAttachment(PROJECT_ID, file));
 
     assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
-    assertTrue(exception.getMessage().contains("Failed to upload attachment"));
+    assertTrue(exception.getMessage().contains("Failed to read/store attachment"));
 
     var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
     verify(tmsAttachmentDataStoreService).save(storageKeyCaptor.capture(), any(InputStream.class));
     assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID + "/"));
     assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
-    verifyNoInteractions(tmsAttachmentRepository);
+    verifyNoInteractions(tmsAttachmentPersistenceService);
+  }
+
+  @Test
+  void uploadAttachment_ShouldDeleteOrphanedBlob_WhenPersistenceServiceFails() {
+    // Given the blob is stored successfully but the DB write fails
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
+        fileId);
+    when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file))).thenReturn(
+        attachment);
+    when(tmsAttachmentPersistenceService.persist(attachment))
+        .thenThrow(new RuntimeException("DB error"));
+
+    // When/Then exception should be thrown and the orphaned blob cleaned up
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.uploadAttachment(PROJECT_ID, file));
+
+    assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
+    assertTrue(exception.getMessage().contains("Failed to persist attachment metadata"));
+    verify(tmsAttachmentDataStoreService).delete(fileId);
   }
 
   @Test
@@ -183,7 +205,7 @@ class TmsAttachmentServiceImplTest {
         .thenReturn("file-id-1", "file-id-2");
     when(tmsAttachmentMapper.convertToAttachment(anyString(), any(), eq(file))).thenReturn(
         attachment);
-    when(tmsAttachmentRepository.save(attachment)).thenReturn(attachment);
+    when(tmsAttachmentPersistenceService.persist(attachment)).thenReturn(attachment);
     when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
         uploadAttachmentRS);
 

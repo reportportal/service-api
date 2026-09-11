@@ -40,6 +40,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   private final TmsAttachmentRepository tmsAttachmentRepository;
   private final TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
   private final TmsAttachmentMapper tmsAttachmentMapper;
+  private final TmsAttachmentPersistenceService tmsAttachmentPersistenceService;
   private final TmsStepAttachmentRepository tmsStepAttachmentRepository;
   private final TmsTextManualScenarioAttachmentRepository tmsTextManualScenarioAttachmentRepository;
   private final TmsManualScenarioPreconditionsAttachmentRepository tmsManualScenarioPreconditionsAttachmentRepository;
@@ -49,7 +50,6 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   private Duration ttl;
 
   @Override
-  @Transactional
   public UploadAttachmentRS uploadAttachment(Long projectId, MultipartFile file) {
     if (file.isEmpty()) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "File cannot be empty");
@@ -60,10 +60,9 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
     try {
       var attachment = tmsAttachmentMapper.convertToAttachment(fileId, thumbnailId, file);
-      return tmsAttachmentMapper.convertToUploadAttachmentRS(
-          tmsAttachmentRepository.save(attachment));
+      var saved = tmsAttachmentPersistenceService.persist(attachment);
+      return tmsAttachmentMapper.convertToUploadAttachmentRS(saved);
     } catch (Exception _) {
-      // DB persistence failed after binaries were stored -> avoid orphaned blobs
       deleteQuietly(fileId, thumbnailId);
       throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
           "Failed to persist attachment metadata for project " + projectId);
@@ -74,7 +73,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     try (var in = file.getInputStream()) {
       var storageKey = buildStorageKey(projectId, file.getOriginalFilename());
       return tmsAttachmentDataStoreService.save(storageKey, in);
-    } catch (IOException _) {
+    } catch (IOException | RuntimeException _) {
       throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
           "Failed to read/store attachment for project " + projectId);
     }

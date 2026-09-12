@@ -22,8 +22,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Status
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -134,6 +136,29 @@ class TestCaseItemServiceImplTest {
 
     // Also assert that the attribute was added to the test item's collection
     assertEquals(1, testItem.getAttributes().size());
+  }
+
+  @Test
+  void createTestCaseItem_WithItemNamesCache_ShouldPopulateAndUseCache() {
+    testCaseRS.setAttributes(Collections.emptySet());
+
+    TestItem testItem = new TestItem();
+    testItem.setItemId(400L);
+
+    suiteItem.setName("SuiteName");
+    Map<Long, String> cache = new HashMap<>();
+
+    when(testCaseItemBuilder.buildTestCaseItem(testCaseRS, suiteItem, launch))
+        .thenReturn(testItem);
+    when(testCaseHashGenerator.generate(any(), anyList(), any(), any())).thenReturn(99999);
+    when(testItemRepository.save(testItem)).thenReturn(testItem);
+
+    var result = sut.createTestCaseItem(testCaseRS, suiteItem, launch, cache);
+
+    assertNotNull(result);
+    assertEquals(99999, result.getTestCaseHash());
+    assertEquals("SuiteName", cache.get(suiteItemId));
+    verify(testCaseHashGenerator).generate(any(), anyList(), any(), any());
   }
 
 }

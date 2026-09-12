@@ -9,6 +9,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
@@ -52,9 +53,12 @@ public interface TmsTestCaseExecutionService {
    * @param testCase  test case entity
    * @param launch    launch entity
    */
-
   void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch);
 
+  default void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch,
+      Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache) {
+    createExecution(projectId, testCase, launch);
+  }
 
   /**
    * Adds test cases to launch (creates executions).

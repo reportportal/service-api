@@ -165,7 +165,14 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   @Transactional
   @Override
   public void createExecution(long projectId, TmsTestCaseRS testCase,
-      Launch launch) { //TODO refactor this method
+      Launch launch) {
+    createExecution(projectId, testCase, launch, null, null);
+  }
+
+  @Transactional
+  @Override
+  public void createExecution(long projectId, TmsTestCaseRS testCase,
+      Launch launch, Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache) {
     log.debug("Creating execution for test case: {} in launch: {}",
         testCase.getId(), launch.getId());
 
@@ -180,7 +187,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     // Step 1: Find or create SUITE item for the test folder
     var testFolderId = testCase.getTestFolder().getId();
 
-    var testFolderItem = testFolderItemService.findTestFolderItem(projectId, testFolderId, launch);
+    var testFolderItem = testFolderItemService.findTestFolderItem(projectId, testFolderId, launch, folderSuiteCache);
     testFolderItemService.markAsHavingChildren(testFolderItem);
     log.debug("SUITE item resolved: {}", testFolderItem.getItemId());
 
@@ -188,7 +195,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     var testItem = testCaseItemService.createTestCaseItem(
         testCase,
         testFolderItem,
-        launch
+        launch,
+        itemNamesCache
     );
     log.debug("TEST item created: {}", testItem.getItemId());
 
@@ -304,6 +312,9 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)
     );
 
+    Map<Long, TestItem> folderSuiteCache = new HashMap<>();
+    Map<Long, String> itemNamesCache = new HashMap<>();
+
     for (var testCaseId : testCaseIds) {
       try {
         if (!existingTestCaseIds.contains(testCaseId)) {
@@ -326,7 +337,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         var testCase = tmsTestCaseService.getById(projectId, testCaseId);
 
         // Create execution
-        createExecution(projectId, testCase, launch);
+        createExecution(projectId, testCase, launch, folderSuiteCache, itemNamesCache);
         successfulIds.add(testCaseId);
 
         log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());

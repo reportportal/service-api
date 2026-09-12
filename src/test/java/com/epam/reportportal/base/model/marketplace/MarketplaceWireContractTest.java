@@ -369,9 +369,14 @@ class MarketplaceWireContractTest {
             new AvailablePluginResource("plugin-notify-slack", "Slack", "2.0.0",
                 "Posts a message when a launch finishes", "ReportPortal", null, "NOTIFICATION",
                 "public", "official", false),
+            // "official" because it is the only trust tier a registry entry can hold today: the
+            // type declares official and partner (registry internal/domain/types.go:71-72), but
+            // SetTier refuses everything except official, so partner is unreachable through the
+            // API. This row used to read "verified", a value no producer emits — and a generated
+            // fixture is only worth having if it is a response the server could actually send.
             new AvailablePluginResource("plugin-bts-azure", "Azure DevOps", "1.2.0",
                 "Tracks issues in Azure Boards", "Microsoft", "https://reportportal.io/contact",
-                "BTS", "premium", "verified", true)));
+                "BTS", "premium", "official", true)));
   }
 
   /**

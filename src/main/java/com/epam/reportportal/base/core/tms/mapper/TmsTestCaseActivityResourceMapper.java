@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.mapper;
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseFieldChangedEvent;
+import com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.core.tms.mapper.processor.TmsTestCaseFieldProcessor;
@@ -153,5 +154,37 @@ public abstract class TmsTestCaseActivityResourceMapper {
         user.getUsername(),
         membershipDetails.getOrgId()
     );
+  }
+
+  public TestCaseImportedEvent buildTestCaseImportedEvent(MembershipDetails membershipDetails,
+      ReportPortalUser user, TestCaseActivityResource resource) {
+    return new TestCaseImportedEvent(
+        resource,
+        user != null ? user.getUserId() : null,
+        user != null ? user.getUsername() : null,
+        membershipDetails != null ? membershipDetails.getOrgId() : null
+    );
+  }
+
+  public TestCaseImportedEvent buildTestCaseImportedEvent(Long userId, String userLogin,
+      Long organizationId, TestCaseActivityResource resource) {
+    return new TestCaseImportedEvent(
+        resource,
+        userId,
+        userLogin,
+        organizationId
+    );
+  }
+
+  public List<TestCaseFieldChangedEvent> buildTestCaseFieldChangedEvents(
+      Long userId, String userLogin, Long organizationId,
+      TestCaseActivityResource before, TestCaseActivityResource after) {
+    return tmsTestCaseFieldProcessors
+        .stream()
+        .map(processor -> processor.process(before, after))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .peek(event -> event.setContext(userId, userLogin, organizationId))
+        .collect(Collectors.toList());
   }
 }

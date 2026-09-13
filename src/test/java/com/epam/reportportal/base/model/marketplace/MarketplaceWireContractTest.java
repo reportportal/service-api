@@ -207,6 +207,7 @@ class MarketplaceWireContractTest {
   private static final List<String> CATALOGUE_FIELDS = List.of(
       "available[].access",
       "instance.uploadAllowed",
+      "instance.productVersion",
       "available[].author",
       "available[].contactUrl",
       "available[].description",
@@ -271,7 +272,11 @@ class MarketplaceWireContractTest {
       "removed.removed",
       "removed.removedBy",
       "screenshots[]",
+      "versions[].advisory.attachedAt",
+      "versions[].advisory.severity",
+      "versions[].advisory.text",
       "versions[].blocked",
+      "versions[].compatible",
       "versions[].publishedAt",
       "versions[].version"
   );
@@ -359,7 +364,9 @@ class MarketplaceWireContractTest {
   }
 
   private static InstanceCapabilitiesResource uploadAllowed() {
-    return new InstanceCapabilitiesResource(true);
+    // the release this instance reports: the page shows it when explaining why a version cannot
+    // be installed, and its absence is why no verdict can be given at all
+    return new InstanceCapabilitiesResource(true, "26.1");
   }
 
   private static MarketplaceCatalogueResource catalogue() {
@@ -395,8 +402,14 @@ class MarketplaceWireContractTest {
     return new MarketplacePluginDetailResource(online(),
         new MarketplacePluginResource("plugin-bts-jira", "Jira", "Tracks issues in Jira",
             "Atlassian", "1.6.0", "premium", "official"),
-        List.of(new MarketplaceVersionResource("1.6.0", WHEN, false),
-            new MarketplaceVersionResource("1.5.2", EARLIER, true)),
+        // 1.6.0 runs here, 1.5.2 does not, and a row that declares no range at all is the third
+        // answer the table has to render — a null verdict, not a false one
+        // 1.5.2 also carries the advisory it was blocked over: the table shows it on the row it
+        // belongs to, which is a different question from whether the plugin is under one
+        List.of(new MarketplaceVersionResource("1.6.0", WHEN, false, true, null),
+            new MarketplaceVersionResource("1.5.2", EARLIER, true, false,
+                new MarketplaceAdvisory("high", "CVE-2026-1234 allows remote code execution.",
+                    EARLIER))),
         new MarketplaceChangelogResource("1.6.0",
             List.of("Fixed a crash on an empty summary", "Dropped the legacy field")),
         List.of("https://cdn.rp.io/jira/1.png", "https://cdn.rp.io/jira/2.png"),
@@ -558,7 +571,7 @@ class MarketplaceWireContractTest {
    * proves only that someone ran the test, while this changes exactly when the wire changes.
    */
   private static final String CONTRACT_HASH =
-      "74cb316e28f6344062ac99cd40d40de8dd141e4ce26c044b786dc11654bd43a8";
+      "63ab891af0435a3df8dfbbaf5580d7a313cc9c412643fd382586ead6076684d2";
 
   private static final String HASH_ALGORITHM =
       "SHA-256, hex, over the routes below in the order given: the route on a line of its own,"

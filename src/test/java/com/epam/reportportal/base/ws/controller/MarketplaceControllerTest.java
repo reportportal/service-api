@@ -393,7 +393,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
             "official", "1.6.0", "jira"));
     when(marketplaceClient.listVersions("detail-jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", Instant.parse("2026-03-12T10:15:30Z"), false, null,
-            null)));
+            null, null, null)));
 
     mockMvc.perform(get("/v1/plugins/detail-jira").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())

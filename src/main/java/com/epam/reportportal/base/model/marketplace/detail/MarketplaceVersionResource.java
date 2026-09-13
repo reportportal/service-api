@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.model.marketplace.detail;
 
+import com.epam.reportportal.base.model.marketplace.MarketplaceAdvisory;
 import java.time.Instant;
 
 /**
@@ -26,6 +27,24 @@ import java.time.Instant;
  * @param publishedAt when the registry published it, null when it carried no date
  * @param blocked     whether the registry refuses to serve this version any more
  */
-public record MarketplaceVersionResource(String version, Instant publishedAt, boolean blocked) {
+/**
+ * One row of the versions table.
+ *
+ * @param compatible whether this version runs on the release this instance reports. {@code null}
+ *                   is the third answer and not a missing one: the version declares no range, or
+ *                   the range cannot be read, or the instance does not know its own release. A
+ *                   caller must refuse rather than guess, which is exactly what the install
+ *                   handler already does with the same three cases.
+ * @param advisory   the advisory attached to this version, or null. Per version, unlike the
+ *                   plugin-level advisory, which answers whether the plugin as a whole is under
+ *                   one.
+ */
+public record MarketplaceVersionResource(
+    String version,
+    Instant publishedAt,
+    boolean blocked,
+    Boolean compatible,
+    MarketplaceAdvisory advisory
+) {
 
 }

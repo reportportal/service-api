@@ -19,15 +19,23 @@ package com.epam.reportportal.base.model.marketplace;
 import java.time.Instant;
 
 /**
- * One entry of GET /api/v1/plugins/{pluginId}/versions. Carries no compatibility range — only
- * version detail does.
+ * One entry of GET /api/v1/plugins/{pluginId}/versions.
+ *
+ * <p>Carries the declared compatibility range and the advisory attached to this specific version:
+ * a caller rendering a table of versions needs both per row, and the per-version detail route
+ * would answer one request per row.
+ *
+ * <p>A null {@code compatibility} means the entry declares no range — published before the
+ * registry recorded one — and that is unknown rather than compatible.
  */
 public record MarketplaceVersionSummary(
     String version,
     Instant publishedAt,
     boolean blocked,
     Instant blockedAt,
-    String blockReason
+    String blockReason,
+    MarketplaceCompatibility compatibility,
+    MarketplaceAdvisory advisory
 ) {
 
 }

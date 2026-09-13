@@ -24,6 +24,16 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  *
  * @param uploadAllowed whether manual .jar upload is switched on for this instance
  */
-public record InstanceCapabilitiesResource(boolean uploadAllowed) {
+/**
+ * What this instance can do and what it is, as far as the marketplace is concerned.
+ *
+ * @param uploadAllowed  whether a jar may be uploaded by hand
+ * @param productVersion the ReportPortal release this instance reports, or null when it does not
+ *                       know — {@code rp.product.version} unset. A caller shows it to explain a
+ *                       compatibility verdict ("needs 26.2 or later; this instance runs 26.1"),
+ *                       and null is why no verdict can be given at all rather than a formatting
+ *                       problem.
+ */
+public record InstanceCapabilitiesResource(boolean uploadAllowed, String productVersion) {
 
 }

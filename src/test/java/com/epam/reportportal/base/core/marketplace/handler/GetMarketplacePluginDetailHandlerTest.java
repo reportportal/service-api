@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
+import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryNotFoundException;
@@ -39,6 +40,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAdvisory;
 import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
+import com.epam.reportportal.base.model.marketplace.detail.MarketplaceVersionResource;
 import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
@@ -70,7 +72,7 @@ class GetMarketplacePluginDetailHandlerTest {
     when(licence.isConfigured()).thenReturn(false);
     handler = new GetMarketplacePluginDetailHandlerImpl(
         new MarketplaceRegistryCache(client, Duration.ofSeconds(60), Duration.ofSeconds(30),
-            Duration.ofMinutes(5), Ticker.systemTicker()), licence);
+            Duration.ofMinutes(5), Ticker.systemTicker()), licence, new ProductVersion("26.1"));
   }
 
   private static MarketplacePluginDetail plugin(String id, String latestVersion, String access) {
@@ -92,8 +94,9 @@ class GetMarketplacePluginDetailHandlerTest {
   void theRegistrysViewOfAPublishedPluginIsWhatThePageGets() {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
-        new MarketplaceVersionSummary("1.5.2", WHEN, true, WHEN, "Signed with a revoked key"),
-        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null)));
+        new MarketplaceVersionSummary("1.5.2", WHEN, true, WHEN, "Signed with a revoked key",
+            null, null),
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null)));
     when(client.getVersion("jira", "1.6.0")).thenReturn(version("jira", "1.6.0", null, false, null,
         List.of("https://cdn.rp.io/jira/1.png")));
 
@@ -281,5 +284,65 @@ class GetMarketplacePluginDetailHandlerTest {
 
     verify(client, times(1)).getPlugin("jira");
     verify(client, times(1)).getVersion("jira", "1.6.0");
+  }
+
+  /**
+   * A version row answers one of three things, and the third is not a formatting accident. The
+   * install handler already refuses "unknown" rather than guessing; a table that rendered unknown
+   * as incompatible would be lying about a version that may well run, and as compatible would
+   * offer an install this service is about to refuse.
+   */
+  @Test
+  void aVersionRowSaysCompatibleIncompatibleOrNeitherOfThem() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=26.0"), null),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=27.0"), null),
+        // published before the registry recorded a range
+        new MarketplaceVersionSummary("1.4.0", WHEN, false, null, null, null, null),
+        // recorded, but not as anything a range parser can read
+        new MarketplaceVersionSummary("1.3.0", WHEN, false, null, null,
+            new MarketplaceCompatibility("whenever"), null)));
+
+    var verdicts = handler.getPluginDetail("jira").versions().stream()
+        .collect(java.util.stream.Collectors.toMap(
+            MarketplaceVersionResource::version,
+            v -> String.valueOf(v.compatible())));
+
+    assertEquals("true", verdicts.get("1.6.0"), "26.1 satisfies >=26.0");
+    assertEquals("false", verdicts.get("1.5.2"), "26.1 does not satisfy >=27.0");
+    assertEquals("null", verdicts.get("1.4.0"), "a version declaring no range is undecided");
+    assertEquals("null", verdicts.get("1.3.0"), "a range that will not parse is undecided");
+  }
+
+  /** The instance not knowing its own release makes every row undecided, not every row bad. */
+  @Test
+  void anInstanceThatCannotNameItsReleaseDecidesNothing() {
+    var blind = new GetMarketplacePluginDetailHandlerImpl(
+        new MarketplaceRegistryCache(client, Duration.ofSeconds(60), Duration.ofSeconds(30),
+            Duration.ofMinutes(5), Ticker.systemTicker()), licence, new ProductVersion(""));
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=26.0"), null)));
+
+    assertNull(blind.getPluginDetail("jira").versions().get(0).compatible());
+  }
+
+  /** An advisory belongs to the version it was attached to, and the row is where it is shown. */
+  @Test
+  void anAdvisoryRidesTheVersionItWasAttachedTo() {
+    var advisory = new MarketplaceAdvisory("high", "CVE-2026-1234", WHEN);
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, advisory),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null)));
+
+    var versions = handler.getPluginDetail("jira").versions();
+
+    assertEquals(advisory, versions.get(0).advisory());
+    assertNull(versions.get(1).advisory(), "an advisory on one version is not on every version");
   }
 }

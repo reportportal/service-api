@@ -16,7 +16,9 @@
 
 package com.epam.reportportal.base.core.marketplace.handler;
 
+import com.epam.reportportal.base.core.marketplace.CompatibilityRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
+import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
 import com.epam.reportportal.base.core.marketplace.MarketplaceState;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -54,11 +56,13 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
 
   private final MarketplaceRegistryCache registry;
   private final MarketplaceLicence licence;
+  private final ProductVersion productVersion;
 
   public GetMarketplacePluginDetailHandlerImpl(MarketplaceRegistryCache registry,
-      MarketplaceLicence licence) {
+      MarketplaceLicence licence, ProductVersion productVersion) {
     this.registry = registry;
     this.licence = licence;
+    this.productVersion = productVersion;
   }
 
   @Override
@@ -126,12 +130,32 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
     if (summaries == null) {
       return List.of();
     }
-    return summaries.stream().map(GetMarketplacePluginDetailHandlerImpl::toVersion).toList();
+    return summaries.stream().map(this::toVersion).toList();
   }
 
-  private static MarketplaceVersionResource toVersion(MarketplaceVersionSummary summary) {
+  private MarketplaceVersionResource toVersion(MarketplaceVersionSummary summary) {
     return new MarketplaceVersionResource(summary.version(), summary.publishedAt(),
-        summary.blocked());
+        summary.blocked(), compatible(summary), summary.advisory());
+  }
+
+  /**
+   * The verdict, decided here rather than shipped as a range for the caller to parse: this service
+   * already owns the parser and already refuses an install on its answer, and a second
+   * implementation on the other side would be a second chance to disagree.
+   *
+   * <p>Null is a real answer — no range declared, a range that will not parse, or an instance that
+   * cannot say which release it runs. All three mean the question could not be decided, and the
+   * install handler refuses them all rather than guessing.
+   */
+  private Boolean compatible(MarketplaceVersionSummary summary) {
+    if (!productVersion.isKnown() || summary.compatibility() == null) {
+      return null;
+    }
+    var range = summary.compatibility().reportportal();
+    if (range == null || range.isBlank() || CompatibilityRange.parse(range).isEmpty()) {
+      return null;
+    }
+    return productVersion.satisfies(range);
   }
 
   private static List<String> screenshots(MarketplaceVersionDetail version) {

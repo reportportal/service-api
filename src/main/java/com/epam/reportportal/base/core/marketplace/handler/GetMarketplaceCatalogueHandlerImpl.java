@@ -149,7 +149,8 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     var status = registryPlugins == null ? RegistryStatus.OFFLINE : RegistryStatus.ONLINE;
     return new MarketplaceCatalogueResource(
         new RegistryStatusResource(status, registry.registryHost()),
-        new InstanceCapabilitiesResource(uploadAllowed), installed, available);
+        new InstanceCapabilitiesResource(uploadAllowed,
+            productVersion.isKnown() ? productVersion.value() : null), installed, available);
   }
 
   private static Map<String, MarketplacePlugin> index(List<MarketplacePlugin> plugins,

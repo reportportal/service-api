@@ -317,6 +317,26 @@ class GetMarketplacePluginDetailHandlerTest {
     assertEquals("null", verdicts.get("1.3.0"), "a range that will not parse is undecided");
   }
 
+  /**
+   * The range goes out beside the verdict, verbatim, because the page has to say what the version
+   * wants — "needs 26.2 or later" is the half of the sentence the verdict cannot carry. It is for
+   * reading, not for deciding: the decision was already made here.
+   */
+  @Test
+  void theDeclaredRangeTravelsWithTheVerdictSoTheReasonCanBeStated() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=27.0"), null),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null)));
+
+    var versions = handler.getPluginDetail("jira").versions();
+
+    assertEquals(">=27.0", versions.get(0).requires());
+    assertFalse(versions.get(0).compatible());
+    assertNull(versions.get(1).requires(), "a version declaring no range states none");
+  }
+
   /** The instance not knowing its own release makes every row undecided, not every row bad. */
   @Test
   void anInstanceThatCannotNameItsReleaseDecidesNothing() {

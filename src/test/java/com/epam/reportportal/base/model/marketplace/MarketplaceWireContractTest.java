@@ -277,6 +277,7 @@ class MarketplaceWireContractTest {
       "versions[].advisory.text",
       "versions[].blocked",
       "versions[].compatible",
+      "versions[].requires",
       "versions[].publishedAt",
       "versions[].version"
   );
@@ -406,8 +407,8 @@ class MarketplaceWireContractTest {
         // answer the table has to render — a null verdict, not a false one
         // 1.5.2 also carries the advisory it was blocked over: the table shows it on the row it
         // belongs to, which is a different question from whether the plugin is under one
-        List.of(new MarketplaceVersionResource("1.6.0", WHEN, false, true, null),
-            new MarketplaceVersionResource("1.5.2", EARLIER, true, false,
+        List.of(new MarketplaceVersionResource("1.6.0", WHEN, false, true, ">=26.0", null),
+            new MarketplaceVersionResource("1.5.2", EARLIER, true, false, ">=27.0",
                 new MarketplaceAdvisory("high", "CVE-2026-1234 allows remote code execution.",
                     EARLIER))),
         new MarketplaceChangelogResource("1.6.0",
@@ -571,7 +572,7 @@ class MarketplaceWireContractTest {
    * proves only that someone ran the test, while this changes exactly when the wire changes.
    */
   private static final String CONTRACT_HASH =
-      "63ab891af0435a3df8dfbbaf5580d7a313cc9c412643fd382586ead6076684d2";
+      "a85c120eb04101f5affd0d7caf2774a1459c1af4e7986abd91fd399e78555e0c";
 
   private static final String HASH_ALGORITHM =
       "SHA-256, hex, over the routes below in the order given: the route on a line of its own,"

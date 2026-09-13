@@ -35,6 +35,11 @@ import java.time.Instant;
  *                   the range cannot be read, or the instance does not know its own release. A
  *                   caller must refuse rather than guess, which is exactly what the install
  *                   handler already does with the same three cases.
+ * @param requires   the range this version declares, verbatim and for display only — "&gt;=26.2".
+ *                   A caller shows it to explain the verdict ("needs 26.2 or later, this instance
+ *                   runs 26.1") and must not parse it to decide anything: {@code compatible} is
+ *                   the decision, made here, and a second reading of the range on the other side
+ *                   would be a second chance to disagree with the refusal that follows.
  * @param advisory   the advisory attached to this version, or null. Per version, unlike the
  *                   plugin-level advisory, which answers whether the plugin as a whole is under
  *                   one.
@@ -44,6 +49,7 @@ public record MarketplaceVersionResource(
     Instant publishedAt,
     boolean blocked,
     Boolean compatible,
+    String requires,
     MarketplaceAdvisory advisory
 ) {
 

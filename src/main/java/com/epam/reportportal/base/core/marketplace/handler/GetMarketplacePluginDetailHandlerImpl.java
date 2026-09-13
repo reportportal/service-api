@@ -135,7 +135,7 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
 
   private MarketplaceVersionResource toVersion(MarketplaceVersionSummary summary) {
     return new MarketplaceVersionResource(summary.version(), summary.publishedAt(),
-        summary.blocked(), compatible(summary), summary.advisory());
+        summary.blocked(), compatible(summary), declaredRange(summary), summary.advisory());
   }
 
   /**
@@ -147,6 +147,10 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
    * cannot say which release it runs. All three mean the question could not be decided, and the
    * install handler refuses them all rather than guessing.
    */
+  private static String declaredRange(MarketplaceVersionSummary summary) {
+    return summary.compatibility() == null ? null : summary.compatibility().reportportal();
+  }
+
   private Boolean compatible(MarketplaceVersionSummary summary) {
     if (!productVersion.isKnown() || summary.compatibility() == null) {
       return null;

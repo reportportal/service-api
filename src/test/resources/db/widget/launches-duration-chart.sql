@@ -38,5 +38,5 @@ values (2, 1),
        (3, 4);
 
 -- Statistics (launches 1 and 2 only, no test items - total=0)
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 1);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 2);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 1);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 2);

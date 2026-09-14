@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
@@ -96,9 +95,9 @@ class LaunchBuilderTest {
   @Test
   void overwriteAttributes() {
     Launch launch = new Launch();
-    final ItemAttribute systemAttribute = new ItemAttribute("key", "value", true);
+    final LaunchAttribute systemAttribute = new LaunchAttribute("key", "value", true);
     launch.setAttributes(
-        Sets.newHashSet(new ItemAttribute("key", "value", false), systemAttribute));
+        Sets.newHashSet(new LaunchAttribute("key", "value", false), systemAttribute));
 
     final Launch buildLaunch = new LaunchBuilder(launch).overwriteAttributes(
         Sets.newHashSet(new AttributeResource("newKey",

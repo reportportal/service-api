@@ -175,7 +175,7 @@ values (3, 'uuid3', 1, 1, 'empty launch', 'desc', now(), null, 2, now(), 'DEFAUL
 -- 5=automation_bug$total, 6=automation_bug$ab001, 7=product_bug$total, 8=product_bug$pb001,
 -- 9=system_issue$total, 10=system_issue$si001, 11=to_investigate$total, 12=to_investigate$ti001
 
--- Test item statistics (item_id, launch_id NULL for items)
+-- Test item statistics
 -- Item 1: PASSED
 insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 1), (1, 2, 1);
 -- Item 2: FAILED, automation_bug (ab001)

@@ -64,7 +64,7 @@ import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ItemInfoUtils;
 import com.epam.reportportal.base.ws.converter.builders.LaunchBuilder;
-import com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter;
+import com.epam.reportportal.base.ws.converter.converters.AttributeConverter;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
@@ -225,7 +225,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
               .filter(launch -> ItemInfoUtils.containsAttribute(launch.getAttributes(), it.getTo()))
               .forEach(launch -> {
                 LaunchAttribute launchAttribute =
-                    ItemAttributeConverter.FROM_LAUNCH_RESOURCE.apply(it.getTo());
+                    AttributeConverter.FROM_LAUNCH_RESOURCE.apply(it.getTo());
                 launchAttribute.setLaunch(launch);
                 launch.getAttributes().add(launchAttribute);
               });

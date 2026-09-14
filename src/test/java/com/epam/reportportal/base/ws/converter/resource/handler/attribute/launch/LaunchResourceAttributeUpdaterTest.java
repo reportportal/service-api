@@ -19,7 +19,6 @@ package com.epam.reportportal.base.ws.converter.resource.handler.attribute.launc
 import static java.util.stream.Collectors.groupingBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.LaunchResource;
@@ -39,32 +38,8 @@ class LaunchResourceAttributeUpdaterTest {
   @Test
   void shouldUpdate() {
     final LaunchResource launchResource = new LaunchResource();
-    final List<ItemAttribute> attributes = List.of(new ItemAttribute("k1", "v1", false),
-        new ItemAttribute("k2", "v2", false));
-    launchResourceAttributeUpdater.handle(launchResource, attributes);
-
-    final Set<AttributeResource> resourceAttributes = launchResource.getAttributes();
-    Assertions.assertEquals(2, resourceAttributes.size());
-
-    final Map<String, List<AttributeResource>> mapping = resourceAttributes.stream()
-        .collect(groupingBy(AttributeResource::getKey));
-
-    final AttributeResource firstResource = mapping.get("k1").get(0);
-    final AttributeResource secondResource = mapping.get("k2").get(0);
-
-    final ItemAttribute firstAttribute = attributes.get(0);
-    final ItemAttribute secondAttribute = attributes.get(1);
-    shouldEqual(firstAttribute, firstResource);
-    shouldEqual(secondAttribute, secondResource);
-
-  }
-
-  @Test
-  void shouldUpdateLaunchAttributes() {
-    final LaunchResource launchResource = new LaunchResource();
     final List<LaunchAttribute> attributes = List.of(new LaunchAttribute("k1", "v1", false),
         new LaunchAttribute("k2", "v2", false));
-
     launchResourceAttributeUpdater.handle(launchResource, attributes);
 
     final Set<AttributeResource> resourceAttributes = launchResource.getAttributes();
@@ -73,15 +48,8 @@ class LaunchResourceAttributeUpdaterTest {
     final Map<String, List<AttributeResource>> mapping = resourceAttributes.stream()
         .collect(groupingBy(AttributeResource::getKey));
 
-    final LaunchAttribute firstAttribute = attributes.get(0);
-    final LaunchAttribute secondAttribute = attributes.get(1);
-    shouldEqual(firstAttribute, mapping.get("k1").get(0));
-    shouldEqual(secondAttribute, mapping.get("k2").get(0));
-  }
-
-  private void shouldEqual(ItemAttribute attribute, AttributeResource resource) {
-    assertEquals(attribute.getKey(), resource.getKey());
-    assertEquals(attribute.getValue(), resource.getValue());
+    shouldEqual(attributes.get(0), mapping.get("k1").get(0));
+    shouldEqual(attributes.get(1), mapping.get("k2").get(0));
   }
 
   private void shouldEqual(LaunchAttribute attribute, AttributeResource resource) {

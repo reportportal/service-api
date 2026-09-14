@@ -25,12 +25,12 @@ import org.junit.jupiter.api.Test;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-class ItemAttributeConverterTest {
+class AttributeConverterTest {
 
   @Test
   void fromResource() {
     AttributeResource resource = new AttributeResource("key", "val");
-    final ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(resource);
+    final ItemAttribute itemAttribute = AttributeConverter.FROM_RESOURCE.apply(resource);
 
     assertEquals(itemAttribute.getKey(), resource.getKey());
     assertEquals(itemAttribute.getValue(), resource.getValue());

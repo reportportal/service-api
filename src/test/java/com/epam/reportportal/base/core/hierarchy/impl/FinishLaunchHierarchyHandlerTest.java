@@ -19,7 +19,6 @@ import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
 import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -51,8 +50,6 @@ class FinishLaunchHierarchyHandlerTest {
 
   private final LaunchRepository launchRepository = mock(LaunchRepository.class);
   private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
-  private final ItemAttributeRepository itemAttributeRepository = mock(
-      ItemAttributeRepository.class);
   private final LaunchAttributeRepository launchAttributeRepository = mock(
       LaunchAttributeRepository.class);
   private final RetryHandler retryHandler = mock(RetryHandler.class);
@@ -64,7 +61,6 @@ class FinishLaunchHierarchyHandlerTest {
   private final FinishLaunchHierarchyHandler finishLaunchHierarchyHandler = new FinishLaunchHierarchyHandler(
       launchRepository,
       testItemRepository,
-      itemAttributeRepository,
       retryHandler,
       issueTypeHandler,
       issueEntityRepository,

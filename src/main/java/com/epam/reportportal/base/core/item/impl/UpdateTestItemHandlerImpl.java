@@ -79,8 +79,8 @@ import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ItemInfoUtils;
 import com.epam.reportportal.base.ws.converter.builders.IssueEntityBuilder;
 import com.epam.reportportal.base.ws.converter.builders.TestItemBuilder;
+import com.epam.reportportal.base.ws.converter.converters.AttributeConverter;
 import com.epam.reportportal.base.ws.converter.converters.IssueConverter;
-import com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +93,6 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -429,7 +428,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
               .filter(item -> ItemInfoUtils.containsAttribute(item.getAttributes(), it.getTo()))
               .forEach(item -> {
                 ItemAttribute itemAttribute =
-                    ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
+                    AttributeConverter.FROM_RESOURCE.apply(it.getTo());
                 itemAttribute.setTestItem(item);
                 item.getAttributes().add(itemAttribute);
               });

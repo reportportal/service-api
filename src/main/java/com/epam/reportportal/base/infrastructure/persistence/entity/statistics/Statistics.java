@@ -32,7 +32,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A counter row (pass/fail/etc.) for a test item, launch, or other aggregate.
+ * A counter row (pass/fail/etc.) attached to a test item.
  *
  * @author Ivan Budayeu
  */

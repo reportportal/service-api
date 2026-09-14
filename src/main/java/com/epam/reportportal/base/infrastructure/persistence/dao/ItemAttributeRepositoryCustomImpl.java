@@ -23,7 +23,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Joo
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ITEM_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH_ATTRIBUTE;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PROJECT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TEST_ITEM;
 import static org.jooq.impl.DSL.not;
 
@@ -32,6 +31,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.util.QueryUtils
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.ItemAttributePojo;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JItemAttributeRecord;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.InsertValuesStep4;
@@ -40,7 +40,6 @@ import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -51,17 +50,13 @@ import org.springframework.util.StringUtils;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Repository
+@RequiredArgsConstructor
 public class ItemAttributeRepositoryCustomImpl implements ItemAttributeRepositoryCustom {
 
   public static final Integer ATTRIBUTES_LIMIT = 50;
   private static final int TIMEOUT_SEC = 10;
 
   private final DSLContext dslContext;
-
-  @Autowired
-  public ItemAttributeRepositoryCustomImpl(DSLContext dslContext) {
-    this.dslContext = dslContext;
-  }
 
   @Override
   public List<String> findAllKeysByLaunchFilter(Queryable launchFilter, Pageable launchPageable,
@@ -96,40 +91,6 @@ public class ItemAttributeRepositoryCustomImpl implements ItemAttributeRepositor
         .orderBy(DSL.length(fieldName(KEY).cast(String.class)))
         .limit(ATTRIBUTES_LIMIT)
         .fetchInto(String.class);
-  }
-
-  @Override
-  public List<String> findLaunchAttributeKeys(Long projectId, String value, boolean system) {
-    return dslContext.selectDistinct(LAUNCH_ATTRIBUTE.KEY)
-        .from(LAUNCH_ATTRIBUTE)
-        .leftJoin(LAUNCH)
-        .on(LAUNCH_ATTRIBUTE.LAUNCH_ID.eq(LAUNCH.ID))
-        .leftJoin(PROJECT)
-        .on(LAUNCH.PROJECT_ID.eq(PROJECT.ID))
-        .where(PROJECT.ID.eq(projectId))
-        .and(LAUNCH_ATTRIBUTE.SYSTEM.eq(system))
-        .and(LAUNCH_ATTRIBUTE.KEY.likeIgnoreCase("%" + DSL.escape(value, '\\') + "%"))
-        .fetch(LAUNCH_ATTRIBUTE.KEY);
-  }
-
-  @Override
-  public List<String> findLaunchAttributeValues(Long projectId, String key, String value,
-      boolean system) {
-    Condition condition = PROJECT.ID.eq(projectId)
-        .and(LAUNCH_ATTRIBUTE.SYSTEM.eq(system))
-        .and(LAUNCH_ATTRIBUTE.VALUE.likeIgnoreCase(
-            "%" + (value == null ? "" : DSL.escape(value, '\\') + "%")));
-    if (key != null) {
-      condition = condition.and(LAUNCH_ATTRIBUTE.KEY.eq(key));
-    }
-    return dslContext.selectDistinct(LAUNCH_ATTRIBUTE.VALUE)
-        .from(LAUNCH_ATTRIBUTE)
-        .leftJoin(LAUNCH)
-        .on(LAUNCH_ATTRIBUTE.LAUNCH_ID.eq(LAUNCH.ID))
-        .leftJoin(PROJECT)
-        .on(LAUNCH.PROJECT_ID.eq(PROJECT.ID))
-        .where(condition)
-        .fetch(LAUNCH_ATTRIBUTE.VALUE);
   }
 
   @Override
@@ -233,14 +194,6 @@ public class ItemAttributeRepositoryCustomImpl implements ItemAttributeRepositor
         .execute();
   }
 
-  @Override
-  public int saveByLaunchId(Long launchId, String key, String value, boolean isSystem) {
-    return dslContext.insertInto(LAUNCH_ATTRIBUTE)
-        .columns(LAUNCH_ATTRIBUTE.KEY, LAUNCH_ATTRIBUTE.VALUE, LAUNCH_ATTRIBUTE.LAUNCH_ID,
-            LAUNCH_ATTRIBUTE.SYSTEM)
-        .values(key, value, launchId, isSystem)
-        .execute();
-  }
 
   @Override
   public int saveMultiple(List<ItemAttributePojo> itemAttributes) {
@@ -251,7 +204,8 @@ public class ItemAttributeRepositoryCustomImpl implements ItemAttributeRepositor
             ITEM_ATTRIBUTE.SYSTEM);
 
     itemAttributes.forEach(
-        pojo -> columns.values(pojo.getItemId(), pojo.getKey(), pojo.getValue(), pojo.isSystem()));
+        pojo -> columns.values(pojo.getReferenceId(), pojo.getKey(), pojo.getValue(),
+            pojo.isSystem()));
 
     return columns.execute();
   }

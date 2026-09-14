@@ -157,7 +157,7 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
     final String partOfLaunchKey = "ke";
 
     final List<String> keys =
-        repository.findLaunchAttributeKeys(projectId, partOfLaunchKey, false);
+        launchAttributeRepository.findLaunchAttributeKeys(projectId, partOfLaunchKey, false);
     assertNotNull(keys, "Should not be null");
     assertFalse(keys.isEmpty(), "Should not be empty");
     keys.forEach(
@@ -171,7 +171,7 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
     final String partOfItemValue = "val";
 
     final List<String> values =
-        repository.findLaunchAttributeValues(projectId, launchKeyName,
+        launchAttributeRepository.findLaunchAttributeValues(projectId, launchKeyName,
             partOfItemValue, false);
     assertNotNull(values, "Should not be null");
     assertFalse(values.isEmpty(), "Should not be empty");
@@ -196,9 +196,9 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
 
   @Test
   void saveItemAttributeByLaunchId() {
-    int result = repository.saveByLaunchId(1L, "new", "new value", false);
+    var result = launchAttributeRepository.saveByLaunchId(1L, "new", "new value", false);
 
-    Assertions.assertEquals(1, result);
+    Assertions.assertNotNull(result);
 
     final Optional<LaunchAttribute> attribute =
         launchAttributeRepository.findByLaunchIdAndKeyAndSystem(1L, "new",
@@ -213,8 +213,8 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
 
   @Test
   void deleteByLaunchIdAndKeyAndSystem() {
-    repository.saveByLaunchId(1L, "first", "first", true);
-    repository.saveByLaunchId(1L, "second", "second", false);
+    launchAttributeRepository.saveByLaunchId(1L, "first", "first", true);
+    launchAttributeRepository.saveByLaunchId(1L, "second", "second", false);
 
     final Optional<LaunchAttribute> first = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
         1L, "first",
@@ -243,8 +243,8 @@ class ItemAttributeRepositoryTest extends BaseMvcTest {
 
   @Test
   void deleteByKeyAndSystem() {
-    repository.saveByLaunchId(1L, "first", "first", true);
-    repository.saveByLaunchId(1L, "second", "second", false);
+    launchAttributeRepository.saveByLaunchId(1L, "first", "first", true);
+    launchAttributeRepository.saveByLaunchId(1L, "second", "second", false);
 
     final Optional<LaunchAttribute> first = launchAttributeRepository.findByLaunchIdAndKeyAndSystem(
         1L, "first",

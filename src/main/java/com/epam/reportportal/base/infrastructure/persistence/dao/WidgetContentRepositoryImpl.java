@@ -259,7 +259,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   }
 
   @Override
-  public long overallStatisticsInterruptedCount(Filter filter, Sort sort, boolean latest, int limit) {
+  public long overallStatisticsInterruptedCount(Filter filter, Sort sort, boolean latest,
+      int limit) {
     return ofNullable(dsl.with(LAUNCHES)
         .as(QueryUtils.createQueryBuilderWithLatestLaunchesOption(filter, sort, latest)
             .addCondition(LAUNCH.LAUNCH_TYPE.notEqual(JLaunchTypeEnum.MANUAL))
@@ -280,8 +281,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   }
 
   /**
-   * Returns condition for step level test item types. Include before/after methods and classes types depends on
-   * {@code includeMethods} param.
+   * Returns condition for step level test item types. Include before/after methods and classes
+   * types depends on {@code includeMethods} param.
    *
    * @param includeMethods
    * @return {@link Condition}
@@ -845,14 +846,14 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
             coalesce(round(
                 val(PERCENTAGE_MULTIPLIER).mul(dsl.select(DSL.sum(LAUNCH_STATISTICS.S_COUNTER))
                         .from(LAUNCH_STATISTICS)
-                    .join(STATISTICS_FIELD)
+                        .join(STATISTICS_FIELD)
                         .on(LAUNCH_STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
-                    .where(STATISTICS_FIELD.NAME.in(EXECUTIONS_SKIPPED, EXECUTIONS_FAILED))
+                        .where(STATISTICS_FIELD.NAME.in(EXECUTIONS_SKIPPED, EXECUTIONS_FAILED))
                         .and(LAUNCH_STATISTICS.LAUNCH_ID.eq(LAUNCH.ID))
-                    .asField()
-                    .cast(Double.class))
-                .div(nullif(field(name(STATISTICS_TABLE, STATISTICS_COUNTER), Integer.class),
-                    0).cast(Double.class)), 2), 0)
+                        .asField()
+                        .cast(Double.class))
+                    .div(nullif(field(name(STATISTICS_TABLE, STATISTICS_COUNTER), Integer.class),
+                        0).cast(Double.class)), 2), 0)
                 .as(PERCENTAGE)
         )
         .from(LAUNCH)
@@ -1156,8 +1157,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         .filterWhere(fieldName(ITEMS, STATUS).cast(JStatusEnum.class).eq(JStatusEnum.PASSED));
 
     Field<Double> passingRate = round(val(PERCENTAGE_MULTIPLIER)
-            .mul(passedCount)
-            .div(nullif(itemCount, 0)), 2)
+        .mul(passedCount)
+        .div(nullif(itemCount, 0)), 2)
         .as(PASSING_RATE);
 
     return COMPONENT_HEALTH_CHECK_FETCHER.apply(
@@ -1368,7 +1369,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
     Select<? extends Record> materializedViewSelect;
     if (!regularAttributeKeys.isEmpty()) {
-      SelectHavingStep<Record> attributes = buildAttributeBranch(launchesTable, regularAttributeKeys, customKey,
+      SelectHavingStep<Record> attributes = buildAttributeBranch(launchesTable,
+          regularAttributeKeys, customKey,
           itemConditions);
       materializedViewSelect = hasOwnerLevel
           ? attributes.unionAll(buildOwnerBranch(launchesTable, customKey, itemConditions))
@@ -1421,7 +1423,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         );
   }
 
-  private SelectHavingStep<Record> buildOwnerBranch(Table<? extends Record> launchesTable, String customKey,
+  private SelectHavingStep<Record> buildOwnerBranch(Table<? extends Record> launchesTable,
+      String customKey,
       Condition itemConditions) {
 
     Field<String> ownerValue = coalesce(USERS.LOGIN, val(DELETED_USER));
@@ -1654,8 +1657,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
     List<Condition> attributesKeyConditions = customColumns.values()
         .stream()
-        .map(customColumn -> ofNullable(customColumn).map(ITEM_ATTRIBUTE.KEY::eq)
-            .orElseGet(ITEM_ATTRIBUTE.KEY::isNull))
+        .map(customColumn -> ofNullable(customColumn).map(LAUNCH_ATTRIBUTE.KEY::eq)
+            .orElseGet(LAUNCH_ATTRIBUTE.KEY::isNull))
         .toList();
 
     Optional<Condition> combinedAttributeKeyCondition = attributesKeyConditions.stream()

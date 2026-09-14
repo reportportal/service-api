@@ -108,7 +108,7 @@ class TestItemConverterTest {
     assertEquals(resource.getEndTime().truncatedTo(ChronoUnit.SECONDS),
         Instant.now().truncatedTo(ChronoUnit.SECONDS));
     assertEquals(resource.getUniqueId(), item.getUniqueId());
-    assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE)
+    assertThat(resource.getAttributes().stream().map(AttributeConverter.FROM_RESOURCE)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
     assertThat(resource.getParameters().stream().map(ParametersConverter.TO_MODEL)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
@@ -147,7 +147,7 @@ class TestItemConverterTest {
     assertEquals(resource.getEndTime().truncatedTo(ChronoUnit.SECONDS),
         Instant.now().truncatedTo(ChronoUnit.SECONDS));
     assertEquals(resource.getUniqueId(), item.getUniqueId());
-    assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE)
+    assertThat(resource.getAttributes().stream().map(AttributeConverter.FROM_RESOURCE)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
     assertThat(resource.getParameters().stream().map(ParametersConverter.TO_MODEL)
         .collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());

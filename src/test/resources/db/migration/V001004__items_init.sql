@@ -15,7 +15,9 @@ BEGIN
 
     alter sequence launch_id_seq
         restart with 1;
-    alter sequence attribute_id_seq
+    alter sequence item_attribute_id_seq
+        restart with 1;
+    alter sequence launch_attribute_id_seq
         restart with 1;
     alter sequence test_item_item_id_seq
         restart with 1;
@@ -67,8 +69,8 @@ BEGIN
                     'unqIdSUITE' || launchcounter, launchcounter);
             cur_suite_id = (SELECT currval(pg_get_serial_sequence('test_item', 'item_id')));
 
-            INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-            VALUES ('suite', 'value' || cur_suite_id, cur_suite_id, NULL, FALSE);
+            INSERT INTO item_attribute (key, value, item_id, system)
+            VALUES ('suite', 'value' || cur_suite_id, cur_suite_id, FALSE);
 
             UPDATE test_item
             SET path = cast(cast(cur_suite_id AS TEXT) AS LTREE)
@@ -86,8 +88,8 @@ BEGIN
                     launchcounter, cur_suite_id);
             cur_item_id = (SELECT currval(pg_get_serial_sequence('test_item', 'item_id')));
 
-            INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-            VALUES ('test', 'value' || cur_item_id, cur_item_id, NULL, FALSE);
+            INSERT INTO item_attribute (key, value, item_id, system)
+            VALUES ('test', 'value' || cur_item_id, cur_item_id, FALSE);
 
             UPDATE test_item
             SET path = cast(cur_suite_id AS TEXT) || cast(cast(cur_item_id AS TEXT) AS LTREE)
@@ -118,17 +120,17 @@ BEGIN
 
                     IF stepcounter % 2 = 0
                     THEN
-                        INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-                        VALUES ('step', 'value' || cur_step_id, cur_step_id, NULL, TRUE);
+                        INSERT INTO item_attribute (key, value, item_id, system)
+                        VALUES ('step', 'value' || cur_step_id, cur_step_id, TRUE);
 
-                        INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-                        VALUES ('systemTestKey', 'systemTestValue', cur_step_id, NULL, TRUE);
+                        INSERT INTO item_attribute (key, value, item_id, system)
+                        VALUES ('systemTestKey', 'systemTestValue', cur_step_id, TRUE);
 
                     ELSE
-                        INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-                        VALUES ('step', 'value' || cur_step_id, cur_step_id, NULL, FALSE);
-                        INSERT INTO item_attribute (key, value, item_id, launch_id, system)
-                        VALUES (null, 'value' || cur_step_id, cur_step_id, NULL, FALSE);
+                        INSERT INTO item_attribute (key, value, item_id, system)
+                        VALUES ('step', 'value' || cur_step_id, cur_step_id, FALSE);
+                        INSERT INTO item_attribute (key, value, item_id, system)
+                        VALUES (null, 'value' || cur_step_id, cur_step_id, FALSE);
                     END IF;
 
                     IF cur_step_id = 3

@@ -22,12 +22,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Tabular launch widget: attributes and dynamic value columns.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Setter
+@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LaunchesTableContent extends AbstractLaunchStatisticsContent {
 
@@ -37,19 +41,4 @@ public class LaunchesTableContent extends AbstractLaunchStatisticsContent {
   @JsonProperty(value = "values")
   private Map<String, Object> values = new LinkedHashMap<>();
 
-  public Set<ItemAttributePojo> getAttributes() {
-    return attributes;
-  }
-
-  public void setAttributes(Set<ItemAttributePojo> attributes) {
-    this.attributes = attributes;
-  }
-
-  public Map<String, Object> getValues() {
-    return values;
-  }
-
-  public void setValues(Map<String, Object> values) {
-    this.values = values;
-  }
 }

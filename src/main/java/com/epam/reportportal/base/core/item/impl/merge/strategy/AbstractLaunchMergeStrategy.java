@@ -19,7 +19,7 @@ package com.epam.reportportal.base.core.item.impl.merge.strategy;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_LAUNCH_RESOURCE;
+import static com.epam.reportportal.base.ws.converter.converters.AttributeConverter.FROM_LAUNCH_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;

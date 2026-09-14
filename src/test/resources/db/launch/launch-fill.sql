@@ -611,52 +611,52 @@ INSERT INTO public.test_item_results (result_id, status, end_time, duration)
 VALUES (14, 'FAILED', now(), 1.644);
 
 
-INSERT INTO public.item_attribute (key, value, item_id, launch_id, system)
-VALUES (null, 'tag', 1, null, false),
-       (null, 'suite', 1, null, false),
-       (null, 'tag', 2, null, false),
-       (null, 'test', 2, null, false),
-       (null, 'step', 3, null, false),
-       (null, 'tag', 3, null, false),
-       (null, 'finish', 3, null, false),
-       (null, 'step', 4, null, false),
-       (null, 'tag', 4, null, false),
-       (null, 'finish', 4, null, false),
-       (null, 'step', 5, null, false),
-       ('browser', 'chrome', 5, null, false),
-       (null, 'finish', 5, null, false),
-       (null, 'tag', 5, null, false),
-       ('browser', 'firefox', 6, null, false),
-       (null, 'test', 6, null, false),
-       (null, 'test', 7, null, false),
-       ('browser', 'safari', 7, null, false),
-       (null, 'finish', 7, null, false),
-       ('step', 'supertest', 8, null, false),
-       ('browser', 'chrome', 8, null, false),
-       (null, 'test', 9, null, false),
-       ('os', 'win', 9, null, false),
-       ('os', 'mac', 10, null, false),
-       (null, 'suite', 10, null, false),
-       ('os', 'mac', 11, null, false),
-       (null, 'suite', 11, null, false),
-       (null, 'test', 12, null, false),
-       ('os', 'win', 12, null, false),
-       ('os', 'mac', 13, null, false),
-       (null, 'test', 13, null, false),
-       (null, 'suite', 14, null, false),
-       (null, 'test', 15, null, false),
-       (null, 'step', 16, null, false),
-       (null, 'finish', 16, null, false),
-       (null, 'step', 17, null, false),
-       ('browser', 'chrome', 17, null, false),
-       (null, 'finish', 17, null, false),
-       (null, 'step', 18, null, false),
-       ('browser', 'firefox', 18, null, false),
-       (null, 'finish', 18, null, false),
-       (null, 'step', 19, null, false),
-       ('browser', 'safari', 19, null, false),
-       (null, 'finish', 19, null, false),
-       (null, 'finish', 19, null, false);
+INSERT INTO public.item_attribute (key, value, item_id, system)
+VALUES (null, 'tag', 1, false),
+       (null, 'suite', 1, false),
+       (null, 'tag', 2, false),
+       (null, 'test', 2, false),
+       (null, 'step', 3, false),
+       (null, 'tag', 3, false),
+       (null, 'finish', 3, false),
+       (null, 'step', 4, false),
+       (null, 'tag', 4, false),
+       (null, 'finish', 4, false),
+       (null, 'step', 5, false),
+       ('browser', 'chrome', 5, false),
+       (null, 'finish', 5, false),
+       (null, 'tag', 5, false),
+       ('browser', 'firefox', 6, false),
+       (null, 'test', 6, false),
+       (null, 'test', 7, false),
+       ('browser', 'safari', 7, false),
+       (null, 'finish', 7, false),
+       ('step', 'supertest', 8, false),
+       ('browser', 'chrome', 8, false),
+       (null, 'test', 9, false),
+       ('os', 'win', 9, false),
+       ('os', 'mac', 10, false),
+       (null, 'suite', 10, false),
+       ('os', 'mac', 11, false),
+       (null, 'suite', 11, false),
+       (null, 'test', 12, false),
+       ('os', 'win', 12, false),
+       ('os', 'mac', 13, false),
+       (null, 'test', 13, false),
+       (null, 'suite', 14, false),
+       (null, 'test', 15, false),
+       (null, 'step', 16, false),
+       (null, 'finish', 16, false),
+       (null, 'step', 17, false),
+       ('browser', 'chrome', 17, false),
+       (null, 'finish', 17, false),
+       (null, 'step', 18, false),
+       ('browser', 'firefox', 18, false),
+       (null, 'finish', 18, false),
+       (null, 'step', 19, false),
+       ('browser', 'safari', 19, false),
+       (null, 'finish', 19, false),
+       (null, 'finish', 19, false);
 
 INSERT INTO public.launch_attribute (key, value, launch_id, system)
 VALUES ('skippedIssue', 'true', 1, true),
@@ -671,124 +671,124 @@ VALUES ('skippedIssue', 'true', 1, true),
        ('testKey', 'testValue', 3, false),
        ('testKey', 'testValue', 4, false);
 
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (5, 1, null, 3, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (6, 1, null, 3, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (3, 2, null, 2, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (4, 2, null, 2, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (13, 1, null, 5, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (14, 1, null, 5, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (21, 1, null, 7, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (22, 1, null, 7, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (19, 2, null, 6, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (20, 2, null, 6, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (29, 1, null, 8, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (30, 1, null, 8, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (37, 1, null, 11, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (38, 1, null, 11, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (45, 1, null, 12, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (46, 1, null, 12, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (1, 7, null, 1, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (2, 7, null, 1, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (35, 3, null, 9, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (36, 3, null, 9, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (53, 1, null, 13, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (54, 1, null, 13, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (7, 7, 1, null, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (8, 7, 1, null, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (61, 1, null, 16, 8);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (62, 1, null, 16, 7);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (69, 1, null, 16, 4);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (70, 1, null, 16, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (73, 1, null, 14, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (75, 1, null, 15, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (77, 1, null, 17, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (78, 1, null, 17, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (79, 1, 2, null, 1);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (81, 1, null, 14, 12);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (82, 1, null, 14, 11);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (83, 1, null, 15, 12);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (84, 1, null, 15, 11);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (85, 1, null, 18, 12);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (86, 1, null, 18, 11);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (87, 1, 2, null, 12);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (88, 1, 2, null, 11);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (93, 1, null, 18, 4);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (94, 1, null, 18, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (57, 2, null, 14, 8);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (58, 2, null, 14, 7);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (59, 2, null, 15, 8);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (60, 2, null, 15, 7);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (101, 1, null, 19, 8);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (102, 1, null, 19, 7);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (63, 2, 2, null, 8);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (64, 2, 2, null, 7);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (65, 3, null, 14, 4);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (66, 4, null, 14, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (67, 3, null, 15, 4);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (68, 4, null, 15, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (109, 1, null, 19, 4);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (110, 1, null, 19, 2);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (71, 3, 2, null, 4);
-INSERT INTO public.statistics (s_id, s_counter, launch_id, item_id, statistics_field_id)
-VALUES (72, 4, 2, null, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (5, 1, 3, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (6, 1, 3, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (3, 2, 2, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (4, 2, 2, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (13, 1, 5, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (14, 1, 5, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (21, 1, 7, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (22, 1, 7, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (19, 2, 6, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (20, 2, 6, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (29, 1, 8, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (30, 1, 8, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (37, 1, 11, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (38, 1, 11, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (45, 1, 12, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (46, 1, 12, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (1, 7, 1, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (2, 7, 1, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (35, 3, 9, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (36, 3, 9, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (53, 1, 13, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (54, 1, 13, 2);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (7, 7, 1, 1);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (8, 7, 2, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (61, 1, 16, 8);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (62, 1, 16, 7);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (69, 1, 16, 4);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (70, 1, 16, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (73, 1, 14, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (75, 1, 15, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (77, 1, 17, 1);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (78, 1, 17, 2);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (79, 1, 1, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (81, 1, 14, 12);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (82, 1, 14, 11);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (83, 1, 15, 12);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (84, 1, 15, 11);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (85, 1, 18, 12);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (86, 1, 18, 11);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (87, 1, 12, 2);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (88, 1, 11, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (93, 1, 18, 4);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (94, 1, 18, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (57, 2, 14, 8);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (58, 2, 14, 7);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (59, 2, 15, 8);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (60, 2, 15, 7);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (101, 1, 19, 8);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (102, 1, 19, 7);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (63, 2, 8, 2);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (64, 2, 7, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (65, 3, 14, 4);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (66, 4, 14, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (67, 3, 15, 4);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (68, 4, 15, 2);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (109, 1, 19, 4);
+INSERT INTO public.statistics (s_id, s_counter, item_id, statistics_field_id)
+VALUES (110, 1, 19, 2);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (71, 3, 4, 2);
+INSERT INTO public.launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
+VALUES (72, 4, 2, 2);
 
 INSERT INTO public.issue (issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 VALUES (16, 3, null, false, false);
@@ -800,4 +800,5 @@ VALUES (19, 3, null, false, false);
 alter sequence launch_id_seq RESTART WITH 6;
 alter sequence test_item_item_id_seq restart with 20;
 alter sequence statistics_s_id_seq restart with 111;
+alter sequence launch_statistics_s_id_seq restart with 89;
 alter sequence statistics_field_sf_id_seq restart with 23;

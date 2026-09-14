@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.builders;
 
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.epam.reportportal.base.ws.converter.converters.AttributeConverter.FROM_RESOURCE;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
 

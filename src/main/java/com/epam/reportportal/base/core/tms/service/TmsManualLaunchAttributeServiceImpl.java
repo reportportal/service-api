@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_LAUNCH_RESOURCE;
+import static com.epam.reportportal.base.ws.converter.converters.AttributeConverter.FROM_LAUNCH_RESOURCE;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;

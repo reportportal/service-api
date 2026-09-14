@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.builders;
 
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_LAUNCH_RESOURCE;
+import static com.epam.reportportal.base.ws.converter.converters.AttributeConverter.FROM_LAUNCH_RESOURCE;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;

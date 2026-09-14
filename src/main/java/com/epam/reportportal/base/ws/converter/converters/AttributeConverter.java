@@ -17,12 +17,9 @@
 package com.epam.reportportal.base.ws.converter.converters;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -30,7 +27,7 @@ import java.util.function.Function;
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ItemAttributeConverter {
+public class AttributeConverter {
 
   public static final int MAX_ATTRIBUTE_LENGTH = 512;
   public static final Function<AttributeResource, ItemAttribute> FROM_RESOURCE = it -> {
@@ -75,20 +72,8 @@ public class ItemAttributeConverter {
     }
     return launchAttribute;
   };
-  public static final BiFunction<ItemAttributesRQ, Launch, LaunchAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
-    LaunchAttribute launchAttribute = new LaunchAttribute(model.getKey(), model.getValue(),
-        model.isSystem());
-    launchAttribute.setLaunch(launch);
-    return launchAttribute;
-  };
-  public static final BiFunction<ItemAttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
-    ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(),
-        model.isSystem());
-    itemAttribute.setTestItem(item);
-    return itemAttribute;
-  };
 
-  private ItemAttributeConverter() {
+  private AttributeConverter() {
     //static only
   }
 }

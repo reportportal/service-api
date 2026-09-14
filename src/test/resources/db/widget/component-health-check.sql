@@ -128,74 +128,74 @@ VALUES (95, 'FAILED', '2019-08-29 08:37:41.015000', 0.079);
 INSERT INTO public.test_item_results (result_id, status, end_time, duration)
 VALUES (37, 'FAILED', '2019-08-29 08:37:41.026000', 6.312);
 
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (26, 'build', 'flaky', 37, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (61, 'build', 'most failed', 56, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (44, 'platform', 'longest', 44, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (280, 'platform', 'arch', 93, null, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (26, 'build', 'flaky', 37, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (61, 'build', 'most failed', 56, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (44, 'platform', 'longest', 44, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (280, 'platform', 'arch', 93, false);
 INSERT INTO public.launch_attribute (id, key, value, launch_id, system)
 VALUES (8, null, 'demo', 6, false);
 INSERT INTO public.launch_attribute (id, key, value, launch_id, system)
 VALUES (13, 'build', '3.29.11.0', 6, false);
 INSERT INTO public.launch_attribute (id, key, value, launch_id, system)
 VALUES (16, 'platform', 'arch', 6, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (23, 'os', 'android', 37, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (28, 'os', 'ios', 37, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (41, null, 'most stable', 44, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (43, null, 'most failed', 44, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (52, null, 'most stable', 49, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (53, null, 'most failed', 49, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (54, null, 'longest', 49, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (62, null, 'longest', 56, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (63, null, 'flaky', 56, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (64, null, 'most failed', 57, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (65, 'os', 'android', 57, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (66, null, 'flaky', 57, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (67, null, 'most failed', 58, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (68, 'os', 'android', 58, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (69, null, 'flaky', 58, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (70, 'os', 'android', 60, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (71, null, 'api', 60, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (72, 'os', 'ios', 60, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (73, 'os', 'android', 61, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (74, null, 'flaky', 61, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (75, 'os', 'ios', 61, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (76, null, 'most failed', 62, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (77, 'os', 'android', 62, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (78, null, 'flaky', 62, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (133, 'os', 'android', 93, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (134, null, 'flaky', 93, null, false);
-INSERT INTO public.item_attribute (id, key, value, item_id, launch_id, system)
-VALUES (135, 'os', 'ios', 93, null, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (23, 'os', 'android', 37, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (28, 'os', 'ios', 37, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (41, null, 'most stable', 44, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (43, null, 'most failed', 44, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (52, null, 'most stable', 49, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (53, null, 'most failed', 49, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (54, null, 'longest', 49, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (62, null, 'longest', 56, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (63, null, 'flaky', 56, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (64, null, 'most failed', 57, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (65, 'os', 'android', 57, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (66, null, 'flaky', 57, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (67, null, 'most failed', 58, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (68, 'os', 'android', 58, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (69, null, 'flaky', 58, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (70, 'os', 'android', 60, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (71, null, 'api', 60, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (72, 'os', 'ios', 60, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (73, 'os', 'android', 61, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (74, null, 'flaky', 61, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (75, 'os', 'ios', 61, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (76, null, 'most failed', 62, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (77, 'os', 'android', 62, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (78, null, 'flaky', 62, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (133, 'os', 'android', 93, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (134, null, 'flaky', 93, false);
+INSERT INTO public.item_attribute (id, key, value, item_id, system)
+VALUES (135, 'os', 'ios', 93, false);
 
 INSERT INTO public.owned_entity (id, owner, project_id) VALUES (1, 'admin@reportportal.internal', 1);
 INSERT INTO public.filter (id, name, target, description) VALUES (1, 'New_filter', 'Launch', null);
@@ -210,4 +210,4 @@ INSERT INTO public.widget (id, name, description, widget_type, items_count, widg
 INSERT INTO public.widget_filter (widget_id, filter_id) VALUES (2, 1);
 
 -- Statistics for launch 6 (aggregated: 18 total, 7 passed, 9 failed, 2 skipped from test_item_results)
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (18, 1, 6), (7, 2, 6), (9, 4, 6), (2, 3, 6);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (18, 1, 6), (7, 2, 6), (9, 4, 6), (2, 3, 6);

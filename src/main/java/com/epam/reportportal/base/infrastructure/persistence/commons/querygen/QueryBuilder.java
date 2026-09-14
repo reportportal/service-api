@@ -52,7 +52,6 @@ import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.jooq.SortOrder;
 import org.jooq.TableLike;
-import org.jooq.impl.DSL;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -269,7 +268,7 @@ public class QueryBuilder {
       Field<?> sortField = field(criteria.getAggregateCriteria());
 
       if (String.class.equals(criteria.getDataType())) {
-        sortField = DSL.lower((Field<String>) sortField);
+        sortField = sortField.lower();
       }
 
       query.addOrderBy(

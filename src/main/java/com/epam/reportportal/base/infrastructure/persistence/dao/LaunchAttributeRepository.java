@@ -32,13 +32,13 @@ public interface LaunchAttributeRepository extends ReportPortalRepository<Launch
   Optional<LaunchAttribute> findByLaunchIdAndKeyAndSystem(Long launchId, String key,
       boolean isSystem);
 
-  int deleteAllByLaunchIdAndKeyAndSystem(Long launchId, String key, boolean isSystem);
+  void deleteAllByLaunchIdAndKeyAndSystem(Long launchId, String key, boolean isSystem);
 
-  int deleteAllByKeyAndSystem(String key, boolean isSystem);
+  void deleteAllByKeyAndSystem(String key, boolean isSystem);
 
   @Modifying
   @Query("DELETE FROM LaunchAttribute la WHERE la.launch.id = :launchId AND la.system = :isSystem")
-  int deleteAllByLaunchIdAndSystem(@Param("launchId") Long launchId,
+  void deleteAllByLaunchIdAndSystem(@Param("launchId") Long launchId,
       @Param("isSystem") boolean isSystem);
 
   @Query("""
@@ -69,6 +69,7 @@ public interface LaunchAttributeRepository extends ReportPortalRepository<Launch
       boolean isSystem) {
     LaunchAttribute attribute = new LaunchAttribute(key, value, isSystem);
     attribute.setLaunch(new Launch(launchId));
-    return save(attribute);
+    save(attribute);
+    return attribute;
   }
 }

@@ -21,7 +21,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import java.util.List;
 
 /**
- * {@link ItemAttribute} rows for launches, items, and other entities.
+ * {@link ItemAttribute} rows for test items.
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */

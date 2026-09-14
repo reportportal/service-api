@@ -154,5 +154,5 @@ INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 7)
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 8), (1, 4, 8), (1, 7, 8), (1, 8, 8);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 9), (1, 3, 9);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);

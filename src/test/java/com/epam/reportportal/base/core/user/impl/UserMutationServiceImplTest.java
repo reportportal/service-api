@@ -24,6 +24,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -57,6 +58,9 @@ class UserMutationServiceImplTest {
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
+
+  @Mock
+  private TokenBlacklistService tokenBlacklistService;
 
   @InjectMocks
   private UserMutationServiceImpl userMutationService;
@@ -249,12 +253,63 @@ class UserMutationServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should update role and publish event")
-    void updateInstanceRoleWhenValidShouldUpdateAndPublishEvent() {
+    @DisplayName("Should update role when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldUpdateRole() {
+      // When
       userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
 
+      // Then
       assertThat(user.getRole()).isEqualTo(UserRole.ADMINISTRATOR);
+    }
+
+    @Test
+    @DisplayName("Should publish change event when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldPublishChangeUserTypeEvent() {
+      // When
+      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+
+      // Then
       verify(eventPublisher).publishEvent(any(ChangeUserTypeEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should revoke user tokens when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldRevokeUserTokens() {
+      // When
+      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+
+      // Then
+      verify(tokenBlacklistService).revokeUserTokens(user);
+    }
+
+    @Test
+    @DisplayName("Should not change role when requested role is the same")
+    void updateInstanceRoleWhenRoleUnchangedShouldKeepRole() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      // Then
+      assertThat(user.getRole()).isEqualTo(UserRole.USER);
+    }
+
+    @Test
+    @DisplayName("Should not publish event when role is unchanged")
+    void updateInstanceRoleWhenRoleUnchangedShouldNotPublishEvent() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      // Then
+      verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("Should not revoke tokens when role is unchanged")
+    void updateInstanceRoleWhenRoleUnchangedShouldNotRevokeTokens() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      // Then
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
   }
 

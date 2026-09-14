@@ -46,7 +46,7 @@ class LogTypeDeletedEventTest {
     resource.setTextStyle("bold");
     resource.setIsFilterable(false);
 
-    var event = new LogTypeDeletedEvent(resource, 100L, "user");
+    var event = new LogTypeDeletedEvent(resource, 100L, "user", 22L, 33L);
 
     // when
     LogTypeDeletedEventConverter converter = new LogTypeDeletedEventConverter();

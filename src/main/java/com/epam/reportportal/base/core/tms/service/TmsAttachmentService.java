@@ -15,10 +15,11 @@ public interface TmsAttachmentService {
   /**
    * Uploads an attachment file and creates a TmsAttachment entity with TTL.
    *
-   * @param file the multipart file to upload
+   * @param projectId the project ID to scope the attachment storage key
+   * @param file      the multipart file to upload
    * @return the created TmsAttachment with TTL set
    */
-  UploadAttachmentRS uploadAttachment(MultipartFile file);
+  UploadAttachmentRS uploadAttachment(Long projectId, MultipartFile file);
 
   /**
    * Downloads an attachment by ID.

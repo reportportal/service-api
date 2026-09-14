@@ -33,8 +33,13 @@ public class LogTypeDeletedEvent extends AbstractEvent<LogTypeActivityResource> 
    * @param before    The log type state before deletion
    * @param userId    The ID of the user who deleted the log type
    * @param userLogin The login of the user who deleted the log type
+   * @param projectId The ID of the project
+   * @param orgId     The ID of the organization
    */
-  public LogTypeDeletedEvent(LogTypeActivityResource before, Long userId, String userLogin) {
+  public LogTypeDeletedEvent(LogTypeActivityResource before, Long userId, String userLogin, Long projectId,
+      Long orgId) {
     super(userId, userLogin, before, null);
+    this.projectId = projectId;
+    this.organizationId = orgId;
   }
 }

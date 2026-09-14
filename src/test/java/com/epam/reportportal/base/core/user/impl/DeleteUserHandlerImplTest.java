@@ -127,11 +127,11 @@ class DeleteUserHandlerImplTest {
 
     verify(repository, times(1)).findById(2L);
     verify(dataStore, times(1)).deleteUserPhoto(any());
-    verify(tokenBlacklistService).revokeSubject("test");
+    verify(tokenBlacklistService).revokeUserTokens(user);
   }
 
   @Test
-  void deleteUserWithExternalIdShouldRevokeSubjectForBothLoginAndExternalId() {
+  void deleteUserWithExternalIdShouldRevokeUserTokens() {
     User user = new User();
     user.setId(2L);
     user.setLogin("test");
@@ -152,8 +152,7 @@ class DeleteUserHandlerImplTest {
         2L, getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
             1L));
 
-    verify(tokenBlacklistService).revokeSubject("test");
-    verify(tokenBlacklistService).revokeSubject("ext-user-id");
+    verify(tokenBlacklistService).revokeUserTokens(user);
   }
 
   @Test

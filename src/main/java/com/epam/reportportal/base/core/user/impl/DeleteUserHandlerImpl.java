@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -128,17 +127,10 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
     dataStore.deleteUserPhoto(user);
     userRepository.delete(user);
-    revokeUserTokens(user);
+    tokenBlacklistService.revokeUserTokens(user);
     sendEmailAboutDeletion(user, loggedInUser);
 
     return user;
-  }
-
-  private void revokeUserTokens(User user) {
-    tokenBlacklistService.revokeSubject(user.getLogin());
-    if (StringUtils.isNotBlank(user.getExternalId())) {
-      tokenBlacklistService.revokeSubject(user.getExternalId());
-    }
   }
 
   private void sendEmailAboutDeletion(User user, ReportPortalUser loggedInUser) {

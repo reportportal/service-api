@@ -127,9 +127,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     var rpUser = getPrincipal();
     OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
 
-    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)
-        && rpUser.getOrganizationDetails().get(orgId.toString()).getOrgRole()
-        .equals(OrganizationRole.MEMBER)) {
+    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR) && isOrganizationMember(rpUser, orgId)) {
 
       var projectIds = projectUserRepository.findProjectIdsByUserId(rpUser.getUserId())
           .stream()
@@ -166,6 +164,12 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
     return responseWithPageParameters(organizationProjectsPage, pageable,
         projectProfilePagedList.getTotalElements());
+  }
+
+  private boolean isOrganizationMember(ReportPortalUser rpUser, Long orgId) {
+    var orgDetails = rpUser.getOrganizationDetails().get(orgId.toString());
+    expect(orgDetails, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+    return OrganizationRole.MEMBER.equals(orgDetails.getOrgRole());
   }
 
   @Override

@@ -98,7 +98,7 @@ class TmsTestCaseExecutionCommentAttachmentServiceImplTest {
     commentRQ.setAttachments(List.of(attachmentRQ));
 
     when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, List.of(1L)))
-        .thenReturn(Collections.emptyList());
+        .thenThrow(new ReportPortalException(ErrorType.NOT_FOUND, "Attachments not found: [1]"));
 
     var exception = assertThrows(ReportPortalException.class,
         () -> sut.createAttachments(projectId, existingComment, commentRQ));

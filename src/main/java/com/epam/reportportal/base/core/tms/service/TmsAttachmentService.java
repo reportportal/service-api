@@ -59,6 +59,16 @@ public interface TmsAttachmentService {
    */
   List<TmsAttachment> getTmsAttachmentsByIds(Long projectId, List<Long> attachmentIds);
 
+  /**
+   * Finds attachments by IDs, scoped to a project. Unlike {@link #getTmsAttachmentsByIds}, attachment IDs that do not
+   * exist or belong to another project are silently excluded from the result instead of throwing.
+   *
+   * @param projectId     the project ID attachments must belong to
+   * @param attachmentIds list of attachment IDs to look up
+   * @return list of attachments that exist and belong to the given project; missing/foreign IDs are omitted
+   */
+  List<TmsAttachment> findAvailableAttachments(Long projectId, List<Long> attachmentIds);
+
   TmsAttachment duplicateTmsAttachment(TmsAttachment originalAttachment);
 
   void setExpirationForUnusedAttachments();

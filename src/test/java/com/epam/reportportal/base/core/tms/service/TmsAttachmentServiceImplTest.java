@@ -37,6 +37,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -407,9 +408,11 @@ class TmsAttachmentServiceImplTest {
     var attachmentIds = Arrays.asList(1L, 2L);
     var attachment2 = new TmsAttachment();
     attachment2.setId(2L);
+    attachment2.setProjectId(PROJECT_ID);
+    attachment.setProjectId(PROJECT_ID);
     var attachments = Arrays.asList(attachment, attachment2);
 
-    when(tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, PROJECT_ID))
+    when(tmsAttachmentRepository.findAllById(new HashSet<>(attachmentIds)))
         .thenReturn(attachments);
 
     // When retrieving attachments by IDs
@@ -418,7 +421,7 @@ class TmsAttachmentServiceImplTest {
     // Then attachments should be returned
     assertNotNull(result);
     assertEquals(attachments, result);
-    verify(tmsAttachmentRepository).findAllByIdInAndProjectId(attachmentIds, PROJECT_ID);
+    verify(tmsAttachmentRepository).findAllById(new HashSet<>(attachmentIds));
   }
 
   @Test
@@ -448,11 +451,15 @@ class TmsAttachmentServiceImplTest {
 
   @Test
   void getTmsAttachmentsByIds_ShouldThrowAccessDenied_WhenSomeAttachmentsBelongToAnotherProject() {
-    // Given only one of the two requested attachment IDs belongs to this project
+    // Given both requested attachment IDs exist, but one belongs to another project
     var attachmentIds = Arrays.asList(1L, 2L);
-    var attachments = Collections.singletonList(attachment);
+    var attachment2 = new TmsAttachment();
+    attachment2.setId(2L);
+    attachment2.setProjectId(OTHER_PROJECT_ID);
+    attachment.setProjectId(PROJECT_ID);
+    var attachments = Arrays.asList(attachment, attachment2);
 
-    when(tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, PROJECT_ID))
+    when(tmsAttachmentRepository.findAllById(new HashSet<>(attachmentIds)))
         .thenReturn(attachments);
 
     // When/Then requesting attachments should be rejected as cross-project access
@@ -460,7 +467,88 @@ class TmsAttachmentServiceImplTest {
         () -> sut.getTmsAttachmentsByIds(PROJECT_ID, attachmentIds));
 
     assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    verify(tmsAttachmentRepository).findAllById(new HashSet<>(attachmentIds));
+  }
+
+  @Test
+  void getTmsAttachmentsByIds_ShouldThrowNotFound_WhenSomeAttachmentsDoNotExist() {
+    // Given only one of the two requested attachment IDs exists
+    var attachmentIds = Arrays.asList(1L, 2L);
+    attachment.setProjectId(PROJECT_ID);
+    var attachments = Collections.singletonList(attachment);
+
+    when(tmsAttachmentRepository.findAllById(new HashSet<>(attachmentIds)))
+        .thenReturn(attachments);
+
+    // When/Then requesting attachments should be rejected as not found
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.getTmsAttachmentsByIds(PROJECT_ID, attachmentIds));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsAttachmentRepository).findAllById(new HashSet<>(attachmentIds));
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnAttachments_WhenIdsProvided() {
+    // Given list of attachment IDs and corresponding attachments, all belonging to the project
+    var attachmentIds = Arrays.asList(1L, 2L);
+    var attachment2 = new TmsAttachment();
+    attachment2.setId(2L);
+    var attachments = Arrays.asList(attachment, attachment2);
+
+    when(tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, PROJECT_ID))
+        .thenReturn(attachments);
+
+    // When retrieving available attachments by IDs
+    var result = sut.findAvailableAttachments(PROJECT_ID, attachmentIds);
+
+    // Then attachments should be returned
+    assertNotNull(result);
+    assertEquals(attachments, result);
     verify(tmsAttachmentRepository).findAllByIdInAndProjectId(attachmentIds, PROJECT_ID);
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnOnlyExistingOwnedAttachments_WhenSomeIdsInvalid() {
+    // Given one of the two requested attachment IDs does not exist/belong to another project
+    var attachmentIds = Arrays.asList(1L, 999L);
+    var attachments = Collections.singletonList(attachment);
+
+    when(tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, PROJECT_ID))
+        .thenReturn(attachments);
+
+    // When retrieving available attachments by IDs
+    var result = sut.findAvailableAttachments(PROJECT_ID, attachmentIds);
+
+    // Then only the valid attachment should be returned, invalid ID silently ignored
+    assertNotNull(result);
+    assertEquals(attachments, result);
+    verify(tmsAttachmentRepository).findAllByIdInAndProjectId(attachmentIds, PROJECT_ID);
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnEmptyList_WhenIdsEmpty() {
+    // Given empty list of attachment IDs
+    var attachmentIds = Collections.<Long>emptyList();
+
+    // When retrieving available attachments with empty IDs list
+    var result = sut.findAvailableAttachments(PROJECT_ID, attachmentIds);
+
+    // Then empty list should be returned without repository interaction
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verifyNoInteractions(tmsAttachmentRepository);
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnEmptyList_WhenIdsNull() {
+    // When retrieving available attachments with null IDs
+    var result = sut.findAvailableAttachments(PROJECT_ID, null);
+
+    // Then empty list should be returned without repository interaction
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verifyNoInteractions(tmsAttachmentRepository);
   }
 
   @Test

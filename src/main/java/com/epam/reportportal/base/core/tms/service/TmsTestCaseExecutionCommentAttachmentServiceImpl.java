@@ -3,8 +3,6 @@ package com.epam.reportportal.base.core.tms.service;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -42,29 +40,24 @@ public class TmsTestCaseExecutionCommentAttachmentServiceImpl implements
         .map(attachment -> Long.valueOf(attachment.getId()))
         .toList();
 
-    // Validate and get attachments
     var attachments = tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
 
-    if (CollectionUtils.isNotEmpty(attachments)) {
-      tmsTestCaseExecutionComment.setAttachments(new HashSet<>());
+    tmsTestCaseExecutionComment.setAttachments(new HashSet<>());
 
-      attachments.forEach(attachment -> {
-        if (attachment.getExpiresAt() != null) {
-          attachment.setExpiresAt(null); // Remove TTL from attachment -> make that permanent
-        }
-        if (attachment.getExecutionComments() == null) {
-          attachment.setExecutionComments(new HashSet<>());
-        }
+    attachments.forEach(attachment -> {
+      if (attachment.getExpiresAt() != null) {
+        attachment.setExpiresAt(null); // Remove TTL from attachment -> make that permanent
+      }
+      if (attachment.getExecutionComments() == null) {
+        attachment.setExecutionComments(new HashSet<>());
+      }
 
-        tmsTestCaseExecutionComment.getAttachments().add(attachment);
-        attachment.getExecutionComments().add(tmsTestCaseExecutionComment);
-      });
+      tmsTestCaseExecutionComment.getAttachments().add(attachment);
+      attachment.getExecutionComments().add(tmsTestCaseExecutionComment);
+    });
 
-      log.debug("Created {} attachment relationships for execution tmsTestCaseExecutionComment: {}",
-          attachments.size(), tmsTestCaseExecutionComment.getId());
-    } else {
-      throw new ReportPortalException(ErrorType.NOT_FOUND, "No attachments found with such ids");
-    }
+    log.debug("Created {} attachment relationships for execution tmsTestCaseExecutionComment: {}",
+        attachments.size(), tmsTestCaseExecutionComment.getId());
   }
 
   @Override

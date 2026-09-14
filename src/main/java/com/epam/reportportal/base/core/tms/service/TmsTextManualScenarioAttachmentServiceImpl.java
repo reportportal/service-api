@@ -40,7 +40,7 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
         .map(attachment -> Long.valueOf(attachment.getId()))
         .toList();
 
-    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
+    var attachments = tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds);
 
     if (CollectionUtils.isNotEmpty(attachments)) {
 

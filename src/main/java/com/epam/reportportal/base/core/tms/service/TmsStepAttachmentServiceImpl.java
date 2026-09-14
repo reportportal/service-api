@@ -37,8 +37,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
         .map(attachment -> Long.valueOf(attachment.getId()))
         .toList();
 
-    // Validate and get attachments
-    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
+    var attachments = tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds);
 
     if (CollectionUtils.isNotEmpty(attachments)) {
 

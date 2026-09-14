@@ -109,13 +109,13 @@ class TmsStepAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldCreateAttachments_WhenValidStepAndAttachments() {
     // Given valid step and attachments to create
-    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments for step
     sut.createAttachments(projectId, step, stepRQ);
 
     // Then attachments should be created and made permanent
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
 
     // Verify that step now has attachments
@@ -170,13 +170,13 @@ class TmsStepAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldDoNothing_WhenNoAttachmentsFound() {
     // Given attachment service returns empty list
-    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(Collections.emptyList());
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(Collections.emptyList());
 
     // When creating attachments but none exist
     sut.createAttachments(projectId, step, stepRQ);
 
     // Then only validation should occur but no save operations
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService, never()).saveAll(anyList());
   }
 
@@ -185,13 +185,13 @@ class TmsStepAttachmentServiceImplTest {
     // Given one attachment without TTL
     attachment1.setExpiresAt(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments
     sut.createAttachments(projectId, step, stepRQ);
 
     // Then should not throw exception and process normally
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
     assertNotNull(step.getAttachments());
   }
@@ -202,13 +202,13 @@ class TmsStepAttachmentServiceImplTest {
     attachment1.setSteps(null);
     attachment2.setSteps(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments
     sut.createAttachments(projectId, step, stepRQ);
 
     // Then steps sets should be initialized
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
     assertNotNull(attachment1.getSteps());
     assertNotNull(attachment2.getSteps());
@@ -450,14 +450,14 @@ class TmsStepAttachmentServiceImplTest {
     expectedAttachment.setId(123L);
     expectedAttachment.setSteps(new HashSet<>());
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, List.of(123L)))
+    when(tmsAttachmentService.findAvailableAttachments(projectId, List.of(123L)))
         .thenReturn(List.of(expectedAttachment));
 
     // When creating attachments with string IDs
     sut.createAttachments(projectId, step, stepRQWithIds);
 
     // Then string IDs should be converted to Long and used correctly
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, List.of(123L));
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, List.of(123L));
     verify(tmsAttachmentService).saveAll(List.of(expectedAttachment));
   }
 }

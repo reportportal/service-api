@@ -13,6 +13,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttac
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -194,14 +195,46 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       return List.of();
     }
 
-    var attachments = tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, projectId);
+    var uniqueIds = Set.copyOf(attachmentIds);
+    var attachments = tmsAttachmentRepository.findAllById(uniqueIds);
 
-    if (attachments.size() != new HashSet<>(attachmentIds).size()) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
-          "One or more attachments do not belong to project " + projectId);
-    }
+    validateAllFound(uniqueIds, attachments);
+    validateProjectOwnership(projectId, attachments);
 
     return attachments;
+  }
+
+  private void validateAllFound(Set<Long> requestedIds, List<TmsAttachment> attachments) {
+    var foundIds = attachments.stream()
+        .map(TmsAttachment::getId)
+        .collect(Collectors.toUnmodifiableSet());
+
+    var missingIds = Sets.difference(requestedIds, foundIds);
+    if (!missingIds.isEmpty()) {
+      throw new ReportPortalException(ErrorType.NOT_FOUND, "Attachments not found: " + missingIds);
+    }
+  }
+
+  private void validateProjectOwnership(Long projectId, List<TmsAttachment> attachments) {
+    var foreignProjectIds = attachments.stream()
+        .filter(attachment -> !Objects.equals(attachment.getProjectId(), projectId))
+        .map(TmsAttachment::getId)
+        .toList();
+
+    if (!foreignProjectIds.isEmpty()) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
+          "Attachments do not belong to project " + projectId + ": " + foreignProjectIds);
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TmsAttachment> findAvailableAttachments(Long projectId, List<Long> attachmentIds) {
+    if (CollectionUtils.isEmpty(attachmentIds)) {
+      return List.of();
+    }
+
+    return tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, projectId);
   }
 
   @Override

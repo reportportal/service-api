@@ -114,9 +114,62 @@
                 "description": "The display name for the project page.",
                 "maxLength": 32
               },
+              "title": {
+                "type": "string",
+                "description": "Optional sidebar label. Falls back to name when omitted.",
+                "maxLength": 32
+              },
+              "menuOrder": {
+                "type": "integer",
+                "description": "Optional sidebar position. Lower values appear higher. When omitted, the page is placed after the built-in sidebar items.",
+                "minimum": 0
+              },
               "url": {
                 "$ref": "#/$defs/relativePath",
                 "description": "A relative file path to the project page."
+              },
+              "icon": {
+                "$ref": "#/$defs/icon"
+              }
+            },
+            "required": [
+              "slug",
+              "name",
+              "url",
+              "icon"
+            ]
+          }
+        },
+        "adminPages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "description": "The instance administration pages that the app provides.",
+            "minItems": 1,
+            "properties": {
+              "slug": {
+                "$ref": "#/$defs/slug",
+                "description": "A unique identifier for this admin page.",
+                "maxLength": 32
+              },
+              "name": {
+                "type": "string",
+                "description": "The display name for the admin page.",
+                "maxLength": 32
+              },
+              "title": {
+                "type": "string",
+                "description": "Optional sidebar label. Falls back to name when omitted.",
+                "maxLength": 32
+              },
+              "menuOrder": {
+                "type": "integer",
+                "description": "Optional sidebar position. Lower values appear higher. When omitted, the page is placed after the built-in sidebar items.",
+                "minimum": 0
+              },
+              "url": {
+                "$ref": "#/$defs/relativePath",
+                "description": "A relative file path to the admin page."
               },
               "icon": {
                 "$ref": "#/$defs/icon"

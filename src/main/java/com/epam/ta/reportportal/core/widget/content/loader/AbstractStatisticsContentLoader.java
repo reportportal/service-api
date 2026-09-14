@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import static java.util.Optional.ofNullable;
-import static net.sf.jasperreports.types.date.FixedDate.DATE_PATTERN;
 
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import java.time.Instant;
@@ -43,6 +42,8 @@ import org.apache.commons.collections.MapUtils;
  * @author Andrei_Ramanchuk
  */
 public abstract class AbstractStatisticsContentLoader {
+
+  private static final String DATE_PATTERN = "yyyy-MM-dd";
 
   /**
    * Return lists of objects grouped by specified period

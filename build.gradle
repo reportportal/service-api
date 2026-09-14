@@ -89,6 +89,13 @@ configurations.configureEach {
         eachDependency { details ->
             if (details.requested.group == 'io.netty') {
                 details.useVersion(secureNettyVersion)
+            } else if (details.requested.group.startsWith('com.fasterxml.jackson')) {
+                // annotations 2.21+ ship as 2.21 / 2.22 (no patch), unlike jackson-core/databind
+                if (details.requested.name == 'jackson-annotations') {
+                    details.useVersion('2.21')
+                } else {
+                    details.useVersion('2.21.6')
+                }
             }
         }
     }
@@ -145,10 +152,14 @@ dependencies {
     implementation "com.rabbitmq:http-client:5.3.0"
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3") // supports gzip encoding
 
-    // check authentication error response format for versions higher than 6.21.3
-    implementation('net.sf.jasperreports:jasperreports:6.21.3') { //TODO: consider upgrade to 7.0.1+
-        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
-    }
+    // JasperReports 7 is modular: core + PDF/XLS/JDT compiler. jackson-dataformat-xml is required
+    // to parse JRXML 7 (Digester was removed). Jackson version is forced to 2.21.6 above.
+    def jasperreportsVersion = '7.0.8'
+    implementation "net.sf.jasperreports:jasperreports:${jasperreportsVersion}"
+    implementation "net.sf.jasperreports:jasperreports-pdf:${jasperreportsVersion}"
+    implementation "net.sf.jasperreports:jasperreports-excel-poi:${jasperreportsVersion}"
+    implementation "net.sf.jasperreports:jasperreports-jdt:${jasperreportsVersion}"
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation 'org.apache.poi:poi:5.5.0'
     implementation 'com.github.librepdf:openpdf:2.4.0'

@@ -5,7 +5,6 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute;
-
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -75,31 +74,17 @@ public class JItemAttributeRecord extends UpdatableRecordImpl<JItemAttributeReco
     }
 
     /**
-     * Setter for <code>public.item_attribute.launch_id</code>.
-     */
-    public void setLaunchId(Long value) {
-        set(4, value);
-    }
-
-    /**
-     * Getter for <code>public.item_attribute.launch_id</code>.
-     */
-    public Long getLaunchId() {
-        return (Long) get(4);
-    }
-
-    /**
      * Setter for <code>public.item_attribute.system</code>.
      */
     public void setSystem(Boolean value) {
-        set(5, value);
+      set(4, value);
     }
 
     /**
      * Getter for <code>public.item_attribute.system</code>.
      */
     public Boolean getSystem() {
-        return (Boolean) get(5);
+      return (Boolean) get(4);
     }
 
     // -------------------------------------------------------------------------
@@ -125,14 +110,13 @@ public class JItemAttributeRecord extends UpdatableRecordImpl<JItemAttributeReco
     /**
      * Create a detached, initialised JItemAttributeRecord
      */
-    public JItemAttributeRecord(Long id, String key, String value, Long itemId, Long launchId, Boolean system) {
+    public JItemAttributeRecord(Long id, String key, String value, Long itemId, Boolean system) {
         super(JItemAttribute.ITEM_ATTRIBUTE);
 
         setId(id);
         setKey(key);
         setValue(value);
         setItemId(itemId);
-        setLaunchId(launchId);
         setSystem(system);
         resetChangedOnNotNull();
     }

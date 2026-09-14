@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.InfoInterval;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import com.epam.reportportal.base.model.widget.ChartObject;
 import com.google.common.collect.ImmutableMap;
@@ -206,7 +206,8 @@ class ProjectInfoWidgetDataConverterTest {
     launch1.setName("test_launch");
     launch1.setId(1L);
     launch1.setNumber(1L);
-    launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
+    launch1.setStartTime(
+        LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
     launch1.setStatistics(
         Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 18), getStatistics(EXECUTIONS_PASSED, 5),
             getStatistics(EXECUTIONS_SKIPPED, 1), getStatistics(EXECUTIONS_FAILED, 12),
@@ -219,7 +220,8 @@ class ProjectInfoWidgetDataConverterTest {
     launch2.setName("test_launch");
     launch2.setId(2L);
     launch2.setNumber(2L);
-    launch2.setStartTime(LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
+    launch2.setStartTime(
+        LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)).toInstant(ZoneOffset.UTC));
     launch2.setStatistics(
         Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 21), getStatistics(EXECUTIONS_PASSED, 6),
             getStatistics(EXECUTIONS_SKIPPED, 2), getStatistics(EXECUTIONS_FAILED, 13),
@@ -231,8 +233,8 @@ class ProjectInfoWidgetDataConverterTest {
     return Arrays.asList(launch1, launch2);
   }
 
-  private Statistics getStatistics(String statisticsFieldName, int counter) {
-    Statistics statistics = new Statistics();
+  private LaunchStatistics getStatistics(String statisticsFieldName, int counter) {
+    LaunchStatistics statistics = new LaunchStatistics();
     statistics.setStatisticsField(new StatisticsField(statisticsFieldName));
     statistics.setCounter(counter);
     return statistics;

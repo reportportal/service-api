@@ -67,6 +67,6 @@ public class FinishExecutionRQ {
   @Valid
   @JsonProperty
   @JsonAlias({"attributes", "tags"})
-  private Set<AttributesRQ> attributes;
+  private Set<ItemAttributesRQ> attributes;
 
 }

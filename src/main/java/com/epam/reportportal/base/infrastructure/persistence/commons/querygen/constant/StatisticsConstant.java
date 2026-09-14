@@ -16,16 +16,14 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant;
 
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics;
 
 /**
  * Field aliases for statistics query generation.
  */
 public final class StatisticsConstant {
 
-  public static final JStatistics LAUNCH_STATISTICS = JStatistics.STATISTICS
-      .rename("launch_statistics")
-      .as("launchStatistics");
+  public static final JLaunchStatistics LAUNCH_STATISTICS = JLaunchStatistics.LAUNCH_STATISTICS;
 
   private StatisticsConstant() {
     //static only

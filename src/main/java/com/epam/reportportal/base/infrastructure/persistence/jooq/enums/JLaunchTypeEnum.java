@@ -5,7 +5,6 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.enums;
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
-
 import org.jooq.Catalog;
 import org.jooq.EnumType;
 import org.jooq.Schema;
@@ -19,9 +18,9 @@ public enum JLaunchTypeEnum implements EnumType {
 
     AUTOMATION("AUTOMATION"),
 
-    MANUAL("MANUAL"),
+  AGENTIC("AGENTIC"),
 
-    AGENTIC("AGENTIC");
+  MANUAL("MANUAL");
 
     private final String literal;
 

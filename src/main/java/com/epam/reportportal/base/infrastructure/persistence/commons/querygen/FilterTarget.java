@@ -57,7 +57,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.CRITERIA_LEVEL_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.KEY_VALUE_SEPARATOR;
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.LAUNCH_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_NUMBER;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
@@ -217,6 +216,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ISSUE_TYPE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ITEM_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LOG;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
@@ -678,6 +678,11 @@ public enum FilterTarget {
     @Override
     public boolean withGrouping() {
       return true;
+    }
+
+    @Override
+    protected Field<Integer> statisticsCounterField() {
+      return LAUNCH_STATISTICS.S_COUNTER;
     }
 
     private List<Field<?>> getSelectSimpleFields() {
@@ -2519,7 +2524,8 @@ public enum FilterTarget {
     if (filterCriteria != null && filterCriteria.startsWith(STATISTICS_KEY)) {
       return Optional.of(new CriteriaHolderBuilder().newBuilder(filterCriteria,
           DSL.coalesce(
-              DSL.max(STATISTICS.S_COUNTER).filterWhere(STATISTICS_FIELD.NAME.eq(filterCriteria)),
+              DSL.max(statisticsCounterField())
+                  .filterWhere(STATISTICS_FIELD.NAME.eq(filterCriteria)),
               0).toString(),
           Long.class
       ).get());
@@ -2530,5 +2536,9 @@ public enum FilterTarget {
 
   public boolean withGrouping() {
     return false;
+  }
+
+  protected Field<Integer> statisticsCounterField() {
+    return STATISTICS.S_COUNTER;
   }
 }

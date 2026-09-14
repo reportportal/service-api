@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant;
 
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute;
-
 /**
  * Field names and separators for item attribute filter criteria.
  *
@@ -32,9 +30,6 @@ public final class ItemAttributeConstant {
   public static final String CRITERIA_COMPOSITE_SYSTEM_ATTRIBUTE = "compositeSystemAttribute";
   public static final String CRITERIA_LEVEL_ATTRIBUTE = "levelAttribute";
   public static final String KEY_VALUE_SEPARATOR = ":";
-  public static final JItemAttribute LAUNCH_ATTRIBUTE = JItemAttribute.ITEM_ATTRIBUTE
-      .rename("launch_attribute")
-      .as("launchAttribute");
 
   private ItemAttributeConstant() {
     //static only

@@ -7,15 +7,12 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.JLaunchPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatisticsField.JStatisticsFieldPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JStatisticsRecord;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -74,14 +71,10 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
     public final TableField<JStatisticsRecord, Integer> S_COUNTER = createField(DSL.name("s_counter"), SQLDataType.INTEGER.defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
 
     /**
-     * The column <code>public.statistics.launch_id</code>.
-     */
-    public final TableField<JStatisticsRecord, Long> LAUNCH_ID = createField(DSL.name("launch_id"), SQLDataType.BIGINT, this, "");
-
-    /**
      * The column <code>public.statistics.item_id</code>.
      */
-    public final TableField<JStatisticsRecord, Long> ITEM_ID = createField(DSL.name("item_id"), SQLDataType.BIGINT, this, "");
+    public final TableField<JStatisticsRecord, Long> ITEM_ID = createField(DSL.name("item_id"),
+        SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.statistics.statistics_field_id</code>.
@@ -157,7 +150,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.STATISTICS_LAUNCH_IDX, Indexes.STATISTICS_TI_IDX);
+      return Arrays.asList(Indexes.STATISTICS_TI_IDX);
     }
 
     @Override
@@ -172,12 +165,13 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
 
     @Override
     public List<UniqueKey<JStatisticsRecord>> getUniqueKeys() {
-        return Arrays.asList(Keys.UNIQUE_STATS_ITEM, Keys.UNIQUE_STATS_LAUNCH);
+      return Arrays.asList(Keys.UNIQUE_STATS_ITEM);
     }
 
     @Override
     public List<ForeignKey<JStatisticsRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.STATISTICS__STATISTICS_ITEM_ID_FKEY, Keys.STATISTICS__STATISTICS_LAUNCH_ID_FKEY, Keys.STATISTICS__STATISTICS_STATISTICS_FIELD_ID_FKEY);
+      return Arrays.asList(Keys.STATISTICS__STATISTICS_ITEM_ID_FKEY,
+          Keys.STATISTICS__STATISTICS_STATISTICS_FIELD_ID_FKEY);
     }
 
     private transient JTestItemPath _testItem;
@@ -190,18 +184,6 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
             _testItem = new JTestItemPath(this, Keys.STATISTICS__STATISTICS_ITEM_ID_FKEY, null);
 
         return _testItem;
-    }
-
-    private transient JLaunchPath _launch;
-
-    /**
-     * Get the implicit join path to the <code>public.launch</code> table.
-     */
-    public JLaunchPath launch() {
-        if (_launch == null)
-            _launch = new JLaunchPath(this, Keys.STATISTICS__STATISTICS_LAUNCH_ID_FKEY, null);
-
-        return _launch;
     }
 
     private transient JStatisticsFieldPath _statisticsField;
@@ -220,7 +202,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
     @Override
     public List<Check<JStatisticsRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("statistics_check"), "(((s_counter >= 0) AND (((item_id IS NOT NULL) AND (launch_id IS NULL)) OR ((launch_id IS NOT NULL) AND (item_id IS NULL)))))", true)
+            Internal.createCheck(this, DSL.name("statistics_check"), "((s_counter >= 0))", true)
         );
     }
 

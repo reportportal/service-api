@@ -29,7 +29,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.AttributeResource;
-import com.epam.reportportal.base.reporting.AttributesRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.ParameterResource;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
 import java.time.Instant;
@@ -127,7 +127,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
     return this;
   }
 
-  public TestItemBuilder addAttributes(Set<AttributesRQ> attributes) {
+  public TestItemBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
     ofNullable(attributes).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
       ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
       itemAttribute.setTestItem(testItem);

@@ -4,7 +4,7 @@ import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeCo
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.reporting.AttributesRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
 
   @Override
   @Transactional
-  public void createAttributes(Launch launch, Collection<AttributesRQ> attributeRQS) {
+  public void createAttributes(Launch launch, Collection<ItemAttributesRQ> attributeRQS) {
     if (CollectionUtils.isEmpty(attributeRQS)) {
       log.debug("No attributeRQS to create for launch: {}", launch.getId());
       return;
@@ -54,7 +54,7 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
 
   @Override
   @Transactional
-  public void updateAttributes(Launch existingLaunch, Collection<AttributesRQ> attributes) {
+  public void updateAttributes(Launch existingLaunch, Collection<ItemAttributesRQ> attributes) {
     if (attributes == null) {
       log.debug("No attributes to update for launch: {}", existingLaunch.getId());
       return;

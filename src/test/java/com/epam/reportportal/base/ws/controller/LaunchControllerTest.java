@@ -44,9 +44,9 @@ import com.epam.reportportal.base.model.DeleteBulkRQ;
 import com.epam.reportportal.base.model.launch.AnalyzeLaunchRQ;
 import com.epam.reportportal.base.model.launch.UpdateLaunchRQ;
 import com.epam.reportportal.base.reporting.AttributeResource;
-import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
@@ -86,7 +86,7 @@ class LaunchControllerTest extends BaseMvcTest {
     startLaunchRQ.setName(name);
     startLaunchRQ.setStartTime(Instant.now());
     startLaunchRQ.setMode(DEFAULT);
-    startLaunchRQ.setAttributes(Sets.newHashSet(new AttributesRQ("key", "value")));
+    startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
     mockMvc.perform(
             post(DEFAULT_PROJECT_BASE_URL + "/launch").with(token(oAuthHelper.getDefaultToken()))

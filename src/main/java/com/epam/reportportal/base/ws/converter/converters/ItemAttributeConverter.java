@@ -21,7 +21,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.reporting.AttributeResource;
-import com.epam.reportportal.base.reporting.AttributesRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -47,7 +47,7 @@ public class ItemAttributeConverter {
     itemAttribute.setKey(key);
     itemAttribute.setValue(value);
 
-    if (it instanceof AttributesRQ itemAttributesRQ) {
+    if (it instanceof ItemAttributesRQ itemAttributesRQ) {
       itemAttribute.setSystem(itemAttributesRQ.isSystem());
     } else {
       itemAttribute.setSystem(false);
@@ -68,20 +68,20 @@ public class ItemAttributeConverter {
     launchAttribute.setKey(key);
     launchAttribute.setValue(value);
 
-    if (it instanceof AttributesRQ itemAttributesRQ) {
+    if (it instanceof ItemAttributesRQ itemAttributesRQ) {
       launchAttribute.setSystem(itemAttributesRQ.isSystem());
     } else {
       launchAttribute.setSystem(false);
     }
     return launchAttribute;
   };
-  public static final BiFunction<AttributesRQ, Launch, LaunchAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
+  public static final BiFunction<ItemAttributesRQ, Launch, LaunchAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
     LaunchAttribute launchAttribute = new LaunchAttribute(model.getKey(), model.getValue(),
         model.isSystem());
     launchAttribute.setLaunch(launch);
     return launchAttribute;
   };
-  public static final BiFunction<AttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
+  public static final BiFunction<ItemAttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
     ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(),
         model.isSystem());
     itemAttribute.setTestItem(item);

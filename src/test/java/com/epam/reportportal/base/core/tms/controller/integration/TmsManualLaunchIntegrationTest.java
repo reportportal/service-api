@@ -39,7 +39,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCase
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
-import com.epam.reportportal.base.reporting.AttributesRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -95,8 +95,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .description("Full manual launch with all fields")
         .testCaseIds(List.of(4L, 5L))
         .attributes(List.of(
-            new AttributesRQ("priority", "high"),
-            new AttributesRQ("team", "qa")
+            new ItemAttributesRQ("priority", "high"),
+            new ItemAttributesRQ("team", "qa")
         ))
         .build();
 
@@ -565,8 +565,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     // Given
     var patchRQ = TmsManualLaunchRQ.builder()
         .attributes(List.of(
-            new AttributesRQ("environment", "staging"),
-            new AttributesRQ("build", "1.2.3")
+            new ItemAttributesRQ("environment", "staging"),
+            new ItemAttributesRQ("build", "1.2.3")
         ))
         .build();
 
@@ -1351,7 +1351,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .mode(Mode.DEFAULT)
         .attributes(List.of(
-            new AttributesRQ("sprint", "Sprint-25")
+            new ItemAttributesRQ("sprint", "Sprint-25")
         ))
         .build();
 

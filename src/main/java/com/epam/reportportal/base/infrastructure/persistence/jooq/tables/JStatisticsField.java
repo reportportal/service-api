@@ -7,14 +7,13 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.JLaunchPath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics.JLaunchStatisticsPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics.JStatisticsPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JStatisticsFieldRecord;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -151,6 +150,21 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
         return Arrays.asList(Keys.STATISTICS_FIELD_NAME_KEY);
     }
 
+  private transient JLaunchStatisticsPath _launchStatistics;
+
+  /**
+   * Get the implicit to-many join path to the
+   * <code>public.launch_statistics</code> table
+   */
+  public JLaunchStatisticsPath launchStatistics() {
+    if (_launchStatistics == null) {
+      _launchStatistics = new JLaunchStatisticsPath(this, null,
+          Keys.LAUNCH_STATISTICS__LAUNCH_STATISTICS_STATISTICS_FIELD_ID_FKEY.getInverseKey());
+    }
+
+    return _launchStatistics;
+  }
+
     private transient JStatisticsPath _statistics;
 
     /**
@@ -165,19 +179,19 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
     }
 
     /**
+     * Get the implicit many-to-many join path to the <code>public.launch</code>
+     * table
+     */
+    public JLaunchPath launch() {
+      return launchStatistics().launch();
+    }
+
+  /**
      * Get the implicit many-to-many join path to the
      * <code>public.test_item</code> table
      */
     public JTestItemPath testItem() {
         return statistics().testItem();
-    }
-
-    /**
-     * Get the implicit many-to-many join path to the <code>public.launch</code>
-     * table
-     */
-    public JLaunchPath launch() {
-        return statistics().launch();
     }
 
     @Override

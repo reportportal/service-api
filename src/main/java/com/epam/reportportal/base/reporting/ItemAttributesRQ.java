@@ -30,20 +30,20 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-public class AttributesRQ extends AttributeResource implements Serializable {
+public class ItemAttributesRQ extends AttributeResource implements Serializable {
 
   @Schema(example = "false")
   private boolean system;
 
-  public AttributesRQ(String value) {
+  public ItemAttributesRQ(String value) {
     super(null, value);
   }
 
-  public AttributesRQ(String key, String value) {
+  public ItemAttributesRQ(String key, String value) {
     super(key, value);
   }
 
-  public AttributesRQ(String key, String value, boolean system) {
+  public ItemAttributesRQ(String key, String value, boolean system) {
     super(key, value);
     this.system = system;
   }
@@ -65,7 +65,7 @@ public class AttributesRQ extends AttributeResource implements Serializable {
       return false;
     }
 
-    AttributesRQ that = (AttributesRQ) o;
+    ItemAttributesRQ that = (ItemAttributesRQ) o;
 
     return system == that.system;
   }

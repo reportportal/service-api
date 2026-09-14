@@ -16,13 +16,13 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.LAUNCH_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.LAUNCHES;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.fieldName;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ITEM_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PROJECT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TEST_ITEM;
 import static org.jooq.impl.DSL.not;

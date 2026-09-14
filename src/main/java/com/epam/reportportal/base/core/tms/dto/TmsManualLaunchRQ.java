@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.core.tms.dto;
 
-import com.epam.reportportal.base.reporting.AttributesRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -30,5 +30,5 @@ public class TmsManualLaunchRQ {
 
   private List<Long> testCaseIds;
 
-  private List<AttributesRQ> attributes;
+  private List<ItemAttributesRQ> attributes;
 }

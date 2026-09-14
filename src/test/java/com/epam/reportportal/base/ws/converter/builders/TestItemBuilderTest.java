@@ -29,7 +29,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.reporting.AttributeResource;
-import com.epam.reportportal.base.reporting.AttributesRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.ParameterResource;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
 import com.google.common.collect.Lists;
@@ -60,7 +60,7 @@ class TestItemBuilderTest {
         .addType(typeValue)
         .addLaunchId(launch.getId())
         .addParameters(Collections.singletonList(parameterResource))
-        .addAttributes(Sets.newHashSet(new AttributesRQ("key", "value")))
+        .addAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")))
         .addParentId(1L)
         .get();
 

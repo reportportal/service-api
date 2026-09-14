@@ -25,7 +25,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Launch
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.reporting.AttributeResource;
-import com.epam.reportportal.base.reporting.AttributesRQ;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.google.common.collect.Sets;
@@ -80,7 +80,7 @@ class LaunchBuilderTest {
     request.setName(name);
     final Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     request.setStartTime(Instant.now());
-    request.setAttributes(Sets.newHashSet(new AttributesRQ("key", "value")));
+    request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
     final Launch launch = new LaunchBuilder().addStartRQ(request)
         .addAttributes(request.getAttributes()).get();

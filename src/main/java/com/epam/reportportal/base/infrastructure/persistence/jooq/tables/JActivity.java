@@ -11,12 +11,10 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization.JOrganizationPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JActivityRecord;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -81,7 +79,8 @@ public class JActivity extends TableImpl<JActivityRecord> {
     /**
      * The column <code>public.activity.event_name</code>.
      */
-    public final TableField<JActivityRecord, String> EVENT_NAME = createField(DSL.name("event_name"), SQLDataType.VARCHAR(32).nullable(false), this, "");
+    public final TableField<JActivityRecord, String> EVENT_NAME = createField(
+        DSL.name("event_name"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>public.activity.priority</code>.

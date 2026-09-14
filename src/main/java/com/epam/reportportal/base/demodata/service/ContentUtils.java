@@ -25,8 +25,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.AttributesRQ;
 import com.epam.reportportal.base.reporting.Issue;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
@@ -78,14 +78,14 @@ public final class ContentUtils {
     return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, type.name());
   }
 
-  public static Set<AttributesRQ> getAttributesInRange(int limit) {
+  public static Set<ItemAttributesRQ> getAttributesInRange(int limit) {
     List<Pair<String, String>> content = readAttributes("demo/content/attributes.txt");
     int fromIndex = random.nextInt(content.size() - limit);
     return content.subList(fromIndex, fromIndex + limit).stream().map(it -> {
       if (it.getKey().isEmpty()) {
-        return new AttributesRQ(null, it.getValue());
+        return new ItemAttributesRQ(null, it.getValue());
       } else {
-        return new AttributesRQ(it.getKey(), it.getValue());
+        return new ItemAttributesRQ(it.getKey(), it.getValue());
       }
     }).collect(Collectors.toSet());
 

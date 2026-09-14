@@ -32,6 +32,15 @@ apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
+apply from: 'jooq.gradle'
+
+// jOOQ codegen plugin always registers target.directory as a main source dir.
+// Generation writes into src/main/java, which the Java plugin already includes,
+// so the same files would otherwise be packed twice into sourcesJar.
+tasks.named('jooqCodegen').configure {
+    def javaSrc = sourceSets.main.java
+    javaSrc.setSrcDirs(javaSrc.srcDirs.collect { it.canonicalFile }.unique())
+}
 
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ?
         apply(from: 'sealights.gradle') :
@@ -235,6 +244,10 @@ dependencyCheck {
 bootJar {
     duplicatesStrategy = duplicatesStrategy.EXCLUDE
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
+}
+
+tasks.named('sourcesJar', Jar) {
+    duplicatesStrategy = duplicatesStrategy.EXCLUDE
 }
 jar.enabled = true
 jar.archiveClassifier.set('')

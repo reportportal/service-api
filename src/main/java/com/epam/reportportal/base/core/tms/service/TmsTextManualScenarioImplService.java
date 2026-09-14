@@ -37,9 +37,9 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
   public void createTmsManualScenarioImpl(
       Long projectId,
       TmsManualScenario tmsManualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ) {
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
 
-    var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRQ;
+    var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRq;
 
     var tmsTextManualScenario = tmsTextManualScenarioMapper.createTmsManualScenario(
         tmsTextManualScenarioRQ);
@@ -56,9 +56,9 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
   @Override
   @Transactional
   public void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ) {
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
     var textManualScenario = manualScenario.getTextScenario();
-    var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRQ;
+    var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRq;
 
     if (Objects.nonNull(textManualScenario)) {
       tmsTextManualScenarioMapper.updateTmsManualScenario(
@@ -80,10 +80,10 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
   @Override
   @Transactional
   public void patchTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ) {
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
     var existingTextManualScenario = manualScenario.getTextScenario();
     if (Objects.nonNull(existingTextManualScenario)) {
-      var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRQ;
+      var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRq;
 
       tmsTextManualScenarioMapper.patchTmsManualScenario(existingTextManualScenario,
           tmsTextManualScenarioRQ);

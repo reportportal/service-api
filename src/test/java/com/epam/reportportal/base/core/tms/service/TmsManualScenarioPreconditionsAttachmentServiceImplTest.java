@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -17,6 +18,8 @@ import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -225,6 +228,27 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
     verify(preconditionsAttachmentRepository, never()).deleteByPreconditionsId(preconditionsId);
     verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
+  }
+
+  @Test
+  void updateAttachments_ShouldNotDeleteExisting_WhenRequestedAttachmentIdsAreInvalid() {
+    // Given existing preconditions with attachments, but the update request references
+    // attachment IDs that do not exist/belong to the project
+    var existingAttachments = new HashSet<TmsAttachment>();
+    existingAttachments.add(attachment1);
+    preconditions.setAttachments(existingAttachments);
+
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds))
+        .thenThrow(new ReportPortalException(ErrorType.NOT_FOUND, "Attachments not found"));
+
+    // When/Then updating attachments should fail validation before mutating anything
+    assertThrows(ReportPortalException.class,
+        () -> sut.updateAttachments(projectId, preconditions, preconditionsRQ));
+
+    verify(preconditionsAttachmentRepository, never()).deleteByPreconditionsId(any());
+    verify(tmsAttachmentService, never()).findAvailableAttachments(any(), anyList());
+    verify(tmsAttachmentService, never()).saveAll(anyList());
+    assertEquals(existingAttachments, preconditions.getAttachments());
   }
 
   @Test

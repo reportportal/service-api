@@ -37,7 +37,7 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
   public void createTmsManualScenarioImpl(
       Long projectId,
       TmsManualScenario tmsManualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ) {
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
     var tmsStepsManualScenario = tmsStepsManualScenarioMapper.createTmsStepsManualScenario();
 
     tmsStepsManualScenario.setManualScenario(tmsManualScenario);
@@ -47,21 +47,21 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
     tmsManualScenario.setStepsScenario(tmsStepsManualScenario);
 
     tmsStepService.createSteps(projectId, tmsStepsManualScenario,
-        (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
+        (TmsStepsManualScenarioRQ) testCaseManualScenarioRq);
   }
 
   @Override
   @Transactional
   public void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ) {
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
     var stepsManualScenario = manualScenario.getStepsScenario();
 
     if (Objects.nonNull(stepsManualScenario)) {
       tmsStepService.updateSteps(projectId, stepsManualScenario,
-          (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
+          (TmsStepsManualScenarioRQ) testCaseManualScenarioRq);
     } else {
       stepsManualScenario = tmsStepsManualScenarioMapper.createTmsStepsManualScenario();
-      tmsStepService.createSteps(projectId, stepsManualScenario, (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
+      tmsStepService.createSteps(projectId, stepsManualScenario, (TmsStepsManualScenarioRQ) testCaseManualScenarioRq);
       manualScenario.setStepsScenario(stepsManualScenario);
       stepsManualScenario.setManualScenario(manualScenario);
     }
@@ -72,12 +72,12 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
   @Override
   @Transactional
   public void patchTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ) {
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
     var existingStepsManualScenario = manualScenario.getStepsScenario();
     if (Objects.nonNull(existingStepsManualScenario)) {
 
       tmsStepService.patchSteps(projectId, existingStepsManualScenario,
-          (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
+          (TmsStepsManualScenarioRQ) testCaseManualScenarioRq);
 
       tmsStepsManualScenarioRepository.save(existingStepsManualScenario);
     } else {

@@ -6,12 +6,21 @@ import java.util.List;
 
 public interface TmsManualScenarioPreconditionsService {
 
+  /**
+   * Creates preconditions for manual scenario.
+   */
   void createPreconditions(Long projectId, TmsManualScenario tmsManualScenario,
       TmsManualScenarioPreconditionsRQ preconditions);
 
+  /**
+   * Updates preconditions for manual scenario.
+   */
   void updatePreconditions(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioPreconditionsRQ preconditions);
 
+  /**
+   * Partially updates preconditions for manual scenario.
+   */
   void patchPreconditions(Long projectId, TmsManualScenario existingManualScenario,
       TmsManualScenarioPreconditionsRQ preconditions);
 

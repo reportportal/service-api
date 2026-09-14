@@ -26,20 +26,20 @@ public class TmsStepServiceImpl implements TmsStepService {
   @Override
   @Transactional
   public void createSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
-      TmsStepsManualScenarioRQ testCaseManualScenarioRQ) {
-    if (CollectionUtils.isEmpty(testCaseManualScenarioRQ.getSteps())) {
+      TmsStepsManualScenarioRQ testCaseManualScenarioRq) {
+    if (CollectionUtils.isEmpty(testCaseManualScenarioRq.getSteps())) {
       return;
     }
 
-    var stepsRQs = testCaseManualScenarioRQ.getSteps();
-    if (CollectionUtils.isEmpty(stepsRQs)) {
+    var stepsRqs = testCaseManualScenarioRq.getSteps();
+    if (CollectionUtils.isEmpty(stepsRqs)) {
       return;
     }
 
     var createdSteps = new HashSet<TmsStep>();
-    for (var i = 0; i < stepsRQs.size(); i++) {
-      var stepRQ = stepsRQs.get(i);
-      var tmsStep = tmsStepMapper.convertToTmsStep(stepRQ);
+    for (var i = 0; i < stepsRqs.size(); i++) {
+      var stepRq = stepsRqs.get(i);
+      var tmsStep = tmsStepMapper.convertToTmsStep(stepRq);
 
       tmsStep.setNumber(i);
       tmsStep.setStepsManualScenario(tmsManualScenario);
@@ -47,7 +47,7 @@ public class TmsStepServiceImpl implements TmsStepService {
       tmsStepRepository.save(tmsStep);
       createdSteps.add(tmsStep);
 
-      tmsStepAttachmentService.createAttachments(projectId, tmsStep, stepRQ);
+      tmsStepAttachmentService.createAttachments(projectId, tmsStep, stepRq);
     }
 
     if (tmsManualScenario.getSteps() == null) {
@@ -59,25 +59,25 @@ public class TmsStepServiceImpl implements TmsStepService {
   @Override
   @Transactional
   public void updateSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
-      TmsStepsManualScenarioRQ testCaseManualScenarioRQ) {
+      TmsStepsManualScenarioRQ testCaseManualScenarioRq) {
     if (CollectionUtils.isNotEmpty(tmsManualScenario.getSteps())) {
       tmsStepAttachmentService.deleteAllBySteps(tmsManualScenario.getSteps());
       tmsStepRepository.deleteAll(tmsManualScenario.getSteps());
       tmsManualScenario.setSteps(new HashSet<>());
     }
 
-    createSteps(projectId, tmsManualScenario, testCaseManualScenarioRQ);
+    createSteps(projectId, tmsManualScenario, testCaseManualScenarioRq);
   }
 
   @Override
   @Transactional
   public void patchSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
-      TmsStepsManualScenarioRQ testCaseManualScenarioRQ) {
-    if (testCaseManualScenarioRQ == null || testCaseManualScenarioRQ.getSteps() == null) {
+      TmsStepsManualScenarioRQ testCaseManualScenarioRq) {
+    if (testCaseManualScenarioRq == null || testCaseManualScenarioRq.getSteps() == null) {
       return;
     }
 
-    updateSteps(projectId, tmsManualScenario, testCaseManualScenarioRQ);
+    updateSteps(projectId, tmsManualScenario, testCaseManualScenarioRq);
   }
 
   @Override

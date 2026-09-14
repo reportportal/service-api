@@ -142,7 +142,8 @@ VALUES (1, 'Admin Filter', 'Launch', null),
 INSERT INTO public.filter_sort (id, filter_id, field, direction)
 VALUES (1, 1, 'name', 'ASC'),
        (2, 2, 'name', 'DESC'),
-       (3, 2, 'name', 'DESC');
+       (3, 2, 'name', 'DESC'),
+       (4, 1, 'number', 'ASC');
 
 INSERT INTO public.filter_condition (id, filter_id, condition, value, search_criteria, negative)
 VALUES (1, 1, 'CONTAINS', 'test', 'name', false),

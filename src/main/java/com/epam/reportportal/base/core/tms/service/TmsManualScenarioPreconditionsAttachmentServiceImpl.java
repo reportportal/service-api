@@ -5,7 +5,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualSc
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,15 +23,15 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
   @Override
   @Transactional
   public void createAttachments(Long projectId, TmsManualScenarioPreconditions preconditions,
-      TmsManualScenarioPreconditionsRQ preconditionsRQ) {
+      TmsManualScenarioPreconditionsRQ preconditionsRq) {
     log.debug("Creating attachments for manual scenario preconditions: {}", preconditions.getId());
 
-    if (preconditionsRQ == null || CollectionUtils.isEmpty(preconditionsRQ.getAttachments())) {
+    if (preconditionsRq == null || CollectionUtils.isEmpty(preconditionsRq.getAttachments())) {
       log.debug("No attachments to create for preconditions: {}", preconditions.getId());
       return;
     }
 
-    var attachmentIds = preconditionsRQ
+    var attachmentIds = preconditionsRq
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))
@@ -64,9 +63,21 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
   @Transactional
   public void updateAttachments(Long projectId,
       TmsManualScenarioPreconditions existingPreconditions,
-      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ) {
+      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRq) {
     log.debug("Updating attachments for preconditions: {}",
         existingPreconditions);
+
+    if (tmsManualScenarioPreconditionsRq != null
+        && CollectionUtils.isNotEmpty(tmsManualScenarioPreconditionsRq.getAttachments())) {
+      var attachmentIds = tmsManualScenarioPreconditionsRq
+          .getAttachments()
+          .stream()
+          .map(attachment -> Long.valueOf(attachment.getId()))
+          .toList();
+
+      // Validate all requested attachments exist and belong to the project before deleting existing relationships
+      tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
+    }
 
     // Delete existing relationships
     if (CollectionUtils.isNotEmpty(existingPreconditions.getAttachments())) {
@@ -78,7 +89,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     // Create new relationships
-    createAttachments(projectId, existingPreconditions, tmsManualScenarioPreconditionsRQ);
+    createAttachments(projectId, existingPreconditions, tmsManualScenarioPreconditionsRq);
   }
 
   @Override

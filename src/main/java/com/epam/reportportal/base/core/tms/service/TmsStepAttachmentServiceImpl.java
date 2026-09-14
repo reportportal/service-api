@@ -6,7 +6,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,15 +22,15 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
 
   @Override
   @Transactional
-  public void createAttachments(Long projectId, TmsStep tmsStep, TmsStepRQ stepRQ) {
+  public void createAttachments(Long projectId, TmsStep tmsStep, TmsStepRQ stepRq) {
     log.debug("Creating attachments for step: {}", tmsStep.getId());
 
-    if (stepRQ == null || CollectionUtils.isEmpty(stepRQ.getAttachments())) {
+    if (stepRq == null || CollectionUtils.isEmpty(stepRq.getAttachments())) {
       log.debug("No attachments to create for step: {}", tmsStep.getId());
       return;
     }
 
-    var attachmentIds = stepRQ
+    var attachmentIds = stepRq
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))

@@ -6,11 +6,17 @@ import java.util.List;
 
 public interface TmsTextManualScenarioAttachmentService {
 
+  /**
+   * Creates attachments for text-based manual scenario.
+   */
   void createAttachments(Long projectId, TmsTextManualScenario tmsTextManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ);
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq);
 
+  /**
+   * Updates attachments for text-based manual scenario (replaces all existing).
+   */
   void updateAttachments(Long projectId, TmsTextManualScenario textManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ);
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

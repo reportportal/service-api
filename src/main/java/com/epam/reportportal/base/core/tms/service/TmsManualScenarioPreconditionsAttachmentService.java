@@ -6,11 +6,17 @@ import java.util.List;
 
 public interface TmsManualScenarioPreconditionsAttachmentService {
 
+  /**
+   * Creates attachments for manual scenario preconditions.
+   */
   void createAttachments(Long projectId, TmsManualScenarioPreconditions preconditions,
-      TmsManualScenarioPreconditionsRQ preconditionsRQ);
+      TmsManualScenarioPreconditionsRQ preconditionsRq);
 
+  /**
+   * Updates attachments for manual scenario preconditions (replaces all existing).
+   */
   void updateAttachments(Long projectId, TmsManualScenarioPreconditions existingPreconditions,
-      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ);
+      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRq);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

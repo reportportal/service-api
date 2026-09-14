@@ -30,10 +30,10 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
   @Override
   @Transactional
   public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId,
-      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Updating execution comment for execution: {}", existingExecution.getId());
 
-    if (executionCommentRQ == null) {
+    if (executionCommentRq == null) {
       log.debug("No comment data provided, removing existing comment for execution: {}",
           existingExecution.getId());
       removeExistingComment(existingExecution);
@@ -44,22 +44,21 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
     if (existingComment != null) {
       // Update existing comment
-      return updateExistingComment(projectId, existingComment, executionCommentRQ);
+      return updateExistingComment(projectId, existingComment, executionCommentRq);
     } else {
       // Create new comment
-      return createNewComment(projectId, existingExecution, executionCommentRQ);
+      return createNewComment(projectId, existingExecution, executionCommentRq);
     }
   }
 
   @Override
   @Transactional
   public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId,
-      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Patching execution comment for execution: {}", existingExecution.getId());
 
-    if (executionCommentRQ == null || (executionCommentRQ.getComment() == null
-        && executionCommentRQ.getAttachments() == null
-    )) {
+    if (executionCommentRq == null || (executionCommentRq.getComment() == null
+        && executionCommentRq.getAttachments() == null)) {
       log.debug("No comment data provided, removing existing comment for execution: {}",
           existingExecution.getId());
       removeExistingComment(existingExecution);
@@ -69,9 +68,9 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
     var existingComment = existingExecution.getExecutionComment();
 
     if (existingComment != null) {
-      return patchExistingComment(projectId, existingComment, executionCommentRQ);
+      return patchExistingComment(projectId, existingComment, executionCommentRq);
     } else {
-      return createNewComment(projectId, existingExecution, executionCommentRQ);
+      return createNewComment(projectId, existingExecution, executionCommentRq);
     }
   }
 
@@ -117,15 +116,15 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
    */
   private TmsTestCaseExecutionCommentRS updateExistingComment(Long projectId,
       TmsTestCaseExecutionComment existingComment,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+      TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Updating existing comment: {}", existingComment.getId());
 
     // Update comment text
-    existingComment.setComment(executionCommentRQ.getComment());
+    existingComment.setComment(executionCommentRq.getComment());
 
     // Update attachments (replace all existing with new ones)
     tmsTestCaseExecutionCommentAttachmentService.updateAttachments(projectId, existingComment,
-        executionCommentRQ);
+        executionCommentRq);
 
     // Save updated comment
     return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
@@ -140,16 +139,16 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
    */
   private TmsTestCaseExecutionCommentRS patchExistingComment(Long projectId,
       TmsTestCaseExecutionComment existingComment,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+      TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Patching existing comment: {}", existingComment.getId());
 
-    if (executionCommentRQ.getComment() != null) {
-      existingComment.setComment(executionCommentRQ.getComment());
+    if (executionCommentRq.getComment() != null) {
+      existingComment.setComment(executionCommentRq.getComment());
     }
 
-    if (executionCommentRQ.getAttachments() != null) {
+    if (executionCommentRq.getAttachments() != null) {
       tmsTestCaseExecutionCommentAttachmentService.updateAttachments(projectId, existingComment,
-          executionCommentRQ);
+          executionCommentRq);
     }
 
     return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
@@ -164,19 +163,19 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
    */
   private TmsTestCaseExecutionCommentRS createNewComment(Long projectId,
       TmsTestCaseExecution existingExecution,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+      TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Creating new comment for execution: {}", existingExecution.getId());
 
     // Create new comment entity
     var newComment = tmsTestCaseExecutionCommentMapper.createTestCaseExecutionComment(
-        existingExecution, executionCommentRQ);
+        existingExecution, executionCommentRq);
 
     // Save comment first to get ID for attachments
     var savedComment = tmsTestCaseExecutionCommentRepository.save(newComment);
 
     // Create attachments
     tmsTestCaseExecutionCommentAttachmentService.createAttachments(projectId, savedComment,
-        executionCommentRQ);
+        executionCommentRq);
 
     // Set bidirectional relationship
     existingExecution.setExecutionComment(savedComment);

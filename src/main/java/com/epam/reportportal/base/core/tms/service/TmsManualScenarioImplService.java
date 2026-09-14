@@ -9,14 +9,23 @@ public interface TmsManualScenarioImplService {
 
   TmsManualScenarioType getTmsManualScenarioType();
 
+  /**
+   * Creates implementation-specific manual scenario data.
+   */
   void createTmsManualScenarioImpl(Long projectId, TmsManualScenario tmsManualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ);
+      TmsManualScenarioRQ testCaseManualScenarioRq);
 
+  /**
+   * Updates implementation-specific manual scenario data.
+   */
   void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ);
+      TmsManualScenarioRQ testCaseManualScenarioRq);
 
+  /**
+   * Partially updates implementation-specific manual scenario data.
+   */
   void patchTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ);
+      TmsManualScenarioRQ testCaseManualScenarioRq);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

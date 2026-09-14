@@ -8,14 +8,23 @@ import java.util.List;
 
 public interface TmsStepService {
 
+  /**
+   * Creates steps for steps-based manual scenario.
+   */
   void createSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
-      TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
+      TmsStepsManualScenarioRQ testCaseManualScenarioRq);
 
+  /**
+   * Updates steps for steps-based manual scenario.
+   */
   void updateSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
-      TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
+      TmsStepsManualScenarioRQ testCaseManualScenarioRq);
 
+  /**
+   * Partially updates steps for steps-based manual scenario.
+   */
   void patchSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
-      TmsStepsManualScenarioRQ testCaseManualScenarioRQ);
+      TmsStepsManualScenarioRQ testCaseManualScenarioRq);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

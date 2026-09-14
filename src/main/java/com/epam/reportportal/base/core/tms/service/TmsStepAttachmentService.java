@@ -7,7 +7,10 @@ import java.util.List;
 
 public interface TmsStepAttachmentService {
 
-  void createAttachments(Long projectId, TmsStep tmsStep, TmsStepRQ stepRQ);
+  /**
+   * Creates attachments for TMS step.
+   */
+  void createAttachments(Long projectId, TmsStep tmsStep, TmsStepRQ stepRq);
 
   void deleteAllBySteps(Collection<TmsStep> steps);
 

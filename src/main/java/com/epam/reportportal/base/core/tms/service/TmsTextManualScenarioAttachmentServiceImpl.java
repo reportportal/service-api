@@ -23,18 +23,18 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
   @Override
   @Transactional
   public void createAttachments(Long projectId, TmsTextManualScenario tmsTextManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ) {
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq) {
     log.debug("Creating attachments for text manual scenario: {}",
         tmsTextManualScenario.getManualScenarioId());
 
-    if (tmsTextManualScenarioRQ == null || CollectionUtils.isEmpty(
-        tmsTextManualScenarioRQ.getAttachments())) {
+    if (tmsTextManualScenarioRq == null || CollectionUtils.isEmpty(
+        tmsTextManualScenarioRq.getAttachments())) {
       log.debug("No attachments to create for text manual scenario: {}",
           tmsTextManualScenario.getManualScenarioId());
       return;
     }
 
-    var attachmentIds = tmsTextManualScenarioRQ
+    var attachmentIds = tmsTextManualScenarioRq
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))
@@ -66,7 +66,7 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
   @Override
   @Transactional
   public void updateAttachments(Long projectId, TmsTextManualScenario textManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ) {
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq) {
     log.debug("Updating attachments for text manual scenario: {}",
         textManualScenario.getManualScenarioId());
 
@@ -80,7 +80,7 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
     }
 
     // Create new relationships
-    createAttachments(projectId, textManualScenario, tmsTextManualScenarioRQ);
+    createAttachments(projectId, textManualScenario, tmsTextManualScenarioRq);
   }
 
   @Override

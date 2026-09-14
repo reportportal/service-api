@@ -40,7 +40,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     );
 
     tmsManualScenarioPreconditionsService.createPreconditions(
-        tmsManualScenario, testCaseManualScenarioRQ.getPreconditions()
+        projectId, tmsManualScenario, testCaseManualScenarioRQ.getPreconditions()
     );
 
     tmsManualScenarioRequirementService.createRequirements(
@@ -52,7 +52,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
     tmsManualScenarioImplServiceFactory
         .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
-        .createTmsManualScenarioImpl(tmsManualScenario, testCaseManualScenarioRQ);
+        .createTmsManualScenarioImpl(projectId, tmsManualScenario, testCaseManualScenarioRQ);
 
     testCaseVersion.setManualScenario(tmsManualScenario);
     tmsManualScenario.setTestCaseVersion(testCaseVersion);
@@ -71,7 +71,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
 
       tmsManualScenarioPreconditionsService.updatePreconditions(
-          existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
+          projectId, existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
       );
 
       tmsManualScenarioRequirementService.updateRequirements(
@@ -83,7 +83,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
-          .updateTmsManualScenarioImpl(existingManualScenario, testCaseManualScenarioRQ);
+          .updateTmsManualScenarioImpl(projectId, existingManualScenario, testCaseManualScenarioRQ);
       return tmsManualScenarioRepository.save(existingManualScenario);
     } else {
       return createTmsManualScenario(projectId, testCaseVersion, testCaseManualScenarioRQ);
@@ -102,7 +102,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
           tmsManualScenarioMapper.createTmsManualScenario(testCaseManualScenarioRQ));
 
       tmsManualScenarioPreconditionsService.patchPreconditions(
-          existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
+          projectId, existingManualScenario, testCaseManualScenarioRQ.getPreconditions()
       );
 
       tmsManualScenarioRequirementService.patchRequirements(
@@ -114,7 +114,7 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
 
       tmsManualScenarioImplServiceFactory
           .getTmsManualScenarioService(testCaseManualScenarioRQ.getManualScenarioType())
-          .patchTmsManualScenarioImpl(existingManualScenario, testCaseManualScenarioRQ);
+          .patchTmsManualScenarioImpl(projectId, existingManualScenario, testCaseManualScenarioRQ);
 
       return tmsManualScenarioRepository.save(existingManualScenario);
     } else {

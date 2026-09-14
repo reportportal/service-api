@@ -35,6 +35,7 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
   @Override
   @Transactional
   public void createTmsManualScenarioImpl(
+      Long projectId,
       TmsManualScenario tmsManualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var tmsStepsManualScenario = tmsStepsManualScenarioMapper.createTmsStepsManualScenario();
@@ -45,24 +46,22 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
 
     tmsManualScenario.setStepsScenario(tmsStepsManualScenario);
 
-    tmsStepService.createSteps(tmsStepsManualScenario,
+    tmsStepService.createSteps(projectId, tmsStepsManualScenario,
         (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
   }
 
   @Override
   @Transactional
-  public void updateTmsManualScenarioImpl(TmsManualScenario manualScenario,
+  public void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var stepsManualScenario = manualScenario.getStepsScenario();
 
     if (Objects.nonNull(stepsManualScenario)) {
-      tmsStepService.updateSteps(stepsManualScenario,
+      tmsStepService.updateSteps(projectId, stepsManualScenario,
           (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
     } else {
       stepsManualScenario = tmsStepsManualScenarioMapper.createTmsStepsManualScenario();
-      tmsStepService.createSteps(
-          stepsManualScenario, (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ
-      );
+      tmsStepService.createSteps(projectId, stepsManualScenario, (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
       manualScenario.setStepsScenario(stepsManualScenario);
       stepsManualScenario.setManualScenario(manualScenario);
     }
@@ -72,19 +71,19 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
 
   @Override
   @Transactional
-  public void patchTmsManualScenarioImpl(TmsManualScenario manualScenario,
+  public void patchTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
-      var existingStepsManualScenario = manualScenario.getStepsScenario();
-      if (Objects.nonNull(existingStepsManualScenario)) {
-  
-        tmsStepService.patchSteps(existingStepsManualScenario,
-            (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
-  
-        tmsStepsManualScenarioRepository.save(existingStepsManualScenario);
-      } else {
-        throw new ReportPortalException(
-            NOT_FOUND, STEPS_MANUAL_SCENARIO_FOR_MANUAL_SCENARIO.formatted(manualScenario.getId()));
-      }
+    var existingStepsManualScenario = manualScenario.getStepsScenario();
+    if (Objects.nonNull(existingStepsManualScenario)) {
+
+      tmsStepService.patchSteps(projectId, existingStepsManualScenario,
+          (TmsStepsManualScenarioRQ) testCaseManualScenarioRQ);
+
+      tmsStepsManualScenarioRepository.save(existingStepsManualScenario);
+    } else {
+      throw new ReportPortalException(
+          NOT_FOUND, STEPS_MANUAL_SCENARIO_FOR_MANUAL_SCENARIO.formatted(manualScenario.getId()));
+    }
   }
 
   @Override

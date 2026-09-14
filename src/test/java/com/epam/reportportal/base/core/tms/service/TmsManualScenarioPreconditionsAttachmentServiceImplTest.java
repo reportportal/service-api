@@ -12,11 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -110,13 +110,13 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldCreateAttachments_WhenValidPreconditionsAndAttachments() {
     // Given valid preconditions and attachments to create
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments for preconditions
-    sut.createAttachments(preconditions, preconditionsRQ);
+    sut.createAttachments(projectId, preconditions, preconditionsRQ);
 
     // Then attachments should be created and made permanent
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
 
     // Verify that preconditions now have attachments
@@ -133,7 +133,7 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldDoNothing_WhenPreconditionsRQIsNull() {
     // When creating attachments with null preconditions RQ
-    sut.createAttachments(preconditions, null);
+    sut.createAttachments(projectId, preconditions, null);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -146,7 +146,7 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
     emptyPreconditionsRQ.setAttachments(Collections.emptyList());
 
     // When creating attachments with empty list
-    sut.createAttachments(preconditions, emptyPreconditionsRQ);
+    sut.createAttachments(projectId, preconditions, emptyPreconditionsRQ);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -159,7 +159,7 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
     nullAttachmentsPreconditionsRQ.setAttachments(null);
 
     // When creating attachments with null list
-    sut.createAttachments(preconditions, nullAttachmentsPreconditionsRQ);
+    sut.createAttachments(projectId, preconditions, nullAttachmentsPreconditionsRQ);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -168,14 +168,14 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldDoNothing_WhenNoAttachmentsFound() {
     // Given attachment service returns empty list
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(
         Collections.emptyList());
 
     // When creating attachments but none exist
-    sut.createAttachments(preconditions, preconditionsRQ);
+    sut.createAttachments(projectId, preconditions, preconditionsRQ);
 
     // Then only validation should occur but no save operations
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService, never()).saveAll(anyList());
   }
 
@@ -184,13 +184,13 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
     // Given one attachment without TTL
     attachment1.setExpiresAt(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments
-    sut.createAttachments(preconditions, preconditionsRQ);
+    sut.createAttachments(projectId, preconditions, preconditionsRQ);
 
     // Then should not throw exception and process normally
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
     assertNotNull(preconditions.getAttachments());
   }
@@ -202,28 +202,28 @@ class TmsManualScenarioPreconditionsAttachmentServiceImplTest {
     existingAttachments.add(attachment1);
     preconditions.setAttachments(existingAttachments);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When updating attachments
-    sut.updateAttachments(preconditions, preconditionsRQ);
+    sut.updateAttachments(projectId, preconditions, preconditionsRQ);
 
     // Then existing relationships should be deleted and new ones created
     verify(preconditionsAttachmentRepository).deleteByPreconditionsId(preconditionsId);
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
   }
 
   @Test
   void updateAttachments_ShouldOnlyCreateNew_WhenPreconditionsHaveNoExistingAttachments() {
     // Given preconditions without existing attachments
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When updating attachments
-    sut.updateAttachments(preconditions, preconditionsRQ);
+    sut.updateAttachments(projectId, preconditions, preconditionsRQ);
 
     // Then only new attachments should be created
     verify(preconditionsAttachmentRepository, never()).deleteByPreconditionsId(preconditionsId);
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
   }
 

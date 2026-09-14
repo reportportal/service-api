@@ -31,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TmsTestCaseExecutionCommentAttachmentServiceImplTest {
 
   private final Long commentId = 100L;
-  private final Long executionId = 200L;
+  private final Long projectId = 400L;
   @Mock
   private TmsAttachmentService tmsAttachmentService;
   @Mock
@@ -55,18 +55,18 @@ class TmsTestCaseExecutionCommentAttachmentServiceImplTest {
 
   @Test
   void createAttachments_WhenRequestIsNull_ShouldDoNothing() {
-    sut.createAttachments(existingComment, null);
+    sut.createAttachments(projectId, existingComment, null);
 
-    verify(tmsAttachmentService, never()).getTmsAttachmentsByIds(anyList());
+    verify(tmsAttachmentService, never()).getTmsAttachmentsByIds(any(), anyList());
   }
 
   @Test
   void createAttachments_WhenAttachmentsEmpty_ShouldDoNothing() {
     commentRQ.setAttachments(Collections.emptyList());
 
-    sut.createAttachments(existingComment, commentRQ);
+    sut.createAttachments(projectId, existingComment, commentRQ);
 
-    verify(tmsAttachmentService, never()).getTmsAttachmentsByIds(anyList());
+    verify(tmsAttachmentService, never()).getTmsAttachmentsByIds(any(), anyList());
   }
 
   @Test
@@ -79,10 +79,10 @@ class TmsTestCaseExecutionCommentAttachmentServiceImplTest {
     attachment.setId(1L);
     attachment.setExpiresAt(Instant.now());
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(List.of(1L)))
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, List.of(1L)))
         .thenReturn(List.of(attachment));
 
-    sut.createAttachments(existingComment, commentRQ);
+    sut.createAttachments(projectId, existingComment, commentRQ);
 
     // Should remove TTL
     assertNull(attachment.getExpiresAt());
@@ -97,11 +97,11 @@ class TmsTestCaseExecutionCommentAttachmentServiceImplTest {
     attachmentRQ.setId("1");
     commentRQ.setAttachments(List.of(attachmentRQ));
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(List.of(1L)))
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, List.of(1L)))
         .thenReturn(Collections.emptyList());
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.createAttachments(existingComment, commentRQ));
+        () -> sut.createAttachments(projectId, existingComment, commentRQ));
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
   }
 
@@ -122,10 +122,10 @@ class TmsTestCaseExecutionCommentAttachmentServiceImplTest {
     TmsAttachment newAttachment = new TmsAttachment();
     newAttachment.setId(2L);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(List.of(2L)))
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, List.of(2L)))
         .thenReturn(List.of(newAttachment));
 
-    sut.updateAttachments(existingComment, commentRQ);
+    sut.updateAttachments(projectId, existingComment, commentRQ);
 
     verify(tmsTestCaseExecutionCommentAttachmentRepository).deleteByExecutionCommentId(commentId);
     assertEquals(1, existingComment.getAttachments().size());
@@ -144,6 +144,7 @@ class TmsTestCaseExecutionCommentAttachmentServiceImplTest {
 
   @Test
   void deleteAllByExecutionId_WithValidId_ShouldDelete() {
+    Long executionId = 200L;
     sut.deleteAllByExecutionId(executionId);
     verify(tmsTestCaseExecutionCommentAttachmentRepository).deleteByExecutionId(executionId);
   }

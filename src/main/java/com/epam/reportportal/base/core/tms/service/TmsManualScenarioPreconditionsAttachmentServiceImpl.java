@@ -1,8 +1,8 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +23,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void createAttachments(TmsManualScenarioPreconditions preconditions,
+  public void createAttachments(Long projectId, TmsManualScenarioPreconditions preconditions,
       TmsManualScenarioPreconditionsRQ preconditionsRQ) {
     log.debug("Creating attachments for manual scenario preconditions: {}", preconditions.getId());
 
@@ -36,10 +36,10 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))
-        .collect(Collectors.toList());
+        .toList();
 
     // Validate and get attachments
-    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds);
+    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
 
     if (CollectionUtils.isNotEmpty(attachments)) {
       preconditions.setAttachments(new HashSet<>(attachments));
@@ -63,7 +63,8 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void updateAttachments(TmsManualScenarioPreconditions existingPreconditions,
+  public void updateAttachments(Long projectId,
+      TmsManualScenarioPreconditions existingPreconditions,
       TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ) {
     log.debug("Updating attachments for preconditions: {}",
         existingPreconditions);
@@ -78,7 +79,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     // Create new relationships
-    createAttachments(existingPreconditions, tmsManualScenarioPreconditionsRQ);
+    createAttachments(projectId, existingPreconditions, tmsManualScenarioPreconditionsRQ);
   }
 
   @Override

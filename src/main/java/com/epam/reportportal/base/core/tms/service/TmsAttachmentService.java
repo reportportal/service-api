@@ -22,19 +22,21 @@ public interface TmsAttachmentService {
   UploadAttachmentRS uploadAttachment(Long projectId, MultipartFile file);
 
   /**
-   * Downloads an attachment by ID.
+   * Downloads an attachment by ID, scoped to a project.
    *
+   * @param projectId    the project ID the attachment must belong to
    * @param attachmentId the attachment ID
-   * @return Optional containing the attachment if found
+   * @return Optional containing the attachment if found within the given project
    */
-  Optional<TmsAttachment> getTmsAttachment(Long attachmentId);
+  Optional<TmsAttachment> getTmsAttachment(Long projectId, Long attachmentId);
 
   /**
-   * Deletes an attachment by ID.
+   * Deletes an attachment by ID, scoped to a project.
    *
+   * @param projectId    the project ID the attachment must belong to
    * @param attachmentId the attachment ID
    */
-  void deleteAttachment(Long attachmentId);
+  void deleteAttachment(Long projectId, Long attachmentId);
 
   /**
    * Removes TTL from attachments when they are permanently associated with test cases.
@@ -49,16 +51,24 @@ public interface TmsAttachmentService {
   void cleanupExpiredAttachments();
 
   /**
-   * Validates that attachments exist and returns valid ones.
+   * Validates that attachments exist and belong to the given project, and returns them.
    *
+   * @param projectId     the project ID all attachments must belong to
    * @param attachmentIds list of attachment IDs to validate
    * @return list of valid attachments
    */
-  List<TmsAttachment> getTmsAttachmentsByIds(List<Long> attachmentIds);
+  List<TmsAttachment> getTmsAttachmentsByIds(Long projectId, List<Long> attachmentIds);
 
   TmsAttachment duplicateTmsAttachment(TmsAttachment originalAttachment);
 
   void setExpirationForUnusedAttachments();
 
   void saveAll(Collection<TmsAttachment> attachments);
+
+  /**
+   * Deletes all TMS attachment binary data (files and thumbnails) belonging to a project.
+   *
+   * @param projectId the project ID whose TMS attachment blobs should be removed
+   */
+  void deleteAllByProjectId(Long projectId);
 }

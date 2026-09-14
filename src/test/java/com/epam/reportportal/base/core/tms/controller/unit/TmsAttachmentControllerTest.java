@@ -49,7 +49,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-public class TmsAttachmentControllerTest {
+class TmsAttachmentControllerTest {
 
   private final long projectId = 1L;
   private final String projectKey = "test_project";
@@ -67,13 +67,11 @@ public class TmsAttachmentControllerTest {
   private TmsAttachmentController tmsAttachmentController;
 
   private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
   private ReportPortalUser testUser;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    objectMapper = new ObjectMapper();
 
     // Create a test user
     testUser = ReportPortalUser.userBuilder()
@@ -137,7 +135,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.fileType").value("text/plain"));
 
     verify(tmsAttachmentService).uploadAttachment(eq(projectId), any());
-    verify(projectExtractor).extractMembershipDetails(eq(testUser), eq(projectKey));
+    verify(projectExtractor).extractMembershipDetails(testUser, projectKey);
   }
 
   @Test
@@ -212,7 +210,7 @@ public class TmsAttachmentControllerTest {
     var fileContent = "test attachment content";
     InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
 
-    given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
+    given(tmsAttachmentService.getTmsAttachment(projectId, attachmentId)).willReturn(Optional.of(attachment));
     given(tmsAttachmentDataStoreService.load("/path/to/file")).willReturn(Optional.of(inputStream));
 
     // When/Then
@@ -225,7 +223,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/plain"))
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "22"));
 
-    verify(tmsAttachmentService).getTmsAttachment(attachmentId);
+    verify(tmsAttachmentService).getTmsAttachment(projectId, attachmentId);
     verify(tmsAttachmentDataStoreService).load("/path/to/file");
   }
 
@@ -243,7 +241,7 @@ public class TmsAttachmentControllerTest {
     var imageContent = new byte[1024];
     InputStream inputStream = new ByteArrayInputStream(imageContent);
 
-    given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
+    given(tmsAttachmentService.getTmsAttachment(projectId, attachmentId)).willReturn(Optional.of(attachment));
     given(tmsAttachmentDataStoreService.load("/path/to/image.png")).willReturn(
         Optional.of(inputStream));
 
@@ -257,27 +255,27 @@ public class TmsAttachmentControllerTest {
         .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "image/png"))
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "1024"));
 
-    verify(tmsAttachmentService).getTmsAttachment(attachmentId);
+    verify(tmsAttachmentService).getTmsAttachment(projectId, attachmentId);
     verify(tmsAttachmentDataStoreService).load("/path/to/image.png");
   }
 
   @Test
-  void downloadAttachmentNotFoundTest() throws Exception {
+  void downloadAttachmentNotFoundTest() {
     // Given
     var attachmentId = 999L;
 
-    given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.empty());
+    given(tmsAttachmentService.getTmsAttachment(projectId, attachmentId)).willReturn(Optional.empty());
 
     // When/Then
     assertThrows(ServletException.class, () -> mockMvc.perform(
         get("/v1/project/{projectKey}/tms/attachment/{attachmentId}", projectKey, attachmentId)
             .contentType(MediaType.APPLICATION_JSON)));
 
-    verify(tmsAttachmentService).getTmsAttachment(attachmentId);
+    verify(tmsAttachmentService).getTmsAttachment(projectId, attachmentId);
   }
 
   @Test
-  void downloadAttachmentFileNotFoundTest() throws Exception {
+  void downloadAttachmentFileNotFoundTest() {
     // Given
     var attachmentId = 1L;
     var attachment = new TmsAttachment();
@@ -287,7 +285,7 @@ public class TmsAttachmentControllerTest {
     attachment.setFileSize(22L);
     attachment.setPathToFile("/path/to/missing/file");
 
-    given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
+    given(tmsAttachmentService.getTmsAttachment(projectId, attachmentId)).willReturn(Optional.of(attachment));
     given(tmsAttachmentDataStoreService.load("/path/to/missing/file")).willReturn(Optional.empty());
 
     // When/Then
@@ -295,7 +293,7 @@ public class TmsAttachmentControllerTest {
         get("/v1/project/{projectKey}/tms/attachment/{attachmentId}", projectKey, attachmentId)
             .contentType(MediaType.APPLICATION_JSON)));
 
-    verify(tmsAttachmentService).getTmsAttachment(attachmentId);
+    verify(tmsAttachmentService).getTmsAttachment(projectId, attachmentId);
     verify(tmsAttachmentDataStoreService).load("/path/to/missing/file");
   }
 
@@ -304,7 +302,7 @@ public class TmsAttachmentControllerTest {
     // Given
     var attachmentId = 1L;
 
-    doNothing().when(tmsAttachmentService).deleteAttachment(attachmentId);
+    doNothing().when(tmsAttachmentService).deleteAttachment(projectId, attachmentId);
 
     // When/Then
     mockMvc.perform(
@@ -314,7 +312,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.message").value(
             "Attachment with ID = '" + attachmentId + "' successfully deleted."));
 
-    verify(tmsAttachmentService).deleteAttachment(attachmentId);
+    verify(tmsAttachmentService).deleteAttachment(projectId, attachmentId);
   }
 
   @Test
@@ -322,7 +320,7 @@ public class TmsAttachmentControllerTest {
     // Given
     var attachmentId = 123L;
 
-    doNothing().when(tmsAttachmentService).deleteAttachment(attachmentId);
+    doNothing().when(tmsAttachmentService).deleteAttachment(projectId, attachmentId);
 
     // When/Then
     mockMvc.perform(
@@ -332,25 +330,25 @@ public class TmsAttachmentControllerTest {
         .andExpect(jsonPath("$.message").value(
             "Attachment with ID = '" + attachmentId + "' successfully deleted."));
 
-    verify(tmsAttachmentService).deleteAttachment(attachmentId);
+    verify(tmsAttachmentService).deleteAttachment(projectId, attachmentId);
   }
 
   @Test
-  void deleteNonExistentAttachmentTest() throws Exception {
+  void deleteNonExistentAttachmentTest() {
     // Given
     var attachmentId = 999L;
 
     doThrow(new ReportPortalException(ErrorType.NOT_FOUND,
         "Attachment not found: " + attachmentId))
         .when(tmsAttachmentService)
-        .deleteAttachment(attachmentId);
+        .deleteAttachment(projectId, attachmentId);
 
     // When/Then
     assertThrows(ServletException.class, () -> mockMvc.perform(
         delete("/v1/project/{projectKey}/tms/attachment/{attachmentId}", projectKey, attachmentId)
             .contentType(MediaType.APPLICATION_JSON)));
 
-    verify(tmsAttachmentService).deleteAttachment(attachmentId);
+    verify(tmsAttachmentService).deleteAttachment(projectId, attachmentId);
   }
 
   @Test
@@ -426,7 +424,7 @@ public class TmsAttachmentControllerTest {
     var fileContent = "test attachment content";
     InputStream inputStream = new ByteArrayInputStream(fileContent.getBytes());
 
-    given(tmsAttachmentService.getTmsAttachment(attachmentId)).willReturn(Optional.of(attachment));
+    given(tmsAttachmentService.getTmsAttachment(projectId, attachmentId)).willReturn(Optional.of(attachment));
     given(tmsAttachmentDataStoreService.load("/path/to/file")).willReturn(Optional.of(inputStream));
 
     // When/Then
@@ -439,7 +437,7 @@ public class TmsAttachmentControllerTest {
         .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/plain"))
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "22"));
 
-    verify(tmsAttachmentService).getTmsAttachment(attachmentId);
+    verify(tmsAttachmentService).getTmsAttachment(projectId, attachmentId);
     verify(tmsAttachmentDataStoreService).load("/path/to/file");
   }
 }

@@ -11,11 +11,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -109,13 +109,13 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldCreateAttachments_WhenValidTextScenarioAndAttachments() {
     // Given valid text manual scenario and attachments to create
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments for text manual scenario
-    sut.createAttachments(textManualScenario, textManualScenarioRQ);
+    sut.createAttachments(projectId, textManualScenario, textManualScenarioRQ);
 
     // Then attachments should be created and made permanent
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
 
     // Verify that text scenario now has attachments
@@ -136,7 +136,7 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldDoNothing_WhenTextScenarioRQIsNull() {
     // When creating attachments with null text scenario RQ
-    sut.createAttachments(textManualScenario, null);
+    sut.createAttachments(projectId, textManualScenario, null);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -150,7 +150,7 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     emptyTextScenarioRQ.setAttachments(Collections.emptyList());
 
     // When creating attachments with empty list
-    sut.createAttachments(textManualScenario, emptyTextScenarioRQ);
+    sut.createAttachments(projectId, textManualScenario, emptyTextScenarioRQ);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -164,7 +164,7 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     nullAttachmentsTextScenarioRQ.setAttachments(null);
 
     // When creating attachments with null list
-    sut.createAttachments(textManualScenario, nullAttachmentsTextScenarioRQ);
+    sut.createAttachments(projectId, textManualScenario, nullAttachmentsTextScenarioRQ);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -174,14 +174,14 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldDoNothing_WhenNoAttachmentsFound() {
     // Given attachment service returns empty list
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(
         Collections.emptyList());
 
     // When creating attachments but none exist
-    sut.createAttachments(textManualScenario, textManualScenarioRQ);
+    sut.createAttachments(projectId, textManualScenario, textManualScenarioRQ);
 
     // Then only validation should occur but no save operations
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService, never()).saveAll(anyList());
   }
 
@@ -190,13 +190,13 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     // Given one attachment without TTL
     attachment1.setExpiresAt(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments
-    sut.createAttachments(textManualScenario, textManualScenarioRQ);
+    sut.createAttachments(projectId, textManualScenario, textManualScenarioRQ);
 
     // Then should not throw exception and process normally
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
     assertNotNull(textManualScenario.getAttachments());
   }
@@ -207,13 +207,13 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     attachment1.setTextManualScenarios(null);
     attachment2.setTextManualScenarios(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments
-    sut.createAttachments(textManualScenario, textManualScenarioRQ);
+    sut.createAttachments(projectId, textManualScenario, textManualScenarioRQ);
 
     // Then text manual scenarios sets should be initialized
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
     assertNotNull(attachment1.getTextManualScenarios());
     assertNotNull(attachment2.getTextManualScenarios());
@@ -226,14 +226,14 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     existingAttachments.add(new TmsAttachment());
     textManualScenario.setAttachments(existingAttachments);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When updating attachments
-    sut.updateAttachments(textManualScenario, textManualScenarioRQ);
+    sut.updateAttachments(projectId, textManualScenario, textManualScenarioRQ);
 
     // Then existing relationships should be deleted and new ones created
     verify(textManualScenarioAttachmentRepository).deleteByTextManualScenarioId(textScenarioId);
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
 
     // Verify attachments were replaced
@@ -247,14 +247,14 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     // Given text scenario with no existing attachments
     textManualScenario.setAttachments(new HashSet<>());
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When updating attachments
-    sut.updateAttachments(textManualScenario, textManualScenarioRQ);
+    sut.updateAttachments(projectId, textManualScenario, textManualScenarioRQ);
 
     // Then delete should be skipped and new attachments created
     verify(textManualScenarioAttachmentRepository, never()).deleteByTextManualScenarioId(any());
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
   }
 
@@ -263,14 +263,14 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     // Given text scenario with null attachments
     textManualScenario.setAttachments(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds)).thenReturn(attachments);
 
     // When updating attachments
-    sut.updateAttachments(textManualScenario, textManualScenarioRQ);
+    sut.updateAttachments(projectId, textManualScenario, textManualScenarioRQ);
 
     // Then delete should be skipped and new attachments created
     verify(textManualScenarioAttachmentRepository, never()).deleteByTextManualScenarioId(any());
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
   }
 
@@ -481,14 +481,14 @@ class TmsTextManualScenarioAttachmentServiceImplTest {
     expectedAttachment.setId(123L);
     expectedAttachment.setTextManualScenarios(new HashSet<>());
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(List.of(123L)))
+    when(tmsAttachmentService.getTmsAttachmentsByIds(projectId, List.of(123L)))
         .thenReturn(List.of(expectedAttachment));
 
     // When creating attachments with string IDs
-    sut.createAttachments(textManualScenario, textScenarioRQWithIds);
+    sut.createAttachments(projectId, textManualScenario, textScenarioRQWithIds);
 
     // Then string IDs should be converted to Long and used correctly
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(List.of(123L));
+    verify(tmsAttachmentService).getTmsAttachmentsByIds(projectId, List.of(123L));
     verify(tmsAttachmentService).saveAll(List.of(expectedAttachment));
   }
 }

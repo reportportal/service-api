@@ -1,10 +1,10 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepsManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsStepMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepsManualScenario;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -25,7 +25,7 @@ public class TmsStepServiceImpl implements TmsStepService {
 
   @Override
   @Transactional
-  public void createSteps(TmsStepsManualScenario tmsManualScenario,
+  public void createSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
       TmsStepsManualScenarioRQ testCaseManualScenarioRQ) {
     if (CollectionUtils.isEmpty(testCaseManualScenarioRQ.getSteps())) {
       return;
@@ -47,7 +47,7 @@ public class TmsStepServiceImpl implements TmsStepService {
       tmsStepRepository.save(tmsStep);
       createdSteps.add(tmsStep);
 
-      tmsStepAttachmentService.createAttachments(tmsStep, stepRQ);
+      tmsStepAttachmentService.createAttachments(projectId, tmsStep, stepRQ);
     }
 
     if (tmsManualScenario.getSteps() == null) {
@@ -58,7 +58,7 @@ public class TmsStepServiceImpl implements TmsStepService {
 
   @Override
   @Transactional
-  public void updateSteps(TmsStepsManualScenario tmsManualScenario,
+  public void updateSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
       TmsStepsManualScenarioRQ testCaseManualScenarioRQ) {
     if (CollectionUtils.isNotEmpty(tmsManualScenario.getSteps())) {
       tmsStepAttachmentService.deleteAllBySteps(tmsManualScenario.getSteps());
@@ -66,18 +66,18 @@ public class TmsStepServiceImpl implements TmsStepService {
       tmsManualScenario.setSteps(new HashSet<>());
     }
 
-    createSteps(tmsManualScenario, testCaseManualScenarioRQ);
+    createSteps(projectId, tmsManualScenario, testCaseManualScenarioRQ);
   }
 
   @Override
   @Transactional
-  public void patchSteps(TmsStepsManualScenario tmsManualScenario,
+  public void patchSteps(Long projectId, TmsStepsManualScenario tmsManualScenario,
       TmsStepsManualScenarioRQ testCaseManualScenarioRQ) {
     if (testCaseManualScenarioRQ == null || testCaseManualScenarioRQ.getSteps() == null) {
       return;
     }
-  
-    updateSteps(tmsManualScenario, testCaseManualScenarioRQ);
+
+    updateSteps(projectId, tmsManualScenario, testCaseManualScenarioRQ);
   }
 
   @Override

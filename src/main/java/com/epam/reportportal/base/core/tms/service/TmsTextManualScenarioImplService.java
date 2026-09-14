@@ -35,6 +35,7 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
   @Override
   @Transactional
   public void createTmsManualScenarioImpl(
+      Long projectId,
       TmsManualScenario tmsManualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
 
@@ -43,7 +44,7 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
     var tmsTextManualScenario = tmsTextManualScenarioMapper.createTmsManualScenario(
         tmsTextManualScenarioRQ);
 
-    tmsTextManualScenarioAttachmentService.createAttachments(tmsTextManualScenario,
+    tmsTextManualScenarioAttachmentService.createAttachments(projectId, tmsTextManualScenario,
         tmsTextManualScenarioRQ);
 
     tmsManualScenario.setTextScenario(tmsTextManualScenario);
@@ -54,7 +55,7 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
 
   @Override
   @Transactional
-  public void updateTmsManualScenarioImpl(TmsManualScenario manualScenario,
+  public void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var textManualScenario = manualScenario.getTextScenario();
     var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRQ;
@@ -63,7 +64,7 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
       tmsTextManualScenarioMapper.updateTmsManualScenario(
           textManualScenario, tmsTextManualScenarioRQ
       );
-      tmsTextManualScenarioAttachmentService.updateAttachments(textManualScenario,
+      tmsTextManualScenarioAttachmentService.updateAttachments(projectId, textManualScenario,
           tmsTextManualScenarioRQ);
     } else {
       textManualScenario = tmsTextManualScenarioMapper.createTmsManualScenario(
@@ -78,7 +79,7 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
 
   @Override
   @Transactional
-  public void patchTmsManualScenarioImpl(TmsManualScenario manualScenario,
+  public void patchTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRQ) {
     var existingTextManualScenario = manualScenario.getTextScenario();
     if (Objects.nonNull(existingTextManualScenario)) {
@@ -87,8 +88,8 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
       tmsTextManualScenarioMapper.patchTmsManualScenario(existingTextManualScenario,
           tmsTextManualScenarioRQ);
 
-      tmsTextManualScenarioAttachmentService.updateAttachments(existingTextManualScenario,
-          tmsTextManualScenarioRQ);
+      tmsTextManualScenarioAttachmentService.updateAttachments(projectId,
+          existingTextManualScenario, tmsTextManualScenarioRQ);
 
       tmsTextManualScenarioRepository.save(existingTextManualScenario);
     } else {

@@ -8,7 +8,9 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualSc
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.IOException;
@@ -19,9 +21,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -45,6 +50,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   private final TmsTextManualScenarioAttachmentRepository tmsTextManualScenarioAttachmentRepository;
   private final TmsManualScenarioPreconditionsAttachmentRepository tmsManualScenarioPreconditionsAttachmentRepository;
   private final TmsTestCaseExecutionCommentAttachmentRepository tmsTestCaseExecutionCommentAttachmentRepository;
+  private final FeatureFlagHandler featureFlagHandler;
 
   @Value("${rp.tms.attachment.ttl:PT24H}")
   private Duration ttl;
@@ -59,7 +65,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     var thumbnailId = saveThumbnailIfImage(projectId, file);
 
     try {
-      var attachment = tmsAttachmentMapper.convertToAttachment(fileId, thumbnailId, file);
+      var attachment = tmsAttachmentMapper.convertToAttachment(fileId, thumbnailId, file, projectId);
       var saved = tmsAttachmentPersistenceService.persist(attachment);
       return tmsAttachmentMapper.convertToUploadAttachmentRS(saved);
     } catch (Exception _) {
@@ -106,15 +112,15 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<TmsAttachment> getTmsAttachment(Long attachmentId) {
-    return tmsAttachmentRepository.findById(attachmentId);
+  public Optional<TmsAttachment> getTmsAttachment(Long projectId, Long attachmentId) {
+    return tmsAttachmentRepository.findByIdAndProjectId(attachmentId, projectId);
   }
 
   @Override
   @Transactional
-  public void deleteAttachment(Long attachmentId) {
+  public void deleteAttachment(Long projectId, Long attachmentId) {
     var attachment = tmsAttachmentRepository
-        .findById(attachmentId)
+        .findByIdAndProjectId(attachmentId, projectId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
             "Attachment not found: " + attachmentId));
 
@@ -183,12 +189,19 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<TmsAttachment> getTmsAttachmentsByIds(List<Long> attachmentIds) {
+  public List<TmsAttachment> getTmsAttachmentsByIds(Long projectId, List<Long> attachmentIds) {
     if (CollectionUtils.isEmpty(attachmentIds)) {
       return List.of();
     }
 
-    return tmsAttachmentRepository.findAllById(attachmentIds);
+    var attachments = tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, projectId);
+
+    if (attachments.size() != new HashSet<>(attachmentIds).size()) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
+          "One or more attachments do not belong to project " + projectId);
+    }
+
+    return attachments;
   }
 
   @Override
@@ -298,6 +311,23 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       return;
     }
     tmsAttachmentRepository.saveAll(attachments);
+  }
+
+  @Override
+  public void deleteAllByProjectId(Long projectId) {
+    try {
+      if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
+        var paths = tmsAttachmentRepository.findAllByProjectId(projectId).stream()
+            .flatMap(attachment -> Stream.of(attachment.getPathToFile(), attachment.getThumbnailPath()))
+            .filter(Objects::nonNull)
+            .toList();
+        tmsAttachmentDataStoreService.deleteAll(paths, projectId.toString());
+      } else {
+        tmsAttachmentDataStoreService.deleteContainer(projectId.toString());
+      }
+    } catch (Exception e) {
+      log.warn("Failed to delete TMS attachment storage for project {}: {}", projectId, e.getMessage());
+    }
   }
 
   private Set<Long> getUsedAttachmentIds() {

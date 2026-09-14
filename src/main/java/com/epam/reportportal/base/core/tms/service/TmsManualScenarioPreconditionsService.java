@@ -1,18 +1,18 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import java.util.List;
 
 public interface TmsManualScenarioPreconditionsService {
 
-  void createPreconditions(TmsManualScenario tmsManualScenario,
+  void createPreconditions(Long projectId, TmsManualScenario tmsManualScenario,
       TmsManualScenarioPreconditionsRQ preconditions);
 
-  void updatePreconditions(TmsManualScenario manualScenario,
+  void updatePreconditions(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioPreconditionsRQ preconditions);
 
-  void patchPreconditions(TmsManualScenario existingManualScenario,
+  void patchPreconditions(Long projectId, TmsManualScenario existingManualScenario,
       TmsManualScenarioPreconditionsRQ preconditions);
 
   void deleteAllByTestCaseId(Long testCaseId);

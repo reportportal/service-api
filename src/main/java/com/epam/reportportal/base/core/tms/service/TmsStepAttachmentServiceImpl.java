@@ -1,8 +1,8 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +23,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
 
   @Override
   @Transactional
-  public void createAttachments(TmsStep tmsStep, TmsStepRQ stepRQ) {
+  public void createAttachments(Long projectId, TmsStep tmsStep, TmsStepRQ stepRQ) {
     log.debug("Creating attachments for step: {}", tmsStep.getId());
 
     if (stepRQ == null || CollectionUtils.isEmpty(stepRQ.getAttachments())) {
@@ -35,10 +35,10 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))
-        .collect(Collectors.toList());
+        .toList();
 
     // Validate and get attachments
-    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds);
+    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
 
     if (CollectionUtils.isNotEmpty(attachments)) {
 
@@ -70,7 +70,7 @@ public class TmsStepAttachmentServiceImpl implements TmsStepAttachmentService {
 
     var stepIds = steps.stream()
         .map(TmsStep::getId)
-        .collect(Collectors.toList());
+        .toList();
 
     tmsStepAttachmentRepository.deleteByStepIdIn(stepIds);
     log.debug("Deleted all attachment relationships for {} steps", stepIds.size());

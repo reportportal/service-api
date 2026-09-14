@@ -351,6 +351,25 @@ class GetMarketplacePluginDetailHandlerTest {
     assertNull(blind.getPluginDetail("jira").versions().get(0).compatible());
   }
 
+  /**
+   * One malformed entry should cost that entry, not the page. Our own registry appends values and
+   * cannot emit a null element, but this is an HTTP boundary and the alternative to filtering is a
+   * 500 where a list of the versions that did arrive would do.
+   */
+  @Test
+  void aNullEntryCostsItselfAndNotTheWholeListing() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    var versions = new java.util.ArrayList<MarketplaceVersionSummary>();
+    versions.add(null);
+    versions.add(new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null));
+    when(client.listVersions("jira")).thenReturn(versions);
+
+    var rows = handler.getPluginDetail("jira").versions();
+
+    assertEquals(1, rows.size());
+    assertEquals("1.6.0", rows.get(0).version());
+  }
+
   /** An advisory belongs to the version it was attached to, and the row is where it is shown. */
   @Test
   void anAdvisoryRidesTheVersionItWasAttachedTo() {

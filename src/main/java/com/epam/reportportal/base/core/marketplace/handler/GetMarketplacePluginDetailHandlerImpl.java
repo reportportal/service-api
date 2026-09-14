@@ -33,6 +33,7 @@ import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginDeta
 import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginResource;
 import com.epam.reportportal.base.model.marketplace.detail.MarketplaceVersionResource;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,13 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
   private final MarketplaceLicence licence;
   private final ProductVersion productVersion;
 
+  /**
+   * @param registry       the registry, read through the cache that shields it from a page refresh
+   * @param licence        this instance's marketplace credentials, which decide whether a premium
+   *                       plugin is locked
+   * @param productVersion the release this instance runs, against which a version's declared range
+   *                       is judged
+   */
   public GetMarketplacePluginDetailHandlerImpl(MarketplaceRegistryCache registry,
       MarketplaceLicence licence, ProductVersion productVersion) {
     this.registry = registry;
@@ -130,7 +138,10 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
     if (summaries == null) {
       return List.of();
     }
-    return summaries.stream().map(this::toVersion).toList();
+    // a null element cannot come from our own registry, which appends values; it is filtered
+    // because this is an HTTP boundary and one malformed entry would answer the whole page with a
+    // 500 rather than with the versions that did arrive
+    return summaries.stream().filter(Objects::nonNull).map(this::toVersion).toList();
   }
 
   private MarketplaceVersionResource toVersion(MarketplaceVersionSummary summary) {

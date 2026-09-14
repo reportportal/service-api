@@ -60,12 +60,6 @@ ext['kotlin.version'] = '2.1.0'
 ext['spring-retry.version'] = '2.0.13'
 ext['httpcore5.version'] = "${httpcore5Version}"
 
-// Local leftover pins that commons-bom 5.15.3 still does not cover:
-// - tika-core: BOM still 1.28.x (CVE-2025-66516)
-// - Netty: AWS SDK et al. pull mixed 4.1.x
-// - mchange-commons-java: Quartz 2.3.2 brings 0.2.15 (CVE-2026-27727)
-// - parsson: SNYK-JAVA-ORGECLIPSEPARSSON-17817925, pulled by opensearch-java
-// - httpcore5-h2: HPACK DoS CVE-2026-54428
 dependencyManagement {
     imports {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:48f92b6e68')

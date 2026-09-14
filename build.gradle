@@ -48,44 +48,39 @@ java {
 }
 
 ext['spring-boot.version'] = "${springBootVersion}"
-// Stay on Security 6.5.x (Boot 3.5). 6.5.11 is the last OSS patch (CVE-2026-47838 / X.509 impersonation).
-ext['spring-security.version'] = '6.5.11'
-// Jackson 2.21 LTS: 2.21.4+ critical databind/core, 2.21.5+ SSRF/mass-assignment, 2.21.6 latest patch.
-// Do not jump to Jackson 3 (Boot 4).
-ext['jackson-bom.version'] = '2.21.6'
-// Latest Framework 6.2.x — remaining Spring CVE upgrades require Framework 7 / Boot 4.
-ext['spring-framework.version'] = '6.2.19'
+ext['spring-security.version'] = "${springSecurityVersion}"
+ext['jackson-bom.version'] = "${jacksonVersion}"
+ext['spring-framework.version'] = "${springFrameworkVersion}"
+ext['logback.version'] = "${logbackVersion}"
 // Latest OSS 1.15.x. 1.15.13 is snapshot-only; 1.16.x is Boot 4.
 ext['micrometer.version'] = '1.15.12'
 // CVE-2020-29582: align kotlin stack to patched stdlib
 ext['kotlin.version'] = '2.1.0'
 // SNYK-JAVA-ORGSPRINGFRAMEWORKRETRY-17260993: resource allocation fixed in 2.0.13
 ext['spring-retry.version'] = '2.0.13'
-// 1.5.36+ Expression Injection; 1.5.37 full CVE-2026-13006. No Janino conditionals in logback-spring.xml.
-ext['logback.version'] = '1.5.37'
-// httpcore5-h2 HPACK DoS (CVE-2026-54428) fixed in 5.4.3+.
-ext['httpcore5.version'] = '5.4.3'
+ext['httpcore5.version'] = "${httpcore5Version}"
 
-// Transitive-security overrides until upstream BOMs/deps are bumped:
-// - tika-core: commons-bom pins 1.28.x (vulnerable); require 3.2.2+ (CVE-2025-66516).
-// - Netty: AWS SDK et al. pull mixed 4.1.x; align all io.netty artifacts to a patched release.
-// - mchange-commons-java: Quartz 2.3.2 brings 0.2.15; force 0.4.0+ (CVE-2026-27727).
-// - postgresql: SNYK-JAVA-ORGPOSTGRESQL-17874248 fixed in 42.7.12+.
-// - parsson: SNYK-JAVA-ORGECLIPSEPARSSON-17817925 fixed in 1.1.8 (pulled by opensearch-java).
+// Local leftover pins that commons-bom 5.15.3 still does not cover:
+// - tika-core: BOM still 1.28.x (CVE-2025-66516)
+// - Netty: AWS SDK et al. pull mixed 4.1.x
+// - mchange-commons-java: Quartz 2.3.2 brings 0.2.15 (CVE-2026-27727)
+// - parsson: SNYK-JAVA-ORGECLIPSEPARSSON-17817925, pulled by opensearch-java
+// - httpcore5-h2: HPACK DoS CVE-2026-54428
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:5.15.2')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:48f92b6e68')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
         mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-        // Win over springdoc/swagger/commons jackson-bom 2.19.x
-        mavenBom('com.fasterxml.jackson:jackson-bom:2.21.6')
+        // Later imports win over Boot / older transitive jackson-boms (springdoc, swagger).
+        mavenBom("com.fasterxml.jackson:jackson-bom:${jacksonVersion}")
+        mavenBom("org.springframework:spring-framework-bom:${springFrameworkVersion}")
+        mavenBom("org.springframework.security:spring-security-bom:${springSecurityVersion}")
     }
     dependencies {
         dependency 'org.apache.tika:tika-core:3.2.2'
-        dependency 'org.postgresql:postgresql:42.7.13'
         dependency 'org.eclipse.parsson:parsson:1.1.8'
-        dependency 'org.apache.httpcomponents.core5:httpcore5:5.4.3'
-        dependency 'org.apache.httpcomponents.core5:httpcore5-h2:5.4.3'
+        dependency "org.apache.httpcomponents.core5:httpcore5:${httpcore5Version}"
+        dependency "org.apache.httpcomponents.core5:httpcore5-h2:${httpcore5Version}"
     }
 }
 
@@ -94,8 +89,8 @@ configurations.configureEach {
     resolutionStrategy {
         force 'com.mchange:mchange-commons-java:0.4.0'
         force 'org.eclipse.parsson:parsson:1.1.8'
-        force 'org.apache.httpcomponents.core5:httpcore5:5.4.3'
-        force 'org.apache.httpcomponents.core5:httpcore5-h2:5.4.3'
+        force "org.apache.httpcomponents.core5:httpcore5:${httpcore5Version}"
+        force "org.apache.httpcomponents.core5:httpcore5-h2:${httpcore5Version}"
         eachDependency { details ->
             if (details.requested.group == 'io.netty') {
                 details.useVersion(secureNettyVersion)
@@ -104,16 +99,16 @@ configurations.configureEach {
                 if (details.requested.name == 'jackson-annotations') {
                     details.useVersion('2.21')
                 } else {
-                    details.useVersion('2.21.6')
+                    details.useVersion("${jacksonVersion}")
                 }
             } else if (details.requested.group == 'org.springframework') {
-                details.useVersion('6.2.19')
+                details.useVersion("${springFrameworkVersion}")
             } else if (details.requested.group == 'org.springframework.boot') {
                 details.useVersion("${springBootVersion}")
             } else if (details.requested.group == 'org.springframework.security') {
-                details.useVersion('6.5.11')
+                details.useVersion("${springSecurityVersion}")
             } else if (details.requested.group == 'ch.qos.logback') {
-                details.useVersion('1.5.37')
+                details.useVersion("${logbackVersion}")
             }
         }
     }
@@ -122,7 +117,7 @@ configurations.configureEach {
 println("Release mode: $releaseMode")
 dependencies {
     implementation 'com.github.reportportal:commons:5.15.2'
-    implementation 'com.github.reportportal:commons-dao:123253b'
+    implementation 'com.github.reportportal:commons-dao:bd5bab91'
     implementation('com.github.reportportal:plugin-api:5.15.0') {
         exclude group: 'com.github.reportportal', module: 'commons-dao'
         exclude group: 'com.github.reportportal', module: 'commons'

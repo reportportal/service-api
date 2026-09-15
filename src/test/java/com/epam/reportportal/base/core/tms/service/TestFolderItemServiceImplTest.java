@@ -97,6 +97,33 @@ class TestFolderItemServiceImplTest {
   }
 
   @Test
+  void findTestFolderItem_WhenInCache_ShouldReturnCachedSuiteWithoutDbQuery() {
+    Map<Long, TestItem> cache = new java.util.HashMap<>();
+    cache.put(folderId, suiteItem);
+
+    var result = sut.findTestFolderItem(projectId, folderId, launch, cache);
+
+    assertNotNull(result);
+    assertEquals(itemId, result.getItemId());
+    verify(testItemRepository, never()).findSuiteItemInLaunchForFolder(anyLong(), anyLong());
+    verify(tmsTestFolderService, never()).getEntityById(anyLong(), anyLong());
+  }
+
+  @Test
+  void findTestFolderItem_WhenNotInCacheButExistsInDb_ShouldPopulateCache() {
+    Map<Long, TestItem> cache = new java.util.HashMap<>();
+    when(testItemRepository.findSuiteItemInLaunchForFolder(launchId, folderId))
+        .thenReturn(Optional.of(suiteItem));
+
+    var result = sut.findTestFolderItem(projectId, folderId, launch, cache);
+
+    assertNotNull(result);
+    assertEquals(itemId, result.getItemId());
+    assertEquals(suiteItem, cache.get(folderId));
+    verify(testItemRepository).findSuiteItemInLaunchForFolder(launchId, folderId);
+  }
+
+  @Test
   void findTestFolderItem_WhenDoesNotExist_ShouldCreateNewSuite() {
     when(testItemRepository.findSuiteItemInLaunchForFolder(launchId, folderId))
         .thenReturn(Optional.empty());

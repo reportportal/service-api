@@ -139,7 +139,7 @@ class TestCaseItemServiceImplTest {
   }
 
   @Test
-  void createTestCaseItem_WithItemNamesCache_ShouldPopulateAndUseCache() {
+  void createTestCaseItem_WithtestItemNamesByIds_ShouldPopulateAndUseCache() {
     testCaseRS.setAttributes(Collections.emptySet());
 
     TestItem testItem = new TestItem();

@@ -30,7 +30,7 @@ public interface TestCaseHashGenerator {
   Integer generate(TestItem item, List<Long> parentIds, Long projectId);
 
   default Integer generate(TestItem item, List<Long> parentIds, Long projectId,
-      Map<Long, String> itemNamesCache) {
+      Map<Long, String> testItemNamesByIds) {
     return generate(item, parentIds, projectId);
   }
 }

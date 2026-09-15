@@ -51,16 +51,16 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 
   @Override
   public Integer generate(TestItem item, List<Long> parentIds, Long projectId,
-      Map<Long, String> itemNamesCache) {
-    return prepare(item, parentIds, projectId, itemNamesCache).hashCode();
+      Map<Long, String> testItemNamesByIds) {
+    return prepare(item, parentIds, projectId, testItemNamesByIds).hashCode();
   }
 
   private String prepare(TestItem item, List<Long> parentIds, Long projectId,
-      Map<Long, String> itemNamesCache) {
+      Map<Long, String> testItemNamesByIds) {
     List<CharSequence> elements = Lists.newArrayList();
 
     elements.add(projectId.toString());
-    getPathNames(parentIds, itemNamesCache).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
+    getPathNames(parentIds, testItemNamesByIds).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
     elements.add(item.getName());
     item.getParameters()
         .stream()
@@ -72,21 +72,21 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
     return String.join(";", elements);
   }
 
-  private List<String> getPathNames(List<Long> parentIds, Map<Long, String> itemNamesCache) {
+  private List<String> getPathNames(List<Long> parentIds, Map<Long, String> testItemNamesByIds) {
     if (CollectionUtils.isEmpty(parentIds)) {
       return Collections.emptyList();
     }
-    if (itemNamesCache != null) {
+    if (testItemNamesByIds != null) {
       List<Long> missingIds = parentIds.stream()
-          .filter(id -> !itemNamesCache.containsKey(id))
+          .filter(id -> !testItemNamesByIds.containsKey(id))
           .toList();
       if (!missingIds.isEmpty()) {
         testItemRepository.findAllById(missingIds)
-            .forEach(ti -> itemNamesCache.put(ti.getItemId(), ti.getName()));
+            .forEach(ti -> testItemNamesByIds.put(ti.getItemId(), ti.getName()));
       }
       return parentIds.stream()
           .sorted(Comparator.naturalOrder())
-          .map(itemNamesCache::get)
+          .map(testItemNamesByIds::get)
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
     }

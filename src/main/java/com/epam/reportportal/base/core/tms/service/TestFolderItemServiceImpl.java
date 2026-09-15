@@ -66,23 +66,23 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
   @Transactional
   @Override
   public TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch,
-      Map<Long, TestItem> folderSuiteCache) {
+      Map<Long, TestItem> suiteItemsByIds) {
     return findTestFolderItem(projectId, testFolderId, launch, new HashSet<>(),
-        folderSuiteCache != null ? folderSuiteCache : new HashMap<>());
+        suiteItemsByIds != null ? suiteItemsByIds : new HashMap<>());
   }
 
   private TestItem findTestFolderItem(Long projectId,
       Long testFolderId,
       Launch launch,
       Set<Long> visitedFolderIds,
-      Map<Long, TestItem> folderSuiteCache) {
+      Map<Long, TestItem> suiteItemsByIds) {
     log.debug("Finding or creating SUITE item for test folder: {} in launch: {}",
         testFolderId, launch.getId());
 
-    if (folderSuiteCache.containsKey(testFolderId)) {
+    if (suiteItemsByIds.containsKey(testFolderId)) {
       log.debug("Found cached SUITE item: {} for test folder: {}",
-          folderSuiteCache.get(testFolderId).getItemId(), testFolderId);
-      return folderSuiteCache.get(testFolderId);
+          suiteItemsByIds.get(testFolderId).getItemId(), testFolderId);
+      return suiteItemsByIds.get(testFolderId);
     }
 
     // Try to find existing SUITE item
@@ -91,13 +91,13 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
     if (existingSuite.isPresent()) {
       log.debug("Found existing SUITE item: {} for test folder: {}",
           existingSuite.get().getItemId(), testFolderId);
-      folderSuiteCache.put(testFolderId, existingSuite.get());
+      suiteItemsByIds.put(testFolderId, existingSuite.get());
       return existingSuite.get();
     }
 
     // Create new SUITE item
-    var suiteItem = createTestFolderSuiteItem(projectId, testFolderId, launch, visitedFolderIds, folderSuiteCache);
-    folderSuiteCache.put(testFolderId, suiteItem);
+    var suiteItem = createTestFolderSuiteItem(projectId, testFolderId, launch, visitedFolderIds, suiteItemsByIds);
+    suiteItemsByIds.put(testFolderId, suiteItem);
     log.debug("Created new SUITE item: {} for test folder: {}", suiteItem.getItemId(),
         testFolderId);
     return suiteItem;
@@ -114,7 +114,7 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
   }
 
   private TestItem createTestFolderSuiteItem(Long projectId, Long testFolderId,
-      Launch launch, java.util.Set<Long> visitedFolderIds, Map<Long, TestItem> folderSuiteCache) {
+      Launch launch, java.util.Set<Long> visitedFolderIds, Map<Long, TestItem> suiteItemsByIds) {
     log.debug("Creating SUITE item for test folder: {}", testFolderId);
 
     visitedFolderIds.add(testFolderId);
@@ -141,7 +141,7 @@ public class TestFolderItemServiceImpl implements TestFolderItemService {
         log.warn("Cycle detected in test folder hierarchy for folder: {}. Breaking cycle.", testFolderId);
         hasCircularDependency = true;
       } else {
-        parentSuite = findTestFolderItem(projectId, parentFolderId, launch, visitedFolderIds, folderSuiteCache);
+        parentSuite = findTestFolderItem(projectId, parentFolderId, launch, visitedFolderIds, suiteItemsByIds);
         markAsHavingChildren(parentSuite);
         suiteItem.setParentId(parentSuite.getItemId());
       }

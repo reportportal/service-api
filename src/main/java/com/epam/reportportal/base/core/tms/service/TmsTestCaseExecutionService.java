@@ -56,15 +56,20 @@ public interface TmsTestCaseExecutionService {
    */
   void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch);
 
-  default void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch,
-      Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache) {
+  default void createExecution(long projectId, 
+      TmsTestCaseRS testCase, Launch launch,
+      Map<Long, TestItem> suiteItemsByIds, 
+      Map<Long, String> testItemNamesByIds) {
     createExecution(projectId, testCase, launch);
   }
 
-  default void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch,
-      Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache,
+  default void createExecution(long projectId, 
+      TmsTestCaseRS testCase, 
+      Launch launch,
+      Map<Long, TestItem> suiteItemsByIds, 
+      Map<Long, String> testItemNamesByIds,
       Set<Long> existingExecutionTestCaseIds) {
-    createExecution(projectId, testCase, launch, folderSuiteCache, itemNamesCache);
+    createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds);
   }
 
   /**

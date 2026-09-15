@@ -61,7 +61,7 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
       TmsTestCaseRS testCase,
       TestItem suiteItem,
       Launch launch,
-      Map<Long, String> itemNamesCache) {
+      Map<Long, String> testItemNamesByIds) {
 
     log.debug("Creating TEST item for test case: {} under SUITE item: {}",
         testCase.getName(), suiteItem.getItemId());
@@ -71,16 +71,18 @@ public class TestCaseItemServiceImpl implements TestCaseItemService {
         testCase, suiteItem, launch
     );
 
-    if (itemNamesCache != null && suiteItem.getItemId() != null && suiteItem.getName() != null) {
-      itemNamesCache.put(suiteItem.getItemId(), suiteItem.getName());
+    if (testItemNamesByIds != null
+        && suiteItem.getItemId() != null 
+        && suiteItem.getName() != null) {
+      testItemNamesByIds.put(suiteItem.getItemId(), suiteItem.getName());
     }
 
-    Integer testCaseHash = itemNamesCache != null
+    var testCaseHash = testItemNamesByIds != null
         ? testCaseHashGenerator.generate(
             testItem,
             IdentityUtil.getItemTreeIds(suiteItem),
             launch.getProjectId(),
-            itemNamesCache
+            testItemNamesByIds
         )
         : testCaseHashGenerator.generate(
             testItem,

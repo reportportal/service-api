@@ -175,15 +175,22 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
 
   @Transactional
   @Override
-  public void createExecution(long projectId, TmsTestCaseRS testCase,
-      Launch launch, Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache) {
-    createExecution(projectId, testCase, launch, folderSuiteCache, itemNamesCache, null);
+  public void createExecution(long projectId, 
+      TmsTestCaseRS testCase,
+      Launch launch, 
+      Map<Long, TestItem> suiteItemsByIds, 
+      Map<Long, String> testItemNamesByIds) {
+    createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, null);
   }
 
   @Transactional
   @Override
-  public void createExecution(long projectId, TmsTestCaseRS testCase,
-      Launch launch, Map<Long, TestItem> folderSuiteCache, Map<Long, String> itemNamesCache,
+  public void createExecution(
+      long projectId, 
+      TmsTestCaseRS testCase,
+      Launch launch, 
+      Map<Long, TestItem> suiteItemsByIds, 
+      Map<Long, String> testItemNamesByIds,
       Set<Long> existingExecutionTestCaseIds) {
     log.debug("Creating execution for test case: {} in launch: {}",
         testCase.getId(), launch.getId());
@@ -205,7 +212,9 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     // Step 1: Find or create SUITE item for the test folder
     var testFolderId = testCase.getTestFolder().getId();
 
-    var testFolderItem = testFolderItemService.findTestFolderItem(projectId, testFolderId, launch, folderSuiteCache);
+    var testFolderItem = testFolderItemService.findTestFolderItem(
+        projectId, testFolderId, launch, suiteItemsByIds
+    );
     testFolderItemService.markAsHavingChildren(testFolderItem);
     log.debug("SUITE item resolved: {}", testFolderItem.getItemId());
 
@@ -214,7 +223,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         testCase,
         testFolderItem,
         launch,
-        itemNamesCache
+        testItemNamesByIds
     );
     log.debug("TEST item created: {}", testItem.getItemId());
 
@@ -340,15 +349,16 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(launch.getId())
     );
 
-    Map<Long, TestItem> folderSuiteCache = new HashMap<>();
-    Map<Long, String> itemNamesCache = new HashMap<>();
+    Map<Long, TestItem> suiteItemsByIds = new HashMap<>();
+    Map<Long, String> testItemNamesByIds = new HashMap<>();
 
     // Partition testCaseIds into chunks of 1000 to batch load test case data and avoid N+1 queries
-    var chunks = ListUtils.partition(testCaseIds, 1000);
+    var testCaseIdsPartition = ListUtils.partition(testCaseIds, 1000);
 
-    for (var chunk : chunks) {
+    for (var partition : testCaseIdsPartition) {
       // Find IDs that are valid and not already added to the launch
-      var validIdsInChunk = chunk.stream()
+      var testCaseIdsInPartition = partition
+          .stream()
           .filter(id -> {
             if (!existingTestCaseIds.contains(id)) {
               log.warn("Test case {} for project {} does not exist", id, projectId);
@@ -366,14 +376,14 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
           })
           .toList();
 
-      if (validIdsInChunk.isEmpty()) {
+      if (testCaseIdsInPartition.isEmpty()) {
         continue;
       }
 
       // Batch fetch test cases for the chunk in a single round-trip without last execution queries
-      var testCasesMap = tmsTestCaseService.getByIdsMap(projectId, validIdsInChunk, false);
+      var testCasesMap = tmsTestCaseService.getByIdsMap(projectId, testCaseIdsInPartition, false);
 
-      for (var testCaseId : validIdsInChunk) {
+      for (var testCaseId : testCaseIdsInPartition) {
         try {
           var testCase = testCasesMap.get(testCaseId);
           if (testCase == null) {
@@ -383,7 +393,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
           }
 
           // Create execution
-          createExecution(projectId, testCase, launch, folderSuiteCache, itemNamesCache, existingExecutionTestCaseIds);
+          createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, existingExecutionTestCaseIds);
           successfulIds.add(testCaseId);
 
           log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());

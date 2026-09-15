@@ -16,7 +16,7 @@ public interface TestCaseItemService {
       TmsTestCaseRS testCase,
       TestItem suiteItem,
       Launch launch,
-      Map<Long, String> itemNamesCache) {
+      Map<Long, String> testItemNamesByIds) {
     return createTestCaseItem(testCase, suiteItem, launch);
   }
 

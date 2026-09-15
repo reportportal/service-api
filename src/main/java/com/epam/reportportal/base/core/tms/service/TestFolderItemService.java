@@ -13,7 +13,7 @@ public interface TestFolderItemService {
   TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch);
 
   default TestItem findTestFolderItem(Long projectId, Long testFolderId, Launch launch,
-      Map<Long, TestItem> folderSuiteCache) {
+      Map<Long, TestItem> suiteItemsByIds) {
     return findTestFolderItem(projectId, testFolderId, launch);
   }
 

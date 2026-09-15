@@ -3,15 +3,17 @@ package com.epam.reportportal.base.infrastructure.persistence.dao.tms;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ReportPortalRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository interface for managing TMS attachments. Now works with Many-to-Many relationships
- * through junction tables.
+ * Repository interface for managing TMS attachments. Now works with Many-to-Many relationships through junction
+ * tables.
  */
 @Repository
 public interface TmsAttachmentRepository extends ReportPortalRepository<TmsAttachment, Long> {
@@ -23,8 +25,8 @@ public interface TmsAttachmentRepository extends ReportPortalRepository<TmsAttac
   List<TmsAttachment> findExpiredAttachments(@Param("currentTime") Instant currentTime);
 
   /**
-   * Finds attachments that have no TTL set (expiresAt is null). These are candidates for TTL
-   * assignment if they are unused.
+   * Finds attachments that have no TTL set (expiresAt is null). These are candidates for TTL assignment if they are
+   * unused.
    */
   @Query("SELECT a FROM TmsAttachment a WHERE a.expiresAt IS NULL")
   List<TmsAttachment> findAttachmentsWithoutTtl();
@@ -54,4 +56,21 @@ public interface TmsAttachmentRepository extends ReportPortalRepository<TmsAttac
   @Modifying
   @Query("DELETE FROM TmsAttachment a WHERE a.id IN :attachmentIds")
   void deleteByIds(@Param("attachmentIds") List<Long> attachmentIds);
+
+  /**
+   * Finds an attachment by ID, scoped to a project. Used to prevent cross-project access to attachments referenced by
+   * numeric ID alone.
+   */
+  Optional<TmsAttachment> findByIdAndProjectId(Long id, Long projectId);
+
+  /**
+   * Finds attachments by IDs, scoped to a project. Attachment IDs belonging to other projects are silently excluded
+   * from the result.
+   */
+  List<TmsAttachment> findAllByIdInAndProjectId(Collection<Long> ids, Long projectId);
+
+  /**
+   * Finds all attachments belonging to a project. Used when purging a project's TMS attachment storage.
+   */
+  List<TmsAttachment> findAllByProjectId(Long projectId);
 }

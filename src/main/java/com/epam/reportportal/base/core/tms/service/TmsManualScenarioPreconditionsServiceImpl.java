@@ -1,9 +1,9 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioPreconditionsMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
 
   @Override
   @Transactional
-  public void createPreconditions(TmsManualScenario tmsManualScenario,
+  public void createPreconditions(Long projectId, TmsManualScenario tmsManualScenario,
       TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ) {
     log.debug("Creating preconditions for manual scenario: {}", tmsManualScenario.getId());
 
@@ -45,8 +45,8 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
     tmsManualScenario.setPreconditions(savedPreconditions);
 
     // Create attachments if present
-    tmsManualScenarioPreconditionsAttachmentService.createAttachments(savedPreconditions,
-        tmsManualScenarioPreconditionsRQ);
+    tmsManualScenarioPreconditionsAttachmentService.createAttachments(projectId,
+        savedPreconditions, tmsManualScenarioPreconditionsRQ);
 
     log.debug("Created preconditions with ID: {} for manual scenario: {}",
         savedPreconditions.getId(), tmsManualScenario.getId());
@@ -54,7 +54,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
 
   @Override
   @Transactional
-  public void updatePreconditions(TmsManualScenario manualScenario,
+  public void updatePreconditions(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ) {
     log.debug("Updating preconditions for manual scenario: {}", manualScenario.getId());
 
@@ -69,13 +69,13 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
         tmsManualScenarioPreconditionsMapper.update(
             existingPreconditions, tmsManualScenarioPreconditionsRQ
         );
-        tmsManualScenarioPreconditionsAttachmentService.updateAttachments(existingPreconditions,
-            tmsManualScenarioPreconditionsRQ);
+        tmsManualScenarioPreconditionsAttachmentService.updateAttachments(projectId,
+            existingPreconditions, tmsManualScenarioPreconditionsRQ);
       }
     } else {
       // Create new preconditions if provided
       if (tmsManualScenarioPreconditionsRQ != null) {
-        createPreconditions(manualScenario, tmsManualScenarioPreconditionsRQ);
+        createPreconditions(projectId, manualScenario, tmsManualScenarioPreconditionsRQ);
       }
     }
 
@@ -84,7 +84,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
 
   @Override
   @Transactional
-  public void patchPreconditions(TmsManualScenario existingManualScenario,
+  public void patchPreconditions(Long projectId, TmsManualScenario existingManualScenario,
       TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ) {
     log.debug("Patching preconditions for manual scenario: {}", existingManualScenario.getId());
 
@@ -100,7 +100,7 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
     if (existingPreconditions == null) {
       log.debug("No existing preconditions found, creating new ones for manual scenario: {}",
           existingManualScenario.getId());
-      createPreconditions(existingManualScenario, tmsManualScenarioPreconditionsRQ);
+      createPreconditions(projectId, existingManualScenario, tmsManualScenarioPreconditionsRQ);
       return;
     }
 
@@ -109,8 +109,8 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
         tmsManualScenarioPreconditionsRQ);
     var savedPreconditions = tmsManualScenarioPreconditionRepository.save(existingPreconditions);
 
-    tmsManualScenarioPreconditionsAttachmentService.updateAttachments(savedPreconditions,
-        tmsManualScenarioPreconditionsRQ);
+    tmsManualScenarioPreconditionsAttachmentService.updateAttachments(projectId,
+        savedPreconditions, tmsManualScenarioPreconditionsRQ);
 
     log.debug("Patched preconditions with ID: {} for manual scenario: {}",
         savedPreconditions.getId(), existingManualScenario.getId());

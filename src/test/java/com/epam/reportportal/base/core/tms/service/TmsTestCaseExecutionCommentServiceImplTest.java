@@ -70,7 +70,7 @@ class TmsTestCaseExecutionCommentServiceImplTest {
   void putTestCaseExecutionComment_WhenRequestIsNull_ShouldRemoveExistingComment() {
     execution.setExecutionComment(existingComment);
 
-    var result = sut.putTestCaseExecutionComment(execution, null);
+    var result = sut.putTestCaseExecutionComment(projectId, execution, null);
 
     assertNull(result);
     assertNull(execution.getExecutionComment());
@@ -86,13 +86,13 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     when(tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(existingComment))
         .thenReturn(response);
 
-    var result = sut.putTestCaseExecutionComment(execution, request);
+    var result = sut.putTestCaseExecutionComment(projectId, execution, request);
 
     assertNotNull(result);
     assertEquals("New comment text", existingComment.getComment());
 
-    verify(tmsTestCaseExecutionCommentAttachmentService).updateAttachments(existingComment,
-        request);
+    verify(tmsTestCaseExecutionCommentAttachmentService).updateAttachments(projectId,
+        existingComment, request);
     verify(tmsTestCaseExecutionCommentRepository).save(existingComment);
   }
 
@@ -108,12 +108,12 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     when(tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(newComment))
         .thenReturn(response);
 
-    var result = sut.putTestCaseExecutionComment(execution, request);
+    var result = sut.putTestCaseExecutionComment(projectId, execution, request);
 
     assertNotNull(result);
     assertEquals(newComment, execution.getExecutionComment());
 
-    verify(tmsTestCaseExecutionCommentAttachmentService).createAttachments(newComment, request);
+    verify(tmsTestCaseExecutionCommentAttachmentService).createAttachments(projectId, newComment, request);
     verify(tmsTestCaseExecutionCommentRepository).save(newComment);
   }
 
@@ -127,7 +127,7 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     // Request with no comment, no attachments, no tickets
     TmsTestCaseExecutionCommentRQ emptyRequest = new TmsTestCaseExecutionCommentRQ();
 
-    var result = sut.patchTestCaseExecutionComment(execution, emptyRequest);
+    var result = sut.patchTestCaseExecutionComment(projectId, execution, emptyRequest);
 
     assertNull(result);
     assertNull(execution.getExecutionComment());
@@ -144,12 +144,12 @@ class TmsTestCaseExecutionCommentServiceImplTest {
     when(tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(existingComment))
         .thenReturn(response);
 
-    var result = sut.patchTestCaseExecutionComment(execution, request);
+    var result = sut.patchTestCaseExecutionComment(projectId, execution, request);
 
     assertNotNull(result);
     assertEquals("New comment text", existingComment.getComment());
-    verify(tmsTestCaseExecutionCommentAttachmentService).updateAttachments(existingComment,
-        request);
+    verify(tmsTestCaseExecutionCommentAttachmentService).updateAttachments(projectId,
+        existingComment, request);
     // getBtsTickets is null, so it should not call updateBtsTickets
     verify(tmsTestCaseExecutionCommentRepository).save(existingComment);
   }

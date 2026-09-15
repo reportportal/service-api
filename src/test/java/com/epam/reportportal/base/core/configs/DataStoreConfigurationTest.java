@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.core.configs;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.apache.opendal.Operator;
@@ -28,21 +27,21 @@ class DataStoreConfigurationTest {
   private final DataStoreConfiguration config = new DataStoreConfiguration();
 
   @Test
-  @DisplayName("S3 operator includes endpoint when provided")
-  void awsS3OperatorWithEndpoint() {
+  @DisplayName("S3 operator successfully creates with custom endpoint for Cloudflare R2")
+  void awsS3OperatorWithCloudflareR2Endpoint() {
     String accessKey = "test-access-key";
     String secretKey = "test-secret-key";
-    String region = "us-east-1";
+    String region = "auto";
     String endpoint = "https://r2.cloudflarestorage.com";
     String bucket = "test-bucket";
 
     Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
 
-    assertNotNull(operator);
+    assertNotNull(operator, "Operator should be created with Cloudflare R2 endpoint");
   }
 
   @Test
-  @DisplayName("S3 operator works without endpoint for AWS S3")
+  @DisplayName("S3 operator successfully creates without endpoint for standard AWS S3")
   void awsS3OperatorWithoutEndpoint() {
     String accessKey = "test-access-key";
     String secretKey = "test-secret-key";
@@ -52,12 +51,26 @@ class DataStoreConfigurationTest {
 
     Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
 
-    assertNotNull(operator);
+    assertNotNull(operator, "Operator should be created for standard AWS S3 without endpoint");
   }
 
   @Test
-  @DisplayName("S3 operator works with empty credentials")
-  void awsS3OperatorWithoutCredentials() {
+  @DisplayName("S3 operator successfully creates with MinIO endpoint")
+  void awsS3OperatorWithMinioEndpoint() {
+    String accessKey = "minioadmin";
+    String secretKey = "minioadmin";
+    String region = "us-east-1";
+    String endpoint = "https://minio.example.com:9000";
+    String bucket = "reportportal";
+
+    Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+
+    assertNotNull(operator, "Operator should be created with MinIO endpoint");
+  }
+
+  @Test
+  @DisplayName("S3 operator works with IAM role credentials (empty key/secret)")
+  void awsS3OperatorWithIamRole() {
     String accessKey = "";
     String secretKey = "";
     String region = "us-east-1";
@@ -66,12 +79,12 @@ class DataStoreConfigurationTest {
 
     Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
 
-    assertNotNull(operator);
+    assertNotNull(operator, "Operator should be created with IAM role credentials");
   }
 
   @Test
-  @DisplayName("S3-compatible operator includes endpoint")
-  void s3CompatibleOperatorWithEndpoint() {
+  @DisplayName("S3-compatible operator creates with MinIO endpoint")
+  void s3CompatibleOperatorWithMinioEndpoint() {
     String accessKey = "test-access-key";
     String secretKey = "test-secret-key";
     String endpoint = "https://minio.example.com";
@@ -80,6 +93,6 @@ class DataStoreConfigurationTest {
 
     Operator operator = config.s3CompatibleOperator(accessKey, secretKey, endpoint, region, bucket);
 
-    assertNotNull(operator);
+    assertNotNull(operator, "S3-compatible operator should be created with MinIO endpoint");
   }
 }

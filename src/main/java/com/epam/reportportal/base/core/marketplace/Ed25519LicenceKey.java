@@ -130,9 +130,9 @@ public final class Ed25519LicenceKey {
     for (var i = 0; i < SEED_LENGTH; i++) {
       y[i] = compressed[SEED_LENGTH - 1 - i];
     }
-    var xOdd = (y[0] & 0x80) != 0;
+    var oddX = (y[0] & 0x80) != 0;
     y[0] &= 0x7f;
-    var point = new EdECPoint(xOdd, new BigInteger(1, y));
+    var point = new EdECPoint(oddX, new BigInteger(1, y));
     return KeyFactory.getInstance("Ed25519")
         .generatePublic(new EdECPublicKeySpec(NamedParameterSpec.ED25519, point));
   }

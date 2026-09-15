@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,7 +45,7 @@ class HttpMarketplaceArtifactFetcherTest {
 
   private static MarketplaceConfig config(String url) {
     return new MarketplaceConfig(url, Duration.ofSeconds(3), Duration.ofSeconds(5),
-        Duration.ofSeconds(30));
+        Duration.ofSeconds(30), false);
   }
 
   @Test
@@ -66,9 +67,69 @@ class HttpMarketplaceArtifactFetcherTest {
     var target = Files.createTempFile("fetcher-test-", ".jar");
     try {
       var fetcher = config("http://127.0.0.1:" + server.getAddress().getPort())
-          .marketplaceArtifactFetcher(Duration.ofSeconds(30));
+          .marketplaceArtifactFetcher(Duration.ofSeconds(30), null);
 
       fetcher.fetch("http://127.0.0.1:" + server.getAddress().getPort() + "/artifact", target);
+
+      assertArrayEquals(JAR, Files.readAllBytes(target));
+    } finally {
+      Files.deleteIfExists(target);
+      server.stop(0);
+    }
+  }
+
+  /**
+   * The checksum that would catch a substituted artifact runs only once every byte is on disk, and
+   * the download follows redirects, so the host answering last is not necessarily the registry. An
+   * unbounded body could fill the filesystem before anything rejected it — and a full filesystem
+   * is not one failed install, it is every request the service is serving.
+   */
+  @Test
+  void bodyLargerThanTheBoundIsRefusedInsteadOfWritten() throws IOException {
+    var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    server.createContext("/artifact", exchange -> {
+      // chunked, with no Content-Length to reject it by: the size is only knowable while reading
+      exchange.sendResponseHeaders(200, 0);
+      try (var body = exchange.getResponseBody()) {
+        for (var i = 0; i < 64; i++) {
+          body.write(new byte[1024]);
+        }
+      }
+      exchange.close();
+    });
+    server.start();
+    var target = Files.createTempFile("fetcher-test-", ".jar");
+    try {
+      var url = "http://127.0.0.1:" + server.getAddress().getPort() + "/artifact";
+      var fetcher = config(url).marketplaceArtifactFetcher(Duration.ofSeconds(30), 4096L);
+
+      var failure = assertThrows(RegistryProtocolException.class, () -> fetcher.fetch(url, target));
+
+      assertTrue(failure.getMessage().contains("4096"), failure.getMessage());
+      // nothing partial is left behind: it would hand the install path a truncated jar, and keep
+      // the disk space that was the problem to begin with
+      assertFalse(Files.exists(target));
+    } finally {
+      Files.deleteIfExists(target);
+      server.stop(0);
+    }
+  }
+
+  @Test
+  void bodyInsideTheBoundIsWrittenWhole() throws IOException {
+    var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    server.createContext("/artifact", exchange -> {
+      exchange.sendResponseHeaders(200, JAR.length);
+      exchange.getResponseBody().write(JAR);
+      exchange.close();
+    });
+    server.start();
+    var target = Files.createTempFile("fetcher-test-", ".jar");
+    try {
+      var url = "http://127.0.0.1:" + server.getAddress().getPort() + "/artifact";
+      var fetcher = config(url).marketplaceArtifactFetcher(Duration.ofSeconds(30), 4096L);
+
+      fetcher.fetch(url, target);
 
       assertArrayEquals(JAR, Files.readAllBytes(target));
     } finally {
@@ -92,7 +153,7 @@ class HttpMarketplaceArtifactFetcherTest {
     var target = Files.createTempFile("fetcher-test-", ".jar");
     try {
       var fetcher = config("http://127.0.0.1:" + server.getAddress().getPort())
-          .marketplaceArtifactFetcher(Duration.ofSeconds(30));
+          .marketplaceArtifactFetcher(Duration.ofSeconds(30), null);
 
       // The CDN answered, just uselessly: that is the CDN's fault, not the network's.
       assertThrows(RegistryProtocolException.class, () -> fetcher.fetch(
@@ -107,12 +168,12 @@ class HttpMarketplaceArtifactFetcherTest {
   }
 
   @Test
-  void aDownloadThatStallsFailsAsAnUnreachableHostRatherThanHangingTheCaller() throws IOException {
+  void downloadThatStallsFailsAsAnUnreachableHostRatherThanHangingTheCaller() throws IOException {
     try (var blackHole = new ServerSocket(0)) {
       var target = Files.createTempFile("fetcher-test-", ".jar");
       try {
         var fetcher = config("http://127.0.0.1:" + blackHole.getLocalPort())
-            .marketplaceArtifactFetcher(Duration.ofSeconds(30));
+            .marketplaceArtifactFetcher(Duration.ofSeconds(30), null);
 
         assertTimeoutPreemptively(Duration.ofSeconds(15), () -> {
           var thrown = assertThrows(RegistryUnreachableException.class, () -> fetcher.fetch(

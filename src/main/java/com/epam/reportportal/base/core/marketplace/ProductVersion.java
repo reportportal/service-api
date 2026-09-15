@@ -40,6 +40,11 @@ public class ProductVersion {
 
   private final String version;
 
+  /**
+   * Reads the release this instance runs.
+   *
+   * @param version the configured release, blank when the instance was never told which it runs
+   */
   public ProductVersion(@Value("${rp.product.version:}") String version) {
     this.version = StringUtils.trimToNull(version);
   }
@@ -57,6 +62,7 @@ public class ProductVersion {
     return version != null;
   }
 
+  /** The release this instance reports, or null when it does not know. */
   public String value() {
     return version;
   }

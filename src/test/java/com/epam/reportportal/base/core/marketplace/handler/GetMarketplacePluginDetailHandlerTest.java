@@ -30,8 +30,8 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
-import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
+import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryNotFoundException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryResponseException;
@@ -40,11 +40,11 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAdvisory;
 import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
-import com.epam.reportportal.base.model.marketplace.detail.MarketplaceVersionResource;
 import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
 import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
+import com.epam.reportportal.base.model.marketplace.detail.MarketplaceVersionResource;
 import com.google.common.base.Ticker;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
@@ -91,7 +91,7 @@ class GetMarketplacePluginDetailHandlerTest {
   }
 
   @Test
-  void theRegistrysViewOfAPublishedPluginIsWhatThePageGets() {
+  void theRegistrysViewOfThePublishedPluginIsWhatThePageGets() {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.5.2", WHEN, true, WHEN, "Signed with a revoked key",
@@ -190,7 +190,7 @@ class GetMarketplacePluginDetailHandlerTest {
   }
 
   @Test
-  void aChangelogThatCouldNotBeReadLeavesTheBlockOutRatherThanFailingThePage() {
+  void changelogThatCouldNotBeReadLeavesTheBlockOutRatherThanFailingThePage() {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.getVersion("jira", "1.6.0")).thenReturn(version("jira", "1.6.0", null, false,
         "https://cdn.rp.io/jira/1.6.0/CHANGELOG.md", null));
@@ -204,7 +204,7 @@ class GetMarketplacePluginDetailHandlerTest {
   }
 
   @Test
-  void aVersionHistoryThatCouldNotBeReadIsEmptyRatherThanNull() {
+  void versionHistoryThatCouldNotBeReadIsEmptyRatherThanNull() {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira"))
         .thenThrow(new RegistryResponseException(500, "internal", "boom"));
@@ -216,7 +216,7 @@ class GetMarketplacePluginDetailHandlerTest {
   }
 
   @Test
-  void aRemovedPluginIsAnswered200WithItsTombstoneRatherThanAsNotFound() {
+  void removedPluginIsAnswered200WithItsTombstoneRatherThanAsNotFound() {
     // The plugin is gone from the marketplace and still running here. 404 would say the opposite
     // of both halves, and the page has to be able to say both.
     when(client.getPlugin("jira")).thenThrow(
@@ -238,7 +238,7 @@ class GetMarketplacePluginDetailHandlerTest {
   }
 
   @Test
-  void aPluginTheRegistryDoesNotKnowIsNotFound() {
+  void pluginTheRegistryDoesNotKnowIsNotFound() {
     when(client.getPlugin("nope"))
         .thenThrow(new RegistryNotFoundException("nope", null, "not_found", "Plugin not found"));
 
@@ -253,7 +253,7 @@ class GetMarketplacePluginDetailHandlerTest {
    * marketplace as a whole is unavailable when it is not.
    */
   @Test
-  void aRegistryThatAnsweredButRefusedIsAnErrorAboutTheRegistryNotAboutTheHost() {
+  void registryThatAnsweredButRefusedIsAnErrorAboutTheRegistryNotAboutTheHost() {
     when(client.getPlugin("jira"))
         .thenThrow(new RegistryResponseException(503, "unavailable", "maintenance"));
 
@@ -263,7 +263,7 @@ class GetMarketplacePluginDetailHandlerTest {
   }
 
   @Test
-  void aPremiumPluginIsLockedUntilThisInstanceHasALicence() {
+  void premiumPluginIsLockedUntilThisInstanceIsLicensed() {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "premium"));
 
     assertTrue(handler.getPluginDetail("jira").locked());
@@ -293,7 +293,7 @@ class GetMarketplacePluginDetailHandlerTest {
    * offer an install this service is about to refuse.
    */
   @Test
-  void aVersionRowSaysCompatibleIncompatibleOrNeitherOfThem() {
+  void versionRowSaysCompatibleIncompatibleOrNeitherOfThem() {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
@@ -357,7 +357,7 @@ class GetMarketplacePluginDetailHandlerTest {
    * 500 where a list of the versions that did arrive would do.
    */
   @Test
-  void aNullEntryCostsItselfAndNotTheWholeListing() {
+  void nullEntryCostsItselfAndNotTheWholeListing() {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     var versions = new java.util.ArrayList<MarketplaceVersionSummary>();
     versions.add(null);

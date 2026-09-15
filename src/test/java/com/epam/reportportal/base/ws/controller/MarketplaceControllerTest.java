@@ -30,17 +30,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
-import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
+import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
+import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.epam.reportportal.base.core.marketplace.exception.PluginRemovedException;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.util.List;
@@ -126,7 +126,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
 
   /** A blank one is not a version either: an empty string is refused like an absent field. */
   @Test
-  void anInstallWithABlankVersionIsRefusedBeforeTheHandlerRuns() throws Exception {
+  void anInstallWithBlankVersionIsRefusedBeforeTheHandlerRuns() throws Exception {
     mockMvc.perform(post("/v1/plugins/slack/install")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"version\":\"   \"}")
@@ -140,7 +140,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
   // exist, a registry that answered unusably, and a registry that did not answer at all.
 
   @Test
-  void aVersionTheRegistryDoesNotHaveIsNotFound() throws Exception {
+  void versionTheRegistryDoesNotHaveIsNotFound() throws Exception {
     when(installMarketplacePluginHandler.install(eq("slack"), any(), any())).thenThrow(
         new ReportPortalException(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND,
             "version '9.9.9' of plugin 'slack' is not in the registry at 'registry.test'"));
@@ -154,7 +154,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void aRegistryThatAnsweredUnusablyIsABadGateway() throws Exception {
+  void registryThatAnsweredUnusablyIsBadGateway() throws Exception {
     when(installMarketplacePluginHandler.install(eq("slack"), any(), any())).thenThrow(
         new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_ERROR,
             "Unreadable artifact response for 'slack:2.0.0'"));
@@ -167,7 +167,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void aRegistryThatCannotBeReachedIsServiceUnavailable() throws Exception {
+  void registryThatCannotBeReachedIsServiceUnavailable() throws Exception {
     when(installMarketplacePluginHandler.install(eq("slack"), any(), any())).thenThrow(
         new ReportPortalException(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE,
             "Marketplace registry at 'registry.test' is unreachable: connect timed out"));
@@ -263,7 +263,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
    * and unlocked the moment they do — not when a catalogue cache happens to expire.
    */
   @Test
-  void aPremiumPluginIsLockedUntilCredentialsAreSetAndUnlockedAfterwards() throws Exception {
+  void premiumPluginIsLockedUntilCredentialsAreSetAndUnlockedAfterwards() throws Exception {
     when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
     // getCatalogue takes (category, q): a unique q keeps this test off the shared catalogue cache.
     when(marketplaceClient.getCatalogue(any(), eq("locked-probe"))).thenReturn(List.of(
@@ -346,7 +346,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
    * as signing for nobody.
    */
   @Test
-  void aLicenceWithABlankCustomerIdIsRefusedBeforeAnythingIsStored() throws Exception {
+  void licenceWithBlankCustomerIdIsRefusedBeforeAnythingIsStored() throws Exception {
     // Deleting first is idempotent and makes "nothing was stored" mean something wherever this
     // test lands in the order.
     mockMvc.perform(delete("/v1/plugins/licence").with(token(oAuthHelper.getSuperadminToken())))
@@ -363,7 +363,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void aKeyThatIsNotAnEd25519KeyIsRefusedWhileTheAdminIsStillLookingAtIt() throws Exception {
+  void keyThatIsNotAnEd25519KeyIsRefusedWhileTheAdminIsStillLookingAtIt() throws Exception {
     mockMvc.perform(put("/v1/plugins/licence")
             .contentType(MediaType.APPLICATION_JSON)
             .content(licenceBody("acme-gmbh", "bm90LWEta2V5"))
@@ -386,8 +386,9 @@ class MarketplaceControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.registry.host").value("offline.reportportal.test"))
         .andExpect(jsonPath("$.available").isEmpty());
   }
+
   @Test
-  void aPluginsMarketplacePageIsReadableByAnyAuthenticatedUser() throws Exception {
+  void pluginsMarketplacePageIsReadableByAnyAuthenticatedUser() throws Exception {
     when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
     when(marketplaceClient.getPlugin("detail-jira")).thenReturn(
         new MarketplacePluginDetail("detail-jira", "Jira", "1.6.0", "Tracks issues", null, null,
@@ -425,7 +426,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
   }
 
   @Test
-  void aPluginsMarketplacePageIsNotReadableWithoutAuthentication() throws Exception {
+  void pluginsMarketplacePageIsNotReadableWithoutAuthentication() throws Exception {
     mockMvc.perform(get("/v1/plugins/detail-anon")).andExpect(status().isUnauthorized());
   }
 
@@ -434,7 +435,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
    * registry's 410 arrives as state on a 200 rather than as a 404.
    */
   @Test
-  void aRemovedPluginIsServedAsRemovedRatherThanAsNotFound() throws Exception {
+  void removedPluginIsServedAsRemovedRatherThanAsNotFound() throws Exception {
     when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
     when(marketplaceClient.getPlugin("detail-gone")).thenThrow(new PluginRemovedException(
         "detail-gone", "Vendor withdrew it", Instant.parse("2026-01-05T12:00:00Z"),

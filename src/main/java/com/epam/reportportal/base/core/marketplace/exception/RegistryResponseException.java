@@ -26,11 +26,26 @@ public class RegistryResponseException extends MarketplaceException {
   private final String registryCode;
   private final String registryMessage;
 
+  /**
+   * The registry answered with a status nothing more specific applies to.
+   *
+   * @param status          the HTTP status it answered with
+   * @param registryCode    the {@code code} field of the error body, null when it carried none
+   * @param registryMessage the {@code message} field of the error body, null when none
+   */
   public RegistryResponseException(int status, String registryCode, String registryMessage) {
     this(defaultMessage(status, registryCode, registryMessage), status, registryCode,
         registryMessage);
   }
 
+  /**
+   * For a subtype that knows what the status means and can say it in its own words.
+   *
+   * @param message         what to report instead of the generic status line
+   * @param status          the HTTP status the registry answered with
+   * @param registryCode    the {@code code} field of the error body, null when it carried none
+   * @param registryMessage the {@code message} field of the error body, null when none
+   */
   protected RegistryResponseException(String message, int status, String registryCode,
       String registryMessage) {
     super(message);

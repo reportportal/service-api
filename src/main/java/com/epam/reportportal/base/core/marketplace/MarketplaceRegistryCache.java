@@ -122,11 +122,13 @@ public class MarketplaceRegistryCache {
   public record RegistryPlugin(MarketplacePluginDetail detail, PluginTombstoneBody tombstone,
                                boolean notFound) {
 
+    /** Whether the registry answered with a tombstone rather than a plugin. */
     public boolean removed() {
       return tombstone != null;
     }
   }
 
+  /** The registry host, for a message that has to name which one is down. */
   public String registryHost() {
     return client.registryHost();
   }

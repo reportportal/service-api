@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.configs;
 
+import com.epam.reportportal.base.core.marketplace.CredentialTransport;
 import com.epam.reportportal.base.core.marketplace.DeadlineHttpRequestFactory;
 import com.epam.reportportal.base.core.marketplace.HttpMarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
@@ -54,6 +55,7 @@ import org.springframework.web.client.RestTemplate;
 public class MarketplaceConfig {
 
   private final String registryUrl;
+  private final boolean allowInsecureTransport;
   private final Duration connectTimeout;
   private final Duration readTimeout;
   private final Duration requestDeadline;
@@ -74,13 +76,19 @@ public class MarketplaceConfig {
    * @param connectTimeout  TCP connect timeout
    * @param readTimeout     socket read timeout, bounding a single read
    * @param requestDeadline whole-exchange deadline, bounding all reads together
+   * @param allowInsecureTransport permits a credential over plain HTTP to a non-loopback registry,
+   *     for an in-cluster registry on a trusted network. Off by default, and off is the only
+   *     setting that is safe on an untrusted path.
    */
   public MarketplaceConfig(
       @Value("${marketplace.registry.url:https://marketplace.reportportal.io}") String registryUrl,
       @Value("${marketplace.client.connect-timeout:PT3S}") Duration connectTimeout,
       @Value("${marketplace.client.read-timeout:PT15S}") Duration readTimeout,
-      @Value("${marketplace.client.request-deadline:PT30S}") Duration requestDeadline) {
+      @Value("${marketplace.client.request-deadline:PT30S}") Duration requestDeadline,
+      @Value("${marketplace.registry.allow-insecure-transport:false}")
+      boolean allowInsecureTransport) {
     this.registryUrl = registryUrl;
+    this.allowInsecureTransport = allowInsecureTransport;
     this.connectTimeout = connectTimeout;
     this.readTimeout = readTimeout;
     this.requestDeadline = requestDeadline;
@@ -98,6 +106,7 @@ public class MarketplaceConfig {
     }
   }
 
+  /** The registry base URL every marketplace request is built onto. */
   public String registryUrl() {
     return registryUrl;
   }
@@ -150,11 +159,13 @@ public class MarketplaceConfig {
     return restTemplate;
   }
 
+  /** The marketplace client, wired with the transport policy this instance is configured for. */
   @Bean
   public MarketplaceClient marketplaceClient(
       @Qualifier("marketplaceRestTemplate") RestTemplate marketplaceRestTemplate,
       MarketplaceInstanceId instanceId) {
-    return new MarketplaceClient(marketplaceRestTemplate, registryUrl, instanceId);
+    return new MarketplaceClient(marketplaceRestTemplate, registryUrl, instanceId,
+        new CredentialTransport(allowInsecureTransport));
   }
 
   /**
@@ -186,10 +197,12 @@ public class MarketplaceConfig {
    */
   @Bean
   public MarketplaceArtifactFetcher marketplaceArtifactFetcher(
-      @Value("${marketplace.client.download-deadline:PT5M}") Duration downloadDeadline) {
+      @Value("${marketplace.client.download-deadline:PT5M}") Duration downloadDeadline,
+      @Value("${marketplace.client.max-artifact-bytes:#{null}}") Long maxArtifactBytes) {
     var restTemplate = new RestTemplate(List.of(new ByteArrayHttpMessageConverter()));
     restTemplate.setRequestFactory(
         new DeadlineHttpRequestFactory(downloadHttpClient(), downloadDeadline, deadlineWatchdog));
-    return new HttpMarketplaceArtifactFetcher(restTemplate);
+    return new HttpMarketplaceArtifactFetcher(restTemplate, maxArtifactBytes == null
+        ? HttpMarketplaceArtifactFetcher.DEFAULT_MAX_ARTIFACT_BYTES : maxArtifactBytes);
   }
 }

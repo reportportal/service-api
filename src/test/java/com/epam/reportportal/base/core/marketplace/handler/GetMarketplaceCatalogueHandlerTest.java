@@ -40,8 +40,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Integr
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAdvisory;
-import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
+import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
@@ -207,7 +207,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aPersistedRegistryIdTheRegistryNoLongerKnowsIsNotDowngradedToANameGuess() {
+  void persistedRegistryIdTheRegistryNoLongerKnowsIsNotDowngradedToTheNameGuess() {
     // The persisted id was written by the install path — hard evidence of where this plugin came
     // from. A pf4jId name match is a guess. When the id no longer resolves we cannot verify
     // anything about this plugin, and saying so beats naming a different registry entry as its
@@ -227,7 +227,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void unmatchedInstalledPluginIsReturnedWithoutAMarketplaceBlock() {
+  void unmatchedInstalledPluginIsReturnedWithoutTheMarketplaceBlock() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(3L, "homegrown", IntegrationGroupEnum.OTHER, "0.1.0", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of());
@@ -420,7 +420,7 @@ class GetMarketplaceCatalogueHandlerTest {
    * never set {@code rp.product.version} — the one case where nothing is known about anything.
    */
   @Test
-  void anUndecidedVerdictIsAbsentRatherThanARefusal() {
+  void anUndecidedVerdictIsAbsentRatherThanRefused() {
     handler = newHandler(new ProductVersion(""));
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenReturn(List.of(
@@ -430,7 +430,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aVerdictIsWithheldWhenTheRegistryDeclaredNoRangeForTheLatestVersion() {
+  void verdictIsWithheldWhenTheRegistryDeclaredNoRangeForTheLatestVersion() {
     // an entry published before the registry recorded the range: nobody answered, so neither does
     // this, and a row must not read that silence as a refusal
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
@@ -532,7 +532,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aDeadRegistryIsNotProbedOnEveryPageView() {
+  void deadRegistryIsNotProbedOnEveryPageView() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenThrow(new RegistryUnreachableException(
         "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
@@ -584,7 +584,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void theInstanceSaysWhetherAJarMayBeUploadedByHand() {
+  void theInstanceSaysWhetherJarUploadByHandIsAllowed() {
     // Not a registry fact and not a permission: the capability is switched off by environment,
     // and the page then leaves the control out rather than drawing a disabled one. It is
     // reported separately from the registry because the two fail independently — manual upload
@@ -619,7 +619,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aCategoryNobodyRecognisesNarrowsToNothingRatherThanWidensToEverything() {
+  void categoryNobodyRecognisesNarrowsToNothingRatherThanWidensToEverything() {
     // A filter that is not understood must not quietly become "no filter". It reaches the
     // registry untouched, which knows no such category either, and the page comes back empty.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
@@ -648,7 +648,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aFilteredOutInstalledPluginIsStillNotOfferedAsAvailable() {
+  void filteredOutInstalledPluginIsStillNotOfferedAsAvailable() {
     // Filtering decides what is shown, never what is installed. The local group and the registry
     // category are two independent declarations and can disagree, so a category filter can hide
     // the installed row while the registry still returns its entry.
@@ -665,7 +665,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aRegistryThatAnsweredOneFilterBadlyIsStillAskedAboutAnother() {
+  void registryThatAnsweredOneFilterBadlyIsStillAskedAboutAnother() {
     // The registry answered, so it is up; the refusal is about this request, not about the host.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, "jira"))
@@ -678,7 +678,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aDeadHostIsNotProbedAgainForEveryFilterTheUserTypes() {
+  void deadHostIsNotProbedAgainForEveryFilterTheUserTypes() {
     // Each probe of an unreachable host costs the whole request deadline, so keying that verdict
     // by filter lets a user pay it once per keystroke.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
@@ -695,7 +695,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aRecoveredRegistryIsProbedAgainOnceTheOfflineVerdictExpires() {
+  void recoveredRegistryIsProbedAgainOnceTheOfflineVerdictExpires() {
     // A suppression that never lapses is strictly worse than probing: "down" becomes permanent.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null))
@@ -716,7 +716,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aCataloguePageIsNotRebuiltFromTheRegistryUntilItsOwnTtlExpires() {
+  void cataloguePageIsNotRebuiltFromTheRegistryUntilItsOwnTtlExpires() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenReturn(List.of());
 
@@ -732,7 +732,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aFailingVersionDetailIsNotRefetchedOnEveryPageView() {
+  void failingVersionDetailIsNotRefetchedOnEveryPageView() {
     // The catalogue is served but the version route is not, so without a negative cache this
     // costs one probe per pending-update plugin per page view.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
@@ -753,7 +753,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aFailingVersionDetailIsRetriedOnceTheNegativeVerdictExpires() {
+  void failingVersionDetailIsRetriedOnceTheNegativeVerdictExpires() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
@@ -810,6 +810,7 @@ class GetMarketplaceCatalogueHandlerTest {
     assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("jira", null).registry().status());
     verify(client, never()).getCatalogue(null, "jira");
   }
+
   private static MarketplaceVersionDetail advisedVersion(String id, String version,
       MarketplaceAdvisory advisory, boolean blocked, Instant blockedAt, String blockReason) {
     return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
@@ -880,7 +881,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aPluginTheRegistryRemovedIsSaidToBeRemovedRatherThanLeftBlank() {
+  void pluginTheRegistryRemovedIsSaidToBeRemovedRatherThanLeftBlank() {
     // Removal is how a plugin leaves the catalogue, so the id no longer matches anything. Leaving
     // the row blank would make it indistinguishable from an offline registry, and the user must be
     // told the difference: this one keeps running here but can never be updated again.
@@ -903,7 +904,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aPluginMissingFromTheCatalogueForAnyOtherReasonIsStillLeftBlank() {
+  void pluginMissingFromTheCatalogueForAnyOtherReasonIsStillLeftBlank() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(9L, "jira", IntegrationGroupEnum.BTS, "1.4.1", "still-there")));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
@@ -916,7 +917,7 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aPluginThatIsOnlyOnOfferCostsNoVersionCall() {
+  void pluginThatIsOnlyOnOfferCostsNoVersionCall() {
     // The registry publishes hundreds of plugins and this data lives on version detail; asking per
     // listed plugin would turn one page view into one registry request per catalogue entry.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());

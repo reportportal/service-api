@@ -20,16 +20,12 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceAdvisory;
 import java.time.Instant;
 
 /**
- * One row of a plugin's version history. Ordering is not promised — the registry publishes an
- * order of its own and the page sorts.
+ * One row of a plugin's version history, which is one row of the versions table. Ordering is not
+ * promised — the registry publishes an order of its own and the page sorts.
  *
  * @param version     published version
  * @param publishedAt when the registry published it, null when it carried no date
  * @param blocked     whether the registry refuses to serve this version any more
- */
-/**
- * One row of the versions table.
- *
  * @param compatible whether this version runs on the release this instance reports. {@code null}
  *                   is the third answer and not a missing one: the version declares no range, or
  *                   the range cannot be read, or the instance does not know its own release. A

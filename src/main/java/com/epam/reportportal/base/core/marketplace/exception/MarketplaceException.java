@@ -22,10 +22,21 @@ package com.epam.reportportal.base.core.marketplace.exception;
  */
 public abstract class MarketplaceException extends RuntimeException {
 
+  /**
+   * Creates a failure with nothing underneath it.
+   *
+   * @param message what went wrong, in terms a log reader can act on
+   */
   protected MarketplaceException(String message) {
     super(message);
   }
 
+  /**
+   * Creates a failure that wraps the one underneath it.
+   *
+   * @param message what went wrong, in terms a log reader can act on
+   * @param cause   the failure underneath, kept so the stack trace still names it
+   */
   protected MarketplaceException(String message, Throwable cause) {
     super(message, cause);
   }

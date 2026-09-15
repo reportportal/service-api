@@ -24,6 +24,12 @@ public class RegistryUnreachableException extends MarketplaceException {
 
   private final String host;
 
+  /**
+   * Creates a failure naming the host nobody could talk to.
+   *
+   * @param host  the registry host that could not be reached, named so an operator knows which
+   * @param cause the DNS, connect or read failure underneath
+   */
   public RegistryUnreachableException(String host, Throwable cause) {
     super("Marketplace registry at '" + host + "' is unreachable: " + cause.getMessage(), cause);
     this.host = host;

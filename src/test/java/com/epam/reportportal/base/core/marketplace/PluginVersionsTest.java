@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.marketplace;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -49,7 +50,7 @@ class PluginVersionsTest {
   }
 
   @Test
-  void aPreReleaseSortsBelowTheReleaseItPrecedes() {
+  void preReleaseSortsBelowTheReleaseItPrecedes() {
     assertTrue(PluginVersions.compare("2.0.0-rc1", "2.0.0") < 0);
     assertTrue(PluginVersions.compare("2.0.0", "2.0.0-rc1") > 0);
     // Only against its own numbers: it is still an ancestor of everything below it.
@@ -57,9 +58,55 @@ class PluginVersionsTest {
   }
 
   @Test
-  void twoPreReleasesOnTheSameNumbersAreOrderedLexically() {
+  void twoPreReleasesOnTheSameNumbersAreOrderedBySemverRules() {
     assertTrue(PluginVersions.compare("2.0.0-rc1", "2.0.0-rc2") < 0);
     assertEquals(0, PluginVersions.compare("2.0.0-rc1", "2.0.0-rc1"));
+  }
+
+  /**
+   * The tenth release candidate is above the second. Comparing the suffix as one string put it
+   * below, because '1' sorts before '2' — and that is not merely untidy ordering: an update is
+   * offered only when the latest version compares above the installed one, so a plugin on
+   * {@code rc.10} was read as already ahead of {@code rc.2} and the newer build was never offered.
+   */
+  @Test
+  void numericPreReleaseIdentifierIsComparedAsNumber() {
+    assertTrue(PluginVersions.compare("2.0.0-rc.10", "2.0.0-rc.2") > 0);
+    assertTrue(PluginVersions.compare("2.0.0-rc.2", "2.0.0-rc.10") < 0);
+    assertTrue(PluginVersions.compare("1.0.0-2", "1.0.0-10") < 0);
+  }
+
+  @Test
+  void numericIdentifierRanksBelowAnAlphanumericOne() {
+    // semver 11.4.3: '1.0.0-1' is an earlier stage than '1.0.0-alpha', not a later one
+    assertTrue(PluginVersions.compare("1.0.0-1", "1.0.0-alpha") < 0);
+    assertTrue(PluginVersions.compare("1.0.0-alpha", "1.0.0-1") > 0);
+  }
+
+  @Test
+  void shorterRunOfOtherwiseEqualIdentifiersSortsBelowLongerOne() {
+    // semver 11.4.4: everything '1.0.0-alpha' says, '1.0.0-alpha.1' says and then some
+    assertTrue(PluginVersions.compare("1.0.0-alpha", "1.0.0-alpha.1") < 0);
+    assertTrue(PluginVersions.compare("1.0.0-alpha.1", "1.0.0-alpha") > 0);
+  }
+
+  @Test
+  void theOrderSemverItselfPublishesHolds() {
+    // the worked example from the specification, 11.4
+    var ascending = List.of("1.0.0-alpha", "1.0.0-alpha.1", "1.0.0-alpha.beta", "1.0.0-beta",
+        "1.0.0-beta.2", "1.0.0-beta.11", "1.0.0-rc.1", "1.0.0");
+
+    for (var i = 0; i < ascending.size() - 1; i++) {
+      var lower = ascending.get(i);
+      var higher = ascending.get(i + 1);
+      assertTrue(PluginVersions.compare(lower, higher) < 0,
+          () -> lower + " should sort below " + higher);
+    }
+  }
+
+  @Test
+  void preReleaseIdentifierTooLargeForTheLongStillOrders() {
+    assertTrue(PluginVersions.compare("1.0.0-rc.99999999999999999999", "1.0.0-rc.2") > 0);
   }
 
   @Test
@@ -72,7 +119,7 @@ class PluginVersionsTest {
   }
 
   @Test
-  void aSegmentTooLargeForALongStillOrders() {
+  void segmentTooLargeForTheLongStillOrders() {
     // Twenty digits overflow a long. Parsing one would throw out of the plugins page instead of
     // deciding a version order, and the registry chooses these strings, not us.
     assertTrue(PluginVersions.compare("99999999999999999999", "25.2") > 0);

@@ -207,7 +207,7 @@ class InstallMarketplacePluginHandlerTest {
     registryServes(version("public", ">=25.1", sha256(JAR), false, null));
     publicPluginAt("https://cdn.example/jira-1.4.2.jar");
     downloads(TAMPERED);
-    var target = ArgumentCaptor.forClass(Path.class);
+    final var target = ArgumentCaptor.forClass(Path.class);
 
     var thrown = install();
 
@@ -357,7 +357,7 @@ class InstallMarketplacePluginHandlerTest {
 
   /** A reason the registry does give is reported as itself, not flattened back into all four. */
   @Test
-  void aRejectionTheRegistryDidExplainIsReportedAsWhatItSaid() {
+  void rejectionTheRegistryDidExplainIsReportedAsWhatItSaid() {
     registryServes(version("premium", ">=25.1", sha256(JAR), false, null));
     when(licence.signArtifactToken(PLUGIN_ID)).thenReturn(Optional.of("signed.jwt"));
     when(client.resolveArtifact(eq(PLUGIN_ID), eq("1.4.2"), any())).thenThrow(
@@ -376,7 +376,7 @@ class InstallMarketplacePluginHandlerTest {
    * {@link MarketplaceLicence}, which cannot catch an install that presents a token nobody signed.
    */
   @Test
-  void premiumInstallPresentsATokenTheRegistryCanVerify() throws Exception {
+  void premiumInstallPresentsTokenTheRegistryCanVerify() throws Exception {
     var keyPair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
     var pkcs8 = keyPair.getPrivate().getEncoded();
     var seed = Base64.getEncoder()
@@ -548,7 +548,7 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void aNotFoundTheRegistryDidNotAttributeNamesBoth() {
+  void notFoundTheRegistryDidNotAttributeNamesBoth() {
     when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(
         new RegistryNotFoundException(PLUGIN_ID, "1.4.2", "NOT_FOUND",
             "Plugin or version not found"));
@@ -560,7 +560,7 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void aGarbledRegistryAnswerIsTheRegistrysFaultNotTheNetworks() {
+  void garbledRegistryAnswerIsTheRegistrysFaultNotTheNetworks() {
     registryServes(version("public", ">=25.1", sha256(JAR), false, null));
     when(client.resolveArtifact(eq(PLUGIN_ID), eq("1.4.2"), any())).thenThrow(
         new RegistryProtocolException("Unreadable artifact response for 'jira:1.4.2'"));
@@ -572,7 +572,7 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void aCdnThatRefusesTheDownloadIsTheRegistrysFaultNotTheNetworks() {
+  void cdnThatRefusesTheDownloadIsTheRegistrysFaultNotTheNetworks() {
     registryServes(version("public", ">=25.1", sha256(JAR), false, null));
     publicPluginAt("https://cdn.example/jira-1.4.2.jar");
     org.mockito.Mockito.doThrow(new RegistryProtocolException(
@@ -586,7 +586,7 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void aRegistryStatusNobodyCanActOnIsReportedAsTheRegistryAnsweringUnusably() {
+  void registryStatusNobodyCanActOnIsReportedAsTheRegistryAnsweringUnusably() {
     when(client.getVersion(PLUGIN_ID, "1.4.2")).thenThrow(
         new RegistryResponseException(500, "INTERNAL_ERROR", "boom"));
 
@@ -638,7 +638,7 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void aDownloadThatCannotBeCompletedNeverReachesPf4jAndLeavesNoPartialFile() {
+  void downloadThatCannotBeCompletedNeverReachesPf4jAndLeavesNoPartialFile() {
     registryServes(version("public", ">=25.1", sha256(JAR), false, null));
     publicPluginAt("https://cdn.example/jira-1.4.2.jar");
     org.mockito.Mockito.doThrow(new RegistryUnreachableException("cdn.example",
@@ -657,7 +657,7 @@ class InstallMarketplacePluginHandlerTest {
   // --- what the loader throws -------------------------------------------------------------------
 
   @Test
-  void aPluginBuiltAgainstAnotherReportPortalIsRefusedInPlainWords() {
+  void pluginBuiltAgainstAnotherReportPortalIsRefusedInPlainWords() {
     // Real case: a 5.7.0 plugin installed into a build that renamed com.epam.ta.reportportal to
     // com.epam.reportportal.base. PF4J resolves it, starts it, and dies instantiating the
     // extension class. NoClassDefFoundError is an Error, so a catch of RuntimeException let it
@@ -681,7 +681,7 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void anOutOfMemoryErrorIsNotReportedAsABadPlugin() {
+  void anOutOfMemoryErrorIsNotReportedAsBadPlugin() {
     // Only LinkageError is a statement about the jar. Everything else in the Error hierarchy is
     // about the JVM, and dressing it up as "this plugin is broken" would send an operator to
     // debug the wrong thing entirely.
@@ -701,7 +701,7 @@ class InstallMarketplacePluginHandlerTest {
     registryServes(version("public", ">=25.1, <26.0", sha256(JAR), false, null));
     publicPluginAt("https://cdn.example/jira-1.4.2.jar");
 
-    var result = handler().install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user);
+    final var result = handler().install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user);
 
     verify(pluginBox, times(1)).uploadPlugin(anyString(), any(InputStream.class));
     assertArrayEquals(JAR, uploaded);
@@ -761,7 +761,7 @@ class InstallMarketplacePluginHandlerTest {
   // --- what the caller is allowed to ask for ----------------------------------------------------
 
   @Test
-  void aVersionThatCouldEscapeThePluginDirectoryIsRefusedBeforeAnyRegistryCall() {
+  void versionThatCouldEscapeThePluginDirectoryIsRefusedBeforeAnyRegistryCall() {
     var thrown = assertThrows(ReportPortalException.class,
         () -> handler().install(PLUGIN_ID, new MarketplaceInstallRQ("../../../etc/passwd"), user));
 
@@ -771,7 +771,7 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
-  void aRegistryIdThatCouldEscapeThePluginDirectoryIsRefusedBeforeAnyRegistryCall() {
+  void registryIdThatCouldEscapeThePluginDirectoryIsRefusedBeforeAnyRegistryCall() {
     var thrown = assertThrows(ReportPortalException.class,
         () -> handler().install("../evil", new MarketplaceInstallRQ("1.4.2"), user));
 

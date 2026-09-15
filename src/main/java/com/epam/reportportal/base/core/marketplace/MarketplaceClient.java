@@ -70,6 +70,7 @@ public class MarketplaceClient {
   private final String registryUrl;
   private final String registryHost;
   private final MarketplaceInstanceId instanceId;
+  private final CredentialTransport transport;
 
   /**
    * Creates a client that reports no instance id — analytics off.
@@ -82,17 +83,31 @@ public class MarketplaceClient {
   }
 
   /**
+   * A client that will not put a credential on a plaintext connection to a remote host.
+   *
+   * @param restTemplate the marketplace-only template, with its own timeouts
+   * @param registryUrl  registry base URL
+   * @param instanceId   the opaque id sent with an artifact request, or empty when opted out
+   */
+  public MarketplaceClient(RestTemplate restTemplate, String registryUrl,
+      MarketplaceInstanceId instanceId) {
+    this(restTemplate, registryUrl, instanceId, new CredentialTransport(false));
+  }
+
+  /**
    * Creates a client.
    *
    * @param restTemplate the marketplace-only template, with its own timeouts
    * @param registryUrl  registry base URL, e.g. {@code https://marketplace.reportportal.io}
    * @param instanceId   the opaque id sent with an artifact request, or empty when opted out
+   * @param transport    whether this registry URL may carry a credential
    */
   public MarketplaceClient(RestTemplate restTemplate, String registryUrl,
-      MarketplaceInstanceId instanceId) {
+      MarketplaceInstanceId instanceId, CredentialTransport transport) {
     this.restTemplate = restTemplate;
     this.registryUrl = registryUrl;
     this.instanceId = instanceId;
+    this.transport = transport;
     this.registryHost = Optional.ofNullable(URI.create(registryUrl).getHost()).orElse(registryUrl);
   }
 
@@ -172,6 +187,12 @@ public class MarketplaceClient {
         .build().encode().toUri();
     var headers = new HttpHeaders();
     if (StringUtils.isNotBlank(licenceJwt)) {
+      // the JWT is a bearer credential: anything on the path can read it off a plaintext
+      // connection and replay it, so refuse the request rather than send it and hope
+      if (!transport.permits(registryUrl)) {
+        throw new RegistryProtocolException(
+            CredentialTransport.refusal("the marketplace licence", registryUrl));
+      }
       headers.setBearerAuth(licenceJwt);
     }
     // Only here. Browse, list and detail go without it, and the download that follows this call
@@ -205,6 +226,15 @@ public class MarketplaceClient {
     if (artifact.downloadUrl() == null) {
       throw new RegistryProtocolException("Marketplace registry returned no download URL for '"
           + pluginId + ":" + version + "'");
+    }
+    // A signed URL is a bearer credential with an expiry: whoever reads it off the wire can fetch
+    // the artifact until it lapses. Only the premium answer is signed — a public plugin's URL is
+    // not a secret, and what it fetches is verified against the SHA-256 the registry published
+    // before anything is installed, so refusing plaintext there would ground every public install
+    // behind an in-cluster CDN while protecting nothing.
+    if (StringUtils.isNotBlank(licenceJwt) && !transport.permits(artifact.downloadUrl())) {
+      throw new RegistryProtocolException(
+          CredentialTransport.refusal("a signed artifact URL", artifact.downloadUrl()));
     }
     return artifact;
   }

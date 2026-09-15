@@ -18,9 +18,9 @@ package com.epam.reportportal.base.core.marketplace.handler;
 
 import com.epam.reportportal.base.core.marketplace.CompatibilityRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
-import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
 import com.epam.reportportal.base.core.marketplace.MarketplaceState;
+import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
@@ -60,6 +60,8 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
   private final ProductVersion productVersion;
 
   /**
+   * Creates the handler that answers a plugin's detail page.
+   *
    * @param registry       the registry, read through the cache that shields it from a page refresh
    * @param licence        this instance's marketplace credentials, which decide whether a premium
    *                       plugin is locked

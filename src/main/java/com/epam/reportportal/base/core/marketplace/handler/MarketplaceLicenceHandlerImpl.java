@@ -43,6 +43,11 @@ public class MarketplaceLicenceHandlerImpl implements MarketplaceLicenceHandler 
 
   private final MarketplaceLicenceStore store;
 
+  /**
+   * Creates the handler that reads and replaces this instance's marketplace credentials.
+   *
+   * @param store where the licence key is kept, and the only place it is readable from
+   */
   public MarketplaceLicenceHandlerImpl(MarketplaceLicenceStore store) {
     this.store = store;
   }

@@ -54,7 +54,7 @@ class MarketplaceConfigTest {
   @Test
   void connectAndReadTimeoutsAreApplied() {
     var config = new MarketplaceConfig("http://registry.internal",
-        Duration.ofSeconds(3), Duration.ofSeconds(15), Duration.ofSeconds(30));
+        Duration.ofSeconds(3), Duration.ofSeconds(15), Duration.ofSeconds(30), false);
 
     var connectionConfig = config.connectionConfig();
 
@@ -63,11 +63,11 @@ class MarketplaceConfigTest {
   }
 
   @Test
-  void readTimeoutStopsAStalledRegistryFromHangingTheCaller() throws IOException {
+  void readTimeoutStopsTheStalledRegistryFromHangingTheCaller() throws IOException {
     // Accepts the connection, then never answers.
     try (var blackHole = new ServerSocket(0)) {
       var config = new MarketplaceConfig("http://127.0.0.1:" + blackHole.getLocalPort(),
-          Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30));
+          Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30), false);
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
@@ -98,7 +98,7 @@ class MarketplaceConfigTest {
     server.start();
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
-          Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30));
+          Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30), false);
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
@@ -137,7 +137,7 @@ class MarketplaceConfigTest {
     server.start();
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
-          Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500));
+          Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500), false);
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
@@ -180,7 +180,7 @@ class MarketplaceConfigTest {
       dripper.start();
       try {
         var config = new MarketplaceConfig("http://127.0.0.1:" + server.getLocalPort(),
-            Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500));
+            Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500), false);
         var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
         assertTimeoutPreemptively(Duration.ofSeconds(5), () ->
@@ -214,7 +214,7 @@ class MarketplaceConfigTest {
     server.start();
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
-          Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(700));
+          Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(700), false);
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       assertEquals(1, client.getCatalogue(null, null).size());
@@ -248,7 +248,7 @@ class MarketplaceConfigTest {
     server.start();
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
-          Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30));
+          Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30), false);
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
 
       var artifact = client.resolveArtifact("jira", "1.4.2", null);
@@ -274,7 +274,7 @@ class MarketplaceConfigTest {
     server.start();
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
-          Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30));
+          Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30), false);
       var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
       assertEquals(1, client.getCatalogue(null, null).size());
       var pool = (PoolingHttpClientConnectionManager)

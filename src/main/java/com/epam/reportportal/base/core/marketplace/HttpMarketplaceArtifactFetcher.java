@@ -18,11 +18,14 @@ package com.epam.reportportal.base.core.marketplace;
 
 import com.epam.reportportal.base.core.marketplace.exception.RegistryProtocolException;
 import com.epam.reportportal.base.core.marketplace.exception.RegistryUnreachableException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.springframework.http.HttpMethod;
@@ -36,10 +39,37 @@ import org.springframework.web.client.RestTemplate;
  */
 public class HttpMarketplaceArtifactFetcher implements MarketplaceArtifactFetcher {
 
-  private final RestTemplate restTemplate;
+  /**
+   * What the registry itself refuses to accept: a publish bundle over 160 MiB is rejected at
+   * upload (registry {@code handlers_plugins.go}, {@code http.MaxBytesReader(nil, r.Body,
+   * 160&lt;&lt;20)}), so nothing larger can have been published and anything larger arriving here
+   * did not come from a registry behaving as one.
+   */
+  public static final long DEFAULT_MAX_ARTIFACT_BYTES = 160L << 20;
 
+  private static final int BUFFER_BYTES = 8192;
+
+  private final RestTemplate restTemplate;
+  private final long maxArtifactBytes;
+
+  /**
+   * A fetcher bounded by what the registry itself will publish.
+   *
+   * @param restTemplate the download template, with its own longer deadline
+   */
   public HttpMarketplaceArtifactFetcher(RestTemplate restTemplate) {
+    this(restTemplate, DEFAULT_MAX_ARTIFACT_BYTES);
+  }
+
+  /**
+   * Creates a fetcher.
+   *
+   * @param restTemplate     the download template, with its own longer deadline
+   * @param maxArtifactBytes the most that may be written to disk for one artifact
+   */
+  public HttpMarketplaceArtifactFetcher(RestTemplate restTemplate, long maxArtifactBytes) {
     this.restTemplate = restTemplate;
+    this.maxArtifactBytes = maxArtifactBytes;
   }
 
   @Override
@@ -53,7 +83,7 @@ public class HttpMarketplaceArtifactFetcher implements MarketplaceArtifactFetche
     }
     try {
       restTemplate.execute(uri, HttpMethod.GET, null, response -> {
-        Files.copy(response.getBody(), target, StandardCopyOption.REPLACE_EXISTING);
+        copyBounded(response.getBody(), target, host(uri));
         return null;
       });
     } catch (ResourceAccessException e) {
@@ -71,6 +101,46 @@ public class HttpMarketplaceArtifactFetcher implements MarketplaceArtifactFetche
       }
       throw new RegistryProtocolException(
           "Marketplace artifact could not be downloaded from '" + host(uri) + "'", e);
+    }
+  }
+
+  /**
+   * Copies the body to disk, refusing to write more than the bound.
+   *
+   * <p>The checksum that would catch a substituted artifact is verified only once the whole body
+   * is on disk, and the download follows redirects, so the host that answers last is not
+   * necessarily the registry. A response that streams for as long as the deadline allows could
+   * therefore fill the filesystem before anything had a chance to reject it — and a full
+   * filesystem is not one failed install, it is every request the service is serving.
+   *
+   * <p>A partial file is removed on the way out. Leaving one behind would hand the install path a
+   * truncated jar whose only defence is the checksum, and would keep the space that was the
+   * problem in the first place.
+   */
+  private void copyBounded(InputStream body, Path target, String host) throws IOException {
+    var written = 0L;
+    try (OutputStream out = Files.newOutputStream(target, StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+      var buffer = new byte[BUFFER_BYTES];
+      for (var read = body.read(buffer); read >= 0; read = body.read(buffer)) {
+        written += read;
+        if (written > maxArtifactBytes) {
+          throw new ArtifactTooLargeException(host, maxArtifactBytes);
+        }
+        out.write(buffer, 0, read);
+      }
+    } catch (IOException | RuntimeException e) {
+      Files.deleteIfExists(target);
+      throw e;
+    }
+  }
+
+  /** Thrown through the response extractor; {@code fetch} lets it past its own catches. */
+  private static final class ArtifactTooLargeException extends RegistryProtocolException {
+
+    private ArtifactTooLargeException(String host, long limit) {
+      super("Marketplace artifact from '" + host + "' exceeds the maximum download size of "
+          + limit + " bytes and was not written to disk");
     }
   }
 

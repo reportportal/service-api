@@ -22,12 +22,7 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * independently: an unreachable registry says nothing about whether a jar may be uploaded by
  * hand, and that path is the escape valve precisely when the registry is down.
  *
- * @param uploadAllowed whether manual .jar upload is switched on for this instance
- */
-/**
- * What this instance can do and what it is, as far as the marketplace is concerned.
- *
- * @param uploadAllowed  whether a jar may be uploaded by hand
+ * @param uploadAllowed  whether manual .jar upload is switched on for this instance
  * @param productVersion the ReportPortal release this instance reports, or null when it does not
  *                       know — {@code rp.product.version} unset. A caller shows it to explain a
  *                       compatibility verdict ("needs 26.2 or later; this instance runs 26.1"),

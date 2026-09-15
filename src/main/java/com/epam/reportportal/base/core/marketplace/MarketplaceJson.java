@@ -30,6 +30,7 @@ public final class MarketplaceJson {
   private MarketplaceJson() {
   }
 
+  /** The mapper every marketplace body is read and written with. */
   public static ObjectMapper mapper() {
     return JsonMapper.builder()
         .addModule(new JavaTimeModule())

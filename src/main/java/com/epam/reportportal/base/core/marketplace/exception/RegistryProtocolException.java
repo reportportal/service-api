@@ -22,10 +22,21 @@ package com.epam.reportportal.base.core.marketplace.exception;
  */
 public class RegistryProtocolException extends MarketplaceException {
 
+  /**
+   * Creates a breach with nothing underneath it.
+   *
+   * @param message which part of the answer could not be made sense of
+   */
   public RegistryProtocolException(String message) {
     super(message);
   }
 
+  /**
+   * Creates a breach that wraps the failure which exposed it.
+   *
+   * @param message which part of the answer could not be made sense of
+   * @param cause   the parse or transport failure underneath
+   */
   public RegistryProtocolException(String message, Throwable cause) {
     super(message, cause);
   }

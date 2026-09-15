@@ -41,8 +41,8 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Duration;
-import java.util.Optional;
 import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -57,7 +57,9 @@ import org.springframework.web.client.RestTemplate;
  */
 class MarketplaceClientTest {
 
-  private static final String BASE_URL = "http://registry.internal";
+  // https, because that is what a registry holding premium plugins must be: the licence JWT is a
+  // bearer credential and the client refuses to put one on a plaintext connection to a remote host
+  private static final String BASE_URL = "https://registry.internal";
 
   private RestTemplate restTemplate;
   private MockRestServiceServer server;
@@ -67,7 +69,7 @@ class MarketplaceClientTest {
   void setUp() {
     // Real bean wiring: the tolerant ObjectMapper and converters are under test too.
     restTemplate = new MarketplaceConfig(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(15),
-        Duration.ofSeconds(30))
+        Duration.ofSeconds(30), false)
         .marketplaceRestTemplate();
     server = MockRestServiceServer.bindTo(restTemplate).build();
     client = new MarketplaceClient(restTemplate, BASE_URL);
@@ -234,6 +236,54 @@ class MarketplaceClientTest {
     assertEquals(Instant.parse("2026-08-01T10:01:00Z"), artifact.expiresAt());
   }
 
+  /**
+   * The licence JWT is a bearer credential: anything on the path can read it off a plaintext
+   * connection and replay it until it expires. The request is refused rather than sent, and the
+   * refusal names the property that would allow it deliberately.
+   */
+  @Test
+  void theLicenceIsNeverSentOverPlaintextToTheRemoteRegistry() {
+    var plaintext = new MarketplaceClient(restTemplate, "http://registry.internal");
+
+    var refusal = assertThrows(RegistryProtocolException.class,
+        () -> plaintext.resolveArtifact("premium", "2.0.0", "licence-jwt"));
+
+    assertTrue(refusal.getMessage().contains("marketplace.registry.allow-insecure-transport"),
+        refusal.getMessage());
+    // refused before anything left this process, so the registry was never asked at all
+    server.verify();
+  }
+
+  @Test
+  void anArtifactRequestCarryingNoLicenceIsUnaffectedByTheTransportRule() {
+    // nothing to leak: a public plugin resolves and downloads over plain HTTP exactly as before
+    var plaintext = new MarketplaceClient(restTemplate, "http://registry.internal");
+    server.expect(requestTo("http://registry.internal/api/v1/plugins/jira/versions/1.4.2/artifact"))
+        .andRespond(withSuccess("{\"downloadUrl\":\"http://cdn.internal/jira-1.4.2.jar\"}",
+            MediaType.APPLICATION_JSON));
+
+    var artifact = plaintext.resolveArtifact("jira", "1.4.2", null);
+
+    server.verify();
+    assertEquals("http://cdn.internal/jira-1.4.2.jar", artifact.downloadUrl());
+  }
+
+  /**
+   * A signed URL is a bearer credential with an expiry of its own: whoever reads it off the wire
+   * can fetch the artifact until it lapses, licence header or no licence header.
+   */
+  @Test
+  void theSignedDownloadUrlOverPlaintextIsRefusedRatherThanFollowed() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/premium/versions/2.0.0/artifact"))
+        .andRespond(withSuccess(
+            "{\"downloadUrl\":\"http://cdn.rp.io/signed?exp=1\"}", MediaType.APPLICATION_JSON));
+
+    var refusal = assertThrows(RegistryProtocolException.class,
+        () -> client.resolveArtifact("premium", "2.0.0", "licence-jwt"));
+
+    assertTrue(refusal.getMessage().contains("http://cdn.rp.io/signed"), refusal.getMessage());
+  }
+
   @Test
   void blockedArtifactIsDistinguishedFromLicenceFailureByBody() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.1/artifact"))
@@ -356,7 +406,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void artifactTransportFailureStillLeavesAsATypedException() {
+  void artifactTransportFailureStillLeavesAsTypedException() {
     // The artifact route has its own catch chain; without the transport arm a raw
     // ResourceAccessException would escape the client untyped.
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.2/artifact"))
@@ -371,7 +421,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void connectionRefusedIsUnreachableNotAProtocolError() {
+  void connectionRefusedIsUnreachableNotProtocolError() {
     // A registry that is simply down fails before any byte is read, so nothing in the cause chain
     // is a timeout. It must still be reported as unreachable, not as a broken protocol.
     server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
@@ -386,7 +436,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void unknownHostIsUnreachableNotAProtocolError() {
+  void unknownHostIsUnreachableNotProtocolError() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira"))
         .andRespond(request -> {
           throw new UnknownHostException("registry.internal");
@@ -396,7 +446,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void anUnknownPluginIsItsOwnFailureNotAGenericStatus() {
+  void anUnknownPluginIsItsOwnFailureNotGenericStatus() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/absent"))
         .andRespond(withStatus(HttpStatus.NOT_FOUND)
             .contentType(MediaType.APPLICATION_JSON)
@@ -427,7 +477,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void aNotFoundTheRegistryCannotAttributeStaysUnspecified() {
+  void notFoundTheRegistryCannotAttributeStaysUnspecified() {
     // The artifact route answers "Plugin or version not found"; guessing one of the two would be
     // worse than naming both.
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/9.9.9/artifact"))
@@ -443,7 +493,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void forbiddenOnCatalogueIsNotALicenceRejection() {
+  void forbiddenOnCatalogueIsNotLicenceRejection() {
     // No licence is presented here, so a 403 is a gateway or proxy denial, not an entitlement one.
     server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
         .andRespond(withStatus(HttpStatus.FORBIDDEN)
@@ -460,7 +510,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void unauthorizedOnPluginDetailIsNotALicenceRejection() {
+  void unauthorizedOnPluginDetailIsNotLicenceRejection() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira"))
         .andRespond(withStatus(HttpStatus.UNAUTHORIZED)
             .contentType(MediaType.APPLICATION_JSON)
@@ -474,7 +524,7 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void forbiddenOnVersionListIsNotALicenceRejection() {
+  void forbiddenOnVersionListIsNotLicenceRejection() {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions"))
         .andRespond(withStatus(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON)
             .body("{\"code\":\"FORBIDDEN\",\"message\":\"Blocked by proxy\"}"));
@@ -498,8 +548,9 @@ class MarketplaceClientTest {
     assertEquals(RegistryResponseException.class, ex.getClass());
     assertEquals(500, ex.getStatus());
   }
+
   @Test
-  void aPublishedDocumentIsReadAsText() {
+  void publishedDocumentIsReadAsText() {
     server.expect(requestTo("http://cdn.internal/jira/1.6.0/CHANGELOG.md"))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess("Fixed a crash\nDropped the legacy field", MediaType.TEXT_PLAIN));
@@ -515,7 +566,7 @@ class MarketplaceClientTest {
    * worth that.
    */
   @Test
-  void aDocumentUrlThatIsNotHttpIsRefusedWithoutBeingFetched() {
+  void documentUrlThatIsNotHttpIsRefusedWithoutBeingFetched() {
     assertThrows(RegistryProtocolException.class,
         () -> client.getDocument("file:///etc/passwd"));
     server.verify();

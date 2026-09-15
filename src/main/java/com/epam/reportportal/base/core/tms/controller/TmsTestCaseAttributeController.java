@@ -1,5 +1,7 @@
 package com.epam.reportportal.base.core.tms.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.GetAttributesByTestCaseIdsRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsAttributeRS;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseAttributeService;
@@ -15,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,6 +50,7 @@ public class TmsTestCaseAttributeController {
    * @return A paginated list of unique TMS attributes.
    */
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get attributes by test case IDs",
       description = "Retrieves unique TMS attributes assigned to the specified test cases "

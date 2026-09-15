@@ -22,6 +22,8 @@ import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandl
 import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.plugin.binary.PluginFilesProvider;
+import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
+import com.epam.reportportal.base.core.marketplace.handler.InstallMarketplacePluginHandler;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.util.BinaryDataResponseWriter;
@@ -107,6 +109,15 @@ public abstract class BaseMvcTest {
 
   @MockBean
   protected CreateAuthIntegrationHandler createAuthIntegrationHandler;
+
+  // Declared here, not in MarketplaceControllerTest: the @MockBean set is part of the context
+  // cache key, so a subclass that adds its own forks the cache and starts a second
+  // EmbeddedPostgres, which fails on the port the first one already holds.
+  @MockBean
+  protected MarketplaceClient marketplaceClient;
+
+  @MockBean
+  protected InstallMarketplacePluginHandler installMarketplacePluginHandler;
 
   @Mock
   protected ReportPortalExtensionPoint extension;

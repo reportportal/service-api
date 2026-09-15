@@ -90,7 +90,7 @@ class MarketplaceLicenceHandlerImplTest {
   }
 
   @Test
-  void surroundingWhitespaceFromACopyPasteIsNotStored() {
+  void surroundingWhitespaceFromCopyPasteIsNotStored() {
     handler.setLicence(new MarketplaceLicenceRQ("  acme-gmbh ", " " + privateKey + "\n"), user);
 
     assertEquals("acme-gmbh", store.held.customerId());
@@ -102,7 +102,7 @@ class MarketplaceLicenceHandlerImplTest {
    * admin's typo into a premium install failing days later at the registry, which cannot say why.
    */
   @Test
-  void aKeyOfTheWrongLengthIsRefusedAndNothingIsStored() {
+  void keyOfTheWrongLengthIsRefusedAndNothingIsStored() {
     var thrown = assertThrows(ReportPortalException.class, () -> handler.setLicence(
         new MarketplaceLicenceRQ("acme-gmbh", Base64.getEncoder().encodeToString(new byte[7])),
         user));
@@ -112,7 +112,7 @@ class MarketplaceLicenceHandlerImplTest {
   }
 
   @Test
-  void aKeyThatIsNotBase64IsRefusedAndNothingIsStored() {
+  void keyThatIsNotBase64IsRefusedAndNothingIsStored() {
     var thrown = assertThrows(ReportPortalException.class,
         () -> handler.setLicence(new MarketplaceLicenceRQ("acme-gmbh", "not base64 at all!"),
             user));
@@ -148,7 +148,7 @@ class MarketplaceLicenceHandlerImplTest {
 
   /** The 64-byte form the registry hands out, with both halves from the same key pair. */
   @Test
-  void aGoStyleKeyWhoseHalvesBelongTogetherIsStored() throws Exception {
+  void goStyleKeyWhoseHalvesBelongTogetherIsStored() throws Exception {
     var pair = keyPair();
 
     handler.setLicence(new MarketplaceLicenceRQ("acme-gmbh", goStyleKey(pair, pair)), user);
@@ -162,7 +162,7 @@ class MarketplaceLicenceHandlerImplTest {
    * the only place the operator can be told.
    */
   @Test
-  void aKeyWhosePublicHalfDoesNotMatchItsSeedIsRefusedAsMalformed() throws Exception {
+  void keyWhosePublicHalfDoesNotMatchItsSeedIsRefusedAsMalformed() throws Exception {
     var spliced = goStyleKey(keyPair(), keyPair());
 
     var thrown = assertThrows(ReportPortalException.class,
@@ -175,7 +175,7 @@ class MarketplaceLicenceHandlerImplTest {
 
   /** A public half that is not a curve point at all is the same bad request, not a 500. */
   @Test
-  void aCorruptedPublicHalfIsRefusedRatherThanEscapingAsAServerError() throws Exception {
+  void corruptedPublicHalfIsRefusedRatherThanEscapingAsServerError() throws Exception {
     var raw = Base64.getDecoder().decode(goStyleKey(keyPair(), keyPair()));
     Arrays.fill(raw, 32, 64, (byte) 0xFF);
     var corrupted = Base64.getEncoder().encodeToString(raw);

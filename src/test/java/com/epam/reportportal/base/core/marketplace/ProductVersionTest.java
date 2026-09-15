@@ -74,14 +74,14 @@ class ProductVersionTest {
   }
 
   @Test
-  void aKnownVersionIsCheckedAgainstBothEndsOfTheRange() {
+  void knownVersionIsCheckedAgainstBothEndsOfTheRange() {
     assertTrue(new ProductVersion("25.2").satisfies(">=25.1, <26.0"));
     assertFalse(new ProductVersion("25.0").satisfies(">=25.1, <26.0"));
     assertFalse(new ProductVersion("26.0").satisfies(">=25.1, <26.0"));
   }
 
   @Test
-  void aRangeThatCannotBeReadIsUnknownCompatibilityAndIsLogged() {
+  void rangeThatCannotBeReadIsUnknownCompatibilityAndIsLogged() {
     var version = new ProductVersion("25.2");
 
     assertFalse(version.satisfies("latest"));

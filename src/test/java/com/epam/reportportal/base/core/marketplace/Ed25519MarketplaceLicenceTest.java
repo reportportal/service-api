@@ -147,7 +147,7 @@ class Ed25519MarketplaceLicenceTest {
   }
 
   @Test
-  void aSeedOnlyPrivateKeyIsAcceptedToo() {
+  void seedOnlyPrivateKeyIsAcceptedToo() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, seedOnlyPrivateKey());
 
     var token = licence().signArtifactToken(PLUGIN_ID).orElseThrow();
@@ -156,7 +156,7 @@ class Ed25519MarketplaceLicenceTest {
   }
 
   @Test
-  void aTokenSignedForOneCustomerDoesNotVerifyUnderAnotherKey() throws Exception {
+  void tokenSignedForOneCustomerDoesNotVerifyUnderAnotherKey() throws Exception {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, goStylePrivateKey());
     var somebodyElse = KeyPairGenerator.getInstance("Ed25519").generateKeyPair().getPublic();
 
@@ -185,7 +185,7 @@ class Ed25519MarketplaceLicenceTest {
    * whose clock runs a little fast must still be able to sign.
    */
   @Test
-  void issuedAtIsBackdatedSoASlightlyFastClockStillSigns() {
+  void issuedAtIsBackdatedSoSlightlyFastClockStillSigns() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, goStylePrivateKey());
 
     var claims = claims(licence().signArtifactToken(PLUGIN_ID).orElseThrow(), keyPair.getPublic());
@@ -196,7 +196,7 @@ class Ed25519MarketplaceLicenceTest {
 
   /** One instance, one plugin, a clock that moved: a cached token would come back unchanged. */
   @Test
-  void everyCallSignsAFreshTokenRatherThanReplayingTheLastOne() {
+  void everyCallSignsFreshTokenRatherThanReplayingTheLastOne() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, goStylePrivateKey());
     var now = new java.util.concurrent.atomic.AtomicReference<>(NOW);
     var licence = new Ed25519MarketplaceLicence(store, Duration.ofSeconds(60), new Clock() {
@@ -224,7 +224,7 @@ class Ed25519MarketplaceLicenceTest {
   }
 
   @Test
-  void aTokenIsScopedToTheOnePluginItWasAskedFor() {
+  void tokenIsScopedToTheOnePluginItWasAskedFor() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, goStylePrivateKey());
 
     var token = licence().signArtifactToken("rally").orElseThrow();
@@ -233,7 +233,7 @@ class Ed25519MarketplaceLicenceTest {
   }
 
   @Test
-  void aStoredKeyThatIsNotAnEd25519KeyIsReportedRatherThanSigningNonsense() {
+  void storedKeyThatIsNotAnEd25519KeyIsReportedRatherThanSigningNonsense() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER,
         Base64.getEncoder().encodeToString("far too short".getBytes(UTF_8)));
 

@@ -68,7 +68,7 @@ class CompatibilityRangeTest {
   }
 
   @Test
-  void aReleaseAboveTheUpperBoundOfAWindowIsIncompatible() {
+  void releaseAboveTheUpperBoundOfTheWindowIsIncompatible() {
     // Both ends of the flagship window must bite, or the upper bound is decoration.
     assertTrue(matches(">=25.1, <26.0", "25.2"));
     assertFalse(matches(">=25.1, <26.0", "25.0"));
@@ -85,7 +85,7 @@ class CompatibilityRangeTest {
   }
 
   @Test
-  void aBareVersionIsAPinToo() {
+  void bareVersionIsPinToo() {
     assertTrue(matches("25.5.0", "25.5.0"));
     // Missing segments are zero, so the pin still holds across an equivalent spelling.
     assertTrue(matches("25.5", "25.5.0"));
@@ -93,7 +93,7 @@ class CompatibilityRangeTest {
   }
 
   @Test
-  void aRefusalCanNameWhichBoundFailed() {
+  void refusalCanNameWhichBoundFailed() {
     // "too old" and "too new" send an operator in opposite directions, so a verdict is not enough;
     // the install error has to say which end of the window was hit.
     var window = CompatibilityRange.parse(">=25.1, <26.0").orElseThrow();
@@ -111,7 +111,7 @@ class CompatibilityRangeTest {
   }
 
   @Test
-  void aPreReleaseOfTheProductSitsBelowTheReleaseItPrecedes() {
+  void preReleaseOfTheProductSitsBelowTheReleaseItPrecedes() {
     assertFalse(matches(">=26.0", "26.0-rc1"));
     assertTrue(matches("<26.0", "26.0-rc1"));
   }
@@ -144,14 +144,14 @@ class CompatibilityRangeTest {
   }
 
   @Test
-  void aSegmentTooLargeForALongDoesNotBlowUpTheVerdict() {
+  void segmentTooLargeForTheLongDoesNotBlowUpTheVerdict() {
     // The registry writes these strings; an arithmetic failure here is a 500 on the plugins page.
     assertFalse(matches(">=99999999999999999999.0", "25.2"));
     assertTrue(matches("<99999999999999999999.0", "25.2"));
   }
 
   @Test
-  void aPathologicalRangeIsRefusedRatherThanTakingTheThreadDown() {
+  void pathologicalRangeIsRefusedRatherThanTakingTheThreadDown() {
     // This string comes from a manifest the registry serves, so it is not ours. The greedy form
     // of the version pattern nests a repetition inside a repetition, and Java backtracks through
     // that recursively — long enough input ends the thread with a StackOverflowError instead of
@@ -162,7 +162,7 @@ class CompatibilityRangeTest {
   }
 
   @Test
-  void aVersionLongerThanAnyRealOneIsNotAVersion() {
+  void versionLongerThanAnyRealOneIsNotValid() {
     var tooLong = "1." + "2".repeat(300);
 
     assertTrue(CompatibilityRange.parse(">=" + tooLong).isEmpty());

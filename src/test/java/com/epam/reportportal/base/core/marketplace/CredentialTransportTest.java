@@ -31,13 +31,13 @@ class CredentialTransportTest {
   private static final CredentialTransport PERMISSIVE = new CredentialTransport(true);
 
   @Test
-  void httpsCarriesACredential() {
+  void httpsCarriesTheCredential() {
     assertTrue(STRICT.permits("https://marketplace.reportportal.io/api/v1/plugins"));
     assertTrue(STRICT.permits("HTTPS://MARKETPLACE.REPORTPORTAL.IO"));
   }
 
   @Test
-  void plainHttpToARemoteHostDoesNot() {
+  void plainHttpToTheRemoteHostDoesNot() {
     assertFalse(STRICT.permits("http://marketplace.reportportal.io/api/v1/plugins"));
     assertFalse(STRICT.permits("http://marketplace.local/cdn/plugin.jar"));
   }
@@ -68,7 +68,7 @@ class CredentialTransportTest {
   }
 
   @Test
-  void aUrlThatCannotBeReadIsNotGuessedAt() {
+  void urlThatCannotBeReadIsNotGuessedAt() {
     assertFalse(STRICT.permits(null));
     assertFalse(STRICT.permits(""));
     assertFalse(STRICT.permits("   "));

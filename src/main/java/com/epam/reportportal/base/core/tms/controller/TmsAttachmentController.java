@@ -1,5 +1,8 @@
 package com.epam.reportportal.base.core.tms.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
 import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
@@ -49,7 +52,7 @@ public class TmsAttachmentController {
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(summary = "Upload TMS attachment",
       description = "Uploads a file as TMS attachment with TTL for temporary storage")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToEditProject')")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public UploadAttachmentRS uploadAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
       @Parameter(description = "Attachment file") @RequestParam("file") MultipartFile file,
@@ -63,7 +66,7 @@ public class TmsAttachmentController {
   @GetMapping("/{attachmentId}")
   @Operation(summary = "Download TMS attachment",
       description = "Downloads TMS attachment file by ID")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToViewProject')")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<InputStreamResource> downloadAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
       @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
@@ -92,7 +95,7 @@ public class TmsAttachmentController {
   @GetMapping("/{attachmentId}/thumbnail")
   @Operation(summary = "Download TMS attachment thumbnail",
       description = "Downloads TMS attachment thumbnail file by ID")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToViewProject')")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<InputStreamResource> downloadThumbnail(
       @Parameter(description = "Project key") @PathVariable String projectKey,
       @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
@@ -123,7 +126,7 @@ public class TmsAttachmentController {
   @DeleteMapping("/{attachmentId}")
   @Operation(summary = "Delete TMS attachment",
       description = "Deletes TMS attachment by ID")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToEditProject')")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<OperationCompletionRS> deleteAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
       @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {

@@ -1,5 +1,8 @@
 package com.epam.reportportal.base.core.tms.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
@@ -26,6 +29,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,6 +64,7 @@ public class TmsTestPlanController {
    * @return The details of the created test plan ({@link TmsTestPlanRS}).
    */
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public TmsTestPlanRS createTestPlan(@PathVariable String projectKey,
       @RequestBody TmsTestPlanRQ testPlan,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -79,6 +84,7 @@ public class TmsTestPlanController {
    * @return Paginated list of test plans matching the criteria ({@link TmsTestPlanRS}).
    */
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public Page<TmsTestPlanRS> getTestPlansByCriteria(
       @PathVariable String projectKey,
       @FilterFor(TmsTestPlan.class) Filter filter,
@@ -103,6 +109,7 @@ public class TmsTestPlanController {
    */
   @PutMapping("/{id}")
   @Deprecated
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public TmsTestPlanRS updateTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @RequestBody TmsTestPlanRQ testPlan,
@@ -123,6 +130,7 @@ public class TmsTestPlanController {
    * @return The test plan details ({@link TmsTestPlanRS}).
    */
   @GetMapping("/{id}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public TmsTestPlanRS getTestPlanById(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -140,6 +148,7 @@ public class TmsTestPlanController {
    * @param testPlanId The ID of the test plan to delete.
    */
   @DeleteMapping("/{id}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public void deleteTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -159,6 +168,7 @@ public class TmsTestPlanController {
    * @return The updated test plan details ({@link TmsTestPlanRS}).
    */
   @PatchMapping("/{id}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public TmsTestPlanRS patchTestPlan(@PathVariable String projectKey,
       @PathVariable("id") Long testPlanId,
       @RequestBody TmsTestPlanRQ updatedTestPlan,
@@ -179,6 +189,7 @@ public class TmsTestPlanController {
    * @param addRequest Request containing test case IDs to add to the test plan.
    */
   @PostMapping("/{id}/test-case/batch")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Add test cases to test plan",
       description = "Adds multiple test cases to a test plan by their IDs."
@@ -204,6 +215,7 @@ public class TmsTestPlanController {
    * @param removeRequest Request containing test case IDs to remove from the test plan.
    */
   @DeleteMapping("/{id}/test-case/batch")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Remove test cases from test plan",
       description = "Removes multiple test cases from a test plan by their IDs."
@@ -232,6 +244,7 @@ public class TmsTestPlanController {
    * @return paginated list of test cases in the test plan
    */
   @GetMapping("/{testPlanId}/test-case")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get test cases added to test plan",
       description = "Get test cases added to a test plan by its ID with pagination. "
@@ -264,6 +277,7 @@ public class TmsTestPlanController {
    * @return test case with last execution and all executions
    */
   @GetMapping("/{testPlanId}/test-case/{id}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get test case in test plan",
       description = "Get a specific test case in test plan by test case ID. "
@@ -285,6 +299,7 @@ public class TmsTestPlanController {
   }
 
   @GetMapping("/{id}/folder")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get folders where test cases added to test plan",
       description = "Gets folders where test cases added to a test plan by test plan ID."
@@ -304,6 +319,7 @@ public class TmsTestPlanController {
   }
 
   @PostMapping("/{id}/duplicate")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Duplicate test plan",
       description = "Duplicates test plan by test plan ID."
@@ -323,6 +339,7 @@ public class TmsTestPlanController {
   }
 
   @GetMapping("/name")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get test plan names",
       description = "Get a paginated list of test plan IDs and names with optional search by name or display ID."

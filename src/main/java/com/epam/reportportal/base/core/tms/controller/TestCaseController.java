@@ -1,22 +1,24 @@
 package com.epam.reportportal.base.core.tms.controller;
 
-import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
-import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForPatchTestCase;
 import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
-
+import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
@@ -33,6 +35,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,7 +74,7 @@ public class TestCaseController {
    * @param testCaseId The ID of the test case to retrieve.
    * @return A data transfer object ({@link TmsTestCaseRS}) containing details of the test case.
    */
-
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @GetMapping("/{testCaseId}")
   @Operation(
       summary = "Get a test case by ID",
@@ -99,6 +102,7 @@ public class TestCaseController {
    * @return A paginated list of data transfer objects ({@link TmsTestCaseRS}) representing test
    * cases.
    */
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @GetMapping
   @Operation(
       summary = "Get test cases for a project by criteria",
@@ -127,6 +131,7 @@ public class TestCaseController {
    *                   test case to create.
    * @return A data transfer object ({@link TmsTestCaseRS}) with details of the created test case.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @PostMapping
   @Operation(
       summary = "Create a new test case",
@@ -154,6 +159,7 @@ public class TestCaseController {
    *                   the test case.
    * @return A data transfer object ({@link TmsTestCaseRS}) with updated details of the test case.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @PutMapping("/{testCaseId}")
   @Operation(
       summary = "Update a test case",
@@ -184,6 +190,7 @@ public class TestCaseController {
    * @param inputDto   A request payload ({@link TmsTestCaseRQ}) containing the modifications.
    * @return A data transfer object ({@link TmsTestCaseRS}) with patched details of the test case.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @PatchMapping("/{testCaseId}")
   @Operation(
       summary = "Partially update a test case",
@@ -210,6 +217,7 @@ public class TestCaseController {
    * @param projectKey The key of the project to which the test case belongs.
    * @param testCaseId The ID of the test case to delete.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @DeleteMapping("/{testCaseId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -231,6 +239,7 @@ public class TestCaseController {
    * @param projectKey    The key of the project.
    * @param deleteRequest The object contains comma-separated list of test case IDs to delete.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @DeleteMapping("/batch")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -257,6 +266,7 @@ public class TestCaseController {
    * @param patchRequest Request body containing update information and comma-separated list of test
    *                     case IDs to update.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @PatchMapping("/batch")
   @Operation(
       summary = "Partially update multiple test cases",
@@ -284,6 +294,7 @@ public class TestCaseController {
    * @param testFolderName   Optional parent folder name to create.
    * @return Import result with imported test cases and errors/warnings.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
       summary = "Import test cases from CSV",
@@ -314,6 +325,7 @@ public class TestCaseController {
    * @param format             Format of the export file (JSON or CSV).
    * @param includeAttachments Whether to include attachments in the export (only for JSON format).
    */
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @GetMapping("/export")
   @Operation(
       summary = "Export test cases",
@@ -348,6 +360,7 @@ public class TestCaseController {
    * @param testCaseId    The ID of the test case.
    * @param deleteRequest Request containing attribute IDs to delete.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @DeleteMapping("/{testCaseId}/tags")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -374,6 +387,7 @@ public class TestCaseController {
    * @param projectKey   The key of the project.
    * @param patchRequest Request containing test case IDs and attribute IDs to be patched.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @PatchMapping("/attributes/batch")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -400,6 +414,7 @@ public class TestCaseController {
    * @return A list of data transfer objects ({@link TmsTestCaseRS}) containing details of the
    * duplicated test cases.
    */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @PostMapping("/batch/duplicate")
   @Operation(
       summary = "Duplicate multiple test cases",

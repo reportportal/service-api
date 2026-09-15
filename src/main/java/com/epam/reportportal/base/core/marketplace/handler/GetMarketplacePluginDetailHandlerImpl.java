@@ -148,7 +148,8 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
 
   private MarketplaceVersionResource toVersion(MarketplaceVersionSummary summary) {
     return new MarketplaceVersionResource(summary.version(), summary.publishedAt(),
-        summary.blocked(), compatible(summary), declaredRange(summary), summary.advisory());
+        summary.blocked(), summary.blockedAt(), summary.blockReason(), compatible(summary),
+        declaredRange(summary), summary.advisory());
   }
 
   /**

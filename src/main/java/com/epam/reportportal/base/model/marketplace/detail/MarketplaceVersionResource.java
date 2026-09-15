@@ -26,6 +26,11 @@ import java.time.Instant;
  * @param version     published version
  * @param publishedAt when the registry published it, null when it carried no date
  * @param blocked     whether the registry refuses to serve this version any more
+ * @param blockedAt   when the registry operator blocked it, or null. A block is an event with a
+ *                    date, and the row says when rather than merely that.
+ * @param blockReason why the operator blocked it, verbatim, or null when they gave none. This is
+ *                    the one part of a block a reader cannot infer, so it travels rather than
+ *                    being summarised away.
  * @param compatible whether this version runs on the release this instance reports. {@code null}
  *                   is the third answer and not a missing one: the version declares no range, or
  *                   the range cannot be read, or the instance does not know its own release. A
@@ -44,6 +49,8 @@ public record MarketplaceVersionResource(
     String version,
     Instant publishedAt,
     boolean blocked,
+    Instant blockedAt,
+    String blockReason,
     Boolean compatible,
     String requires,
     MarketplaceAdvisory advisory

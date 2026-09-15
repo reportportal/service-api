@@ -16,18 +16,25 @@
 
 package com.epam.reportportal.base.core.configs;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
 
+import java.util.Map;
 import org.apache.opendal.Operator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 
 class DataStoreConfigurationTest {
 
   private final DataStoreConfiguration config = new DataStoreConfiguration();
 
   @Test
-  @DisplayName("S3 operator successfully creates with custom endpoint for Cloudflare R2")
+  @DisplayName("S3 operator passes endpoint config when Cloudflare R2 endpoint is provided")
   void awsS3OperatorWithCloudflareR2Endpoint() {
     String accessKey = "test-access-key";
     String secretKey = "test-secret-key";
@@ -35,13 +42,26 @@ class DataStoreConfigurationTest {
     String endpoint = "https://r2.cloudflarestorage.com";
     String bucket = "test-bucket";
 
-    Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+    try (MockedStatic<Operator> operatorMock = mockStatic(Operator.class)) {
+      operatorMock.when(() -> Operator.of(eq("s3"), any(Map.class))).thenReturn(null);
 
-    assertNotNull(operator, "Operator should be created with Cloudflare R2 endpoint");
+      config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+
+      ArgumentCaptor<Map<String, String>> configCaptor = ArgumentCaptor.forClass(Map.class);
+      operatorMock.verify(() -> Operator.of(eq("s3"), configCaptor.capture()));
+
+      Map<String, String> capturedConfig = configCaptor.getValue();
+      assertEquals(endpoint, capturedConfig.get("endpoint"),
+          "Endpoint should be passed to operator configuration");
+      assertEquals(bucket, capturedConfig.get("bucket"));
+      assertEquals(region, capturedConfig.get("region"));
+      assertEquals(accessKey, capturedConfig.get("access_key_id"));
+      assertEquals(secretKey, capturedConfig.get("secret_access_key"));
+    }
   }
 
   @Test
-  @DisplayName("S3 operator successfully creates without endpoint for standard AWS S3")
+  @DisplayName("S3 operator omits endpoint config when not provided for AWS S3")
   void awsS3OperatorWithoutEndpoint() {
     String accessKey = "test-access-key";
     String secretKey = "test-secret-key";
@@ -49,13 +69,24 @@ class DataStoreConfigurationTest {
     String endpoint = "";
     String bucket = "test-bucket";
 
-    Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+    try (MockedStatic<Operator> operatorMock = mockStatic(Operator.class)) {
+      operatorMock.when(() -> Operator.of(eq("s3"), any(Map.class))).thenReturn(null);
 
-    assertNotNull(operator, "Operator should be created for standard AWS S3 without endpoint");
+      config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+
+      ArgumentCaptor<Map<String, String>> configCaptor = ArgumentCaptor.forClass(Map.class);
+      operatorMock.verify(() -> Operator.of(eq("s3"), configCaptor.capture()));
+
+      Map<String, String> capturedConfig = configCaptor.getValue();
+      assertFalse(capturedConfig.containsKey("endpoint"),
+          "Endpoint should not be included when empty");
+      assertEquals(bucket, capturedConfig.get("bucket"));
+      assertEquals(region, capturedConfig.get("region"));
+    }
   }
 
   @Test
-  @DisplayName("S3 operator successfully creates with MinIO endpoint")
+  @DisplayName("S3 operator passes MinIO endpoint correctly")
   void awsS3OperatorWithMinioEndpoint() {
     String accessKey = "minioadmin";
     String secretKey = "minioadmin";
@@ -63,13 +94,22 @@ class DataStoreConfigurationTest {
     String endpoint = "https://minio.example.com:9000";
     String bucket = "reportportal";
 
-    Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+    try (MockedStatic<Operator> operatorMock = mockStatic(Operator.class)) {
+      operatorMock.when(() -> Operator.of(eq("s3"), any(Map.class))).thenReturn(null);
 
-    assertNotNull(operator, "Operator should be created with MinIO endpoint");
+      config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+
+      ArgumentCaptor<Map<String, String>> configCaptor = ArgumentCaptor.forClass(Map.class);
+      operatorMock.verify(() -> Operator.of(eq("s3"), configCaptor.capture()));
+
+      Map<String, String> capturedConfig = configCaptor.getValue();
+      assertEquals(endpoint, capturedConfig.get("endpoint"),
+          "MinIO endpoint should be passed to configuration");
+    }
   }
 
   @Test
-  @DisplayName("S3 operator works with IAM role credentials (empty key/secret)")
+  @DisplayName("S3 operator omits credentials when empty (IAM role mode)")
   void awsS3OperatorWithIamRole() {
     String accessKey = "";
     String secretKey = "";
@@ -77,13 +117,24 @@ class DataStoreConfigurationTest {
     String endpoint = "";
     String bucket = "test-bucket";
 
-    Operator operator = config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+    try (MockedStatic<Operator> operatorMock = mockStatic(Operator.class)) {
+      operatorMock.when(() -> Operator.of(eq("s3"), any(Map.class))).thenReturn(null);
 
-    assertNotNull(operator, "Operator should be created with IAM role credentials");
+      config.awsS3Operator(accessKey, secretKey, region, endpoint, bucket);
+
+      ArgumentCaptor<Map<String, String>> configCaptor = ArgumentCaptor.forClass(Map.class);
+      operatorMock.verify(() -> Operator.of(eq("s3"), configCaptor.capture()));
+
+      Map<String, String> capturedConfig = configCaptor.getValue();
+      assertFalse(capturedConfig.containsKey("access_key_id"),
+          "Credentials should not be included when empty");
+      assertFalse(capturedConfig.containsKey("secret_access_key"),
+          "Secret should not be included when empty");
+    }
   }
 
   @Test
-  @DisplayName("S3-compatible operator creates with MinIO endpoint")
+  @DisplayName("S3-compatible operator passes endpoint configuration")
   void s3CompatibleOperatorWithMinioEndpoint() {
     String accessKey = "test-access-key";
     String secretKey = "test-secret-key";
@@ -91,8 +142,17 @@ class DataStoreConfigurationTest {
     String region = "us-east-1";
     String bucket = "test-bucket";
 
-    Operator operator = config.s3CompatibleOperator(accessKey, secretKey, endpoint, region, bucket);
+    try (MockedStatic<Operator> operatorMock = mockStatic(Operator.class)) {
+      operatorMock.when(() -> Operator.of(eq("s3"), any(Map.class))).thenReturn(null);
 
-    assertNotNull(operator, "S3-compatible operator should be created with MinIO endpoint");
+      config.s3CompatibleOperator(accessKey, secretKey, endpoint, region, bucket);
+
+      ArgumentCaptor<Map<String, String>> configCaptor = ArgumentCaptor.forClass(Map.class);
+      operatorMock.verify(() -> Operator.of(eq("s3"), configCaptor.capture()));
+
+      Map<String, String> capturedConfig = configCaptor.getValue();
+      assertEquals(endpoint, capturedConfig.get("endpoint"),
+          "S3-compatible operator should include endpoint");
+    }
   }
 }

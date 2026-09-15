@@ -2,6 +2,7 @@ package com.epam.reportportal.base.infrastructure.persistence.dao.tms;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.ReportPortalRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,10 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   )
   Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId,
       @Param("id") Long id);
+
+  Optional<TmsTestCase> findByProjectIdAndExternalId(Long projectId, String externalId);
+
+  List<TmsTestCase> findByProjectIdAndExternalIdIn(Long projectId, Collection<String> externalIds);
 
   @Query("SELECT tc FROM TmsTestCase tc " +
       "LEFT JOIN FETCH tc.attributes t " +

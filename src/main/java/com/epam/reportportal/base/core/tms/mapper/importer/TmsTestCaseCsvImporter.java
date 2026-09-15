@@ -1,4 +1,3 @@
-
 package com.epam.reportportal.base.core.tms.mapper.importer;
 
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -174,6 +174,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
     return Arrays.stream(labelsCell.split(LABEL_SEPARATOR))
         .map(String::trim)
         .filter(StringUtils::isNotBlank)
+        .map(label -> label.toLowerCase(Locale.ROOT))
         .distinct()
         .map(key -> TmsTestCaseAttributeImportRQ.builder().key(key).build())
         .toList();

@@ -307,6 +307,25 @@ class TmsTestCaseCsvImporterTest {
   }
 
   @Test
+  void shouldNormalizeAndDeduplicateLabelsIgnoringCase() {
+    // Given
+    var csvContent = "summary,labels\n" +
+        "Test Case,Smoke;REGRESSION;smoke";
+    var inputStream = toInputStream(csvContent);
+
+    // When
+    var result = csvImporter.parse(inputStream);
+
+    // Then
+    assertThat(result.getTestCases()).hasSize(1);
+    var testCase = result.getTestCases().get(0);
+    assertThat(testCase.getAttributes()).hasSize(2);
+    assertThat(testCase.getAttributes())
+        .extracting("key")
+        .containsExactly("smoke", "regression");
+  }
+
+  @Test
   void shouldHandlePathWithLeadingAndTrailingSlashes() {
     // Given
     var csvContent = "summary,path\n" +

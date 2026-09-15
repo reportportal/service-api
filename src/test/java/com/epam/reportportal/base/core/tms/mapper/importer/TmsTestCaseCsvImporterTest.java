@@ -189,7 +189,7 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getName()).isEqualTo("Test Case");
     assertThat(testCase.getDescription()).isNull();
-    assertThat(testCase.getPriority()).isNull();
+    assertThat(testCase.getPriority()).isEqualTo("UNSPECIFIED");
     assertThat(testCase.getAttributes()).isEmpty();
     assertThat(testCase.getFolderPath()).isEmpty();
     assertThat(testCase.getManualScenario()).isNotNull();
@@ -401,6 +401,21 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getName()).isEqualTo("Test Case");
     assertThat(testCase.getDescription()).isEqualTo("Description");
+  }
+
+  @Test
+  void shouldDefaultPriorityToUnspecifiedWhenPriorityColumnIsAbsent() {
+    // Given
+    var csvContent = "summary\n" +
+        "Test Case";
+    var inputStream = toInputStream(csvContent);
+
+    // When
+    var result = csvImporter.parse(inputStream);
+
+    // Then
+    assertThat(result.getTestCases()).hasSize(1);
+    assertThat(result.getTestCases().get(0).getPriority()).isEqualTo("UNSPECIFIED");
   }
 
   @Test

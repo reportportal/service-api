@@ -235,7 +235,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               beforeVersion);
 
           tmsTestCaseMapper.patch(existingTestCase,
-              tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
+              tmsTestCaseMapper.convertFromPatchRQ(projectId, tmsTestCaseRQ,
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
 

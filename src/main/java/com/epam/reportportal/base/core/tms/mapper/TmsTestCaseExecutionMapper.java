@@ -31,6 +31,8 @@ import org.springframework.data.domain.Pageable;
 @Slf4j
 public abstract class TmsTestCaseExecutionMapper {
 
+  private static final String UNSPECIFIED_PRIORITY = "UNSPECIFIED";
+
   @Autowired
   private ObjectMapper objectMapper;
 
@@ -160,7 +162,11 @@ public abstract class TmsTestCaseExecutionMapper {
     execution.setName(testCase.getName());
     execution.setLaunchId(launch.getId());
     execution.setTestItem(testItem);
-    execution.setPriority(testCase.getPriority());
+    execution.setPriority(
+        testCase.getPriority() == null || testCase.getPriority().isBlank()
+            ? UNSPECIFIED_PRIORITY
+            : testCase.getPriority().trim()
+    );
     execution.setTestCaseVersionId(defaultVersionId);
     execution.setTestCaseSnapshot(snapshot);
     execution.setDisplayId(testCase.getDisplayId());

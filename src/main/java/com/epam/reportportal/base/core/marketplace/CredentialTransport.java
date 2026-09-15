@@ -46,6 +46,13 @@ public final class CredentialTransport {
 
   private final boolean allowInsecure;
 
+  /**
+   * Creates the policy this instance is configured for.
+   *
+   * @param allowInsecure whether plain HTTP to a non-loopback host may carry a credential, from
+   *     {@code marketplace.registry.allow-insecure-transport}. False everywhere it is not set on
+   *     purpose, which is the only setting safe on a path somebody else can watch.
+   */
   public CredentialTransport(boolean allowInsecure) {
     this.allowInsecure = allowInsecure;
   }

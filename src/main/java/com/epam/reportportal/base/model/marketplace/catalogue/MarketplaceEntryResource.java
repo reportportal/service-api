@@ -38,6 +38,15 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * @param tier            trust tier, e.g. {@code official}
  * @param latestVersion   latest version the registry publishes
  * @param updateAvailable newer, compatible, unblocked version, or null
+ * @param compatible      whether {@code latestVersion} runs on the release this instance reports,
+ *                        or null when that cannot be decided. This is what tells an up-to-date row
+ *                        apart from one whose update is being withheld: {@code updateAvailable} is
+ *                        null in both cases, and without this the two are identical on the wire.
+ *                        It is about the latest version, unlike {@code advisory} and
+ *                        {@code blocked}, which are about the version installed here.
+ * @param requires        the range {@code latestVersion} declares, verbatim and for display only.
+ *                        A caller shows it to explain why the update is not offered and must not
+ *                        parse it to decide anything.
  * @param advisory        advisory on the installed version, or null
  * @param blocked         block state of the installed version, or null
  * @param removed         registry tombstone, or null
@@ -52,6 +61,8 @@ public record MarketplaceEntryResource(
     String tier,
     String latestVersion,
     UpdateAvailableResource updateAvailable,
+    Boolean compatible,
+    String requires,
     MarketplaceAdvisoryResource advisory,
     MarketplaceBlockedResource blocked,
     MarketplaceRemovedResource removed,

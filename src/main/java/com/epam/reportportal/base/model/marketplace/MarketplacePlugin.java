@@ -26,6 +26,13 @@ package com.epam.reportportal.base.model.marketplace;
  * <p>{@code contactUrl} is a manifest field the listing carries too. Reading it here rather than
  * from plugin detail is what keeps the catalogue at one registry request: a page full of premium
  * entries would otherwise cost one detail fetch each just to learn where "get in touch" points.
+ *
+ * <p>{@code compatibility} is the range declared by {@code latestVersion} — that version's range,
+ * not the plugin's, which is only meaningful because the entry names which version it means. It is
+ * here for the same reason as {@code contactUrl}: a catalogue row states whether the build it
+ * offers runs on this instance, and reading that from version detail would cost one fetch per row.
+ * Null for a plugin whose latest version predates the field in the registry, and null is undecided
+ * rather than compatible.
  */
 public record MarketplacePlugin(
     String id,
@@ -37,7 +44,8 @@ public record MarketplacePlugin(
     String tier,
     String contactUrl,
     MarketplaceAuthor author,
-    String pf4jId
+    String pf4jId,
+    String compatibility
 ) {
 
 }

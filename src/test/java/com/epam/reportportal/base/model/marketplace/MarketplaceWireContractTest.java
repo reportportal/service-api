@@ -125,7 +125,7 @@ class MarketplaceWireContractTest {
 
       | File | Route | State |
       | --- | --- | --- |
-      | `catalogue.json` | `GET /v1/plugins` | registry online: installed matched, installed unmatched, installed removed, available, premium locked, advisory, blocked, update available |
+      | `catalogue.json` | `GET /v1/plugins` | registry online: installed matched, installed unmatched, installed removed, installed with an update withheld as incompatible, available, available but incompatible, premium locked, advisory, blocked, update available |
       | `catalogue-offline.json` | `GET /v1/plugins` | registry unreachable: local rows only, no marketplace block, nothing available |
       | `plugin-detail.json` | `GET /v1/plugins/{registryId}` | registry online: manifest, version history, changelog, screenshots, advisory, blocked, premium locked |
       | `plugin-detail-removed.json` | `GET /v1/plugins/{registryId}` | registry online: tombstone only — removed from the marketplace, still running here |
@@ -209,6 +209,7 @@ class MarketplaceWireContractTest {
       "instance.uploadAllowed",
       "instance.productVersion",
       "available[].author",
+      "available[].compatible",
       "available[].contactUrl",
       "available[].description",
       "available[].groupType",
@@ -216,6 +217,7 @@ class MarketplaceWireContractTest {
       "available[].latestVersion",
       "available[].locked",
       "available[].name",
+      "available[].requires",
       "available[].tier",
       "installed[].enabled",
       "installed[].groupType",
@@ -228,6 +230,7 @@ class MarketplaceWireContractTest {
       "installed[].marketplace.blocked.blockedAt",
       "installed[].marketplace.blocked.reason",
       "installed[].marketplace.blocked.version",
+      "installed[].marketplace.compatible",
       "installed[].marketplace.description",
       "installed[].marketplace.latestVersion",
       "installed[].marketplace.locked",
@@ -236,6 +239,7 @@ class MarketplaceWireContractTest {
       "installed[].marketplace.removed.removalReason",
       "installed[].marketplace.removed.removed",
       "installed[].marketplace.removed.removedBy",
+      "installed[].marketplace.requires",
       "installed[].marketplace.tier",
       "installed[].marketplace.updateAvailable.version",
       "installed[].name",
@@ -332,7 +336,7 @@ class MarketplaceWireContractTest {
         new MarketplaceEntryResource("plugin-bts-jira", "Jira Cloud",
             "Post and link Jira Cloud issues from a failed test item.", "Atlassian", "premium",
             "official",
-            "1.6.0", new UpdateAvailableResource("1.6.0"), advisory(),
+            "1.6.0", new UpdateAvailableResource("1.6.0"), true, ">=25.1", advisory(),
             new MarketplaceBlockedResource("1.5.2", WHEN, "Signed with a revoked key"), null,
             true));
   }
@@ -341,7 +345,23 @@ class MarketplaceWireContractTest {
   private static InstalledPluginResource installedClean() {
     return new InstalledPluginResource(8L, "rally", "5.0.0", true, "BTS",
         new MarketplaceEntryResource("plugin-bts-rally", "Rally", "Rally work-item integration.",
-            "Broadcom", "public", "official", "5.0.0", null, null, null, null, false));
+            "Broadcom", "public", "official", "5.0.0", null, true, ">=25.1", null, null, null,
+            false));
+  }
+
+  /**
+   * A newer version exists and is being withheld, because it does not run on this release.
+   *
+   * <p>This is the row the verdict was added for. It used to be indistinguishable from
+   * {@link #installedClean()}: {@code updateAvailable} is null in both, and nothing else on the
+   * wire said whether that meant "you are current" or "there is an update you cannot take". The
+   * instance runs 26.1 and 5.0.0 wants 26.2 or later.
+   */
+  private static InstalledPluginResource installedUpdateWithheld() {
+    return new InstalledPluginResource(11L, "sauce-labs", "4.0.0", true, "OTHER",
+        new MarketplaceEntryResource("plugin-other-sauce-labs", "Sauce Labs",
+            "Pulls a Sauce Labs session recording into a failed test item.", "Sauce Labs",
+            "public", "official", "5.0.0", null, false, ">=26.2", null, null, null, false));
   }
 
   /**
@@ -352,7 +372,7 @@ class MarketplaceWireContractTest {
   private static InstalledPluginResource installedRemoved() {
     return new InstalledPluginResource(9L, "gitlab", "2.1.0", false, "BTS",
         new MarketplaceEntryResource("plugin-bts-gitlab", null, null, null, null, null, null, null,
-            null, null, removed(), false));
+            null, null, null, null, removed(), false));
   }
 
   /**
@@ -372,11 +392,17 @@ class MarketplaceWireContractTest {
 
   private static MarketplaceCatalogueResource catalogue() {
     return new MarketplaceCatalogueResource(online(), uploadAllowed(),
-        List.of(installedMatched(), installedClean(), installedRemoved(), installedUnmatched()),
+        List.of(installedMatched(), installedClean(), installedUpdateWithheld(),
+            installedRemoved(), installedUnmatched()),
         List.of(
             new AvailablePluginResource("plugin-notify-slack", "Slack", "2.0.0",
                 "Posts a message when a launch finishes", "ReportPortal", null, "NOTIFICATION",
-                "public", "official", false),
+                "public", "official", true, ">=25.1", false),
+            // the row that used to offer a live Install and let the user find out from a server
+            // error: its latest build wants a release this instance does not run
+            new AvailablePluginResource("plugin-other-sauce-labs", "Sauce Labs", "5.0.0",
+                "Pulls a Sauce Labs session recording into a failed test item.", "Sauce Labs",
+                null, "OTHER", "public", "official", false, ">=26.2", false),
             // "official" because it is the only trust tier a registry entry can hold today: the
             // type declares official and partner (registry internal/domain/types.go:71-72), but
             // SetTier refuses everything except official, so partner is unreachable through the
@@ -384,7 +410,7 @@ class MarketplaceWireContractTest {
             // fixture is only worth having if it is a response the server could actually send.
             new AvailablePluginResource("plugin-bts-azure", "Azure DevOps", "1.2.0",
                 "Tracks issues in Azure Boards", "Microsoft", "https://reportportal.io/contact",
-                "BTS", "premium", "official", true)));
+                "BTS", "premium", "official", true, ">=25.1", true)));
   }
 
   /**
@@ -572,7 +598,7 @@ class MarketplaceWireContractTest {
    * proves only that someone ran the test, while this changes exactly when the wire changes.
    */
   private static final String CONTRACT_HASH =
-      "a85c120eb04101f5affd0d7caf2774a1459c1af4e7986abd91fd399e78555e0c";
+      "6c1c87824f86d1c08842108363b3728cf4282d1b5586d921494d9aa619f6f684";
 
   private static final String HASH_ALGORITHM =
       "SHA-256, hex, over the routes below in the order given: the route on a line of its own,"

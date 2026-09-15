@@ -128,7 +128,15 @@ class GetMarketplaceCatalogueHandlerTest {
   private static MarketplacePlugin registryPlugin(String id, String name, String latestVersion,
       String category, String access, String pf4jId) {
     return new MarketplacePlugin(id, name, latestVersion, name + " description", category, access,
-        "official", null, new MarketplaceAuthor(name + " Team", null, null), pf4jId);
+        "official", null, new MarketplaceAuthor(name + " Team", null, null), pf4jId, ">=25.1");
+  }
+
+  /** The same entry, but saying what its latest version needs — null for one that declares none. */
+  private static MarketplacePlugin registryPluginRequiring(String id, String name,
+      String latestVersion, String compatibility) {
+    return new MarketplacePlugin(id, name, latestVersion, name + " description", "bug-tracking",
+        "public", "official", null, new MarketplaceAuthor(name + " Team", null, null), id,
+        compatibility);
   }
 
   private static MarketplaceVersionDetail versionDetail(String id, String version, String range,
@@ -256,7 +264,8 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenReturn(List.of(
         new MarketplacePlugin("premium-bts", "Premium BTS", "1.0.0", "Tracker", "bug-tracking",
-            "premium", "official", "https://reportportal.io/contact", new MarketplaceAuthor("Premium BTS" + " Team", null, null), "premium-bts")));
+            "premium", "official", "https://reportportal.io/contact",
+            new MarketplaceAuthor("Premium BTS" + " Team", null, null), "premium-bts", ">=25.1")));
 
     var entry = handler.getCatalogue(null, null).available().get(0);
 
@@ -374,6 +383,99 @@ class GetMarketplaceCatalogueHandlerTest {
 
     assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
         .updateAvailable());
+  }
+
+  @Test
+  void anAvailableRowSaysWhetherTheBuildItOffersRunsHere() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("slack", "Slack", "2.0.0", ">=25.1")));
+
+    var row = handler.getCatalogue(null, null).available().get(0);
+
+    assertTrue(row.compatible());
+    assertEquals(">=25.1", row.requires());
+  }
+
+  /**
+   * The row that used to offer a live Install and leave the user to discover the refusal from a
+   * server error. The range travels beside the verdict so the row can say what the build wants,
+   * not merely that something is wrong with it.
+   */
+  @Test
+  void anAvailableRowWhoseLatestBuildDoesNotRunHereSaysSo() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("slack", "Slack", "2.0.0", ">=27.0")));
+
+    var row = handler.getCatalogue(null, null).available().get(0);
+
+    assertFalse(row.compatible());
+    assertEquals(">=27.0", row.requires());
+  }
+
+  /**
+   * Undecided is its own answer and must not arrive as a refusal. A client reading a missing
+   * verdict as "incompatible" would grey out every plugin in the catalogue on an instance that
+   * never set {@code rp.product.version} — the one case where nothing is known about anything.
+   */
+  @Test
+  void anUndecidedVerdictIsAbsentRatherThanARefusal() {
+    handler = newHandler(new ProductVersion(""));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("slack", "Slack", "2.0.0", ">=25.1")));
+
+    assertNull(handler.getCatalogue(null, null).available().get(0).compatible());
+  }
+
+  @Test
+  void aVerdictIsWithheldWhenTheRegistryDeclaredNoRangeForTheLatestVersion() {
+    // an entry published before the registry recorded the range: nobody answered, so neither does
+    // this, and a row must not read that silence as a refusal
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("slack", "Slack", "2.0.0", null)));
+
+    var row = handler.getCatalogue(null, null).available().get(0);
+
+    assertNull(row.compatible());
+    assertNull(row.requires());
+  }
+
+  /**
+   * The state an installed row could not express. {@code updateAvailable} is null whether the
+   * instance is current or the newer build simply does not run here, so until the verdict
+   * travelled the two were one row on the wire — and the second one read as "you are up to date".
+   */
+  @Test
+  void anInstalledRowTellsUpToDateApartFromAnUpdateItCannotTake() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "2.0.0", ">=27.0")));
+    when(client.getVersion("jira", "2.0.0"))
+        .thenReturn(versionDetail("jira", "2.0.0", ">=27.0", false));
+
+    var entry = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertNull(entry.updateAvailable());
+    assertFalse(entry.compatible());
+    assertEquals(">=27.0", entry.requires());
+    assertEquals("2.0.0", entry.latestVersion());
+  }
+
+  @Test
+  void anInstalledRowThatIsGenuinelyCurrentClaimsNoIncompatibility() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "1.4.2", ">=25.1")));
+
+    var entry = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertNull(entry.updateAvailable());
+    assertTrue(entry.compatible());
   }
 
   @Test

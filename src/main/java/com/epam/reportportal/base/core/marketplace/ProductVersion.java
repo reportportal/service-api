@@ -86,4 +86,26 @@ public class ProductVersion {
     }
     return parsed.get().matches(version);
   }
+
+  /**
+   * The same question as {@link #satisfies(String)}, answered for a client that has to show the
+   * answer rather than act on it.
+   *
+   * <p>{@code satisfies} folds "no" and "cannot say" together, which is right where the only
+   * outcome is whether to offer something: both mean do not offer. A client drawing a row needs
+   * them apart. "This version does not run here" earns a warning and a dead action; "nobody could
+   * decide" must not — the causes are an instance that does not know its own release, a version
+   * that declares no range, and a range that cannot be read, and marking a plugin incompatible on
+   * any of those would ground every plugin on an instance that simply never set
+   * {@code rp.product.version}.
+   *
+   * @param range a declared {@code compatibility.reportportal} range, may be null
+   * @return true or false when the question can be decided, null when it cannot
+   */
+  public Boolean verdict(String range) {
+    if (version == null || StringUtils.isBlank(range) || CompatibilityRange.parse(range).isEmpty()) {
+      return null;
+    }
+    return satisfies(range);
+  }
 }

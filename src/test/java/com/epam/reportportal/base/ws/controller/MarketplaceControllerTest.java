@@ -61,7 +61,7 @@ class MarketplaceControllerTest extends BaseMvcTest {
     when(marketplaceClient.registryHost()).thenReturn("marketplace.reportportal.io");
     when(marketplaceClient.getCatalogue(any(), any())).thenReturn(List.of(
         new MarketplacePlugin("slack", "Slack", "2.0.0", "Notifier", "notifications", "public",
-            "official", null, new MarketplaceAuthor("Slack" + " Team", null, null), "slack")));
+            "official", null, new MarketplaceAuthor("Slack" + " Team", null, null), "slack", ">=25.1")));
 
     mockMvc.perform(get("/v1/plugins").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())
@@ -268,7 +268,8 @@ class MarketplaceControllerTest extends BaseMvcTest {
     // getCatalogue takes (category, q): a unique q keeps this test off the shared catalogue cache.
     when(marketplaceClient.getCatalogue(any(), eq("locked-probe"))).thenReturn(List.of(
         new MarketplacePlugin("premium-jira", "Jira Premium", "3.0.0", "Tracker", "bug-tracking",
-            "premium", "official", "https://reportportal.io/contact", new MarketplaceAuthor("Jira Premium" + " Team", null, null), "premium-jira")));
+            "premium", "official", "https://reportportal.io/contact",
+            new MarketplaceAuthor("Jira Premium" + " Team", null, null), "premium-jira", ">=25.1")));
 
     mockMvc.perform(get("/v1/plugins?q=locked-probe").with(token(oAuthHelper.getDefaultToken())))
         .andExpect(jsonPath("$.available[0].locked").value(true))
@@ -306,7 +307,8 @@ class MarketplaceControllerTest extends BaseMvcTest {
     // A q of its own keeps this test off the catalogue cache the other tests share.
     when(marketplaceClient.getCatalogue(any(), eq("delete-probe"))).thenReturn(List.of(
         new MarketplacePlugin("premium-jira", "Jira Premium", "3.0.0", "Tracker", "bug-tracking",
-            "premium", "official", "https://reportportal.io/contact", new MarketplaceAuthor("Jira Premium" + " Team", null, null), "premium-jira")));
+            "premium", "official", "https://reportportal.io/contact",
+            new MarketplaceAuthor("Jira Premium" + " Team", null, null), "premium-jira", ">=25.1")));
     mockMvc.perform(put("/v1/plugins/licence")
             .contentType(MediaType.APPLICATION_JSON)
             .content(licenceBody("acme-gmbh", anEd25519PrivateKey()))

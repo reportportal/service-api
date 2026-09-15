@@ -271,8 +271,11 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     if (plugin == null || !plugin.removed()) {
       return null;
     }
+    // a tombstone is all that is left of this plugin: there is no catalogue entry to read a name,
+    // a latest version or a compatibility range from, and a removed plugin is not installable on
+    // any release, so the verdict is not withheld here — there is simply nothing to decide
     return new MarketplaceEntryResource(persisted, null, null, null, null, null, null, null, null,
-        null, MarketplaceState.removed(plugin.tombstone()), false);
+        null, null, null, MarketplaceState.removed(plugin.tombstone()), false);
   }
 
   /**
@@ -292,6 +295,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     return new MarketplaceEntryResource(plugin.id(), plugin.name(), plugin.description(),
         MarketplaceAuthor.nameOf(plugin.author()), plugin.access(), plugin.tier(),
         plugin.latestVersion(), updateFor(plugin, installedVersion),
+        productVersion.verdict(declaredRange(plugin)), declaredRange(plugin),
         MarketplaceState.advisory(installed), MarketplaceState.blocked(installed), null,
         locked(plugin.access()));
   }
@@ -299,13 +303,24 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   /**
    * A registry plugin offered for install. {@code contactUrl} travels with it because a locked
    * premium row offers no install, only an enquiry, and without the URL that action is drawn and
-   * does nothing.
+   * does nothing. The verdict travels with it for the same shape of reason: without it the row
+   * offers an install this instance cannot complete, and the user learns that from a server error.
    */
   private AvailablePluginResource toAvailable(MarketplacePlugin plugin) {
     return new AvailablePluginResource(plugin.id(), plugin.name(), plugin.latestVersion(),
         plugin.description(), MarketplaceAuthor.nameOf(plugin.author()), plugin.contactUrl(),
         group(plugin.category()).map(Enum::name).orElse(null),
-        plugin.access(), plugin.tier(), locked(plugin.access()));
+        plugin.access(), plugin.tier(), productVersion.verdict(declaredRange(plugin)),
+        declaredRange(plugin), locked(plugin.access()));
+  }
+
+  /**
+   * The range the plugin's latest version declares, normalised so that "declared nothing" is one
+   * value rather than two. The registry omits the field for a version published before it was
+   * recorded, and a blank string would otherwise reach the client as a requirement to display.
+   */
+  private static String declaredRange(MarketplacePlugin plugin) {
+    return StringUtils.trimToNull(plugin.compatibility());
   }
 
   private boolean locked(String access) {
@@ -316,6 +331,14 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    * An update is offered only when the latest version is newer than what is installed, runs on
    * this release, and is not blocked. Only the latest version is considered: the versions list
    * carries no compatibility, so walking down it costs one request per version.
+   *
+   * <p>The range is read from version detail, not from the listing the row's verdict uses. The two
+   * describe the same version and agree whenever both are present, but the listing omits the range
+   * for a plugin whose latest version was published before the registry recorded it, while detail
+   * still carries it — so reading the listing here would silently stop offering updates for older
+   * entries. They cannot contradict each other: a listing range exists only when it came from that
+   * version's manifest, which is the same manifest detail answers from, so a row saying "does not
+   * run here" and this method offering the update is not a reachable pair.
    */
   private UpdateAvailableResource updateFor(MarketplacePlugin plugin, String installedVersion) {
     var latest = plugin.latestVersion();

@@ -163,14 +163,7 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
   }
 
   private Boolean compatible(MarketplaceVersionSummary summary) {
-    if (!productVersion.isKnown() || summary.compatibility() == null) {
-      return null;
-    }
-    var range = summary.compatibility().reportportal();
-    if (range == null || range.isBlank() || CompatibilityRange.parse(range).isEmpty()) {
-      return null;
-    }
-    return productVersion.satisfies(range);
+    return productVersion.verdict(declaredRange(summary));
   }
 
   private static List<String> screenshots(MarketplaceVersionDetail version) {

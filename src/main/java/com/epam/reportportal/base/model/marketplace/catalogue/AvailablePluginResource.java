@@ -27,6 +27,15 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * @param groupType     integration group the registry category maps to, null when unknown
  * @param access        {@code public} or {@code premium}
  * @param tier          trust tier
+ * @param compatible    whether {@code latestVersion} runs on the release this instance reports.
+ *                      {@code null} is the third answer and not a missing one — the version
+ *                      declares no range, the range cannot be read, or the instance does not know
+ *                      its own release. A row must not mark a plugin incompatible on any of those:
+ *                      an instance that never set {@code rp.product.version} would otherwise show
+ *                      every plugin as unusable.
+ * @param requires      the range {@code latestVersion} declares, verbatim and for display only —
+ *                      "&gt;=26.2". A caller shows it to explain the verdict and must not parse it
+ *                      to decide anything; {@code compatible} is the decision, made here.
  * @param locked        premium and no licence configured on this instance
  */
 public record AvailablePluginResource(
@@ -39,6 +48,8 @@ public record AvailablePluginResource(
     String groupType,
     String access,
     String tier,
+    Boolean compatible,
+    String requires,
     boolean locked
 ) {
 

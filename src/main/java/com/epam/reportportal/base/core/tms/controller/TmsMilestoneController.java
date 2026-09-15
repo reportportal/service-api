@@ -1,16 +1,19 @@
 package com.epam.reportportal.base.core.tms.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsMilestoneRS;
 import com.epam.reportportal.base.core.tms.service.TmsMilestoneService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
-import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.ws.resolver.FilterFor;
 import com.epam.reportportal.base.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,6 +55,7 @@ public class TmsMilestoneController {
    * @return the details of the created milestone ({@link TmsMilestoneRS})
    */
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Create milestone",
       description = "Creates a new milestone in the project."
@@ -74,6 +79,7 @@ public class TmsMilestoneController {
    * @return the milestone details ({@link TmsMilestoneRS})
    */
   @GetMapping("/{id}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get milestone by ID",
       description = "Retrieves a specific milestone by its ID."
@@ -97,6 +103,7 @@ public class TmsMilestoneController {
    * @return paginated list of milestones ({@link TmsMilestoneRS})
    */
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get milestones by criteria",
       description = "Retrieves a list of milestones with pagination."
@@ -123,6 +130,7 @@ public class TmsMilestoneController {
    * @return the updated milestone details ({@link TmsMilestoneRS})
    */
   @PatchMapping("/{id}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Patch milestone",
       description = "Applies partial updates to an existing milestone."
@@ -146,6 +154,7 @@ public class TmsMilestoneController {
    * @param user        authenticated user
    */
   @DeleteMapping("/{id}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Delete milestone",
       description = "Deletes a milestone from the specified project."
@@ -169,6 +178,7 @@ public class TmsMilestoneController {
    * @param user        authenticated user
    */
   @PostMapping("/{id}/test-plan/{testPlanId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Add test plan to milestone",
       description = "Adds a test plan to a milestone by their IDs."
@@ -193,6 +203,7 @@ public class TmsMilestoneController {
    * @param user        authenticated user
    */
   @DeleteMapping("/{id}/test-plan/{testPlanId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Remove test plan from milestone",
       description = "Removes a test plan from a milestone by their IDs."
@@ -218,6 +229,7 @@ public class TmsMilestoneController {
    * @return the duplicated milestone details ({@link TmsMilestoneRS})
    */
   @PostMapping("/{id}/duplicate")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Duplicate milestone",
       description = "Duplicates an existing milestone by its ID."

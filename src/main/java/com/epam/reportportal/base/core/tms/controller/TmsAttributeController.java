@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 @RestController
 @RequestMapping("/v1/project/{projectKey}/tms/attribute")
 @RequiredArgsConstructor
@@ -46,6 +50,7 @@ public class TmsAttributeController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create TMS Attribute", description = "Creates a new TMS attribute")
   @ApiResponse(responseCode = "201", description = "TMS Attribute created successfully")
   @ApiResponse(responseCode = "400", description = "Bad request")
@@ -61,6 +66,7 @@ public class TmsAttributeController {
   }
 
   @PatchMapping("/{attributeId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Patch TMS Attribute", description = "Patch existing TMS attribute")
   @ApiResponse(responseCode = "200", description = "TMS Attribute patched successfully")
   @ApiResponse(responseCode = "400", description = "Bad request")
@@ -78,6 +84,7 @@ public class TmsAttributeController {
   }
 
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all TMS Attributes", description = "Retrieves paginated list of TMS attributes with filtering and trigram search support")
   @ApiResponse(responseCode = "200", description = "TMS Attributes retrieved successfully")
   public Page<TmsAttributeRS> getAllAttributes(
@@ -92,6 +99,7 @@ public class TmsAttributeController {
   }
 
   @GetMapping("/{attributeId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get TMS Attribute by ID", description = "Retrieves TMS attribute by its ID")
   @ApiResponse(responseCode = "200", description = "TMS Attribute retrieved successfully")
   @ApiResponse(responseCode = "404", description = "TMS Attribute not found")
@@ -106,6 +114,7 @@ public class TmsAttributeController {
   }
 
   @GetMapping("/key")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get distinct TMS Attribute keys", description = "Retrieves distinct attribute keys filtered by user input for autocomplete")
   @ApiResponse(responseCode = "200", description = "TMS Attribute keys retrieved successfully")
   public List<String> getAllKeys(
@@ -119,6 +128,7 @@ public class TmsAttributeController {
   }
 
   @GetMapping("/value")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get distinct TMS Attribute values", description = "Retrieves distinct attribute values filtered by user input for autocomplete")
   @ApiResponse(responseCode = "200", description = "TMS Attribute values retrieved successfully")
   public List<String> getAllValues(

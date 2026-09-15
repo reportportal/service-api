@@ -53,7 +53,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AuthIntegrationChangedConsumer {
 
-  private static final String QUEUE_AUTH_INTEGRATION_CHANGED = "auth.integration.changed";
   private static final String SAML_TYPE_NAME = "saml";
 
   private final IntegrationTypeRepository integrationTypeRepository;
@@ -62,11 +61,16 @@ public class AuthIntegrationChangedConsumer {
   /**
    * Handles integration create/update/delete broadcasts and triggers a local SAML reload when relevant.
    *
+   * <p>Binds an anonymous, exclusive, auto-delete queue per instance (rather than a shared named queue) so that
+   * every service-api instance gets its own copy of each broadcast - the same fanout-style pattern used by
+   * {@code PluginStateChangedConsumer}. A shared durable queue name here would make instances compete for each
+   * message instead, so only one instance in the cluster would ever reload per change.
+   *
    * @param event The integration domain event received from RabbitMQ
    */
   @RabbitListener(
       bindings = @QueueBinding(
-          value = @Queue(value = QUEUE_AUTH_INTEGRATION_CHANGED, durable = "true", autoDelete = "false"),
+          value = @Queue(autoDelete = "true", exclusive = "true"),
           exchange = @Exchange(value = "domain.events", type = ExchangeTypes.TOPIC),
           key = {"domain.IntegrationCreatedEvent", "domain.IntegrationUpdatedEvent", "domain.IntegrationDeletedEvent"}
       ), containerFactory = "rabbitListenerContainerFactory", admin = "amqpAdmin"

@@ -59,6 +59,38 @@ class LogControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void createLogForeignItemNegative() throws Exception {
+    SaveLogRQ rq = new SaveLogRQ();
+    rq.setLaunchUuid(UUID.randomUUID().toString());
+    // Item belongs to a launch under the "default_personal" project, not "superadmin_personal"
+    rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
+    rq.setLevel("ERROR");
+    rq.setMessage("log message");
+    rq.setLogTime(Instant.now());
+    mockMvc.perform(
+            post(SUPERADMIN_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getSuperadminToken()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void createLogForeignLaunchNegative() throws Exception {
+    SaveLogRQ rq = new SaveLogRQ();
+    // Launch belongs to the "default_personal" project, not "superadmin_personal"
+    rq.setLaunchUuid("45a80a5e-d73e-483a-a51f-43cc7f5111af");
+    rq.setItemUuid(UUID.randomUUID().toString());
+    rq.setLevel("ERROR");
+    rq.setMessage("log message");
+    rq.setLogTime(Instant.now());
+    mockMvc.perform(
+            post(SUPERADMIN_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getSuperadminToken()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void searchLogsNegative() throws Exception {
     SearchLogRq rq = new SearchLogRq();
     rq.setSearchMode("currentLaunch");

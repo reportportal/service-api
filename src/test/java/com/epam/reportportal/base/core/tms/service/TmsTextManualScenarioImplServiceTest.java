@@ -7,14 +7,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsTextManualScenarioMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +44,7 @@ class TmsTextManualScenarioImplServiceTest {
   private TmsManualScenario manualScenario;
   private TmsTextManualScenarioRQ textScenarioRQ;
   private TmsTextManualScenario textManualScenario;
+  private final Long projectId = 600L;
 
   @BeforeEach
   void setUp() {
@@ -70,11 +71,11 @@ class TmsTextManualScenarioImplServiceTest {
         .thenReturn(textManualScenario);
 
     // When
-    textManualScenarioService.createTmsManualScenarioImpl(manualScenario, textScenarioRQ);
+    textManualScenarioService.createTmsManualScenarioImpl(projectId, manualScenario, textScenarioRQ);
 
     // Then
     verify(tmsTextManualScenarioMapper).createTmsManualScenario(textScenarioRQ);
-    verify(tmsTextManualScenarioAttachmentService).createAttachments(textManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).createAttachments(projectId, textManualScenario, textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(textManualScenario);
 
     assertThat(manualScenario.getTextScenario()).isEqualTo(textManualScenario);
@@ -91,11 +92,12 @@ class TmsTextManualScenarioImplServiceTest {
         .thenReturn(existingTextManualScenario);
 
     // When
-    textManualScenarioService.updateTmsManualScenarioImpl(manualScenario, textScenarioRQ);
+    textManualScenarioService.updateTmsManualScenarioImpl(projectId, manualScenario, textScenarioRQ);
 
     // Then
     verify(tmsTextManualScenarioMapper).updateTmsManualScenario(existingTextManualScenario, textScenarioRQ);
-    verify(tmsTextManualScenarioAttachmentService).updateAttachments(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).updateAttachments(projectId, existingTextManualScenario,
+        textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
     verify(tmsTextManualScenarioMapper, never()).createTmsManualScenario(any());
   }
@@ -111,13 +113,13 @@ class TmsTextManualScenarioImplServiceTest {
         .thenReturn(textManualScenario);
 
     // When
-    textManualScenarioService.updateTmsManualScenarioImpl(manualScenario, textScenarioRQ);
+    textManualScenarioService.updateTmsManualScenarioImpl(projectId, manualScenario, textScenarioRQ);
 
     // Then
     verify(tmsTextManualScenarioMapper).createTmsManualScenario(textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(textManualScenario);
     verify(tmsTextManualScenarioMapper, never()).updateTmsManualScenario(any(), any());
-    verify(tmsTextManualScenarioAttachmentService, never()).updateAttachments(any(), any());
+    verify(tmsTextManualScenarioAttachmentService, never()).updateAttachments(any(), any(), any());
 
     assertThat(manualScenario.getTextScenario()).isEqualTo(textManualScenario);
     assertThat(textManualScenario.getManualScenario()).isEqualTo(manualScenario);
@@ -133,11 +135,12 @@ class TmsTextManualScenarioImplServiceTest {
         .thenReturn(existingTextManualScenario);
 
     // When
-    textManualScenarioService.patchTmsManualScenarioImpl(manualScenario, textScenarioRQ);
+    textManualScenarioService.patchTmsManualScenarioImpl(projectId, manualScenario, textScenarioRQ);
 
     // Then
     verify(tmsTextManualScenarioMapper).patchTmsManualScenario(existingTextManualScenario, textScenarioRQ);
-    verify(tmsTextManualScenarioAttachmentService).updateAttachments(existingTextManualScenario, textScenarioRQ);
+    verify(tmsTextManualScenarioAttachmentService).updateAttachments(projectId, existingTextManualScenario,
+        textScenarioRQ);
     verify(tmsTextManualScenarioRepository).save(existingTextManualScenario);
   }
 
@@ -148,11 +151,11 @@ class TmsTextManualScenarioImplServiceTest {
 
     // When & Then
     var exception = assertThrows(ReportPortalException.class, () ->
-        textManualScenarioService.patchTmsManualScenarioImpl(manualScenario, textScenarioRQ));
+        textManualScenarioService.patchTmsManualScenarioImpl(projectId, manualScenario, textScenarioRQ));
 
     assertThat(exception.getMessage()).contains("Text Manual Scenario for Manual Scenario with id");
     verify(tmsTextManualScenarioRepository, never()).save(any());
-    verify(tmsTextManualScenarioAttachmentService, never()).updateAttachments(any(), any());
+    verify(tmsTextManualScenarioAttachmentService, never()).updateAttachments(any(), any(), any());
   }
 
   @Test

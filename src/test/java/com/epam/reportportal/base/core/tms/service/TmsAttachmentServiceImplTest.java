@@ -140,7 +140,7 @@ class TmsAttachmentServiceImplTest {
 
     var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
     verify(tmsAttachmentDataStoreService).save(storageKeyCaptor.capture(), any(InputStream.class));
-    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID + "/"));
+    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID.toString()));
     assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
     verify(tmsAttachmentMapper).convertToAttachment(eq(fileId), any(), eq(file), eq(PROJECT_ID));
     verify(tmsAttachmentPersistenceService).persist(attachment);
@@ -180,7 +180,7 @@ class TmsAttachmentServiceImplTest {
 
     var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
     verify(tmsAttachmentDataStoreService).save(storageKeyCaptor.capture(), any(InputStream.class));
-    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID + "/"));
+    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID.toString()));
     assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
     verifyNoInteractions(tmsAttachmentPersistenceService);
   }
@@ -224,8 +224,8 @@ class TmsAttachmentServiceImplTest {
     var storageKeys = storageKeyCaptor.getAllValues();
     assertEquals(2, storageKeys.size());
     assertNotEquals(storageKeys.get(0), storageKeys.get(1));
-    assertTrue(storageKeys.get(0).startsWith(PROJECT_ID + "/"));
-    assertTrue(storageKeys.get(1).startsWith(OTHER_PROJECT_ID + "/"));
+    assertTrue(storageKeys.get(0).startsWith(PROJECT_ID.toString()));
+    assertTrue(storageKeys.get(1).startsWith(OTHER_PROJECT_ID.toString()));
     assertTrue(storageKeys.get(0).endsWith("_test.txt"));
     assertTrue(storageKeys.get(1).endsWith("_test.txt"));
   }

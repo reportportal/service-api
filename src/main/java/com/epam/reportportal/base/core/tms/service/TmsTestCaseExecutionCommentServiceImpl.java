@@ -9,11 +9,8 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCase
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.util.HashSet;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,15 +25,15 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
   private final TmsTestCaseExecutionCommentRepository tmsTestCaseExecutionCommentRepository;
   private final TmsTestCaseExecutionCommentAttachmentService tmsTestCaseExecutionCommentAttachmentService;
-    private final TmsTestCaseExecutionCommentMapper tmsTestCaseExecutionCommentMapper;
+  private final TmsTestCaseExecutionCommentMapper tmsTestCaseExecutionCommentMapper;
 
   @Override
   @Transactional
-  public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(TmsTestCaseExecution existingExecution,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+  public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId,
+      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Updating execution comment for execution: {}", existingExecution.getId());
 
-    if (executionCommentRQ == null) {
+    if (executionCommentRq == null) {
       log.debug("No comment data provided, removing existing comment for execution: {}",
           existingExecution.getId());
       removeExistingComment(existingExecution);
@@ -47,22 +44,21 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
 
     if (existingComment != null) {
       // Update existing comment
-      return updateExistingComment(existingComment, executionCommentRQ);
+      return updateExistingComment(projectId, existingComment, executionCommentRq);
     } else {
       // Create new comment
-      return createNewComment(existingExecution, executionCommentRQ);
+      return createNewComment(projectId, existingExecution, executionCommentRq);
     }
   }
 
   @Override
   @Transactional
-  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(TmsTestCaseExecution existingExecution,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+  public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId,
+      TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Patching execution comment for execution: {}", existingExecution.getId());
 
-    if (executionCommentRQ == null || (executionCommentRQ.getComment() == null
-        && executionCommentRQ.getAttachments() == null
-        )) {
+    if (executionCommentRq == null || (executionCommentRq.getComment() == null
+        && executionCommentRq.getAttachments() == null)) {
       log.debug("No comment data provided, removing existing comment for execution: {}",
           existingExecution.getId());
       removeExistingComment(existingExecution);
@@ -72,9 +68,9 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
     var existingComment = existingExecution.getExecutionComment();
 
     if (existingComment != null) {
-      return patchExistingComment(existingComment, executionCommentRQ);
+      return patchExistingComment(projectId, existingComment, executionCommentRq);
     } else {
-      return createNewComment(existingExecution, executionCommentRQ);
+      return createNewComment(projectId, existingExecution, executionCommentRq);
     }
   }
 
@@ -94,7 +90,7 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
   @Transactional
   public void deleteByLaunchId(Long launchId) {
     tmsTestCaseExecutionCommentAttachmentService.deleteByLaunchId(launchId);
-        tmsTestCaseExecutionCommentRepository.deleteByLaunchId(launchId);
+    tmsTestCaseExecutionCommentRepository.deleteByLaunchId(launchId);
   }
 
   @Override
@@ -102,7 +98,8 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
   public void deleteTestCaseExecutionComment(long projectId, Long launchId,
       TmsTestCaseExecution execution) {
     var executionId = execution.getId();
-    if (execution.getExecutionComment() == null || !tmsTestCaseExecutionCommentRepository.existsByExecutionId(executionId)) {
+    if (execution.getExecutionComment() == null || !tmsTestCaseExecutionCommentRepository.existsByExecutionId(
+        executionId)) {
       throw new ReportPortalException(
           NOT_FOUND,
           TEST_CASE_EXECUTION_COMMENT_IN_EXECUTION.formatted(executionId, launchId)
@@ -117,16 +114,17 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
    *
    * @return
    */
-  private TmsTestCaseExecutionCommentRS updateExistingComment(TmsTestCaseExecutionComment existingComment,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+  private TmsTestCaseExecutionCommentRS updateExistingComment(Long projectId,
+      TmsTestCaseExecutionComment existingComment,
+      TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Updating existing comment: {}", existingComment.getId());
 
     // Update comment text
-    existingComment.setComment(executionCommentRQ.getComment());
+    existingComment.setComment(executionCommentRq.getComment());
 
     // Update attachments (replace all existing with new ones)
-    tmsTestCaseExecutionCommentAttachmentService.updateAttachments(existingComment,
-        executionCommentRQ);
+    tmsTestCaseExecutionCommentAttachmentService.updateAttachments(projectId, existingComment,
+        executionCommentRq);
 
     // Save updated comment
     return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
@@ -139,17 +137,18 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
    *
    * @return
    */
-  private TmsTestCaseExecutionCommentRS patchExistingComment(TmsTestCaseExecutionComment existingComment,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+  private TmsTestCaseExecutionCommentRS patchExistingComment(Long projectId,
+      TmsTestCaseExecutionComment existingComment,
+      TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Patching existing comment: {}", existingComment.getId());
 
-    if (executionCommentRQ.getComment() != null) {
-      existingComment.setComment(executionCommentRQ.getComment());
+    if (executionCommentRq.getComment() != null) {
+      existingComment.setComment(executionCommentRq.getComment());
     }
 
-    if (executionCommentRQ.getAttachments() != null) {
-      tmsTestCaseExecutionCommentAttachmentService.updateAttachments(existingComment,
-          executionCommentRQ);
+    if (executionCommentRq.getAttachments() != null) {
+      tmsTestCaseExecutionCommentAttachmentService.updateAttachments(projectId, existingComment,
+          executionCommentRq);
     }
 
     return tmsTestCaseExecutionCommentMapper.toTmsTestCaseExecutionCommentRS(
@@ -162,20 +161,21 @@ public class TmsTestCaseExecutionCommentServiceImpl implements
    *
    * @return
    */
-  private TmsTestCaseExecutionCommentRS createNewComment(TmsTestCaseExecution existingExecution,
-      TmsTestCaseExecutionCommentRQ executionCommentRQ) {
+  private TmsTestCaseExecutionCommentRS createNewComment(Long projectId,
+      TmsTestCaseExecution existingExecution,
+      TmsTestCaseExecutionCommentRQ executionCommentRq) {
     log.debug("Creating new comment for execution: {}", existingExecution.getId());
 
     // Create new comment entity
     var newComment = tmsTestCaseExecutionCommentMapper.createTestCaseExecutionComment(
-        existingExecution, executionCommentRQ);
+        existingExecution, executionCommentRq);
 
     // Save comment first to get ID for attachments
     var savedComment = tmsTestCaseExecutionCommentRepository.save(newComment);
 
     // Create attachments
-    tmsTestCaseExecutionCommentAttachmentService.createAttachments(savedComment,
-        executionCommentRQ);
+    tmsTestCaseExecutionCommentAttachmentService.createAttachments(projectId, savedComment,
+        executionCommentRq);
 
     // Set bidirectional relationship
     existingExecution.setExecutionComment(savedComment);

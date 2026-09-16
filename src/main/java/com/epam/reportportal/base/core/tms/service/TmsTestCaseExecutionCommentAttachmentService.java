@@ -11,13 +11,13 @@ public interface TmsTestCaseExecutionCommentAttachmentService {
   /**
    * Creates attachments for execution comment.
    */
-  void createAttachments(TmsTestCaseExecutionComment comment,
+  void createAttachments(Long projectId, TmsTestCaseExecutionComment comment,
       TmsTestCaseExecutionCommentRQ commentRQ);
 
   /**
    * Updates attachments for execution comment (replaces all existing).
    */
-  void updateAttachments(TmsTestCaseExecutionComment existingComment,
+  void updateAttachments(Long projectId, TmsTestCaseExecutionComment existingComment,
       TmsTestCaseExecutionCommentRQ commentRQ);
 
   /**

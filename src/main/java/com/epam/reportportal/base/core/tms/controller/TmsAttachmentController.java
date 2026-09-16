@@ -69,11 +69,16 @@ public class TmsAttachmentController {
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<InputStreamResource> downloadAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
-      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId,
+      @AuthenticationPrincipal ReportPortalUser user) {
 
     log.debug("Downloading TMS attachment: {} for project: {}", attachmentId, projectKey);
 
-    var attachment = tmsAttachmentService.getTmsAttachment(attachmentId)
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+
+    var attachment = tmsAttachmentService.getTmsAttachment(projectId, attachmentId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
             "Attachment not found: " + attachmentId));
 
@@ -98,11 +103,16 @@ public class TmsAttachmentController {
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<InputStreamResource> downloadThumbnail(
       @Parameter(description = "Project key") @PathVariable String projectKey,
-      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId,
+      @AuthenticationPrincipal ReportPortalUser user) {
 
     log.debug("Downloading TMS attachment thumbnail: {} for project: {}", attachmentId, projectKey);
 
-    var attachment = tmsAttachmentService.getTmsAttachment(attachmentId)
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+
+    var attachment = tmsAttachmentService.getTmsAttachment(projectId, attachmentId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
             "Attachment not found: " + attachmentId));
 
@@ -129,11 +139,16 @@ public class TmsAttachmentController {
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<OperationCompletionRS> deleteAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
-      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId,
+      @AuthenticationPrincipal ReportPortalUser user) {
 
     log.debug("Deleting TMS attachment: {} for project: {}", attachmentId, projectKey);
 
-    tmsAttachmentService.deleteAttachment(attachmentId);
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+
+    tmsAttachmentService.deleteAttachment(projectId, attachmentId);
 
     return ResponseEntity.ok(new OperationCompletionRS(
         "Attachment with ID = '" + attachmentId + "' successfully deleted."));

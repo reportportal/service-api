@@ -3,9 +3,6 @@ package com.epam.reportportal.base.core.tms.service;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionCommentAttachment;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +22,8 @@ public class TmsTestCaseExecutionCommentAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void createAttachments(TmsTestCaseExecutionComment tmsTestCaseExecutionComment,
+  public void createAttachments(Long projectId,
+      TmsTestCaseExecutionComment tmsTestCaseExecutionComment,
       TmsTestCaseExecutionCommentRQ commentRQ) {
     log.debug("Creating attachments for execution tmsTestCaseExecutionComment: {}",
         tmsTestCaseExecutionComment.getId());
@@ -40,36 +38,31 @@ public class TmsTestCaseExecutionCommentAttachmentServiceImpl implements
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))
-        .collect(Collectors.toList());
+        .toList();
 
-    // Validate and get attachments
-    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds);
+    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
 
-    if (CollectionUtils.isNotEmpty(attachments)) {
-      tmsTestCaseExecutionComment.setAttachments(new HashSet<>());
+    tmsTestCaseExecutionComment.setAttachments(new HashSet<>());
 
-      attachments.forEach(attachment -> {
-        if (attachment.getExpiresAt() != null) {
-          attachment.setExpiresAt(null); // Remove TTL from attachment -> make that permanent
-        }
-        if (attachment.getExecutionComments() == null) {
-          attachment.setExecutionComments(new HashSet<>());
-        }
+    attachments.forEach(attachment -> {
+      if (attachment.getExpiresAt() != null) {
+        attachment.setExpiresAt(null); // Remove TTL from attachment -> make that permanent
+      }
+      if (attachment.getExecutionComments() == null) {
+        attachment.setExecutionComments(new HashSet<>());
+      }
 
-        tmsTestCaseExecutionComment.getAttachments().add(attachment);
-        attachment.getExecutionComments().add(tmsTestCaseExecutionComment);
-      });
+      tmsTestCaseExecutionComment.getAttachments().add(attachment);
+      attachment.getExecutionComments().add(tmsTestCaseExecutionComment);
+    });
 
-      log.debug("Created {} attachment relationships for execution tmsTestCaseExecutionComment: {}",
-          attachments.size(), tmsTestCaseExecutionComment.getId());
-    } else {
-      throw new ReportPortalException(ErrorType.NOT_FOUND, "No attachments found with such ids");
-    }
+    log.debug("Created {} attachment relationships for execution tmsTestCaseExecutionComment: {}",
+        attachments.size(), tmsTestCaseExecutionComment.getId());
   }
 
   @Override
   @Transactional
-  public void updateAttachments(TmsTestCaseExecutionComment existingComment,
+  public void updateAttachments(Long projectId, TmsTestCaseExecutionComment existingComment,
       TmsTestCaseExecutionCommentRQ commentRQ) {
     log.debug("Updating attachments for execution comment: {}", existingComment.getId());
 
@@ -83,7 +76,7 @@ public class TmsTestCaseExecutionCommentAttachmentServiceImpl implements
     }
 
     // Create new relationships
-    createAttachments(existingComment, commentRQ);
+    createAttachments(projectId, existingComment, commentRQ);
   }
 
   @Override

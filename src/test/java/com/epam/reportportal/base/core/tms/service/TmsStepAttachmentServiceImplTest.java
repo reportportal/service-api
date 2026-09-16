@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.service;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -11,11 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioAttachmentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -43,13 +44,12 @@ class TmsStepAttachmentServiceImplTest {
 
   private TmsStep step;
   private TmsStep duplicatedStep;
-  private TmsStepRQ stepRQ;
+  private TmsStepRQ stepRq;
   private TmsAttachment attachment1;
   private TmsAttachment attachment2;
   private TmsAttachment duplicatedAttachment1;
   private TmsAttachment duplicatedAttachment2;
   private List<TmsAttachment> attachments;
-  private List<TmsManualScenarioAttachmentRQ> attachmentRQs;
   private List<Long> attachmentIds;
   private Long stepId;
   private Long testCaseId;
@@ -94,28 +94,28 @@ class TmsStepAttachmentServiceImplTest {
     attachments = Arrays.asList(attachment1, attachment2);
     attachmentIds = Arrays.asList(10L, 11L);
 
-    var attachmentRQ1 = new TmsManualScenarioAttachmentRQ();
-    attachmentRQ1.setId("10");
+    var attachmentRq1 = new TmsManualScenarioAttachmentRQ();
+    attachmentRq1.setId("10");
 
-    var attachmentRQ2 = new TmsManualScenarioAttachmentRQ();
-    attachmentRQ2.setId("11");
+    var attachmentRq2 = new TmsManualScenarioAttachmentRQ();
+    attachmentRq2.setId("11");
 
-    attachmentRQs = Arrays.asList(attachmentRQ1, attachmentRQ2);
+    List<TmsManualScenarioAttachmentRQ> attachmentRqs = Arrays.asList(attachmentRq1, attachmentRq2);
 
-    stepRQ = new TmsStepRQ();
-    stepRQ.setAttachments(attachmentRQs);
+    stepRq = new TmsStepRQ();
+    stepRq.setAttachments(attachmentRqs);
   }
 
   @Test
   void createAttachments_ShouldCreateAttachments_WhenValidStepAndAttachments() {
     // Given valid step and attachments to create
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments for step
-    sut.createAttachments(step, stepRQ);
+    sut.createAttachments(projectId, step, stepRq);
 
     // Then attachments should be created and made permanent
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
 
     // Verify that step now has attachments
@@ -125,14 +125,14 @@ class TmsStepAttachmentServiceImplTest {
     assertTrue(step.getAttachments().contains(attachment2));
 
     // Verify TTL was removed from attachments
-    assertEquals(null, attachment1.getExpiresAt());
-    assertEquals(null, attachment2.getExpiresAt());
+    assertNull(attachment1.getExpiresAt());
+    assertNull(attachment2.getExpiresAt());
   }
 
   @Test
   void createAttachments_ShouldDoNothing_WhenStepRQIsNull() {
     // When creating attachments with null step RQ
-    sut.createAttachments(step, null);
+    sut.createAttachments(projectId, step, null);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -146,7 +146,7 @@ class TmsStepAttachmentServiceImplTest {
     emptyStepRQ.setAttachments(Collections.emptyList());
 
     // When creating attachments with empty list
-    sut.createAttachments(step, emptyStepRQ);
+    sut.createAttachments(projectId, step, emptyStepRQ);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -160,7 +160,7 @@ class TmsStepAttachmentServiceImplTest {
     nullAttachmentsStepRQ.setAttachments(null);
 
     // When creating attachments with null list
-    sut.createAttachments(step, nullAttachmentsStepRQ);
+    sut.createAttachments(projectId, step, nullAttachmentsStepRQ);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsAttachmentService);
@@ -170,13 +170,13 @@ class TmsStepAttachmentServiceImplTest {
   @Test
   void createAttachments_ShouldDoNothing_WhenNoAttachmentsFound() {
     // Given attachment service returns empty list
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(Collections.emptyList());
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(Collections.emptyList());
 
     // When creating attachments but none exist
-    sut.createAttachments(step, stepRQ);
+    sut.createAttachments(projectId, step, stepRq);
 
     // Then only validation should occur but no save operations
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService, never()).saveAll(anyList());
   }
 
@@ -185,13 +185,13 @@ class TmsStepAttachmentServiceImplTest {
     // Given one attachment without TTL
     attachment1.setExpiresAt(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments
-    sut.createAttachments(step, stepRQ);
+    sut.createAttachments(projectId, step, stepRq);
 
     // Then should not throw exception and process normally
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
     assertNotNull(step.getAttachments());
   }
@@ -202,13 +202,13 @@ class TmsStepAttachmentServiceImplTest {
     attachment1.setSteps(null);
     attachment2.setSteps(null);
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds)).thenReturn(attachments);
 
     // When creating attachments
-    sut.createAttachments(step, stepRQ);
+    sut.createAttachments(projectId, step, stepRq);
 
     // Then steps sets should be initialized
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(attachmentIds);
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, attachmentIds);
     verify(tmsAttachmentService).saveAll(attachments);
     assertNotNull(attachment1.getSteps());
     assertNotNull(attachment2.getSteps());
@@ -443,21 +443,21 @@ class TmsStepAttachmentServiceImplTest {
     var attachmentRQ = new TmsManualScenarioAttachmentRQ();
     attachmentRQ.setId("123");
 
-    var stepRQWithIds = new TmsStepRQ();
-    stepRQWithIds.setAttachments(List.of(attachmentRQ));
+    var stepRqWithIds = new TmsStepRQ();
+    stepRqWithIds.setAttachments(List.of(attachmentRQ));
 
     var expectedAttachment = new TmsAttachment();
     expectedAttachment.setId(123L);
     expectedAttachment.setSteps(new HashSet<>());
 
-    when(tmsAttachmentService.getTmsAttachmentsByIds(List.of(123L)))
+    when(tmsAttachmentService.findAvailableAttachments(projectId, List.of(123L)))
         .thenReturn(List.of(expectedAttachment));
 
     // When creating attachments with string IDs
-    sut.createAttachments(step, stepRQWithIds);
+    sut.createAttachments(projectId, step, stepRqWithIds);
 
     // Then string IDs should be converted to Long and used correctly
-    verify(tmsAttachmentService).getTmsAttachmentsByIds(List.of(123L));
+    verify(tmsAttachmentService).findAvailableAttachments(projectId, List.of(123L));
     verify(tmsAttachmentService).saveAll(List.of(expectedAttachment));
   }
 }

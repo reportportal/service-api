@@ -21,14 +21,12 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO
 import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils.normalizeId;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
-import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.epam.reportportal.base.core.jasper.GetJasperReportHandler;
 import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.preference.GetPreferenceHandler;
 import com.epam.reportportal.base.core.preference.UpdatePreferenceHandler;
-import com.epam.reportportal.base.core.project.CreateProjectHandler;
 import com.epam.reportportal.base.core.project.DeleteProjectHandler;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.core.project.GetProjectInfoHandler;
@@ -44,11 +42,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.DeleteBulkRS;
-import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.preference.PreferenceResource;
 import com.epam.reportportal.base.model.project.AssignUsersRQ;
-import com.epam.reportportal.base.model.project.CreateProjectRQ;
 import com.epam.reportportal.base.model.project.ProjectInfoResource;
 import com.epam.reportportal.base.model.project.ProjectResource;
 import com.epam.reportportal.base.model.project.UnassignUsersRQ;
@@ -82,7 +78,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -104,7 +99,6 @@ public class ProjectController {
   private final ProjectExtractor projectExtractor;
   private final GetProjectHandler getProjectHandler;
   private final GetProjectInfoHandler projectInfoHandler;
-  private final CreateProjectHandler createProjectHandler;
   private final UpdateProjectHandler updateProjectHandler;
   private final DeleteProjectHandler deleteProjectHandler;
   private final GetUserHandler getUserHandler;
@@ -114,7 +108,7 @@ public class ProjectController {
 
   @Autowired
   public ProjectController(ProjectExtractor projectExtractor, GetProjectHandler getProjectHandler,
-      GetProjectInfoHandler projectInfoHandler, CreateProjectHandler createProjectHandler,
+      GetProjectInfoHandler projectInfoHandler,
       UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
       GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
       UpdatePreferenceHandler updatePreference, @Qualifier("projectJasperReportHandler")
@@ -122,23 +116,12 @@ public class ProjectController {
     this.projectExtractor = projectExtractor;
     this.getProjectHandler = getProjectHandler;
     this.projectInfoHandler = projectInfoHandler;
-    this.createProjectHandler = createProjectHandler;
     this.updateProjectHandler = updateProjectHandler;
     this.deleteProjectHandler = deleteProjectHandler;
     this.getUserHandler = getUserHandler;
     this.getPreference = getPreference;
     this.updatePreference = updatePreference;
     this.jasperReportHandler = jasperReportHandler;
-  }
-
-  @Transactional
-  @PostMapping
-  @ResponseStatus(CREATED)
-  @Operation(summary = "Create new project")
-  @Deprecated
-  public EntryCreatedRS createProject(@RequestBody @Validated CreateProjectRQ createProjectRQ,
-      @AuthenticationPrincipal ReportPortalUser user) {
-    return createProjectHandler.createProject(createProjectRQ, user);
   }
 
   @Transactional

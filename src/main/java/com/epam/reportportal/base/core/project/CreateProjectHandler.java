@@ -16,11 +16,8 @@
 
 package com.epam.reportportal.base.core.project;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
-import com.epam.reportportal.base.model.EntryCreatedRS;
-import com.epam.reportportal.base.model.project.CreateProjectRQ;
 
 /**
  * Create {@link Project} request handler
@@ -28,15 +25,6 @@ import com.epam.reportportal.base.model.project.CreateProjectRQ;
  * @author Hanna_Sukhadolava
  */
 public interface CreateProjectHandler {
-
-  /**
-   * Create new project
-   *
-   * @param createProjectRQ Request Data
-   * @param user            ReportPortal User
-   * @return Response data
-   */
-  EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user);
 
   Project createPersonal(User user);
 }

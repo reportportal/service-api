@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchCollectorFactory;
-import com.epam.reportportal.base.core.item.LaunchAccessValidator;
+import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -267,19 +267,12 @@ class SearchLogServiceImplTest {
 
     when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(
         1L, 1L, "1", LogLevel.ERROR_INT
-    )).thenReturn(Lists.newArrayList("message"));
+    )).thenReturn(Collections.emptyList());
 
     SearchLogRq searchLogRq = new SearchLogRq();
     searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());
     searchLogRq.setFilterId(1L);
 
-    try {
-      searchLogService.search(1L, searchLogRq, membershipDetails);
-    } catch (Exception e) {
-      // Expected to potentially throw if access validation fails
-    }
-
-    // Verify that launchAccessValidator.validate() was called
-    // This confirms security check is in place
+    searchLogService.search(1L, searchLogRq, membershipDetails);
   }
 }

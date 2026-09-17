@@ -33,7 +33,6 @@ import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
-import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
@@ -84,8 +83,6 @@ public class SearchLogServiceImpl implements SearchLogService {
   private static final Logger logger = LoggerFactory.getLogger(SearchLogServiceImpl.class);
 
   private final ProjectRepository projectRepository;
-
-  private final LaunchRepository launchRepository;
 
   private final TestItemRepository testItemRepository;
 

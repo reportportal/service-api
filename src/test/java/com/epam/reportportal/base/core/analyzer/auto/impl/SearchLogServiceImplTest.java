@@ -274,5 +274,7 @@ class SearchLogServiceImplTest {
     searchLogRq.setFilterId(1L);
 
     searchLogService.search(1L, searchLogRq, membershipDetails);
+
+    verify(launchAccessValidator).validate(1L, membershipDetails, null);
   }
 }

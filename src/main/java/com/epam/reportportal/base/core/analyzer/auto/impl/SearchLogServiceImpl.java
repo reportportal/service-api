@@ -29,7 +29,7 @@ import com.epam.reportportal.base.core.analyzer.auto.SearchLogService;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchLogsMode;
-import com.epam.reportportal.base.core.item.LaunchAccessValidator;
+import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
@@ -117,8 +117,6 @@ public class SearchLogServiceImpl implements SearchLogService {
           .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
       Launch launch = testItemService.getEffectiveLaunch(item);
-      launchAccessValidator.validate(launch.getId(), membershipDetails, null);
-
       logger.debug("Resolved effective launch {} for item {}", launch.getId(), itemId);
 
       expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(
@@ -127,9 +125,9 @@ public class SearchLogServiceImpl implements SearchLogService {
       return composeRequest(request, project, item, launch).map(
               searchRq -> processRequest(project.getId(), searchRq))
           .orElse(Collections.emptyList());
-    } catch (ReportPortalException e) {
-      logger.error("Search failed for item {}: {}", itemId, e.getMessage());
-      throw e;
+    } catch (ReportPortalException ex) {
+      logger.error("Search failed for item {}", itemId, ex);
+      throw ex;
     } finally {
       MDC.remove("itemId");
       MDC.remove("projectId");

@@ -91,7 +91,7 @@ class SearchLogServiceImplTest {
   private final TestItemService testItemService = mock(TestItemService.class);
 
   private final SearchLogServiceImpl searchLogService =
-      new SearchLogServiceImpl(projectRepository, launchRepository, testItemRepository, logService,
+      new SearchLogServiceImpl(projectRepository, testItemRepository, logService,
           analyzerServiceClient, searchCollectorFactory, logConverter, launchAccessValidator, testItemService);
 
   @Test

@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.analyzer.auto.impl;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Preconditions.statusIn;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.not;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
@@ -116,6 +117,10 @@ public class SearchLogServiceImpl implements SearchLogService {
       Launch launch = testItemService.getEffectiveLaunch(item);
       logger.debug("Resolved effective launch {} for item {}", launch.getId(), itemId);
 
+      expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(
+          ErrorType.FORBIDDEN_OPERATION,
+          "Launch not in user's project");
+
       expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(
           ErrorType.TEST_ITEM_IS_NOT_FINISHED);
 
@@ -199,6 +204,9 @@ public class SearchLogServiceImpl implements SearchLogService {
             itemId
         ));
     Launch launch = testItemService.getEffectiveLaunch(testItem);
+    expect(launch.getProjectId(), equalTo(projectId)).verify(
+        ErrorType.FORBIDDEN_OPERATION,
+        "Launch not in specified project");
 
     Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(
         singletonList(testItem));

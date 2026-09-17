@@ -29,6 +29,8 @@ import com.epam.reportportal.base.core.analyzer.auto.SearchLogService;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchLogsMode;
+import com.epam.reportportal.base.core.item.LaunchAccessValidator;
+import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -63,6 +65,9 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +80,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 public class SearchLogServiceImpl implements SearchLogService {
+
+  private static final Logger logger = LoggerFactory.getLogger(SearchLogServiceImpl.class);
 
   private final ProjectRepository projectRepository;
 
@@ -90,25 +97,43 @@ public class SearchLogServiceImpl implements SearchLogService {
 
   private final LogConverter logConverter;
 
+  private final LaunchAccessValidator launchAccessValidator;
+
+  private final TestItemService testItemService;
+
   @Override
   public Iterable<SearchLogRs> search(Long itemId, SearchLogRq request,
       MembershipDetails membershipDetails) {
-    Project project = projectRepository.findById(membershipDetails.getProjectId())
-        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
+    MDC.put("itemId", itemId.toString());
+    MDC.put("projectId", membershipDetails.getProjectId().toString());
 
-    TestItem item = testItemRepository.findById(itemId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+    try {
+      logger.debug("Initiating search for item {} in project {}", itemId, membershipDetails.getProjectId());
 
-    Launch launch = launchRepository.findById(item.getLaunchId())
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
+      Project project = projectRepository.findById(membershipDetails.getProjectId())
+          .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
 
-    expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(
-        ErrorType.TEST_ITEM_IS_NOT_FINISHED);
+      TestItem item = testItemRepository.findById(itemId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
-    return composeRequest(request, project, item, launch).map(
-            searchRq -> processRequest(project.getId(), searchRq))
-        .orElse(Collections.emptyList());
+      Launch launch = testItemService.getEffectiveLaunch(item);
+      launchAccessValidator.validate(launch.getId(), membershipDetails, null);
+
+      logger.debug("Resolved effective launch {} for item {}", launch.getId(), itemId);
+
+      expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(
+          ErrorType.TEST_ITEM_IS_NOT_FINISHED);
+
+      return composeRequest(request, project, item, launch).map(
+              searchRq -> processRequest(project.getId(), searchRq))
+          .orElse(Collections.emptyList());
+    } catch (ReportPortalException e) {
+      logger.error("Search failed for item {}: {}", itemId, e.getMessage());
+      throw e;
+    } finally {
+      MDC.remove("itemId");
+      MDC.remove("projectId");
+    }
   }
 
   private Optional<SearchRq> composeRequest(SearchLogRq request, Project project, TestItem item,
@@ -178,12 +203,7 @@ public class SearchLogServiceImpl implements SearchLogService {
         () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
             itemId
         ));
-    Long launchId = ofNullable(testItem.getLaunchId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
-            testItem.getLaunchId()
-        ));
-    Launch launch = launchRepository.findById(launchId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+    Launch launch = testItemService.getEffectiveLaunch(testItem);
 
     Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(
         singletonList(testItem));

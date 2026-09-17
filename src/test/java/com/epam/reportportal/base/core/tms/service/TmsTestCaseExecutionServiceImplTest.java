@@ -5,13 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.FinishTestItemHandler;
@@ -30,11 +29,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Status
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
-import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -614,8 +611,8 @@ class TmsTestCaseExecutionServiceImplTest {
 
     when(tmsTestCaseExecutionRepository.findByTestCaseExecutionIdAndLaunchId(executionId, launchId))
         .thenReturn(Optional.of(execution1));
-    when(tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution1, request))
-        .thenReturn(response);
+    when(tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(projectId, execution1, request)).thenReturn(
+        response);
 
     // When
     var result = sut.patchTestCaseExecutionComment(projectId, launchId, executionId, request);
@@ -623,7 +620,7 @@ class TmsTestCaseExecutionServiceImplTest {
     // Then
     assertNotNull(result);
     verify(tmsTestCaseExecutionRepository).findByTestCaseExecutionIdAndLaunchId(executionId, launchId);
-    verify(tmsTestCaseExecutionCommentService).patchTestCaseExecutionComment(execution1, request);
+    verify(tmsTestCaseExecutionCommentService).patchTestCaseExecutionComment(projectId, execution1, request);
   }
 
   @Test

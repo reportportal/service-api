@@ -105,6 +105,20 @@ public class StatusCodeMapping {
       put(ErrorType.OBJECT_RETRIEVAL_ERROR, HttpStatus.BAD_REQUEST);
       put(ErrorType.UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, HttpStatus.BAD_REQUEST);
 
+      // Marketplace install related. Each status says who has to act: the caller picked a version
+      // that does not exist (404) or cannot run here (400), the operator has something to
+      // configure or undo (409), the registry answered unusably (502) or not at all (503).
+      put(ErrorType.MARKETPLACE_PLUGIN_NOT_FOUND, HttpStatus.NOT_FOUND);
+      put(ErrorType.MARKETPLACE_REGISTRY_ERROR, HttpStatus.BAD_GATEWAY);
+      put(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, HttpStatus.BAD_REQUEST);
+      put(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, HttpStatus.CONFLICT);
+      put(ErrorType.MARKETPLACE_LICENCE_NOT_CONFIGURED, HttpStatus.CONFLICT);
+      put(ErrorType.MARKETPLACE_LICENCE_REJECTED, HttpStatus.FORBIDDEN);
+      put(ErrorType.MARKETPLACE_VERSION_BLOCKED, HttpStatus.CONFLICT);
+      put(ErrorType.MARKETPLACE_PLUGIN_REMOVED, HttpStatus.GONE);
+      put(ErrorType.MARKETPLACE_REGISTRY_UNREACHABLE, HttpStatus.SERVICE_UNAVAILABLE);
+      put(ErrorType.MARKETPLACE_CHECKSUM_MISMATCH, HttpStatus.BAD_GATEWAY);
+
       // ExternalSystem related
       put(ErrorType.INTEGRATION_NOT_FOUND, HttpStatus.NOT_FOUND);
       put(ErrorType.INTEGRATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);

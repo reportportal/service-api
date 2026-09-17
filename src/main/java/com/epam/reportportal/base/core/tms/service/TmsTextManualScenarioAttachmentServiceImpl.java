@@ -1,11 +1,10 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,25 +22,25 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void createAttachments(TmsTextManualScenario tmsTextManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ) {
+  public void createAttachments(Long projectId, TmsTextManualScenario tmsTextManualScenario,
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq) {
     log.debug("Creating attachments for text manual scenario: {}",
         tmsTextManualScenario.getManualScenarioId());
 
-    if (tmsTextManualScenarioRQ == null || CollectionUtils.isEmpty(
-        tmsTextManualScenarioRQ.getAttachments())) {
+    if (tmsTextManualScenarioRq == null || CollectionUtils.isEmpty(
+        tmsTextManualScenarioRq.getAttachments())) {
       log.debug("No attachments to create for text manual scenario: {}",
           tmsTextManualScenario.getManualScenarioId());
       return;
     }
 
-    var attachmentIds = tmsTextManualScenarioRQ
+    var attachmentIds = tmsTextManualScenarioRq
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))
-        .collect(Collectors.toList());
+        .toList();
 
-    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds);
+    var attachments = tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds);
 
     if (CollectionUtils.isNotEmpty(attachments)) {
 
@@ -66,22 +65,22 @@ public class TmsTextManualScenarioAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void updateAttachments(TmsTextManualScenario textManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ) {
+  public void updateAttachments(Long projectId, TmsTextManualScenario textManualScenario,
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq) {
     log.debug("Updating attachments for text manual scenario: {}",
         textManualScenario.getManualScenarioId());
 
     // Delete existing relationships
-   if (CollectionUtils.isNotEmpty(textManualScenario.getAttachments())) {
-     textManualScenarioAttachmentRepository
-         .deleteByTextManualScenarioId(textManualScenario.getManualScenarioId());
-     textManualScenario.setAttachments(new HashSet<>());
-     log.debug("Deleted existing attachment relationships for text manual scenario: {}",
-         textManualScenario.getManualScenarioId());
-   }
+    if (CollectionUtils.isNotEmpty(textManualScenario.getAttachments())) {
+      textManualScenarioAttachmentRepository
+          .deleteByTextManualScenarioId(textManualScenario.getManualScenarioId());
+      textManualScenario.setAttachments(new HashSet<>());
+      log.debug("Deleted existing attachment relationships for text manual scenario: {}",
+          textManualScenario.getManualScenarioId());
+    }
 
     // Create new relationships
-    createAttachments(textManualScenario, tmsTextManualScenarioRQ);
+    createAttachments(projectId, textManualScenario, tmsTextManualScenarioRq);
   }
 
   @Override

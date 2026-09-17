@@ -1,5 +1,8 @@
 package com.epam.reportportal.base.core.tms.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRS;
 import com.epam.reportportal.base.core.tms.service.TmsDatasetService;
@@ -10,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +49,7 @@ public class TmsDatasetController {
    * @return A data transfer object ({@link TmsDatasetRS}) with the created dataset's details.
    */
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public TmsDatasetRS create(@PathVariable("projectKey") String projectKey,
       @RequestBody TmsDatasetRQ datasetRQ,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -63,6 +68,7 @@ public class TmsDatasetController {
    * @return A list of data transfer objects ({@link TmsDatasetRS}) representing created datasets.
    */
   @PostMapping(path = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public List<TmsDatasetRS> uploadFromFile(@PathVariable("projectKey") String projectKey,
       @RequestPart MultipartFile file,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -80,6 +86,7 @@ public class TmsDatasetController {
    * @return A list of datasets ({@link TmsDatasetRS}).
    */
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public List<TmsDatasetRS> getByProjectId(@PathVariable("projectKey") String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsDatasetService.getByProjectId(
@@ -96,6 +103,7 @@ public class TmsDatasetController {
    * @return A dataset's details ({@link TmsDatasetRS}).
    */
   @GetMapping("/{datasetId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public TmsDatasetRS getById(@PathVariable("projectKey") String projectKey,
       @PathVariable("datasetId") Long datasetId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -115,6 +123,7 @@ public class TmsDatasetController {
    * @return The updated dataset details ({@link TmsDatasetRS}).
    */
   @PutMapping("/{datasetId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public TmsDatasetRS update(@PathVariable("projectKey") String projectKey,
       @PathVariable("datasetId") Long datasetId,
       @RequestBody TmsDatasetRQ datasetRQ,
@@ -136,6 +145,7 @@ public class TmsDatasetController {
    * @return The updated dataset details ({@link TmsDatasetRS}).
    */
   @PatchMapping("/{datasetId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public TmsDatasetRS patch(@PathVariable("projectKey") String projectKey,
       @PathVariable("datasetId") Long datasetId,
       @RequestBody TmsDatasetRQ tmsDatasetUpdateRQ,
@@ -155,6 +165,7 @@ public class TmsDatasetController {
    * @param datasetId The ID of the dataset to delete.
    */
   @DeleteMapping("/{datasetId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public void delete(@PathVariable("projectKey") String projectKey,
       @PathVariable("datasetId") Long datasetId,
       @AuthenticationPrincipal ReportPortalUser user) {

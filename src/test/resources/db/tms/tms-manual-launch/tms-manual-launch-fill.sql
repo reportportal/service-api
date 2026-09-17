@@ -449,11 +449,11 @@ VALUES
 -- TMS ATTACHMENTS
 -- =====================================================
 
-INSERT INTO tms_attachment (id, file_name, file_size, file_type, path_to_file, created_at, expires_at)
+INSERT INTO tms_attachment (id, file_name, file_size, file_type, path_to_file, project_id, created_at, expires_at)
 VALUES
-    (1000, 'test-screenshot.png', 45678,  'image/png',        '/data/attachments/temp/1000.png', NOW(), NOW() + INTERVAL '24 hours'),
-    (1001, 'error-log.txt',       2345,   'text/plain',        '/data/attachments/temp/1001.txt', NOW(), NOW() + INTERVAL '24 hours'),
-    (1002, 'network-trace.har',   123456, 'application/json',  '/data/attachments/temp/1002.har', NOW(), NOW() + INTERVAL '24 hours');
+    (1000, 'test-screenshot.png', 45678,  'image/png',        '/data/attachments/temp/1000.png', 1, NOW(), NOW() + INTERVAL '24 hours'),
+    (1001, 'error-log.txt',       2345,   'text/plain',        '/data/attachments/temp/1001.txt', 1, NOW(), NOW() + INTERVAL '24 hours'),
+    (1002, 'network-trace.har',   123456, 'application/json',  '/data/attachments/temp/1002.har', 1, NOW(), NOW() + INTERVAL '24 hours');
 
 -- =====================================================
 -- LAUNCHES

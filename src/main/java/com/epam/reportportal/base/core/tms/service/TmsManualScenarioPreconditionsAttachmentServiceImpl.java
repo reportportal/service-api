@@ -1,11 +1,10 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,23 +22,22 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void createAttachments(TmsManualScenarioPreconditions preconditions,
-      TmsManualScenarioPreconditionsRQ preconditionsRQ) {
+  public void createAttachments(Long projectId, TmsManualScenarioPreconditions preconditions,
+      TmsManualScenarioPreconditionsRQ preconditionsRq) {
     log.debug("Creating attachments for manual scenario preconditions: {}", preconditions.getId());
 
-    if (preconditionsRQ == null || CollectionUtils.isEmpty(preconditionsRQ.getAttachments())) {
+    if (preconditionsRq == null || CollectionUtils.isEmpty(preconditionsRq.getAttachments())) {
       log.debug("No attachments to create for preconditions: {}", preconditions.getId());
       return;
     }
 
-    var attachmentIds = preconditionsRQ
+    var attachmentIds = preconditionsRq
         .getAttachments()
         .stream()
         .map(attachment -> Long.valueOf(attachment.getId()))
-        .collect(Collectors.toList());
+        .toList();
 
-    // Validate and get attachments
-    var attachments = tmsAttachmentService.getTmsAttachmentsByIds(attachmentIds);
+    var attachments = tmsAttachmentService.findAvailableAttachments(projectId, attachmentIds);
 
     if (CollectionUtils.isNotEmpty(attachments)) {
       preconditions.setAttachments(new HashSet<>(attachments));
@@ -63,10 +61,23 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
 
   @Override
   @Transactional
-  public void updateAttachments(TmsManualScenarioPreconditions existingPreconditions,
-      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ) {
+  public void updateAttachments(Long projectId,
+      TmsManualScenarioPreconditions existingPreconditions,
+      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRq) {
     log.debug("Updating attachments for preconditions: {}",
         existingPreconditions);
+
+    if (tmsManualScenarioPreconditionsRq != null
+        && CollectionUtils.isNotEmpty(tmsManualScenarioPreconditionsRq.getAttachments())) {
+      var attachmentIds = tmsManualScenarioPreconditionsRq
+          .getAttachments()
+          .stream()
+          .map(attachment -> Long.valueOf(attachment.getId()))
+          .toList();
+
+      // Validate all requested attachments exist and belong to the project before deleting existing relationships
+      tmsAttachmentService.getTmsAttachmentsByIds(projectId, attachmentIds);
+    }
 
     // Delete existing relationships
     if (CollectionUtils.isNotEmpty(existingPreconditions.getAttachments())) {
@@ -78,7 +89,7 @@ public class TmsManualScenarioPreconditionsAttachmentServiceImpl implements
     }
 
     // Create new relationships
-    createAttachments(existingPreconditions, tmsManualScenarioPreconditionsRQ);
+    createAttachments(projectId, existingPreconditions, tmsManualScenarioPreconditionsRq);
   }
 
   @Override

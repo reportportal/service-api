@@ -147,11 +147,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
     // validate projects
     projects.forEach(project -> {
-      var projectEntity = projectRepository.findById(project.getId())
-          .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + project.getId()));
-      expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
-          formattedSupplier("Project '{}' does not belong to organization {}", project.getId(), orgId)
-      );
+      var projectEntity = requireProjectInOrganization(project.getId(), orgId);
 
       var projectUser = projectUserRepository
           .findProjectUserByUserIdAndProjectId(request.getId(), project.getId());
@@ -268,7 +264,7 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     List<UserProjectInfo> projects = orgUserUpdateRequest.getProjects();
     List<Long> projectsId = projects.stream().map(UserProjectInfo::getId).toList();
 
-    assignToProjects(projects, user, orgUserUpdateRequest.getOrgRole().equals(MANAGER));
+    assignToProjects(orgId, projects, user, orgUserUpdateRequest.getOrgRole().equals(MANAGER));
 
     unassignUserProject(orgId, userId, projectsId);
   }
@@ -284,12 +280,13 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     projectUserService.deleteByUserIdAndProjectIds(orgId, userId, projectIdsToUnassign);
   }
 
-  private void assignToProjects(List<UserProjectInfo> projects, User user, boolean isManager) {
+  private void assignToProjects(Long orgId, List<UserProjectInfo> projects, User user, boolean isManager) {
+    projects.forEach(project -> requireProjectInOrganization(project.getId(), orgId));
+
     for (UserProjectInfo userProjectInfo : projects) {
       Optional<ProjectUser> projectUserOptional = projectUserRepository.findProjectUserByUserIdAndProjectId(
           user.getId(), userProjectInfo.getId());
-      Project project = projectRepository.findById(userProjectInfo.getId())
-          .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + user.getId()));
+      Project project = requireProjectInOrganization(userProjectInfo.getId(), orgId);
 
       ProjectUser projectUser = projectUserOptional.orElse(new ProjectUser());
 
@@ -320,6 +317,15 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     organizationUser.setOrganizationRole(OrganizationRole.valueOf(
         orgUserUpdateRequest.getOrgRole().getValue()));
     organizationUserRepository.save(organizationUser);
+  }
+
+  private Project requireProjectInOrganization(Long projectId, Long orgId) {
+    var projectEntity = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
+    expect(projectEntity.getOrganizationId(), equalTo(orgId)).verify(BAD_REQUEST_ERROR,
+        formattedSupplier("Project '{}' does not belong to organization {}", projectId, orgId)
+    );
+    return projectEntity;
   }
 
   private void validateManagerChangingRole(OrgRole newOrgRole, User assignedUser,

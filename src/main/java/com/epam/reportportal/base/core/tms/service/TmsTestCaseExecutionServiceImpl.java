@@ -2,9 +2,8 @@ package com.epam.reportportal.base.core.tms.service;
 
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
-import com.epam.reportportal.base.core.item.TestItemService;
-import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
 import com.epam.reportportal.base.core.item.FinishTestItemHandler;
+import com.epam.reportportal.base.core.item.UpdateTestItemHandler;
 import com.epam.reportportal.base.core.tms.dto.NestedStepResult;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioRS;
@@ -16,8 +15,8 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
-import com.epam.reportportal.base.core.tms.mapper.TestCaseItemBuilder;
 import com.epam.reportportal.base.core.tms.mapper.NestedStepItemBuilder;
+import com.epam.reportportal.base.core.tms.mapper.TestCaseItemBuilder;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseExecutionMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -30,6 +29,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestIt
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -37,15 +37,14 @@ import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.time.Instant;
 import java.util.Optional;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepExecution;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -57,8 +56,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service implementation for managing TMS Test Case Executions. Handles both execution queries and
- * creation for manual launches.
+ * Service implementation for managing TMS Test Case Executions. Handles both execution queries and creation for manual
+ * launches.
  */
 @Slf4j
 @Service
@@ -153,10 +152,9 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   }
 
   /**
-   * Creates a complete test case execution with hierarchical structure. Orchestrates: 1. Find or
-   * create SUITE item (test folder container) 2. Create TEST item (test case) under SUITE 3. Create
-   * nested steps from a manual scenario (if exists) 4. Create TmsTestCaseExecution record 5. Create
-   * TmsStepExecution records for nested steps
+   * Creates a complete test case execution with hierarchical structure. Orchestrates: 1. Find or create SUITE item
+   * (test folder container) 2. Create TEST item (test case) under SUITE 3. Create nested steps from a manual scenario
+   * (if exists) 4. Create TmsTestCaseExecution record 5. Create TmsStepExecution records for nested steps
    *
    * @param projectId project ID
    * @param testCase  test case entity
@@ -234,8 +232,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   }
 
   /**
-   * Creates nested steps from a manual scenario. Handles both steps-based and text-based
-   * scenarios.
+   * Creates nested steps from a manual scenario. Handles both steps-based and text-based scenarios.
    *
    * @param scenario       manual scenario
    * @param parentTestItem parent TEST item
@@ -541,11 +538,11 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
       var originalStep = stepExecution.getTestItem();
       if (originalStep != null) {
         var newStep = nestedStepItemBuilder.buildRetryNestedStepItem(originalStep, parentRetryItem);
-  
+
         newStep = testItemRepository.save(newStep);
         newStep.setPath(parentRetryItem.getPath() + "." + newStep.getItemId());
         newStep = testItemRepository.save(newStep);
-  
+
         stepExecution.setTestItem(newStep);
         tmsStepExecutionService.updateTmsStepExecution(stepExecution);
       }
@@ -592,12 +589,13 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
                   testItem = testCaseItemBuilder.buildRetryTestCaseItem(testItem, targetStatus);
                   execution.setTestItem(testItem);
                   testItem = testItemRepository.save(testItem);
-                  
+
                   // Build path
-                  var newPath = lastDot >= 0 ? oldPath.substring(0, lastDot) + "." + testItem.getItemId() : String.valueOf(testItem.getItemId());
+                  var newPath = lastDot >= 0 ? oldPath.substring(0, lastDot) + "." + testItem.getItemId()
+                      : String.valueOf(testItem.getItemId());
                   testItem.setPath(newPath);
                   testItem = testItemRepository.save(testItem);
-                  
+
                   resetStepExecutionsForRetry(execution.getId(), testItem);
                 }
               } else if (currentStatus == StatusEnum.IN_PROGRESS || currentStatus == StatusEnum.TO_RUN) {
@@ -629,7 +627,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
           }
 
           if (request.getExecutionComment() != null) {
-            tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution, request.getExecutionComment());
+            tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(membershipDetails.getProjectId(),
+                execution, request.getExecutionComment());
             updated = true;
           }
 
@@ -699,7 +698,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
         ));
 
-    return tmsTestCaseExecutionCommentService.putTestCaseExecutionComment(execution, request);
+    return tmsTestCaseExecutionCommentService.putTestCaseExecutionComment(projectId, execution,
+        request);
   }
 
   @Override
@@ -712,7 +712,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
             TEST_CASE_EXECUTION_IN_LAUNCH.formatted(executionId, launchId)
         ));
 
-    return tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(execution, request);
+    return tmsTestCaseExecutionCommentService.patchTestCaseExecutionComment(projectId, execution,
+        request);
   }
 
   @Override
@@ -731,8 +732,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   }
 
   /**
-   * Builds execution statistics for a manual launch. Total is counted independently to include any
-   * possible statuses.
+   * Builds execution statistics for a manual launch. Total is counted independently to include any possible statuses.
    */
   @Transactional(readOnly = true)
   @Override

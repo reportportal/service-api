@@ -1,16 +1,22 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import java.util.List;
 
 public interface TmsTextManualScenarioAttachmentService {
 
-  void createAttachments(TmsTextManualScenario tmsTextManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ);
+  /**
+   * Creates attachments for text-based manual scenario.
+   */
+  void createAttachments(Long projectId, TmsTextManualScenario tmsTextManualScenario,
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq);
 
-  void updateAttachments(TmsTextManualScenario textManualScenario,
-      TmsTextManualScenarioRQ tmsTextManualScenarioRQ);
+  /**
+   * Updates attachments for text-based manual scenario (replaces all existing).
+   */
+  void updateAttachments(Long projectId, TmsTextManualScenario textManualScenario,
+      TmsTextManualScenarioRQ tmsTextManualScenarioRq);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

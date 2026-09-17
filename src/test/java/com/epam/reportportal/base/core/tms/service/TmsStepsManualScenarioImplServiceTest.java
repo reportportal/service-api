@@ -3,17 +3,18 @@ package com.epam.reportportal.base.core.tms.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepsManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepsManualScenarioRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsStepsManualScenarioMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepsManualScenarioRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepsManualScenario;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +44,7 @@ class TmsStepsManualScenarioImplServiceTest {
   private TmsManualScenario manualScenario;
   private TmsStepsManualScenarioRQ stepsScenarioRQ;
   private TmsStepsManualScenario stepsManualScenario;
+  private final Long projectId = 700L;
 
   @BeforeEach
   void setUp() {
@@ -69,11 +71,11 @@ class TmsStepsManualScenarioImplServiceTest {
         .thenReturn(stepsManualScenario);
 
     // When
-    stepsManualScenarioService.createTmsManualScenarioImpl(manualScenario, stepsScenarioRQ);
+    stepsManualScenarioService.createTmsManualScenarioImpl(projectId, manualScenario, stepsScenarioRQ);
 
     // Then
     verify(tmsStepsManualScenarioMapper).createTmsStepsManualScenario();
-    verify(tmsStepService).createSteps(stepsManualScenario, stepsScenarioRQ);
+    verify(tmsStepService).createSteps(projectId, stepsManualScenario, stepsScenarioRQ);
     verify(tmsStepsManualScenarioRepository).save(stepsManualScenario);
 
     assertThat(manualScenario.getStepsScenario()).isEqualTo(stepsManualScenario);
@@ -90,13 +92,13 @@ class TmsStepsManualScenarioImplServiceTest {
         .thenReturn(existingStepsManualScenario);
 
     // When
-    stepsManualScenarioService.updateTmsManualScenarioImpl(manualScenario, stepsScenarioRQ);
+    stepsManualScenarioService.updateTmsManualScenarioImpl(projectId, manualScenario, stepsScenarioRQ);
 
     // Then
-    verify(tmsStepService).updateSteps(existingStepsManualScenario, stepsScenarioRQ);
+    verify(tmsStepService).updateSteps(projectId, existingStepsManualScenario, stepsScenarioRQ);
     verify(tmsStepsManualScenarioRepository).save(existingStepsManualScenario);
     verify(tmsStepsManualScenarioMapper, never()).createTmsStepsManualScenario();
-    verify(tmsStepService, never()).createSteps(any(), any());
+    verify(tmsStepService, never()).createSteps(any(), any(), any());
   }
 
   @Test
@@ -110,13 +112,13 @@ class TmsStepsManualScenarioImplServiceTest {
         .thenReturn(stepsManualScenario);
 
     // When
-    stepsManualScenarioService.updateTmsManualScenarioImpl(manualScenario, stepsScenarioRQ);
+    stepsManualScenarioService.updateTmsManualScenarioImpl(projectId, manualScenario, stepsScenarioRQ);
 
     // Then
     verify(tmsStepsManualScenarioMapper).createTmsStepsManualScenario();
-    verify(tmsStepService).createSteps(stepsManualScenario, stepsScenarioRQ);
+    verify(tmsStepService).createSteps(projectId, stepsManualScenario, stepsScenarioRQ);
     verify(tmsStepsManualScenarioRepository).save(stepsManualScenario);
-    verify(tmsStepService, never()).updateSteps(any(), any());
+    verify(tmsStepService, never()).updateSteps(any(), any(), any());
 
     assertThat(manualScenario.getStepsScenario()).isEqualTo(stepsManualScenario);
     assertThat(stepsManualScenario.getManualScenario()).isEqualTo(manualScenario);
@@ -128,33 +130,33 @@ class TmsStepsManualScenarioImplServiceTest {
     var existingStepsManualScenario = createExistingStepsManualScenario();
     manualScenario.setStepsScenario(existingStepsManualScenario);
     stepsScenarioRQ.setSteps(List.of()); // Make sure steps is not null
-  
+
     when(tmsStepsManualScenarioRepository.save(existingStepsManualScenario))
         .thenReturn(existingStepsManualScenario);
-  
+
     // When
-    stepsManualScenarioService.patchTmsManualScenarioImpl(manualScenario, stepsScenarioRQ);
-  
+    stepsManualScenarioService.patchTmsManualScenarioImpl(projectId, manualScenario, stepsScenarioRQ);
+
     // Then
-    verify(tmsStepService).patchSteps(existingStepsManualScenario, stepsScenarioRQ);
+    verify(tmsStepService).patchSteps(projectId, existingStepsManualScenario, stepsScenarioRQ);
     verify(tmsStepsManualScenarioRepository).save(existingStepsManualScenario);
   }
-  
+
   @Test
   void shouldNotUpdateStepsWhenPatchingWithNullSteps() {
     // Given
     var existingStepsManualScenario = createExistingStepsManualScenario();
     manualScenario.setStepsScenario(existingStepsManualScenario);
     stepsScenarioRQ.setSteps(null); // Steps is null, should not update
-  
+
     when(tmsStepsManualScenarioRepository.save(existingStepsManualScenario))
         .thenReturn(existingStepsManualScenario);
-  
+
     // When
-    stepsManualScenarioService.patchTmsManualScenarioImpl(manualScenario, stepsScenarioRQ);
-  
+    stepsManualScenarioService.patchTmsManualScenarioImpl(projectId, manualScenario, stepsScenarioRQ);
+
     // Then
-    verify(tmsStepService).patchSteps(existingStepsManualScenario, stepsScenarioRQ);
+    verify(tmsStepService).patchSteps(projectId, existingStepsManualScenario, stepsScenarioRQ);
     verify(tmsStepsManualScenarioRepository).save(existingStepsManualScenario);
   }
 
@@ -165,7 +167,7 @@ class TmsStepsManualScenarioImplServiceTest {
 
     // When & Then
     var exception = assertThrows(ReportPortalException.class, () ->
-        stepsManualScenarioService.patchTmsManualScenarioImpl(manualScenario, stepsScenarioRQ));
+        stepsManualScenarioService.patchTmsManualScenarioImpl(projectId, manualScenario, stepsScenarioRQ));
 
     assertThat(exception.getMessage()).contains(
         "Steps Manual Scenario for Manual Scenario with id");
@@ -312,7 +314,7 @@ class TmsStepsManualScenarioImplServiceTest {
   }
 
   private TmsStepsManualScenario createOriginalStepsScenario() {
-    return org.mockito.Mockito.mock(TmsStepsManualScenario.class);
+    return mock(TmsStepsManualScenario.class);
   }
 
   private TmsStepsManualScenario createDuplicatedStepsScenario() {

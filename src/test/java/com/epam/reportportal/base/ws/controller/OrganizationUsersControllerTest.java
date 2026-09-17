@@ -367,6 +367,21 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
     performUpdateUserSuccess(orgId, userId, updateRequest, adminToken);
   }
 
+  @Test
+  @DisplayName("Manager cannot update user with project from another organization")
+  void updateUserWithForeignProjectShouldFail() throws Exception {
+    Long userId = 107L;
+    UserProjectInfo foreignProject = new UserProjectInfo()
+        .id(PRJ_ID_2)
+        .projectRole(ProjectRole.EDITOR);
+
+    OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
+        .orgRole(OrgRole.MEMBER)
+        .projects(new ArrayList<>(List.of(foreignProject)));
+
+    performUpdateUserFailed(ORG_ID_1, userId, updateRequest, managerToken, status().isBadRequest());
+    assertTrue(projectUserRepository.findProjectUserByUserIdAndProjectId(userId, PRJ_ID_2).isEmpty());
+  }
 
   private UserAssignmentResponse performAssignUserSuccess(Long orgId, OrgUserAssignment rq,
       String token)

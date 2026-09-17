@@ -1,22 +1,31 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import java.util.List;
 
 public interface TmsManualScenarioImplService {
 
   TmsManualScenarioType getTmsManualScenarioType();
 
-  void createTmsManualScenarioImpl(TmsManualScenario tmsManualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ);
+  /**
+   * Creates implementation-specific manual scenario data.
+   */
+  void createTmsManualScenarioImpl(Long projectId, TmsManualScenario tmsManualScenario,
+      TmsManualScenarioRQ testCaseManualScenarioRq);
 
-  void updateTmsManualScenarioImpl(TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ);
+  /**
+   * Updates implementation-specific manual scenario data.
+   */
+  void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
+      TmsManualScenarioRQ testCaseManualScenarioRq);
 
-  void patchTmsManualScenarioImpl(TmsManualScenario manualScenario,
-      TmsManualScenarioRQ testCaseManualScenarioRQ);
+  /**
+   * Partially updates implementation-specific manual scenario data.
+   */
+  void patchTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
+      TmsManualScenarioRQ testCaseManualScenarioRq);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

@@ -127,9 +127,8 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     Set<String> installedRegistryIds = new HashSet<>();
     if (registryPlugins != null) {
       var byRegistryId = index(registryPlugins, MarketplacePlugin::id);
-      var byPf4jId = index(registryPlugins, MarketplacePlugin::pf4jId);
       for (var type : installedTypes) {
-        var match = match(type, byRegistryId, byPf4jId);
+        var match = match(type, byRegistryId);
         if (match != null) {
           matches.put(type.getId(), match);
           installedRegistryIds.add(match.id());
@@ -166,10 +165,17 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   }
 
   /**
-   * A registry id persisted at install time is the only key we will match on; otherwise the
-   * entry's {@code pf4jId} against the PF4J id, byte for byte. Case-folding would merge
-   * {@code github} and {@code GitHub}, which are two different plugins that can both be installed
-   * at once.
+   * A registry id persisted at install time is the strong key; otherwise {@code IntegrationType
+   * .name} against the registry id, byte for byte. Case-folding would merge {@code github} and
+   * {@code GitHub}, which are two different plugins that can both be installed at once.
+   *
+   * <p>The two identifier spaces are one space by decision. A plugin reaches the marketplace only
+   * by going through the publishing workflow, and that pass updates its {@code Plugin-Id} to the
+   * registry id — so anything in the catalogue has the two equal, and anything that does not is
+   * not in the catalogue to be matched against. A plugin installed before that pass keeps its old
+   * {@code Plugin-Id} and stays unmatched until it is reinstalled from the marketplace; that is
+   * the accepted cost of not carrying a second identifier
+   * (requirements/integration/STAGE0-id-mapping-decision.md).
    *
    * <p>A persisted id that no longer resolves does not fall back to the name. The id is a record
    * of where this plugin actually came from; the name is a guess that a different registry entry
@@ -179,13 +185,12 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    * surviving entry would then match by accident. Not matching says what is true: with the id
    * gone, nothing about this plugin can be verified.
    */
-  private MarketplacePlugin match(IntegrationType type, Map<String, MarketplacePlugin> byRegistryId,
-      Map<String, MarketplacePlugin> byPf4jId) {
+  private MarketplacePlugin match(IntegrationType type, Map<String, MarketplacePlugin> byRegistryId) {
     var persisted = detail(type, MARKETPLACE_PLUGIN_ID_KEY);
     if (persisted != null) {
       return byRegistryId.get(persisted);
     }
-    return type.getName() == null ? null : byPf4jId.get(type.getName());
+    return type.getName() == null ? null : byRegistryId.get(type.getName());
   }
 
   private boolean visible(IntegrationType type, MarketplacePlugin match, CatalogueKey key) {

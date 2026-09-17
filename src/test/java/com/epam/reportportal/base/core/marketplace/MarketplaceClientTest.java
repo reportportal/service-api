@@ -82,7 +82,7 @@ class MarketplaceClientTest {
         .andRespond(withSuccess("""
             {"plugins":[
               {"id":"jira","name":"Jira","latestVersion":"1.4.2","description":"BTS",
-               "category":"bug-tracking","access":"public","tier":"official","pf4jId":"jira"}
+               "category":"bug-tracking","access":"public","tier":"official"}
             ]}""", MediaType.APPLICATION_JSON));
 
     var plugins = client.getCatalogue("bug-tracking", "jira");
@@ -97,7 +97,6 @@ class MarketplaceClientTest {
     assertEquals("bug-tracking", plugin.category());
     assertEquals("public", plugin.access());
     assertEquals("official", plugin.tier());
-    assertEquals("jira", plugin.pf4jId());
   }
 
   @Test
@@ -121,18 +120,22 @@ class MarketplaceClientTest {
   }
 
   @Test
-  void catalogueToleratesMissingPf4jIdAndUnknownFields() {
+  void catalogueToleratesFieldsThisVersionDoesNotKnow() {
+    // Both directions of the same tolerance, and `pf4jId` is now the live case: a registry
+    // deployed before that field was dropped still sends it, and an instance upgraded first must
+    // not fail on a key it no longer models. `iconUrl` is the other direction — a field the
+    // registry may grow later.
     server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
         .andRespond(withSuccess("""
             {"plugins":[{"id":"slack","name":"Slack","latestVersion":"2.0.0",
              "category":"notifications","access":"public","tier":"official",
-             "iconUrl":"https://cdn/slack.png"}],"totalCount":1}""",
+             "pf4jId":"slack","iconUrl":"https://cdn/slack.png"}],"totalCount":1}""",
             MediaType.APPLICATION_JSON));
 
     var plugins = client.getCatalogue(null, null);
 
     assertEquals(1, plugins.size());
-    assertNull(plugins.get(0).pf4jId());
+    assertEquals("slack", plugins.get(0).id());
   }
 
   @Test

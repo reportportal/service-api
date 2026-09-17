@@ -78,7 +78,7 @@ class GetMarketplacePluginDetailHandlerTest {
   private static MarketplacePluginDetail plugin(String id, String latestVersion, String access) {
     return new MarketplacePluginDetail(id, "Jira", latestVersion, "Tracks issues", null, null,
         "bug-tracking", new MarketplaceCompatibility(">=25.0"), null, access, null, "official",
-        latestVersion, "jira");
+        latestVersion);
   }
 
   private static MarketplaceVersionDetail version(String id, String version,
@@ -86,7 +86,7 @@ class GetMarketplacePluginDetailHandlerTest {
       List<String> screenshotUrls) {
     return new MarketplaceVersionDetail(id, "Jira", version, "Tracks issues", null, null,
         "bug-tracking", new MarketplaceCompatibility(">=25.0"), null, "public", null, "official",
-        "jira", blocked, blocked ? WHEN : null, blocked ? "Signed with a revoked key" : null,
+        blocked, blocked ? WHEN : null, blocked ? "Signed with a revoked key" : null,
         advisory, "sha", changelogUrl, screenshotUrls);
   }
 

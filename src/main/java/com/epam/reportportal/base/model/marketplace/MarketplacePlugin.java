@@ -19,9 +19,8 @@ package com.epam.reportportal.base.model.marketplace;
 /**
  * Catalogue entry of GET /api/v1/plugins.
  *
- * <p>{@code pf4jId} is optional — the registry is only now growing the field, so entries published
- * before it exists omit it. {@code category}/{@code access}/{@code tier} stay Strings so a new
- * registry value cannot break deserialization.
+ * <p>{@code category}/{@code access}/{@code tier} stay Strings so a new registry value cannot break
+ * deserialization.
  *
  * <p>{@code contactUrl} is a manifest field the listing carries too. Reading it here rather than
  * from plugin detail is what keeps the catalogue at one registry request: a page full of premium
@@ -44,7 +43,6 @@ public record MarketplacePlugin(
     String tier,
     String contactUrl,
     MarketplaceAuthor author,
-    String pf4jId,
     String compatibility
 ) {
 

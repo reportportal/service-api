@@ -32,8 +32,7 @@ public record MarketplacePluginDetail(
     String access,
     String contactUrl,
     String tier,
-    String latestVersion,
-    String pf4jId
+    String latestVersion
 ) {
 
 }

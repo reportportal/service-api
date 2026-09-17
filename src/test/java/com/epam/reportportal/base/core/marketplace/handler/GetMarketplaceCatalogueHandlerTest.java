@@ -126,23 +126,23 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   private static MarketplacePlugin registryPlugin(String id, String name, String latestVersion,
-      String category, String access, String pf4jId) {
+      String category, String access) {
     return new MarketplacePlugin(id, name, latestVersion, name + " description", category, access,
-        "official", null, new MarketplaceAuthor(name + " Team", null, null), pf4jId, ">=25.1");
+        "official", null, new MarketplaceAuthor(name + " Team", null, null), ">=25.1");
   }
 
   /** The same entry, but saying what its latest version needs — null for one that declares none. */
   private static MarketplacePlugin registryPluginRequiring(String id, String name,
       String latestVersion, String compatibility) {
     return new MarketplacePlugin(id, name, latestVersion, name + " description", "bug-tracking",
-        "public", "official", null, new MarketplaceAuthor(name + " Team", null, null), id,
+        "public", "official", null, new MarketplaceAuthor(name + " Team", null, null),
         compatibility);
   }
 
   private static MarketplaceVersionDetail versionDetail(String id, String version, String range,
       boolean blocked) {
     return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
-        new MarketplaceCompatibility(range), null, "public", null, "official", null, blocked, null,
+        new MarketplaceCompatibility(range), null, "public", null, "official", blocked, null,
         null, null, "sha", null, null);
   }
 
@@ -153,11 +153,11 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void registryEntryIsMatchedToTheInstalledPluginByExactPf4jId() {
+  void registryEntryIsMatchedToTheInstalledPluginByItsExactName() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
-        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
+        List.of(installed(7L, "plugin-bts-jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("plugin-bts-jira", "Jira", "1.4.1", "bug-tracking", "public", "jira")));
+        registryPlugin("plugin-bts-jira", "Jira", "1.4.1", "bug-tracking", "public")));
 
     var catalogue = handler.getCatalogue(null, null);
 
@@ -175,53 +175,73 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void pf4jIdMatchIsCaseSensitiveSoTheTwoGithubPluginsStayApart() {
-    // plugin-auth-github declares 'github', plugin-bts-github declares 'GitHub'. Case-folding
-    // would merge two different plugins into one catalogue entry.
+  void theNameMatchIsCaseSensitiveSoTheTwoGithubPluginsStayApart() {
+    // PF4J ids are case-sensitive and registry ids are lower-case by pattern, so an instance
+    // still carrying the old `GitHub` must not be handed `github` — they are two different
+    // plugins and both can be installed at once.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
-        List.of(installed(1L, "github", IntegrationGroupEnum.AUTH, "1.0.0", null)));
+        List.of(installed(1L, "GitHub", IntegrationGroupEnum.BTS, "1.0.0", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("bts-github", "GitHub BTS", "2.0.0", "bug-tracking", "public", "GitHub")));
+        registryPlugin("github", "GitHub Auth", "2.0.0", "authorization", "public")));
 
     var catalogue = handler.getCatalogue(null, null);
 
-    assertNull(installedNamed(catalogue, "github").marketplace());
+    assertNull(installedNamed(catalogue, "GitHub").marketplace());
     assertEquals(1, catalogue.available().size());
-    assertEquals("bts-github", catalogue.available().get(0).id());
+    assertEquals("github", catalogue.available().get(0).id());
   }
 
   @Test
-  void persistedRegistryIdWinsOverThePf4jIdOfAnotherEntry() {
+  void aPluginInstalledBeforeItsIdWasMigratedStaysUnmatched() {
+    // The accepted cost of carrying one identifier instead of two: a plugin reaches the
+    // catalogue only by going through the publishing workflow, and that pass renames its
+    // Plugin-Id to the registry id. One installed before that pass keeps the old name and is not
+    // recognised until it is reinstalled from the marketplace — which is what drcrazy asked for
+    // on service-marketplace#13, and it is better than guessing.
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(9L, "JIRA Cloud", IntegrationGroupEnum.BTS, "1.0.0", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("plugin-bts-jira-cloud", "Jira Cloud", "2.0.0", "bug-tracking", "public")));
+
+    var catalogue = handler.getCatalogue(null, null);
+
+    assertNull(installedNamed(catalogue, "JIRA Cloud").marketplace());
+    assertEquals(List.of("plugin-bts-jira-cloud"),
+        catalogue.available().stream().map(entry -> entry.id()).toList());
+  }
+
+  @Test
+  void persistedRegistryIdWinsOverTheNameOfAnotherEntry() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(5L, "jira", IntegrationGroupEnum.BTS, "1.0.0", "renamed-jira")));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("renamed-jira", "Jira", "1.0.0", "bug-tracking", "public", "jira-next"),
-        registryPlugin("legacy-jira", "Old Jira", "1.0.0", "bug-tracking", "public", "jira")));
+        registryPlugin("renamed-jira", "Jira", "1.0.0", "bug-tracking", "public"),
+        registryPlugin("jira", "Old Jira", "1.0.0", "bug-tracking", "public")));
 
     var catalogue = handler.getCatalogue(null, null);
 
     assertEquals("renamed-jira", installedNamed(catalogue, "jira").marketplace().pluginId());
-    // The pf4jId-matching entry is a different plugin and stays on offer.
-    assertEquals(List.of("legacy-jira"),
+    // The entry the name happens to hit is a different plugin and stays on offer.
+    assertEquals(List.of("jira"),
         catalogue.available().stream().map(entry -> entry.id()).toList());
   }
 
   @Test
   void persistedRegistryIdTheRegistryNoLongerKnowsIsNotDowngradedToTheNameGuess() {
     // The persisted id was written by the install path — hard evidence of where this plugin came
-    // from. A pf4jId name match is a guess. When the id no longer resolves we cannot verify
+    // from. A name match is a guess. When the id no longer resolves we cannot verify
     // anything about this plugin, and saying so beats naming a different registry entry as its
     // origin and offering that entry's versions as updates.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(5L, "jira", IntegrationGroupEnum.BTS, "1.0.0", "renamed-jira")));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("legacy-jira", "Old Jira", "9.9.9", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Old Jira", "9.9.9", "bug-tracking", "public")));
 
     var catalogue = handler.getCatalogue(null, null);
 
     assertNull(installedNamed(catalogue, "jira").marketplace());
     // Unmatched, so the entry the name happened to hit is still just something on offer.
-    assertEquals(List.of("legacy-jira"),
+    assertEquals(List.of("jira"),
         catalogue.available().stream().map(entry -> entry.id()).toList());
     verify(client, never()).getVersion(anyString(), anyString());
   }
@@ -242,7 +262,7 @@ class GetMarketplaceCatalogueHandlerTest {
   void registryPluginsNotInstalledHereAreOffered() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public")));
 
     var catalogue = handler.getCatalogue(null, null);
 
@@ -265,7 +285,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(client.getCatalogue(null, null)).thenReturn(List.of(
         new MarketplacePlugin("premium-bts", "Premium BTS", "1.0.0", "Tracker", "bug-tracking",
             "premium", "official", "https://reportportal.io/contact",
-            new MarketplaceAuthor("Premium BTS" + " Team", null, null), "premium-bts", ">=25.1")));
+            new MarketplaceAuthor("Premium BTS" + " Team", null, null), ">=25.1")));
 
     var entry = handler.getCatalogue(null, null).available().get(0);
 
@@ -278,10 +298,8 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(2L, "premium-bts", IntegrationGroupEnum.BTS, "1.0.0", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("premium-bts", "Premium BTS", "1.0.0", "bug-tracking", "premium",
-            "premium-bts"),
-        registryPlugin("premium-auth", "Premium Auth", "1.0.0", "authorization", "premium",
-            "premium-auth")));
+        registryPlugin("premium-bts", "Premium BTS", "1.0.0", "bug-tracking", "premium"),
+        registryPlugin("premium-auth", "Premium Auth", "1.0.0", "authorization", "premium")));
 
     var catalogue = handler.getCatalogue(null, null);
 
@@ -295,7 +313,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(licence.isConfigured()).thenReturn(true);
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("premium-bts", "Premium BTS", "1.0.0", "bug-tracking", "premium", null)));
+        registryPlugin("premium-bts", "Premium BTS", "1.0.0", "bug-tracking", "premium")));
 
     assertFalse(handler.getCatalogue(null, null).available().get(0).locked());
   }
@@ -305,7 +323,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.9", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.10", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.10", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.10"))
         .thenReturn(versionDetail("jira", "1.4.10", ">=25.1, <26.0", false));
 
@@ -321,7 +339,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
 
     assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
         .updateAvailable());
@@ -335,7 +353,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "2.0.0", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "2.0.0", "bug-tracking", "public")));
     when(client.getVersion("jira", "2.0.0"))
         .thenReturn(versionDetail("jira", "2.0.0", ">=27.0", false));
 
@@ -350,7 +368,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.9", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.10", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.10", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.10"))
         .thenReturn(versionDetail("jira", "1.4.10", ">=25.1, <26.0", false));
 
@@ -364,7 +382,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.3"))
         .thenReturn(versionDetail("jira", "1.4.3", ">=25.x", false));
 
@@ -377,7 +395,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.3"))
         .thenReturn(versionDetail("jira", "1.4.3", null, false));
 
@@ -483,7 +501,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.3"))
         .thenReturn(versionDetail("jira", "1.4.3", ">=25.1", true));
 
@@ -498,7 +516,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.3"))
         .thenReturn(versionDetail("jira", "1.4.3", ">=25.1", false));
 
@@ -609,7 +627,7 @@ class GetMarketplaceCatalogueHandlerTest {
         installed(1L, "jira", IntegrationGroupEnum.BTS, "1.0.0", null),
         installed(2L, "slack", IntegrationGroupEnum.NOTIFICATION, "1.0.0", null)));
     when(client.getCatalogue("bug-tracking", null)).thenReturn(List.of(
-        registryPlugin("azure-devops", "Azure DevOps", "2.1.0", "bug-tracking", "public", null)));
+        registryPlugin("azure-devops", "Azure DevOps", "2.1.0", "bug-tracking", "public")));
 
     var catalogue = handler.getCatalogue(null, "BTS");
 
@@ -639,7 +657,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(1L, "jira", IntegrationGroupEnum.BTS, "1.0.0", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira Server", "1.0.0", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira Server", "1.0.0", "bug-tracking", "public")));
 
     var entry = handler.getCatalogue(null, null).installed().get(0).marketplace();
 
@@ -655,7 +673,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(1L, "jira", IntegrationGroupEnum.OTHER, "1.0.0", null)));
     when(client.getCatalogue("bug-tracking", null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.0.0", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.0.0", "bug-tracking", "public")));
 
     var catalogue = handler.getCatalogue(null, "bug-tracking");
 
@@ -671,7 +689,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(client.getCatalogue(null, "jira"))
         .thenThrow(new RegistryResponseException(400, "BAD_REQUEST", "boom"));
     when(client.getCatalogue(null, "slack")).thenReturn(List.of(
-        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public")));
 
     assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue("jira", null).registry().status());
     assertEquals(RegistryStatus.ONLINE, handler.getCatalogue("slack", null).registry().status());
@@ -702,7 +720,7 @@ class GetMarketplaceCatalogueHandlerTest {
         .thenThrow(new RegistryUnreachableException("marketplace.reportportal.io",
             new SocketTimeoutException("Read timed out")))
         .thenReturn(List.of(
-            registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+            registryPlugin("slack", "Slack", "2.0.0", "notifications", "public")));
 
     assertEquals(RegistryStatus.OFFLINE, handler.getCatalogue(null, null).registry().status());
     ticker.advance(Duration.ofSeconds(29));
@@ -738,7 +756,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.3"))
         .thenThrow(new RegistryResponseException(500, "INTERNAL_ERROR", "boom"));
 
@@ -757,7 +775,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.3"))
         .thenThrow(new RegistryResponseException(500, "INTERNAL_ERROR", "boom"))
         .thenReturn(versionDetail("jira", "1.4.3", ">=25.1, <26.0", false));
@@ -782,8 +800,8 @@ class GetMarketplaceCatalogueHandlerTest {
         installed(1L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null),
         installed(2L, "slack", IntegrationGroupEnum.NOTIFICATION, "1.0.0", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira"),
-        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public"),
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public")));
     when(client.getVersion("jira", "1.4.3")).thenThrow(new RegistryUnreachableException(
         "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
 
@@ -801,7 +819,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
     when(client.getCatalogue(any(), any())).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.3", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.3")).thenThrow(new RegistryUnreachableException(
         "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
 
@@ -814,7 +832,7 @@ class GetMarketplaceCatalogueHandlerTest {
   private static MarketplaceVersionDetail advisedVersion(String id, String version,
       MarketplaceAdvisory advisory, boolean blocked, Instant blockedAt, String blockReason) {
     return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
-        new MarketplaceCompatibility(">=25.0"), null, "public", null, "official", null, blocked,
+        new MarketplaceCompatibility(">=25.0"), null, "public", null, "official", blocked,
         blockedAt, blockReason, advisory, "sha", null, null);
   }
 
@@ -826,7 +844,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.5.0", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.5.0", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1",
         new MarketplaceAdvisory("high", "Leaks the API key into the log", attachedAt), false, null,
         null));
@@ -850,7 +868,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.5.0", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.5.0", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1", null, true,
         blockedAt, "Signed with a revoked key"));
     // The latest version is servable; reading it instead would report no block at all.
@@ -872,7 +890,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.1", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.1", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1", null, false,
         Instant.parse("2026-02-02T09:00:00Z"), "lifted"));
 
@@ -889,7 +907,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(9L, "jira", IntegrationGroupEnum.BTS, "1.4.1", "plugin-bts-jira")));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public")));
     when(client.getPlugin("plugin-bts-jira")).thenThrow(new PluginRemovedException(
         "plugin-bts-jira", "Vendor withdrew it", removedAt, "operator@rp.io"));
 
@@ -908,10 +926,10 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(9L, "jira", IntegrationGroupEnum.BTS, "1.4.1", "still-there")));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack")));
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public")));
     when(client.getPlugin("still-there")).thenReturn(
         new MarketplacePluginDetail("still-there", "Jira", "1.4.1", null, null, null,
-            "bug-tracking", null, null, "public", null, "official", "1.4.1", "jira"));
+            "bug-tracking", null, null, "public", null, "official", "1.4.1"));
 
     assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace());
   }
@@ -922,8 +940,8 @@ class GetMarketplaceCatalogueHandlerTest {
     // listed plugin would turn one page view into one registry request per catalogue entry.
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of());
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public", "slack"),
-        registryPlugin("teams", "Teams", "3.0.0", "notifications", "public", "teams")));
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public"),
+        registryPlugin("teams", "Teams", "3.0.0", "notifications", "public")));
 
     assertEquals(2, handler.getCatalogue(null, null).available().size());
     verify(client, never()).getVersion(anyString(), anyString());
@@ -935,7 +953,7 @@ class GetMarketplaceCatalogueHandlerTest {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
         List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.1", null)));
     when(client.getCatalogue(null, null)).thenReturn(List.of(
-        registryPlugin("jira", "Jira", "1.4.1", "bug-tracking", "public", "jira")));
+        registryPlugin("jira", "Jira", "1.4.1", "bug-tracking", "public")));
     when(client.getVersion("jira", "1.4.1")).thenReturn(advisedVersion("jira", "1.4.1", null, false,
         null, null));
 

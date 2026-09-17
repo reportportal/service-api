@@ -36,7 +36,6 @@ public record MarketplaceVersionDetail(
     String access,
     String contactUrl,
     String tier,
-    String pf4jId,
     boolean blocked,
     Instant blockedAt,
     String blockReason,

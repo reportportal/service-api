@@ -197,7 +197,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
         Predicate.isEqual(true)).verify(FORBIDDEN_OPERATION,
         "Old password not match with stored."
     );
-    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+    userMutationService.updatePassword(user, request.getNewPassword());
     userRepository.save(user);
 
     try {

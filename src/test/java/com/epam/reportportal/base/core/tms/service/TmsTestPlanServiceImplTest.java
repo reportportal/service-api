@@ -30,7 +30,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResul
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.dao.launch.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
@@ -1421,7 +1421,7 @@ class TmsTestPlanServiceImplTest {
     sut.deleteTestPlansByMilestoneId(projectId, milestoneId);
 
     verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
-    verify(launchRepository).clearTestPlanIds(testPlanIds);
+    verify(launchRepository).clearTestPlanIdsByProjectIdAndTestPlanIds(projectId, testPlanIds);
     verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(100L);
     verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(200L);
     verify(testPlanRepository).deleteByProjectIdAndMilestoneId(projectId, milestoneId);

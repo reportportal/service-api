@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchCollectorFactory;
-import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -86,13 +85,11 @@ class SearchLogServiceImplTest {
 
   private LogConverter logConverter = mock(LogConverter.class);
 
-  private final LaunchAccessValidator launchAccessValidator = mock(LaunchAccessValidator.class);
-
   private final TestItemService testItemService = mock(TestItemService.class);
 
   private final SearchLogServiceImpl searchLogService =
       new SearchLogServiceImpl(projectRepository, testItemRepository, logService,
-          analyzerServiceClient, searchCollectorFactory, logConverter, launchAccessValidator, testItemService);
+          analyzerServiceClient, searchCollectorFactory, logConverter, testItemService);
 
   @Test
   void searchTest() {
@@ -264,6 +261,7 @@ class SearchLogServiceImplTest {
 
     when(testItemService.getEffectiveLaunch(testItem)).thenReturn(launch);
     when(launch.getId()).thenReturn(1L);
+    when(launch.getProjectId()).thenReturn(1L);
 
     when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(
         1L, 1L, "1", LogLevel.ERROR_INT
@@ -273,8 +271,7 @@ class SearchLogServiceImplTest {
     searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());
     searchLogRq.setFilterId(1L);
 
-    searchLogService.search(1L, searchLogRq, membershipDetails);
-
-    verify(launchAccessValidator).validate(1L, membershipDetails, null);
+    Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
+    Assertions.assertNotNull(responses);
   }
 }

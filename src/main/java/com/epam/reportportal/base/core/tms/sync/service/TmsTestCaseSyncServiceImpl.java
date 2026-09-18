@@ -27,14 +27,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -93,10 +97,10 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
   }
 
   @Override
-  public void processTestCaseBatch(Long jobId, 
+  public void processTestCaseBatch(Long jobId,
       Long projectId,
-      TmsSyncConnector<Integration> connector, 
-      Integration integration, 
+      TmsSyncConnector<Integration> connector,
+      Integration integration,
       List<RemoteTestCase> remoteTestCaseBatch,
       Long localFolderId) {
     var organizationId = projectRepository.findById(projectId)
@@ -110,16 +114,21 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
         remoteTestCaseBatch, existingTestCases.testCases(), testCaseSyncContext
     );
 
-    transactionTemplate.execute(status -> {
-      persistTestCasesAndAttachments(
-          projectId,
-          organizationId,
-          remoteTestCaseBatch,
-          existingTestCases.beforeSnapshots(),
-          batchProcessingResult
-      );
-      return updateSyncJob(jobId, batchProcessingResult);
-    });
+    try {
+      transactionTemplate.execute(status -> {
+        persistTestCasesAndAttachments(
+            projectId,
+            organizationId,
+            remoteTestCaseBatch,
+            existingTestCases.beforeSnapshots(),
+            batchProcessingResult
+        );
+        return updateSyncJob(jobId, batchProcessingResult);
+      });
+    } catch (RuntimeException e) {
+      deleteAttachments(batchProcessingResult.storedAttachmentIds());
+      throw e;
+    }
   }
 
   private ExistingTestCases loadExistingTestCasesAndBeforeSnapshots(
@@ -158,24 +167,29 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
     var testCasesToSave = new ArrayList<TmsTestCase>();
     var isNewTestCaseMap = new HashMap<String, Boolean>();
     var attachmentsByTestCaseId = new HashMap<String, List<TmsAttachment>>();
+    var storedAttachmentIds = new ArrayList<String>();
     var errors = new ArrayList<SyncError>();
     var processedCount = 0;
     var failedCount = 0;
 
     for (var remoteTestCase : remoteTestCaseBatch) {
+      var testCaseAttachmentIds = new ArrayList<String>();
       try {
         var testCaseSyncResult = processTestCase(
-            context, remoteTestCase, existingTestCases.get(remoteTestCase.getId()), errors
+            context, remoteTestCase, existingTestCases.get(remoteTestCase.getId()), errors,
+            testCaseAttachmentIds
         );
         if (testCaseSyncResult.processed()) {
           processedCount++;
           testCasesToSave.add(testCaseSyncResult.testCase());
           isNewTestCaseMap.put(remoteTestCase.getId(), testCaseSyncResult.isNew());
+          storedAttachmentIds.addAll(testCaseAttachmentIds);
           if (CollectionUtils.isNotEmpty(testCaseSyncResult.attachments())) {
             attachmentsByTestCaseId.put(remoteTestCase.getId(), testCaseSyncResult.attachments());
           }
         }
       } catch (Exception e) {
+        deleteAttachments(testCaseAttachmentIds);
         log.error("Failed to sync test case: {}", remoteTestCase.getId(), e);
         failedCount++;
         errors.add(
@@ -186,6 +200,7 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
         testCasesToSave,
         isNewTestCaseMap,
         attachmentsByTestCaseId,
+        storedAttachmentIds,
         processedCount,
         failedCount,
         errors
@@ -317,7 +332,8 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       TestCaseSyncContext context,
       RemoteTestCase remoteTestCase,
       TmsTestCase existing,
-      List<SyncError> errors) {
+      List<SyncError> errors,
+      List<String> storedAttachmentIds) {
 
     var needsUpdate = existing == null || existing.getSourceUpdatedAt() == null
         || remoteTestCase.getUpdatedAt() == null
@@ -327,7 +343,9 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       return new TestCaseSyncResult(false, false, null, List.of());
     }
 
-    var attachmentSyncResult = processAttachments(context, remoteTestCase, errors);
+    var attachmentSyncResult = processAttachments(
+        context, remoteTestCase, errors, storedAttachmentIds
+    );
     if (!attachmentSyncResult.allAttachmentsDownloaded()) {
       throw new IllegalStateException("Failed to download all attachments for test case "
           + remoteTestCase.getId());
@@ -343,13 +361,16 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
   private AttachmentSyncResult processAttachments(
       TestCaseSyncContext context,
       RemoteTestCase remoteTestCase,
-      List<SyncError> errors) {
+      List<SyncError> errors,
+      List<String> storedAttachmentIds) {
 
     var testCaseAttachments = new ArrayList<TmsAttachment>();
     var allAttachmentsDownloaded = true;
     if (remoteTestCase.getAttachments() != null) {
       for (var remoteAttachment : remoteTestCase.getAttachments()) {
-        var attachment = processAttachment(context, remoteTestCase, remoteAttachment, errors);
+        var attachment = processAttachment(
+            context, remoteTestCase, remoteAttachment, errors, storedAttachmentIds
+        );
         if (attachment != null) {
           testCaseAttachments.add(attachment);
         } else {
@@ -364,7 +385,8 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       TestCaseSyncContext context,
       RemoteTestCase remoteTestCase,
       RemoteAttachment remoteAttachment,
-      List<SyncError> errors) {
+      List<SyncError> errors,
+      List<String> storedAttachmentIds) {
 
     try {
       if (remoteAttachment.getSize() != null
@@ -375,25 +397,29 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
 
       try (var inputStream = context.connector().downloadAttachment(
           context.integration(), remoteAttachment.getContentUrl())) {
-      var sanitizedFilename = remoteAttachment.getFilename()
-          .replaceAll("[^a-zA-Z0-9.-]", "_");
-      var shardedPath = String.format("tms/%d/%s/%s_%s",
-          context.projectId(), remoteTestCase.getId(), remoteAttachment.getId(), sanitizedFilename);
-      var bytes = readAttachmentBytes(inputStream);
-      var fileId = tmsAttachmentDataStoreService.save(shardedPath, new ByteArrayInputStream(bytes));
-      String thumbnailId = null;
-      if (isImage(remoteAttachment.getMimeType())) {
-        try {
-          var thumbnailShardedPath = String.format("tms/%d/%s/thumbnail_%s_%s",
-              context.projectId(), remoteTestCase.getId(), remoteAttachment.getId(), sanitizedFilename);
-          thumbnailId = tmsAttachmentDataStoreService.saveThumbnail(
-              thumbnailShardedPath, new ByteArrayInputStream(bytes));
-        } catch (Exception e) {
-          log.warn("Failed to create thumbnail for attachment {} in test case {}",
-              remoteAttachment.getId(), remoteTestCase.getId(), e);
+        var bytes = readAttachmentBytes(inputStream);
+        var fileId = tmsAttachmentDataStoreService.save(
+            buildStorageKey(context.projectId(), remoteAttachment.getFilename()),
+            new ByteArrayInputStream(bytes)
+        );
+        storedAttachmentIds.add(fileId);
+        String thumbnailId = null;
+        if (isImage(remoteAttachment.getMimeType())) {
+          try {
+            thumbnailId = tmsAttachmentDataStoreService.saveThumbnail(
+                buildThumbnailStorageKey(context.projectId(), remoteAttachment.getFilename()),
+                new ByteArrayInputStream(bytes)
+            );
+            if (thumbnailId != null) {
+              storedAttachmentIds.add(thumbnailId);
+            }
+          } catch (Exception e) {
+            log.warn("Failed to create thumbnail for attachment {} in test case {}",
+                remoteAttachment.getId(), remoteTestCase.getId(), e);
+          }
         }
-      }
-      return tmsAttachmentMapper.convertFromRemote(remoteAttachment, fileId, thumbnailId, context.projectId());
+        return tmsAttachmentMapper.convertFromRemote(
+            remoteAttachment, fileId, thumbnailId, context.projectId());
       }
     } catch (Exception e) {
       log.warn("Failed to sync attachment {} for test case {}", remoteAttachment.getId(),
@@ -402,6 +428,35 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
           "Attachment sync failed: " + e.getMessage(), null));
       return null;
     }
+  }
+
+  private void deleteAttachments(List<String> attachmentIds) {
+    for (var attachmentId : attachmentIds) {
+      try {
+        tmsAttachmentDataStoreService.delete(attachmentId);
+      } catch (Exception e) {
+        log.error("Failed to delete attachment {} after TMS sync failure", attachmentId, e);
+      }
+    }
+  }
+
+  private String buildStorageKey(Long projectId, String originalFilename) {
+    return Paths.get(
+        String.valueOf(projectId),
+        UUID.randomUUID() + "_" + sanitizeOriginalFilename(originalFilename)
+    ).toString();
+  }
+
+  private String buildThumbnailStorageKey(Long projectId, String originalFilename) {
+    return Paths.get(
+        String.valueOf(projectId),
+        "thumbnail_" + UUID.randomUUID() + "_" + sanitizeOriginalFilename(originalFilename)
+    ).toString();
+  }
+
+  private String sanitizeOriginalFilename(String originalFilename) {
+    var filename = FilenameUtils.getName(StringUtils.defaultString(originalFilename));
+    return StringUtils.isBlank(filename) ? "attachment" : filename.replaceAll("[^a-zA-Z0-9.-]", "_");
   }
 
   private byte[] readAttachmentBytes(InputStream inputStream) throws IOException {
@@ -434,6 +489,7 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       List<TmsTestCase> testCasesToSave,
       Map<String, Boolean> isNewTestCaseMap,
       Map<String, List<TmsAttachment>> attachmentsByTestCaseId,
+      List<String> storedAttachmentIds,
       int processedCount,
       int failedCount,
       List<SyncError> errors

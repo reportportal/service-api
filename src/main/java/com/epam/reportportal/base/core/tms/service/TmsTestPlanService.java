@@ -101,7 +101,13 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
 
   void addTestPlanMilestone(Long projectId, Long milestoneId, Long testPlanId);
 
-  void removeTestPlansFromMilestone(Long projectId, Long milestoneId);
+  /**
+   * Deletes all test plans assigned to the milestone and clears their references from existing launches.
+   *
+   * @param projectId the project ID
+   * @param milestoneId the milestone ID
+   */
+  void deleteTestPlansByMilestoneId(Long projectId, Long milestoneId);
 
   Page<TmsManualLaunchTestPlanRS> getTestPlanNames(Long projectId, String search, Pageable pageable);
 }

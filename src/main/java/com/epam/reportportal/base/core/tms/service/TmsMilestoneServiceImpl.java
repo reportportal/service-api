@@ -128,7 +128,7 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
       );
     }
 
-    tmsTestPlanService.removeTestPlansFromMilestone(projectId, milestoneId);
+    tmsTestPlanService.deleteTestPlansByMilestoneId(projectId, milestoneId);
 
     var deletedCount = tmsMilestoneRepository.deleteByIdAndProjectId(milestoneId, projectId);
 

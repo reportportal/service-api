@@ -313,6 +313,9 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
+    // The delete flow locks the milestone, while the bulk repository delete does not evict its managed entity.
+    entityManager.clear();
+
     // Verify deletion
     assertFalse(tmsMilestoneRepository.findById(MILESTONE_FOR_DELETE_ID).isPresent());
   }

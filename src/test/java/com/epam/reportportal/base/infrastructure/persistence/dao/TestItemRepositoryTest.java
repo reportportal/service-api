@@ -1242,7 +1242,8 @@ class TestItemRepositoryTest extends BaseMvcTest {
         .build();
 
     Sort sort = Sort.by(
-        Lists.newArrayList(new Sort.Order(Sort.Direction.ASC, CRITERIA_START_TIME)));
+        Lists.newArrayList(new Sort.Order(Sort.Direction.ASC, CRITERIA_START_TIME),
+            new Sort.Order(Sort.Direction.ASC, CRITERIA_ID)));
 
     //WHEN
     List<TestItem> testItems = testItemRepository.findByFilter(filter, PageRequest.of(0, 20, sort))

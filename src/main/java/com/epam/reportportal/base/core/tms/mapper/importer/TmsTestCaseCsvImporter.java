@@ -1,4 +1,3 @@
-
 package com.epam.reportportal.base.core.tms.mapper.importer;
 
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -47,6 +47,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
   private static final String COL_EXPECTED_RESULT = "expected result";
   private static final String COL_REQUIREMENTS = "requirements";
   private static final String COL_PRECONDITIONS = "preconditions";
+  private static final String UNSPECIFIED_PRIORITY = "UNSPECIFIED";
 
   // Separators
   private static final String LABEL_SEPARATOR = ";";
@@ -136,7 +137,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
         .builder()
         .name(summary)
         .description(getValueSafe(record, headerMap, COL_DESCRIPTION))
-        .priority(getValueSafe(record, headerMap, COL_PRIORITY))
+        .priority(getPriority(record, headerMap))
         .folderPath(parsePath(getValueSafe(record, headerMap, COL_PATH)))
         .attributes(parseLabels(getValueSafe(record, headerMap, COL_LABELS)))
         .manualScenario(buildManualScenario(
@@ -157,6 +158,11 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
     return StringUtils.isBlank(value) ? null : value.trim();
   }
 
+  private String getPriority(CSVRecord record, Map<String, Integer> headerMap) {
+    String priority = getValueSafe(record, headerMap, COL_PRIORITY);
+    return priority == null ? UNSPECIFIED_PRIORITY : priority;
+  }
+
   private List<String> parsePath(String path) {
     if (StringUtils.isBlank(path)) {
       return Collections.emptyList();
@@ -174,6 +180,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
     return Arrays.stream(labelsCell.split(LABEL_SEPARATOR))
         .map(String::trim)
         .filter(StringUtils::isNotBlank)
+        .map(label -> label.toLowerCase(Locale.ROOT))
         .distinct()
         .map(key -> TmsTestCaseAttributeImportRQ.builder().key(key).build())
         .toList();

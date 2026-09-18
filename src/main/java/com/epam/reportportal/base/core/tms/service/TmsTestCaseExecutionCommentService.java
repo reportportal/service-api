@@ -6,9 +6,17 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 
 public interface TmsTestCaseExecutionCommentService {
 
-  TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ);
+  /**
+   * Creates or fully updates execution comment.
+   */
+  TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, TmsTestCaseExecution existingExecution,
+      TmsTestCaseExecutionCommentRQ executionCommentRq);
 
-  TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(TmsTestCaseExecution existingExecution, TmsTestCaseExecutionCommentRQ executionCommentRQ);
+  /**
+   * Partially updates execution comment.
+   */
+  TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, TmsTestCaseExecution existingExecution,
+      TmsTestCaseExecutionCommentRQ executionCommentRq);
 
   void deleteTestCaseExecutionComment(Long projectId, Long launchId, Long executionId);
 

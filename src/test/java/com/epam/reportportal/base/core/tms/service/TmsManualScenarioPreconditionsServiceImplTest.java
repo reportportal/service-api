@@ -7,11 +7,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioPreconditionsMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -102,19 +102,20 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     when(tmsManualScenarioPreconditionRepository.save(preconditions)).thenReturn(savedPreconditions);
 
     // When creating preconditions
-    sut.createPreconditions(manualScenario, preconditionsRQ);
+    sut.createPreconditions(projectId, manualScenario, preconditionsRQ);
 
     // Then preconditions should be created with attachments and set on manual scenario
     verify(tmsManualScenarioPreconditionsMapper).toEntity(preconditionsRQ);
     verify(tmsManualScenarioPreconditionRepository).save(preconditions);
-    verify(tmsManualScenarioPreconditionsAttachmentService).createAttachments(savedPreconditions, preconditionsRQ);
+    verify(tmsManualScenarioPreconditionsAttachmentService).createAttachments(projectId, savedPreconditions,
+        preconditionsRQ);
     // Note: manualScenario.setPreconditions(savedPreconditions) is called in implementation
   }
 
   @Test
   void createPreconditions_ShouldDoNothing_WhenPreconditionsRQIsNull() {
     // When creating preconditions with null RQ
-    sut.createPreconditions(manualScenario, null);
+    sut.createPreconditions(projectId, manualScenario, null);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsManualScenarioPreconditionsMapper);
@@ -128,11 +129,12 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     existingManualScenario.setPreconditions(existingPreconditions);
 
     // When updating preconditions
-    sut.updatePreconditions(existingManualScenario, preconditionsRQ);
+    sut.updatePreconditions(projectId, existingManualScenario, preconditionsRQ);
 
     // Then existing preconditions should be updated through mapper and attachments updated
     verify(tmsManualScenarioPreconditionsMapper).update(existingPreconditions, preconditionsRQ);
-    verify(tmsManualScenarioPreconditionsAttachmentService).updateAttachments(existingPreconditions, preconditionsRQ);
+    verify(tmsManualScenarioPreconditionsAttachmentService).updateAttachments(projectId, existingPreconditions,
+        preconditionsRQ);
     verify(tmsManualScenarioPreconditionRepository, never()).deleteById(any());
     verify(tmsManualScenarioPreconditionsMapper, never()).toEntity(any());
   }
@@ -143,12 +145,12 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     existingManualScenario.setPreconditions(existingPreconditions);
 
     // When updating with null preconditions RQ
-    sut.updatePreconditions(existingManualScenario, null);
+    sut.updatePreconditions(projectId, existingManualScenario, null);
 
     // Then existing preconditions should be deleted and scenario preconditions set to null
     verify(tmsManualScenarioPreconditionRepository).deleteById(existingPreconditions.getId());
     verify(tmsManualScenarioPreconditionsMapper, never()).update(any(), any());
-    verify(tmsManualScenarioPreconditionsAttachmentService, never()).updateAttachments(any(), any());
+    verify(tmsManualScenarioPreconditionsAttachmentService, never()).updateAttachments(any(), any(), any());
     verify(tmsManualScenarioPreconditionsMapper, never()).toEntity(any());
   }
 
@@ -160,12 +162,13 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     when(tmsManualScenarioPreconditionRepository.save(preconditions)).thenReturn(savedPreconditions);
 
     // When updating preconditions
-    sut.updatePreconditions(existingManualScenario, preconditionsRQ);
+    sut.updatePreconditions(projectId, existingManualScenario, preconditionsRQ);
 
     // Then new preconditions should be created
     verify(tmsManualScenarioPreconditionsMapper).toEntity(preconditionsRQ);
     verify(tmsManualScenarioPreconditionRepository).save(preconditions);
-    verify(tmsManualScenarioPreconditionsAttachmentService).createAttachments(savedPreconditions, preconditionsRQ);
+    verify(tmsManualScenarioPreconditionsAttachmentService).createAttachments(projectId, savedPreconditions,
+        preconditionsRQ);
     verify(tmsManualScenarioPreconditionsMapper, never()).update(any(), any());
   }
 
@@ -175,14 +178,14 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     existingManualScenario.setPreconditions(null);
 
     // When updating with null preconditions RQ
-    sut.updatePreconditions(existingManualScenario, null);
+    sut.updatePreconditions(projectId, existingManualScenario, null);
 
     // Then no operations should be performed
     verify(tmsManualScenarioPreconditionRepository, never()).deleteById(any());
     verify(tmsManualScenarioPreconditionsMapper, never()).toEntity(any());
     verify(tmsManualScenarioPreconditionsMapper, never()).update(any(), any());
-    verify(tmsManualScenarioPreconditionsAttachmentService, never()).createAttachments(any(), any());
-    verify(tmsManualScenarioPreconditionsAttachmentService, never()).updateAttachments(any(), any());
+    verify(tmsManualScenarioPreconditionsAttachmentService, never()).createAttachments(any(), any(), any());
+    verify(tmsManualScenarioPreconditionsAttachmentService, never()).updateAttachments(any(), any(), any());
   }
 
   @Test
@@ -193,12 +196,13 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     when(tmsManualScenarioPreconditionRepository.save(preconditions)).thenReturn(savedPreconditions);
 
     // When patching preconditions
-    sut.patchPreconditions(existingManualScenario, preconditionsRQ);
+    sut.patchPreconditions(projectId, existingManualScenario, preconditionsRQ);
 
     // Then new preconditions should be created
     verify(tmsManualScenarioPreconditionsMapper).toEntity(preconditionsRQ);
     verify(tmsManualScenarioPreconditionRepository).save(preconditions);
-    verify(tmsManualScenarioPreconditionsAttachmentService).createAttachments(savedPreconditions, preconditionsRQ);
+    verify(tmsManualScenarioPreconditionsAttachmentService).createAttachments(projectId, savedPreconditions,
+        preconditionsRQ);
     verify(tmsManualScenarioPreconditionsMapper, never()).patch(any(), any());
   }
 
@@ -209,12 +213,13 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     when(tmsManualScenarioPreconditionRepository.save(existingPreconditions)).thenReturn(savedPreconditions);
 
     // When patching preconditions
-    sut.patchPreconditions(existingManualScenario, preconditionsRQ);
+    sut.patchPreconditions(projectId, existingManualScenario, preconditionsRQ);
 
     // Then existing preconditions should be patched
     verify(tmsManualScenarioPreconditionsMapper).patch(existingPreconditions, preconditionsRQ);
     verify(tmsManualScenarioPreconditionRepository).save(existingPreconditions);
-    verify(tmsManualScenarioPreconditionsAttachmentService).updateAttachments(savedPreconditions, preconditionsRQ);
+    verify(tmsManualScenarioPreconditionsAttachmentService).updateAttachments(projectId, savedPreconditions,
+        preconditionsRQ);
     verify(tmsManualScenarioPreconditionsMapper, never()).toEntity(any());
   }
 
@@ -224,7 +229,7 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     existingManualScenario.setPreconditions(existingPreconditions);
 
     // When patching with null preconditions RQ
-    sut.patchPreconditions(existingManualScenario, null);
+    sut.patchPreconditions(projectId, existingManualScenario, null);
 
     // Then no operations should be performed
     verifyNoInteractions(tmsManualScenarioPreconditionsMapper);
@@ -379,7 +384,7 @@ class TmsManualScenarioPreconditionsServiceImplTest {
     when(tmsManualScenarioPreconditionRepository.save(preconditions)).thenReturn(savedPreconditions);
 
     // When creating preconditions
-    sut.createPreconditions(manualScenario, preconditionsRQ);
+    sut.createPreconditions(projectId, manualScenario, preconditionsRQ);
 
     // Then manual scenario should be set on preconditions before saving
     verify(tmsManualScenarioPreconditionsMapper).toEntity(preconditionsRQ);

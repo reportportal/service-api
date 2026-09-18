@@ -25,13 +25,23 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.OrgRole;
+import com.epam.reportportal.api.model.OrgUserUpdateRequest;
+import com.epam.reportportal.api.model.ProjectRole;
+import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
+import com.epam.reportportal.base.core.project.ProjectUserService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser.OrganizationDetails;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
@@ -40,6 +50,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,10 +72,27 @@ class OrganizationUsersHandlerImplTest {
   @Mock
   private OrganizationUserService organizationUserService;
 
+  @Mock
+  private OrganizationRepositoryCustom organizationRepositoryCustom;
+
+  @Mock
+  private UserRepository userRepository;
+
+  @Mock
+  private ProjectRepository projectRepository;
+
+  @Mock
+  private ProjectUserRepository projectUserRepository;
+
+  @Mock
+  private ProjectUserService projectUserService;
+
   @InjectMocks
   private OrganizationUsersHandlerImpl organizationUsersHandler;
 
   private static final Long ORG_ID = 1L;
+  private static final Long FOREIGN_ORG_ID = 2L;
+  private static final Long FOREIGN_PROJECT_ID = 302L;
   private static final Long USER_ID = 100L;
   private static final String USER_LOGIN = "testuser";
   private static final String USER_EMAIL = "testuser@example.com";
@@ -234,6 +262,40 @@ class OrganizationUsersHandlerImplTest {
 
       // Then
       verify(organizationUserService).removeOrganizationUserEntry(eq(organizationUser), eq(reportPortalUser));
+    }
+  }
+
+  @Test
+  @DisplayName("Update organization user with foreign project ID should fail and not save project user")
+  void updateOrganizationUserDetailsWhenForeignProjectIdShouldThrowBadRequest() {
+    // Given
+    Project foreignProject = new Project();
+    foreignProject.setId(FOREIGN_PROJECT_ID);
+    foreignProject.setOrganizationId(FOREIGN_ORG_ID);
+
+    when(organizationRepositoryCustom.findById(ORG_ID)).thenReturn(Optional.of(organization));
+    when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID))
+        .thenReturn(Optional.of(organizationUser));
+    when(projectRepository.findById(FOREIGN_PROJECT_ID)).thenReturn(Optional.of(foreignProject));
+    User user = organizationUser.getUser();
+    OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest()
+        .orgRole(OrgRole.MEMBER)
+        .projects(List.of(new UserProjectInfo()
+            .id(FOREIGN_PROJECT_ID)
+            .projectRole(ProjectRole.EDITOR)));
+
+    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+
+    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
+        SecurityContextUtils.class)) {
+      mockedSecurityContext.when(SecurityContextUtils::getPrincipal).thenReturn(reportPortalUser);
+
+      // When & Then
+      ReportPortalException exception = assertThrows(ReportPortalException.class,
+          () -> organizationUsersHandler.updateOrganizationUserDetails(ORG_ID, USER_ID, updateRequest));
+
+      assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
+      verify(projectUserRepository, never()).save(any());
     }
   }
 }

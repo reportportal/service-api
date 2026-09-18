@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -58,6 +59,7 @@ public class UserMutationServiceImpl implements UserMutationService {
   private final ProjectRepository projectRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final TokenBlacklistService tokenBlacklistService;
+  private final PasswordEncoder passwordEncoder;
 
   @Override
   public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
@@ -122,6 +124,12 @@ public class UserMutationServiceImpl implements UserMutationService {
   }
 
   @Override
+  public void updatePassword(User user, String rawPassword) {
+    user.setPassword(passwordEncoder.encode(rawPassword));
+    tokenBlacklistService.revokeUserTokens(user);
+  }
+
+  @Override
   public void updateActive(User user, Object value) {
     expect(value != null, Boolean.TRUE::equals)
         .verify(BAD_REQUEST_ERROR, "Active status must not be null.");
@@ -129,7 +137,12 @@ public class UserMutationServiceImpl implements UserMutationService {
     expect(value instanceof Boolean, Boolean.TRUE::equals)
         .verify(BAD_REQUEST_ERROR, "Active status must be a boolean value.");
 
-    user.setActive((Boolean) value);
+    boolean active = Boolean.TRUE.equals(value);
+    user.setActive(active);
+
+    if (!active) {
+      tokenBlacklistService.revokeUserTokens(user);
+    }
   }
 
   @Override

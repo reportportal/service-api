@@ -13,6 +13,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResul
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
@@ -48,6 +49,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   private static final String TMS_TEST_PLAN_NOT_FOUND_BY_ID =
       "TMS Test Plan with id: %d for project: %d";
 
+  private final LaunchRepository launchRepository;
   private final TmsTestPlanRepository testPlanRepository;
   private final TmsTestPlanFilterableRepository tmsTestPlanFilterableRepository;
   private final TmsTestPlanMapper tmsTestPlanMapper;
@@ -510,8 +512,20 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public void removeTestPlansFromMilestone(Long projectId, Long milestoneId) {
-    testPlanRepository.removeTestPlansFromMilestone(milestoneId, projectId);
+  public void deleteTestPlansByMilestoneId(Long projectId, Long milestoneId) {
+    var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+
+    if (testPlanIds.isEmpty()) {
+      return;
+    }
+
+    launchRepository.clearTestPlanIdsByProjectIdAndTestPlanIds(projectId, testPlanIds);
+
+    for (var testPlanId : testPlanIds) {
+      tmsTestPlanAttributeService.deleteAllByTestPlanId(testPlanId);
+    }
+
+    testPlanRepository.deleteByProjectIdAndMilestoneId(projectId, milestoneId);
   }
 
   private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(MembershipDetails membershipDetails,

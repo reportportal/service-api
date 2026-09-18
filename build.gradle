@@ -48,37 +48,33 @@ java {
 }
 
 ext['spring-boot.version'] = "${springBootVersion}"
-// Override Spring Boot BOM's Spring Security line (e.g. 6.4.x -> 6.5.10) for newer security fixes; not the default
-// stack Boot 3.4.x is built against, so re-verify auth (OAuth2, filters, ACL) after bumps.
-ext['spring-security.version'] = '6.5.10'
-// SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551 (jackson-core): align whole Jackson stack via BOM (was 2.18.6)
-ext['jackson-bom.version'] = '2.21.2'
-// SNYK: Spring Framework 6.2.19 patches spring-core/web/webmvc/expression/context-support/test CVEs
-// (ReDoS, SSRF, XSS, HTTP smuggling, path traversal, etc.). Stays on 6.2.x — avoids Spring Boot 4.
-ext['spring-framework.version'] = '6.2.19'
-// SNYK-JAVA-IOMICROMETER-17260885: micrometer-core/registry-prometheus resource allocation
+ext['spring-security.version'] = "${springSecurityVersion}"
+ext['jackson-bom.version'] = "${jacksonVersion}"
+ext['spring-framework.version'] = "${springFrameworkVersion}"
+ext['logback.version'] = "${logbackVersion}"
+// Latest OSS 1.15.x. 1.15.13 is snapshot-only; 1.16.x is Boot 4.
 ext['micrometer.version'] = '1.15.12'
 // CVE-2020-29582: align kotlin stack to patched stdlib
 ext['kotlin.version'] = '2.1.0'
 // SNYK-JAVA-ORGSPRINGFRAMEWORKRETRY-17260993: resource allocation fixed in 2.0.13
 ext['spring-retry.version'] = '2.0.13'
-// CVE-2026-1225 (logback-core): минимум 1.5.25
-ext['logback.version'] = '1.5.34'
+ext['httpcore5.version'] = "${httpcore5Version}"
 
-// Transitive-security overrides until upstream BOMs/deps are bumped:
-// - tika-core: commons-bom pins 1.28.x (vulnerable); require 3.2.2+ (CVE-2025-66516).
-// - Netty: AWS SDK et al. pull mixed 4.1.x; align all io.netty artifacts to a patched release.
-// - mchange-commons-java: Quartz 2.3.2 brings 0.2.15; force 0.4.0+ (CVE-2026-27727).
-// - postgresql: align above 42.7.10 (e.g. Snyk) — fixed in 42.7.11.
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:5.15.2')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:48f92b6e68')
         mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
         mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+        // Later imports win over Boot / older transitive jackson-boms (springdoc, swagger).
+        mavenBom("com.fasterxml.jackson:jackson-bom:${jacksonVersion}")
+        mavenBom("org.springframework:spring-framework-bom:${springFrameworkVersion}")
+        mavenBom("org.springframework.security:spring-security-bom:${springSecurityVersion}")
     }
     dependencies {
         dependency 'org.apache.tika:tika-core:3.2.2'
-        dependency 'org.postgresql:postgresql:42.7.11'
+        dependency 'org.eclipse.parsson:parsson:1.1.8'
+        dependency "org.apache.httpcomponents.core5:httpcore5:${httpcore5Version}"
+        dependency "org.apache.httpcomponents.core5:httpcore5-h2:${httpcore5Version}"
     }
 }
 
@@ -86,6 +82,9 @@ def secureNettyVersion = '4.1.135.Final'
 configurations.configureEach {
     resolutionStrategy {
         force 'com.mchange:mchange-commons-java:0.4.0'
+        force 'org.eclipse.parsson:parsson:1.1.8'
+        force "org.apache.httpcomponents.core5:httpcore5:${httpcore5Version}"
+        force "org.apache.httpcomponents.core5:httpcore5-h2:${httpcore5Version}"
         eachDependency { details ->
             if (details.requested.group == 'io.netty') {
                 details.useVersion(secureNettyVersion)
@@ -94,8 +93,16 @@ configurations.configureEach {
                 if (details.requested.name == 'jackson-annotations') {
                     details.useVersion('2.21')
                 } else {
-                    details.useVersion('2.21.6')
+                    details.useVersion("${jacksonVersion}")
                 }
+            } else if (details.requested.group == 'org.springframework') {
+                details.useVersion("${springFrameworkVersion}")
+            } else if (details.requested.group == 'org.springframework.boot') {
+                details.useVersion("${springBootVersion}")
+            } else if (details.requested.group == 'org.springframework.security') {
+                details.useVersion("${springSecurityVersion}")
+            } else if (details.requested.group == 'ch.qos.logback') {
+                details.useVersion("${logbackVersion}")
             }
         }
     }
@@ -104,7 +111,7 @@ configurations.configureEach {
 println("Release mode: $releaseMode")
 dependencies {
     implementation 'com.github.reportportal:commons:5.15.2'
-    implementation 'com.github.reportportal:commons-dao:123253b'
+    implementation 'com.github.reportportal:commons-dao:bd5bab91'
     implementation('com.github.reportportal:plugin-api:5.15.0') {
         exclude group: 'com.github.reportportal', module: 'commons-dao'
         exclude group: 'com.github.reportportal', module: 'commons'
@@ -138,10 +145,10 @@ dependencies {
     // CVE-2025-70952 (Zip Slip in Unzip); transitive from commons was < 3.14.1
     implementation 'org.pf4j:pf4j:3.15.0'
 
-    // Tomcat 11 embed trio aligned (Boot 3.5 BOM uses 10.1.x). Bump patch for Snyk Tomcat issues on 11.0.22 — no need for Spring Boot 4.
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.22'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.22'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.22'
+    // Tomcat 11 embed trio aligned (Boot 3.5 BOM uses 10.1.x). 11.0.23+ patches embed-core CVEs on 11.0.22.
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.25'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.25'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.25'
 
     implementation 'org.apache.commons:commons-lang3:3.20.0'
     implementation 'com.opencsv:opencsv:5.12.0'
@@ -150,7 +157,7 @@ dependencies {
 
     // Optional for spring-boot-starter-amqp
     implementation "com.rabbitmq:http-client:5.3.0"
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3") // supports gzip encoding
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // gzip; 5.6.4 cert-validation / resource-lifetime CVEs
 
     // JasperReports 7 is modular: core + PDF/XLS/JDT compiler. jackson-dataformat-xml is required
     // to parse JRXML 7 (Digester was removed). Jackson version is forced to 2.21.6 above.
@@ -168,7 +175,7 @@ dependencies {
     implementation 'com.sun.mail:jakarta.mail:2.0.2'
 
     implementation 'xerces:xercesImpl:2.12.2'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.84'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.85'
     implementation 'com.google.api-client:google-api-client:2.8.1'
 
     implementation('commons-validator:commons-validator:1.10.0') {

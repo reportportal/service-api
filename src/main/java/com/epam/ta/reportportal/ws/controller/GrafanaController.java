@@ -57,10 +57,10 @@ public class GrafanaController {
    * Hit once per proxied request (iframe load and every asset/API/WebSocket sub-request); nginx forwards the
    * original request's {@code Cookie} header into this subrequest, but not the RP JWT (a plain iframe navigation
    * can't carry it), so this endpoint is deliberately unauthenticated and does its own validation against the
-   * {@code grafana_session} cookie set on {@code GET /v1/users}.
+   * {@code rp_grafana_session} cookie set on {@code GET /v1/users}.
    */
   @GetMapping("/v1/public/integration/grafana/session-check")
-  @Operation(summary = "Validate the grafana_session cookie",
+  @Operation(summary = "Validate the rp_grafana_session cookie",
       description = "Internal endpoint for nginx auth_request; not part of the public API surface")
   public ResponseEntity<Void> sessionCheck(HttpServletRequest request) {
     UUID sessionId = readSessionId(request);

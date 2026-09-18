@@ -30,7 +30,6 @@ import com.epam.reportportal.base.core.analyzer.auto.SearchLogService;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchLogsMode;
-import com.epam.reportportal.base.core.item.impl.LaunchAccessValidator;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
@@ -94,8 +93,6 @@ public class SearchLogServiceImpl implements SearchLogService {
   private final SearchCollectorFactory searchCollectorFactory;
 
   private final LogConverter logConverter;
-
-  private final LaunchAccessValidator launchAccessValidator;
 
   private final TestItemService testItemService;
 

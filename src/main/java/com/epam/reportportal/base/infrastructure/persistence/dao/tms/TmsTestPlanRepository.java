@@ -15,11 +15,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPlan, Long> {
 
-  @Query("SELECT tp FROM TmsTestPlan tp " +
-      "LEFT JOIN FETCH tp.attributes atr " +
-      "LEFT JOIN FETCH atr.attribute " +
-      "WHERE tp.project.id = :projectId AND tp.id = :id"
-  )
+  @Query("SELECT tp FROM TmsTestPlan tp "
+      + "LEFT JOIN FETCH tp.attributes atr "
+      + "LEFT JOIN FETCH atr.attribute "
+      + "WHERE tp.project.id = :projectId AND tp.id = :id")
   Optional<TmsTestPlan> findByIdAndProjectId(Long id, Long projectId);
 
   @Modifying
@@ -29,31 +28,29 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   void deleteByIdAndProjectId(@Param("testPlanId") Long testPlanId,
       @Param("projectId") Long projectId);
 
-  @Query(value = "SELECT tp.id FROM tms_test_plan tp " +
-      "WHERE tp.project_id = :projectId " +
-      "AND (:search IS NULL OR tp.search_vector @@ plainto_tsquery('simple', :search))",
-      countQuery = "SELECT COUNT(tp.id) FROM tms_test_plan tp " +
-          "WHERE tp.project_id = :projectId " +
-          "AND (:search IS NULL OR tp.search_vector @@ plainto_tsquery('simple', :search))",
+  @Query(value = "SELECT tp.id FROM tms_test_plan tp "
+      + "WHERE tp.project_id = :projectId "
+      + "AND (:search IS NULL OR tp.search_vector @@ plainto_tsquery('simple', :search))",
+      countQuery = "SELECT COUNT(tp.id) FROM tms_test_plan tp "
+          + "WHERE tp.project_id = :projectId "
+          + "AND (:search IS NULL OR tp.search_vector @@ plainto_tsquery('simple', :search))",
       nativeQuery = true)
   Page<Long> findIdsByCriteria(@Param("projectId") Long projectId,
       @Param("search") String search,
       Pageable pageable);
 
-  @Query("SELECT tp FROM TmsTestPlan tp " +
-      "LEFT JOIN FETCH tp.attributes atr " +
-      "LEFT JOIN FETCH atr.attribute " +
-      "WHERE tp.id IN :ids")
+  @Query("SELECT tp FROM TmsTestPlan tp "
+      + "LEFT JOIN FETCH tp.attributes atr "
+      + "LEFT JOIN FETCH atr.attribute "
+      + "WHERE tp.id IN :ids")
   List<TmsTestPlan> findByIdsWithAttributes(@Param("ids") List<Long> ids);
 
-  @Query("SELECT tp.id FROM TmsTestPlan tp " +
-      "WHERE tp.milestone.id = :milestoneId")
+  @Query("SELECT tp.id FROM TmsTestPlan tp WHERE tp.project.id = :projectId AND tp.milestone.id = :milestoneId")
   List<Long> findIdsByProjectIdAndMilestoneId(
       @Param("projectId") Long projectId, @Param("milestoneId") Long milestoneId
   );
 
-  @Query("SELECT tp.id FROM TmsTestPlan tp " +
-      "WHERE tp.milestone.id in :milestoneIds")
+  @Query("SELECT tp.id FROM TmsTestPlan tp WHERE tp.project.id = :projectId AND tp.milestone.id IN :milestoneIds")
   List<Long> findIdsByProjectIdAndMilestoneIds(
       @Param("projectId") Long projectId, @Param("milestoneIds") List<Long> milestoneIds
   );
@@ -62,6 +59,7 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
 
   /**
    * Find test plans by their IDs
+   *
    * @param testPlanIds list of test plan IDs
    * @return list of test plans
    */
@@ -72,8 +70,8 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
    * Removes test plan from milestone by setting milestone to null.
    *
    * @param milestoneId the milestone ID
-   * @param testPlanId  the test plan ID
-   * @param projectId   the project ID
+   * @param testPlanId the test plan ID
+   * @param projectId the project ID
    * @return number of updated records
    */
   @Modifying
@@ -88,8 +86,8 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
    * Adds test plan to milestone by setting milestone_id.
    *
    * @param milestoneId the milestone ID
-   * @param testPlanId  the test plan ID
-   * @param projectId   the project ID
+   * @param testPlanId the test plan ID
+   * @param projectId the project ID
    * @return number of updated records
    */
   @Modifying
@@ -100,19 +98,24 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
       @Param("testPlanId") Long testPlanId,
       @Param("projectId") Long projectId);
 
+  /**
+   * Deletes all test plans that belong to the specified milestone in the project.
+   *
+   * @param projectId the project ID
+   * @param milestoneId the milestone ID
+   * @return number of deleted test plans
+   */
   @Modifying
-  @Query(value = "UPDATE tms_test_plan SET milestone_id = NULL "
-      + "WHERE milestone_id = :milestoneId AND project_id = :projectId",
-      nativeQuery = true)
-  void removeTestPlansFromMilestone(@Param("milestoneId") Long milestoneId,
-      @Param("projectId") Long projectId);
+  @Query("DELETE FROM TmsTestPlan tp WHERE tp.project.id = :projectId AND tp.milestone.id = :milestoneId")
+  int deleteByProjectIdAndMilestoneId(@Param("projectId") Long projectId,
+      @Param("milestoneId") Long milestoneId);
 
-  @Query(value = "SELECT id, name FROM tms_test_plan " +
-      "WHERE project_id = :projectId " +
-      "AND (:search IS NULL OR name ILIKE '%' || CAST(:search AS varchar) || '%' OR display_id ILIKE '%' || CAST(:search AS varchar) || '%')",
-      countQuery = "SELECT COUNT(id) FROM tms_test_plan " +
-      "WHERE project_id = :projectId " +
-      "AND (:search IS NULL OR name ILIKE '%' || CAST(:search AS varchar) || '%' OR display_id ILIKE '%' || CAST(:search AS varchar) || '%')",
+  @Query(value = "SELECT id, name FROM tms_test_plan "
+      + "WHERE project_id = :projectId "
+      + "AND (:search IS NULL OR name ILIKE '%' || CAST(:search AS varchar) || '%' OR display_id ILIKE '%' || CAST(:search AS varchar) || '%')",
+      countQuery = "SELECT COUNT(id) FROM tms_test_plan "
+          + "WHERE project_id = :projectId "
+          + "AND (:search IS NULL OR name ILIKE '%' || CAST(:search AS varchar) || '%' OR display_id ILIKE '%' || CAST(:search AS varchar) || '%')",
       nativeQuery = true)
   Page<TmsTestPlanName> findIdAndNameByProjectIdAndSearch(
       @Param("projectId") Long projectId,

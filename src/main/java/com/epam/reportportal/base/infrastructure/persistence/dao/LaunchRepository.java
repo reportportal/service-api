@@ -223,4 +223,16 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
    */
   @Query("SELECT l.testPlanId FROM Launch l WHERE l.id = :launchId")
   Optional<Long> findTestPlanIdById(@Param("launchId") Long launchId);
+
+  /**
+   * Preserves launches while clearing references to deleted test plans.
+   *
+   * @param projectId the project ID
+   * @param testPlanIds IDs of deleted test plans
+   * @return number of updated launches
+   */
+  @Modifying
+  @Query("UPDATE Launch l SET l.testPlanId = null WHERE l.projectId = :projectId AND l.testPlanId IN :testPlanIds")
+  int clearTestPlanIdsByProjectIdAndTestPlanIds(@Param("projectId") Long projectId,
+      @Param("testPlanIds") List<Long> testPlanIds);
 }

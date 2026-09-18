@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchCollectorFactory;
+import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -84,9 +85,11 @@ class SearchLogServiceImplTest {
 
   private LogConverter logConverter = mock(LogConverter.class);
 
+  private final TestItemService testItemService = mock(TestItemService.class);
+
   private final SearchLogServiceImpl searchLogService =
-      new SearchLogServiceImpl(projectRepository, launchRepository, testItemRepository, logService,
-          analyzerServiceClient, searchCollectorFactory, logConverter);
+      new SearchLogServiceImpl(projectRepository, testItemRepository, logService,
+          analyzerServiceClient, searchCollectorFactory, logConverter, testItemService);
 
   @Test
   void searchTest() {
@@ -106,11 +109,14 @@ class SearchLogServiceImplTest {
     when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
     when(testItemRepository.findAllById(any())).thenReturn(Lists.newArrayList(testItemOfFoundLog));
     when(testItem.getLaunchId()).thenReturn(1L);
+    when(testItem.getRetryOf()).thenReturn(null);
     when(testItemOfFoundLog.getItemId()).thenReturn(2L);
     when(testItemOfFoundLog.getLaunchId()).thenReturn(1L);
+    when(testItemOfFoundLog.getRetryOf()).thenReturn(null);
     when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
     when(launch.getId()).thenReturn(1L);
     when(testItem.getPath()).thenReturn("1");
+    when(testItem.getItemId()).thenReturn(1L);
     when(testItem.getItemResults()).thenReturn(testItemResults);
     when(testItem.isHasStats()).thenReturn(true);
     when(testItemOfFoundLog.getItemResults()).thenReturn(testItemResults);
@@ -128,6 +134,9 @@ class SearchLogServiceImplTest {
     when(userFilterRepository.findByIdAndProjectId(1L, 1L)).thenReturn(Optional.of(userFilter));
     when(userFilter.getTargetClass()).thenReturn(ObjectType.Launch);
     when(userFilter.getFilterCondition()).thenReturn(Collections.emptySet());
+
+    when(testItemService.getEffectiveLaunch(testItem)).thenReturn(launch);
+    when(testItemService.getEffectiveLaunch(testItemOfFoundLog)).thenReturn(launch);
 
     when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
         testItem.getItemId(), testItem.getPath(), LogLevel.ERROR_INT
@@ -161,5 +170,108 @@ class SearchLogServiceImplTest {
     Assertions.assertNotNull(responses);
     Assertions.assertEquals(1, Lists.newArrayList(responses).size());
 
+  }
+
+  @Test
+  void searchTest_RetryItemWithNullLaunchId() {
+    TestItem retryItem = mock(TestItem.class);
+    TestItem parentItem = mock(TestItem.class);
+
+    MembershipDetails membershipDetails = MembershipDetails.builder()
+        .withOrgId(1L)
+        .withOrgName("org Name")
+        .withOrgRole(OrganizationRole.MANAGER)
+        .withProjectId(1L)
+        .withProjectRole(ProjectRole.EDITOR)
+        .withProjectKey("project-key")
+        .withProjectName("name")
+        .build();
+
+    when(projectRepository.findById(membershipDetails.getProjectId())).thenReturn(Optional.of(project));
+    when(testItemRepository.findById(1L)).thenReturn(Optional.of(retryItem));
+    when(testItemRepository.findAllById(any())).thenReturn(Lists.newArrayList(testItemOfFoundLog));
+
+    // Retry item has null launchId but points to parent
+    when(retryItem.getLaunchId()).thenReturn(null);
+    when(retryItem.getRetryOf()).thenReturn(100L);
+    when(retryItem.getPath()).thenReturn("1");
+    when(retryItem.getItemId()).thenReturn(1L);
+    when(retryItem.getItemResults()).thenReturn(testItemResults);
+    when(retryItem.isHasStats()).thenReturn(true);
+
+    // Parent item has the correct launchId
+    when(parentItem.getLaunchId()).thenReturn(1L);
+    when(parentItem.getRetryOf()).thenReturn(null);
+
+    // testItemService.getEffectiveLaunch() resolves to parent's launch
+    when(testItemService.getEffectiveLaunch(retryItem)).thenReturn(launch);
+    when(testItemService.getEffectiveLaunch(testItemOfFoundLog)).thenReturn(launch);
+
+    when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+    when(launch.getId()).thenReturn(1L);
+
+    when(testItemOfFoundLog.getItemId()).thenReturn(2L);
+    when(testItemOfFoundLog.getLaunchId()).thenReturn(1L);
+    when(testItemOfFoundLog.getRetryOf()).thenReturn(null);
+    when(testItemOfFoundLog.getItemResults()).thenReturn(testItemResults);
+    when(testItemOfFoundLog.isHasStats()).thenReturn(true);
+
+    when(testItemResults.getStatus()).thenReturn(StatusEnum.FAILED);
+    IssueType issueType = new IssueType();
+    issueType.setLocator("locator");
+    IssueEntity issueEntity = new IssueEntity();
+    issueEntity.setIssueType(issueType);
+    issueEntity.setIgnoreAnalyzer(false);
+    when(testItemResults.getIssue()).thenReturn(issueEntity);
+
+    when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(
+        launch.getId(), retryItem.getItemId(), retryItem.getPath(), LogLevel.ERROR_INT
+    )).thenReturn(Lists.newArrayList("message"));
+
+    when(logService.findAllById(any())).thenReturn(Collections.emptyList());
+    when(logConverter.toLogEntries(any(), any())).thenReturn(Collections.emptyList());
+
+    SearchLogRq searchLogRq = new SearchLogRq();
+    searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());
+    searchLogRq.setFilterId(1L);
+
+    when(searchCollectorFactory.getCollector(CURRENT_LAUNCH)).thenReturn(currentLaunchCollector);
+    when(currentLaunchCollector.collect(any(), any())).thenReturn(Collections.singletonList(1L));
+
+    // This should NOT throw LAUNCH_NOT_FOUND error
+    Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
+    Assertions.assertNotNull(responses);
+  }
+
+  @Test
+  void searchTest_AccessValidationCalled() {
+    MembershipDetails membershipDetails = MembershipDetails.builder()
+        .withOrgId(1L).withOrgName("org Name").withOrgRole(OrganizationRole.MANAGER)
+        .withProjectId(1L).withProjectRole(ProjectRole.EDITOR)
+        .withProjectKey("project-key").withProjectName("name").build();
+
+    when(projectRepository.findById(membershipDetails.getProjectId())).thenReturn(Optional.of(project));
+    when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
+    when(testItem.getLaunchId()).thenReturn(1L);
+    when(testItem.getRetryOf()).thenReturn(null);
+    when(testItem.getItemId()).thenReturn(1L);
+    when(testItem.getPath()).thenReturn("1");
+    when(testItem.getItemResults()).thenReturn(testItemResults);
+    when(testItemResults.getStatus()).thenReturn(StatusEnum.FAILED);
+
+    when(testItemService.getEffectiveLaunch(testItem)).thenReturn(launch);
+    when(launch.getId()).thenReturn(1L);
+    when(launch.getProjectId()).thenReturn(1L);
+
+    when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(
+        1L, 1L, "1", LogLevel.ERROR_INT
+    )).thenReturn(Collections.emptyList());
+
+    SearchLogRq searchLogRq = new SearchLogRq();
+    searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());
+    searchLogRq.setFilterId(1L);
+
+    Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
+    Assertions.assertNotNull(responses);
   }
 }

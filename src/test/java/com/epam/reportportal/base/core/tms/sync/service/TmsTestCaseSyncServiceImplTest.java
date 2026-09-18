@@ -1,5 +1,7 @@
 package com.epam.reportportal.base.core.tms.sync.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -17,6 +19,7 @@ import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseAttributeService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseVersionService;
 import com.epam.reportportal.base.core.tms.sync.TmsSyncConnector;
+import com.epam.reportportal.base.core.tms.sync.dto.RemoteAttachment;
 import com.epam.reportportal.base.core.tms.sync.dto.RemoteTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -25,12 +28,15 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsSyncJobR
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsSyncJob;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync.SyncCounters;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync.SyncErrorLog;
 import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +44,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -152,6 +159,83 @@ class TmsTestCaseSyncServiceImplTest {
   }
 
   @Test
+  void processTestCaseBatch_ShouldStoreRemoteAttachmentWithProjectScopedKeyAndUpdateCounters() {
+    var project = new Project();
+    project.setOrganizationId(organizationId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+    var remoteAttachment = new RemoteAttachment();
+    remoteAttachment.setId("attachment-1");
+    remoteAttachment.setFilename("screen shot.png");
+    remoteAttachment.setMimeType("text/plain");
+    remoteAttachment.setSize(4L);
+    remoteAttachment.setContentUrl("https://example.com/attachment-1");
+
+    var remoteTestCase = new RemoteTestCase();
+    remoteTestCase.setId("EXT-ATTACHMENT-1");
+    remoteTestCase.setName("New Remote TC With Attachment");
+    remoteTestCase.setUpdatedAt(Instant.now());
+    remoteTestCase.setAttachments(List.of(remoteAttachment));
+
+    when(tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, List.of("EXT-ATTACHMENT-1")))
+        .thenReturn(List.of());
+
+    var newTestCase = new TmsTestCase();
+    newTestCase.setExternalId("EXT-ATTACHMENT-1");
+    newTestCase.setId(70L);
+    when(tmsTestCaseMapper.convertFromRemote(any(), any(), eq(projectId), any()))
+        .thenReturn(newTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(newTestCase));
+
+    @SuppressWarnings("unchecked")
+    TmsSyncConnector<Integration> connector = mock(TmsSyncConnector.class);
+    var integration = new Integration();
+    when(connector.downloadAttachment(any(), any())).thenReturn(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}));
+
+    var fileId = "opaque-file-id";
+    when(tmsAttachmentDataStoreService.save(any(String.class), any())).thenReturn(fileId);
+
+    var attachment = new TmsAttachment();
+    attachment.setId(80L);
+    when(tmsAttachmentMapper.convertFromRemote(any(RemoteAttachment.class), eq(fileId), any(), eq(projectId)))
+        .thenReturn(attachment);
+    when(tmsAttachmentRepository.saveAll(anyList())).thenReturn(List.of(attachment));
+
+    var manualScenarioRQ = new TmsTextManualScenarioRQ();
+    when(tmsManualScenarioMapper.convertFromRemote(any(), any())).thenReturn(manualScenarioRQ);
+
+    var version = new TmsTestCaseVersion();
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, newTestCase, manualScenarioRQ))
+        .thenReturn(version);
+
+    var activityResource = TestCaseActivityResource.builder().id(70L).name("New Remote TC With Attachment").build();
+    when(tmsTestCaseActivityResourceMapper.buildActivityResource(newTestCase, version))
+        .thenReturn(activityResource);
+
+    var importedEvent = new TestCaseImportedEvent(activityResource, null, "System", organizationId);
+    when(tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(null, "System", organizationId, activityResource))
+        .thenReturn(importedEvent);
+
+    var syncJob = new TmsSyncJob();
+    syncJob.setCounters(new SyncCounters());
+    syncJob.setErrorLog(new SyncErrorLog());
+    when(tmsSyncJobRepository.findById(jobId)).thenReturn(Optional.of(syncJob));
+
+    sut.processTestCaseBatch(jobId, projectId, connector, integration, List.of(remoteTestCase), null);
+
+    var fileNameCaptor = ArgumentCaptor.forClass(String.class);
+    verify(tmsAttachmentDataStoreService).save(fileNameCaptor.capture(), any());
+
+    var fileName = fileNameCaptor.getValue();
+    assertTrue(fileName.startsWith(projectId + File.separator));
+    assertTrue(!fileName.startsWith("tms/"));
+    assertTrue(fileName.endsWith("_screen_shot.png"));
+    assertEquals(1, syncJob.getCounters().getProcessed());
+    assertEquals(0, syncJob.getCounters().getFailed());
+    verify(tmsSyncJobRepository).save(syncJob);
+  }
+
+  @Test
   void processTestCaseBatch_WhenExistingTestCaseUpdated_ShouldPublishTestCaseFieldChangedEvent() {
     var project = new Project();
     project.setOrganizationId(organizationId);
@@ -215,4 +299,3 @@ class TmsTestCaseSyncServiceImplTest {
     verify(eventPublisher).publishEvent(fieldChangedEvent);
   }
 }
-

@@ -604,7 +604,7 @@ class TmsMilestoneServiceImplTest {
     assertDoesNotThrow(() -> sut.delete(projectId, milestoneId));
 
     verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
-    verify(tmsTestPlanService).removeTestPlansFromMilestone(projectId, milestoneId);
+    verify(tmsTestPlanService).deleteTestPlansByMilestoneId(projectId, milestoneId);
     verify(tmsMilestoneRepository).deleteByIdAndProjectId(milestoneId, projectId);
   }
 
@@ -620,7 +620,7 @@ class TmsMilestoneServiceImplTest {
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
-    verify(tmsTestPlanService, never()).removeTestPlansFromMilestone(anyLong(), anyLong());
+    verify(tmsTestPlanService, never()).deleteTestPlansByMilestoneId(anyLong(), anyLong());
     verify(tmsMilestoneRepository, never()).deleteByIdAndProjectId(anyLong(), anyLong());
   }
 
@@ -638,7 +638,7 @@ class TmsMilestoneServiceImplTest {
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
-    verify(tmsTestPlanService).removeTestPlansFromMilestone(projectId, milestoneId);
+    verify(tmsTestPlanService).deleteTestPlansByMilestoneId(projectId, milestoneId);
     verify(tmsMilestoneRepository).deleteByIdAndProjectId(milestoneId, projectId);
   }
 
@@ -654,7 +654,7 @@ class TmsMilestoneServiceImplTest {
     assertDoesNotThrow(() -> sut.delete(projectId, milestoneId));
 
     verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
-    verify(tmsTestPlanService).removeTestPlansFromMilestone(projectId, milestoneId);
+    verify(tmsTestPlanService).deleteTestPlansByMilestoneId(projectId, milestoneId);
     verify(tmsMilestoneRepository).deleteByIdAndProjectId(milestoneId, projectId);
   }
 

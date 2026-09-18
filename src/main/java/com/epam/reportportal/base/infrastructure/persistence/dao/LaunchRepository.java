@@ -228,8 +228,8 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
    * Preserves launches while clearing references to deleted test plans.
    *
    * @param projectId the project ID
-   * @param testPlanIds the IDs of deleted test plans
-   * @return the number of updated launches
+   * @param testPlanIds IDs of deleted test plans
+   * @return number of updated launches
    */
   @Modifying
   @Query("UPDATE Launch l SET l.testPlanId = null WHERE l.projectId = :projectId AND l.testPlanId IN :testPlanIds")

@@ -47,13 +47,13 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   List<TmsTestPlan> findByIdsWithAttributes(@Param("ids") List<Long> ids);
 
   @Query("SELECT tp.id FROM TmsTestPlan tp " +
-      "WHERE tp.milestone.id = :milestoneId")
+      "WHERE tp.project.id = :projectId AND tp.milestone.id = :milestoneId")
   List<Long> findIdsByProjectIdAndMilestoneId(
       @Param("projectId") Long projectId, @Param("milestoneId") Long milestoneId
   );
 
   @Query("SELECT tp.id FROM TmsTestPlan tp " +
-      "WHERE tp.milestone.id in :milestoneIds")
+      "WHERE tp.project.id = :projectId AND tp.milestone.id IN :milestoneIds")
   List<Long> findIdsByProjectIdAndMilestoneIds(
       @Param("projectId") Long projectId, @Param("milestoneIds") List<Long> milestoneIds
   );
@@ -100,12 +100,18 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
       @Param("testPlanId") Long testPlanId,
       @Param("projectId") Long projectId);
 
+  /**
+   * Deletes every test plan belonging to the specified milestone and project.
+   *
+   * @param projectId the project ID
+   * @param milestoneId the milestone ID
+   * @return number of deleted test plans
+   */
   @Modifying
-  @Query(value = "UPDATE tms_test_plan SET milestone_id = NULL "
-      + "WHERE milestone_id = :milestoneId AND project_id = :projectId",
-      nativeQuery = true)
-  void removeTestPlansFromMilestone(@Param("milestoneId") Long milestoneId,
-      @Param("projectId") Long projectId);
+  @Query("DELETE FROM TmsTestPlan tp "
+      + "WHERE tp.project.id = :projectId AND tp.milestone.id = :milestoneId")
+  int deleteByProjectIdAndMilestoneId(@Param("projectId") Long projectId,
+      @Param("milestoneId") Long milestoneId);
 
   @Query(value = "SELECT id, name FROM tms_test_plan " +
       "WHERE project_id = :projectId " +

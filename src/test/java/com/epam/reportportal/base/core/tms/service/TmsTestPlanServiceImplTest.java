@@ -30,6 +30,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResul
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.launch.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
@@ -61,6 +62,9 @@ class TmsTestPlanServiceImplTest {
 
   @Mock
   private TmsTestPlanRepository testPlanRepository;
+
+  @Mock
+  private LaunchRepository launchRepository;
 
   @Mock
   private TmsTestPlanFilterableRepository tmsTestPlanFilterableRepository;
@@ -1406,6 +1410,34 @@ class TmsTestPlanServiceImplTest {
   }
 
   // Tests for milestone-related methods
+
+  @Test
+  void deleteTestPlansByMilestoneId_WhenMilestoneHasTestPlans_ShouldDeleteTestPlans() {
+    var testPlanIds = List.of(100L, 200L);
+
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId))
+        .thenReturn(testPlanIds);
+
+    sut.deleteTestPlansByMilestoneId(projectId, milestoneId);
+
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+    verify(launchRepository).clearTestPlanIds(testPlanIds);
+    verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(100L);
+    verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(200L);
+    verify(testPlanRepository).deleteByProjectIdAndMilestoneId(projectId, milestoneId);
+  }
+
+  @Test
+  void deleteTestPlansByMilestoneId_WhenMilestoneHasNoTestPlans_ShouldDoNothing() {
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId))
+        .thenReturn(List.of());
+
+    sut.deleteTestPlansByMilestoneId(projectId, milestoneId);
+
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+    verifyNoInteractions(launchRepository, tmsTestPlanAttributeService);
+    verify(testPlanRepository, never()).deleteByProjectIdAndMilestoneId(projectId, milestoneId);
+  }
 
   @Test
   void removeTestPlanFromMilestone_WhenTestPlanExists_ShouldRemoveSuccessfully() {

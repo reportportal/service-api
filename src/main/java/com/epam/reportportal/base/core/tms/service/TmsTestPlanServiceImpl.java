@@ -14,10 +14,10 @@ import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestPlanFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanExecutionStatistic;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
@@ -520,11 +520,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     }
 
     launchRepository.clearTestPlanIdsByProjectIdAndTestPlanIds(projectId, testPlanIds);
-
-    for (var testPlanId : testPlanIds) {
-      tmsTestPlanAttributeService.deleteAllByTestPlanId(testPlanId);
-    }
-
+    testPlanIds.forEach(tmsTestPlanAttributeService::deleteAllByTestPlanId);
     testPlanRepository.deleteByProjectIdAndMilestoneId(projectId, milestoneId);
   }
 

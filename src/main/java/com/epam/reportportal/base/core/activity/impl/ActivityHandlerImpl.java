@@ -18,8 +18,10 @@ package com.epam.reportportal.base.core.activity.impl;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATED_AT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_DETAILS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_OBJECT_TYPE;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_SUBJECT_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
@@ -31,7 +33,9 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import com.epam.reportportal.base.core.activity.ActivityHandler;
 import com.epam.reportportal.base.infrastructure.model.ActivityResource;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.CompositeFilter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.CompositeFilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.ConvertibleCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget;
@@ -52,6 +56,8 @@ import com.epam.reportportal.base.model.ActivityEventResource;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import com.epam.reportportal.base.ws.converter.converters.ActivityConverter;
 import com.epam.reportportal.base.ws.converter.converters.ActivityEventConverter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
@@ -174,8 +180,9 @@ public class ActivityHandlerImpl implements ActivityHandler {
         .verify(NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
     var sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, CRITERIA_CREATED_AT);
+    Filter testCaseActivityFilter = expandTestCaseActivityDetailsSearch(filter);
 
-    filter
+    testCaseActivityFilter
         .withCondition(FilterCondition.builder()
             .eq(CRITERIA_OBJECT_ID, String.valueOf(testCaseId)).build())
         .withCondition(FilterCondition.builder()
@@ -188,11 +195,39 @@ public class ActivityHandlerImpl implements ActivityHandler {
             .build());
 
     var page = activityRepository.findByFilter(
-        filter,
+        testCaseActivityFilter,
         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
     );
 
     return PagedResourcesAssembler.pageConverter(ActivityEventConverter.TO_RESOURCE).apply(page);
+  }
+
+  /**
+   * Expands History of Actions {@code filter.cnt.details} filtering to {@code (details OR subjectName)}.
+   * Outer filtering remains AND-bound.
+   *
+   * @param filter source filter
+   * @return filter with expanded details search conditions
+   */
+  private Filter expandTestCaseActivityDetailsSearch(Filter filter) {
+    List<ConvertibleCondition> conditions = new ArrayList<>();
+    for (ConvertibleCondition condition : filter.getFilterConditions()) {
+      if (condition instanceof FilterCondition filterCondition
+          && CRITERIA_DETAILS.equals(filterCondition.getSearchCriteria())
+          && Condition.CONTAINS.equals(filterCondition.getCondition())) {
+        FilterCondition subjectNameCondition = FilterCondition.builder()
+            .withSearchCriteria(CRITERIA_SUBJECT_NAME)
+            .withCondition(Condition.CONTAINS)
+            .withNegative(false)
+            .withValue(filterCondition.getValue())
+            .withOperator(Operator.OR)
+            .build();
+        conditions.add(new CompositeFilterCondition(List.of(filterCondition, subjectNameCondition), Operator.OR));
+      } else {
+        conditions.add(condition);
+      }
+    }
+    return new Filter(filter.getTarget().getClazz(), conditions);
   }
 
   /**

@@ -72,6 +72,48 @@ class LaunchTypeAttributeHandlerTest {
   }
 
   @Test
+  void handleLaunchStartWithSystemIsPipelineTrue() {
+    Launch launch = new Launch();
+    ItemAttribute attr = new ItemAttribute("isPipeline", "true", true);
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(attr);
+    launch.setAttributes(attributes);
+
+    handler.handleLaunchStart(launch);
+
+    assertEquals(LaunchTypeEnum.PIPELINE, launch.getLaunchType());
+    assertTrue(launch.getAttributes().contains(attr));
+  }
+
+  @Test
+  void handleLaunchStartWithSystemIsPipelineFalse() {
+    Launch launch = new Launch();
+    launch.setLaunchType(LaunchTypeEnum.PIPELINE);
+    ItemAttribute attr = new ItemAttribute("isPipeline", "false", true);
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(attr);
+    launch.setAttributes(attributes);
+
+    handler.handleLaunchStart(launch);
+
+    assertEquals(LaunchTypeEnum.AUTOMATION, launch.getLaunchType());
+    assertTrue(launch.getAttributes().contains(attr));
+  }
+
+  @Test
+  void handleLaunchStartIgnoresNonSystemIsPipeline() {
+    Launch launch = new Launch();
+    launch.setLaunchType(LaunchTypeEnum.AUTOMATION);
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(new ItemAttribute("isPipeline", "true", false));
+    launch.setAttributes(attributes);
+
+    handler.handleLaunchStart(launch);
+
+    assertEquals(LaunchTypeEnum.AUTOMATION, launch.getLaunchType());
+  }
+
+  @Test
   void handleLaunchStartIgnoresNonSystemIsAgentic() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.AUTOMATION);

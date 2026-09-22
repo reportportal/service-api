@@ -22,36 +22,47 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Sets {@link Launch#getLaunchType()} from the system attribute {@code isAgentic} at launch start only when that
- * attribute is present. Otherwise, the existing {@code launchType} is default. Launch type can not be changed on
- * update.
+ * Sets {@link Launch#getLaunchType()} from the system attributes {@code isAgentic} or {@code isPipeline} at launch
+ * start only when one of those attributes is present. Otherwise, the existing {@code launchType} is default. Launch
+ * type can not be changed on update.
  */
 @Component
 public class LaunchTypeAttributeHandler implements AttributeHandler {
 
-  private final static String IS_AGENTIC_KEY = "isAgentic";
+  private static final String IS_AGENTIC_KEY = "isAgentic";
+  private static final String IS_PIPELINE_KEY = "isPipeline";
 
   @Override
   public void handleLaunchStart(Launch launch) {
-    if (launch == null || launch.getAttributes() == null) {
+    if (launch == null || CollectionUtils.isEmpty(launch.getAttributes())) {
       return;
     }
-    for (ItemAttribute attribute : launch.getAttributes()) {
-      if (Boolean.TRUE.equals(attribute.isSystem()) && IS_AGENTIC_KEY.equalsIgnoreCase(
-          attribute.getKey())) {
-        launch.setLaunchType(
-            Boolean.parseBoolean(attribute.getValue()) ? LaunchTypeEnum.AGENTIC
-                : LaunchTypeEnum.AUTOMATION);
-        return;
-      }
+    launch.getAttributes().stream()
+        .filter(attribute -> Boolean.TRUE.equals(attribute.isSystem()))
+        .map(this::resolveLaunchType)
+        .filter(Objects::nonNull)
+        .findFirst()
+        .ifPresent(launch::setLaunchType);
+  }
+
+  private LaunchTypeEnum resolveLaunchType(ItemAttribute attribute) {
+    boolean enabled = Boolean.parseBoolean(attribute.getValue());
+    if (IS_AGENTIC_KEY.equalsIgnoreCase(attribute.getKey())) {
+      return enabled ? LaunchTypeEnum.AGENTIC : LaunchTypeEnum.AUTOMATION;
     }
+    if (IS_PIPELINE_KEY.equalsIgnoreCase(attribute.getKey())) {
+      return enabled ? LaunchTypeEnum.PIPELINE : LaunchTypeEnum.AUTOMATION;
+    }
+    return null;
   }
 
   @Override
   public void handleLaunchUpdate(Launch launch, ReportPortalUser user) {
-    // launch_type is immutable after create; isAgentic on update is ignored
+    // launch_type is immutable after create; isAgentic/isPipeline on update is ignored
   }
 }

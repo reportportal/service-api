@@ -114,10 +114,13 @@ dependencies {
     // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)
 
-    // Check authentication error response format for versions higher than 6.21.3 TODO: consider upgrade to 7.0.1+
-    implementation(libs.jasperreports) {
-        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
-    }
+    // JasperReports 7 is modular: core + PDF/XLS/JDT compiler. jackson-dataformat-xml is required
+    // to parse JRXML 7 (Digester was removed).
+    implementation(libs.jasperreports)
+    implementation(libs.jasperreports.pdf)
+    implementation(libs.jasperreports.excel.poi)
+    implementation(libs.jasperreports.jdt)
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
 
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation(libs.apache.poi)

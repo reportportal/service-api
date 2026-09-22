@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.identity.TestCaseHashGenerator;
@@ -129,12 +128,35 @@ class RerunHandlerImplTest {
     ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
         projectId);
 
-    when(launchRepository.findByUuid(uuid)).thenReturn(Optional.empty());
+    when(launchRepository.findByUuidAndProjectId(uuid, projectId)).thenReturn(Optional.empty());
 
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> rerunHandler.handleLaunch(request, projectId, rpUser)
     );
     assertEquals("Launch 'uuid' not found. Did you use correct Launch ID?", exception.getMessage());
+  }
+
+  @Test
+  void exceptionWhenRerunOfLaunchBelongsToAnotherProject() {
+    // A launch UUID that exists globally but not within the caller's project must be rejected,
+    // not silently resolved via a project-agnostic lookup.
+    StartLaunchRQ request = new StartLaunchRQ();
+    String launchName = "launch";
+    String foreignUuid = "foreign-project-uuid";
+    long projectId = 1L;
+    request.setRerun(true);
+    request.setRerunOf(foreignUuid);
+    request.setName(launchName);
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+        projectId);
+
+    when(launchRepository.findByUuidAndProjectId(foreignUuid, projectId)).thenReturn(Optional.empty());
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> rerunHandler.handleLaunch(request, projectId, rpUser)
+    );
+    assertEquals(ErrorType.LAUNCH_NOT_FOUND, exception.getErrorType());
+    verify(launchRepository, times(0)).findByUuid(foreignUuid);
   }
 
   @Test
@@ -158,6 +180,28 @@ class RerunHandlerImplTest {
     assertNotNull(launch.getNumber());
     assertNotNull(launch.getId());
 
+  }
+
+  @Test
+  void happyRerunLaunchByRerunOfUuidWithinSameProject() {
+    StartLaunchRQ request = new StartLaunchRQ();
+    String uuid = "uuid";
+    long projectId = 1L;
+    request.setRerun(true);
+    request.setRerunOf(uuid);
+    request.setMode(Mode.DEFAULT);
+    request.setDescription("desc");
+    request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("test", "test")));
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+        projectId);
+
+    when(launchRepository.findByUuidAndProjectId(uuid, projectId)).thenReturn(
+        Optional.of(getLaunch(uuid)));
+
+    final Launch launch = rerunHandler.handleLaunch(request, projectId, rpUser);
+
+    assertNotNull(launch.getNumber());
+    assertNotNull(launch.getId());
   }
 
   @Test
@@ -251,18 +295,41 @@ class RerunHandlerImplTest {
   }
 
   @Test
-  void shouldReturnRerunOfUuidWhenProvided() {
+  void shouldReturnRerunOfUuidWhenProvidedAndOwnedByProject() {
     // When
     String rerunOf = "rerun-uuid";
     String launchName = "test-launch";
     Long projectId = 1L;
+
+    Launch mockLaunch = new Launch();
+    mockLaunch.setUuid(rerunOf);
+    when(launchRepository.findByUuidAndProjectId(rerunOf, projectId)).thenReturn(
+        Optional.of(mockLaunch));
 
     // Given
     String result = rerunHandler.getRerunLaunchUuid(rerunOf, launchName, projectId);
 
     // Then
     assertEquals("rerun-uuid", result);
-    verifyNoInteractions(launchRepository);
+    verify(launchRepository).findByUuidAndProjectId(rerunOf, projectId);
+  }
+
+  @Test
+  void shouldRejectRerunOfUuidOwnedByAnotherProject() {
+    // When
+    String rerunOf = "foreign-project-uuid";
+    String launchName = "test-launch";
+    Long projectId = 1L;
+
+    when(launchRepository.findByUuidAndProjectId(rerunOf, projectId)).thenReturn(Optional.empty());
+
+    // Given & Then
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> rerunHandler.getRerunLaunchUuid(rerunOf, launchName, projectId));
+
+    assertEquals(ErrorType.LAUNCH_NOT_FOUND, exception.getErrorType());
+    verify(launchRepository).findByUuidAndProjectId(rerunOf, projectId);
+    verify(launchRepository, times(0)).findByUuid(rerunOf);
   }
 
   @Test

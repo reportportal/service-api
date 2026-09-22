@@ -127,6 +127,23 @@ class LaunchTypeAttributeHandlerTest {
   }
 
   @Test
+  void handleLaunchStartWithConflictingIsAgenticAndIsPipelineThrows() {
+    Launch launch = new Launch();
+    Set<ItemAttribute> attributes = new HashSet<>();
+    attributes.add(new ItemAttribute("isAgentic", "true", true));
+    attributes.add(new ItemAttribute("isPipeline", "true", true));
+    launch.setAttributes(attributes);
+
+    var exception = org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> handler.handleLaunchStart(launch)
+    );
+    
+    assertTrue(exception.getMessage().contains("isAgentic"));
+    assertTrue(exception.getMessage().contains("isPipeline"));
+  }
+
+  @Test
   void handleLaunchUpdateDoesNotChangeLaunchType() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.AUTOMATION);

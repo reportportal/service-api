@@ -157,7 +157,7 @@ dependencies {
 
     // Optional for spring-boot-starter-amqp
     implementation "com.rabbitmq:http-client:5.3.0"
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // gzip; 5.6.4 cert-validation / resource-lifetime CVEs
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3") // gzip; 5.6.4 cert-validation / resource-lifetime CVEs
 
     // JasperReports 7 is modular: core + PDF/XLS/JDT compiler. jackson-dataformat-xml is required
     // to parse JRXML 7 (Digester was removed). Jackson version is forced to 2.21.6 above.

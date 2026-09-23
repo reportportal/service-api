@@ -783,6 +783,7 @@ public class RecordMappers {
     testCase.setName(r.get(TMS_TEST_CASE.NAME));
     testCase.setDescription(r.get(TMS_TEST_CASE.DESCRIPTION));
     testCase.setPriority(r.get(TMS_TEST_CASE.PRIORITY));
+    testCase.setDisplayId(r.get(TMS_TEST_CASE.DISPLAY_ID));
 
     ofNullable(r.get(TMS_TEST_CASE.TEST_FOLDER_ID)).ifPresent(folderId -> {
       TmsTestFolder testFolder = new TmsTestFolder();

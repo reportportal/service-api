@@ -131,7 +131,7 @@ class AnalysisResultHandlerTest {
 
     verify(testItemRepository).save(originalItem);
     verify(defectUpdateStatisticsService)
-        .saveAutoAnalyzedDefectStatistics(1, 1, 0, projectId);
+        .saveAutoAnalyzedDefectStatistics(0, 1, 0, projectId);
     verify(logIndexer).indexDefectsUpdate(eq(projectId), any(), anyList(), eq(true));
   }
 

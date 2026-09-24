@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.analyzer.auto.impl;
 
 import static com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 
+import com.epam.reportportal.base.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.base.core.analyzer.auto.AnalyzerService;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
@@ -42,8 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Default implementation of {@link AnalyzerService}.
  *
  * <p>Auto-analysis is fire-and-forget: each partition is dispatched to all analyzers at once, and the results are
- * applied asynchronously by {@link AnalysisResultHandler} once they arrive on the reply queue. The in-progress
- * status is held only for the duration of the dispatch.
+ * applied asynchronously by {@link AnalysisResultHandler} once they arrive on the reply queue. The in-progress status
+ * is held only for the duration of the dispatch.
  *
  * @author Ivan Sharamet
  * @author Pavel Bortnik
@@ -64,6 +65,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
   private final LaunchRepository launchRepository;
 
+  private final DefectUpdateStatisticsService defectUpdateStatisticsService;
+
   private final Integer itemsBatchSize;
 
   @Autowired
@@ -71,13 +74,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
       @Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize,
       AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
       AnalyzerServiceClient analyzerServicesClient, TestItemRepository testItemRepository,
-      LaunchRepository launchRepository) {
+      LaunchRepository launchRepository, DefectUpdateStatisticsService defectUpdateStatisticsService) {
     this.itemsBatchSize = itemsBatchSize;
     this.analyzerStatusCache = analyzerStatusCache;
     this.launchPreparerService = launchPreparerService;
     this.analyzerServicesClient = analyzerServicesClient;
     this.testItemRepository = testItemRepository;
     this.launchRepository = launchRepository;
+    this.defectUpdateStatisticsService = defectUpdateStatisticsService;
   }
 
   @Override
@@ -116,6 +120,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         analyzerConfig);
     rqLaunch.ifPresent(rq -> {
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
+      defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(rq.getTestItems().size(), 0, 0,
+          launch.getProjectId());
       analyzerServicesClient.analyze(rq);
     });
   }

@@ -99,7 +99,7 @@ class AnalysisResultHandlerTest {
     verify(issueTypeHandler, times(itemsCount)).defineIssueType(eq(projectId),
         eq(PRODUCT_BUG.getLocator()));
     verify(defectUpdateStatisticsService, times(1))
-        .saveAutoAnalyzedDefectStatistics(itemsCount, itemsCount, 0, projectId);
+        .saveAutoAnalyzedDefectStatistics(0, itemsCount, 0, projectId);
     verify(logIndexer, times(1)).indexDefectsUpdate(eq(projectId), any(), anyList(), eq(true));
     verify(eventPublisher, times(itemsCount))
         .publishEvent(any(ItemIssueTypeDefinedEvent.class));

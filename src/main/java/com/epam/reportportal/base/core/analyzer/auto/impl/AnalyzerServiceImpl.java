@@ -120,7 +120,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         analyzerConfig);
     rqLaunch.ifPresent(rq -> {
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
-      defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(rq.getTestItems().size(), 0, 0,
+      defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(toAnalyze.size(), 0, 0,
           launch.getProjectId());
       analyzerServicesClient.analyze(rq);
     });

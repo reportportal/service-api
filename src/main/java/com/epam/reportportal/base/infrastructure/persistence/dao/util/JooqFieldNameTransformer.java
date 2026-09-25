@@ -30,6 +30,8 @@ import org.jooq.TableField;
  */
 public final class JooqFieldNameTransformer {
 
+  private static final String TEXT_CAST_TEMPLATE = "{0}::text";
+
   public static Field<?> fieldName(TableField tableField) {
     return field(name(tableField.getName()));
   }
@@ -40,5 +42,9 @@ public final class JooqFieldNameTransformer {
 
   public static Field<?> fieldName(String... fieldQualifiers) {
     return field(name(fieldQualifiers));
+  }
+
+  public static Field<String> castToText(Field<?> sourceField) {
+    return field(TEXT_CAST_TEMPLATE, String.class, sourceField);
   }
 }

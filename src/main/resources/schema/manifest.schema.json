@@ -99,10 +99,10 @@
       "properties": {
         "projectPages": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
             "description": "The project pages that the app provides.",
-            "minItems": 1,
             "properties": {
               "slug": {
                 "$ref": "#/$defs/slug",
@@ -142,10 +142,10 @@
         },
         "adminPages": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
             "description": "The instance administration pages that the app provides.",
-            "minItems": 1,
             "properties": {
               "slug": {
                 "$ref": "#/$defs/slug",
@@ -183,7 +183,19 @@
             ]
           }
         }
-      }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "projectPages"
+          ]
+        },
+        {
+          "required": [
+            "adminPages"
+          ]
+        }
+      ]
     }
   },
   "required": [

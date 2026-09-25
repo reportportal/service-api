@@ -24,6 +24,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -41,6 +42,7 @@ import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -56,6 +58,8 @@ public class UserMutationServiceImpl implements UserMutationService {
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final TokenBlacklistService tokenBlacklistService;
+  private final PasswordEncoder passwordEncoder;
 
   @Override
   public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
@@ -82,7 +86,7 @@ public class UserMutationServiceImpl implements UserMutationService {
 
   @Override
   public void updateFullName(User user, String fullName, ReportPortalUser editor) {
-    expect(StringUtils.isNotBlank(fullName), Boolean.TRUE::equals)
+    expect(fullName, StringUtils::isNotBlank)
         .verify(BAD_REQUEST_ERROR, "Full name must not be empty.");
 
     expect(fullName.length() >= MIN_USER_NAME_LENGTH && fullName.length() <= MAX_USER_NAME_LENGTH,
@@ -106,11 +110,23 @@ public class UserMutationServiceImpl implements UserMutationService {
     UserRole newRole = UserRole.findByName(role)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
 
+    UserRole oldRole = user.getRole();
+    if (oldRole == newRole) {
+      return;
+    }
+
     eventPublisher.publishEvent(
-        new ChangeUserTypeEvent(user.getId(), user.getLogin(), user.getRole(), newRole,
+        new ChangeUserTypeEvent(user.getId(), user.getLogin(), oldRole, newRole,
             editor.getUserId(), editor.getUsername()));
 
     user.setRole(newRole);
+    tokenBlacklistService.revokeUserTokens(user);
+  }
+
+  @Override
+  public void updatePassword(User user, String rawPassword) {
+    user.setPassword(passwordEncoder.encode(rawPassword));
+    tokenBlacklistService.revokeUserTokens(user);
   }
 
   @Override
@@ -121,7 +137,12 @@ public class UserMutationServiceImpl implements UserMutationService {
     expect(value instanceof Boolean, Boolean.TRUE::equals)
         .verify(BAD_REQUEST_ERROR, "Active status must be a boolean value.");
 
-    user.setActive((Boolean) value);
+    boolean active = Boolean.TRUE.equals(value);
+    user.setActive(active);
+
+    if (!active) {
+      tokenBlacklistService.revokeUserTokens(user);
+    }
   }
 
   @Override

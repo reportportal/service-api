@@ -37,6 +37,7 @@ import com.epam.reportportal.base.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.project.OrganizationProjectHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
+import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
 import com.epam.reportportal.base.infrastructure.model.ValidationConstraints;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -70,6 +71,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -77,9 +79,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class OrganizationProjectHandlerImpl implements OrganizationProjectHandler {
-
-  private static final String CREATE_KEY = "create";
 
   private final OrganizationProjectRepository organizationProjectRepository;
   private final ProjectUserRepository projectUserRepository;
@@ -91,35 +92,10 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   private final ContentRemover<Project> projectContentRemover;
   private final LogRepository logRepository;
   private final AttachmentBinaryDataService attachmentBinaryDataService;
+  private final TmsAttachmentService tmsAttachmentService;
   private final LogIndexer logIndexer;
   private final AnalyzerServiceClient analyzerServiceClient;
   private final GroupMembershipRepository groupMembershipRepository;
-
-
-  public OrganizationProjectHandlerImpl(OrganizationProjectRepository organizationProjectRepository,
-      ProjectUserRepository projectUserRepository, ProjectRepository projectRepository,
-      OrganizationRepositoryCustom organizationRepositoryCustom,
-      AttributeRepository attributeRepository,
-      ApplicationEventPublisher applicationEventPublisher, IssueTypeRepository issueTypeRepository,
-      ContentRemover<Project> projectContentRemover, LogRepository logRepository,
-      AttachmentBinaryDataService attachmentBinaryDataService, LogIndexer logIndexer,
-      AnalyzerServiceClient analyzerServiceClient,
-      GroupMembershipRepository groupMembershipRepository) {
-    this.organizationProjectRepository = organizationProjectRepository;
-    this.projectUserRepository = projectUserRepository;
-    this.projectRepository = projectRepository;
-    this.organizationRepositoryCustom = organizationRepositoryCustom;
-    this.attributeRepository = attributeRepository;
-    this.applicationEventPublisher = applicationEventPublisher;
-    this.issueTypeRepository = issueTypeRepository;
-    this.projectContentRemover = projectContentRemover;
-    this.logRepository = logRepository;
-    this.attachmentBinaryDataService = attachmentBinaryDataService;
-
-    this.logIndexer = logIndexer;
-    this.analyzerServiceClient = analyzerServiceClient;
-    this.groupMembershipRepository = groupMembershipRepository;
-  }
 
   @Override
   public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Queryable filter,
@@ -127,9 +103,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     var rpUser = getPrincipal();
     OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
 
-    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)
-        && rpUser.getOrganizationDetails().get(orgId.toString()).getOrgRole()
-        .equals(OrganizationRole.MEMBER)) {
+    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR) && isOrganizationMember(rpUser, orgId)) {
 
       var projectIds = projectUserRepository.findProjectIdsByUserId(rpUser.getUserId())
           .stream()
@@ -162,10 +136,16 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     organizationProjectsPage.items(projectProfilePagedList.getContent()
         .stream()
         .map(PROJECT_PROFILE_TO_ORG_PROJECT_INFO)
-        .collect(Collectors.toList()));
+        .toList());
 
     return responseWithPageParameters(organizationProjectsPage, pageable,
         projectProfilePagedList.getTotalElements());
+  }
+
+  private boolean isOrganizationMember(ReportPortalUser rpUser, Long orgId) {
+    var orgDetails = rpUser.getOrganizationDetails().get(orgId.toString());
+    expect(orgDetails, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+    return OrganizationRole.MEMBER.equals(orgDetails.getOrgRole());
   }
 
   @Override
@@ -252,6 +232,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     analyzerServiceClient.removeSuggest(project.getId());
     logRepository.deleteByProjectId(project.getId());
     attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+    tmsAttachmentService.deleteAllByProjectId(project.getId());
 
   }
 

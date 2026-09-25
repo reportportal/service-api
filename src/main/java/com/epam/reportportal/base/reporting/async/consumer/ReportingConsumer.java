@@ -23,7 +23,6 @@ import com.epam.reportportal.base.reporting.async.handler.provider.ReportingHand
 import java.util.Optional;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
-import org.springframework.stereotype.Component;
 
 /**
  * RabbitMQ message listener that receives reporting messages and dispatches them to the appropriate
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Component;
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-@Component
 public class ReportingConsumer implements MessageListener {
 
   private final ReportingHandlerProvider handlerProvider;

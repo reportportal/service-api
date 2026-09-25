@@ -1,16 +1,22 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
 import java.util.List;
 
 public interface TmsManualScenarioPreconditionsAttachmentService {
 
-  void createAttachments(TmsManualScenarioPreconditions preconditions,
-      TmsManualScenarioPreconditionsRQ preconditionsRQ);
+  /**
+   * Creates attachments for manual scenario preconditions.
+   */
+  void createAttachments(Long projectId, TmsManualScenarioPreconditions preconditions,
+      TmsManualScenarioPreconditionsRQ preconditionsRq);
 
-  void updateAttachments(TmsManualScenarioPreconditions existingPreconditions,
-      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRQ);
+  /**
+   * Updates attachments for manual scenario preconditions (replaces all existing).
+   */
+  void updateAttachments(Long projectId, TmsManualScenarioPreconditions existingPreconditions,
+      TmsManualScenarioPreconditionsRQ tmsManualScenarioPreconditionsRq);
 
   void deleteAllByTestCaseId(Long testCaseId);
 

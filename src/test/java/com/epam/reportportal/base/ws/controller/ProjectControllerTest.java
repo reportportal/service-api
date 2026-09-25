@@ -41,7 +41,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Logica
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectAttribute;
 import com.epam.reportportal.base.model.project.AssignUsersRQ;
-import com.epam.reportportal.base.model.project.CreateProjectRQ;
 import com.epam.reportportal.base.model.project.UnassignUsersRQ;
 import com.epam.reportportal.base.model.project.UpdateProjectRQ;
 import com.epam.reportportal.base.model.project.config.ProjectConfigurationUpdate;
@@ -103,34 +102,6 @@ class ProjectControllerTest extends BaseMvcTest {
   @AfterEach
   void after() {
     Mockito.reset(rabbitClient, rabbitTemplate);
-  }
-
-  @Test
-  @Disabled("waiting for requirements")
-  void createProjectPositive() throws Exception {
-    CreateProjectRQ rq = new CreateProjectRQ();
-    rq.setProjectName("TestProject");
-    rq.setOrganizationId(1L);
-
-    mockMvc.perform(post("/v1/project")
-        .content(objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-    final Optional<Project> createdProjectOptional = projectRepository.findByName(
-        "TestProject".toLowerCase());
-    assertTrue(createdProjectOptional.isPresent());
-    assertEquals(15, createdProjectOptional.get().getProjectAttributes().size());
-    assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
-  }
-
-  @Test
-  @Disabled("waiting for requirements")
-  void createProjectWithReservedName() throws Exception {
-    CreateProjectRQ rq = new CreateProjectRQ();
-    rq.setProjectName("project");
-    mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
-        .contentType(APPLICATION_JSON)
-        .with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
   }
 
   @Test

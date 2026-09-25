@@ -28,6 +28,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.LogRepositoryConstants.TYPE;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.TestItemRepositoryConstants.NESTED;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetRepositoryConstants.ID;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.castToText;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.fieldName;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ATTACHMENT_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.INDEX_LOG_FETCHER;
@@ -185,7 +186,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
             dsl.select(TEST_ITEM.ITEM_ID, TEST_ITEM.ITEM_ID)
                 .from(TEST_ITEM)
                 .where(TEST_ITEM.LAUNCH_ID.eq(launchId))
-                .and(TEST_ITEM.ITEM_ID.in(itemIds))
+                .and(TEST_ITEM.ITEM_ID.eq(DSL.any(itemIds.toArray(new Long[0]))))
                 .unionAll(
                     dsl.select(TEST_ITEM.ITEM_ID, dRootId)
                         .from(TEST_ITEM)
@@ -288,9 +289,10 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         .join(childItemTable)
         .on(LOG.ITEM_ID.eq(childItemTable.ITEM_ID))
         .join(parentItemTable)
-        .on(childItemTable.PATH.cast(String.class).eq(parentItemTable.PATH.cast(String.class))
-            .or(childItemTable.PATH.cast(String.class)
-                .like(parentItemTable.PATH.cast(String.class).concat(".%")))
+        .on(castToText(fieldName(childItemTable.getName(), TEST_ITEM.PATH.getName()))
+            .eq(castToText(fieldName(parentItemTable.getName(), TEST_ITEM.PATH.getName())))
+            .or(castToText(fieldName(childItemTable.getName(), TEST_ITEM.PATH.getName()))
+                .like(castToText(fieldName(parentItemTable.getName(), TEST_ITEM.PATH.getName())).concat(".%")))
         )
         .where(childItemTable.LAUNCH_ID.eq(launchId))
         .and(parentItemTable.LAUNCH_ID.eq(launchId))
@@ -490,8 +492,8 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
             .and(TEST_ITEM.LAUNCH_ID.eq(launchId))
             .and(TEST_ITEM.ITEM_ID.eq(itemId)
                 .or(TEST_ITEM.HAS_STATS.eq(false)
-                    .and(TEST_ITEM.PATH.cast(String.class).eq(path)
-                        .or(TEST_ITEM.PATH.cast(String.class).like(path + ".%"))
+                    .and(castToText(fieldName(TEST_ITEM.getName(), TEST_ITEM.PATH.getName())).eq(path)
+                        .or(castToText(fieldName(TEST_ITEM.getName(), TEST_ITEM.PATH.getName())).like(path + ".%"))
                     ))))
         .fetch(LOG.LOG_MESSAGE);
   }
@@ -507,8 +509,8 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
             .and(TEST_ITEM.LAUNCH_ID.eq(launchId))
             .and(TEST_ITEM.ITEM_ID.eq(itemId)
                 .or(TEST_ITEM.HAS_STATS.eq(false)
-                    .and(TEST_ITEM.PATH.cast(String.class).eq(path)
-                        .or(TEST_ITEM.PATH.cast(String.class).like(path + ".%"))
+                    .and(castToText(fieldName(TEST_ITEM.getName(), TEST_ITEM.PATH.getName())).eq(path)
+                        .or(castToText(fieldName(TEST_ITEM.getName(), TEST_ITEM.PATH.getName())).like(path + ".%"))
                     ))))
         .fetch(LOG.ID);
   }
@@ -563,9 +565,10 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         .join(childItemTable)
         .on(LOG.ITEM_ID.eq(childItemTable.ITEM_ID))
         .join(parentItemTable)
-        .on(childItemTable.PATH.cast(String.class).eq(parentItemTable.PATH.cast(String.class))
-            .or(childItemTable.PATH.cast(String.class)
-                .like(parentItemTable.PATH.cast(String.class).concat(".%")))
+        .on(castToText(fieldName(childItemTable.getName(), TEST_ITEM.PATH.getName()))
+            .eq(castToText(fieldName(parentItemTable.getName(), TEST_ITEM.PATH.getName())))
+            .or(castToText(fieldName(childItemTable.getName(), TEST_ITEM.PATH.getName()))
+                .like(castToText(fieldName(parentItemTable.getName(), TEST_ITEM.PATH.getName())).concat(".%")))
         );
 
     if (includeAttachments) {
@@ -574,7 +577,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
     return logsSelect.where(childItemTable.LAUNCH_ID.eq(launchId))
         .and(parentItemTable.LAUNCH_ID.eq(launchId))
-        .and(parentItemTable.ITEM_ID.in(itemIds));
+        .and(parentItemTable.ITEM_ID.eq(DSL.any(itemIds.toArray(new Long[0]))));
   }
 
   private SelectHavingStep<Record4<Long, Instant, String, Integer>> buildNestedStepQuery(

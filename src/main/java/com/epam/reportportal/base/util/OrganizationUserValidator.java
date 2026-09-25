@@ -80,7 +80,8 @@ public class OrganizationUserValidator {
    * @return true if the user has a manager role, false otherwise
    */
   public static boolean isManager(ReportPortalUser user, OrganizationUser organizationUser) {
-    return user.getOrganizationDetails().get(organizationUser.getOrganization().getId().toString()).getOrgRole()
-        .equals(OrganizationRole.MANAGER);
+    var orgDetails = user.getOrganizationDetails()
+        .get(organizationUser.getOrganization().getId().toString());
+    return orgDetails != null && OrganizationRole.MANAGER.equals(orgDetails.getOrgRole());
   }
 }

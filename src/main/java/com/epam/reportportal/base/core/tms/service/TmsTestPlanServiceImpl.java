@@ -11,7 +11,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestPlanFilterableRepository;
@@ -266,8 +268,10 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId,
+  public DuplicateTmsTestPlanRS duplicate(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long testPlanId,
       TmsTestPlanRQ duplicateTestPlanRQ) {
+    var projectId = membershipDetails.getProjectId();
     // Get original test plan
     var originalTestPlan = testPlanRepository
         .findByIdAndProjectId(testPlanId, projectId)
@@ -291,7 +295,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         originalTestPlan.getId());
 
     // Process test case duplication and addition to plan
-    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(projectId,
+    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(membershipDetails,
+        user,
         duplicatedTestPlan.getId(),
         originalTestCaseIds);
 
@@ -301,7 +306,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId, Long targetMilestoneId) {
+  public DuplicateTmsTestPlanRS duplicate(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long testPlanId, Long targetMilestoneId) {
+    var projectId = membershipDetails.getProjectId();
     // Get original test plan
     var originalTestPlan = testPlanRepository
         .findByIdAndProjectId(testPlanId, projectId)
@@ -322,7 +329,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         originalTestPlan.getId());
 
     // Process test case duplication and addition to plan
-    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(projectId,
+    var duplicateTestCasesStatistic = processBatchTestCaseDuplication(membershipDetails,
+        user,
         duplicatedTestPlan.getId(),
         originalTestCaseIds);
 
@@ -473,8 +481,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(Long projectId,
-      Long sourceMilestoneId, Long targetMilestoneId) {
+  public List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long sourceMilestoneId, Long targetMilestoneId) {
+    var projectId = membershipDetails.getProjectId();
     var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneId(
         projectId, sourceMilestoneId
     );
@@ -484,7 +493,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     }
     var result = new ArrayList<DuplicateTmsTestPlanRS>();
     for (var testPlanId : testPlanIds) {
-      var duplicatedTestPlanRS = duplicate(projectId, testPlanId, targetMilestoneId);
+      var duplicatedTestPlanRS = duplicate(membershipDetails, user, testPlanId, targetMilestoneId);
       result.add(duplicatedTestPlanRS);
     }
     return result;
@@ -505,7 +514,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     testPlanRepository.removeTestPlansFromMilestone(milestoneId, projectId);
   }
 
-  private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(long projectId,
+  private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(MembershipDetails membershipDetails,
+      ReportPortalUser user,
       Long newTestPlanId,
       List<Long> originalTestCaseIds) {
     if (originalTestCaseIds.isEmpty()) {
@@ -513,8 +523,10 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
           "No test cases to duplicate");
     }
 
+    var projectId = membershipDetails.getProjectId();
+
     // Step 1: Duplicate test cases in batch
-    var duplicationResult = tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds);
+    var duplicationResult = tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds);
 
     // Step 2: Add successfully duplicated test cases to the new plan
     if (!duplicationResult.getSuccessTestCaseIds().isEmpty()) {

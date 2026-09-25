@@ -53,7 +53,7 @@ public class UserCreatedConsumer {
           value = @Queue(value = "user.created", durable = "true", autoDelete = "false"),
           exchange = @Exchange(value = "domain.events", type = ExchangeTypes.TOPIC),
           key = "domain.UserCreatedEvent"
-      ), containerFactory = "rabbitListenerContainerFactory"
+      ), containerFactory = "rabbitListenerContainerFactory", admin = "amqpAdmin"
   )
   public void onEvent(@Payload UserCreatedEvent event) {
     if (Objects.isNull(event) || Objects.isNull(event.getUserActivityResource()) || Objects.isNull(

@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.integration.plugin.impl;
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.base.core.integration.plugin.CreatePluginHandler;
 import com.epam.reportportal.base.core.integration.plugin.strategy.PluginUploaderFactory;
+import com.epam.reportportal.base.core.plugin.PluginStateChangedMessage;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
@@ -28,6 +29,7 @@ import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.activity.PluginActivityResource;
 import java.io.IOException;
 import java.io.InputStream;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Slf4j
 @Service
 public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
@@ -79,8 +82,11 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
       pluginActivityResource.setName(integrationType.getName());
       applicationEventPublisher.publishEvent(
           new PluginUploadedEvent(pluginActivityResource, user.getUserId(), user.getUsername()));
+      applicationEventPublisher.publishEvent(
+          new PluginStateChangedMessage(integrationType.getName()));
       return new EntryCreatedRS(integrationType.getId());
     } catch (IOException e) {
+      log.error("Error during file stream retrieving for plugin file '{}'", newPluginFileName, e);
       throw new ReportPortalException(
           ErrorType.PLUGIN_UPLOAD_ERROR, "Error during file stream retrieving");
     }

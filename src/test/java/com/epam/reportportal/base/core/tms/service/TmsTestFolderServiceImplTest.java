@@ -14,6 +14,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -95,6 +96,10 @@ class TmsTestFolderServiceImplTest {
   private HttpServletResponse mockResponse;
   @Mock
   private Filter filter;
+  @Mock
+  private MembershipDetails membershipDetails;
+  @Mock
+  private ReportPortalUser user;
   @InjectMocks
   private TmsTestFolderServiceImpl sut;
 
@@ -118,6 +123,7 @@ class TmsTestFolderServiceImplTest {
 
   @BeforeEach
   void setUp() {
+    lenient().when(membershipDetails.getProjectId()).thenReturn(projectId);
     project = new Project();
     project.setId(projectId);
 
@@ -1459,7 +1465,7 @@ class TmsTestFolderServiceImplTest {
         .successTestCaseIds(Arrays.asList(10L, 11L))
         .errors(Collections.emptyList())
         .build();
-    when(tmsTestCaseService.duplicateTestCases(eq(projectId), any(TmsTestFolder.class),
+    when(tmsTestCaseService.duplicateTestCases(eq(membershipDetails), eq(user), any(TmsTestFolder.class),
         anyList()))
         .thenReturn(testCaseResult);
 
@@ -1472,7 +1478,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1544,7 +1550,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1620,7 +1626,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1737,7 +1743,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1818,7 +1824,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1890,7 +1896,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -1970,7 +1976,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -2004,7 +2010,7 @@ class TmsTestFolderServiceImplTest {
 
     // Act & Assert
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicateFolder(projectId, rootFolderId, duplicateRQ));
+        sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ));
 
     assertTrue(exception.getMessage().contains(
         String.format("Test Folder with id: %d for project: %d", nonExistentParentId, projectId)));
@@ -2036,7 +2042,7 @@ class TmsTestFolderServiceImplTest {
 
     // Act & Assert
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicateFolder(projectId, rootFolderId, duplicateRQ));
+        sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ));
 
     assertTrue(exception.getMessage().contains(
         String.format("Test Folder with id: %d for project: %d", nonExistentGrandparentId,
@@ -2063,7 +2069,7 @@ class TmsTestFolderServiceImplTest {
 
     // Act & Assert
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicateFolder(projectId, rootFolderId, duplicateRQ));
+        sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ));
 
     assertTrue(exception.getMessage().contains(
         "Either parent folder id or parent folder name should be set"));
@@ -2086,7 +2092,7 @@ class TmsTestFolderServiceImplTest {
 
     // Act & Assert
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicateFolder(projectId, rootFolderId, duplicateRQ));
+        sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ));
 
     assertTrue(exception.getMessage().contains(
         "Either parent folder id or parent folder name should be set"));
@@ -2105,7 +2111,7 @@ class TmsTestFolderServiceImplTest {
 
     // Act & Assert
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicateFolder(projectId, nonExistentFolderId, duplicateRQ));
+        sut.duplicateFolder(membershipDetails, user, nonExistentFolderId, duplicateRQ));
 
     assertTrue(exception.getMessage().contains(
         String.format("'Test Folder with id: %d for project: %d'", nonExistentFolderId,
@@ -2160,7 +2166,7 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
@@ -2216,7 +2222,7 @@ class TmsTestFolderServiceImplTest {
     // Mock test case duplication - now passes entities instead of IDs
     when(tmsTestFolderRepository.findTestCaseIdsByFolderId(rootFolderId))
         .thenReturn(testCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, duplicatedFolder, testCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds))
         .thenReturn(testCaseResult);
 
     when(tmsTestFolderRepository.countTestCasesByFolderId(100L)).thenReturn(3L);
@@ -2228,14 +2234,14 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
     assertEquals(3L, result.getCountOfTestCases());
 
     verify(tmsTestFolderRepository).findTestCaseIdsByFolderId(rootFolderId);
-    verify(tmsTestCaseService).duplicateTestCases(projectId, duplicatedFolder, testCaseIds);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds);
     // Note: updateTestCaseFolder is no longer called, it's handled inside duplicateTestCases
     verify(tmsTestFolderRepository, never()).updateTestCaseFolder(anyList(), anyLong());
   }
@@ -2286,7 +2292,7 @@ class TmsTestFolderServiceImplTest {
     // Mock test case duplication with partial failure
     when(tmsTestFolderRepository.findTestCaseIdsByFolderId(rootFolderId))
         .thenReturn(testCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, duplicatedFolder, testCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds))
         .thenReturn(testCaseResult);
 
     when(tmsTestFolderRepository.countTestCasesByFolderId(100L)).thenReturn(1L);
@@ -2298,12 +2304,12 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
 
-    verify(tmsTestCaseService).duplicateTestCases(projectId, duplicatedFolder, testCaseIds);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds);
   }
 
   @Test
@@ -2344,7 +2350,7 @@ class TmsTestFolderServiceImplTest {
     // Mock test case duplication with exception
     when(tmsTestFolderRepository.findTestCaseIdsByFolderId(rootFolderId))
         .thenReturn(testCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, duplicatedFolder, testCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds))
         .thenThrow(new RuntimeException("Test case duplication failed"));
 
     when(tmsTestFolderRepository.countTestCasesByFolderId(100L)).thenReturn(0L);
@@ -2356,12 +2362,12 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
 
-    verify(tmsTestCaseService).duplicateTestCases(projectId, duplicatedFolder, testCaseIds);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds);
   }
 
   @Test
@@ -2410,14 +2416,14 @@ class TmsTestFolderServiceImplTest {
     )).thenReturn(expectedResponse);
 
     // Act
-    var result = sut.duplicateFolder(projectId, rootFolderId, duplicateRQ);
+    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
 
     // Assert
     assertNotNull(result);
     assertEquals(0L, result.getCountOfTestCases());
 
     verify(tmsTestFolderRepository).findTestCaseIdsByFolderId(rootFolderId);
-    verify(tmsTestCaseService, never()).duplicateTestCases(anyLong(), any(TmsTestFolder.class),
+    verify(tmsTestCaseService, never()).duplicateTestCases(any(), any(), any(TmsTestFolder.class),
         anyList());
   }
 

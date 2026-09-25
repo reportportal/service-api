@@ -1,5 +1,8 @@
 package com.epam.reportportal.base.core.tms.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
@@ -23,6 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,6 +61,7 @@ public class TmsTestFolderController {
    * details.
    */
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Create Test Folder",
       description = "Creates a new test folder within the specified project"
@@ -93,6 +98,7 @@ public class TmsTestFolderController {
    * @return A data transfer object ({@link TmsTestFolderRS}) with updated folder information.
    */
   @PutMapping("/{folderId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Update Test Folder",
       description = "Completely updates an existing test folder with new details"
@@ -133,6 +139,7 @@ public class TmsTestFolderController {
    * @return A data transfer object ({@link TmsTestFolderRS}) with updated folder information.
    */
   @PatchMapping("/{folderId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Patch Test Folder",
       description = "Partially updates an existing test folder with provided details"
@@ -171,6 +178,7 @@ public class TmsTestFolderController {
    * @return A data transfer object ({@link TmsTestFolderRS}) containing folder information.
    */
   @GetMapping("/{folderId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get Test Folder by ID",
       description = "Retrieves details of a specific test folder"
@@ -206,6 +214,7 @@ public class TmsTestFolderController {
    * folders.
    */
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Get Test Folders by project key",
       description = "Retrieves all test folders associated with a project"
@@ -240,6 +249,7 @@ public class TmsTestFolderController {
    * @param folderId   The id of the test folder
    */
   @DeleteMapping("/{folderId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Delete test folder",
       description = "Removes a test folder and all its subfolders"
@@ -270,6 +280,7 @@ public class TmsTestFolderController {
    * @param fileType   The format to export the folder to.
    */
   @GetMapping("/{folderId}/export/{fileType}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(
       summary = "Export test folder",
       description = "Exports a test folder and all its subfolders to the specified format"
@@ -310,6 +321,7 @@ public class TmsTestFolderController {
    * @return A data transfer object containing the duplicated folder's details and duplication statistics.
    */
   @PostMapping("/{folderId}/duplicate")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Duplicate test folder",
       description = "Duplicates a test folder with all its subfolders and test cases"
@@ -332,10 +344,11 @@ public class TmsTestFolderController {
       @Parameter(description = "Duplicated folder details", required = true)
       @RequestBody final TmsTestFolderRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
+    var membershipDetails = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
     return tmsTestFolderService.duplicateFolder(
-        projectExtractor
-            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
-            .getProjectId(),
+        membershipDetails,
+        user,
         folderId,
         inputDto
     );

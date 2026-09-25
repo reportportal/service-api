@@ -25,8 +25,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * On launch finish, scans merged attributes for Mobitru recording keys (case-sensitive). For every
- * non-empty value a system log of type {@code mobitru} is created and attached to the launch. No-op
- * when the Mobitru plugin is not currently loaded and enabled.
+ * non-empty value a system log of type {@code mobitru} is created and attached to the launch.
  */
 @Component
 @RequiredArgsConstructor
@@ -46,7 +45,7 @@ public class MobitruLaunchAttributeHandler implements AttributeHandler {
 
   @Override
   public void handleLaunchFinish(Launch launch) {
-    if (launch == null || !mobitruAttachmentService.isPluginAvailable()) {
+    if (launch == null) {
       return;
     }
     mobitruAttachmentService.extractRecordingAttributes(launch.getAttributes())

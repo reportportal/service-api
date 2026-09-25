@@ -30,6 +30,7 @@ import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
 import com.epam.reportportal.base.core.project.DeleteProjectHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
+import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
@@ -91,6 +92,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private final AttachmentBinaryDataService attachmentBinaryDataService;
 
+  private final TmsAttachmentService tmsAttachmentService;
+
   private final ProjectUserRepository projectUserRepository;
 
   @Override
@@ -139,7 +142,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     publishProjectBulkDeletedEvent(user, deletedProjectsMap.values());
 
     return new DeleteBulkRS(List.copyOf(deletedProjectsMap.keySet()), Collections.emptyList(),
-        exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList())
+        exceptions.stream().map(TO_ERROR_RS).toList()
     );
   }
 
@@ -194,6 +197,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     analyzerServiceClient.removeSuggest(project.getId());
     logRepository.deleteByProjectId(project.getId());
     attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+    tmsAttachmentService.deleteAllByProjectId(project.getId());
     projectContentRemover.remove(project);
     projectRepository.delete(project);
 

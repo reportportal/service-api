@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
 import com.epam.reportportal.base.core.log.MobitruAttachmentService;
 import com.epam.reportportal.base.core.log.SystemLogService;
-import com.epam.reportportal.base.core.plugin.PluginAvailabilityChecker;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -54,9 +53,6 @@ class MobitruTestItemAttributeHandlerTest {
   private static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
 
   @Mock
-  private PluginAvailabilityChecker pluginAvailabilityChecker;
-
-  @Mock
   private SystemLogService systemLogService;
 
   @Mock
@@ -70,26 +66,12 @@ class MobitruTestItemAttributeHandlerTest {
   @BeforeEach
   void setUp() {
     MobitruAttachmentService recordingAttachmentService =
-        new MobitruAttachmentService(pluginAvailabilityChecker, systemLogService,
-            externalAttachmentLoadProducer);
+        new MobitruAttachmentService(systemLogService, externalAttachmentLoadProducer);
     handler = new MobitruTestItemAttributeHandler(recordingAttachmentService, launchRepository);
   }
 
   @Test
-  void doesNothingWhenPluginNotAvailable() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(false);
-
-    handler.handleTestItemFinish(itemWithAttribute(MOBILE_RECORDING_ID_KEY, "device-1"));
-
-    verifyNoInteractions(systemLogService);
-    verifyNoInteractions(launchRepository);
-    verifyNoInteractions(externalAttachmentLoadProducer);
-  }
-
-  @Test
   void doesNothingWhenNoMobitruRecordingAttribute() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
-
     handler.handleTestItemFinish(itemWithAttribute("otherKey", "v"));
 
     verifyNoInteractions(systemLogService);
@@ -99,7 +81,6 @@ class MobitruTestItemAttributeHandlerTest {
 
   @Test
   void writesOneLogPerNonEmptyMobileRecordingId() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     TestItem item = itemWithAttributes(
         attr(MOBILE_RECORDING_ID_KEY, "device-1"),
         attr(MOBILE_RECORDING_ID_KEY, "device-2"),
@@ -133,7 +114,6 @@ class MobitruTestItemAttributeHandlerTest {
 
   @Test
   void writesLogAndPublishesAttributeKeyForPlaywrightRecordingId() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     TestItem item = itemWithAttribute(PLAYWRIGHT_RECORDING_ID_KEY, "browser-session-1");
     Launch launch = new Launch();
     launch.setId(99L);
@@ -153,7 +133,6 @@ class MobitruTestItemAttributeHandlerTest {
 
   @Test
   void writesLogAndPublishesAttributeKeyForSeleniumRecordingId() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     TestItem item = itemWithAttribute(SELENIUM_RECORDING_ID_KEY, "browser-session-2");
     Launch launch = new Launch();
     launch.setId(99L);
@@ -173,8 +152,6 @@ class MobitruTestItemAttributeHandlerTest {
 
   @Test
   void isCaseSensitiveOnKey() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
-
     handler.handleTestItemFinish(itemWithAttribute("mbid", "device-1"));
 
     verify(systemLogService, never())
@@ -184,7 +161,6 @@ class MobitruTestItemAttributeHandlerTest {
 
   @Test
   void skipsWhenLaunchCannotBeResolved() {
-    when(pluginAvailabilityChecker.isAvailable(PLUGIN_ID)).thenReturn(true);
     TestItem item = itemWithAttribute(MOBILE_RECORDING_ID_KEY, "device-1");
     when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.empty());
 

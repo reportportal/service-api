@@ -66,6 +66,7 @@ public class TmsTestPlanControllerTest {
   private TmsTestPlanController testPlanController;
   private MockMvc mockMvc;
   private ReportPortalUser testUser;
+  private MembershipDetails membershipDetails;
   private ObjectMapper objectMapper;
 
   @BeforeEach
@@ -104,7 +105,7 @@ public class TmsTestPlanControllerTest {
         .build();
 
     // Setup the project extractor mock to return a MembershipDetails with the projectId
-    MembershipDetails membershipDetails = MembershipDetails.builder()
+    membershipDetails = MembershipDetails.builder()
         .withProjectId(projectId)
         .withProjectKey(projectKey)
         .build();
@@ -700,7 +701,7 @@ public class TmsTestPlanControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(duplicateTestPlanRQ);
 
-    given(tmsTestPlanService.duplicate(projectId, testPlanId, duplicateTestPlanRQ))
+    given(tmsTestPlanService.duplicate(membershipDetails, testUser, testPlanId, duplicateTestPlanRQ))
         .willReturn(expectedResult);
 
     // When & Then
@@ -712,7 +713,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.id").value(duplicatedTestPlanId));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    verify(tmsTestPlanService).duplicate(membershipDetails, testUser, testPlanId, duplicateTestPlanRQ);
   }
 
   @Test
@@ -730,7 +731,7 @@ public class TmsTestPlanControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(duplicateTestPlanRQ);
 
-    given(tmsTestPlanService.duplicate(projectId, testPlanId, duplicateTestPlanRQ))
+    given(tmsTestPlanService.duplicate(membershipDetails, testUser, testPlanId, duplicateTestPlanRQ))
         .willReturn(expectedResult);
 
     // When & Then
@@ -742,7 +743,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.id").value(duplicatedTestPlanId));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    verify(tmsTestPlanService).duplicate(membershipDetails, testUser, testPlanId, duplicateTestPlanRQ);
   }
 
   @Test
@@ -759,7 +760,7 @@ public class TmsTestPlanControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(duplicateTestPlanRQ);
 
-    given(tmsTestPlanService.duplicate(projectId, testPlanId, duplicateTestPlanRQ))
+    given(tmsTestPlanService.duplicate(membershipDetails, testUser, testPlanId, duplicateTestPlanRQ))
         .willReturn(expectedResult);
 
     // When & Then
@@ -771,7 +772,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.id").value(duplicatedTestPlanId));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    verify(tmsTestPlanService).duplicate(membershipDetails, testUser, testPlanId, duplicateTestPlanRQ);
   }
 
   @Test

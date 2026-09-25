@@ -47,7 +47,8 @@ class LogControllerTest extends BaseMvcTest {
   @Test
   void createLogPositive() throws Exception {
     SaveLogRQ rq = new SaveLogRQ();
-    rq.setLaunchUuid(UUID.randomUUID().toString());
+    // Launch matching the item's actual launch ("test launch 2")
+    rq.setLaunchUuid("45a80a5e-d73e-483a-a51f-43cc7f5111af");
     rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
     rq.setLevel("ERROR");
     rq.setMessage("log message");
@@ -56,6 +57,53 @@ class LogControllerTest extends BaseMvcTest {
         post(DEFAULT_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getDefaultToken()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+  }
+
+  @Test
+  void createLogMismatchedLaunchNegative() throws Exception {
+    SaveLogRQ rq = new SaveLogRQ();
+    // itemUuid belongs to "test launch 2" (45a80a5e-...), not this random launch
+    rq.setLaunchUuid(UUID.randomUUID().toString());
+    rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
+    rq.setLevel("ERROR");
+    rq.setMessage("log message");
+    rq.setLogTime(Instant.now());
+    mockMvc.perform(
+        post(DEFAULT_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getDefaultToken()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void createLogForeignItemNegative() throws Exception {
+    SaveLogRQ rq = new SaveLogRQ();
+    rq.setLaunchUuid(UUID.randomUUID().toString());
+    // Item belongs to a launch under the "default_personal" project, not "superadmin_personal"
+    rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
+    rq.setLevel("ERROR");
+    rq.setMessage("log message");
+    rq.setLogTime(Instant.now());
+    mockMvc.perform(
+            post(SUPERADMIN_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getSuperadminToken()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void createLogForeignLaunchNegative() throws Exception {
+    SaveLogRQ rq = new SaveLogRQ();
+    // Launch belongs to the "default_personal" project, not "superadmin_personal"
+    rq.setLaunchUuid("45a80a5e-d73e-483a-a51f-43cc7f5111af");
+    rq.setItemUuid(UUID.randomUUID().toString());
+    rq.setLevel("ERROR");
+    rq.setMessage("log message");
+    rq.setLogTime(Instant.now());
+    mockMvc.perform(
+            post(SUPERADMIN_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getSuperadminToken()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().isForbidden());
   }
 
   @Test

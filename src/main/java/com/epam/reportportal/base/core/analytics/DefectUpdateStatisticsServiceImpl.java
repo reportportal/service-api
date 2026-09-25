@@ -32,6 +32,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,8 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
   private final ProjectRepository projectRepository;
   private final ServerSettingsRepository serverSettingsRepository;
 
+  @Value("${rp.environment.variable.instance.type:}")
+  private String instanceType;
 
   @Autowired
   public DefectUpdateStatisticsServiceImpl(
@@ -122,7 +125,13 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
 
   private Map<String, Object> getMapWithCommonParameters(Long projectId) {
     Map<String, Object> map = new HashMap<>();
-    map.put("autoAnalysisOn", getIsAutoAnalyzerEnabled(projectId));
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
+    if (isSaas()) {
+      map.put("organizationId", project.getOrganizationId());
+    }
+
+    map.put("autoAnalysisOn", getIsAutoAnalyzerEnabled(project));
     try {
       map.put("analyzerEnabled", analyzerServicesClient.hasClients());
     } catch (ReportPortalException rpe) {
@@ -132,11 +141,13 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
     return map;
   }
 
-  private boolean getIsAutoAnalyzerEnabled(Long projectId) {
-    Project project = projectRepository.findById(projectId).orElseThrow(
-        () -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
+  private boolean getIsAutoAnalyzerEnabled(Project project) {
     AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
     return analyzerConfig.getIsAutoAnalyzerEnabled();
+  }
+
+  private boolean isSaas() {
+    return StringUtils.isNotBlank(instanceType) && instanceType.equals("SAAS");
   }
 
 }

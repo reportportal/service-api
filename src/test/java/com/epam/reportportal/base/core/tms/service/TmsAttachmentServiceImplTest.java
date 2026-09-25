@@ -2,6 +2,7 @@ package com.epam.reportportal.base.core.tms.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,6 +13,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -24,7 +26,9 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualSc
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.ByteArrayInputStream;
@@ -33,6 +37,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +64,9 @@ class TmsAttachmentServiceImplTest {
   private TmsAttachmentMapper tmsAttachmentMapper;
 
   @Mock
+  private TmsAttachmentPersistenceService tmsAttachmentPersistenceService;
+
+  @Mock
   private TmsStepAttachmentRepository tmsStepAttachmentRepository;
 
   @Mock
@@ -70,6 +78,9 @@ class TmsAttachmentServiceImplTest {
   @Mock
   private TmsTestCaseExecutionCommentAttachmentRepository tmsTestCaseExecutionCommentAttachmentRepository;
 
+  @Mock
+  private FeatureFlagHandler featureFlagHandler;
+
   @InjectMocks
   private TmsAttachmentServiceImpl sut;
 
@@ -78,6 +89,8 @@ class TmsAttachmentServiceImplTest {
   private UploadAttachmentRS uploadAttachmentRS;
   private String fileId;
   private Long attachmentId;
+  private static final Long PROJECT_ID = 42L;
+  private static final Long OTHER_PROJECT_ID = 99L;
 
   @BeforeEach
   void setUp() {
@@ -107,27 +120,30 @@ class TmsAttachmentServiceImplTest {
   }
 
   @Test
-  void uploadAttachment_ShouldSucceed_WhenValidFile() throws Exception {
+  void uploadAttachment_ShouldSucceed_WhenValidFile() {
     // Given valid file to upload
     when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
         fileId);
-    when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file))).thenReturn(
+    when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file), eq(PROJECT_ID))).thenReturn(
         attachment);
-    when(tmsAttachmentRepository.save(attachment)).thenReturn(attachment);
+    when(tmsAttachmentPersistenceService.persist(attachment)).thenReturn(attachment);
     when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
         uploadAttachmentRS);
 
     // When uploading attachment
-    var result = sut.uploadAttachment(file);
+    var result = sut.uploadAttachment(PROJECT_ID, file);
 
     // Then attachment should be successfully uploaded
     assertNotNull(result);
     assertEquals(uploadAttachmentRS.getId(), result.getId());
     assertEquals(uploadAttachmentRS.getFileName(), result.getFileName());
 
-    verify(tmsAttachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
-    verify(tmsAttachmentMapper).convertToAttachment(eq(fileId), any(), eq(file));
-    verify(tmsAttachmentRepository).save(attachment);
+    var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(tmsAttachmentDataStoreService).save(storageKeyCaptor.capture(), any(InputStream.class));
+    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID.toString()));
+    assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
+    verify(tmsAttachmentMapper).convertToAttachment(eq(fileId), any(), eq(file), eq(PROJECT_ID));
+    verify(tmsAttachmentPersistenceService).persist(attachment);
     verify(tmsAttachmentMapper).convertToUploadAttachmentRS(attachment);
   }
 
@@ -138,7 +154,7 @@ class TmsAttachmentServiceImplTest {
 
     // When/Then exception should be thrown for empty file
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.uploadAttachment(emptyFile));
+        () -> sut.uploadAttachment(PROJECT_ID, emptyFile));
 
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     assertEquals(
@@ -146,65 +162,113 @@ class TmsAttachmentServiceImplTest {
         exception.getMessage());
 
     verifyNoInteractions(tmsAttachmentDataStoreService, tmsAttachmentMapper,
-        tmsAttachmentRepository);
+        tmsAttachmentPersistenceService);
   }
 
   @Test
-  void uploadAttachment_ShouldThrowException_WhenDataStoreServiceFails() throws Exception {
-    // Given data store service throws IOException
+  void uploadAttachment_ShouldThrowException_WhenDataStoreServiceFails() {
+    // Given data store service throws an unchecked exception
     when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
         .thenThrow(new RuntimeException("Storage error"));
 
     // When/Then exception should be thrown when storage fails
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.uploadAttachment(file));
+        () -> sut.uploadAttachment(PROJECT_ID, file));
 
     assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
-    assertTrue(exception.getMessage().contains("Failed to upload attachment"));
+    assertTrue(exception.getMessage().contains("Failed to read/store attachment"));
 
-    verify(tmsAttachmentDataStoreService).save(eq("test.txt"), any(InputStream.class));
-    verifyNoInteractions(tmsAttachmentRepository);
+    var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(tmsAttachmentDataStoreService).save(storageKeyCaptor.capture(), any(InputStream.class));
+    assertTrue(storageKeyCaptor.getValue().startsWith(PROJECT_ID.toString()));
+    assertTrue(storageKeyCaptor.getValue().endsWith("_test.txt"));
+    verifyNoInteractions(tmsAttachmentPersistenceService);
+  }
+
+  @Test
+  void uploadAttachment_ShouldDeleteOrphanedBlob_WhenPersistenceServiceFails() {
+    // Given the blob is stored successfully but the DB write fails
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
+        fileId);
+    when(tmsAttachmentMapper.convertToAttachment(eq(fileId), any(), eq(file), eq(PROJECT_ID))).thenReturn(
+        attachment);
+    when(tmsAttachmentPersistenceService.persist(attachment))
+        .thenThrow(new RuntimeException("DB error"));
+
+    // When/Then exception should be thrown and the orphaned blob cleaned up
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.uploadAttachment(PROJECT_ID, file));
+
+    assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
+    assertTrue(exception.getMessage().contains("Failed to persist attachment metadata"));
+    verify(tmsAttachmentDataStoreService).delete(fileId);
+  }
+
+  @Test
+  void uploadAttachment_ShouldUseDistinctProjectScopedStorageKeys_WhenSameOriginalFilename() {
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
+        .thenReturn("file-id-1", "file-id-2");
+    when(tmsAttachmentMapper.convertToAttachment(anyString(), any(), eq(file), any())).thenReturn(
+        attachment);
+    when(tmsAttachmentPersistenceService.persist(attachment)).thenReturn(attachment);
+    when(tmsAttachmentMapper.convertToUploadAttachmentRS(attachment)).thenReturn(
+        uploadAttachmentRS);
+
+    sut.uploadAttachment(PROJECT_ID, file);
+    sut.uploadAttachment(OTHER_PROJECT_ID, file);
+
+    var storageKeyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(tmsAttachmentDataStoreService, times(2))
+        .save(storageKeyCaptor.capture(), any(InputStream.class));
+
+    var storageKeys = storageKeyCaptor.getAllValues();
+    assertEquals(2, storageKeys.size());
+    assertNotEquals(storageKeys.get(0), storageKeys.get(1));
+    assertTrue(storageKeys.get(0).startsWith(PROJECT_ID.toString()));
+    assertTrue(storageKeys.get(1).startsWith(OTHER_PROJECT_ID.toString()));
+    assertTrue(storageKeys.get(0).endsWith("_test.txt"));
+    assertTrue(storageKeys.get(1).endsWith("_test.txt"));
   }
 
   @Test
   void getTmsAttachment_ShouldReturnAttachment_WhenExists() {
     // Given attachment exists in repository
-    when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
 
     // When retrieving attachment by ID
-    var result = sut.getTmsAttachment(attachmentId);
+    var result = sut.getTmsAttachment(PROJECT_ID, attachmentId);
 
     // Then attachment should be returned
     assertTrue(result.isPresent());
     assertEquals(attachment, result.get());
-    verify(tmsAttachmentRepository).findById(attachmentId);
+    verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
   }
 
   @Test
   void getTmsAttachment_ShouldReturnEmpty_WhenNotExists() {
     // Given attachment does not exist in repository
-    when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.empty());
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.empty());
 
     // When retrieving non-existent attachment
-    var result = sut.getTmsAttachment(attachmentId);
+    var result = sut.getTmsAttachment(PROJECT_ID, attachmentId);
 
     // Then empty optional should be returned
     assertFalse(result.isPresent());
-    verify(tmsAttachmentRepository).findById(attachmentId);
+    verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
   }
 
   @Test
   void deleteAttachment_ShouldSucceed_WhenAttachmentExists() {
     // Given attachment exists in repository
-    when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
     doNothing().when(tmsAttachmentDataStoreService).delete(fileId);
     doNothing().when(tmsAttachmentRepository).deleteById(attachmentId);
 
     // When deleting existing attachment
-    sut.deleteAttachment(attachmentId);
+    sut.deleteAttachment(PROJECT_ID, attachmentId);
 
     // Then attachment should be deleted from both data store and repository
-    verify(tmsAttachmentRepository).findById(attachmentId);
+    verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
     verify(tmsAttachmentDataStoreService).delete(fileId);
     verify(tmsAttachmentRepository).deleteById(attachmentId);
   }
@@ -212,16 +276,16 @@ class TmsAttachmentServiceImplTest {
   @Test
   void deleteAttachment_ShouldThrowException_WhenAttachmentNotFound() {
     // Given attachment does not exist
-    when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.empty());
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.empty());
 
     // When/Then exception should be thrown for non-existent attachment
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.deleteAttachment(attachmentId));
+        () -> sut.deleteAttachment(PROJECT_ID, attachmentId));
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     assertTrue(exception.getMessage().contains("Attachment not found: " + attachmentId));
 
-    verify(tmsAttachmentRepository).findById(attachmentId);
+    verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
     verifyNoInteractions(tmsAttachmentDataStoreService);
     verify(tmsAttachmentRepository, never()).deleteById(attachmentId);
   }
@@ -229,17 +293,17 @@ class TmsAttachmentServiceImplTest {
   @Test
   void deleteAttachment_ShouldThrowException_WhenDataStoreDeleteFails() {
     // Given attachment exists but data store delete operation fails
-    when(tmsAttachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
     doThrow(new RuntimeException("Delete failed")).when(tmsAttachmentDataStoreService)
         .delete(fileId);
 
     // When/Then exception should be thrown when data store delete fails
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.deleteAttachment(attachmentId));
+        () -> sut.deleteAttachment(PROJECT_ID, attachmentId));
 
     assertEquals(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, exception.getErrorType());
 
-    verify(tmsAttachmentRepository).findById(attachmentId);
+    verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
     verify(tmsAttachmentDataStoreService).delete(fileId);
   }
 
@@ -340,19 +404,24 @@ class TmsAttachmentServiceImplTest {
 
   @Test
   void getTmsAttachmentsByIds_ShouldReturnAttachments_WhenIdsProvided() {
-    // Given list of attachment IDs and corresponding attachments
+    // Given list of attachment IDs and corresponding attachments, all belonging to the project
     var attachmentIds = Arrays.asList(1L, 2L);
-    var attachments = Collections.singletonList(attachment);
+    var attachment2 = new TmsAttachment();
+    attachment2.setId(2L);
+    attachment2.setProjectId(PROJECT_ID);
+    attachment.setProjectId(PROJECT_ID);
+    var attachments = Arrays.asList(attachment, attachment2);
 
-    when(tmsAttachmentRepository.findAllById(attachmentIds)).thenReturn(attachments);
+    when(tmsAttachmentRepository.findAllById(new HashSet<>(attachmentIds)))
+        .thenReturn(attachments);
 
     // When retrieving attachments by IDs
-    var result = sut.getTmsAttachmentsByIds(attachmentIds);
+    var result = sut.getTmsAttachmentsByIds(PROJECT_ID, attachmentIds);
 
     // Then attachments should be returned
     assertNotNull(result);
     assertEquals(attachments, result);
-    verify(tmsAttachmentRepository).findAllById(attachmentIds);
+    verify(tmsAttachmentRepository).findAllById(new HashSet<>(attachmentIds));
   }
 
   @Test
@@ -361,7 +430,7 @@ class TmsAttachmentServiceImplTest {
     var attachmentIds = Collections.<Long>emptyList();
 
     // When retrieving attachments with empty IDs list
-    var result = sut.getTmsAttachmentsByIds(attachmentIds);
+    var result = sut.getTmsAttachmentsByIds(PROJECT_ID, attachmentIds);
 
     // Then empty list should be returned without repository interaction
     assertNotNull(result);
@@ -372,7 +441,7 @@ class TmsAttachmentServiceImplTest {
   @Test
   void getTmsAttachmentsByIds_ShouldReturnEmptyList_WhenIdsNull() {
     // When retrieving attachments with null IDs
-    var result = sut.getTmsAttachmentsByIds(null);
+    var result = sut.getTmsAttachmentsByIds(PROJECT_ID, null);
 
     // Then empty list should be returned without repository interaction
     assertNotNull(result);
@@ -381,7 +450,109 @@ class TmsAttachmentServiceImplTest {
   }
 
   @Test
-  void duplicateTmsAttachment_ShouldSucceed_WhenValidAttachment() throws Exception {
+  void getTmsAttachmentsByIds_ShouldThrowAccessDenied_WhenSomeAttachmentsBelongToAnotherProject() {
+    // Given both requested attachment IDs exist, but one belongs to another project
+    var attachmentIds = Arrays.asList(1L, 2L);
+    var attachment2 = new TmsAttachment();
+    attachment2.setId(2L);
+    attachment2.setProjectId(OTHER_PROJECT_ID);
+    attachment.setProjectId(PROJECT_ID);
+    var attachments = Arrays.asList(attachment, attachment2);
+
+    when(tmsAttachmentRepository.findAllById(new HashSet<>(attachmentIds)))
+        .thenReturn(attachments);
+
+    // When/Then requesting attachments should be rejected as cross-project access
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.getTmsAttachmentsByIds(PROJECT_ID, attachmentIds));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    verify(tmsAttachmentRepository).findAllById(new HashSet<>(attachmentIds));
+  }
+
+  @Test
+  void getTmsAttachmentsByIds_ShouldThrowNotFound_WhenSomeAttachmentsDoNotExist() {
+    // Given only one of the two requested attachment IDs exists
+    var attachmentIds = Arrays.asList(1L, 2L);
+    attachment.setProjectId(PROJECT_ID);
+    var attachments = Collections.singletonList(attachment);
+
+    when(tmsAttachmentRepository.findAllById(new HashSet<>(attachmentIds)))
+        .thenReturn(attachments);
+
+    // When/Then requesting attachments should be rejected as not found
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.getTmsAttachmentsByIds(PROJECT_ID, attachmentIds));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsAttachmentRepository).findAllById(new HashSet<>(attachmentIds));
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnAttachments_WhenIdsProvided() {
+    // Given list of attachment IDs and corresponding attachments, all belonging to the project
+    var attachmentIds = Arrays.asList(1L, 2L);
+    var attachment2 = new TmsAttachment();
+    attachment2.setId(2L);
+    var attachments = Arrays.asList(attachment, attachment2);
+
+    when(tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, PROJECT_ID))
+        .thenReturn(attachments);
+
+    // When retrieving available attachments by IDs
+    var result = sut.findAvailableAttachments(PROJECT_ID, attachmentIds);
+
+    // Then attachments should be returned
+    assertNotNull(result);
+    assertEquals(attachments, result);
+    verify(tmsAttachmentRepository).findAllByIdInAndProjectId(attachmentIds, PROJECT_ID);
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnOnlyExistingOwnedAttachments_WhenSomeIdsInvalid() {
+    // Given one of the two requested attachment IDs does not exist/belong to another project
+    var attachmentIds = Arrays.asList(1L, 999L);
+    var attachments = Collections.singletonList(attachment);
+
+    when(tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, PROJECT_ID))
+        .thenReturn(attachments);
+
+    // When retrieving available attachments by IDs
+    var result = sut.findAvailableAttachments(PROJECT_ID, attachmentIds);
+
+    // Then only the valid attachment should be returned, invalid ID silently ignored
+    assertNotNull(result);
+    assertEquals(attachments, result);
+    verify(tmsAttachmentRepository).findAllByIdInAndProjectId(attachmentIds, PROJECT_ID);
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnEmptyList_WhenIdsEmpty() {
+    // Given empty list of attachment IDs
+    var attachmentIds = Collections.<Long>emptyList();
+
+    // When retrieving available attachments with empty IDs list
+    var result = sut.findAvailableAttachments(PROJECT_ID, attachmentIds);
+
+    // Then empty list should be returned without repository interaction
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verifyNoInteractions(tmsAttachmentRepository);
+  }
+
+  @Test
+  void findAvailableAttachments_ShouldReturnEmptyList_WhenIdsNull() {
+    // When retrieving available attachments with null IDs
+    var result = sut.findAvailableAttachments(PROJECT_ID, null);
+
+    // Then empty list should be returned without repository interaction
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verifyNoInteractions(tmsAttachmentRepository);
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldSucceed_WhenValidAttachment() {
     // Given valid attachment to duplicate and successful data store operations
     var newFileId = "new-file-id";
     var duplicatedAttachment = new TmsAttachment();
@@ -429,7 +600,7 @@ class TmsAttachmentServiceImplTest {
   }
 
   @Test
-  void duplicateTmsAttachment_ShouldThrowException_WhenDataStoreSaveFails() throws Exception {
+  void duplicateTmsAttachment_ShouldThrowException_WhenDataStoreSaveFails() {
     // Given original file exists but data store save operation fails
     var originalFileStream = new ByteArrayInputStream("test content".getBytes());
     when(tmsAttachmentDataStoreService.load(attachment.getPathToFile()))
@@ -629,5 +800,55 @@ class TmsAttachmentServiceImplTest {
     assertEquals(1, capturedIds.size());
     assertTrue(capturedIds.contains(2L));
     assertFalse(capturedIds.contains(1L)); // Used in multiple tables
+  }
+
+  @Test
+  void deleteAllByProjectId_ShouldDeleteContainer_WhenSingleBucketDisabled() {
+    // Given single-bucket mode is disabled, so each project has its own dedicated container
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
+
+    // When deleting all TMS attachment storage for a project
+    sut.deleteAllByProjectId(PROJECT_ID);
+
+    // Then the whole per-project container should be removed
+    verify(tmsAttachmentDataStoreService).deleteContainer(PROJECT_ID.toString());
+    verify(tmsAttachmentRepository, never()).findAllByProjectId(any());
+  }
+
+  @Test
+  void deleteAllByProjectId_ShouldDeleteOnlyProjectFiles_WhenSingleBucketEnabled() {
+    // Given single-bucket mode is enabled, so all projects share the same bucket
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(true);
+    var attachmentWithThumbnail = new TmsAttachment();
+    attachmentWithThumbnail.setPathToFile("path/to/file1");
+    attachmentWithThumbnail.setThumbnailPath("path/to/thumb1");
+    var attachmentWithoutThumbnail = new TmsAttachment();
+    attachmentWithoutThumbnail.setPathToFile("path/to/file2");
+    when(tmsAttachmentRepository.findAllByProjectId(PROJECT_ID)).thenReturn(
+        List.of(attachmentWithThumbnail, attachmentWithoutThumbnail));
+
+    // When deleting all TMS attachment storage for a project
+    sut.deleteAllByProjectId(PROJECT_ID);
+
+    // Then only the files belonging to that project should be removed, by explicit path
+    var pathsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(tmsAttachmentDataStoreService).deleteAll(pathsCaptor.capture(),
+        eq(PROJECT_ID.toString()));
+    assertEquals(List.of("path/to/file1", "path/to/thumb1", "path/to/file2"),
+        pathsCaptor.getValue());
+    verify(tmsAttachmentDataStoreService, never()).deleteContainer(any());
+  }
+
+  @Test
+  void deleteAllByProjectId_ShouldNotThrow_WhenDataStoreDeleteContainerFails() {
+    // Given the underlying data store fails to delete the container
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
+    doThrow(new RuntimeException("Storage error")).when(tmsAttachmentDataStoreService)
+        .deleteContainer(PROJECT_ID.toString());
+
+    // When/Then deleting storage for the project should not propagate the exception
+    sut.deleteAllByProjectId(PROJECT_ID);
+
+    verify(tmsAttachmentDataStoreService).deleteContainer(PROJECT_ID.toString());
   }
 }

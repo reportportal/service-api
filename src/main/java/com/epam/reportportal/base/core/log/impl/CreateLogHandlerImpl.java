@@ -16,6 +16,8 @@
 
 package com.epam.reportportal.base.core.log.impl;
 
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 import static java.util.Optional.ofNullable;
 
@@ -23,6 +25,7 @@ import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.CreateLogHandler;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -41,6 +44,7 @@ import com.epam.reportportal.base.ws.converter.builders.LogFullBuilder;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +95,6 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 
   @Override
   @Nonnull
-  //TODO check saving an attachment of the item of the project A in the project's B directory
   public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file,
       MembershipDetails membershipDetails) {
     final Long projectId = membershipDetails.getProjectId();
@@ -100,14 +103,24 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
         .addProjectId(projectId)
         .addLevel(logTypeResolver.resolveLogLevelFromName(projectId, request.getLevel()));
 
-    final Launch launch = testItemRepository.findByUuid(request.getItemUuid()).map(item -> {
-      logFullBuilder.addTestItem(item);
-      return testItemService.getEffectiveLaunch(item);
-    }).orElseGet(() -> launchRepository.findByUuid(request.getLaunchUuid()).map(l -> {
-      logFullBuilder.addLaunch(l);
-      return l;
-    }).orElseThrow(
-        () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid())));
+    final Launch launch = testItemRepository.findByUuid(request.getItemUuid())
+        .map(item -> {
+          logFullBuilder.addTestItem(item);
+          final Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
+          if (StringUtils.isNotBlank(request.getLaunchUuid())) {
+            expect(effectiveLaunch.getUuid(), Predicates.equalTo(request.getLaunchUuid()))
+                .verify(ACCESS_DENIED);
+          }
+          return effectiveLaunch;
+        })
+        .orElseGet(() -> launchRepository.findByUuid(request.getLaunchUuid())
+            .map(l -> {
+              logFullBuilder.addLaunch(l);
+              return l;
+            })
+            .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid())));
+
+    expect(launch.getProjectId(), Predicates.equalTo(projectId)).verify(ACCESS_DENIED);
 
     final LogFull logFull = logFullBuilder.get();
     final Log log = LOG_FULL_TO_LOG.apply(logFull);

@@ -134,6 +134,11 @@ rp:
 
   requestLogging: true
 
+  restore:
+    password:
+      bid:
+        ttl: PT24H
+
   jwt:
     signing-key:
 

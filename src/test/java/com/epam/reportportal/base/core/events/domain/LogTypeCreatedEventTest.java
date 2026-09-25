@@ -47,7 +47,7 @@ class LogTypeCreatedEventTest {
     resource.setTextStyle("normal");
     resource.setIsFilterable(true);
 
-    var event = new LogTypeCreatedEvent(resource, 100L, "user");
+    var event = new LogTypeCreatedEvent(resource, 100L, "user", 22L, 33L);
 
     // when
     LogTypeCreatedEventConverter converter = new LogTypeCreatedEventConverter();

@@ -19,7 +19,7 @@ package com.epam.reportportal.base.info;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
@@ -29,18 +29,13 @@ import org.springframework.stereotype.Component;
  *
  * @author Pavel Bortnik
  */
-
 @Component
+@RequiredArgsConstructor
 public class InfoContributorComposite implements InfoContributor {
 
   private static final String EXTENSIONS_KEY = "extensions";
 
   private final List<ExtensionContributor> infoContributors;
-
-  @Autowired
-  public InfoContributorComposite(List<ExtensionContributor> infoContributors) {
-    this.infoContributors = infoContributors;
-  }
 
   @Override
   public void contribute(Info.Builder builder) {

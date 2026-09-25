@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,11 +28,13 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestPlanFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projection.TmsTestPlanName;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
@@ -83,6 +86,12 @@ class TmsTestPlanServiceImplTest {
   @Mock
   private TmsTestFolderService tmsTestFolderService;
 
+  @Mock
+  private MembershipDetails membershipDetails;
+
+  @Mock
+  private ReportPortalUser user;
+
   @InjectMocks
   private TmsTestPlanServiceImpl sut;
 
@@ -99,6 +108,7 @@ class TmsTestPlanServiceImplTest {
     testCaseId = 10L;
     milestoneId = 50L;
     pageable = PageRequest.of(0, 10);
+    lenient().when(membershipDetails.getProjectId()).thenReturn(projectId);
   }
 
   @Test
@@ -711,7 +721,7 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
         .thenReturn(originalTestCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds))
         .thenReturn(duplicationResult);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds))
         .thenReturn(duplicatedTestCaseIds);
@@ -727,7 +737,7 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult))
         .thenReturn(expectedResponse);
 
-    var result = sut.duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    var result = sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ);
 
     assertNotNull(result);
     assertEquals(3L, result.getId());
@@ -738,7 +748,7 @@ class TmsTestPlanServiceImplTest {
         projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
     );
     verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
-    verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, originalTestCaseIds);
     verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult);
   }
 
@@ -778,7 +788,7 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult))
         .thenReturn(expectedResponse);
 
-    var result = sut.duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    var result = sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ);
 
     assertNotNull(result);
     assertEquals(3L, result.getId());
@@ -788,7 +798,7 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(
         projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes()
     );
-    verify(tmsTestCaseService, never()).duplicateTestCases(anyLong(), anyList());
+    verify(tmsTestCaseService, never()).duplicateTestCases(any(), any(), anyList());
     verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult);
   }
 
@@ -802,7 +812,7 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(Optional.empty());
 
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicate(projectId, testPlanId, duplicateTestPlanRQ)
+        sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ)
     );
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
@@ -860,7 +870,7 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
         .thenReturn(originalTestCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds))
         .thenReturn(duplicationResult);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds))
         .thenReturn(duplicatedTestCaseIds);
@@ -876,13 +886,13 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult))
         .thenReturn(expectedResponse);
 
-    var result = sut.duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    var result = sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ);
 
     assertNotNull(result);
     assertEquals(3L, result.getId());
     assertNotNull(result.getDuplicationStatistic());
     assertEquals(1, result.getDuplicationStatistic().getFailureCount());
-    verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, originalTestCaseIds);
     verify(tmsTestPlanMapper).combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult);
   }
 
@@ -923,19 +933,19 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
         .thenReturn(originalTestCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds))
         .thenReturn(duplicationResult);
     when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, duplicationResult))
         .thenReturn(expectedResponse);
 
-    var result = sut.duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    var result = sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ);
 
     assertNotNull(result);
     assertEquals(3L, result.getId());
     assertNotNull(result.getDuplicationStatistic());
     assertEquals(2, result.getDuplicationStatistic().getFailureCount());
     assertEquals(0, result.getDuplicationStatistic().getSuccessCount());
-    verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, originalTestCaseIds);
     verify(tmsTestCaseService, never()).getExistingTestCaseIds(anyLong(), anyList());
     verify(tmsTestPlanMapper, never()).combineDuplicateTestPlanBatchResults(any(), any());
   }
@@ -992,7 +1002,7 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
         .thenReturn(originalTestCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds))
         .thenReturn(duplicationResult);
     when(testPlanRepository.existsByIdAndProject_Id(3L, projectId))
         .thenThrow(new RuntimeException("Database error"));
@@ -1004,7 +1014,7 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult))
         .thenReturn(expectedResponse);
 
-    var result = sut.duplicate(projectId, testPlanId, duplicateTestPlanRQ);
+    var result = sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ);
 
     assertNotNull(result);
     assertEquals(3L, result.getId());
@@ -1062,7 +1072,7 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId))
         .thenReturn(originalTestCaseIds);
-    when(tmsTestCaseService.duplicateTestCases(projectId, originalTestCaseIds))
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds))
         .thenReturn(duplicationResult);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds))
         .thenReturn(duplicatedTestCaseIds);
@@ -1079,7 +1089,7 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(expectedResponse);
 
     // When
-    var result = sut.duplicate(projectId, testPlanId, (Long) null);
+    var result = sut.duplicate(membershipDetails, user, testPlanId, (Long) null);
 
     // Then
     assertNotNull(result);
@@ -1089,7 +1099,7 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).save(duplicatedTestPlan);
     verify(tmsTestPlanAttributeService).duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
     verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
-    verify(tmsTestCaseService).duplicateTestCases(projectId, originalTestCaseIds);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, originalTestCaseIds);
     verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult);
   }
 
@@ -1127,7 +1137,7 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(expectedResponse);
 
     // When
-    var result = sut.duplicate(projectId, testPlanId, (Long) null);
+    var result = sut.duplicate(membershipDetails, user, testPlanId, (Long) null);
 
     // Then
     assertNotNull(result);
@@ -1136,7 +1146,7 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan, (Long) null);
     verify(testPlanRepository).save(duplicatedTestPlan);
     verify(tmsTestPlanAttributeService).duplicateTestPlanAttributes(originalTestPlan, duplicatedTestPlan);
-    verify(tmsTestCaseService, never()).duplicateTestCases(anyLong(), anyList());
+    verify(tmsTestCaseService, never()).duplicateTestCases(any(), any(), anyList());
     verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult);
   }
 
@@ -1148,7 +1158,7 @@ class TmsTestPlanServiceImplTest {
 
     // When/Then
     var exception = assertThrows(ReportPortalException.class, () ->
-        sut.duplicate(projectId, testPlanId, (Long) null)
+        sut.duplicate(membershipDetails, user, testPlanId, (Long) null)
     );
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
@@ -1657,7 +1667,7 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(duplicatedPlan2);
 
     // When
-    var result = sut.duplicateTestPlansInMilestone(projectId, milestoneId, targetMilestoneId);
+    var result = sut.duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, targetMilestoneId);
 
     // Then
     assertNotNull(result);
@@ -1679,7 +1689,7 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(List.of());
 
     // When
-    var result = sut.duplicateTestPlansInMilestone(projectId, milestoneId, 999L);
+    var result = sut.duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, 999L);
 
     // Then
     assertNotNull(result);

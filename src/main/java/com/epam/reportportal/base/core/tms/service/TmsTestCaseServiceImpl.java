@@ -38,6 +38,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -168,12 +169,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         tmsTestCase,
         tmsTestCaseRQ.getManualScenario());
 
-    var after = tmsTestCaseActivityResourceMapper.buildActivityResource(tmsTestCase,
-        defaultVersion);
-
-    eventPublisher.publishEvent(
-        tmsTestCaseActivityResourceMapper.buildTestCaseCreatedEvent(membershipDetails, user, after)
-    );
+    publishTestCaseCreatedEvent(membershipDetails, user, tmsTestCase, defaultVersion);
 
     return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion);
   }
@@ -239,7 +235,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               beforeVersion);
 
           tmsTestCaseMapper.patch(existingTestCase,
-              tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
+              tmsTestCaseMapper.convertFromPatchRQ(projectId, tmsTestCaseRQ,
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
 
@@ -350,10 +346,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional
   public List<TmsTestFolderRS> importFromFile(
-      long projectId,
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
       Long testFolderId,
       String testFolderName,
       MultipartFile file) {
+
+    var projectId = membershipDetails.getProjectId();
 
     // 1. Parse file
     var parseResult = parseImportFile(file);
@@ -383,7 +382,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     validateFolderAssignment(preparationResult.getPreparedTestCases());
 
     // 7. Batch create all test cases
-    importTestCases(projectId, preparationResult.getPreparedTestCases(),
+    importTestCases(membershipDetails, user, preparationResult.getPreparedTestCases(),
         keyToAttributeId);
     
     return tmsTestFolderService.getFoldersWithCountByIds(projectId, affectedFolderIds);
@@ -464,9 +463,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   }
 
   private List<Long> importTestCases(
-      long projectId,
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
       List<PreparedTestCase> preparedTestCases,
       Map<String, Long> keyToAttributeId) {
+
+    var projectId = membershipDetails.getProjectId();
 
     // 1. Create all test case entities
     var testCaseEntities = preparedTestCases.stream()
@@ -488,8 +490,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             keyToAttributeId);
       }
 
-      tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
+      var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
           importRQ.getManualScenario());
+
+      var resource = tmsTestCaseActivityResourceMapper.buildActivityResource(savedTestCase, defaultVersion);
+      var event = tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(membershipDetails, user, resource);
+      eventPublisher.publishEvent(event);
     }
 
     return savedTestCases
@@ -703,8 +709,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public BatchDuplicateTestCasesRS duplicate(long projectId,
+  public BatchDuplicateTestCasesRS duplicate(MembershipDetails membershipDetails,
+      ReportPortalUser user,
       BatchDuplicateTestCasesRQ duplicateRequest) {
+    var projectId = membershipDetails.getProjectId();
     validateTestCasesExist(projectId, duplicateRequest.getTestCaseIds());
 
     var targetFolderId = tmsTestFolderService.resolveTargetFolderId(
@@ -716,7 +724,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var duplicatedTestCases = duplicateRequest
         .getTestCaseIds()
         .stream()
-        .map(testCaseId -> duplicateTestCase(projectId, testCaseId, targetFolderId))
+        .map(testCaseId -> duplicateTestCase(membershipDetails, user, projectId, testCaseId, targetFolderId))
         .toList();
     return BatchDuplicateTestCasesRS.builder()
         .testFolderId(targetFolderId)
@@ -726,77 +734,24 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public BatchTestCaseOperationResultRS duplicateTestCases(long projectId, List<Long> testCaseIds) {
-    var errors = new ArrayList<BatchTestCaseOperationError>();
-    var successfulIds = new ArrayList<Long>();
-
-    for (var testCaseId : testCaseIds) {
-      try {
-        var originalTestCase = tmsTestCaseRepository
-            .findByProjectIdAndId(projectId, testCaseId)
-            .orElseThrow(() -> new ReportPortalException(
-                NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
-            );
-
-        var originalDefaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
-
-        var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(
-            originalTestCase, originalTestCase.getTestFolder()
-        );
-
-        duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
-
-        tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase,
-            originalDefaultVersion);
-
-        if (CollectionUtils.isNotEmpty(originalTestCase.getAttributes())) {
-          tmsTestCaseAttributeService.duplicateTestCaseAttributes(originalTestCase,
-              duplicatedTestCase);
-        }
-
-        successfulIds.add(duplicatedTestCase.getId());
-
-      } catch (Exception e) {
-        errors.add(new BatchTestCaseOperationError(testCaseId,
-            "Failed to duplicate test case: " + e.getMessage()));
-      }
-    }
-
-    return tmsTestCaseMapper.toBatchOperationResult(successfulIds, errors);
+  public BatchTestCaseOperationResultRS duplicateTestCases(MembershipDetails membershipDetails,
+      ReportPortalUser user, List<Long> testCaseIds) {
+    return duplicateTestCases(membershipDetails, user, null, testCaseIds);
   }
 
   @Override
-  public BatchTestCaseOperationResultRS duplicateTestCases(long projectId,
-      TmsTestFolder targetFolder, List<Long> testCaseIds) {
+  @Transactional
+  public BatchTestCaseOperationResultRS duplicateTestCases(MembershipDetails membershipDetails,
+      ReportPortalUser user, TmsTestFolder targetFolder, List<Long> testCaseIds) {
     var errors = new ArrayList<BatchTestCaseOperationError>();
     var successfulIds = new ArrayList<Long>();
+    var projectId = membershipDetails.getProjectId();
 
     for (var testCaseId : testCaseIds) {
       try {
-        var originalTestCase = tmsTestCaseRepository
-            .findByProjectIdAndId(projectId, testCaseId)
-            .orElseThrow(() -> new ReportPortalException(
-                NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
-            );
-
-        var originalDefaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
-
-        var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(
-            originalTestCase, targetFolder
-        );
-
-        duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
-
-        tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase,
-            originalDefaultVersion);
-
-        if (CollectionUtils.isNotEmpty(originalTestCase.getAttributes())) {
-          tmsTestCaseAttributeService.duplicateTestCaseAttributes(originalTestCase,
-              duplicatedTestCase);
-        }
-
-        successfulIds.add(duplicatedTestCase.getId());
-
+        var duplicated = duplicateTestCaseInternal(membershipDetails, user, projectId,
+            testCaseId, targetFolder);
+        successfulIds.add(duplicated.testCase().getId());
       } catch (Exception e) {
         errors.add(new BatchTestCaseOperationError(testCaseId,
             "Failed to duplicate test case: " + e.getMessage()));
@@ -826,7 +781,19 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   }
 
   @Transactional
-  public TmsTestCaseRS duplicateTestCase(long projectId, Long testCaseId, Long targetFolderId) {
+  public TmsTestCaseRS duplicateTestCase(MembershipDetails membershipDetails,
+      ReportPortalUser user, long projectId, Long testCaseId, Long targetFolderId) {
+    var targetFolder = targetFolderId != null
+        ? tmsTestFolderService.getEntityById(projectId, targetFolderId)
+        : null;
+    var duplicated = duplicateTestCaseInternal(membershipDetails, user, projectId, testCaseId, targetFolder);
+    return tmsTestCaseMapper.convert(duplicated.testCase(), duplicated.defaultVersion());
+  }
+
+  private record DuplicatedTestCase(TmsTestCase testCase, TmsTestCaseVersion defaultVersion) {}
+
+  private DuplicatedTestCase duplicateTestCaseInternal(MembershipDetails membershipDetails,
+      ReportPortalUser user, long projectId, Long testCaseId, TmsTestFolder targetFolder) {
     var originalTestCase = tmsTestCaseRepository
         .findByProjectIdAndId(projectId, testCaseId)
         .orElseThrow(() -> new ReportPortalException(
@@ -835,9 +802,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     var originalDefaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
 
-    var targetFolder = tmsTestFolderService.getEntityById(projectId, targetFolderId);
+    var folderToUse = targetFolder != null ? targetFolder : originalTestCase.getTestFolder();
 
-    var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(originalTestCase, targetFolder);
+    var duplicatedTestCase = tmsTestCaseMapper.duplicateTestCase(originalTestCase, folderToUse);
 
     duplicatedTestCase = tmsTestCaseRepository.save(duplicatedTestCase);
 
@@ -848,8 +815,21 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       tmsTestCaseAttributeService.duplicateTestCaseAttributes(originalTestCase, duplicatedTestCase);
     }
 
-    return tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedDefaultVersion);
+    publishTestCaseCreatedEvent(membershipDetails, user, duplicatedTestCase, duplicatedDefaultVersion);
+
+    return new DuplicatedTestCase(duplicatedTestCase, duplicatedDefaultVersion);
   }
+
+  private void publishTestCaseCreatedEvent(MembershipDetails membershipDetails,
+      ReportPortalUser user, TmsTestCase testCase, TmsTestCaseVersion version) {
+    if (membershipDetails != null && user != null) {
+      var after = tmsTestCaseActivityResourceMapper.buildActivityResource(testCase, version);
+      eventPublisher.publishEvent(
+          tmsTestCaseActivityResourceMapper.buildTestCaseCreatedEvent(membershipDetails, user, after)
+      );
+    }
+  }
+
 
   @Override
   @Transactional(readOnly = true)

@@ -75,7 +75,7 @@ public class CreateLogTypeHandlerImpl implements CreateLogTypeHandler {
 
     eventPublisher.publishEvent(
         new LogTypeCreatedEvent(LogTypeConverter.TO_ACTIVITY_RESOURCE.apply(savedEntity),
-            user.getUserId(), user.getUsername()
+            user.getUserId(), user.getUsername(), project.getId(), project.getOrganizationId()
         ));
 
     return LogTypeConverter.TO_RESOURCE.apply(savedEntity);

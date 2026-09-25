@@ -72,7 +72,7 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
 
     eventPublisher.publishEvent(
         new LogTypeDeletedEvent(LogTypeConverter.TO_ACTIVITY_RESOURCE.apply(logType),
-            user.getUserId(), user.getUsername()
+            user.getUserId(), user.getUsername(), project.getId(), project.getOrganizationId()
         ));
   }
 

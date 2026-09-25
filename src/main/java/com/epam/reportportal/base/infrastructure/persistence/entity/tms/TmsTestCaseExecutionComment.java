@@ -43,7 +43,7 @@ public class TmsTestCaseExecutionComment implements Serializable {
   @ToString.Exclude
   private TmsTestCaseExecution execution;
 
-  @Column(name = "comment", columnDefinition = "text")
+  @Column(name = "comment", length = 1000)
   private String comment;
 
   @ManyToMany

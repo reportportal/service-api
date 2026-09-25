@@ -94,6 +94,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     if (IntegrationGroupEnum.AUTH == integrationType.getIntegrationGroup()) {
       var newIntegration = createAuthIntegrationHandler.createAuthIntegration(pluginName, createRequest);
+      publishCreationActivity(newIntegration, user);
       return new EntryCreatedRS(newIntegration.getId());
     }
 

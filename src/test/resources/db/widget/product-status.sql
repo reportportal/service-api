@@ -1,7 +1,7 @@
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
                    last_modified, mode, status, has_retries)
-values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false);
+values (1, 'uuid', 1, 1, 'test launch', 'desc', '2024-01-01 10:00:00', null, 1, '2024-01-01 10:00:00', 'DEFAULT', 'FAILED', false);
 
 insert into item_attribute(id, key, value, item_id, launch_id, system)
 values (1, 'key', 'val', null, 1, false);
@@ -65,7 +65,7 @@ values (5, 1, 'to investigate', false, true);
 -- Second launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
                    last_modified, mode, status, has_retries)
-values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
+values (2, 'uuid2', 1, 1, 'test launch', 'desc', '2024-01-02 10:00:00', null, 2, '2024-01-02 10:00:00', 'DEFAULT', 'FAILED', false);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -140,7 +140,7 @@ VALUES (1, 'Admin Filter', 'Launch', null),
        (3, 'Admin Filter Desc', 'Launch', null);
 
 INSERT INTO public.filter_sort (id, filter_id, field, direction)
-VALUES (1, 1, 'name', 'ASC'),
+VALUES (1, 1, 'number', 'ASC'),
        (2, 2, 'name', 'DESC'),
        (3, 2, 'name', 'DESC');
 

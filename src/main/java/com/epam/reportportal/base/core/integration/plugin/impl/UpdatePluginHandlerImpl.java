@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.entity.enums
 import com.epam.reportportal.base.core.events.domain.PluginUpdatedEvent;
 import com.epam.reportportal.base.core.integration.plugin.UpdatePluginHandler;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.base.core.plugin.PluginStateChangedMessage;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
@@ -95,6 +96,8 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
     }
 
     publishEvent(integrationType, user, isEnabled);
+
+    applicationEventPublisher.publishEvent(new PluginStateChangedMessage(integrationType.getName()));
 
     return new OperationCompletionRS(Suppliers.formattedSupplier(
         "Enabled state of the plugin with id = '{}' has been switched to - '{}'",

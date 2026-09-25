@@ -23,6 +23,9 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.rabbitmq.http.client.Client;
 import java.net.URI;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -46,6 +49,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Conditional(Conditions.NotTestCondition.class)
 public class AnalyzerRabbitMqConfiguration {
+
+  @Value("${rp.amqp.analyzerResponseExchange:analyzer-reply}")
+  private String analyzerResponseExchangeName;
+
+  @Value("${rp.amqp.analyzerResponseQueue:analysis.matches}")
+  private String analyzerResponseQueueName;
 
   @Autowired
   private MessageConverter messageConverter;
@@ -94,13 +103,31 @@ public class AnalyzerRabbitMqConfiguration {
     return rabbitAdmin;
   }
 
-  @Bean(name = "analyzerReplyQueue")
-  public Queue analyzerReplyQueue(
-      @Value("${rp.amqp.analyzer-reply-queue:analysis-reply}") String replyQueueName,
-      @Autowired @Qualifier("analyzerRabbitAdmin") RabbitAdmin analyzerRabbitAdmin) {
-    Queue queue = new Queue(replyQueueName, true);
+  @Bean(name = "analyzerResponseQueue")
+  public Queue analyzerResponseQueue(@Autowired @Qualifier("analyzerRabbitAdmin") RabbitAdmin analyzerRabbitAdmin) {
+    Queue queue = new Queue(analyzerResponseQueueName, true);
     queue.setAdminsThatShouldDeclare(analyzerRabbitAdmin);
     return queue;
+  }
+
+  @Bean(name = "analyzerResponseExchange")
+  public DirectExchange analyzerResponseExchange(
+      @Autowired @Qualifier("analyzerRabbitAdmin") RabbitAdmin analyzerRabbitAdmin) {
+    DirectExchange exchange = new DirectExchange(analyzerResponseExchangeName);
+    exchange.setAdminsThatShouldDeclare(analyzerRabbitAdmin);
+    return exchange;
+  }
+
+  @Bean(name = "analyzerReplyQueueBinding")
+  public Binding analyzerReplyQueueBinding(
+      @Autowired @Qualifier("analyzerResponseQueue") Queue analyzerResponseQueue,
+      @Autowired @Qualifier("analyzerResponseExchange") DirectExchange analyzerResponseExchange,
+      @Autowired @Qualifier("analyzerRabbitAdmin") RabbitAdmin analyzerRabbitAdmin) {
+    Binding binding = BindingBuilder.bind(analyzerResponseQueue)
+        .to(analyzerResponseExchange)
+        .with(analyzerResponseQueueName);
+    binding.setAdminsThatShouldDeclare(analyzerRabbitAdmin);
+    return binding;
   }
 
   @Bean(name = "analyzerRabbitListenerContainerFactory")

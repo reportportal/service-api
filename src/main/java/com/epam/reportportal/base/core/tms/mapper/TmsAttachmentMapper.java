@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.mapper;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
+import com.epam.reportportal.base.core.tms.sync.dto.RemoteAttachment;
 import java.time.Duration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,8 +22,10 @@ public abstract class TmsAttachmentMapper {
   @Mapping(target = "fileSize", source = "file.size")
   @Mapping(target = "pathToFile", source = "fileId")
   @Mapping(target = "thumbnailPath", source = "thumbnailPath")
+  @Mapping(target = "projectId", source = "projectId")
   @Mapping(target = "expiresAt", expression = "java(java.time.Instant.now().plus(ttl))")
-  public abstract TmsAttachment convertToAttachment(String fileId, String thumbnailPath, MultipartFile file);
+  public abstract TmsAttachment convertToAttachment(String fileId, String thumbnailPath, MultipartFile file,
+      Long projectId);
 
   @Mapping(target = "id", source = "id")
   @Mapping(target = "fileSize", source = "fileSize")
@@ -38,10 +41,31 @@ public abstract class TmsAttachmentMapper {
   @Mapping(target = "fileSize", source = "originalAttachment.fileSize")
   @Mapping(target = "pathToFile", source = "newFileId")
   @Mapping(target = "thumbnailPath", source = "newThumbnailPath")
+  @Mapping(target = "projectId", source = "originalAttachment.projectId")
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "steps", ignore = true)
   @Mapping(target = "textManualScenarios", ignore = true)
   @Mapping(target = "manualScenarioPreconditions", ignore = true)
-  public abstract TmsAttachment duplicateAttachment(TmsAttachment originalAttachment,
-      String newFileId, String newThumbnailPath);
+  public abstract TmsAttachment duplicateAttachment(TmsAttachment originalAttachment, String newFileId,
+      String newThumbnailPath);
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "fileName", source = "remoteAttachment.filename")
+  @Mapping(target = "fileType", source = "remoteAttachment.mimeType")
+  @Mapping(target = "fileSize", source = "remoteAttachment.size")
+  @Mapping(target = "pathToFile", source = "fileId")
+  @Mapping(target = "thumbnailPath", source = "thumbnailPath")
+  @Mapping(target = "projectId", source = "projectId")
+  @Mapping(target = "expiresAt", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "textManualScenarios", ignore = true)
+  @Mapping(target = "steps", ignore = true)
+  @Mapping(target = "manualScenarioPreconditions", ignore = true)
+  @Mapping(target = "executionComments", ignore = true)
+  @Mapping(target = "environment", ignore = true)
+  public abstract TmsAttachment convertFromRemote(
+      RemoteAttachment remoteAttachment,
+      String fileId,
+      String thumbnailPath,
+      Long projectId);
 }

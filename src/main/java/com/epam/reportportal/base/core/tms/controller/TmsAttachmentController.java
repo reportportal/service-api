@@ -1,11 +1,17 @@
 package com.epam.reportportal.base.core.tms.controller;
 
-import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
+import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
+import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +35,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * REST Controller for TMS attachment operations.
  *
- * Provides endpoints for uploading, downloading, and deleting TMS attachments
- * that can be used in test case preconditions and manual scenario steps.
+ * <p>Provides endpoints for uploading, downloading, and deleting TMS attachments that can be used in test case
+ * preconditions and manual scenario steps.
  */
 @Slf4j
 @RestController
@@ -40,28 +47,38 @@ public class TmsAttachmentController {
 
   private final TmsAttachmentService tmsAttachmentService;
   private final TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
+  private final ProjectExtractor projectExtractor;
 
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(summary = "Upload TMS attachment",
       description = "Uploads a file as TMS attachment with TTL for temporary storage")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToEditProject')")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public UploadAttachmentRS uploadAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
-      @Parameter(description = "Attachment file") @RequestParam("file") MultipartFile file) {
-    return tmsAttachmentService.uploadAttachment(file);
+      @Parameter(description = "Attachment file") @RequestParam("file") MultipartFile file,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+    return tmsAttachmentService.uploadAttachment(projectId, file);
   }
 
   @GetMapping("/{attachmentId}")
   @Operation(summary = "Download TMS attachment",
       description = "Downloads TMS attachment file by ID")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToViewProject')")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<InputStreamResource> downloadAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
-      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId,
+      @AuthenticationPrincipal ReportPortalUser user) {
 
     log.debug("Downloading TMS attachment: {} for project: {}", attachmentId, projectKey);
 
-    var attachment = tmsAttachmentService.getTmsAttachment(attachmentId)
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+
+    var attachment = tmsAttachmentService.getTmsAttachment(projectId, attachmentId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
             "Attachment not found: " + attachmentId));
 
@@ -79,23 +96,28 @@ public class TmsAttachmentController {
         .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getFileSize()))
         .body(resource);
   }
-  
+
   @GetMapping("/{attachmentId}/thumbnail")
   @Operation(summary = "Download TMS attachment thumbnail",
       description = "Downloads TMS attachment thumbnail file by ID")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToViewProject')")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   public ResponseEntity<InputStreamResource> downloadThumbnail(
       @Parameter(description = "Project key") @PathVariable String projectKey,
-      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId,
+      @AuthenticationPrincipal ReportPortalUser user) {
 
     log.debug("Downloading TMS attachment thumbnail: {} for project: {}", attachmentId, projectKey);
 
-    var attachment = tmsAttachmentService.getTmsAttachment(attachmentId)
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+
+    var attachment = tmsAttachmentService.getTmsAttachment(projectId, attachmentId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
             "Attachment not found: " + attachmentId));
 
     if (attachment.getThumbnailPath() == null) {
-      throw new ReportPortalException(ErrorType.NOT_FOUND, 
+      throw new ReportPortalException(ErrorType.NOT_FOUND,
           "Thumbnail not found for attachment: " + attachmentId);
     }
 
@@ -114,14 +136,19 @@ public class TmsAttachmentController {
   @DeleteMapping("/{attachmentId}")
   @Operation(summary = "Delete TMS attachment",
       description = "Deletes TMS attachment by ID")
-  @PreAuthorize("hasPermission(#projectKey, 'allowedToEditProject')")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<OperationCompletionRS> deleteAttachment(
       @Parameter(description = "Project key") @PathVariable String projectKey,
-      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId) {
+      @Parameter(description = "Attachment ID") @PathVariable Long attachmentId,
+      @AuthenticationPrincipal ReportPortalUser user) {
 
     log.debug("Deleting TMS attachment: {} for project: {}", attachmentId, projectKey);
 
-    tmsAttachmentService.deleteAttachment(attachmentId);
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+
+    tmsAttachmentService.deleteAttachment(projectId, attachmentId);
 
     return ResponseEntity.ok(new OperationCompletionRS(
         "Attachment with ID = '" + attachmentId + "' successfully deleted."));

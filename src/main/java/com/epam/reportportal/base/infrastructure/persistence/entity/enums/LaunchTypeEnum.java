@@ -12,7 +12,8 @@ public enum LaunchTypeEnum {
 
   AUTOMATION("AUTOMATION"),
   MANUAL("MANUAL"),
-  AGENTIC("AGENTIC");
+  AGENTIC("AGENTIC"),
+  PIPELINE("PIPELINE");
 
   private final String value;
 

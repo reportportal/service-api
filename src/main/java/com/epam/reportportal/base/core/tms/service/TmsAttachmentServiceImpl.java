@@ -8,23 +8,31 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualSc
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
+import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.io.ByteArrayInputStream;
+import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,65 +46,89 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   private final TmsAttachmentRepository tmsAttachmentRepository;
   private final TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
   private final TmsAttachmentMapper tmsAttachmentMapper;
+  private final TmsAttachmentPersistenceService tmsAttachmentPersistenceService;
   private final TmsStepAttachmentRepository tmsStepAttachmentRepository;
   private final TmsTextManualScenarioAttachmentRepository tmsTextManualScenarioAttachmentRepository;
   private final TmsManualScenarioPreconditionsAttachmentRepository tmsManualScenarioPreconditionsAttachmentRepository;
   private final TmsTestCaseExecutionCommentAttachmentRepository tmsTestCaseExecutionCommentAttachmentRepository;
+  private final FeatureFlagHandler featureFlagHandler;
 
   @Value("${rp.tms.attachment.ttl:PT24H}")
   private Duration ttl;
 
   @Override
-  @Transactional
-  public UploadAttachmentRS uploadAttachment(MultipartFile file) {
+  public UploadAttachmentRS uploadAttachment(Long projectId, MultipartFile file) {
     if (file.isEmpty()) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "File cannot be empty");
     }
 
+    var fileId = saveBinary(projectId, file);
+    var thumbnailId = saveThumbnailIfImage(projectId, file);
+
     try {
-      byte[] bytes = file.getBytes();
-      var fileId = tmsAttachmentDataStoreService.save(file.getOriginalFilename(),
-          new ByteArrayInputStream(bytes));
-
-      String thumbnailId = null;
-      if (isImage(file.getContentType())) {
-        try {
-          thumbnailId = tmsAttachmentDataStoreService.saveThumbnail(
-              "thumbnail_" + file.getOriginalFilename(),
-              new ByteArrayInputStream(bytes));
-        } catch (Exception e) {
-          log.warn("Failed to create thumbnail for file {}", file.getOriginalFilename(), e);
-        }
-      }
-
-      var attachment = tmsAttachmentMapper.convertToAttachment(fileId, thumbnailId, file);
-
-      return tmsAttachmentMapper.convertToUploadAttachmentRS(
-          tmsAttachmentRepository.save(attachment));
-    } catch (Exception e) {
+      var attachment = tmsAttachmentMapper.convertToAttachment(fileId, thumbnailId, file, projectId);
+      var saved = tmsAttachmentPersistenceService.persist(attachment);
+      return tmsAttachmentMapper.convertToUploadAttachmentRS(saved);
+    } catch (Exception _) {
+      deleteQuietly(fileId, thumbnailId);
       throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
-          "Failed to upload attachment: " + e.getMessage());
+          "Failed to persist attachment metadata for project " + projectId);
     }
+  }
+
+  private String saveBinary(Long projectId, MultipartFile file) {
+    try (var in = file.getInputStream()) {
+      var storageKey = buildStorageKey(projectId, file.getOriginalFilename());
+      return tmsAttachmentDataStoreService.save(storageKey, in);
+    } catch (IOException | RuntimeException _) {
+      throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
+          "Failed to read/store attachment for project " + projectId);
+    }
+  }
+
+  private String saveThumbnailIfImage(Long projectId, MultipartFile file) {
+    if (!isImage(file.getContentType())) {
+      return null;
+    }
+    try (var in = file.getInputStream()) {
+      var thumbnailKey = buildThumbnailStorageKey(projectId, file.getOriginalFilename());
+      return tmsAttachmentDataStoreService.saveThumbnail(thumbnailKey, in);
+    } catch (Exception e) {
+      log.warn("Failed to create thumbnail for file {}", file.getOriginalFilename(), e);
+      return null;
+    }
+  }
+
+  private void deleteQuietly(String... storageKeys) {
+    Arrays.stream(storageKeys)
+        .filter(StringUtils::isNotBlank)
+        .forEach(key -> {
+          try {
+            tmsAttachmentDataStoreService.delete(key);
+          } catch (Exception e) {
+            log.error("Failed to clean up orphaned binary {}", key, e);
+          }
+        });
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<TmsAttachment> getTmsAttachment(Long attachmentId) {
-    return tmsAttachmentRepository.findById(attachmentId);
+  public Optional<TmsAttachment> getTmsAttachment(Long projectId, Long attachmentId) {
+    return tmsAttachmentRepository.findByIdAndProjectId(attachmentId, projectId);
   }
 
   @Override
   @Transactional
-  public void deleteAttachment(Long attachmentId) {
+  public void deleteAttachment(Long projectId, Long attachmentId) {
     var attachment = tmsAttachmentRepository
-        .findById(attachmentId)
+        .findByIdAndProjectId(attachmentId, projectId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
             "Attachment not found: " + attachmentId));
 
     try {
       // Delete file from data store
       tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
-      
+
       // Delete thumbnail if exists
       if (attachment.getThumbnailPath() != null) {
         try {
@@ -135,13 +167,13 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       expiredAttachments.forEach(attachment -> {
         try {
           tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
-          
+
           if (attachment.getThumbnailPath() != null) {
             tmsAttachmentDataStoreService.delete(attachment.getThumbnailPath());
           }
         } catch (Exception e) {
           log.warn("Failed to delete file/thumbnail for expired attachment {}: {}",
-               attachment.getId(), e.getMessage());
+              attachment.getId(), e.getMessage());
         }
       });
 
@@ -149,7 +181,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       var expiredIds = expiredAttachments
           .stream()
           .map(TmsAttachment::getId)
-          .collect(Collectors.toList());
+          .toList();
       tmsAttachmentRepository.deleteByIds(expiredIds);
 
       log.debug("Cleaned up {} expired attachments", expiredIds.size());
@@ -158,12 +190,51 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<TmsAttachment> getTmsAttachmentsByIds(List<Long> attachmentIds) {
+  public List<TmsAttachment> getTmsAttachmentsByIds(Long projectId, List<Long> attachmentIds) {
     if (CollectionUtils.isEmpty(attachmentIds)) {
       return List.of();
     }
 
-    return tmsAttachmentRepository.findAllById(attachmentIds);
+    var uniqueIds = Set.copyOf(attachmentIds);
+    var attachments = tmsAttachmentRepository.findAllById(uniqueIds);
+
+    validateAllFound(uniqueIds, attachments);
+    validateProjectOwnership(projectId, attachments);
+
+    return attachments;
+  }
+
+  private void validateAllFound(Set<Long> requestedIds, List<TmsAttachment> attachments) {
+    var foundIds = attachments.stream()
+        .map(TmsAttachment::getId)
+        .collect(Collectors.toUnmodifiableSet());
+
+    var missingIds = Sets.difference(requestedIds, foundIds);
+    if (!missingIds.isEmpty()) {
+      throw new ReportPortalException(ErrorType.NOT_FOUND, "Attachments not found: " + missingIds);
+    }
+  }
+
+  private void validateProjectOwnership(Long projectId, List<TmsAttachment> attachments) {
+    var foreignProjectIds = attachments.stream()
+        .filter(attachment -> !Objects.equals(attachment.getProjectId(), projectId))
+        .map(TmsAttachment::getId)
+        .toList();
+
+    if (!foreignProjectIds.isEmpty()) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
+          "Attachments do not belong to project " + projectId + ": " + foreignProjectIds);
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TmsAttachment> findAvailableAttachments(Long projectId, List<Long> attachmentIds) {
+    if (CollectionUtils.isEmpty(attachmentIds)) {
+      return List.of();
+    }
+
+    return tmsAttachmentRepository.findAllByIdInAndProjectId(attachmentIds, projectId);
   }
 
   @Override
@@ -182,14 +253,14 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
       // Step 3: Save file copy to data store
       var newFileId = tmsAttachmentDataStoreService.save(newFileName, originalFileStream);
-      
+
       // Step 3.1: Duplicate thumbnail if exists
       String newThumbnailId = null;
       if (originalAttachment.getThumbnailPath() != null) {
         try {
           var thumbnailStream = tmsAttachmentDataStoreService.load(originalAttachment.getThumbnailPath())
               .orElse(null);
-          
+
           if (thumbnailStream != null) {
             String newThumbnailName = "thumbnail_" + newFileName;
             newThumbnailId = tmsAttachmentDataStoreService.save(newThumbnailName, thumbnailStream);
@@ -248,7 +319,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
         .stream()
         .map(TmsAttachment::getId)
         .filter(id -> !usedAttachmentIds.contains(id))
-        .collect(Collectors.toList());
+        .toList();
 
     if (CollectionUtils.isEmpty(unusedAttachmentIds)) {
       log.debug("No unused TMS attachments found without TTL");
@@ -273,6 +344,23 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
       return;
     }
     tmsAttachmentRepository.saveAll(attachments);
+  }
+
+  @Override
+  public void deleteAllByProjectId(Long projectId) {
+    try {
+      if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
+        var paths = tmsAttachmentRepository.findAllByProjectId(projectId).stream()
+            .flatMap(attachment -> Stream.of(attachment.getPathToFile(), attachment.getThumbnailPath()))
+            .filter(Objects::nonNull)
+            .toList();
+        tmsAttachmentDataStoreService.deleteAll(paths, projectId.toString());
+      } else {
+        tmsAttachmentDataStoreService.deleteContainer(projectId.toString());
+      }
+    } catch (Exception e) {
+      log.warn("Failed to delete TMS attachment storage for project {}: {}", projectId, e.getMessage());
+    }
   }
 
   private Set<Long> getUsedAttachmentIds() {
@@ -302,9 +390,9 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   }
 
   /**
-   * Generates a unique filename for duplicated attachment. * Adds timestamp and UUID to avoid
-   * filename conflicts. * * @param originalFileName the original filename * @return new unique
-   * filename
+   * Generates a unique filename for duplicated attachment. * Adds timestamp and UUID to avoid filename conflicts. * *
+   *
+   * @param originalFileName the original filename * @return new unique filename
    */
   private String generateDuplicateFileName(String originalFileName) {
     if (originalFileName == null || originalFileName.trim().isEmpty()) {
@@ -326,5 +414,21 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
 
   private boolean isImage(String contentType) {
     return contentType != null && (contentType.equals("image/jpeg") || contentType.equals("image/png"));
+  }
+
+  private String buildStorageKey(Long projectId, String originalFilename) {
+    var safeName = sanitizeOriginalFilename(originalFilename);
+    return Paths.get(String.valueOf(projectId), UUID.randomUUID() + "_" + safeName).toString();
+  }
+
+  private String buildThumbnailStorageKey(Long projectId, String originalFilename) {
+    var safeName = sanitizeOriginalFilename(originalFilename);
+    return Paths.get(String.valueOf(projectId), "thumbnail_" + UUID.randomUUID() + "_" + safeName)
+        .toString();
+  }
+
+  private String sanitizeOriginalFilename(String originalFilename) {
+    var safeName = FilenameUtils.getName(StringUtils.defaultString(originalFilename));
+    return StringUtils.isBlank(safeName) ? "attachment" : safeName;
   }
 }

@@ -34,8 +34,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * RabbitMQ listener that creates default log types when a new project is created. Listens to project creation Activity
- * messages from the activity exchange.
+ * RabbitMQ listener that creates default log types when a new project is created. Listens to
+ * project creation Activity messages from the activity exchange.
  */
 @Slf4j
 @Component
@@ -50,7 +50,8 @@ public class ProjectCreatedConsumer {
   private final LogTypeRepository logTypeRepository;
 
   /**
-   * Handles project creation events from RabbitMQ by initializing default log types for the created project.
+   * Handles project creation events from RabbitMQ by initializing default log types for the created
+   * project.
    *
    * @param event the ProjectCreatedEvent containing details about the created project
    */
@@ -59,7 +60,7 @@ public class ProjectCreatedConsumer {
           value = @Queue(value = QUEUE_PROJECT_CREATED, durable = "true", autoDelete = "false"),
           exchange = @Exchange(value = "domain.events", type = ExchangeTypes.TOPIC),
           key = ROUTING_KEY_PROJECT_CREATED
-      ), containerFactory = "rabbitListenerContainerFactory"
+      ), containerFactory = "rabbitListenerContainerFactory", admin = "amqpAdmin"
   )
   public void onProjectCreated(@Payload ProjectCreatedEvent event) {
     if (Objects.isNull(event) || Objects.isNull(event.getProjectId())) {

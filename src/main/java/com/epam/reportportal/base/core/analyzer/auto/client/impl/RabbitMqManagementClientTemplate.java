@@ -24,15 +24,22 @@ import com.epam.reportportal.base.core.analyzer.auto.client.RabbitMqManagementCl
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.rabbitmq.http.client.Client;
+import com.rabbitmq.http.client.domain.BindingInfo;
+import com.rabbitmq.http.client.domain.DestinationType;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
+import com.rabbitmq.http.client.domain.QueueInfo;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Rabbit management client filtered to analyzer exchange metadata.
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Slf4j
 public class RabbitMqManagementClientTemplate implements RabbitMqManagementClient {
 
   private final Client rabbitClient;
@@ -50,6 +57,7 @@ public class RabbitMqManagementClientTemplate implements RabbitMqManagementClien
     }
   }
 
+  @Override
   public List<ExchangeInfo> getAnalyzerExchangesInfo() {
     List<ExchangeInfo> client = rabbitClient.getExchanges(virtualHost);
     if (client == null) {
@@ -59,5 +67,27 @@ public class RabbitMqManagementClientTemplate implements RabbitMqManagementClien
         .filter(it -> it.getArguments().get(ANALYZER_KEY) != null)
         .sorted(comparingInt(EXCHANGE_PRIORITY))
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Exchanges that have at least one queue bound with an active consumer.
+   * Computed from a single queues fetch and a single bindings fetch to avoid per-exchange calls.
+   */
+  public Set<String> getExchangesWithActiveConsumers() {
+    Set<String> queuesWithConsumers = CollectionUtils.emptyIfNull(rabbitClient.getQueues(virtualHost)).stream()
+        .filter(queue -> queue.getConsumerCount() > 0)
+        .map(QueueInfo::getName)
+        .collect(Collectors.toSet());
+
+    if (queuesWithConsumers.isEmpty()) {
+      return Set.of();
+    }
+
+    return CollectionUtils.emptyIfNull(rabbitClient.getBindings(virtualHost))
+        .stream()
+        .filter(binding -> binding.getDestinationType() == DestinationType.QUEUE)
+        .filter(binding -> queuesWithConsumers.contains(binding.getDestination()))
+        .map(BindingInfo::getSource)
+        .collect(Collectors.toSet());
   }
 }

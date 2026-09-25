@@ -43,6 +43,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationExportFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationFilter;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -119,7 +120,9 @@ public class OrganizationController extends BaseController implements Organizati
   @Transactional(readOnly = true)
   @Override
   public ResponseEntity<OrganizationPage> postOrganizationsSearches(String accept, SearchCriteriaRQ criteriaRq) {
-    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(criteriaRq, OrganizationFilter.class);
+    boolean isExport = isExportFormat(accept);
+    Class<?> filterClass = isExport ? OrganizationExportFilter.class : OrganizationFilter.class;
+    Queryable filter = searchCriteriaService.createFilterBySearchCriteria(criteriaRq, filterClass);
 
     var pageable = ControllerUtils.getPageable(
         StringUtils.isNotBlank(criteriaRq.getSort()) ? criteriaRq.getSort() : "name",
@@ -127,7 +130,7 @@ public class OrganizationController extends BaseController implements Organizati
         criteriaRq.getOffset(),
         criteriaRq.getLimit());
 
-    if (isExportFormat(accept)) {
+    if (isExport) {
       if (!SecurityContextUtils.isAdminRole()) {
         throw new AccessDeniedException("Only administrators allowed to export users");
       }

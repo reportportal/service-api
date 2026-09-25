@@ -7,7 +7,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
@@ -29,10 +31,10 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
 
   boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId);
 
-  DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId,
+  DuplicateTmsTestPlanRS duplicate(MembershipDetails membershipDetails, ReportPortalUser user, Long testPlanId,
       TmsTestPlanRQ duplicateTestPlanRQ);
 
-  DuplicateTmsTestPlanRS duplicate(Long projectId, Long testPlanId, Long targetMilestoneId);
+  DuplicateTmsTestPlanRS duplicate(MembershipDetails membershipDetails, ReportPortalUser user, Long testPlanId, Long targetMilestoneId);
 
   /**
    * Retrieves test cases added to a test plan with pagination. Returns test cases with last execution only (without
@@ -95,7 +97,7 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
 
   List<TmsTestPlanRS> getByMilestoneId(Long projectId, Long milestoneId);
 
-  List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(Long projectId, Long sourceMilestoneId, Long targetMilestoneId);
+  List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(MembershipDetails membershipDetails, ReportPortalUser user, Long sourceMilestoneId, Long targetMilestoneId);
 
   void addTestPlanMilestone(Long projectId, Long milestoneId, Long testPlanId);
 

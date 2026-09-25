@@ -402,9 +402,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
   @Override
   @Transactional
-  public DuplicateTmsTestFolderRS duplicateFolder(long projectId, Long folderId,
-      TmsTestFolderRQ inputDto) {
+  public DuplicateTmsTestFolderRS duplicateFolder(MembershipDetails membershipDetails,
+      ReportPortalUser user, Long folderId, TmsTestFolderRQ inputDto) {
 
+    var projectId = membershipDetails.getProjectId();
     var sourceFolder = findFolderWithFullHierarchy(projectId, folderId);
     var targetParentFolderId = resolveTargetParentForDuplication(projectId, inputDto);
 
@@ -412,7 +413,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     var testCaseStatistics = new TestCaseDuplicationStatistics();
 
     var duplicatedRootFolder = duplicateFolderHierarchy(
-        projectId,
+        membershipDetails,
+        user,
         sourceFolder,
         inputDto.getName(),
         targetParentFolderId,
@@ -752,7 +754,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * @return The duplicated folder entity
    */
   private TmsTestFolder duplicateFolderHierarchy(
-      long projectId,
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
       TmsTestFolder sourceFolder,
       String targetName,
       Long targetParentFolderId,
@@ -761,6 +764,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       TestCaseDuplicationStatistics testCaseStatistics) {
 
     try {
+      var projectId = membershipDetails.getProjectId();
       TmsTestFolder targetParentFolder = null;
       if (nonNull(targetParentFolderId)) {
         targetParentFolder = getEntityById(projectId, targetParentFolderId);
@@ -788,7 +792,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       folderStatistics.addSuccess(duplicatedFolder.getId());
 
       duplicateTestCasesInFolder(
-          projectId,
+          membershipDetails,
+          user,
           sourceFolder,
           duplicatedFolder,
           testCaseStatistics
@@ -798,7 +803,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         for (var subFolder : sourceFolder.getSubFolders()) {
           try {
             var duplicatedSubFolder = duplicateFolderHierarchy(
-                projectId,
+                membershipDetails,
+                user,
                 subFolder,
                 subFolder.getName() + "-copy",
                 duplicatedFolder.getId(),
@@ -836,7 +842,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   }
 
   private void duplicateTestCasesInFolder(
-      long projectId,
+      MembershipDetails membershipDetails,
+      ReportPortalUser user,
       TmsTestFolder sourceFolder,
       TmsTestFolder targetFolder,
       TestCaseDuplicationStatistics testCaseStatistics) {
@@ -849,7 +856,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
     try {
       var duplicateTestCasesResult = tmsTestCaseService.duplicateTestCases(
-          projectId, targetFolder, testCaseIds
+          membershipDetails, user, targetFolder, testCaseIds
       );
 
       testCaseStatistics.merge(duplicateTestCasesResult);

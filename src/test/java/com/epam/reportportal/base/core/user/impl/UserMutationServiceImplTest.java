@@ -24,6 +24,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -45,6 +46,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class UserMutationServiceImplTest {
@@ -57,6 +59,12 @@ class UserMutationServiceImplTest {
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
+
+  @Mock
+  private TokenBlacklistService tokenBlacklistService;
+
+  @Mock
+  private PasswordEncoder passwordEncoder;
 
   @InjectMocks
   private UserMutationServiceImpl userMutationService;
@@ -249,12 +257,79 @@ class UserMutationServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should update role and publish event")
-    void updateInstanceRoleWhenValidShouldUpdateAndPublishEvent() {
+    @DisplayName("Should update role when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldUpdateRole() {
+      // When
       userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
 
+      // Then
       assertThat(user.getRole()).isEqualTo(UserRole.ADMINISTRATOR);
+    }
+
+    @Test
+    @DisplayName("Should publish change event when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldPublishChangeUserTypeEvent() {
+      // When
+      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+
+      // Then
       verify(eventPublisher).publishEvent(any(ChangeUserTypeEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should revoke user tokens when role changes")
+    void updateInstanceRoleWhenRoleChangesShouldRevokeUserTokens() {
+      // When
+      userMutationService.updateInstanceRole(user, "ADMINISTRATOR", adminEditor);
+
+      // Then
+      verify(tokenBlacklistService).revokeUserTokens(user);
+    }
+
+    @Test
+    @DisplayName("Should not change role when requested role is the same")
+    void updateInstanceRoleWhenRoleUnchangedShouldKeepRole() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      // Then
+      assertThat(user.getRole()).isEqualTo(UserRole.USER);
+    }
+
+    @Test
+    @DisplayName("Should not publish event when role is unchanged")
+    void updateInstanceRoleWhenRoleUnchangedShouldNotPublishEvent() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      // Then
+      verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("Should not revoke tokens when role is unchanged")
+    void updateInstanceRoleWhenRoleUnchangedShouldNotRevokeTokens() {
+      // When
+      userMutationService.updateInstanceRole(user, "USER", adminEditor);
+
+      // Then
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+  }
+
+  @Nested
+  @DisplayName("updatePassword")
+  class UpdatePassword {
+
+    @Test
+    @DisplayName("Should encode password and revoke user tokens")
+    void updatePasswordWhenValidShouldEncodeAndRevokeTokens() {
+      when(passwordEncoder.encode("newPassword")).thenReturn("encoded-password");
+
+      userMutationService.updatePassword(user, "newPassword");
+
+      assertThat(user.getPassword()).isEqualTo("encoded-password");
+      verify(tokenBlacklistService).revokeUserTokens(user);
     }
   }
 
@@ -284,6 +359,24 @@ class UserMutationServiceImplTest {
       userMutationService.updateActive(user, false);
 
       assertThat(user.getActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should revoke user tokens when account is disabled")
+    void updateActiveWhenDisabledShouldRevokeUserTokens() {
+      userMutationService.updateActive(user, false);
+
+      verify(tokenBlacklistService).revokeUserTokens(user);
+    }
+
+    @Test
+    @DisplayName("Should not revoke tokens when account is enabled")
+    void updateActiveWhenEnabledShouldNotRevokeTokens() {
+      user.setActive(false);
+
+      userMutationService.updateActive(user, true);
+
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
   }
 

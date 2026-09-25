@@ -45,7 +45,7 @@ public class ProjectPatternAnalyzerUpdateEventConverter
         .addEventName(ActivityAction.UPDATE_PATTERN_ANALYZER.getValue())
         .addPriority(EventPriority.LOW)
         .addObjectId(event.getBefore().getProjectId())
-        .addObjectName("pattern")
+        .addObjectName("PATTERN")
         .addObjectType(EventObject.PROJECT)
         .addProjectId(event.getBefore().getProjectId())
         .addOrganizationId(event.getOrganizationId())

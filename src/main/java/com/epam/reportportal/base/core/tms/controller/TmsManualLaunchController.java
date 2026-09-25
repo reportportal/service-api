@@ -1,5 +1,8 @@
 package com.epam.reportportal.base.core.tms.controller;
 
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRS;
@@ -21,7 +24,6 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
@@ -33,6 +35,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,6 +60,7 @@ public class TmsManualLaunchController {
   private final ProjectExtractor projectExtractor;
 
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create a new TMS Manual Launch")
   public CreateTmsManualLaunchRS createManualLaunch(
       @Parameter(description = "Project key", required = true)
@@ -73,6 +77,7 @@ public class TmsManualLaunchController {
   }
 
   @GetMapping
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get Manual Launches by criteria")
   public Page<TmsManualLaunchRS> getManualLaunches(
       @Parameter(description = "Project key", required = true)
@@ -90,6 +95,7 @@ public class TmsManualLaunchController {
   }
 
   @GetMapping("/{launchId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get Manual Launch by ID")
   public TmsManualLaunchRS getManualLaunchById(
       @Parameter(description = "Project key", required = true)
@@ -106,6 +112,7 @@ public class TmsManualLaunchController {
   }
 
   @DeleteMapping("/{launchId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Delete Manual Launch by ID")
   public void deleteManualLaunch(
       @Parameter(description = "Project key", required = true)
@@ -122,6 +129,7 @@ public class TmsManualLaunchController {
   }
 
   @PatchMapping("/{launchId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Patch Manual Launch")
   public TmsManualLaunchRS patchManualLaunch(
       @Parameter(description = "Project key", required = true)
@@ -141,6 +149,7 @@ public class TmsManualLaunchController {
   }
 
   @DeleteMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Batch delete Manual Launches")
   public BatchManualLaunchOperationResultRS batchDeleteManualLaunches(
       @Parameter(description = "Project key", required = true)
@@ -157,6 +166,7 @@ public class TmsManualLaunchController {
   }
 
   @PostMapping("/{launchId}/test-case")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Add single test case to Manual Launch")
   public void addTestCaseToLaunch(
       @Parameter(description = "Project key", required = true)
@@ -175,6 +185,7 @@ public class TmsManualLaunchController {
   }
 
   @PostMapping("{launchId}/test-case/batch")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Batch add multiple test cases to Manual Launch")
   public BatchTestCaseOperationResultRS addTestCasesToLaunch(
       @Parameter(description = "Project key", required = true)
@@ -193,6 +204,7 @@ public class TmsManualLaunchController {
   }
 
   @GetMapping("{launchId}/folder")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get folders of launch")
   public Page<TmsTestFolderRS> getLaunchFolders(
       @Parameter(description = "Project key", required = true)
@@ -213,6 +225,7 @@ public class TmsManualLaunchController {
   }
 
   @GetMapping("/{launchId}/test-case/execution")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all test case executions of launch")
   public Page<TmsTestCaseExecutionRS> getLaunchTestCaseExecutions(
       @Parameter(description = "Project key", required = true)
@@ -233,6 +246,7 @@ public class TmsManualLaunchController {
   }
 
   @GetMapping("/{launchId}/test-case/execution/{executionId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specific test case execution of launch")
   public TmsTestCaseExecutionRS getTestCaseExecution(
       @Parameter(description = "Project key", required = true)
@@ -252,6 +266,7 @@ public class TmsManualLaunchController {
   }
 
   @DeleteMapping("/{launchId}/test-case/execution/{executionId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Delete specific test case execution from launch")
   public void deleteTestCaseExecution(
       @Parameter(description = "Project key", required = true)
@@ -271,6 +286,7 @@ public class TmsManualLaunchController {
   }
 
   @DeleteMapping("/{launchId}/test-case/execution")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Batch delete test case executions from launch")
   public BatchDeleteTestCaseExecutionsResultRS batchDeleteTestCaseExecutions(
       @Parameter(description = "Project key", required = true)
@@ -289,6 +305,7 @@ public class TmsManualLaunchController {
   }
 
   @GetMapping("/{launchId}/test-case/{testCaseId}/execution")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all executions of specific test case in launch")
   public Page<TmsTestCaseExecutionRS> getTestCaseExecutionsInLaunch(
       @Parameter(description = "Project key", required = true)
@@ -310,6 +327,7 @@ public class TmsManualLaunchController {
   }
 
   @PatchMapping("/{launchId}/test-case/execution/{executionId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Patch specific test case execution")
   public TmsTestCaseExecutionRS patchTestCaseExecution(
       @Parameter(description = "Project key", required = true)
@@ -331,6 +349,7 @@ public class TmsManualLaunchController {
   }
 
   @PutMapping("/{launchId}/test-case/execution/{executionId}/comment")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Put test case execution comment")
   public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(
       @Parameter(description = "Project key", required = true)
@@ -350,8 +369,9 @@ public class TmsManualLaunchController {
         request
     );
   }
-  
+
   @PatchMapping("/{launchId}/test-case/execution/{executionId}/comment")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Patch test case execution comment")
   public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(
       @Parameter(description = "Project key", required = true)
@@ -373,6 +393,7 @@ public class TmsManualLaunchController {
   }
 
   @DeleteMapping("/{launchId}/test-case/execution/{executionId}/comment")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Delete test case execution comment")
   public void deleteTestCaseExecutionComment(
       @Parameter(description = "Project key", required = true)

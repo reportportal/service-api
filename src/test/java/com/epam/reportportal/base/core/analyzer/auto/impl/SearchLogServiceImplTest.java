@@ -26,6 +26,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.LogService;
@@ -57,6 +58,7 @@ import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -118,6 +120,7 @@ class SearchLogServiceImplTest {
     when(testItemOfFoundLog.getRetryOf()).thenReturn(null);
     when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
     when(launch.getId()).thenReturn(1L);
+    when(launch.getProjectId()).thenReturn(1L);
     when(testItem.getPath()).thenReturn("1");
     when(testItem.getItemId()).thenReturn(1L);
     when(testItem.getItemResults()).thenReturn(testItemResults);
@@ -281,9 +284,9 @@ class SearchLogServiceImplTest {
     searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());
     searchLogRq.setFilterId(1L);
 
-    Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
-    Assertions.assertTrue(responses.iterator().hasNext());
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> searchLogService.search(1L, searchLogRq, membershipDetails));
     Assertions.assertEquals(OperationCompletionRS.OperationResultType.FORBIDDEN_OPERATION,
-        responses.iterator().next().getOperationResult());
+        exception.getErrorType());
   }
 }

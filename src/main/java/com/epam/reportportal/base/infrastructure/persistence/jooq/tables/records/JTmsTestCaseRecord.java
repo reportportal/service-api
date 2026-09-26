@@ -202,6 +202,34 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
         return (Long) get(12);
     }
 
+    /**
+     * Setter for <code>public.tms_test_case.origin</code>.
+     */
+    public void setOrigin(String value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case.origin</code>.
+     */
+    public String getOrigin() {
+        return (String) get(13);
+    }
+
+    /**
+     * Setter for <code>public.tms_test_case.status</code>.
+     */
+    public void setStatus(String value) {
+        set(14, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case.status</code>.
+     */
+    public String getStatus() {
+        return (String) get(14);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -225,7 +253,7 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
     /**
      * Create a detached, initialised JTmsTestCaseRecord
      */
-    public JTmsTestCaseRecord(Long id, Instant createdAt, Instant updatedAt, Instant sourceUpdatedAt, String name, String description, String priority, Object searchVector, String externalId, String displayId, Long projectId, Long testFolderId, Long datasetId) {
+    public JTmsTestCaseRecord(Long id, Instant createdAt, Instant updatedAt, Instant sourceUpdatedAt, String name, String description, String priority, Object searchVector, String externalId, String displayId, Long projectId, Long testFolderId, Long datasetId, String origin, String status) {
         super(JTmsTestCase.TMS_TEST_CASE);
 
         setId(id);
@@ -241,6 +269,8 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
         setProjectId(projectId);
         setTestFolderId(testFolderId);
         setDatasetId(datasetId);
-        resetTouchedOnNotNull();
+        setOrigin(origin);
+        setStatus(status);
+        resetChangedOnNotNull();
     }
 }

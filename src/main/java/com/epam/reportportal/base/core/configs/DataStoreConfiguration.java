@@ -149,6 +149,10 @@ public class DataStoreConfiguration {
     if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
       config.put(ACCESS_KEY_ID, accessKey);
       config.put(SECRET_ACCESS_KEY, secretKey);
+
+      if (StringUtils.isNotEmpty(endpoint) && !endpoint.startsWith("https://") && !endpoint.startsWith("http://localhost")) {
+        throw new IllegalArgumentException("HTTPS is required for S3 endpoint when credentials are provided. Endpoint: " + endpoint);
+      }
     }
 
     if (StringUtils.isNotEmpty(endpoint)) {

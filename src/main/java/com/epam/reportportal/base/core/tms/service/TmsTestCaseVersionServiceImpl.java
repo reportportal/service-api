@@ -10,6 +10,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -105,12 +106,35 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
                         tmsManualScenarioRQ);
 
                 existingDefaultVersion.setManualScenario(updatedManualScenario);
+                existingDefaultVersion.setUpdatedAt(Instant.now());
 
                 tmsTestCaseVersionRepository.save(existingDefaultVersion);
               }
               return existingDefaultVersion;
             })
         .orElseGet(() -> createDefaultTestCaseVersion(projectId, tmsTestCase, tmsManualScenarioRQ));
+  }
+
+  @Override
+  @Transactional
+  public TmsTestCaseVersion createNewDefaultVersion(long projectId, TmsTestCase tmsTestCase,
+      @Valid TmsManualScenarioRQ tmsManualScenarioRQ, Long pipelineIterationId) {
+    var previousDefaultVersion = getDefaultVersion(tmsTestCase.getId());
+    // only one version per test case may be the default one, so the old one is released first
+    previousDefaultVersion.setDefault(false);
+    tmsTestCaseVersionRepository.saveAndFlush(previousDefaultVersion);
+
+    var newDefaultVersion = tmsTestCaseVersionMapper.createDefaultTestCaseVersion();
+    newDefaultVersion.setName(previousDefaultVersion.getName());
+    newDefaultVersion.setTestCase(tmsTestCase);
+    newDefaultVersion.setPipelineIterationId(pipelineIterationId);
+    newDefaultVersion = tmsTestCaseVersionRepository.save(newDefaultVersion);
+
+    var manualScenario = tmsManualScenarioService
+        .createTmsManualScenario(projectId, newDefaultVersion, tmsManualScenarioRQ);
+    newDefaultVersion.setManualScenario(manualScenario);
+    manualScenario.setTestCaseVersion(newDefaultVersion);
+    return newDefaultVersion;
   }
 
   @Override
@@ -125,6 +149,7 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
         .patchTmsManualScenario(projectId, existingDefaultVersion, tmsManualScenarioRQ);
 
     existingDefaultVersion.setManualScenario(patchedManualScenario);
+    existingDefaultVersion.setUpdatedAt(Instant.now());
 
     return tmsTestCaseVersionRepository.save(existingDefaultVersion);
   }

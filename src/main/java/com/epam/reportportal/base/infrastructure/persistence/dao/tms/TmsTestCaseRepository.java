@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.tms;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ReportPortalRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import java.util.Collection;
@@ -33,9 +34,11 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId,
       @Param("id") Long id);
 
-  Optional<TmsTestCase>  findByProjectIdAndExternalId(Long projectId, String externalId);
+  Optional<TmsTestCase> findByProjectIdAndExternalId(Long projectId, String externalId);
 
   List<TmsTestCase> findByProjectIdAndExternalIdIn(Long projectId, Collection<String> externalIds);
+
+  List<TmsTestCase> findByProjectIdAndDisplayIdIn(Long projectId, Collection<String> displayIds);
 
   @Query("SELECT DISTINCT tc FROM TmsTestCase tc " +
       "LEFT JOIN FETCH tc.attributes t " +
@@ -49,6 +52,11 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   )
   List<Long> findExistingIdsByProjectIdAndIds(@Param("projectId") Long projectId,
       @Param("ids") List<Long> ids);
+
+  @Query("SELECT tc.id FROM TmsTestCase tc "
+      + "WHERE tc.project.id = :projectId AND tc.id IN (:ids) AND tc.status = :status")
+  List<Long> findIdsByProjectIdAndIdsAndStatus(@Param("projectId") Long projectId,
+      @Param("ids") List<Long> ids, @Param("status") TmsTestCaseStatus status);
 
   Boolean existsByTestFolder_Project_IdAndId(@Param("projectId") Long projectId,
       @Param("id") Long id);

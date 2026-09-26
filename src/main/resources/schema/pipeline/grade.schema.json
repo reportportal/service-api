@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Derived from US-AI-FCTRY-001 (grade document: per case name, criteria with score / max_score / failure_reasons, case total_score; suite total_score, warnings, optional error). Replace with the official grade.schema.json from rp-tests when it is available.",
+  "type": "object",
+  "required": ["total_score"],
+  "properties": {
+    "total_score": {"type": "number", "minimum": 0},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "error": {"type": ["string", "null"]},
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "total_score"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "total_score": {"type": "number", "minimum": 0},
+          "criteria": {
+            "type": ["array", "object"]
+          }
+        }
+      }
+    }
+  }
+}

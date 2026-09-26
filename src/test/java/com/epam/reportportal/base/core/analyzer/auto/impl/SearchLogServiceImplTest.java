@@ -261,7 +261,7 @@ class SearchLogServiceImplTest {
 
     when(testItemService.getEffectiveLaunch(testItem)).thenReturn(launch);
     when(launch.getId()).thenReturn(1L);
-    when(launch.getProjectId()).thenReturn(1L);
+    when(launch.getProjectId()).thenReturn(2L);
 
     when(logService.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(
         1L, 1L, "1", LogLevel.ERROR_INT
@@ -272,6 +272,8 @@ class SearchLogServiceImplTest {
     searchLogRq.setFilterId(1L);
 
     Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
-    Assertions.assertNotNull(responses);
+    Assertions.assertTrue(responses.iterator().hasNext());
+    Assertions.assertEquals(OperationCompletionRS.OperationResultType.FORBIDDEN_OPERATION,
+        responses.iterator().next().getOperationResult());
   }
 }

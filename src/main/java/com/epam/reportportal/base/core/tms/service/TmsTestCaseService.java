@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.service;
 
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
@@ -21,6 +22,7 @@ import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +54,20 @@ public interface TmsTestCaseService {
 
   TmsTestCaseRS patch(MembershipDetails membershipDetails,
       ReportPortalUser user, Long testCaseId, TmsTestCaseRQ tmsTestCaseRQ);
+
+  /**
+   * Records AI quality scores and/or generation cost for a test case's current default
+   * version, in a dedicated call separate from editing its content
+   * ({@link #create}/{@link #update}/{@link #patch}). This is the AI signal: submitting it
+   * ratchets {@code origin MANUAL -> AI} (never back) and, the first time that happens,
+   * defaults {@code status} to {@code DRAFT}.
+   *
+   * @param projectId  project the test case must belong to
+   * @param testCaseId the test case to record scores/generation for
+   * @param rq         quality scores (full replace) and/or generation metadata
+   * @return the test case, reflecting the (possibly ratcheted) origin/status and new metrics
+   */
+  TmsTestCaseRS applyGeneration(Long projectId, Long testCaseId, @Valid TmsTestCaseGenerationRQ rq);
 
   void delete(MembershipDetails membershipDetails,
       ReportPortalUser user, Long testCaseId);
@@ -101,12 +117,56 @@ public interface TmsTestCaseService {
   List<Long> getExistingTestCaseIds(Long projectId, List<Long> testCaseIds);
 
   /**
+   * Ids among {@code testCaseIds} that exist in the project and are {@code READY}.
+   */
+  @Transactional(readOnly = true)
+  List<Long> getReadyTestCaseIds(Long projectId, List<Long> testCaseIds);
+
+  /**
    * Verifies if test cases exist by provided ids in the project
    *
    * @param projectId   project id associated with a test cases
    * @param testCaseIds target test case ids to be existed
    */
   void validateTestCasesExist(Long projectId, @NotEmpty List<Long> testCaseIds);
+
+  /**
+   * Server-computed status assignment for Pipeline Auto-Ready — not exposed via any
+   * client-facing endpoint. Promote-only: sets {@code READY} on an AI-origin {@code DRAFT} test
+   * case whose current default-version quality score meets {@code threshold}. Never demotes, and
+   * never touches manual or already-Ready cases. No-op if the test case doesn't exist, or has no
+   * usable score yet (never scored, or scored but obsolete since the scenario changed) —
+   * Auto-Ready only ever acts on a score that reflects current content.
+   *
+   * @param projectId  project the test case must belong to
+   * @param testCaseId the test case to (re-)evaluate
+   * @param threshold  the pipeline's {@code autoReadyThreshold} (0-100)
+   */
+  void applyAutoReady(Long projectId, Long testCaseId, int threshold);
+
+  /**
+   * Batched form of {@link #applyAutoReady(Long, Long, int)} — takes the already-loaded entities
+   * (no per-id re-fetch) and evaluates/saves all of them via the existing batch helpers
+   * ({@code TmsTestCaseVersionService.getDefaultVersions}, {@code TmsTestCaseQualityService.buildMetricsBatch})
+   * instead of one round-trip per test case.
+   *
+   * @param projectId  project the test cases must belong to
+   * @param testCases  already-loaded test case entities to (re-)evaluate
+   * @param threshold  the pipeline's {@code autoReadyThreshold} (0-100)
+   * @return how many test cases were promoted to {@code READY}
+   */
+  int applyAutoReadyBatch(Long projectId, Collection<TmsTestCase> testCases, int threshold);
+
+  /**
+   * Bulk lookup of test case entities by their {@code displayId} within a project — used by
+   * callers (e.g. Pipeline ingest) that need the entities themselves, not the response DTO, so
+   * they don't have to depend on the repository directly.
+   *
+   * @param projectId  project the test cases must belong to
+   * @param displayIds display ids to resolve
+   * @return the test cases found (unresolvable display ids are silently omitted)
+   */
+  List<TmsTestCase> getEntitiesByDisplayIds(Long projectId, Collection<String> displayIds);
 
   /**
    * Duplicates multiple test cases with all their related data.

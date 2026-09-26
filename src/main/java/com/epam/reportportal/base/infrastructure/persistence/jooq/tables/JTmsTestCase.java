@@ -129,6 +129,16 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      */
     public final TableField<JTmsTestCaseRecord, Long> DATASET_ID = createField(DSL.name("dataset_id"), SQLDataType.BIGINT, this, "");
 
+    /**
+     * The column <code>public.tms_test_case.origin</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, String> ORIGIN = createField(DSL.name("origin"), SQLDataType.VARCHAR(16).nullable(false).defaultValue(DSL.field(DSL.raw("'MANUAL'::character varying"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>public.tms_test_case.status</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR(16).nullable(false).defaultValue(DSL.field(DSL.raw("'READY'::character varying"), SQLDataType.VARCHAR)), this, "");
+
     private JTmsTestCase(Name alias, Table<JTmsTestCaseRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

@@ -33,11 +33,11 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId,
       @Param("id") Long id);
 
-  Optional<TmsTestCase> findByProjectIdAndExternalId(Long projectId, String externalId);
+  Optional<TmsTestCase>  findByProjectIdAndExternalId(Long projectId, String externalId);
 
   List<TmsTestCase> findByProjectIdAndExternalIdIn(Long projectId, Collection<String> externalIds);
 
-  @Query("SELECT tc FROM TmsTestCase tc " +
+  @Query("SELECT DISTINCT tc FROM TmsTestCase tc " +
       "LEFT JOIN FETCH tc.attributes t " +
       "WHERE tc.project.id = :projectId AND tc.id IN (:ids)"
   )

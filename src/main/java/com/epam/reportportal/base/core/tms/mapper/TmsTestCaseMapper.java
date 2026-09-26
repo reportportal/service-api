@@ -4,6 +4,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseMetricsRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -53,9 +54,14 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
+  @Mapping(target = "origin", source = "tmsTestCase.origin")
+  @Mapping(target = "status", source = "tmsTestCase.status")
+  @Mapping(target = "updatedAt", source = "tmsTestCase.updatedAt")
+  @Mapping(target = "metrics", source = "metrics")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
-      TmsTestCaseVersion defaultCaseVersion
+      TmsTestCaseVersion defaultCaseVersion,
+      TmsTestCaseMetricsRS metrics
   );
 
   @Mapping(target = "manualScenario",
@@ -65,24 +71,35 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "priority", source = "tmsTestCase.priority")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
   @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
+  @Mapping(target = "origin", source = "tmsTestCase.origin")
+  @Mapping(target = "status", source = "tmsTestCase.status")
+  @Mapping(target = "updatedAt", source = "tmsTestCase.updatedAt")
+  @Mapping(target = "metrics", source = "metrics")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
       TmsTestCaseVersion defaultCaseVersion,
-      TmsTestCaseExecution lastTestCaseExecution
+      TmsTestCaseExecution lastTestCaseExecution,
+      TmsTestCaseMetricsRS metrics
   );
 
   public Page<TmsTestCaseRS> convert(
       Collection<TmsTestCase> testCases,
       Map<Long, TmsTestCaseVersion> testCaseDefaultVersions,
       Map<Long, TmsTestCaseExecution> testCaseExecutions,
+      Map<Long, TmsTestCaseMetricsRS> metricsByVersionId,
       Pageable pageable,
       long totalCount) {
     var tmsTestCaseRSList = testCases
         .stream()
-        .map(testCase -> convert(
-            testCase,
-            testCaseDefaultVersions.get(testCase.getId()),
-            testCaseExecutions.get(testCase.getId())))
+        .map(testCase -> {
+          var defaultVersion = testCaseDefaultVersions.get(testCase.getId());
+          var metrics = defaultVersion == null ? null : metricsByVersionId.get(defaultVersion.getId());
+          return convert(
+              testCase,
+              defaultVersion,
+              testCaseExecutions.get(testCase.getId()),
+              metrics);
+        })
         .toList();
     return new PageImpl<>(
         tmsTestCaseRSList, pageable, totalCount
@@ -96,6 +113,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
       qualifiedByName = "normalizePriority")
+  @Mapping(target = "status", ignore = true) //create always starts READY, regardless of the request
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 
@@ -121,6 +139,8 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "origin", ignore = true) //origin/status evolve only through dedicated flows, not blanket upsert
+  @Mapping(target = "status", ignore = true)
   public abstract void update(@MappingTarget TmsTestCase targetTestCase, TmsTestCase tmsTestCase);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -133,6 +153,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "origin", ignore = true) //never client-settable; only the create default (MANUAL) applies
   public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
       TmsTestCase tmsTestCase);
 

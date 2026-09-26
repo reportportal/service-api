@@ -40,6 +40,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
@@ -92,6 +93,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final TmsTestCaseActivityResourceMapper tmsTestCaseActivityResourceMapper;
+  private final TmsTestCaseQualityService tmsTestCaseQualityService;
 
   private TmsTestFolderService tmsTestFolderService;
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
@@ -134,14 +136,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public TmsTestCaseRS getById(long projectId, Long testCaseId) {
+    var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
     return tmsTestCaseMapper.convert(
         tmsTestCaseRepository
             .findByProjectIdAndId(projectId, testCaseId)
             .orElseThrow(() -> new ReportPortalException(
                 NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
             ),
-        tmsTestCaseVersionService.getDefaultVersion(testCaseId),
-        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId));
+        defaultVersion,
+        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId),
+        tmsTestCaseQualityService.buildMetrics(defaultVersion));
   }
 
   @Override
@@ -157,6 +161,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             tmsTestCaseRQ.getTestFolder()
         )
     );
+    if (tmsTestCaseQualityService.hasAiSignal(tmsTestCaseRQ.getQualityScores(), tmsTestCaseRQ.getGeneration())) {
+      tmsTestCase.setOrigin(TmsTestCaseOrigin.AI);
+    }
 
     tmsTestCaseRepository.save(tmsTestCase);
 
@@ -168,10 +175,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId,
         tmsTestCase,
         tmsTestCaseRQ.getManualScenario());
+    tmsTestCaseQualityService.applyQualityScores(projectId, defaultVersion, tmsTestCaseRQ.getQualityScores());
+    tmsTestCaseQualityService.applyGenerationMetadata(defaultVersion, tmsTestCaseRQ.getGeneration());
 
     publishTestCaseCreatedEvent(membershipDetails, user, tmsTestCase, defaultVersion);
 
-    return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion);
+    return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion, tmsTestCaseQualityService.buildMetrics(defaultVersion));
   }
 
   @Override
@@ -199,6 +208,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               projectId,
               existingTestCase,
               tmsTestCaseRQ.getManualScenario());
+          tmsTestCaseQualityService.applyQualityScores(projectId, defaultVersion, tmsTestCaseRQ.getQualityScores());
+          tmsTestCaseQualityService.applyGenerationMetadata(defaultVersion, tmsTestCaseRQ.getGeneration());
 
           var lastTestCaseExecution = tmsTestCaseExecutionService.getLastTestCaseExecution(
               existingTestCase.getId()
@@ -206,7 +217,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
           var after = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               defaultVersion);
-          
+
           tmsTestCaseActivityResourceMapper
               .buildTestCaseFieldChangedEvents(
                   membershipDetails,
@@ -214,9 +225,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   before,
                   after)
               .forEach(eventPublisher::publishEvent);
-          
+
           return tmsTestCaseMapper.convert(
-              existingTestCase, defaultVersion, lastTestCaseExecution
+              existingTestCase, defaultVersion, lastTestCaseExecution,
+              tmsTestCaseQualityService.buildMetrics(defaultVersion)
           );
         })
         .orElseGet(() -> create(membershipDetails, user, tmsTestCaseRQ));
@@ -246,6 +258,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               projectId,
               existingTestCase,
               tmsTestCaseRQ.getManualScenario());
+          tmsTestCaseQualityService.applyQualityScores(projectId, defaultVersion, tmsTestCaseRQ.getQualityScores());
+          tmsTestCaseQualityService.applyGenerationMetadata(defaultVersion, tmsTestCaseRQ.getGeneration());
 
           var lastTestCaseExecution = tmsTestCaseExecutionService.getLastTestCaseExecution(
               existingTestCase.getId()
@@ -261,9 +275,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   before,
                   after)
               .forEach(eventPublisher::publishEvent);
-          
+
           return tmsTestCaseMapper.convert(
-              existingTestCase, defaultVersion, lastTestCaseExecution
+              existingTestCase, defaultVersion, lastTestCaseExecution,
+              tmsTestCaseQualityService.buildMetrics(defaultVersion)
           );
         })
         .orElseThrow(() -> new ReportPortalException(
@@ -612,11 +627,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       var lastTestCasesExecutions = tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(
           testCaseIds.getContent()
       );
+      var metricsByVersionId = tmsTestCaseQualityService.buildMetricsBatch(testCaseDefaultVersions.values());
 
       var page = tmsTestCaseMapper.convert(
           orderedTestTestCases,
           testCaseDefaultVersions,
           lastTestCasesExecutions,
+          metricsByVersionId,
           pageable,
           testCaseIds.getTotalElements()
       );
@@ -787,7 +804,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         ? tmsTestFolderService.getEntityById(projectId, targetFolderId)
         : null;
     var duplicated = duplicateTestCaseInternal(membershipDetails, user, projectId, testCaseId, targetFolder);
-    return tmsTestCaseMapper.convert(duplicated.testCase(), duplicated.defaultVersion());
+    return tmsTestCaseMapper.convert(duplicated.testCase(), duplicated.defaultVersion(),
+        tmsTestCaseQualityService.buildMetrics(duplicated.defaultVersion()));
   }
 
   private record DuplicatedTestCase(TmsTestCase testCase, TmsTestCaseVersion defaultVersion) {}

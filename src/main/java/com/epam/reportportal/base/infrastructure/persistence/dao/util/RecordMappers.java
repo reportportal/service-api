@@ -110,6 +110,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
@@ -784,6 +786,8 @@ public class RecordMappers {
     testCase.setDescription(r.get(TMS_TEST_CASE.DESCRIPTION));
     testCase.setPriority(r.get(TMS_TEST_CASE.PRIORITY));
     testCase.setDisplayId(r.get(TMS_TEST_CASE.DISPLAY_ID));
+    ofNullable(r.get(TMS_TEST_CASE.STATUS)).map(TmsTestCaseStatus::valueOf).ifPresent(testCase::setStatus);
+    ofNullable(r.get(TMS_TEST_CASE.ORIGIN)).map(TmsTestCaseOrigin::valueOf).ifPresent(testCase::setOrigin);
 
     ofNullable(r.get(TMS_TEST_CASE.TEST_FOLDER_ID)).ifPresent(folderId -> {
       TmsTestFolder testFolder = new TmsTestFolder();

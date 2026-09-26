@@ -138,6 +138,9 @@ class TmsTestCaseServiceImplTest {
   private TmsTestCaseActivityResourceMapper tmsTestCaseActivityResourceMapper;
 
   @Mock
+  private TmsTestCaseQualityService tmsTestCaseQualityService;
+
+  @Mock
   private HttpServletResponse response;
 
   @InjectMocks
@@ -192,6 +195,8 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(mock(TestCaseCreatedEvent.class));
     lenient().when(tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(any(), any(), any()))
         .thenReturn(mock(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
+
+    lenient().when(tmsTestCaseQualityService.hasAiSignal(any(), any())).thenReturn(false);
 
     attributes = new ArrayList<>();
     var attribute = new TmsTestCaseAttributeRQ();
@@ -328,7 +333,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(testCaseId)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId))
         .thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution, null))
         .thenReturn(testCaseRS);
 
     var result = sut.getById(projectId, testCaseId);
@@ -338,7 +343,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
     verify(tmsTestCaseVersionService).getDefaultVersion(testCaseId);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution, null);
   }
 
   @Test
@@ -360,7 +365,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.create(membershipDetails, user, testCaseRQ);
 
@@ -372,7 +377,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, null);
   }
 
   @Test
@@ -391,7 +396,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.create(membershipDetails, user, testCaseWithFolderIdRQ);
 
@@ -403,7 +408,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, null);
   }
 
   @Test
@@ -423,7 +428,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(
         projectId, testCase, stepsManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.create(membershipDetails, user, testCaseWithStepsRQ);
 
@@ -435,7 +440,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(
         projectId, testCase, stepsManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, null);
   }
 
   @Test
@@ -462,7 +467,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.create(membershipDetails, user, testCaseRQWithNewFolder);
 
@@ -471,7 +476,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQWithNewFolder, newFolderId);
     verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, null);
   }
 
   @Test
@@ -506,7 +511,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.create(membershipDetails, user, testCaseRQWithoutTags);
 
@@ -516,7 +521,7 @@ class TmsTestCaseServiceImplTest {
         .createTestCaseAttributes(eq(projectId), any(), any());
     verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, null);
   }
 
   @Test
@@ -534,7 +539,7 @@ class TmsTestCaseServiceImplTest {
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId))
         .thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution, null))
         .thenReturn(testCaseRS);
 
     var result = sut.update(membershipDetails, user, testCaseId, testCaseRQ);
@@ -549,7 +554,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseVersionService).updateDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution, null);
   }
 
   @Test
@@ -564,7 +569,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(testCase);
     when(tmsTestCaseVersionService.createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.update(membershipDetails, user, testCaseId, testCaseRQ);
 
@@ -577,7 +582,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseAttributeService).createTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).createDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, null);
   }
 
   @Test
@@ -601,7 +606,7 @@ class TmsTestCaseServiceImplTest {
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId))
         .thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution, null))
         .thenReturn(testCaseRS);
 
     var result = sut.update(membershipDetails, user, testCaseId, testCaseWithFolderIdRQ);
@@ -616,7 +621,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseVersionService).updateDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution, null);
   }
 
   @Test
@@ -654,7 +659,7 @@ class TmsTestCaseServiceImplTest {
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId))
         .thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution, null))
         .thenReturn(testCaseRS);
 
     var result = sut.patch(membershipDetails, user, testCaseId, testCaseRQ);
@@ -669,7 +674,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution, null);
   }
 
   @Test
@@ -693,7 +698,7 @@ class TmsTestCaseServiceImplTest {
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId))
         .thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution, null))
         .thenReturn(testCaseRS);
 
     var result = sut.patch(membershipDetails, user, testCaseId, testCaseWithFolderIdRQ);
@@ -708,7 +713,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
-    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution, null);
   }
 
   @Test
@@ -1373,7 +1378,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseVersionService.getDefaultVersion(2L)).thenReturn(testCaseVersion);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(1L)).thenReturn(testCaseExecution);
     when(tmsTestCaseExecutionService.getLastTestCaseExecution(2L)).thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution, null))
         .thenReturn(testCaseRS);
     when(exporterFactory.getExporter(format)).thenReturn(exporter);
 
@@ -1435,7 +1440,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
     when(tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds))
         .thenReturn(lastExecutions);
-    when(tmsTestCaseMapper.convert(testCases, defaultVersions, lastExecutions, pageable, 1L))
+    when(tmsTestCaseMapper.convert(testCases, defaultVersions, lastExecutions, Map.of(), pageable, 1L))
         .thenReturn(convertedPage);
 
     var result = sut.getTestCasesByCriteria(projectId, filter, pageable);
@@ -1448,7 +1453,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseVersionService).getDefaultVersions(testCaseIds);
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseExecutionService).getLastTestCasesExecutionsByTestCaseIds(testCaseIds);
-    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, lastExecutions, pageable, 1L);
+    verify(tmsTestCaseMapper).convert(testCases, defaultVersions, lastExecutions, Map.of(), pageable, 1L);
   }
 
   @Test
@@ -1471,7 +1476,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseRepository, never()).findByProjectIdAndIds(any(Long.class), any());
     verify(tmsTestCaseExecutionService, never()).getLastTestCasesExecutionsByTestCaseIds(any());
     verify(tmsTestCaseMapper, never())
-        .convert(any(List.class), any(Map.class), any(Map.class), any(), any(Long.class));
+        .convert(any(List.class), any(Map.class), any(Map.class), any(), any(), any(Long.class));
   }
 
   @Test
@@ -1490,7 +1495,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds)).thenReturn(testCases);
     when(tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds))
         .thenReturn(lastExecutions);
-    when(tmsTestCaseMapper.convert(testCases, defaultVersions, lastExecutions, pageable, 1L))
+    when(tmsTestCaseMapper.convert(testCases, defaultVersions, lastExecutions, Map.of(), pageable, 1L))
         .thenReturn(convertedPage);
 
     var result = sut.getTestCasesByCriteria(projectId, null, pageable);
@@ -1528,7 +1533,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds))
         .thenReturn(lastExecutions);
     when(tmsTestCaseMapper.convert(
-        any(List.class), eq(defaultVersions), eq(lastExecutions), eq(pageable), eq(3L)))
+        any(List.class), eq(defaultVersions), eq(lastExecutions), any(), eq(pageable), eq(3L)))
         .thenReturn(convertedPage);
 
     var result = sut.getTestCasesByCriteria(projectId, filter, pageable);
@@ -1540,7 +1545,7 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseExecutionService).getLastTestCasesExecutionsByTestCaseIds(testCaseIds);
     verify(tmsTestCaseMapper).convert(
-        any(List.class), eq(defaultVersions), eq(lastExecutions), eq(pageable), eq(3L));
+        any(List.class), eq(defaultVersions), eq(lastExecutions), any(), eq(pageable), eq(3L));
   }
 
   @Test
@@ -1867,7 +1872,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
-    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion))
+    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion, null))
         .thenReturn(duplicatedTestCaseRS);
 
     var result = sut.duplicate(membershipDetails, user, duplicateRequest);
@@ -1918,7 +1923,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
         .thenReturn(duplicatedVersion1);
-    when(tmsTestCaseMapper.convert(duplicatedTestCase1, duplicatedVersion1))
+    when(tmsTestCaseMapper.convert(duplicatedTestCase1, duplicatedVersion1, null))
         .thenReturn(duplicatedTestCaseRS1);
 
     var originalTestCase2 = new TmsTestCase();
@@ -1941,7 +1946,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase2)).thenReturn(duplicatedTestCase2);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase2, originalVersion2))
         .thenReturn(duplicatedVersion2);
-    when(tmsTestCaseMapper.convert(duplicatedTestCase2, duplicatedVersion2))
+    when(tmsTestCaseMapper.convert(duplicatedTestCase2, duplicatedVersion2, null))
         .thenReturn(duplicatedTestCaseRS2);
 
     var result = sut.duplicate(membershipDetails, user, duplicateRequest);
@@ -2000,7 +2005,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
-    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion))
+    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion, null))
         .thenReturn(duplicatedTestCaseRS);
 
     var result = sut.duplicate(membershipDetails, user, duplicateRequest);
@@ -2050,7 +2055,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
-    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion))
+    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion, null))
         .thenReturn(duplicatedTestCaseRS);
 
     var result = sut.duplicate(membershipDetails, user, duplicateRequest);
@@ -2153,7 +2158,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
-    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.duplicateTestCase(membershipDetails, user, projectId, 1L, testFolderId);
 
@@ -2183,7 +2188,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenReturn(duplicatedVersion);
-    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion)).thenReturn(testCaseRS);
+    when(tmsTestCaseMapper.convert(duplicatedTestCase, duplicatedVersion, null)).thenReturn(testCaseRS);
 
     var result = sut.duplicateTestCase(membershipDetails, user, projectId, 1L, testFolderId);
 

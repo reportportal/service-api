@@ -35,4 +35,10 @@ public class TmsTestCaseRS {
   private TmsManualScenarioRS manualScenario;
 
   private Set<TmsTestCaseAttributeRS> attributes;
+
+  private TmsTestCaseOrigin origin;
+
+  private TmsTestCaseStatus status;
+
+  private TmsTestCaseMetricsRS metrics;
 }

@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'feature/pipelines')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -108,7 +108,9 @@ project.ext {
             (migrationsUrl + '/migrations/219_revoked_token.up.sql')                                     : 'V219__revoked_token.up.sql',
             (migrationsUrl + '/migrations/220_increase_tms_test_plan_description_length.up.sql')         : 'V220__increase_tms_test_plan_description_length.up.sql',
             (migrationsUrl + '/migrations/221_increase_tms_manual_scenario_preconditions_length.up.sql') : 'V221__increase_tms_manual_scenario_preconditions_length.up.sql',
-            (migrationsUrl + '/migrations/223_tms_sync_job.up.sql')                                      : 'V223__tms_sync_job.up.sql'
+            (migrationsUrl + '/migrations/223_tms_sync_job.up.sql')                                      : 'V223__tms_sync_job.up.sql',
+            (migrationsUrl + '/migrations/225_add_automation_integration_group.up.sql')                  : 'V225__add_automation_integration_group.up.sql',
+            (migrationsUrl + '/migrations/226_pipeline_and_tms_quality.up.sql')                          : 'V226__pipeline_and_tms_quality.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

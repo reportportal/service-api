@@ -4,6 +4,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.ReportPortalRep
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderIdWithCountOfTestCases;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -441,5 +442,23 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("end") int end,
       @Param("amount") int amount
   );
+
+  /**
+   * Finds a test folder by its project ID and external ID.
+   *
+   * @param projectId  the project ID
+   * @param externalId the external ID of the folder
+   * @return an optional containing the test folder, or empty if not found
+   */
+  Optional<TmsTestFolder> findByProjectIdAndExternalId(Long projectId, String externalId);
+
+  /**
+   * Finds test folders by their project ID and a collection of external IDs.
+   *
+   * @param projectId   the project ID
+   * @param externalIds the collection of external IDs
+   * @return a list of test folders matching the criteria
+   */
+  List<TmsTestFolder> findByProjectIdAndExternalIdIn(Long projectId, Collection<String> externalIds);
 
 }

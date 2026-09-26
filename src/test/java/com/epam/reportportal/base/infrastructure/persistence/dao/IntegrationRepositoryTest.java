@@ -56,8 +56,8 @@ class IntegrationRepositoryTest extends BaseMvcTest {
   private static final long SUPERADMIN_PROJECT_BTS_INTEGRATIONS_COUNT = 4L;
   private static final int GLOBAL_BTS_INTEGRATIONS_COUNT = 3;
 
-  private static final Long RALLY_INTEGRATION_TYPE_ID = 5L;
-  private static final Long JIRA_INTEGRATION_TYPE_ID = 6L;
+  private static final Long RALLY_INTEGRATION_TYPE_ID = 6L;
+  private static final Long JIRA_INTEGRATION_TYPE_ID = 7L;
 
   private static final Long RALLY_INTEGRATION_ID = 7L;
   private static final Long JIRA_INTEGRATION_ID = 13L;
@@ -166,7 +166,7 @@ class IntegrationRepositoryTest extends BaseMvcTest {
   @Test
   void existsByNameTypePositive() {
     boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(
-        "jira", 6L);
+        "jira", JIRA_INTEGRATION_TYPE_ID);
     assertTrue(exists);
   }
 
@@ -179,15 +179,18 @@ class IntegrationRepositoryTest extends BaseMvcTest {
 
   @Test
   void existsByNameTypeProjectIdPositive() {
-    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId("jira1", 6L, 1L);
+    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId("jira1",
+        JIRA_INTEGRATION_TYPE_ID, 1L);
     assertTrue(exists);
-    exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId("JiRa1", 6L, 1L);
+    exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId("JiRa1",
+        JIRA_INTEGRATION_TYPE_ID, 1L);
     assertTrue(exists);
   }
 
   @Test
   void existsByNameTypeProjectIdNegative() {
-    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId("jira", 6L, 2L);
+    boolean exists = integrationRepository.existsByNameIgnoreCaseAndTypeIdAndProjectId("jira",
+        JIRA_INTEGRATION_TYPE_ID, 2L);
     assertFalse(exists);
   }
 

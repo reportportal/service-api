@@ -73,21 +73,21 @@ VALUES (4,  'Test Folder 4',  'Description for test folder 4',  1),
 
 -- Test cases for batch operations (folders 7,8,9 → project 1)
 INSERT INTO tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)
-VALUES (7,  'Test Case 7',  'Description for test case 7',  7, null, 1, 'TC-4'),
-       (8,  'Test Case 8',  'Description for test case 8',  7, null, 1, 'TC-5'),
-       (9,  'Test Case 9',  'Description for test case 9',  7, null, 1, 'TC-6'),
-       (10, 'Test Case 10', 'Description for test case 10', 8, null, 1, 'TC-7'),
-       (11, 'Test Case 11', 'Description for test case 11', 8, null, 1, 'TC-8'),
-       (12, 'Test Case 12', 'Description for test case 12', 8, null, 1, 'TC-9'),
-       (13, 'Test Case 13', 'Description for test case 13', 9, null, 1, 'TC-10'),
-       (14, 'Test Case 14', 'Description for test case 14', 9, null, 1, 'TC-11'),
-       (15, 'Test Case 15', 'Description for test case 15', 9, null, 1, 'TC-12'),
-       (16, 'Test Case 16', 'Description for test case 16', 7, null, 1, 'TC-13'),
-       (17, 'Test Case 17', 'Description for test case 17', 8, null, 1, 'TC-14'),
-       (18, 'Test Case 18', 'Description for test case 18', 9, null, 1, 'TC-15'),
-       (19, 'Test Case 19', 'Description for test case 19', 7, null, 1, 'TC-16'),
-       (20, 'Test Case 20', 'Description for test case 20', 8, null, 1, 'TC-17'),
-       (21, 'Test Case 21', 'Description for test case 21', 9, null, 1, 'TC-18');
+VALUES (7,  'Test Case 7',  'Description for test case 7',  7, 'UNSPECIFIED', 1, 'TC-4'),
+       (8,  'Test Case 8',  'Description for test case 8',  7, 'UNSPECIFIED', 1, 'TC-5'),
+       (9,  'Test Case 9',  'Description for test case 9',  7, 'UNSPECIFIED', 1, 'TC-6'),
+       (10, 'Test Case 10', 'Description for test case 10', 8, 'UNSPECIFIED', 1, 'TC-7'),
+       (11, 'Test Case 11', 'Description for test case 11', 8, 'UNSPECIFIED', 1, 'TC-8'),
+       (12, 'Test Case 12', 'Description for test case 12', 8, 'UNSPECIFIED', 1, 'TC-9'),
+       (13, 'Test Case 13', 'Description for test case 13', 9, 'UNSPECIFIED', 1, 'TC-10'),
+       (14, 'Test Case 14', 'Description for test case 14', 9, 'UNSPECIFIED', 1, 'TC-11'),
+       (15, 'Test Case 15', 'Description for test case 15', 9, 'UNSPECIFIED', 1, 'TC-12'),
+       (16, 'Test Case 16', 'Description for test case 16', 7, 'UNSPECIFIED', 1, 'TC-13'),
+       (17, 'Test Case 17', 'Description for test case 17', 8, 'UNSPECIFIED', 1, 'TC-14'),
+       (18, 'Test Case 18', 'Description for test case 18', 9, 'UNSPECIFIED', 1, 'TC-15'),
+       (19, 'Test Case 19', 'Description for test case 19', 7, 'UNSPECIFIED', 1, 'TC-16'),
+       (20, 'Test Case 20', 'Description for test case 20', 8, 'UNSPECIFIED', 1, 'TC-17'),
+       (21, 'Test Case 21', 'Description for test case 21', 9, 'UNSPECIFIED', 1, 'TC-18');
 
 -- Test cases for duplication (folders 4,5,6 → project 1)
 INSERT INTO tms_test_case (id, "name", description, test_folder_id, priority, project_id, display_id)

@@ -23,6 +23,7 @@ public final class TmsTestCaseCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_CASE_DESCRIPTION = "description";
   public static final String CRITERIA_TMS_TEST_CASE_PRIORITY = "priority";
   public static final String CRITERIA_TMS_TEST_CASE_EXTERNAL_ID = "externalId";
+  public static final String CRITERIA_TMS_TEST_CASE_DISPLAY_ID = "displayId";
   public static final String CRITERIA_TMS_TEST_CASE_CREATED_AT = "createdAt";
   public static final String CRITERIA_TMS_TEST_CASE_UPDATED_AT = "updatedAt";
   public static final String CRITERIA_TMS_TEST_CASE_PROJECT_ID = "projectId";

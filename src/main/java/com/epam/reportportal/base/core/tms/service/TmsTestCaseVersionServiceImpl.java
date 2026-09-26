@@ -10,6 +10,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,7 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
                         tmsManualScenarioRQ);
 
                 existingDefaultVersion.setManualScenario(updatedManualScenario);
+                existingDefaultVersion.setUpdatedAt(Instant.now());
 
                 tmsTestCaseVersionRepository.save(existingDefaultVersion);
               }
@@ -92,6 +94,7 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
         .patchTmsManualScenario(projectId, existingDefaultVersion, tmsManualScenarioRQ);
 
     existingDefaultVersion.setManualScenario(patchedManualScenario);
+    existingDefaultVersion.setUpdatedAt(Instant.now());
 
     return tmsTestCaseVersionRepository.save(existingDefaultVersion);
   }

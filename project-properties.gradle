@@ -16,7 +16,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode") ? project.releaseMode.toBoolean() : false
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? '5.14.0' : 'feature/pipelines')
     manifestSchemaUrl = schemaUrl + ('manifest.schema.json')
     //TODO refactor with archive download
     testScriptsSrc = [
@@ -114,7 +114,11 @@ project.ext {
             (migrationsUrl + '/migrations/224_add_pipeline_launch_type.up.sql')                         : 'V224__add_pipeline_launch_type.up.sql',
             (migrationsUrl + '/migrations/225_extract_launch_attribute.up.sql')                         : 'V225__extract_launch_attribute.up.sql',
             (migrationsUrl + '/migrations/226_extract_launch_statistics.up.sql')                        : 'V226__extract_launch_statistics.up.sql',
-            (migrationsUrl + '/migrations/227_update_merge_launch_after_launch_tables_split.up.sql')    : 'V227__update_merge_launch_after_launch_tables_split.up.sql'
+            (migrationsUrl + '/migrations/227_update_merge_launch_after_launch_tables_split.up.sql')    : 'V227__update_merge_launch_after_launch_tables_split.up.sql',
+            (migrationsUrl + '/migrations/228_add_automation_integration_group.up.sql')                 : 'V228__add_automation_integration_group.up.sql',
+            (migrationsUrl + '/migrations/229_pipeline_and_tms_quality.up.sql')                          : 'V229__pipeline_and_tms_quality.up.sql',
+            (migrationsUrl + '/migrations/230_pipeline_iteration_attributes.up.sql')                     : 'V230__pipeline_iteration_attributes.up.sql',
+            (migrationsUrl + '/migrations/231_pipeline_stage_generic_step_tree.up.sql')                  : 'V231__pipeline_stage_generic_step_tree.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

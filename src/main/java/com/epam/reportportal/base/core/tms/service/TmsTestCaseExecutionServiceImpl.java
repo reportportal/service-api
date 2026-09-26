@@ -13,6 +13,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseStatus;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.NestedStepItemBuilder;
@@ -322,6 +323,12 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         // Get a test case
         var testCase = tmsTestCaseService.getById(projectId, testCaseId);
 
+        if (testCase.getStatus() != TmsTestCaseStatus.READY) {
+          log.warn("Test case {} is not Ready (status: {}), skipping", testCaseId, testCase.getStatus());
+          errors.add(new BatchTestCaseOperationError(testCaseId, "Test case is not Ready and cannot be added to a launch"));
+          continue;
+        }
+
         // Create execution
         createExecution(projectId, testCase, launch);
         successfulIds.add(testCaseId);
@@ -359,7 +366,12 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   public void addTestCaseToLaunch(long projectId, Launch launch, Long testCaseId) {
     log.debug("Adding {} test case to launch: {}", testCaseId, launch.getId());
 
-    createExecution(projectId, tmsTestCaseService.getById(projectId, testCaseId), launch);
+    var testCase = tmsTestCaseService.getById(projectId, testCaseId);
+    if (testCase.getStatus() != TmsTestCaseStatus.READY) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Test case " + testCaseId + " is not Ready and cannot be added to a launch");
+    }
+    createExecution(projectId, testCase, launch);
 
     log.debug("Added {} test case to launch: {}", testCaseId, launch.getId());
   }

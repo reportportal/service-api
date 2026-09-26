@@ -12,6 +12,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
+import com.epam.reportportal.base.core.tms.service.TmsTestCaseQualityService;
 import com.epam.reportportal.base.core.tms.sync.dto.RemoteTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -48,11 +49,17 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Autowired
   protected TmsDisplayIdService tmsDisplayIdService;
 
+  @Autowired
+  protected TmsTestCaseQualityService tmsTestCaseQualityService;
+
   @Mapping(target = "manualScenario",
       expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
+  @Mapping(target = "origin", source = "tmsTestCase.origin")
+  @Mapping(target = "status", source = "tmsTestCase.status")
+  @Mapping(target = "metrics", expression = "java(tmsTestCaseQualityService.buildMetrics(defaultCaseVersion))")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
       TmsTestCaseVersion defaultCaseVersion
@@ -65,6 +72,9 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "priority", source = "tmsTestCase.priority")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
   @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
+  @Mapping(target = "origin", source = "tmsTestCase.origin")
+  @Mapping(target = "status", source = "tmsTestCase.status")
+  @Mapping(target = "metrics", expression = "java(tmsTestCaseQualityService.buildMetrics(defaultCaseVersion))")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
       TmsTestCaseVersion defaultCaseVersion,
@@ -96,6 +106,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
       qualifiedByName = "normalizePriority")
+  @Mapping(target = "status", ignore = true) //create always starts READY, regardless of the request
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 
@@ -121,6 +132,8 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "origin", ignore = true) //origin/status evolve only through dedicated flows, not blanket upsert
+  @Mapping(target = "status", ignore = true)
   public abstract void update(@MappingTarget TmsTestCase targetTestCase, TmsTestCase tmsTestCase);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -133,6 +146,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "origin", ignore = true) //never client-settable; only the create default (MANUAL) applies
   public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
       TmsTestCase tmsTestCase);
 

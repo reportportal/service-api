@@ -138,6 +138,9 @@ class TmsTestCaseServiceImplTest {
   private TmsTestCaseActivityResourceMapper tmsTestCaseActivityResourceMapper;
 
   @Mock
+  private TmsTestCaseQualityService tmsTestCaseQualityService;
+
+  @Mock
   private HttpServletResponse response;
 
   @InjectMocks
@@ -192,6 +195,8 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(mock(TestCaseCreatedEvent.class));
     lenient().when(tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(any(), any(), any()))
         .thenReturn(mock(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
+
+    lenient().when(tmsTestCaseQualityService.hasAiSignal(any(), any())).thenReturn(false);
 
     attributes = new ArrayList<>();
     var attribute = new TmsTestCaseAttributeRQ();

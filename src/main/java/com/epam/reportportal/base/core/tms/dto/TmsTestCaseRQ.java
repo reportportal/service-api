@@ -30,4 +30,23 @@ public class TmsTestCaseRQ {
 
   @Valid
   private TmsManualScenarioRQ manualScenario;
+
+  /**
+   * Ignored on create (always forced to {@code READY}). Honored on patch:
+   * changes status only when present.
+   */
+  private TmsTestCaseStatus status;
+
+  /**
+   * Per-criterion scores against the project's Quality Standard, submitted by
+   * the AI agent for the version being created/patched.
+   */
+  @Valid
+  private List<TmsTestCaseQualityScoreRQ> qualityScores;
+
+  /**
+   * How this version was generated, submitted by the AI agent.
+   */
+  @Valid
+  private TmsTestCaseGenerationMetadataRQ generation;
 }

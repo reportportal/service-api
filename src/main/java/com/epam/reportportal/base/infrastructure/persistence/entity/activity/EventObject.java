@@ -38,7 +38,10 @@ public enum EventObject {
   INVITATION_LINK("Invitation link"),
   TMS_TEST_CASE("tmsTestCase"),
   LOG_TYPE("logType"),
-  NOTIFICATION_RULE("Notification_rule");
+  NOTIFICATION_RULE("Notification_rule"),
+  PIPELINE("pipeline"),
+  PIPELINE_ITERATION("pipelineIteration"),
+  PIPELINE_STAGE("pipelineStage");
 
   private final String value;
 

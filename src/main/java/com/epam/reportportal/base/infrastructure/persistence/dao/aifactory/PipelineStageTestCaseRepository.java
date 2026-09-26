@@ -9,6 +9,4 @@ import org.springframework.stereotype.Repository;
 public interface PipelineStageTestCaseRepository extends JpaRepository<PipelineStageTestCase, Long> {
 
   List<PipelineStageTestCase> findByStage_Iteration_Id(Long iterationId);
-
-  void deleteByStage_Iteration_Id(Long iterationId);
 }

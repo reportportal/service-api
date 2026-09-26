@@ -1,6 +1,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
+import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +47,10 @@ public class TmsTestCaseVersion implements Serializable {
 
   @OneToOne(mappedBy = "testCaseVersion")
   private TmsManualScenario manualScenario;
+
+  @Column(name = "updated_at", nullable = false)
+  @Convert(converter = JpaInstantConverter.class)
+  private Instant updatedAt;
 
   //TODO: override equals and hashCode methods
 

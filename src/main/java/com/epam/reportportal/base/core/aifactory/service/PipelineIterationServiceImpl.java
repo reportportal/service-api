@@ -4,6 +4,7 @@ import com.epam.reportportal.base.core.aifactory.dto.PipelineCompareRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationDetailRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationSummaryRS;
+import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRS;
 import com.epam.reportportal.base.core.aifactory.enums.PipelineRunStatus;
 import com.epam.reportportal.base.core.aifactory.event.PipelineIterationIngestedEvent;
@@ -23,8 +24,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.OffsetRequest;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,21 +51,31 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
   @Override
   @Transactional
   public PipelineIterationDetailRS ingestIteration(Long projectId, Long userId, PipelineIterationRQ rq) {
-    Pipeline pipeline = pipelineRepository.findByProjectIdAndName(projectId, rq.getPipelineName())
+    if (rq.isRerun() && rq.getRerunOfIterationId() == null) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "'rerunOfIterationId' is required when 'rerun' is true");
+    }
+
+    var pipeline = pipelineRepository.findByProjectIdAndName(projectId, rq.getPipelineName())
         .orElseGet(() -> createPipeline(projectId, rq.getPipelineName()));
 
     PipelineIteration iteration;
-    if (rq.isRerun() && rq.getRerunOfIterationId() != null) {
+    if (rq.isRerun()) {
       iteration = pipelineIterationRepository.findById(rq.getRerunOfIterationId())
           .filter(it -> it.getPipeline().getId().equals(pipeline.getId()))
           .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
               "Pipeline iteration '" + rq.getRerunOfIterationId() + "' for pipeline '" + pipeline.getName() + "'"));
-      pipelineStageTestCaseRepository.deleteByStage_Iteration_Id(iteration.getId());
+      // pipeline_stage_test_case.stage_id and pipeline_stage.iteration_id both cascade on delete,
+      // so removing the stages alone also removes their test-case links.
       pipelineStageRepository.deleteByIterationId(iteration.getId());
     } else {
+      // Locks the pipeline row for the rest of this transaction so two concurrent ingests for the
+      // same pipeline can't compute the same next iteration number.
+      var lockedPipeline = pipelineRepository.findByIdForUpdate(pipeline.getId())
+          .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline '" + pipeline.getId() + "'"));
       iteration = new PipelineIteration();
-      iteration.setPipeline(pipeline);
-      int nextNumber = pipelineIterationRepository.findFirstByPipelineIdOrderByIterationNumberDesc(pipeline.getId())
+      iteration.setPipeline(lockedPipeline);
+      var nextNumber = pipelineIterationRepository.findFirstByPipelineIdOrderByIterationNumberDesc(lockedPipeline.getId())
           .map(PipelineIteration::getIterationNumber)
           .orElse(0) + 1;
       iteration.setIterationNumber(nextNumber);
@@ -76,37 +89,33 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
     iteration.setRerunOfIterationId(rq.getRerunOfIterationId());
     iteration.setMetrics(rq.getMetrics() == null ? null : new PipelineMetrics(rq.getMetrics()));
 
-    List<PipelineStage> stages = rq.getStages().stream()
+    var stages = rq.getStages().stream()
         .map(pipelineMapper::toStageEntity)
         .collect(Collectors.toList());
     stages.forEach(stage -> stage.setIteration(iteration));
 
-    PipelineRunStatus aggregate = aggregateStatus(stages);
+    var aggregate = aggregateStatus(stages);
     iteration.setStatus(aggregate);
     iteration.setQualityGate(aggregate);
 
-    iteration = pipelineIterationRepository.save(iteration);
-    for (PipelineStage stage : stages) {
-      stage.setIteration(iteration);
-    }
-    List<PipelineStage> savedStages = pipelineStageRepository.saveAll(stages);
+    var savedIteration = pipelineIterationRepository.save(iteration);
+    var savedStages = pipelineStageRepository.saveAll(stages);
 
-    for (int i = 0; i < savedStages.size(); i++) {
-      List<String> testCaseDisplayIds = rq.getStages().get(i).getTestCaseIds();
-      if (testCaseDisplayIds != null && !testCaseDisplayIds.isEmpty()) {
-        linkTestCases(projectId, savedStages.get(i), testCaseDisplayIds);
-      }
-    }
+    var stageDisplayIds = rq.getStages().stream()
+        .map(PipelineStageRQ::getTestCaseIds)
+        .collect(Collectors.toList());
+    linkTestCases(projectId, savedStages, stageDisplayIds);
 
-    eventPublisher.publishEvent(new PipelineIterationIngestedEvent(iteration.getId(), pipeline.getId(), projectId));
+    eventPublisher.publishEvent(
+        new PipelineIterationIngestedEvent(savedIteration.getId(), pipeline.getId(), projectId));
 
-    return toDetailRS(iteration);
+    return toDetailRS(savedIteration);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Page<PipelineIterationSummaryRS> listIterations(Long projectId, Long pipelineId, OffsetRequest offsetRequest) {
-    Pipeline pipeline = getPipelineOrThrow(projectId, pipelineId);
+    var pipeline = getPipelineOrThrow(projectId, pipelineId);
     return pipelineIterationRepository.findByPipelineId(pipeline.getId(), offsetRequest)
         .map(it -> pipelineMapper.toIterationSummaryRS(it, (int) pipelineStageRepository.countByIterationId(it.getId())));
   }
@@ -120,8 +129,8 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
   @Override
   @Transactional(readOnly = true)
   public PipelineCompareRS compareIterations(Long projectId, Long iterationId, Long otherIterationId) {
-    PipelineIteration current = getIterationOrThrow(projectId, iterationId);
-    PipelineIteration other = getIterationOrThrow(projectId, otherIterationId);
+    var current = getIterationOrThrow(projectId, iterationId);
+    var other = getIterationOrThrow(projectId, otherIterationId);
     if (!current.getPipeline().getId().equals(other.getPipeline().getId())) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Iterations must belong to the same pipeline definition to be compared");
@@ -149,17 +158,39 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline iteration '" + iterationId + "'"));
   }
 
-  private void linkTestCases(Long projectId, PipelineStage stage, List<String> displayIds) {
-    List<TmsTestCase> matched = tmsTestCaseRepository.findByProjectIdAndDisplayIdIn(projectId, displayIds);
-    List<PipelineStageTestCase> links = matched.stream()
-        .map(testCase -> {
+  private void linkTestCases(Long projectId, List<PipelineStage> stages, List<List<String>> displayIdsByStage) {
+    var allDisplayIds = displayIdsByStage.stream()
+        .filter(Objects::nonNull)
+        .flatMap(List::stream)
+        .distinct()
+        .collect(Collectors.toList());
+    if (allDisplayIds.isEmpty()) {
+      return;
+    }
+
+    var testCasesByDisplayId = tmsTestCaseRepository.findByProjectIdAndDisplayIdIn(projectId, allDisplayIds).stream()
+        .collect(Collectors.toMap(TmsTestCase::getDisplayId, Function.identity()));
+
+    var links = new ArrayList<PipelineStageTestCase>();
+    for (int i = 0; i < stages.size(); i++) {
+      var displayIds = displayIdsByStage.get(i);
+      if (displayIds == null || displayIds.isEmpty()) {
+        continue;
+      }
+      var stage = stages.get(i);
+      for (var displayId : displayIds) {
+        var testCase = testCasesByDisplayId.get(displayId);
+        if (testCase != null) {
           var link = new PipelineStageTestCase();
           link.setStage(stage);
           link.setTestCase(testCase);
-          return link;
-        })
-        .collect(Collectors.toList());
-    pipelineStageTestCaseRepository.saveAll(links);
+          links.add(link);
+        }
+      }
+    }
+    if (!links.isEmpty()) {
+      pipelineStageTestCaseRepository.saveAll(links);
+    }
   }
 
   private PipelineRunStatus aggregateStatus(List<PipelineStage> stages) {
@@ -176,12 +207,12 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
   }
 
   private PipelineIterationDetailRS toDetailRS(PipelineIteration iteration) {
-    List<PipelineStage> stages = pipelineStageRepository.findByIterationIdOrderBySequenceAsc(iteration.getId());
-    Map<Long, List<String>> testCaseIdsByStage = pipelineStageTestCaseRepository.findByStage_Iteration_Id(iteration.getId())
+    var stages = pipelineStageRepository.findByIterationIdOrderBySequenceAsc(iteration.getId());
+    var testCaseIdsByStage = pipelineStageTestCaseRepository.findByStage_Iteration_Id(iteration.getId())
         .stream()
         .collect(Collectors.groupingBy(link -> link.getStage().getId(),
             Collectors.mapping(link -> link.getTestCase().getDisplayId(), Collectors.toList())));
-    List<PipelineStageRS> stageRS = stages.stream()
+    var stageRS = stages.stream()
         .map(stage -> pipelineMapper.toStageRS(stage, testCaseIdsByStage.getOrDefault(stage.getId(), List.of())))
         .collect(Collectors.toList());
     return pipelineMapper.toIterationDetailRS(iteration, stageRS);

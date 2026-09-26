@@ -50,7 +50,7 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
   @Override
   @Transactional
   public PipelineStageRetryRS retryStage(Long projectId, Long userId, Long iterationId, Long stageId, PipelineStageRetryRQ rq) {
-    PipelineStage stage = pipelineStageRepository.findById(stageId)
+    var stage = pipelineStageRepository.findById(stageId)
         .filter(s -> s.getIteration().getId().equals(iterationId))
         .filter(s -> s.getIteration().getPipeline().getProject().getId().equals(projectId))
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline stage '" + stageId + "'"));
@@ -59,22 +59,22 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Stage '" + stageId + "' is not retryable");
     }
 
-    Project project = stage.getIteration().getPipeline().getProject();
-    Integration integration = resolveIntegration(project, stage.getCiProvider());
+    var project = stage.getIteration().getPipeline().getProject();
+    var integration = resolveIntegration(project, stage.getCiProvider());
 
-    CiTriggerConnector connector = connectorsByProvider.get(stage.getCiProvider());
+    var connector = connectorsByProvider.get(stage.getCiProvider());
     if (connector == null) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unsupported CI provider: " + stage.getCiProvider());
     }
 
-    String triggeredRunUrl = connector.triggerStageRerun(integration, stage);
+    var triggeredRunUrl = connector.triggerStageRerun(integration, stage);
 
     stage.setStatus(PipelineRunStatus.PENDING);
     stage.setLastRetriedAt(Instant.now());
     stage.setLastRetriedBy(userId);
     pipelineStageRepository.save(stage);
 
-    String comment = rq == null ? null : rq.getComment();
+    var comment = rq == null ? null : rq.getComment();
     eventPublisher.publishEvent(new PipelineStageRetryRequestedEvent(stage.getId(), iterationId, projectId, userId, comment));
 
     return PipelineStageRetryRS.builder()
@@ -85,7 +85,7 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
   }
 
   private Integration resolveIntegration(Project project, CiProvider provider) {
-    String typeName = INTEGRATION_TYPE_NAME_BY_PROVIDER.get(provider);
+    var typeName = INTEGRATION_TYPE_NAME_BY_PROVIDER.get(provider);
     return integrationRepository.findAllProjectByGroup(project, IntegrationGroupEnum.AUTOMATION).stream()
         .filter(i -> i.isEnabled() && i.getType() != null && typeName.equalsIgnoreCase(i.getType().getName()))
         .findFirst()

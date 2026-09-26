@@ -13,7 +13,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,10 +43,10 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
       return;
     }
     tmsTestCaseQualityScoreRepository.deleteByTestCaseVersionId(version.getId());
-    Instant now = Instant.now();
-    List<TmsTestCaseQualityScore> scores = qualityScores.stream()
+    var now = Instant.now();
+    var scores = qualityScores.stream()
         .map(rq -> {
-          TmsQualityStandardCriterion criterion = tmsQualityStandardCriterionRepository
+          var criterion = tmsQualityStandardCriterionRepository
               .findByIdAndStandard_ProjectId(rq.getCriterionId(), projectId)
               .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
                   "Quality standard criterion '" + rq.getCriterionId() + "' for project '" + projectId + "'"));
@@ -77,18 +82,48 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
     if (version == null) {
       return null;
     }
-    List<TmsTestCaseQualityScore> scores = tmsTestCaseQualityScoreRepository.findByTestCaseVersionId(version.getId());
-    var generation = tmsTestCaseGenerationMetadataRepository.findByTestCaseVersionId(version.getId()).orElse(null);
+    return buildMetricsBatch(List.of(version)).get(version.getId());
+  }
+
+  @Override
+  public Map<Long, TmsTestCaseMetricsRS> buildMetricsBatch(Collection<TmsTestCaseVersion> versions) {
+    var versionsById = versions.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toMap(TmsTestCaseVersion::getId, Function.identity(), (first, second) -> first));
+    if (versionsById.isEmpty()) {
+      return Map.of();
+    }
+
+    var versionIds = versionsById.keySet();
+    var scoresByVersionId = tmsTestCaseQualityScoreRepository.findByTestCaseVersionIdIn(versionIds).stream()
+        .collect(Collectors.groupingBy(score -> score.getTestCaseVersion().getId()));
+    var generationByVersionId = tmsTestCaseGenerationMetadataRepository.findByTestCaseVersionIdIn(versionIds).stream()
+        .collect(Collectors.toMap(metadata -> metadata.getTestCaseVersion().getId(), Function.identity()));
+
+    var result = new HashMap<Long, TmsTestCaseMetricsRS>();
+    for (var versionId : versionIds) {
+      var metrics = buildMetrics(versionsById.get(versionId),
+          scoresByVersionId.getOrDefault(versionId, List.of()),
+          generationByVersionId.get(versionId));
+      if (metrics != null) {
+        result.put(versionId, metrics);
+      }
+    }
+    return result;
+  }
+
+  private TmsTestCaseMetricsRS buildMetrics(TmsTestCaseVersion version, List<TmsTestCaseQualityScore> scores,
+      TmsTestCaseGenerationMetadata generation) {
     if (scores.isEmpty() && generation == null) {
       return null;
     }
 
     var builder = TmsTestCaseMetricsRS.builder();
     if (!scores.isEmpty()) {
-      int overallScore = scores.stream().mapToInt(TmsTestCaseQualityScore::getScore).sum();
-      Instant evaluatedAt = scores.stream().map(TmsTestCaseQualityScore::getEvaluatedAt)
+      var overallScore = scores.stream().mapToInt(TmsTestCaseQualityScore::getScore).sum();
+      var evaluatedAt = scores.stream().map(TmsTestCaseQualityScore::getEvaluatedAt)
           .max(Instant::compareTo).orElse(null);
-      List<TmsTestCaseMetricsRS.CriterionScore> criteria = scores.stream()
+      var criteria = scores.stream()
           .map(score -> TmsTestCaseMetricsRS.CriterionScore.builder()
               .criterionId(score.getCriterion().getId())
               .name(score.getCriterion().getName())
@@ -96,8 +131,11 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
               .score(score.getScore())
               .build())
           .collect(Collectors.toList());
+      var obsolete = evaluatedAt != null && version.getUpdatedAt() != null
+          && version.getUpdatedAt().isAfter(evaluatedAt);
       builder.overallScore(overallScore)
           .evaluatedAt(evaluatedAt == null ? null : evaluatedAt.toEpochMilli())
+          .obsolete(obsolete)
           .criteria(criteria);
     }
     if (generation != null) {

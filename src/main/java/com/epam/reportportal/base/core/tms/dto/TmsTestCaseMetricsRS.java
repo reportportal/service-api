@@ -24,6 +24,13 @@ public class TmsTestCaseMetricsRS {
 
   private Long evaluatedAt;
 
+  /**
+   * {@code true} when the version's manual scenario was modified after
+   * {@code evaluatedAt} — the recorded score no longer reflects the current
+   * content.
+   */
+  private boolean obsolete;
+
   private List<CriterionScore> criteria;
 
   private Integer tokensIn;

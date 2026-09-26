@@ -7,6 +7,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsQualityStandardRS;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsQualityStandard;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsQualityStandardCriterion;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -36,13 +37,27 @@ public class TmsQualityStandardMapper {
   }
 
   /**
-   * Builds the criteria list for a (re)saved standard. The caller sets {@code
-   * standard} on each returned criterion afterward (JPA back-reference).
+   * Builds the criteria list for a (re)saved standard, upserting by {@code id}:
+   * an existing criterion whose id is present in {@code criteriaRQ} is mutated in
+   * place (so Hibernate updates it instead of deleting+recreating it under
+   * {@code orphanRemoval}); a criterion with no id, or whose id isn't found, is
+   * created new. A criterion whose id is absent from {@code criteriaRQ} is left
+   * out of the result, which is what removes it via {@code orphanRemoval}.
    */
-  public List<TmsQualityStandardCriterion> toCriteria(List<TmsQualityStandardCriterionRQ> criteriaRQ) {
+  public List<TmsQualityStandardCriterion> mergeCriteria(TmsQualityStandard standard,
+      List<TmsQualityStandardCriterionRQ> criteriaRQ) {
+    var existingById = (standard.getCriteria() == null ? List.<TmsQualityStandardCriterion>of() : standard.getCriteria())
+        .stream()
+        .filter(criterion -> criterion.getId() != null)
+        .collect(Collectors.toMap(TmsQualityStandardCriterion::getId, Function.identity()));
+
     return criteriaRQ.stream()
         .map(rq -> {
-          var criterion = new TmsQualityStandardCriterion();
+          var criterion = rq.getId() == null ? null : existingById.get(rq.getId());
+          if (criterion == null) {
+            criterion = new TmsQualityStandardCriterion();
+            criterion.setStandard(standard);
+          }
           criterion.setName(rq.getName());
           criterion.setMaxPoints(rq.getMaxPoints());
           criterion.setSequence(rq.getSequence());

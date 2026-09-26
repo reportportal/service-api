@@ -150,20 +150,20 @@ public class PipelineMapper {
   }
 
   public PipelineCompareRS toCompareRS(PipelineIterationDetailRS current, PipelineIterationDetailRS previous) {
-    Map<String, PipelineStageRS> previousByKey = previous.getStages().stream()
+    var previousByKey = previous.getStages().stream()
         .collect(Collectors.toMap(PipelineStageRS::getStageKey, s -> s, (a, b) -> a));
-    List<PipelineStageDeltaRS> deltas = new ArrayList<>();
-    Set<String> seen = new HashSet<>();
-    for (PipelineStageRS currentStage : current.getStages()) {
+    var deltas = new ArrayList<PipelineStageDeltaRS>();
+    var seen = new HashSet<String>();
+    for (var currentStage : current.getStages()) {
       seen.add(currentStage.getStageKey());
-      PipelineStageRS previousStage = previousByKey.get(currentStage.getStageKey());
+      var previousStage = previousByKey.get(currentStage.getStageKey());
       deltas.add(PipelineStageDeltaRS.builder()
           .stageKey(currentStage.getStageKey())
           .current(toDeltaEntry(currentStage))
           .previous(previousStage == null ? null : toDeltaEntry(previousStage))
           .build());
     }
-    for (PipelineStageRS previousStage : previous.getStages()) {
+    for (var previousStage : previous.getStages()) {
       if (!seen.contains(previousStage.getStageKey())) {
         deltas.add(PipelineStageDeltaRS.builder()
             .stageKey(previousStage.getStageKey())
@@ -207,7 +207,7 @@ public class PipelineMapper {
     if (graders == null) {
       return null;
     }
-    List<PipelineGrader> mapped = graders.stream()
+    var mapped = graders.stream()
         .map(g -> PipelineGrader.builder().name(g.getName()).type(g.getType()).result(g.getResult()).pass(g.isPass()).build())
         .collect(Collectors.toList());
     return PipelineGraders.builder().graders(mapped).build();

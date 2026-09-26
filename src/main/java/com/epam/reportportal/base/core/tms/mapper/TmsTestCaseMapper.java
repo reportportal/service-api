@@ -4,6 +4,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseMetricsRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
@@ -12,7 +13,6 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
-import com.epam.reportportal.base.core.tms.service.TmsTestCaseQualityService;
 import com.epam.reportportal.base.core.tms.sync.dto.RemoteTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -49,9 +49,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Autowired
   protected TmsDisplayIdService tmsDisplayIdService;
 
-  @Autowired
-  protected TmsTestCaseQualityService tmsTestCaseQualityService;
-
   @Mapping(target = "manualScenario",
       expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
   @Mapping(target = "id", source = "tmsTestCase.id")
@@ -59,10 +56,12 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
   @Mapping(target = "origin", source = "tmsTestCase.origin")
   @Mapping(target = "status", source = "tmsTestCase.status")
-  @Mapping(target = "metrics", expression = "java(tmsTestCaseQualityService.buildMetrics(defaultCaseVersion))")
+  @Mapping(target = "updatedAt", source = "tmsTestCase.updatedAt")
+  @Mapping(target = "metrics", source = "metrics")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
-      TmsTestCaseVersion defaultCaseVersion
+      TmsTestCaseVersion defaultCaseVersion,
+      TmsTestCaseMetricsRS metrics
   );
 
   @Mapping(target = "manualScenario",
@@ -74,25 +73,33 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
   @Mapping(target = "origin", source = "tmsTestCase.origin")
   @Mapping(target = "status", source = "tmsTestCase.status")
-  @Mapping(target = "metrics", expression = "java(tmsTestCaseQualityService.buildMetrics(defaultCaseVersion))")
+  @Mapping(target = "updatedAt", source = "tmsTestCase.updatedAt")
+  @Mapping(target = "metrics", source = "metrics")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
       TmsTestCaseVersion defaultCaseVersion,
-      TmsTestCaseExecution lastTestCaseExecution
+      TmsTestCaseExecution lastTestCaseExecution,
+      TmsTestCaseMetricsRS metrics
   );
 
   public Page<TmsTestCaseRS> convert(
       Collection<TmsTestCase> testCases,
       Map<Long, TmsTestCaseVersion> testCaseDefaultVersions,
       Map<Long, TmsTestCaseExecution> testCaseExecutions,
+      Map<Long, TmsTestCaseMetricsRS> metricsByVersionId,
       Pageable pageable,
       long totalCount) {
     var tmsTestCaseRSList = testCases
         .stream()
-        .map(testCase -> convert(
-            testCase,
-            testCaseDefaultVersions.get(testCase.getId()),
-            testCaseExecutions.get(testCase.getId())))
+        .map(testCase -> {
+          var defaultVersion = testCaseDefaultVersions.get(testCase.getId());
+          var metrics = defaultVersion == null ? null : metricsByVersionId.get(defaultVersion.getId());
+          return convert(
+              testCase,
+              defaultVersion,
+              testCaseExecutions.get(testCase.getId()),
+              metrics);
+        })
         .toList();
     return new PageImpl<>(
         tmsTestCaseRSList, pageable, totalCount

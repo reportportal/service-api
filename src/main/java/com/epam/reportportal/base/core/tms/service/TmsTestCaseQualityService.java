@@ -4,7 +4,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationMetadataRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseMetricsRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseQualityScoreRQ;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Persists and computes the AI quality score / generation cost data a test
@@ -38,4 +40,12 @@ public interface TmsTestCaseQualityService {
    * the version has neither quality scores nor generation metadata recorded.
    */
   TmsTestCaseMetricsRS buildMetrics(TmsTestCaseVersion version);
+
+  /**
+   * Batch form of {@link #buildMetrics(TmsTestCaseVersion)} — fetches scores and
+   * generation metadata for all given versions in two queries total instead of
+   * two per version, keyed by {@code TmsTestCaseVersion.id}. A version with
+   * neither scores nor generation metadata is absent from the result map.
+   */
+  Map<Long, TmsTestCaseMetricsRS> buildMetricsBatch(Collection<TmsTestCaseVersion> versions);
 }

@@ -4,6 +4,10 @@ import lombok.Getter;
 
 /**
  * Published after a stage retry has been successfully triggered on the CI side.
+ * No {@code EventToActivityConverter} is registered for this event yet (see
+ * {@code EventObject.PIPELINE_STAGE}) — publishing it today has no observable
+ * effect. Wiring an activity converter, following the pattern of
+ * {@code TestCaseCreatedEventConverter}, is a tracked follow-up.
  */
 @Getter
 public class PipelineStageRetryRequestedEvent {

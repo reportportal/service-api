@@ -14,6 +14,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TmsQualityStandardCriterionRQ {
 
+  /**
+   * Id of an existing criterion to update in place. {@code null} creates a new
+   * criterion; an existing criterion whose id is absent from the request is removed.
+   */
+  private Long id;
+
   @NotBlank
   private String name;
 

@@ -5,13 +5,14 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pi
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriUtils;
 
 /**
  * Re-triggers a stage's agent job via the GitLab
@@ -44,7 +45,7 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     var baseUrl = stringParam(integration, BASE_URL_PARAM);
     var effectiveBaseUrl = baseUrl == null || baseUrl.isBlank() ? DEFAULT_BASE_URL : baseUrl;
 
-    var projectId = URLEncoder.encode(stage.getCiRepo(), StandardCharsets.UTF_8);
+    var projectId = UriUtils.encodePathSegment(stage.getCiRepo(), StandardCharsets.UTF_8);
     var url = effectiveBaseUrl + "/api/v4/projects/" + projectId + "/trigger/pipeline";
 
     ObjectNode body = objectMapper.createObjectNode();
@@ -56,8 +57,22 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
       variables.put("RERUN_JOB_ID", stage.getCiJobId());
     }
 
-    ciHttpClient.postForStatus(url, Collections.emptyMap(), body.toString());
+    var responseBody = ciHttpClient.postForStatus(url, Collections.emptyMap(), body.toString());
+    var fallbackUrl = effectiveBaseUrl + "/api/v4/projects/" + projectId + "/pipelines";
+    return extractPipelineUrl(responseBody, fallbackUrl);
+  }
 
-    return effectiveBaseUrl + "/api/v4/projects/" + projectId + "/pipelines";
+  /**
+   * GitLab's trigger-pipeline response body carries the created pipeline's own
+   * {@code web_url} — prefer that (a page a human can open) over the raw REST
+   * endpoint this connector called.
+   */
+  private String extractPipelineUrl(String responseBody, String fallbackUrl) {
+    try {
+      var webUrl = objectMapper.readTree(responseBody).path("web_url").asText(null);
+      return webUrl != null && !webUrl.isBlank() ? webUrl : fallbackUrl;
+    } catch (JsonProcessingException | IllegalArgumentException e) {
+      return fallbackUrl;
+    }
   }
 }

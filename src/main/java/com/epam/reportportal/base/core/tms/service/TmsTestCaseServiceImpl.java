@@ -136,14 +136,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public TmsTestCaseRS getById(long projectId, Long testCaseId) {
+    var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
     return tmsTestCaseMapper.convert(
         tmsTestCaseRepository
             .findByProjectIdAndId(projectId, testCaseId)
             .orElseThrow(() -> new ReportPortalException(
                 NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
             ),
-        tmsTestCaseVersionService.getDefaultVersion(testCaseId),
-        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId));
+        defaultVersion,
+        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId),
+        tmsTestCaseQualityService.buildMetrics(defaultVersion));
   }
 
   @Override
@@ -178,7 +180,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     publishTestCaseCreatedEvent(membershipDetails, user, tmsTestCase, defaultVersion);
 
-    return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion);
+    return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion, tmsTestCaseQualityService.buildMetrics(defaultVersion));
   }
 
   @Override
@@ -225,7 +227,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
               .forEach(eventPublisher::publishEvent);
 
           return tmsTestCaseMapper.convert(
-              existingTestCase, defaultVersion, lastTestCaseExecution
+              existingTestCase, defaultVersion, lastTestCaseExecution,
+              tmsTestCaseQualityService.buildMetrics(defaultVersion)
           );
         })
         .orElseGet(() -> create(membershipDetails, user, tmsTestCaseRQ));
@@ -272,9 +275,10 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   before,
                   after)
               .forEach(eventPublisher::publishEvent);
-          
+
           return tmsTestCaseMapper.convert(
-              existingTestCase, defaultVersion, lastTestCaseExecution
+              existingTestCase, defaultVersion, lastTestCaseExecution,
+              tmsTestCaseQualityService.buildMetrics(defaultVersion)
           );
         })
         .orElseThrow(() -> new ReportPortalException(
@@ -623,11 +627,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       var lastTestCasesExecutions = tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(
           testCaseIds.getContent()
       );
+      var metricsByVersionId = tmsTestCaseQualityService.buildMetricsBatch(testCaseDefaultVersions.values());
 
       var page = tmsTestCaseMapper.convert(
           orderedTestTestCases,
           testCaseDefaultVersions,
           lastTestCasesExecutions,
+          metricsByVersionId,
           pageable,
           testCaseIds.getTotalElements()
       );
@@ -798,7 +804,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         ? tmsTestFolderService.getEntityById(projectId, targetFolderId)
         : null;
     var duplicated = duplicateTestCaseInternal(membershipDetails, user, projectId, testCaseId, targetFolder);
-    return tmsTestCaseMapper.convert(duplicated.testCase(), duplicated.defaultVersion());
+    return tmsTestCaseMapper.convert(duplicated.testCase(), duplicated.defaultVersion(),
+        tmsTestCaseQualityService.buildMetrics(duplicated.defaultVersion()));
   }
 
   private record DuplicatedTestCase(TmsTestCase testCase, TmsTestCaseVersion defaultVersion) {}

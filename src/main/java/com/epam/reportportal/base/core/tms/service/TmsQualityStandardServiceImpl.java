@@ -54,8 +54,7 @@ public class TmsQualityStandardServiceImpl implements TmsQualityStandardService 
   private void applyRQ(TmsQualityStandard standard, TmsQualityStandardRQ rq) {
     standard.setName(rq.getName());
     standard.setDescription(rq.getDescription());
-    var criteria = tmsQualityStandardMapper.toCriteria(rq.getCriteria());
-    criteria.forEach(c -> c.setStandard(standard));
+    var criteria = tmsQualityStandardMapper.mergeCriteria(standard, rq.getCriteria());
     if (standard.getCriteria() == null) {
       standard.setCriteria(criteria);
     } else {

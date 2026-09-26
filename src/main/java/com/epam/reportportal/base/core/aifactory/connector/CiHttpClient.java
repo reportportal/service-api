@@ -54,13 +54,15 @@ public class CiHttpClient implements DisposableBean {
   }
 
   /**
-   * Executes an HTTPS POST with a JSON body, discarding the response body.
+   * Executes an HTTPS POST with a JSON body and returns the response body
+   * (empty string if there is none), so callers that need it (e.g. to read a
+   * created resource's URL out of the response) don't have to re-request it.
    *
    * @param url absolute HTTPS URL
    * @param headers request headers (e.g. Authorization)
    * @param jsonBody request body, already serialized as JSON
    */
-  public void postForStatus(String url, Map<String, String> headers, String jsonBody) {
+  public String postForStatus(String url, Map<String, String> headers, String jsonBody) {
     validateHttpsUrl(url);
     var request = new HttpPost(url);
     headers.forEach(request::setHeader);
@@ -68,11 +70,12 @@ public class CiHttpClient implements DisposableBean {
     request.setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
 
     try (CloseableHttpResponse response = httpClient.execute(request)) {
+      String body = response.getEntity() == null ? "" : EntityUtils.toString(response.getEntity());
       if (response.getCode() >= 400) {
-        String body = response.getEntity() == null ? "" : EntityUtils.toString(response.getEntity());
         throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             "CI trigger request failed. HTTP code: " + response.getCode() + ". " + body);
       }
+      return body;
     } catch (IOException | ParseException e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Failed to execute CI trigger request: " + e.getMessage());
     }

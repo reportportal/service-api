@@ -7,11 +7,11 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriUtils;
 
 /**
  * Re-triggers a stage's agent job via the GitHub Actions
@@ -43,7 +43,7 @@ public class GitHubActionsCiConnector extends AbstractCiTriggerConnector {
     var token = requiredParam(integration, TOKEN_PARAM);
     var gitRef = stringParam(integration, GIT_REF_PARAM);
 
-    var workflowFile = URLEncoder.encode(stage.getCiWorkflowRef(), StandardCharsets.UTF_8);
+    var workflowFile = UriUtils.encodePathSegment(stage.getCiWorkflowRef(), StandardCharsets.UTF_8);
     var url = "https://api.github.com/repos/" + stage.getCiRepo() + "/actions/workflows/" + workflowFile + "/dispatches";
 
     ObjectNode body = objectMapper.createObjectNode();

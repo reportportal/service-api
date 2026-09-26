@@ -20,6 +20,9 @@ import static com.epam.reportportal.base.core.analyzer.auto.strategy.search.Sear
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+
+import org.mockito.ArgumentCaptor;
 
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
@@ -209,6 +212,7 @@ class SearchLogServiceImplTest {
 
     when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
     when(launch.getId()).thenReturn(1L);
+    when(launch.getProjectId()).thenReturn(1L);
 
     when(testItemOfFoundLog.getItemId()).thenReturn(2L);
     when(testItemOfFoundLog.getLaunchId()).thenReturn(1L);
@@ -228,6 +232,7 @@ class SearchLogServiceImplTest {
         launch.getId(), retryItem.getItemId(), retryItem.getPath(), LogLevel.ERROR_INT
     )).thenReturn(Lists.newArrayList("message"));
 
+    when(analyzerServiceClient.searchLogs(any(SearchRq.class))).thenReturn(Collections.emptyList());
     when(logService.findAllById(any())).thenReturn(Collections.emptyList());
     when(logConverter.toLogEntries(any(), any())).thenReturn(Collections.emptyList());
 
@@ -241,6 +246,11 @@ class SearchLogServiceImplTest {
     // This should NOT throw LAUNCH_NOT_FOUND error
     Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
     Assertions.assertNotNull(responses);
+
+    // Verify the effective launch ID is used in the analyzer request
+    ArgumentCaptor<SearchRq> requestCaptor = ArgumentCaptor.forClass(SearchRq.class);
+    verify(analyzerServiceClient).searchLogs(requestCaptor.capture());
+    Assertions.assertEquals(launch.getId(), requestCaptor.getValue().getLaunchId());
   }
 
   @Test

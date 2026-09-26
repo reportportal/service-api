@@ -128,6 +128,8 @@ public class DataStoreConfiguration {
    *                  credential chain, which also handles IAM session-token credentials and their refresh)
    * @param secretKey secretKey to use (optional, see {@code accessKey})
    * @param region    AWS S3 region to use.
+   * @param endpoint  Optional custom S3 endpoint (for S3-compatible services like Cloudflare R2)
+   * @param defaultBucketName Default bucket name to use
    * @return {@link Operator}
    */
   @Bean
@@ -137,6 +139,7 @@ public class DataStoreConfiguration {
       @Value("${datastore.accessKey:}") String accessKey,
       @Value("${datastore.secretKey:}") String secretKey,
       @Value("${datastore.region}") String region,
+      @Value("${datastore.endpoint:}") String endpoint,
       @Value("${datastore.defaultBucketName}") String defaultBucketName) {
 
     Map<String, String> config = new HashMap<>();
@@ -146,6 +149,14 @@ public class DataStoreConfiguration {
     if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
       config.put(ACCESS_KEY_ID, accessKey);
       config.put(SECRET_ACCESS_KEY, secretKey);
+
+      if (StringUtils.isNotEmpty(endpoint) && !endpoint.startsWith("https://") && !endpoint.startsWith("http://localhost")) {
+        throw new IllegalArgumentException("HTTPS is required for S3 endpoint when credentials are provided. Endpoint: " + endpoint);
+      }
+    }
+
+    if (StringUtils.isNotEmpty(endpoint)) {
+      config.put(ENDPOINT, endpoint);
     }
 
     return Operator.of("s3", config);

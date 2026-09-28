@@ -9,9 +9,6 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.Instant;
-import java.util.List;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -54,9 +51,6 @@ public class TmsManualLaunchRS {
 
   @JsonProperty("mode")
   private Mode mode;
-
-  @Schema(description = "Launch status", example = "IN_PROGRESS")
-  private String status;
 
   @Schema(description = "Launch displayId", example = "ML123")
   private String displayId;

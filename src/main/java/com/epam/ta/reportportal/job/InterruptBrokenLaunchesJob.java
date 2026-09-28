@@ -20,31 +20,24 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
-import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.job.service.BrokenLaunchInterruptService;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.stream.Stream;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Finds jobs witn duration more than defined and finishes them with interrupted
@@ -58,22 +51,13 @@ public class InterruptBrokenLaunchesJob implements Job {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InterruptBrokenLaunchesJob.class);
 
-  private final ApplicationEventPublisher eventPublisher;
-
   private final LaunchRepository launchRepository;
-
-  private final TestItemRepository testItemRepository;
-
-  private final LogRepository logRepository;
 
   private final ProjectRepository projectRepository;
 
-  private final TestItemStatisticsService statisticsService;
-
-  private final LaunchChangesHandler launchChangesHandler;
+  private final BrokenLaunchInterruptService brokenLaunchInterruptService;
 
   @Override
-  @Transactional
   public void execute(JobExecutionContext context) {
     LOGGER.info("Interrupt broken launches job has been started");
     iterateOverPages(
@@ -83,80 +67,21 @@ public class InterruptBrokenLaunchesJob implements Job {
           ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.INTERRUPT_JOB_TIME)
               .ifPresent(it -> {
                 Duration maxDuration = ofSeconds(NumberUtils.toLong(it, 0L));
-                try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(
+                List<Long> launchIds = launchRepository.findIdsWithStatusAndStartTimeBefore(
                     project.getId(),
                     StatusEnum.IN_PROGRESS,
                     Instant.now().minus(maxDuration.toSeconds(), ChronoUnit.SECONDS)
-                )) {
-                  ids.forEach(launchId -> {
-                    if (!testItemRepository.hasItemsInStatusByLaunch(launchId,
-                        StatusEnum.IN_PROGRESS)) {
-                      /*
-                       * There are no test items for this launch. Just INTERRUPT
-                       * this launch
-                       */
-                      interruptLaunch(launchId);
-                    } else {
-                      /*
-                       * Well, there are some test items started for specified
-                       * launch
-                       */
-                      if (!testItemRepository.hasItemsInStatusAddedLately(launchId, maxDuration,
-                          StatusEnum.IN_PROGRESS)) {
-                        /*
-                         * If there are logs, we have to check whether them
-                         * expired
-                         */
-                        if (testItemRepository.hasLogs(launchId, maxDuration,
-                            StatusEnum.IN_PROGRESS)) {
-                          /*
-                           * If there are logs which are still valid
-                           * (probably automation project keep writing
-                           * something)
-                           */
-                          if (!logRepository.hasLogsAddedLately(maxDuration, launchId,
-                              StatusEnum.IN_PROGRESS)) {
-                            interruptItems(launchId);
-                          }
-                        } else {
-                          /*
-                           * If not just INTERRUPT all found items and launch
-                           */
-                          interruptItems(launchId);
-                        }
-                      }
-                    }
-                  });
-                } catch (Exception ex) {
-                  LOGGER.error("Interrupting broken launches has been failed", ex);
-                  //do nothing
-                }
+                );
+                launchIds.forEach(launchId -> {
+                  try {
+                    brokenLaunchInterruptService.interruptIfStillBroken(launchId, maxDuration);
+                  } catch (Exception ex) {
+                    LOGGER.error("Interrupting broken launch '{}' has failed", launchId, ex);
+                  }
+                });
               });
         })
     );
     LOGGER.info("Interrupt broken launches job has been finished");
-  }
-
-  private void interruptLaunch(Long launchId) {
-    launchRepository.findById(launchId).ifPresent(launch -> {
-      var beforeSnapshot = launchChangesHandler.captureSnapshot(launch);
-      launch.setStatus(StatusEnum.INTERRUPTED);
-      launch.setEndTime(Instant.now());
-      launchRepository.save(launch);
-      launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
-      publishFinishEvent(launch);
-    });
-  }
-
-  private void publishFinishEvent(Launch launch) {
-    final LaunchFinishedEvent launchFinishedEvent = new LaunchFinishedEvent(launch);
-    eventPublisher.publishEvent(launchFinishedEvent);
-  }
-
-  private void interruptItems(Long launchId) {
-    statisticsService.acquireAdvisoryLock(launchId);
-    testItemRepository.interruptInProgressItems(launchId);
-    statisticsService.addInterruptionStatistics(launchId);
-    interruptLaunch(launchId);
   }
 }

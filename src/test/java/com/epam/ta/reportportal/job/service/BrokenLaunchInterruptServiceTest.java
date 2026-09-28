@@ -23,6 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
 import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -80,7 +81,7 @@ class BrokenLaunchInterruptServiceTest {
     assertEquals(StatusEnum.INTERRUPTED, launch.getStatus());
     verify(statisticsService).acquireAdvisoryLock(launchId);
     verify(launchRepository).save(launch);
-    verify(eventPublisher).publishEvent(any());
+    verify(eventPublisher).publishEvent(any(LaunchFinishedEvent.class));
   }
 
   @Test

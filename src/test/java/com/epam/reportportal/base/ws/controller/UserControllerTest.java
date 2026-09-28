@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.ws.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -335,7 +337,9 @@ class UserControllerTest extends BaseMvcTest {
   @Test
   void exportUsers() throws Exception {
     mockMvc.perform(get(USERS_URL + "export").with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Full name,Type,Email,Last login,Organizations")))
+        .andExpect(content().string(containsString("tester,INTERNAL,admin@reportportal.internal,")));
   }
 
   @Test

@@ -26,7 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,28 +35,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Grafana proxy session endpoints: the unauthenticated nginx {@code auth_request} gate, and an authenticated
- * revoke hook a client is expected to call as part of its own logout flow.
+ * Grafana proxy session endpoints: the unauthenticated nginx {@code auth_request} gate, and an authenticated revoke
+ * hook a client is expected to call as part of its own logout flow.
  *
  * @author Siarhei Hrabko
  */
 @RestController
+@RequiredArgsConstructor
 @Tag(name = "Grafana", description = "Grafana proxy gate")
 public class GrafanaController {
 
   private final GrafanaSessionService grafanaSessionService;
-  private final String webAuthUser;
-
-  public GrafanaController(GrafanaSessionService grafanaSessionService,
-      @Value("${rp.grafana.webauth.user:shared-rp-user}") String webAuthUser) {
-    this.grafanaSessionService = grafanaSessionService;
-    this.webAuthUser = webAuthUser;
-  }
 
   /**
-   * Hit once per proxied request (iframe load and every asset/API/WebSocket sub-request); nginx forwards the
-   * original request's {@code Cookie} header into this subrequest, but not the RP JWT (a plain iframe navigation
-   * can't carry it), so this endpoint is deliberately unauthenticated and does its own validation against the
+   * Hit once per proxied request (iframe load and every asset/API/WebSocket sub-request); nginx forwards the original
+   * request's {@code Cookie} header into this subrequest, but not the RP JWT (a plain iframe navigation can't carry
+   * it), so this endpoint is deliberately unauthenticated and does its own validation against the
    * {@code rp_grafana_session} cookie set on {@code GET /v1/users}.
    */
   @GetMapping("/v1/public/integration/grafana/session-check")
@@ -67,13 +61,13 @@ public class GrafanaController {
     if (sessionId == null || !grafanaSessionService.isValid(sessionId)) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-    return ResponseEntity.ok().header("X-WEBAUTH-USER", webAuthUser).build();
+    return ResponseEntity.ok().build();
   }
 
   /**
-   * Revokes every active Grafana proxy session for the current user. There is no server-side JWT revocation in
-   * this codebase yet, so this only cuts off the Grafana proxy specifically; a client should call it as part of
-   * its own logout flow, before discarding the JWT.
+   * Revokes every active Grafana proxy session for the current user. There is no server-side JWT revocation in this
+   * codebase yet, so this only cuts off the Grafana proxy specifically; a client should call it as part of its own
+   * logout flow, before discarding the JWT.
    */
   @DeleteMapping("/v1/integration/grafana/session")
   @Operation(summary = "Revoke Grafana proxy sessions for the current user")

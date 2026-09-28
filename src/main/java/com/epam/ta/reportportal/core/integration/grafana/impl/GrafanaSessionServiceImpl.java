@@ -23,7 +23,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,17 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class GrafanaSessionServiceImpl implements GrafanaSessionService {
 
   private final GrafanaSessionRepository grafanaSessionRepository;
-  private final Duration ttl;
 
-  public GrafanaSessionServiceImpl(GrafanaSessionRepository grafanaSessionRepository,
-      @Value("${rp.grafana.session.ttl:PT15M}") Duration ttl) {
+  public GrafanaSessionServiceImpl(GrafanaSessionRepository grafanaSessionRepository) {
     this.grafanaSessionRepository = grafanaSessionRepository;
-    this.ttl = ttl;
   }
 
   @Override
   @Transactional
-  public UUID create(String subject) {
+  public UUID create(String subject, Duration ttl) {
     if (StringUtils.isBlank(subject)) {
       throw new IllegalArgumentException("subject must not be blank");
     }

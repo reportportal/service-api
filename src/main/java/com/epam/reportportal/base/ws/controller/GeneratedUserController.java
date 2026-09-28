@@ -43,6 +43,7 @@ import com.epam.reportportal.base.core.user.patch.PatchUserHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.ControllerUtils;
@@ -86,7 +87,7 @@ public class GeneratedUserController extends BaseController implements UsersApi 
   private final PatchUserHandler patchUserHandler;
   private final HttpServletRequest httpServletRequest;
   private final SearchCriteriaService searchCriteriaService;
-  private final GetJasperReportHandler<User> jasperReportHandler;
+  private final GetJasperReportHandler<UserExportProjection> jasperReportHandler;
   private final HttpServletResponse httpServletResponse;
   private final LinkGenerator linkGenerator;
 

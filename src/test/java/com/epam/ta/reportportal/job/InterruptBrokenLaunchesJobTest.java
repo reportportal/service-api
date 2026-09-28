@@ -17,26 +17,22 @@
 package com.epam.ta.reportportal.job;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.core.launch.changes.LaunchChangesHandler;
-import com.epam.ta.reportportal.core.statistics.TestItemStatisticsService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.job.service.BrokenLaunchInterruptService;
 import com.google.common.collect.Sets;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -54,57 +50,69 @@ class InterruptBrokenLaunchesJobTest {
   private LaunchRepository launchRepository;
 
   @Mock
-  private LogRepository logRepository;
-
-  @Mock
-  private TestItemRepository testItemRepository;
-
-  @Mock
   private ProjectRepository projectRepository;
 
   @Mock
-  private TestItemStatisticsService statisticsService;
-
-  @Mock
-  private LaunchChangesHandler launchChangesHandler;
+  private BrokenLaunchInterruptService brokenLaunchInterruptService;
 
   @InjectMocks
   private InterruptBrokenLaunchesJob interruptBrokenLaunchesJob;
 
   @Test
-  void noInProgressItemsTest() {
-    String name = "name";
-    Project project = new Project();
-    final ProjectAttribute projectAttribute = new ProjectAttribute();
-    final Attribute attribute = new Attribute();
-    attribute.setName("job.interruptJobTime");
-    projectAttribute.setAttribute(attribute);
-
-    //1 day in seconds
-    projectAttribute.setValue(String.valueOf(3600 * 24));
-    project.setProjectAttributes(Sets.newHashSet(projectAttribute));
-    project.setName(name);
-
+  void delegatesCandidateLaunchesToInterruptService() {
+    Project project = projectWithInterruptTime();
     long launchId = 1L;
 
     when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(
         new PageImpl<>(Collections.singletonList(project)));
-    when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(
-        Stream.of(launchId));
-    when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(
-        false);
-    when(launchRepository.findById(launchId)).thenReturn(Optional.of(new Launch()));
+    when(launchRepository.findIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(
+        Collections.singletonList(launchId));
 
     interruptBrokenLaunchesJob.execute(null);
 
-    verify(launchRepository, times(1)).findById(launchId);
-    verify(launchRepository, times(1)).save(any());
+    verify(brokenLaunchInterruptService).interruptIfStillBroken(launchId, Duration.ofDays(1));
 
   }
 
   @Test
-  void interruptLaunchWithInProgressItemsTest() {
-    String name = "name";
+  void continuesCandidateProcessingWhenOneLaunchFails() {
+    Project project = projectWithInterruptTime();
+    long launchId = 1L;
+    long nextLaunchId = 2L;
+
+    when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(
+        new PageImpl<>(Collections.singletonList(project)));
+    when(launchRepository.findIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(
+        List.of(launchId, nextLaunchId));
+    org.mockito.Mockito.doThrow(new RuntimeException("boom"))
+        .when(brokenLaunchInterruptService)
+        .interruptIfStillBroken(eq(launchId), any());
+
+    interruptBrokenLaunchesJob.execute(null);
+
+    verify(brokenLaunchInterruptService, times(1)).interruptIfStillBroken(launchId,
+        Duration.ofDays(1));
+    verify(brokenLaunchInterruptService, times(1)).interruptIfStillBroken(nextLaunchId,
+        Duration.ofDays(1));
+
+  }
+
+  @Test
+  void shouldQueryInProgressCandidates() {
+    Project project = projectWithInterruptTime();
+
+    when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(
+        new PageImpl<>(Collections.singletonList(project)));
+    when(launchRepository.findIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(
+        Collections.emptyList());
+
+    interruptBrokenLaunchesJob.execute(null);
+
+    verify(launchRepository).findIdsWithStatusAndStartTimeBefore(any(),
+        eq(StatusEnum.IN_PROGRESS), any());
+  }
+
+  private Project projectWithInterruptTime() {
     Project project = new Project();
     final ProjectAttribute projectAttribute = new ProjectAttribute();
     final Attribute attribute = new Attribute();
@@ -114,30 +122,7 @@ class InterruptBrokenLaunchesJobTest {
     //1 day in seconds
     projectAttribute.setValue(String.valueOf(3600 * 24));
     project.setProjectAttributes(Sets.newHashSet(projectAttribute));
-    project.setName(name);
-
-    long launchId = 1L;
-
-    when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(
-        new PageImpl<>(Collections.singletonList(project)));
-    when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(
-        Stream.of(launchId));
-    when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(
-        true);
-    when(testItemRepository.hasItemsInStatusAddedLately(launchId, Duration.ofSeconds(3600 * 24),
-        StatusEnum.IN_PROGRESS)).thenReturn(false);
-    when(testItemRepository.hasLogs(launchId, Duration.ofSeconds(3600 * 24),
-        StatusEnum.IN_PROGRESS)).thenReturn(true);
-    when(logRepository.hasLogsAddedLately(Duration.ofSeconds(3600 * 24), launchId,
-        StatusEnum.IN_PROGRESS)).thenReturn(false);
-    when(launchRepository.findById(launchId)).thenReturn(Optional.of(new Launch()));
-
-    interruptBrokenLaunchesJob.execute(null);
-
-    verify(testItemRepository, times(1)).interruptInProgressItems(launchId);
-    verify(launchRepository, times(1)).findById(launchId);
-    verify(launchRepository, times(1)).save(any());
-    verify(statisticsService, times(1)).addInterruptionStatistics(launchId);
-
+    project.setName("name");
+    return project;
   }
 }

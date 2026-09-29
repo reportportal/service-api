@@ -46,4 +46,9 @@ public class GenerateWidgetViewEvent extends AbstractEvent<Void> {
     this.params = new LinkedMultiValueMap<>();
   }
 
+  @Override
+  public boolean shouldPublishToRabbitMq() {
+    return false;
+  }
+
 }

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.grafana;
 
+import java.time.Duration;
 import java.util.UUID;
 
 /**
@@ -33,9 +34,10 @@ public interface GrafanaSessionService {
    * Issues a new session for the given subject.
    *
    * @param subject JWT subject ({@code sub} claim, i.e. the user's login) the session is issued to
+   * @param ttl      how long the session should remain valid, e.g. the remaining lifetime of the caller's JWT
    * @return the new session's id, to be carried in the {@code rp_grafana_session} cookie
    */
-  UUID create(String subject);
+  UUID create(String subject, Duration ttl);
 
   /**
    * Checks whether the given session id is currently valid (exists and not expired).

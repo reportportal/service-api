@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.integration.grafana;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import jakarta.servlet.http.HttpServletRequest;
@@ -66,7 +67,9 @@ public class GrafanaSessionCookieIssuer {
 
   /**
    * Issues a fresh session for the current user, valid for as long as their JWT is, and sets it as an
-   * {@code HttpOnly} cookie scoped to {@code /grafana/}. A no-op if the request wasn't authenticated with a JWT.
+   * {@code HttpOnly} cookie scoped to {@code /grafana/}. A no-op if the request wasn't authenticated with a JWT,
+   * or if the current user isn't an instance admin — the Grafana dashboards aren't access-controlled per project,
+   * so only admins get a session; everyone else would otherwise reach them directly via the proxy URL.
    *
    * @param currentUser currently authenticated user
    * @param request     current request, used to read the JWT's {@code exp} claim and to decide the cookie's
@@ -74,6 +77,9 @@ public class GrafanaSessionCookieIssuer {
    * @param response    current response, receives the {@code Set-Cookie} header
    */
   public void issue(ReportPortalUser currentUser, HttpServletRequest request, HttpServletResponse response) {
+    if (currentUser.getUserRole() != UserRole.ADMINISTRATOR) {
+      return;
+    }
     extractJwtExpiry(request)
         .map(expiresAt -> Duration.between(Instant.now(), expiresAt))
         .filter(ttl -> !ttl.isNegative())

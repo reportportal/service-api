@@ -137,6 +137,33 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
       @Param("excludedLaunchType") LaunchTypeEnum excludedLaunchType
   );
 
+  /**
+   * Finds launch IDs filtered by status, project, and start-time cutoff, excluding launches of the
+   * specified launch type.
+   *
+   * @param projectId          the project to filter launches by
+   * @param status             the launch status to filter by
+   * @param before             the start-time cutoff; only launches started before this instant are
+   *                           included
+   * @param excludedLaunchType the launch type to exclude from the results
+   * @return matching launch IDs ordered by ID
+   */
+  @Query("""
+      SELECT l.id
+      FROM Launch l
+      WHERE l.status = :status
+        AND l.projectId = :projectId
+        AND l.startTime < :before
+        AND l.launchType <> :excludedLaunchType
+      ORDER BY l.id
+      """)
+  List<Long> findIdsWithStatusAndStartTimeBefore(
+      @Param("projectId") Long projectId,
+      @Param("status") StatusEnum status,
+      @Param("before") Instant before,
+      @Param("excludedLaunchType") LaunchTypeEnum excludedLaunchType
+  );
+
   @Query(value = "SELECT * FROM launch l WHERE l.id <= :startingLaunchId AND l.name = :launchName "
       + "AND l.project_id = :projectId AND l.mode <> 'DEBUG' ORDER BY start_time DESC, number DESC LIMIT :historyDepth", nativeQuery = true)
   List<Launch> findLaunchesHistory(@Param("historyDepth") int historyDepth,
@@ -225,4 +252,16 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
    */
   @Query("SELECT l.testPlanId FROM Launch l WHERE l.id = :launchId")
   Optional<Long> findTestPlanIdById(@Param("launchId") Long launchId);
+
+  /**
+   * Preserves launches while clearing references to deleted test plans.
+   *
+   * @param projectId the project ID
+   * @param testPlanIds IDs of deleted test plans
+   * @return number of updated launches
+   */
+  @Modifying
+  @Query("UPDATE Launch l SET l.testPlanId = null WHERE l.projectId = :projectId AND l.testPlanId IN :testPlanIds")
+  int clearTestPlanIdsByProjectIdAndTestPlanIds(@Param("projectId") Long projectId,
+      @Param("testPlanIds") List<Long> testPlanIds);
 }

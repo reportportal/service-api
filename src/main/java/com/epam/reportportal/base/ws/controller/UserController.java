@@ -37,6 +37,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -101,7 +102,7 @@ public class UserController {
 
   private final GetUserHandler getUserHandler;
 
-  private final GetJasperReportHandler<User> jasperReportHandler;
+  private final GetJasperReportHandler<UserExportProjection> jasperReportHandler;
   private final LinkGenerator linkGenerator;
 
 
@@ -109,7 +110,7 @@ public class UserController {
   public UserController(CreateUserHandler createUserMessageHandler,
       EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
       GetUserHandler getUserHandler,
-      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
+      @Qualifier("userJasperReportHandler") GetJasperReportHandler<UserExportProjection> jasperReportHandler,
       ApiKeyHandler apiKeyHandler, LinkGenerator linkGenerator) {
     this.createUserMessageHandler = createUserMessageHandler;
     this.editUserMessageHandler = editUserMessageHandler;

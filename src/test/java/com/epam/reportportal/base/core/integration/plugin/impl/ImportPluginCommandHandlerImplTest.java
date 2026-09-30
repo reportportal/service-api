@@ -16,15 +16,13 @@
 
 package com.epam.reportportal.base.core.integration.plugin.impl;
 
+import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
+import static com.epam.reportportal.base.core.launch.impl.LaunchTestUtil.getLaunch;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
-import static com.epam.reportportal.rules.exception.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,20 +31,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.ImportFinishedEvent;
-import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.model.launch.LaunchImportRQ;
-import com.epam.ta.reportportal.util.ProjectExtractor;
-import java.util.Map;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.core.events.domain.ImportFinishedEvent;
+import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.launch.LaunchImportRQ;
+import com.epam.reportportal.base.util.ProjectExtractor;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +53,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -64,6 +64,7 @@ import org.springframework.web.multipart.MultipartFile;
 @ExtendWith(MockitoExtension.class)
 class ImportPluginCommandHandlerImplTest {
 
+  private static final String PROJECT_KEY = "o-slug.project-name";
   private static final String PLUGIN_NAME = "test-plugin";
   private static final String LAUNCH_UUID = "launch-uuid";
 
@@ -77,7 +78,7 @@ class ImportPluginCommandHandlerImplTest {
   private LaunchRepository launchRepository;
 
   @Mock
-  private MessageBus messageBus;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   @Mock
   private MultipartFile file;
@@ -86,85 +87,114 @@ class ImportPluginCommandHandlerImplTest {
   private ImportPluginCommandHandlerImpl handler;
 
   @Test
-  void shouldRejectMemberImportToAnotherUsersLaunch() {
-    shouldRejectImportToAnotherUsersLaunch(ProjectRole.MEMBER);
+  void shouldRejectViewerImportToAnotherUsersLaunch() {
+    shouldRejectImportToAnotherUsersLaunch();
   }
 
   @Test
-  void shouldRejectCustomerImportToAnotherUsersLaunch() {
-    shouldRejectImportToAnotherUsersLaunch(ProjectRole.CUSTOMER);
+  void shouldAllowEditorImportToAnotherUsersLaunch() {
+    ReportPortalUser user = getRpUser("editor", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, 1L);
+    MembershipDetails membershipDetails = membershipDetails(ProjectRole.EDITOR);
+    LaunchImportRQ rq = importRequest();
+    Launch launch = launch();
+    launch.setUserId(2L);
+    Object result = new Object();
+
+    when(projectExtractor.extractMembershipDetails(user, PROJECT_KEY)).thenReturn(
+        membershipDetails);
+    when(launchRepository.findByUuid(LAUNCH_UUID)).thenReturn(Optional.of(launch));
+    when(file.getOriginalFilename()).thenReturn("launch.zip");
+    when(executeIntegrationHandler.executeExtensionCommand(eq(PLUGIN_NAME), eq("import"),
+        any())).thenReturn(result);
+
+    Object actual = handler.execute(user, PROJECT_KEY, PLUGIN_NAME, file, rq);
+
+    assertThat(actual).isSameAs(result);
   }
 
   @Test
   void shouldExecuteImportForOwnLaunch() {
-    ReportPortalUser user = getRpUser("member", UserRole.USER, ProjectRole.MEMBER, 1L);
-    ReportPortalUser.ProjectDetails projectDetails = projectDetails(ProjectRole.MEMBER);
+    ReportPortalUser user = getRpUser("member", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
+    MembershipDetails membershipDetails = membershipDetails(ProjectRole.VIEWER);
     LaunchImportRQ rq = importRequest();
     Launch launch = launch();
     Object result = new Object();
 
-    when(projectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME)).thenReturn(
-        projectDetails);
+    when(projectExtractor.extractMembershipDetails(user, PROJECT_KEY)).thenReturn(
+        membershipDetails);
     when(launchRepository.findByUuid(LAUNCH_UUID)).thenReturn(Optional.of(launch));
     when(file.getOriginalFilename()).thenReturn("launch.zip");
-    when(executeIntegrationHandler.executeCommand(eq(projectDetails), eq(PLUGIN_NAME),
-        eq("import"), argThat((Map<String, Object> params) ->
-            params.get("file") == file && params.get(ENTITY_PARAM) == rq)
+    when(executeIntegrationHandler.executeExtensionCommand(eq(PLUGIN_NAME), eq("import"),
+        argThat((PluginCommandRQ pluginCommandRq) ->
+            pluginCommandRq.getArguments().get("file") == file
+                && pluginCommandRq.getArguments().get(ENTITY_PARAM) == rq)
     )).thenReturn(result);
 
-    Object actual = handler.execute(user, TEST_PROJECT_NAME, PLUGIN_NAME, file, rq);
+    Object actual = handler.execute(user, PROJECT_KEY, PLUGIN_NAME, file, rq);
 
-    assertSame(result, actual);
+    assertThat(actual).isSameAs(result);
 
     ArgumentCaptor<ImportFinishedEvent> eventCaptor =
         ArgumentCaptor.forClass(ImportFinishedEvent.class);
-    verify(messageBus).publishActivity(eventCaptor.capture());
-    assertEquals(1L, eventCaptor.getValue().getProjectId());
-    assertEquals("launch.zip", eventCaptor.getValue().getFileName());
+    verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+    assertThat(eventCaptor.getValue().getProjectId()).isEqualTo(1L);
+    assertThat(eventCaptor.getValue().getFileName()).isEqualTo("launch.zip");
   }
 
   @Test
   void shouldExecuteImportWithoutTargetLaunchValidationWhenLaunchUuidIsNotSpecified() {
-    ReportPortalUser user = getRpUser("member", UserRole.USER, ProjectRole.MEMBER, 1L);
-    ReportPortalUser.ProjectDetails projectDetails = projectDetails(ProjectRole.MEMBER);
+    ReportPortalUser user = getRpUser("member", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
+    MembershipDetails membershipDetails = membershipDetails(ProjectRole.VIEWER);
     Object result = new Object();
 
-    when(projectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME)).thenReturn(
-        projectDetails);
-    when(executeIntegrationHandler.executeCommand(eq(projectDetails), eq(PLUGIN_NAME),
-        eq("import"), any()
-    )).thenReturn(result);
+    when(projectExtractor.extractMembershipDetails(user, PROJECT_KEY)).thenReturn(
+        membershipDetails);
+    when(file.getOriginalFilename()).thenReturn("launch.zip");
+    when(executeIntegrationHandler.executeExtensionCommand(eq(PLUGIN_NAME), eq("import"),
+        any())).thenReturn(result);
 
-    Object actual = handler.execute(user, TEST_PROJECT_NAME, PLUGIN_NAME, file, null);
+    Object actual = handler.execute(user, PROJECT_KEY, PLUGIN_NAME, file, null);
 
-    assertSame(result, actual);
+    assertThat(actual).isSameAs(result);
     verifyNoInteractions(launchRepository);
   }
 
-  private void shouldRejectImportToAnotherUsersLaunch(ProjectRole projectRole) {
-    ReportPortalUser user = getRpUser("user", UserRole.USER, projectRole, 1L);
-    ReportPortalUser.ProjectDetails projectDetails = projectDetails(projectRole);
+  private void shouldRejectImportToAnotherUsersLaunch() {
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.VIEWER, 1L);
+    MembershipDetails membershipDetails = membershipDetails(ProjectRole.VIEWER);
     LaunchImportRQ rq = importRequest();
     Launch launch = launch();
     launch.setUserId(2L);
 
-    when(projectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME)).thenReturn(
-        projectDetails);
+    when(projectExtractor.extractMembershipDetails(user, PROJECT_KEY)).thenReturn(
+        membershipDetails);
     when(launchRepository.findByUuid(LAUNCH_UUID)).thenReturn(Optional.of(launch));
 
-    ReportPortalException exception = assertThrows(ReportPortalException.class,
-        () -> handler.execute(user, TEST_PROJECT_NAME, PLUGIN_NAME, file, rq));
+    assertThatThrownBy(() -> handler.execute(user, PROJECT_KEY, PLUGIN_NAME, file, rq))
+        .isInstanceOf(ReportPortalException.class)
+        .satisfies(ex -> {
+          ReportPortalException exception = (ReportPortalException) ex;
+          assertThat(exception.getErrorType()).isEqualTo(ACCESS_DENIED);
+          assertThat(exception.getMessage()).isEqualTo(
+              "You do not have enough permissions. You are not launch owner.");
+        });
 
-    assertEquals(ACCESS_DENIED, exception.getErrorType());
-    assertEquals("You do not have enough permissions. You are not launch owner.",
-        exception.getMessage());
-    verify(executeIntegrationHandler, never()).executeCommand(
-        any(ReportPortalUser.ProjectDetails.class), anyString(), anyString(), anyMap());
-    verify(messageBus, never()).publishActivity(any());
+    verify(executeIntegrationHandler, never()).executeExtensionCommand(
+        anyString(), anyString(), any(PluginCommandRQ.class));
+    verify(applicationEventPublisher, never()).publishEvent(any());
   }
 
-  private static ReportPortalUser.ProjectDetails projectDetails(ProjectRole projectRole) {
-    return new ReportPortalUser.ProjectDetails(1L, TEST_PROJECT_NAME, projectRole);
+  private static MembershipDetails membershipDetails(ProjectRole projectRole) {
+    return MembershipDetails.builder()
+        .withOrgId(1L)
+        .withProjectId(1L)
+        .withProjectKey(PROJECT_KEY)
+        .withProjectRole(projectRole)
+        .build();
   }
 
   private static LaunchImportRQ importRequest() {

@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.ProductVersionController;
 import com.epam.reportportal.base.core.tms.dto.ProductVersionRQ;
@@ -68,7 +68,7 @@ class ProductVersionControllerTest {
         .build();
 
     // Configure MockMvc with a custom argument resolver for @AuthenticationPrincipal
-    mockMvc = standaloneSetup(productVersionController)
+    mockMvc = standaloneJsonSetup(productVersionController)
         .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
           @Override
           public boolean supportsParameter(MethodParameter parameter) {

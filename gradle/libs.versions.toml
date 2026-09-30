@@ -28,7 +28,7 @@ httpclient5 = "5.5.1"
 jakarta-inject = "2.0.1"
 jakarta-mail = "2.0.2"
 jakarta-xml-bind-api = "3.0.1"
-jasperreports = "6.21.3"
+jasperreports = "7.0.8"
 jasypt = "1.9.3"
 jaxb-api = "2.4.0-b180830.0359"
 jdbc-driver-version = "42.7.11"
@@ -96,6 +96,9 @@ slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugi
 rabbitmq-http-client = { group = "com.rabbitmq", name = "http-client", version.ref = "rabbitmq-http" }
 httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5", version.ref = "httpclient5" }
 jasperreports = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasperreports" }
+jasperreports-pdf = { group = "net.sf.jasperreports", name = "jasperreports-pdf", version.ref = "jasperreports" }
+jasperreports-excel-poi = { group = "net.sf.jasperreports", name = "jasperreports-excel-poi", version.ref = "jasperreports" }
+jasperreports-jdt = { group = "net.sf.jasperreports", name = "jasperreports-jdt", version.ref = "jasperreports" }
 apache-poi = { group = "org.apache.poi", name = "poi", version.ref = "apache-poi" }
 apache-poi-ooxml = { group = "org.apache.poi", name = "poi-ooxml", version.ref = "apache-poi" }
 openpdf = { group = "com.github.librepdf", name = "openpdf", version.ref = "openpdf" }

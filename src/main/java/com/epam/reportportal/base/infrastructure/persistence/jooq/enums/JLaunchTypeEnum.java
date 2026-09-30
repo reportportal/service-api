@@ -21,7 +21,9 @@ public enum JLaunchTypeEnum implements EnumType {
 
     MANUAL("MANUAL"),
 
-    AGENTIC("AGENTIC");
+    AGENTIC("AGENTIC"),
+
+    PIPELINE("PIPELINE");
 
     private final String literal;
 

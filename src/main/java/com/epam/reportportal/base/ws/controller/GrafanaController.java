@@ -65,9 +65,10 @@ public class GrafanaController {
   }
 
   /**
-   * Revokes every active Grafana proxy session for the current user. There is no server-side JWT revocation in this
-   * codebase yet, so this only cuts off the Grafana proxy specifically; a client should call it as part of its own
-   * logout flow, before discarding the JWT.
+   * Revokes every active Grafana proxy session for the current user. JWT logout ({@code POST /v1/auth/logout}) and
+   * server-initiated token revocation (password change, role change, disable, delete) already revoke Grafana proxy
+   * sessions automatically; this endpoint remains for clients that want to cut Grafana proxy access on its own, without
+   * a full logout.
    */
   @DeleteMapping("/v1/integration/grafana/session")
   @Operation(summary = "Revoke Grafana proxy sessions for the current user")

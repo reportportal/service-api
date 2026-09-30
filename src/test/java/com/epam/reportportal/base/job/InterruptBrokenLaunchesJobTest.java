@@ -18,6 +18,7 @@ package com.epam.reportportal.base.job;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,7 +87,7 @@ class InterruptBrokenLaunchesJobTest {
         new PageImpl<>(Collections.singletonList(project)));
     when(launchRepository.findIdsWithStatusAndStartTimeBefore(any(), any(), any(),
         any())).thenReturn(List.of(launchId, nextLaunchId));
-    org.mockito.Mockito.doThrow(new RuntimeException("boom"))
+    doThrow(new RuntimeException("boom"))
         .when(brokenLaunchInterruptService)
         .interruptIfStillBroken(eq(launchId), any(), any());
 

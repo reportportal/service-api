@@ -264,4 +264,28 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
   @Query("UPDATE Launch l SET l.testPlanId = null WHERE l.projectId = :projectId AND l.testPlanId IN :testPlanIds")
   int clearTestPlanIdsByProjectIdAndTestPlanIds(@Param("projectId") Long projectId,
       @Param("testPlanIds") List<Long> testPlanIds);
+
+  /**
+   * Finds launch IDs filtered by status, project, and start-time cutoff, excluding launches of the
+   * specified launch type.
+   *
+   * @param projectId the project to filter launches by
+   * @param status    the launch status to filter by
+   * @param before    the start-time cutoff; only launches started before this instant are included
+   * @return matching launch IDs ordered by ID
+   */
+  @Query("""
+      SELECT l.id
+      FROM Launch l
+      WHERE l.status = :status
+        AND l.projectId = :projectId
+        AND l.startTime < :before
+      ORDER BY l.id
+      """)
+  List<Long> findIdsWithStatusAndStartTimeBefore(
+      @Param("projectId") Long projectId,
+      @Param("status") StatusEnum status,
+      @Param("before") Instant before
+  );
+
 }

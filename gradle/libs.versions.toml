@@ -17,30 +17,30 @@ apache-commons-compress = "1.28.0"
 apache-commons-csv = "1.10.0"
 apache-commons-lang3 = "3.20.0"
 apache-poi = "5.5.0"
-bouncycastle = "1.84"
+bouncycastle = "1.86"
 commons-validator = "1.10.0"
 embedded-postgres = "2.2.0"
 flyway-spring-test = "10.0.0"
 google-api-client = "2.8.1"
-guava = "33.5.0-jre"
-hibernate-validator = "8.0.2.Final"
-httpclient5 = "5.5.1"
+guava = "33.7.1-jre"
+hibernate-validator = "8.0.5.Final"
+httpclient5 = "5.6.4"
 jakarta-inject = "2.0.1"
 jakarta-mail = "2.0.2"
 jakarta-xml-bind-api = "3.0.1"
 jasperreports = "7.0.8"
 jasypt = "1.9.3"
 jaxb-api = "2.4.0-b180830.0359"
-jdbc-driver-version = "42.7.11"
+jdbc-driver-version = "42.7.13"
 jjwt = "0.12.5"
 jooq = "3.19.27"
 json-schema-validator = "1.5.6"
-lombok = "1.18.42"
+lombok = "1.18.48"
 nimbus-oauth2-oidc-sdk = "10.15.1"
 opencsv = "5.12.0"
 openpdf = "2.4.0"
 pf4j = "3.15.0"
-rabbitmq-http = "5.4.0"
+rabbitmq-http = "5.7.0"
 slugify = "3.0.7"
 spring-modulith = "1.4.7"
 springdoc-openapi = "2.8.14"
@@ -84,8 +84,6 @@ spring-security-ldap = { group = "org.springframework.security", name = "spring-
 spring-security-saml2-service-provider = { group = "org.springframework.security", name = "spring-security-saml2-service-provider" }
 spring-security-oauth2-resource-server = { group = "org.springframework.security", name = "spring-security-oauth2-resource-server" }
 spring-security-oauth2-authorization-server = { group = "org.springframework.security", name = "spring-security-oauth2-authorization-server" }
-spring-security-oauth2-jose = { group = "org.springframework.security", name = "spring-security-oauth2-jose" }
-spring-security-oauth2-core = { group = "org.springframework.security", name = "spring-security-oauth2-core" }
 
 # Other libraries
 springdoc-openapi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }

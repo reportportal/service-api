@@ -19,18 +19,14 @@ package com.epam.reportportal.base.ws.controller;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.IS_ADMIN;
-import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
-import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.epam.reportportal.api.model.PluginCommandContext;
-import com.epam.reportportal.api.model.PluginCommandRQ;
-import com.epam.reportportal.base.core.events.domain.ImportFinishedEvent;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.plugin.CreatePluginHandler;
 import com.epam.reportportal.base.core.integration.plugin.DeletePluginHandler;
 import com.epam.reportportal.base.core.integration.plugin.GetPluginHandler;
+import com.epam.reportportal.base.core.integration.plugin.ImportPluginCommandHandler;
 import com.epam.reportportal.base.core.integration.plugin.UpdatePluginHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.EntryCreatedRS;
@@ -43,11 +39,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -82,8 +76,8 @@ public class PluginController {
   private final GetPluginHandler getPluginHandler;
   private final DeletePluginHandler deletePluginHandler;
   private final ExecuteIntegrationHandler executeIntegrationHandler;
+  private final ImportPluginCommandHandler importPluginCommandHandler;
   private final ProjectExtractor projectExtractor;
-  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -152,26 +146,6 @@ public class PluginController {
       @PathVariable String pluginName,
       @RequestParam("file") MultipartFile file,
       @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
-    Map<String, Object> executionParams = new HashMap<>();
-    executionParams.put("file", file);
-    ofNullable(launchImportRq)
-        .ifPresentOrElse(_ -> executionParams.put(ENTITY_PARAM, launchImportRq),
-            () -> executionParams.put(ENTITY_PARAM, new LaunchImportRQ())
-        );
-    var membershipDetails = projectExtractor.extractMembershipDetails(user, projectKey);
-    executionParams.put("projectName", membershipDetails.getProjectKey());
-    PluginCommandRQ pluginCommandRQ = new PluginCommandRQ()
-        .context(new PluginCommandContext(membershipDetails.getOrgId(), membershipDetails.getProjectId(), null))
-        .arguments(executionParams);
-
-    var importResult =
-        executeIntegrationHandler.executeExtensionCommand(pluginName, "import", pluginCommandRQ);
-    eventPublisher.publishEvent(new ImportFinishedEvent(user.getUserId(),
-        user.getUsername(),
-        membershipDetails.getProjectId(),
-        file.getOriginalFilename(),
-        membershipDetails.getOrgId()
-    ));
-    return importResult;
+    return importPluginCommandHandler.execute(user, projectKey, pluginName, file, launchImportRq);
   }
 }

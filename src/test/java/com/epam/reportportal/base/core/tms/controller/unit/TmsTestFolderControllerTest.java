@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsTestFolderController;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
@@ -92,7 +92,7 @@ public class TmsTestFolderControllerTest {
         .build();
 
     // Configure MockMvc with custom argument resolvers
-    mockMvc = standaloneSetup(tmsTestFolderController)
+    mockMvc = standaloneJsonSetup(tmsTestFolderController)
         .setCustomArgumentResolvers(
             new HandlerMethodArgumentResolver() {
               @Override

@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.jasper;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.epam.reportportal.base.core.jasper.constants.LaunchReportConstants;
@@ -36,7 +37,6 @@ import org.springframework.core.io.DefaultResourceLoader;
 
 class JasperReportRenderTest {
 
-  private static JasperReportRender render;
   private static UserJasperReportHandler userHandler;
   private static ProjectJasperReportHandler projectHandler;
   private static OrganizationJasperReportHandler organizationHandler;
@@ -44,7 +44,7 @@ class JasperReportRenderTest {
 
   @BeforeAll
   static void compileTemplates() throws Exception {
-    render = new JasperReportRender(new DefaultResourceLoader());
+    JasperReportRender render = new JasperReportRender(new DefaultResourceLoader());
     userHandler = new UserJasperReportHandler(render);
     projectHandler = new ProjectJasperReportHandler(render);
     organizationHandler = new OrganizationJasperReportHandler(render);
@@ -64,7 +64,7 @@ class JasperReportRenderTest {
     var print = userHandler.getJasperPrint(null, new JRBeanCollectionDataSource(List.of(row)));
     byte[] csv = userHandler.exportReportBytes(ReportFormat.CSV, print);
     assertNotNull(csv);
-    assertFalse(csv.length == 0);
+    assertNotEquals(0, csv.length);
   }
 
   @Test
@@ -80,7 +80,7 @@ class JasperReportRenderTest {
     var print = projectHandler.getJasperPrint(null, new JRBeanCollectionDataSource(List.of(row)));
     byte[] csv = projectHandler.exportReportBytes(ReportFormat.CSV, print);
     assertNotNull(csv);
-    assertFalse(csv.length == 0);
+    assertNotEquals(0, csv.length);
   }
 
   @Test
@@ -125,9 +125,9 @@ class JasperReportRenderTest {
     byte[] pdf = launchHandler.exportReportBytes(ReportFormat.PDF, print);
     byte[] html = launchHandler.exportReportBytes(ReportFormat.HTML, print);
     byte[] xls = launchHandler.exportReportBytes(ReportFormat.XLS, print);
-    assertFalse(pdf.length == 0);
-    assertFalse(html.length == 0);
-    assertFalse(xls.length == 0);
+    assertNotEquals(0, pdf.length);
+    assertNotEquals(0, html.length);
+    assertNotEquals(0, xls.length);
   }
 
   public static class LaunchItemRow {

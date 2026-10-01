@@ -52,6 +52,14 @@ public interface UserMutationService {
   void updateInstanceRole(User user, String role, ReportPortalUser editor);
 
   /**
+   * Updates the user's password and revokes all previously issued tokens for the user.
+   *
+   * @param user        the user entity to update
+   * @param rawPassword the new plain-text password (will be encoded)
+   */
+  void updatePassword(User user, String rawPassword);
+
+  /**
    * Updates user active status.
    *
    * @param user  the user entity to update

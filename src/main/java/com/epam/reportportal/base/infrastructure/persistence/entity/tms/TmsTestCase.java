@@ -52,8 +52,8 @@ public class TmsTestCase implements Serializable {
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;
 
-  @Column(name = "priority")
-  private String priority;
+  @Column(name = "priority", nullable = false)
+  private String priority = "UNSPECIFIED";
 
   @Column(name = "search_vector", insertable = false, updatable = false)
   private String searchVector; //immutable, because trigger updates this field
@@ -77,6 +77,10 @@ public class TmsTestCase implements Serializable {
   @Column(name = "updated_at", nullable = false)
   @Convert(converter = JpaInstantConverter.class)
   private Instant updatedAt;
+
+  @Column(name = "source_updated_at")
+  @Convert(converter = JpaInstantConverter.class)
+  private Instant sourceUpdatedAt;
 
   @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)
   @Fetch(FetchMode.SUBSELECT)

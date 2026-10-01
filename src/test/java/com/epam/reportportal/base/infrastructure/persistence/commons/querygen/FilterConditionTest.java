@@ -1,6 +1,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TEST_CASE_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_DISPLAY_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -39,6 +41,17 @@ class FilterConditionTest {
         .orElseThrow();
 
     assertEquals("testCaseId".hashCode(), criteriaHolder.castValue("testCaseId"));
+  }
+
+  @Test
+  void tmsTestCaseDisplayIdIsSupported() {
+    CriteriaHolder criteriaHolder = FilterTarget.TMS_TEST_CASE_TARGET
+        .getCriteriaByFilter(CRITERIA_TMS_TEST_CASE_DISPLAY_ID)
+        .orElseThrow();
+
+    assertEquals(CRITERIA_TMS_TEST_CASE_DISPLAY_ID, criteriaHolder.getFilterCriteria());
+    assertEquals(String.class, criteriaHolder.getDataType());
+    assertEquals(TMS_TEST_CASE.DISPLAY_ID.getQualifiedName().toString(), criteriaHolder.getQueryCriteria());
   }
 
   @Test

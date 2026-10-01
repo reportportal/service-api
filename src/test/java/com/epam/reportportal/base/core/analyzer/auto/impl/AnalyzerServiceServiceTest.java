@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import com.epam.reportportal.base.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.reportportal.base.infrastructure.model.analyzer.IndexLaunch;
@@ -58,10 +59,11 @@ class AnalyzerServiceServiceTest {
 
   private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-  private final AnalyzerServiceImpl issuesAnalyzer =
-      new AnalyzerServiceImpl(100, analyzerStatusCache, launchPreparerService,
-          analyzerServiceClient,
-          testItemRepository, launchRepository);
+  private final DefectUpdateStatisticsService defectUpdateStatisticsService = mock(DefectUpdateStatisticsService.class);
+
+  private final AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(100, analyzerStatusCache,
+      launchPreparerService, analyzerServiceClient, testItemRepository, launchRepository,
+      defectUpdateStatisticsService);
 
   @Test
   void hasAnalyzers() {

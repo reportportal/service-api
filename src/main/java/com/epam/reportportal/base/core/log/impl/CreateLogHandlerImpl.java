@@ -44,6 +44,7 @@ import com.epam.reportportal.base.ws.converter.builders.LogFullBuilder;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +106,12 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
     final Launch launch = testItemRepository.findByUuid(request.getItemUuid())
         .map(item -> {
           logFullBuilder.addTestItem(item);
-          return testItemService.getEffectiveLaunch(item);
+          final Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
+          if (StringUtils.isNotBlank(request.getLaunchUuid())) {
+            expect(effectiveLaunch.getUuid(), Predicates.equalTo(request.getLaunchUuid()))
+                .verify(ACCESS_DENIED);
+          }
+          return effectiveLaunch;
         })
         .orElseGet(() -> launchRepository.findByUuid(request.getLaunchUuid())
             .map(l -> {

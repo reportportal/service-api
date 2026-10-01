@@ -32,6 +32,7 @@ public class ValidationConstraints {
   public static final int MIN_NAME_LENGTH = 3;
   public static final int MAX_NAME_LENGTH = 256;
   public static final int MAX_DESCRIPTION_LENGTH = 65536;
+  public static final int MAX_TMS_TEST_CASE_EXECUTION_COMMENT_LENGTH = 1000;
   public static final int MAX_PARAMETERS_LENGTH = 256;
   public static final int MAX_LAUNCH_DESCRIPTION_LENGTH = 2048;
   public static final int MAX_ENTITY_DESCRIPTION = 1500;

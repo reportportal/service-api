@@ -28,11 +28,14 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
+import com.google.common.collect.Iterables;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -45,11 +48,14 @@ public class StandardTestItemPreparerService implements TestItemPreparationStrat
 
   private final TestItemRepository testItemRepository;
   private final LogService logService;
+  private final Integer itemsBatchSize;
 
   public StandardTestItemPreparerService(TestItemRepository testItemRepository,
-      LogService logService) {
+      LogService logService,
+      @Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize) {
     this.testItemRepository = testItemRepository;
     this.logService = logService;
+    this.itemsBatchSize = itemsBatchSize;
   }
 
   @Override
@@ -91,7 +97,11 @@ public class StandardTestItemPreparerService implements TestItemPreparationStrat
   }
 
   private Map<Long, List<IndexLog>> getLogsMapping(Long launchId, List<Long> itemIds) {
-    return logService.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-        itemIds, LogLevel.ERROR.toInt());
+    final Map<Long, List<IndexLog>> logsMapping = new HashMap<>();
+    Iterables.partition(itemIds, itemsBatchSize)
+        .forEach(partition -> logsMapping.putAll(
+            logService.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, partition,
+                LogLevel.ERROR.toInt())));
+    return logsMapping;
   }
 }

@@ -92,7 +92,7 @@ public class RerunHandlerImpl implements RerunHandler {
   public Launch handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user) {
     Optional<Launch> launchOptional = !StringUtils.hasText(request.getRerunOf()) ?
         launchRepository.findLatestByNameAndProjectId(request.getName(), projectId) :
-        launchRepository.findByUuid(request.getRerunOf());
+        launchRepository.findByUuidAndProjectId(request.getRerunOf(), projectId);
     Launch existingLaunch = launchOptional.orElseThrow(
         () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
             ofNullable(request.getRerunOf()).orElse(request.getName())
@@ -113,7 +113,9 @@ public class RerunHandlerImpl implements RerunHandler {
   @Override
   public String getRerunLaunchUuid(String rerunOf, String launchName, Long projectId) {
     if (StringUtils.hasText(rerunOf)) {
-      return rerunOf;
+      return launchRepository.findByUuidAndProjectId(rerunOf, projectId)
+          .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, rerunOf))
+          .getUuid();
     }
     Launch rerunLaunch = launchRepository.findLatestByNameAndProjectId(launchName, projectId)
         .orElseThrow(() -> new ReportPortalException(

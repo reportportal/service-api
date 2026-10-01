@@ -46,6 +46,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class UserMutationServiceImplTest {
@@ -61,6 +62,9 @@ class UserMutationServiceImplTest {
 
   @Mock
   private TokenBlacklistService tokenBlacklistService;
+
+  @Mock
+  private PasswordEncoder passwordEncoder;
 
   @InjectMocks
   private UserMutationServiceImpl userMutationService;
@@ -314,6 +318,22 @@ class UserMutationServiceImplTest {
   }
 
   @Nested
+  @DisplayName("updatePassword")
+  class UpdatePassword {
+
+    @Test
+    @DisplayName("Should encode password and revoke user tokens")
+    void updatePasswordWhenValidShouldEncodeAndRevokeTokens() {
+      when(passwordEncoder.encode("newPassword")).thenReturn("encoded-password");
+
+      userMutationService.updatePassword(user, "newPassword");
+
+      assertThat(user.getPassword()).isEqualTo("encoded-password");
+      verify(tokenBlacklistService).revokeUserTokens(user);
+    }
+  }
+
+  @Nested
   @DisplayName("updateActive")
   class UpdateActive {
 
@@ -339,6 +359,24 @@ class UserMutationServiceImplTest {
       userMutationService.updateActive(user, false);
 
       assertThat(user.getActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should revoke user tokens when account is disabled")
+    void updateActiveWhenDisabledShouldRevokeUserTokens() {
+      userMutationService.updateActive(user, false);
+
+      verify(tokenBlacklistService).revokeUserTokens(user);
+    }
+
+    @Test
+    @DisplayName("Should not revoke tokens when account is enabled")
+    void updateActiveWhenEnabledShouldNotRevokeTokens() {
+      user.setActive(false);
+
+      userMutationService.updateActive(user, true);
+
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
   }
 

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseCreatedEvent;
+import com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
@@ -58,8 +59,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -189,6 +190,8 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(mock(TestCaseActivityResource.class));
     lenient().when(tmsTestCaseActivityResourceMapper.buildTestCaseCreatedEvent(any(), any(), any()))
         .thenReturn(mock(TestCaseCreatedEvent.class));
+    lenient().when(tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(any(), any(), any()))
+        .thenReturn(mock(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
 
     attributes = new ArrayList<>();
     var attribute = new TmsTestCaseAttributeRQ();
@@ -303,10 +306,6 @@ class TmsTestCaseServiceImplTest {
     sut.setTmsAttributeService(tmsAttributeService);
   }
 
-  // -------------------------------------------------------------------------
-  // GET — do not use membershipDetails, getProjectId() is not needed
-  // -------------------------------------------------------------------------
-
   @Test
   void getTestCaseByProjectId_ShouldReturnListOfTestCases() {
     var testCases = List.of(testCase);
@@ -350,10 +349,6 @@ class TmsTestCaseServiceImplTest {
     assertThrows(ReportPortalException.class, () -> sut.getById(projectId, testCaseId));
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
   }
-
-  // -------------------------------------------------------------------------
-  // CREATE — membershipDetails.getProjectId() is called inside service
-  // -------------------------------------------------------------------------
 
   @Test
   void create_WithTestFolder_ShouldCreateAndReturnTestCase() {
@@ -524,10 +519,6 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
   }
 
-  // -------------------------------------------------------------------------
-  // UPDATE — membershipDetails.getProjectId() is called inside service
-  // -------------------------------------------------------------------------
-
   @Test
   void update_WhenTestCaseExists_ShouldUpdateAndReturnTestCase() {
     when(membershipDetails.getProjectId()).thenReturn(projectId);
@@ -648,10 +639,6 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseMapper, never()).update(any(), any());
   }
 
-  // -------------------------------------------------------------------------
-  // PATCH single — membershipDetails.getProjectId() is called inside service
-  // -------------------------------------------------------------------------
-
   @Test
   void patch_WhenTestCaseExists_ShouldPatchAndReturnTestCase() {
     when(membershipDetails.getProjectId()).thenReturn(projectId);
@@ -661,7 +648,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(Optional.of(testCase));
     when(tmsTestFolderService.create(eq(projectId), any(NewTestFolderRQ.class)))
         .thenReturn(testFolderRS);
-    when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseRQ, testFolderId))
+    when(tmsTestCaseMapper.convertFromPatchRQ(projectId, testCaseRQ, testFolderId))
         .thenReturn(convertedTestCase);
     when(tmsTestCaseVersionService.patchDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
@@ -676,7 +663,7 @@ class TmsTestCaseServiceImplTest {
     assertEquals(testCaseRS, result);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
     verify(tmsTestFolderService).create(eq(projectId), any(NewTestFolderRQ.class));
-    verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseRQ, testFolderId);
+    verify(tmsTestCaseMapper).convertFromPatchRQ(projectId, testCaseRQ, testFolderId);
     verify(tmsTestCaseMapper).patch(testCase, convertedTestCase);
     verify(tmsTestCaseAttributeService).patchTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(
@@ -700,7 +687,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
         .thenReturn(Optional.of(testCase));
     when(tmsTestFolderService.existsById(projectId, testFolderId)).thenReturn(true);
-    when(tmsTestCaseMapper.convertFromRQ(projectId, testCaseWithFolderIdRQ, testFolderId))
+    when(tmsTestCaseMapper.convertFromPatchRQ(projectId, testCaseWithFolderIdRQ, testFolderId))
         .thenReturn(convertedTestCase);
     when(tmsTestCaseVersionService.patchDefaultTestCaseVersion(
         projectId, testCase, textManualScenarioRQ)).thenReturn(testCaseVersion);
@@ -715,7 +702,7 @@ class TmsTestCaseServiceImplTest {
     assertEquals(testCaseRS, result);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
-    verify(tmsTestCaseMapper).convertFromRQ(projectId, testCaseWithFolderIdRQ, testFolderId);
+    verify(tmsTestCaseMapper).convertFromPatchRQ(projectId, testCaseWithFolderIdRQ, testFolderId);
     verify(tmsTestCaseMapper).patch(testCase, convertedTestCase);
     verify(tmsTestCaseAttributeService).patchTestCaseAttributes(projectId, testCase, attributes);
     verify(tmsTestCaseVersionService).patchDefaultTestCaseVersion(
@@ -756,10 +743,6 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseMapper, never()).patch(any(), any());
   }
 
-  // -------------------------------------------------------------------------
-  // DELETE single — membershipDetails.getProjectId()
-  // -------------------------------------------------------------------------
-
   @Test
   void delete_ShouldDeleteTestCase() {
     sut.delete(membershipDetails, user, testCaseId);
@@ -769,10 +752,6 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestCaseRepository).deleteById(testCaseId);
   }
-
-  // -------------------------------------------------------------------------
-  // DELETE batch — membershipDetails.getProjectId()
-  // -------------------------------------------------------------------------
 
   @Test
   void delete_WithBatchDeleteRequest_ShouldDeleteAllTestCases() {
@@ -1105,13 +1084,14 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
     
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
     
     assertNotNull(result);
     assertEquals(1, result.size());
     verify(importerFactory).getImporter("test.csv");
     verify(importer).parse(any(InputStream.class));
     verify(tmsTestCaseRepository).saveAll(anyList());
+    verify(eventPublisher).publishEvent(any(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
   }
 
   @Test
@@ -1127,7 +1107,7 @@ class TmsTestCaseServiceImplTest {
     when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, testFolderId, null, file));
+        () -> sut.importFromFile(membershipDetails, user, testFolderId, null, file));
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     verify(tmsTestCaseRepository, never()).saveAll(any());
   }
@@ -1160,11 +1140,12 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
     
-    var result = sut.importFromFile(projectId, null, null, file);
+    var result = sut.importFromFile(membershipDetails, user, null, null, file);
     
     assertNotNull(result);
     assertEquals(1, result.size());
     verify(tmsTestFolderService).resolveFolderPathsBatch(eq(projectId), eq(null), anyList());
+    verify(eventPublisher).publishEvent(any(com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent.class));
   }
 
   @Test
@@ -1194,11 +1175,12 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
     assertNotNull(result);
     verify(tmsTestFolderService).existsById(projectId, testFolderId);
     verify(tmsTestCaseMapper).convertFromImportRQ(projectId, importRQ, testFolderId);
+    verify(eventPublisher).publishEvent(any(TestCaseImportedEvent.class));
   }
 
   @Test
@@ -1231,7 +1213,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
-    var result = sut.importFromFile(projectId, null, folderName, file);
+    var result = sut.importFromFile(membershipDetails, user, null, folderName, file);
 
     assertNotNull(result);
     verify(tmsTestFolderService).resolveFolderPath(projectId, null, List.of(folderName));
@@ -1255,7 +1237,7 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.existsById(projectId, nonExistentFolderId)).thenReturn(false);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, nonExistentFolderId, null, file));
+        () -> sut.importFromFile(membershipDetails, user, nonExistentFolderId, null, file));
     assertEquals(NOT_FOUND, exception.getErrorType());
     verify(tmsTestCaseRepository, never()).saveAll(any());
   }
@@ -1277,7 +1259,7 @@ class TmsTestCaseServiceImplTest {
     when(importer.parse(any(InputStream.class))).thenReturn(parseResult);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, null, null, file));
+        () -> sut.importFromFile(membershipDetails, user, null, null, file));
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     verify(tmsTestCaseRepository, never()).saveAll(any());
   }
@@ -1319,7 +1301,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(List.of(savedTestCase1, savedTestCase2));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS(), new TmsTestFolderRS()));
     
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
     
     assertNotNull(result);
     assertEquals(2, result.size());
@@ -1333,7 +1315,7 @@ class TmsTestCaseServiceImplTest {
     when(importerFactory.getImporter("test.csv")).thenReturn(importer);
 
     var exception = assertThrows(ReportPortalException.class,
-        () -> sut.importFromFile(projectId, testFolderId, null, file));
+        () -> sut.importFromFile(membershipDetails, user, testFolderId, null, file));
     assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
     assertTrue(exception.getMessage().contains("Failed to read file"));
   }
@@ -1369,7 +1351,7 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
 
-    var result = sut.importFromFile(projectId, testFolderId, null, file);
+    var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
     assertNotNull(result);
     verify(tmsAttributeService).resolveAttributes(eq(projectId), anySet());
@@ -2095,7 +2077,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
         .thenReturn(Collections.emptyList());
 
-    assertThrows(ReportPortalException.class, () -> sut.duplicate(membershipDetails, user, duplicateRequest));
+    assertThrows(ReportPortalException.class,
+        () -> sut.duplicate(membershipDetails, user, duplicateRequest));
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
     verify(tmsTestCaseRepository, never()).save(any());
@@ -2114,7 +2097,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestFolderService.resolveTargetFolderId(projectId, 10L, null)).thenReturn(10L);
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L)).thenReturn(Optional.empty());
 
-    assertThrows(ReportPortalException.class, () -> sut.duplicate(membershipDetails, user, duplicateRequest));
+    assertThrows(ReportPortalException.class,
+        () -> sut.duplicate(membershipDetails, user, duplicateRequest));
     verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, 10L, null);
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 1L);
@@ -2437,8 +2421,6 @@ class TmsTestCaseServiceImplTest {
     assertEquals(1L, result.getFirst());
     verify(tmsTestCaseRepository).findExistingTestCaseIds(projectId, testCaseIds);
   }
-
-  // ==================== DUPLICATION WITH TARGET FOLDER TESTS ====================
 
   @Test
   void duplicateTestCases_WithTargetFolder_Success() {

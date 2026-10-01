@@ -79,6 +79,8 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
 
   Optional<Launch> findByUuid(String uuid);
 
+  Optional<Launch> findByUuidAndProjectId(String uuid, Long projectId);
+
   /**
    * Finds launch by {@link Launch#getUuid()} and sets a lock on the found launch row in the database. Required for
    * fetching launch from the concurrent environment to provide synchronization between dependant entities
@@ -129,6 +131,33 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
         AND l.launchType <> :excludedLaunchType
       """)
   Stream<Long> streamIdsWithStatusAndStartTimeBefore(
+      @Param("projectId") Long projectId,
+      @Param("status") StatusEnum status,
+      @Param("before") Instant before,
+      @Param("excludedLaunchType") LaunchTypeEnum excludedLaunchType
+  );
+
+  /**
+   * Finds launch IDs filtered by status, project, and start-time cutoff, excluding launches of the
+   * specified launch type.
+   *
+   * @param projectId          the project to filter launches by
+   * @param status             the launch status to filter by
+   * @param before             the start-time cutoff; only launches started before this instant are
+   *                           included
+   * @param excludedLaunchType the launch type to exclude from the results
+   * @return matching launch IDs ordered by ID
+   */
+  @Query("""
+      SELECT l.id
+      FROM Launch l
+      WHERE l.status = :status
+        AND l.projectId = :projectId
+        AND l.startTime < :before
+        AND l.launchType <> :excludedLaunchType
+      ORDER BY l.id
+      """)
+  List<Long> findIdsWithStatusAndStartTimeBefore(
       @Param("projectId") Long projectId,
       @Param("status") StatusEnum status,
       @Param("before") Instant before,
@@ -223,4 +252,40 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
    */
   @Query("SELECT l.testPlanId FROM Launch l WHERE l.id = :launchId")
   Optional<Long> findTestPlanIdById(@Param("launchId") Long launchId);
+
+  /**
+   * Preserves launches while clearing references to deleted test plans.
+   *
+   * @param projectId the project ID
+   * @param testPlanIds IDs of deleted test plans
+   * @return number of updated launches
+   */
+  @Modifying
+  @Query("UPDATE Launch l SET l.testPlanId = null WHERE l.projectId = :projectId AND l.testPlanId IN :testPlanIds")
+  int clearTestPlanIdsByProjectIdAndTestPlanIds(@Param("projectId") Long projectId,
+      @Param("testPlanIds") List<Long> testPlanIds);
+
+  /**
+   * Finds launch IDs filtered by status, project, and start-time cutoff, excluding launches of the
+   * specified launch type.
+   *
+   * @param projectId the project to filter launches by
+   * @param status    the launch status to filter by
+   * @param before    the start-time cutoff; only launches started before this instant are included
+   * @return matching launch IDs ordered by ID
+   */
+  @Query("""
+      SELECT l.id
+      FROM Launch l
+      WHERE l.status = :status
+        AND l.projectId = :projectId
+        AND l.startTime < :before
+      ORDER BY l.id
+      """)
+  List<Long> findIdsWithStatusAndStartTimeBefore(
+      @Param("projectId") Long projectId,
+      @Param("status") StatusEnum status,
+      @Param("before") Instant before
+  );
+
 }

@@ -143,6 +143,28 @@ class EditUserHandlerImplTest {
   }
 
   @Test
+  void changePasswordWhenValidShouldUpdatePasswordAndRevokeTokens() {
+    User user = new User();
+    user.setLogin("test");
+    user.setUserType(UserType.INTERNAL);
+    user.setPassword("encoded-old-password");
+    when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
+    when(passwordEncoder.matches("oldPass", "encoded-old-password")).thenReturn(true);
+
+    var changePasswordRq = new ChangePasswordRQ();
+    changePasswordRq.setOldPassword("oldPass");
+    changePasswordRq.setNewPassword("newPass123!");
+
+    handler.changePassword(
+        getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L),
+        changePasswordRq
+    );
+
+    verify(userMutationService).updatePassword(eq(user), eq("newPass123!"));
+    verify(userRepository).save(user);
+  }
+
+  @Test
   void changePasswordWithIncorrectOldPassword() {
     User user = new User();
     user.setLogin("test");

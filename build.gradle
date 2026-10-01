@@ -56,6 +56,23 @@ java {
 println("Release mode: $releaseMode")
 
 dependencies {
+    // Patch-level Snyk fixes within the same major.minor line already resolved by the Spring Boot 3.5.16 BOM.
+    // TODO remove once Spring Boot 4 upgrade lands and these are managed by the new BOM.
+    constraints {
+        implementation('ch.qos.logback:logback-classic:1.6.4')
+        implementation('ch.qos.logback:logback-core:1.6.4')
+        implementation('com.fasterxml.jackson.core:jackson-core:2.22.3')
+        implementation('com.fasterxml.jackson.core:jackson-databind:2.22.3')
+        implementation('org.apache.logging.log4j:log4j-api:2.26.1')
+        implementation('org.apache.logging.log4j:log4j-to-slf4j:2.26.1')
+        implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.60')
+        implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.60')
+        implementation('org.freemarker:freemarker:2.3.35')
+        // Align with bcprov-jdk18on (already pinned to 1.86 via libs.bouncycastle) to avoid a mixed-version classpath.
+        implementation('org.bouncycastle:bcpkix-jdk18on:1.86')
+        implementation('org.bouncycastle:bcutil-jdk18on:1.86')
+    }
+
     implementation(platform(libs.zonky.postgres.bom))
     api(libs.embedded.postgres)
 
@@ -123,10 +140,13 @@ dependencies {
     // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)
 
-    // Check authentication error response format for versions higher than 6.21.3 TODO: consider upgrade to 7.0.1+
-    implementation(libs.jasperreports) {
-        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
-    }
+    // JasperReports 7 is modular: core + PDF/XLS/JDT compiler. jackson-dataformat-xml is required
+    // to parse JRXML 7 (Digester was removed).
+    implementation(libs.jasperreports)
+    implementation(libs.jasperreports.pdf)
+    implementation(libs.jasperreports.excel.poi)
+    implementation(libs.jasperreports.jdt)
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
 
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation(libs.apache.poi)

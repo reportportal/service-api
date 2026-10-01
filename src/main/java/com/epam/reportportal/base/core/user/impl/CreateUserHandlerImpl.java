@@ -151,7 +151,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(
         BAD_REQUEST_ERROR, "Unable to change password for external user");
 
-    user.setPassword(passwordEncoder.encode(request.getPassword()));
+    userMutationService.updatePassword(user, request.getPassword());
     userRepository.save(user);
     restorePasswordBidRepository.deleteById(request.getUuid());
 

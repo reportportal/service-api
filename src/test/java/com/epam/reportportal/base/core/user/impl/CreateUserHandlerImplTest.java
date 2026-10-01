@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,17 +28,27 @@ import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserMutationService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.RestorePasswordBidRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.RestorePasswordBid;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.user.ResetPasswordRQ;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -54,8 +65,16 @@ class CreateUserHandlerImplTest {
   @Mock
   private PasswordPolicyService passwordPolicyService;
 
+  @Mock
+  private RestorePasswordBidRepository restorePasswordBidRepository;
+
   @InjectMocks
   private CreateUserHandlerImpl handler;
+
+  @BeforeEach
+  void setUp() {
+    ReflectionTestUtils.setField(handler, "restorePasswordBidTtl", Duration.ofHours(24));
+  }
 
   @Test
   void createByAdminUserAlreadyExists() {
@@ -168,6 +187,31 @@ class CreateUserHandlerImplTest {
         exception.getMessage()
     );
     verify(passwordPolicyService).validate("Pass123+");
+  }
+
+  @Test
+  void resetPasswordWhenValidShouldUpdatePasswordAndRevokeTokens() {
+    var bid = new RestorePasswordBid();
+    bid.setUuid("bid-uuid");
+    bid.setEmail("user@example.com");
+    bid.setLastModifiedDate(Instant.now());
+
+    var user = new User();
+    user.setEmail("user@example.com");
+    user.setUserType(UserType.INTERNAL);
+
+    when(restorePasswordBidRepository.findById("bid-uuid")).thenReturn(Optional.of(bid));
+    when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+
+    var request = new ResetPasswordRQ();
+    request.setUuid("bid-uuid");
+    request.setPassword("newPassword123!");
+
+    handler.resetPassword(request);
+
+    verify(userMutationService).updatePassword(eq(user), eq("newPassword123!"));
+    verify(userRepository).save(user);
+    verify(restorePasswordBidRepository).deleteById("bid-uuid");
   }
 
 }

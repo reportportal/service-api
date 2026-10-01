@@ -56,9 +56,6 @@ public class CreateTmsManualLaunchRS {
   @Schema(description = "Launch displayId", example = "ML123")
   private String displayId;
 
-  @Schema(description = "Launch status", example = "IN_PROGRESS")
-  private String status;
-
   @Schema(description = "Test plan information")
   @JsonProperty("testPlan")
   private TmsManualLaunchTestPlanRS testPlan;

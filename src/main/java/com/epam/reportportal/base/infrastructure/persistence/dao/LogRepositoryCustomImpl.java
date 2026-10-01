@@ -186,7 +186,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
             dsl.select(TEST_ITEM.ITEM_ID, TEST_ITEM.ITEM_ID)
                 .from(TEST_ITEM)
                 .where(TEST_ITEM.LAUNCH_ID.eq(launchId))
-                .and(TEST_ITEM.ITEM_ID.in(itemIds))
+                .and(TEST_ITEM.ITEM_ID.eq(DSL.any(itemIds.toArray(new Long[0]))))
                 .unionAll(
                     dsl.select(TEST_ITEM.ITEM_ID, dRootId)
                         .from(TEST_ITEM)
@@ -577,7 +577,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
     return logsSelect.where(childItemTable.LAUNCH_ID.eq(launchId))
         .and(parentItemTable.LAUNCH_ID.eq(launchId))
-        .and(parentItemTable.ITEM_ID.in(itemIds));
+        .and(parentItemTable.ITEM_ID.eq(DSL.any(itemIds.toArray(new Long[0]))));
   }
 
   private SelectHavingStep<Record4<Long, Instant, String, Integer>> buildNestedStepQuery(

@@ -58,8 +58,8 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Handles {@link AnalyzedItemRs} results delivered asynchronously through the analyzer reply queue. Every result is
- * treated as the actual one and overwrites the item's issue (no priority, last-write-wins). For every processed
- * message it also records auto-analysis statistics and triggers log indexing of the affected items.
+ * treated as the actual one and overwrites the item's issue (no priority, last-write-wins). For every processed message
+ * it also records auto-analysis statistics and triggers log indexing of the affected items.
  *
  * @author Pavel Bortnik
  */
@@ -160,9 +160,7 @@ public class AnalysisResultHandler {
       }
     }
 
-    defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(testItems.size(),
-        analyzedAmount, 0, projectId);
-
+    defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(0, analyzedAmount, 0, projectId);
     logIndexer.indexDefectsUpdate(projectId, AnalyzerUtils.getAnalyzerConfig(project), testItems, IS_AUTO_ANALYZED);
   }
 

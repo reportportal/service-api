@@ -50,8 +50,8 @@ public class TmsTestCaseExecution implements Serializable {
   @Column(name = "test_case_version_id")
   private Long testCaseVersionId;
 
-  @Column(name = "priority")
-  private String priority;
+  @Column(name = "priority", nullable = false)
+  private String priority = "UNSPECIFIED";
 
   @Column(name = "name")
   private String name;

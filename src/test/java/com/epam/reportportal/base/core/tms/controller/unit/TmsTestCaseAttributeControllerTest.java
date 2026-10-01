@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsTestCaseAttributeController;
 import com.epam.reportportal.base.core.tms.dto.GetAttributesByTestCaseIdsRQ;
@@ -71,7 +71,7 @@ class TmsTestCaseAttributeControllerTest {
         .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
         .build();
 
-    mockMvc = standaloneSetup(tmsTestCaseAttributeController)
+    mockMvc = standaloneJsonSetup(tmsTestCaseAttributeController)
         .setCustomArgumentResolvers(
             new HandlerMethodArgumentResolver() {
               @Override

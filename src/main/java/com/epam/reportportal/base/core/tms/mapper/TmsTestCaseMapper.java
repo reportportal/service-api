@@ -12,6 +12,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
+import com.epam.reportportal.base.core.tms.sync.dto.RemoteTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
@@ -20,6 +21,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,8 +94,19 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "priority", expression = "java(tmsTestCaseRQ.getPriority() != null ? tmsTestCaseRQ.getPriority().toUpperCase() : null)")
+  @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
+      qualifiedByName = "normalizePriority")
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
+      Long testFolderId);
+
+  @Mapping(target = "project.id", source = "projectId")
+  @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestCaseDisplayId(projectId))")
+  @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
+  @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "versions", ignore = true)
+  @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
+      qualifiedByName = "normalizePriorityForPatch")
+  public abstract TmsTestCase convertFromPatchRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 
   @BeanMapping(nullValuePropertyMappingStrategy =
@@ -272,7 +285,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     testCase.setProject(project);
     testCase.setName(importRQ.getName());
     testCase.setDescription(importRQ.getDescription());
-    testCase.setPriority(importRQ.getPriority() != null ? importRQ.getPriority().toUpperCase() : null);
+    testCase.setPriority(normalizePriority(importRQ.getPriority()));
     testCase.setExternalId(importRQ.getExternalId());
     testCase.setDisplayId(tmsDisplayIdService.generateTestCaseDisplayId(projectId));
 
@@ -286,6 +299,44 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     return testCase;
   }
 
+  public TmsTestCase convertFromRemote(RemoteTestCase remoteTestCase, TmsTestCase existing, Long projectId, Long localFolderId) {
+    TmsTestCase testCase = existing != null ? existing : new TmsTestCase();
+    if (existing == null) {
+      var project = new Project();
+      project.setId(projectId);
+      testCase.setProject(project);
+      testCase.setExternalId(remoteTestCase.getId());
+      testCase.setDisplayId(tmsDisplayIdService.generateTestCaseDisplayId(projectId));
+    }
+
+    testCase.setPriority(remoteTestCase.getPriority() != null ? remoteTestCase.getPriority().toUpperCase() : null);
+    testCase.setName(remoteTestCase.getName());
+    testCase.setDescription(remoteTestCase.getDescription());
+    testCase.setSourceUpdatedAt(remoteTestCase.getUpdatedAt());
+
+    if (localFolderId != null) {
+      testCase.setTestFolder(convertToTmsTestFolder(localFolderId, projectId));
+    }
+
+    return testCase;
+  }
+
+  @Named("normalizePriority")
+  protected String normalizePriority(String priority) {
+    if (priority == null || priority.trim().isEmpty()) {
+      return "UNSPECIFIED";
+    }
+    return priority.trim().toUpperCase(Locale.ROOT);
+  }
+
+  @Named("normalizePriorityForPatch")
+  protected String normalizePriorityForPatch(String priority) {
+    if (priority == null || priority.trim().isEmpty()) {
+      return null;
+    }
+    return normalizePriority(priority);
+  }
+
   /**
    * Converts Instant to milliseconds (epoch millis).
    *
@@ -296,7 +347,6 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   protected Long instantToMillis(java.time.Instant instant) {
     return instant != null ? instant.toEpochMilli() : null;
   }
-
 
   protected Set<TmsTestCaseExecutionInTestPlanRS> executionsToSet(
       List<TmsTestCaseExecution> executions,

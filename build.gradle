@@ -110,9 +110,9 @@ configurations.configureEach {
 
 println("Release mode: $releaseMode")
 dependencies {
-    implementation 'com.github.reportportal:commons:5.15.2'
-    implementation 'com.github.reportportal:commons-dao:rc~5.15.6-SNAPSHOT'
-    implementation('com.github.reportportal:plugin-api:5.15.0') {
+    implementation 'com.github.reportportal:commons:69be9c8'
+    implementation 'com.github.reportportal:commons-dao:a48bccc'
+    implementation('com.github.reportportal:plugin-api:d183ff1') {
         exclude group: 'com.github.reportportal', module: 'commons-dao'
         exclude group: 'com.github.reportportal', module: 'commons'
     }

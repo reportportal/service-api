@@ -41,13 +41,15 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
     IntegrationRepositoryCustom {
 
   /**
-   * Check whether a global integration (no project, no organization) with the given name and type already exists.
+   * Check whether a global integration (no project, no organization) with the given name and type
+   * already exists.
    *
    * @param name   {@code Integration#getName()}
    * @param typeId {@code IntegrationType#getId()}
    * @return {@code true} if a matching global integration exists
    */
-  boolean existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(String name, Long typeId);
+  boolean existsByNameIgnoreCaseAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(String name,
+      Long typeId);
 
   boolean existsByNameIgnoreCaseAndTypeIdAndProjectId(String name, Long typeId, Long projectId);
 
@@ -75,7 +77,8 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT i FROM Integration i WHERE i.id = :id AND i.project.id = :projectId")
-  Optional<Integration> findByIdAndProjectIdForUpdate(@Param("id") Long id, @Param("projectId") Long projectId);
+  Optional<Integration> findByIdAndProjectIdForUpdate(@Param("id") Long id,
+      @Param("projectId") Long projectId);
 
   /**
    * @param name              {@code Integration#getName()}
@@ -90,7 +93,8 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
    * @param integrationTypeId {@code Integration#getType()}#{@code IntegrationType#getId()}
    * @return {@link Optional} with {@link Integration}
    */
-  Optional<Integration> findByIdAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(Long id, Long integrationTypeId);
+  Optional<Integration> findByIdAndTypeIdAndProjectIdIsNullAndOrganizationIdIsNull(Long id,
+      Long integrationTypeId);
 
   /**
    * Retrieve given project's integrations
@@ -131,7 +135,8 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
       @Param("typeId") Long typeId);
 
   /**
-   * Retrieve all {@link Integration} with {@code Integration#getProject()} == null by integration type
+   * Retrieve all {@link Integration} with {@code Integration#getProject()} == null by integration
+   * type
    *
    * @param integrationType {@code Integration#getType()}
    * @return @return The {@link List} of the {@link Integration}
@@ -150,7 +155,8 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
       @Param("integrationGroup") IntegrationGroupEnum integrationGroup);
 
   /**
-   * Retrieve all {@link Integration} with {@code Integration#getProject()} == null by integration group
+   * Retrieve all {@link Integration} with {@code Integration#getProject()} == null by integration
+   * group
    *
    * @param integrationGroup {@code IntegrationType#getIntegrationGroup()}
    * @return @return The {@link List} of the {@link Integration}
@@ -281,14 +287,17 @@ public interface IntegrationRepository extends ReportPortalRepository<Integratio
   Optional<Integration> findByIdAndOrganizationId(@Param("id") Long id, @Param("orgId") Long orgId);
 
   /**
-   * Finds all integrations belonging to the specified organization and matching the given integration type.
+   * Finds all integrations belonging to the specified organization and matching the given
+   * integration type.
    *
    * @param orgId  the ID of the organization
    * @param typeId the ID of the integration type
-   * @return a list of {@link Integration} entities matching both the organization and type; empty if none found
+   * @return a list of {@link Integration} entities matching both the organization and type; empty
+   * if none found
    */
   @Query("SELECT i FROM Integration i WHERE i.organizationId = :orgId AND i.type.id = :typeId")
-  List<Integration> findAllByOrganizationIdAndTypeId(@Param("orgId") Long orgId, @Param("typeId") Long typeId);
+  List<Integration> findAllByOrganizationIdAndTypeId(@Param("orgId") Long orgId,
+      @Param("typeId") Long typeId);
 
   /**
    * Returns the newest enabled project-scoped integration whose type is in {@code typeIds}.

@@ -74,8 +74,8 @@ class LaunchTypeAttributeHandlerTest {
   @Test
   void handleLaunchStartWithSystemIsPipelineTrue() {
     Launch launch = new Launch();
-    ItemAttribute attr = new ItemAttribute("isPipeline", "true", true);
-    Set<ItemAttribute> attributes = new HashSet<>();
+    LaunchAttribute attr = new LaunchAttribute("isPipeline", "true", true);
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(attr);
     launch.setAttributes(attributes);
 
@@ -89,8 +89,8 @@ class LaunchTypeAttributeHandlerTest {
   void handleLaunchStartWithSystemIsPipelineFalse() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.PIPELINE);
-    ItemAttribute attr = new ItemAttribute("isPipeline", "false", true);
-    Set<ItemAttribute> attributes = new HashSet<>();
+    LaunchAttribute attr = new LaunchAttribute("isPipeline", "false", true);
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(attr);
     launch.setAttributes(attributes);
 
@@ -104,8 +104,8 @@ class LaunchTypeAttributeHandlerTest {
   void handleLaunchStartIgnoresNonSystemIsPipeline() {
     Launch launch = new Launch();
     launch.setLaunchType(LaunchTypeEnum.AUTOMATION);
-    Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(new ItemAttribute("isPipeline", "true", false));
+    Set<LaunchAttribute> attributes = new HashSet<>();
+    attributes.add(new LaunchAttribute("isPipeline", "true", false));
     launch.setAttributes(attributes);
 
     handler.handleLaunchStart(launch);
@@ -129,9 +129,9 @@ class LaunchTypeAttributeHandlerTest {
   @Test
   void handleLaunchStartWithConflictingIsAgenticAndIsPipelineThrows() {
     Launch launch = new Launch();
-    Set<ItemAttribute> attributes = new HashSet<>();
-    attributes.add(new ItemAttribute("isAgentic", "true", true));
-    attributes.add(new ItemAttribute("isPipeline", "true", true));
+    Set<LaunchAttribute> attributes = new HashSet<>();
+    attributes.add(new LaunchAttribute("isAgentic", "true", true));
+    attributes.add(new LaunchAttribute("isPipeline", "true", true));
     launch.setAttributes(attributes);
 
     var exception = org.junit.jupiter.api.Assertions.assertThrows(

@@ -52,6 +52,9 @@ public class LaunchImportRqConverter {
     }
     try {
       LaunchImportRQ launchImportRq = objectMapper.readValue(launchImportRqJson, LaunchImportRQ.class);
+      if (launchImportRq == null) {
+        return null;
+      }
       Set<ConstraintViolation<LaunchImportRQ>> violations = validator.validate(launchImportRq);
       if (!violations.isEmpty()) {
         throw new ConstraintViolationException(violations);

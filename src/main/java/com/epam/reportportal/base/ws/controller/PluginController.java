@@ -36,6 +36,9 @@ import com.epam.reportportal.base.model.launch.LaunchImportRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -55,7 +58,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -78,6 +80,7 @@ public class PluginController {
   private final ExecuteIntegrationHandler executeIntegrationHandler;
   private final ImportPluginCommandHandler importPluginCommandHandler;
   private final ProjectExtractor projectExtractor;
+  private final LaunchImportRqConverter launchImportRqConverter;
 
   @Transactional
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -136,8 +139,7 @@ public class PluginController {
   }
 
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-  @PostMapping(value = "/{projectKey}/{pluginName}/import", consumes = {
-      MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PostMapping(value = "/{projectKey}/{pluginName}/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(OK)
   @Operation(summary = "Send report to the specified plugin for importing")
   public Object executeImportPluginCommand(
@@ -145,7 +147,10 @@ public class PluginController {
       @PathVariable String projectKey,
       @PathVariable String pluginName,
       @RequestParam("file") MultipartFile file,
-      @RequestPart(required = false) @Valid LaunchImportRQ launchImportRq) {
-    return importPluginCommandHandler.execute(user, projectKey, pluginName, file, launchImportRq);
+      @RequestParam(value = "launchImportRq", required = false)
+      @Parameter(content = @Content(mediaType = APPLICATION_JSON_VALUE,
+          schema = @Schema(implementation = LaunchImportRQ.class))) String launchImportRqJson) {
+    return importPluginCommandHandler.execute(user, projectKey, pluginName, file,
+        launchImportRqConverter.convert(launchImportRqJson));
   }
 }

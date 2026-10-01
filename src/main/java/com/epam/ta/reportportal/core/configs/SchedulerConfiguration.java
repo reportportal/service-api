@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
 import com.epam.ta.reportportal.job.CleanExpiredCreationBidsJob;
 import com.epam.ta.reportportal.job.FlushingDataJob;
+import com.epam.ta.reportportal.job.GrafanaSessionPurgeJob;
 import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
 import java.time.Duration;
 import java.util.List;
@@ -133,6 +134,13 @@ public class SchedulerConfiguration {
     return createTrigger(jobDetail, Duration.parse(flushingCron).toMillis());
   }
 
+  @Bean
+  public SimpleTriggerFactoryBean grafanaSessionPurgeTrigger(
+      @Named("grafanaSessionPurgeJobBean") JobDetail jobDetail,
+      @Value("${com.ta.reportportal.job.purge.grafana.sessions.cron}") String purgeCron) {
+    return createTrigger(jobDetail, Duration.parse(purgeCron).toMillis());
+  }
+
   @Bean("interruptLaunchesJobBean")
   public JobDetailFactoryBean interruptLaunchesJob() {
     return createJobDetail(InterruptBrokenLaunchesJob.class);
@@ -141,6 +149,11 @@ public class SchedulerConfiguration {
   @Bean("cleanExpiredCreationBidsJobBean")
   public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
     return createJobDetail(CleanExpiredCreationBidsJob.class);
+  }
+
+  @Bean("grafanaSessionPurgeJobBean")
+  public JobDetailFactoryBean grafanaSessionPurgeJob() {
+    return createJobDetail(GrafanaSessionPurgeJob.class);
   }
 
   @Bean

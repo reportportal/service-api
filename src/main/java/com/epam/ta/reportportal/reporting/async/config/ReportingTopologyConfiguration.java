@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.reporting.async.config;
 import com.epam.ta.reportportal.reporting.async.consumer.ReportingConsumer;
 import com.epam.ta.reportportal.reporting.async.exception.ReportingErrorHandler;
 import com.epam.ta.reportportal.reporting.async.handler.provider.ReportingHandlerProvider;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +27,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.CustomExchange;
+import org.springframework.amqp.core.Declarable;
+import org.springframework.amqp.core.Declarables;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.MessageListener;
@@ -40,13 +44,16 @@ import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class ReportingTopologyConfiguration {
@@ -63,6 +70,8 @@ public class ReportingTopologyConfiguration {
 
   private final AmqpAdmin amqpAdmin;
 
+  private final ApplicationContext applicationContext;
+
   @Value("${reporting.parkingLot.ttl.days:7}")
   private long parkingLotTtl;
 
@@ -72,11 +81,8 @@ public class ReportingTopologyConfiguration {
   @Value("${reporting.consumer.prefetchCount:10}")
   private Integer prefetchCount;
 
-  @Bean
-  String instanceUniqueId() {
-    String instanceId = UUID.randomUUID().toString();
-    return instanceId.substring(instanceId.lastIndexOf("-") + 1);
-  }
+  @Value("${reporting.shutdown.consumer-timeout:PT5S}")
+  private Duration consumerShutdownTimeout;
 
   @Bean
   Exchange reportingConsistentExchange() {
@@ -87,25 +93,31 @@ public class ReportingTopologyConfiguration {
 
   @Bean("reportingQueues")
   List<Queue> reportingQueues() {
+    String instanceId = resolveInstanceId();
     List<Queue> queues = new ArrayList<>(queuesCount);
     for (int i = 0; i < queuesCount; i++) {
-      String queueName = REPORTING_QUEUE_PREFIX + instanceUniqueId() + "." + i;
-      Queue queue = buildQueue(queueName);
-      queues.add(queue);
+      queues.add(declareQueue(REPORTING_QUEUE_PREFIX + instanceId + "." + i));
     }
+    log.info("Declared {} reporting queues for instance '{}'", queues.size(), instanceId);
     return queues;
   }
 
-
   @Bean("reportingBindings")
   List<Binding> reportingBindings(@Qualifier("reportingQueues") List<Queue> queues) {
-    List<Binding> bindings = new ArrayList<>();
-    for (Queue queue : queues) {
-      Binding queueBinding = buildQueueBinding(queue);
-      amqpAdmin.declareBinding(queueBinding);
-      bindings.add(queueBinding);
-    }
-    return bindings;
+    return queues.stream().map(this::declareBinding).toList();
+  }
+
+  /**
+   * Exposes the per-instance queues and bindings to the {@link AmqpAdmin} so that they are
+   * recreated whenever a connection to the broker is (re)established. Without it a broker that lost
+   * its state leaves this instance with running consumers and no queues to consume from.
+   */
+  @Bean
+  Declarables reportingDeclarables(@Qualifier("reportingQueues") List<Queue> queues,
+      @Qualifier("reportingBindings") List<Binding> bindings) {
+    List<Declarable> declarables = new ArrayList<>(queues);
+    declarables.addAll(bindings);
+    return new Declarables(declarables);
   }
 
   @Bean
@@ -117,8 +129,7 @@ public class ReportingTopologyConfiguration {
     //0.5s
   Queue ttlQueueMs() {
     return QueueBuilder.durable(TTL_QUEUE_MS).ttl(500).deadLetterExchange(REPORTING_EXCHANGE)
-        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
-        .build();
+        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY).build();
   }
 
   @Bean
@@ -130,8 +141,7 @@ public class ReportingTopologyConfiguration {
     //5s
   Queue ttlQueueS() {
     return QueueBuilder.durable(TTL_QUEUE_S).ttl(5000).deadLetterExchange(REPORTING_EXCHANGE)
-        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
-        .build();
+        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY).build();
   }
 
   @Bean
@@ -143,8 +153,7 @@ public class ReportingTopologyConfiguration {
     //2m
   Queue ttlQueueM() {
     return QueueBuilder.durable(TTL_QUEUE_M).ttl(120000).deadLetterExchange(REPORTING_EXCHANGE)
-        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
-        .build();
+        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY).build();
   }
 
   @Bean
@@ -155,51 +164,72 @@ public class ReportingTopologyConfiguration {
   @Bean
   public Queue reportingParkingLot() {
     return QueueBuilder.durable(REPORTING_PARKING_LOT)
-        .ttl((int) TimeUnit.DAYS.toMillis(parkingLotTtl))
-        .build();
+        .ttl((int) TimeUnit.DAYS.toMillis(parkingLotTtl)).build();
   }
 
+  /**
+   * Resolves the identifier embedded into the names of the queues owned by this instance. A
+   * hostname is preferred over a random value because it stays the same across restarts of the same
+   * pod, which lets the instance pick up its own queues instead of leaving them behind for the
+   * cleanup job.
+   */
+  private static String resolveInstanceId() {
+    String hostname = System.getenv("HOSTNAME");
+    if (StringUtils.hasText(hostname)) {
+      return sanitizeInstanceId(hostname);
+    }
+    String uuid = UUID.randomUUID().toString();
+    return uuid.substring(uuid.lastIndexOf('-') + 1);
+  }
 
-  private Binding buildQueueBinding(Queue queue) {
+  private static String sanitizeInstanceId(String instanceId) {
+    return instanceId.trim().replaceAll("[^a-zA-Z0-9._-]", "-");
+  }
+
+  private Binding declareBinding(Queue queue) {
     Binding queueBinding = BindingBuilder.bind(queue).to(reportingConsistentExchange())
         .with(DEFAULT_QUEUE_ROUTING_KEY).noargs();
-    queueBinding.setShouldDeclare(true);
     queueBinding.setAdminsThatShouldDeclare(amqpAdmin);
+    amqpAdmin.declareBinding(queueBinding);
     return queueBinding;
   }
 
-  private Queue buildQueue(String queueName) {
+  private Queue declareQueue(String queueName) {
     Queue queue = QueueBuilder.durable(queueName).build();
-    queue.setShouldDeclare(true);
     queue.setAdminsThatShouldDeclare(amqpAdmin);
     amqpAdmin.declareQueue(queue);
     return queue;
   }
 
-
+  /**
+   * Creates one single-threaded exclusive consumer per reporting queue. The containers are started
+   * and stopped by {@link com.epam.ta.reportportal.reporting.async.ReportingListenersLifecycle}
+   * rather than here, so that consuming begins only after the application context is fully
+   * refreshed.
+   */
   @Bean("listenerContainers")
   public List<AbstractMessageListenerContainer> listenerContainers(
-      ConnectionFactory connectionFactory,
-      ApplicationEventPublisher applicationEventPublisher,
-      ReportingHandlerProvider reportingHandlerProvider,
-      ReportingErrorHandler errorHandler,
+      ConnectionFactory connectionFactory, ApplicationEventPublisher applicationEventPublisher,
+      ReportingHandlerProvider reportingHandlerProvider, ReportingErrorHandler errorHandler,
       @Qualifier("reportingQueues") List<Queue> queues) {
-    List<AbstractMessageListenerContainer> containers = new ArrayList<>();
+    MessageListener messageListener = reportingListener(reportingHandlerProvider);
+    List<AbstractMessageListenerContainer> containers = new ArrayList<>(queues.size());
     queues.forEach(q -> {
       SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(
           connectionFactory);
-      containers.add(listenerContainer);
-      listenerContainer.setConnectionFactory(connectionFactory);
+      listenerContainer.setBeanName(q.getName());
+      listenerContainer.setApplicationContext(applicationContext);
+      listenerContainer.setAmqpAdmin(amqpAdmin);
       listenerContainer.addQueueNames(q.getName());
       listenerContainer.setErrorHandler(errorHandler);
       listenerContainer.setExclusive(true);
       listenerContainer.setPrefetchCount(prefetchCount);
       listenerContainer.setDefaultRequeueRejected(false);
-      listenerContainer.setMissingQueuesFatal(true);
+      listenerContainer.setMissingQueuesFatal(false);
+      listenerContainer.setShutdownTimeout(consumerShutdownTimeout.toMillis());
       listenerContainer.setApplicationEventPublisher(applicationEventPublisher);
-      listenerContainer.setupMessageListener(reportingListener(reportingHandlerProvider));
+      listenerContainer.setupMessageListener(messageListener);
       listenerContainer.afterPropertiesSet();
-      listenerContainer.start();
       containers.add(listenerContainer);
     });
     return containers;

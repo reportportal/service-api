@@ -25,10 +25,10 @@ import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.Instant;
-import java.util.Set;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -38,6 +38,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class LaunchImportRQ {
+
+  @JsonProperty("launchUuid")
+  @JsonAlias({"launchUuid", "launch_uuid"})
+  private String launchUuid;
 
   @JsonProperty(value = "name")
   @Schema
@@ -50,11 +54,11 @@ public class LaunchImportRQ {
   @Size(max = MAX_PARAMETERS_LENGTH)
   @Valid
   @JsonProperty("attributes")
-  @JsonAlias({ "attributes", "tags" })
+  @JsonAlias({"attributes", "tags"})
   private Set<ItemAttributesRQ> attributes;
 
   @JsonProperty
-  @JsonAlias({ "startTime", "start_time" })
+  @JsonAlias({"startTime", "start_time"})
   @Schema
   private Instant startTime;
 

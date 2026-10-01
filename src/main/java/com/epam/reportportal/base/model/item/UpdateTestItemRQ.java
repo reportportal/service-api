@@ -18,7 +18,7 @@ package com.epam.reportportal.base.model.item;
 
 import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_PARAMETERS_LENGTH;
 
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -44,7 +44,7 @@ public class UpdateTestItemRQ {
   @Size(max = MAX_PARAMETERS_LENGTH)
   @Valid
   @JsonProperty(value = "attributes")
-  private Set<ItemAttributeResource> attributes;
+  private Set<AttributeResource> attributes;
 
   @JsonProperty(value = "description")
   private String description;

@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
@@ -43,7 +43,7 @@ class LaunchBuilderTest {
     final Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     final Instant endDate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     final Long projectId = 1L;
-    final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
+    final AttributeResource attributeResource = new AttributeResource("key", "value");
     final Long userId = 2L;
     final String passed = "PASSED";
     final Mode mode = Mode.DEFAULT;
@@ -61,7 +61,7 @@ class LaunchBuilderTest {
     assertEquals(endDate.truncatedTo(ChronoUnit.MILLIS),
         launch.getEndTime().truncatedTo(ChronoUnit.MILLIS));
     assertEquals(projectId, launch.getProjectId());
-    assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
+    assertTrue(launch.getAttributes().contains(new LaunchAttribute("key", "value", false)));
     assertEquals(userId, launch.getUserId());
     assertEquals(passed, launch.getStatus().name());
     assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
@@ -88,23 +88,25 @@ class LaunchBuilderTest {
     assertEquals(uuid, launch.getUuid());
     assertEquals(description, launch.getDescription());
     assertEquals(now.truncatedTo(ChronoUnit.SECONDS), launch.getStartTime().truncatedTo(ChronoUnit.SECONDS));
-    assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
+    assertTrue(launch.getAttributes().contains(new LaunchAttribute("key", "value", false)));
     assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
   }
 
   @Test
   void overwriteAttributes() {
     Launch launch = new Launch();
-    final ItemAttribute systemAttribute = new ItemAttribute("key", "value", true);
+    final LaunchAttribute systemAttribute = new LaunchAttribute("key", "value", true);
     launch.setAttributes(
-        Sets.newHashSet(new ItemAttribute("key", "value", false), systemAttribute));
+        Sets.newHashSet(new LaunchAttribute("key", "value", false), systemAttribute));
 
     final Launch buildLaunch = new LaunchBuilder(launch).overwriteAttributes(
-        Sets.newHashSet(new com.epam.reportportal.base.reporting.ItemAttributeResource("newKey",
+        Sets.newHashSet(new AttributeResource("newKey",
             "newVal"
         ))).get();
 
     assertThat(buildLaunch.getAttributes()).containsExactlyInAnyOrder(
-        new ItemAttribute("newKey", "newVal", false), systemAttribute);
+        new LaunchAttribute("newKey", "newVal", false),
+        new LaunchAttribute(systemAttribute.getKey(), systemAttribute.getValue(),
+            systemAttribute.isSystem()));
   }
 }

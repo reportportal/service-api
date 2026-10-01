@@ -17,7 +17,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,15 +28,17 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Data;
 
 /**
- * Name/value (and system flag) attribute attached to a test item, launch, or other entity.
+ * Name/value (and system flag) attribute attached to a test item.
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Data
 @Entity
 @Table(name = "item_attribute")
-public class ItemAttribute implements Serializable {
+public class ItemAttribute implements Attribute, Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,10 +54,6 @@ public class ItemAttribute implements Serializable {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "item_id")
   private TestItem testItem;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "launch_id")
-  private Launch launch;
 
   @Column(name = "system")
   private Boolean system;
@@ -74,48 +71,20 @@ public class ItemAttribute implements Serializable {
     return id;
   }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
-
   public String getKey() {
     return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
   }
 
   public String getValue() {
     return value;
   }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
-
   public TestItem getTestItem() {
     return testItem;
   }
 
-  public void setTestItem(TestItem testItem) {
-    this.testItem = testItem;
-  }
-
-  public Launch getLaunch() {
-    return launch;
-  }
-
-  public void setLaunch(Launch launch) {
-    this.launch = launch;
-  }
-
   public Boolean isSystem() {
     return system;
-  }
-
-  public void setSystem(Boolean system) {
-    this.system = system;
   }
 
   /*
@@ -131,16 +100,12 @@ public class ItemAttribute implements Serializable {
     }
     ItemAttribute that = (ItemAttribute) o;
 
-    return Objects.equals(key, that.key) && Objects.equals(value, that.value) && Objects.equals(
-        system, that.system) && Objects.equals(
+    return Objects.equals(key, that.key) && Objects.equals(value, that.value)
+        && Objects.equals(system, that.system) && Objects.equals(
         testItem != null ? "testItem:" + (testItem.getItemId() != null ? testItem.getItemId() : "")
             : "testItem:",
         that.testItem != null ? "testItem:" + (that.testItem.getItemId() != null
             ? that.testItem.getItemId() : "") : "testItem:"
-    ) && Objects.equals(
-        launch != null ? "launch:" + (launch.getId() != null ? launch.getId() : "") : "launch:",
-        that.launch != null ? "launch:" + (that.launch.getId() != null ? that.launch.getId() : "")
-            : "launch:"
     );
   }
 
@@ -153,8 +118,7 @@ public class ItemAttribute implements Serializable {
         value,
         system,
         testItem != null ? "testItem:" + (testItem.getItemId() != null ? testItem.getItemId() : "")
-            : "testItem:",
-        launch != null ? "launch:" + (launch.getId() != null ? launch.getId() : "") : "launch:"
+            : "testItem:"
     );
   }
 
@@ -166,7 +130,6 @@ public class ItemAttribute implements Serializable {
     sb.append(", value='").append(value).append('\'');
     sb.append(", system=").append(system);
     sb.append(testItem != null ? ", testItem=" + testItem.getItemId() : "");
-    sb.append(launch != null ? ", launch=" + launch.getId() : "");
     sb.append('}');
     return sb.toString();
   }

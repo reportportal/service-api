@@ -18,23 +18,24 @@ package com.epam.reportportal.base.ws.converter.resource.handler.attribute.launc
 
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import java.util.Collection;
 
 /**
- * Copies item attributes from persistence onto {@link com.epam.reportportal.base.reporting.LaunchResource} models.
+ * Copies item attributes from persistence onto
+ * {@link com.epam.reportportal.base.reporting.LaunchResource} models.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class LaunchResourceAttributeUpdater implements ResourceAttributeHandler<LaunchResource> {
 
   @Override
-  public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
+  public void handle(LaunchResource resource, Collection<? extends Attribute> attributes) {
     resource.setAttributes(
-        attributes.stream().map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
+        attributes.stream().map(it -> new AttributeResource(it.getKey(), it.getValue()))
             .collect(toSet()));
   }
 }

@@ -480,7 +480,7 @@ VALUES
 -- LAUNCH ATTRIBUTES
 -- =====================================================
 
-INSERT INTO item_attribute (id, key, value, system, launch_id)
+INSERT INTO launch_attribute (id, key, value, system, launch_id)
 VALUES
     (200, 'environment', 'staging',   false, 200),
     (201, 'browser',     'chrome',    false, 200),
@@ -494,24 +494,24 @@ VALUES
 -- LAUNCH STATISTICS
 -- =====================================================
 
-INSERT INTO statistics (s_id, s_counter, statistics_field_id, item_id, launch_id)
+INSERT INTO launch_statistics (s_id, s_counter, statistics_field_id, launch_id)
 VALUES
-    (2001, 2, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   NULL, 200),
-    (2002, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  NULL, 200),
-    (2003, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  NULL, 200),
-    (2004, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), NULL, 200),
-    (2005, 3, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   NULL, 201),
-    (2006, 2, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  NULL, 201),
-    (2007, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  NULL, 201),
-    (2008, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), NULL, 201),
-    (2009, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   NULL, 202),
-    (2010, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  NULL, 202),
-    (2011, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  NULL, 202),
-    (2012, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), NULL, 202),
-    (2013, 5, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   NULL, 203),
-    (2014, 3, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  NULL, 203),
-    (2015, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  NULL, 203),
-    (2016, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), NULL, 203);
+    (2001, 2, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   200),
+    (2002, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  200),
+    (2003, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  200),
+    (2004, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), 200),
+    (2005, 3, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   201),
+    (2006, 2, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  201),
+    (2007, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  201),
+    (2008, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), 201),
+    (2009, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   202),
+    (2010, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  202),
+    (2011, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  202),
+    (2012, 0, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), 202),
+    (2013, 5, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$total'),   203),
+    (2014, 3, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$passed'),  203),
+    (2015, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$failed'),  203),
+    (2016, 1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$executions$skipped'), 203);
 
 -- =====================================================
 -- TEST ITEMS - SUITE (Folders)
@@ -684,6 +684,7 @@ SELECT setval('tms_attachment_id_seq',                             (SELECT COALE
 SELECT setval('launch_id_seq',                                     (SELECT COALESCE(MAX(id), 1) FROM launch));
 SELECT setval('item_attribute_id_seq',                             (SELECT COALESCE(MAX(id), 1) FROM item_attribute));
 SELECT setval('statistics_s_id_seq',                               (SELECT COALESCE(MAX(s_id), 1) FROM statistics));
+SELECT setval('launch_statistics_s_id_seq',                        (SELECT COALESCE(MAX(s_id), 1) FROM launch_statistics));
 SELECT setval('test_item_item_id_seq',                             (SELECT COALESCE(MAX(item_id), 1) FROM test_item));
 SELECT setval('tms_test_case_execution_id_seq',                    (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));
 SELECT setval('tms_test_case_execution_comment_id_seq',            (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution_comment));

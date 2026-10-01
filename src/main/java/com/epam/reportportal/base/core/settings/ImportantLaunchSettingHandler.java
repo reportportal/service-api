@@ -19,7 +19,7 @@ package com.epam.reportportal.base.core.settings;
 
 import static com.epam.reportportal.base.core.launch.attribute.AttributeHandler.RETENTION_POLICY_KEY;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import lombok.RequiredArgsConstructor;
@@ -40,14 +40,14 @@ public class ImportantLaunchSettingHandler implements ServerSettingHandler {
 
   private final LaunchRepository launchRepository;
 
-  private final ItemAttributeRepository itemAttributeRepository;
+  private final LaunchAttributeRepository launchAttributeRepository;
 
   @Override
   public void handle(String value) {
-    if (Boolean.FALSE.equals(Boolean.parseBoolean(value))) {
+    if (!Boolean.parseBoolean(value)) {
       var updatedCount = launchRepository.updateLaunchesRetentionPolicy(
           RetentionPolicyEnum.REGULAR);
-      itemAttributeRepository.deleteAllByKeyAndSystem(RETENTION_POLICY_KEY, true);
+      launchAttributeRepository.deleteAllByKeyAndSystem(RETENTION_POLICY_KEY, true);
       log.info("Retention policy for {} launches changed to 'REGULAR'", updatedCount);
     }
   }

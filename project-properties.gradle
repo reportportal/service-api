@@ -109,10 +109,12 @@ project.ext {
             (migrationsUrl + '/migrations/219_revoked_token.up.sql')                                    : 'V219__revoked_token.up.sql',
             (migrationsUrl + '/migrations/220_increase_tms_test_plan_description_length.up.sql')        : 'V220__increase_tms_test_plan_description_length.up.sql',
             (migrationsUrl + '/migrations/221_increase_tms_manual_scenario_preconditions_length.up.sql'): 'V221__increase_tms_manual_scenario_preconditions_length.up.sql',
-            (migrationsUrl + '/migrations/224_add_pipeline_launch_type.up.sql')                     : 'V224__add_pipeline_launch_type.up.sql',
-            (migrationsUrl + '/migrations/225_extract_launch_attribute.up.sql')                     : 'V225__extract_launch_attribute.up.sql',
-            (migrationsUrl + '/migrations/226_extract_launch_statistics.up.sql')                    : 'V226__extract_launch_statistics.up.sql',
-            (migrationsUrl + '/migrations/227_update_merge_launch_after_launch_tables_split.up.sql'): 'V227__update_merge_launch_after_launch_tables_split.up.sql',
+            (migrationsUrl + '/migrations/221_increase_tms_manual_scenario_preconditions_length.up.sql'): 'V221__increase_tms_manual_scenario_preconditions_length.up.sql',
+            (migrationsUrl + '/migrations/223_tms_sync_job.up.sql')                                     : 'V223__tms_sync_job.up.sql',
+            (migrationsUrl + '/migrations/224_add_pipeline_launch_type.up.sql')                         : 'V224__add_pipeline_launch_type.up.sql',
+            (migrationsUrl + '/migrations/225_extract_launch_attribute.up.sql')                         : 'V225__extract_launch_attribute.up.sql',
+            (migrationsUrl + '/migrations/226_extract_launch_statistics.up.sql')                        : 'V226__extract_launch_statistics.up.sql',
+            (migrationsUrl + '/migrations/227_update_merge_launch_after_launch_tables_split.up.sql')    : 'V227__update_merge_launch_after_launch_tables_split.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

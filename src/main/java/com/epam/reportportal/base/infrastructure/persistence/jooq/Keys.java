@@ -30,9 +30,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueT
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueTypeProject;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchAttributeRules;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNames;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNumber;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchesModified;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLogType;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization;
@@ -47,6 +50,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjec
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRecipients;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRestorePasswordBid;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRevokedToken;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JSenderCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JServerSettings;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JShedlock;
@@ -118,10 +122,13 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JIssueTypeProjectRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JIssueTypeRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JItemAttributeRecord;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchAttributeRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchAttributeRulesRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchNamesRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchNumberRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchRecord;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchStatisticsRecord;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLaunchesModifiedRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLogRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JLogTypeRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JOrganizationRecord;
@@ -136,6 +143,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JProjectUserRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JRecipientsRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JRestorePasswordBidRecord;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JRevokedTokenRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JSenderCaseRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JServerSettingsRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JShedlockRecord;
@@ -182,7 +190,6 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JUsersRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JWidgetFilterRecord;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JWidgetRecord;
-
 import org.jooq.ForeignKey;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
@@ -235,9 +242,22 @@ public class Keys {
     public static final UniqueKey<JLaunchRecord> LAUNCH_PK = Internal.createUniqueKey(JLaunch.LAUNCH, DSL.name("launch_pk"), new TableField[] { JLaunch.LAUNCH.ID }, true);
     public static final UniqueKey<JLaunchRecord> LAUNCH_UUID_KEY = Internal.createUniqueKey(JLaunch.LAUNCH, DSL.name("launch_uuid_key"), new TableField[] { JLaunch.LAUNCH.UUID }, true);
     public static final UniqueKey<JLaunchRecord> UNQ_NAME_NUMBER = Internal.createUniqueKey(JLaunch.LAUNCH, DSL.name("unq_name_number"), new TableField[] { JLaunch.LAUNCH.NAME, JLaunch.LAUNCH.NUMBER, JLaunch.LAUNCH.PROJECT_ID }, true);
+  public static final UniqueKey<JLaunchAttributeRecord> LAUNCH_ATTRIBUTE_PK = Internal.createUniqueKey(
+      JLaunchAttribute.LAUNCH_ATTRIBUTE, DSL.name("launch_attribute_pk"),
+      new TableField[]{JLaunchAttribute.LAUNCH_ATTRIBUTE.ID}, true);
     public static final UniqueKey<JLaunchAttributeRulesRecord> LAUNCH_ATTRIBUTE_RULES_PK = Internal.createUniqueKey(JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES, DSL.name("launch_attribute_rules_pk"), new TableField[] { JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES.ID }, true);
     public static final UniqueKey<JLaunchNumberRecord> LAUNCH_NUMBER_PK = Internal.createUniqueKey(JLaunchNumber.LAUNCH_NUMBER, DSL.name("launch_number_pk"), new TableField[] { JLaunchNumber.LAUNCH_NUMBER.ID }, true);
     public static final UniqueKey<JLaunchNumberRecord> UNQ_PROJECT_NAME = Internal.createUniqueKey(JLaunchNumber.LAUNCH_NUMBER, DSL.name("unq_project_name"), new TableField[] { JLaunchNumber.LAUNCH_NUMBER.PROJECT_ID, JLaunchNumber.LAUNCH_NUMBER.LAUNCH_NAME }, true);
+  public static final UniqueKey<JLaunchStatisticsRecord> LAUNCH_STATISTICS_PK = Internal.createUniqueKey(
+      JLaunchStatistics.LAUNCH_STATISTICS, DSL.name("launch_statistics_pk"),
+      new TableField[]{JLaunchStatistics.LAUNCH_STATISTICS.S_ID}, true);
+  public static final UniqueKey<JLaunchStatisticsRecord> UNIQUE_LAUNCH_STATS = Internal.createUniqueKey(
+      JLaunchStatistics.LAUNCH_STATISTICS, DSL.name("unique_launch_stats"),
+      new TableField[]{JLaunchStatistics.LAUNCH_STATISTICS.STATISTICS_FIELD_ID,
+          JLaunchStatistics.LAUNCH_STATISTICS.LAUNCH_ID}, true);
+  public static final UniqueKey<JLaunchesModifiedRecord> LAUNCHES_MODIFIED_PKEY = Internal.createUniqueKey(
+      JLaunchesModified.LAUNCHES_MODIFIED, DSL.name("launches_modified_pkey"),
+      new TableField[]{JLaunchesModified.LAUNCHES_MODIFIED.LAUNCH_ID}, true);
     public static final UniqueKey<JLogRecord> LOG_PK = Internal.createUniqueKey(JLog.LOG, DSL.name("log_pk"), new TableField[] { JLog.LOG.ID }, true);
     public static final UniqueKey<JLogTypeRecord> LOG_TYPE_PKEY = Internal.createUniqueKey(JLogType.LOG_TYPE, DSL.name("log_type_pkey"), new TableField[] { JLogType.LOG_TYPE.ID }, true);
     public static final UniqueKey<JLogTypeRecord> LOG_TYPE_PROJECT_ID_LEVEL_UNIQUE = Internal.createUniqueKey(JLogType.LOG_TYPE, DSL.name("log_type_project_id_level_unique"), new TableField[] { JLogType.LOG_TYPE.PROJECT_ID, JLogType.LOG_TYPE.LEVEL }, true);
@@ -261,6 +281,9 @@ public class Keys {
     public static final UniqueKey<JProjectUserRecord> USERS_PROJECT_PK = Internal.createUniqueKey(JProjectUser.PROJECT_USER, DSL.name("users_project_pk"), new TableField[] { JProjectUser.PROJECT_USER.USER_ID, JProjectUser.PROJECT_USER.PROJECT_ID }, true);
     public static final UniqueKey<JRestorePasswordBidRecord> RESTORE_PASSWORD_BID_EMAIL_KEY = Internal.createUniqueKey(JRestorePasswordBid.RESTORE_PASSWORD_BID, DSL.name("restore_password_bid_email_key"), new TableField[] { JRestorePasswordBid.RESTORE_PASSWORD_BID.EMAIL }, true);
     public static final UniqueKey<JRestorePasswordBidRecord> RESTORE_PASSWORD_BID_PK = Internal.createUniqueKey(JRestorePasswordBid.RESTORE_PASSWORD_BID, DSL.name("restore_password_bid_pk"), new TableField[] { JRestorePasswordBid.RESTORE_PASSWORD_BID.UUID }, true);
+  public static final UniqueKey<JRevokedTokenRecord> REVOKED_TOKEN_PKEY = Internal.createUniqueKey(
+      JRevokedToken.REVOKED_TOKEN, DSL.name("revoked_token_pkey"),
+      new TableField[]{JRevokedToken.REVOKED_TOKEN.ID}, true);
     public static final UniqueKey<JSenderCaseRecord> SENDER_CASE_PK = Internal.createUniqueKey(JSenderCase.SENDER_CASE, DSL.name("sender_case_pk"), new TableField[] { JSenderCase.SENDER_CASE.ID }, true);
     public static final UniqueKey<JServerSettingsRecord> SERVER_SETTINGS_ID = Internal.createUniqueKey(JServerSettings.SERVER_SETTINGS, DSL.name("server_settings_id"), new TableField[] { JServerSettings.SERVER_SETTINGS.ID }, true);
     public static final UniqueKey<JServerSettingsRecord> SERVER_SETTINGS_KEY_KEY = Internal.createUniqueKey(JServerSettings.SERVER_SETTINGS, DSL.name("server_settings_key_key"), new TableField[] { JServerSettings.SERVER_SETTINGS.KEY }, true);
@@ -269,7 +292,6 @@ public class Keys {
     public static final UniqueKey<JStaleMaterializedViewRecord> STALE_MATERIALIZED_VIEW_PKEY = Internal.createUniqueKey(JStaleMaterializedView.STALE_MATERIALIZED_VIEW, DSL.name("stale_materialized_view_pkey"), new TableField[] { JStaleMaterializedView.STALE_MATERIALIZED_VIEW.ID }, true);
     public static final UniqueKey<JStatisticsRecord> STATISTICS_PK = Internal.createUniqueKey(JStatistics.STATISTICS, DSL.name("statistics_pk"), new TableField[] { JStatistics.STATISTICS.S_ID }, true);
     public static final UniqueKey<JStatisticsRecord> UNIQUE_STATS_ITEM = Internal.createUniqueKey(JStatistics.STATISTICS, DSL.name("unique_stats_item"), new TableField[] { JStatistics.STATISTICS.STATISTICS_FIELD_ID, JStatistics.STATISTICS.ITEM_ID }, true);
-    public static final UniqueKey<JStatisticsRecord> UNIQUE_STATS_LAUNCH = Internal.createUniqueKey(JStatistics.STATISTICS, DSL.name("unique_stats_launch"), new TableField[] { JStatistics.STATISTICS.STATISTICS_FIELD_ID, JStatistics.STATISTICS.LAUNCH_ID }, true);
     public static final UniqueKey<JStatisticsFieldRecord> STATISTICS_FIELD_NAME_KEY = Internal.createUniqueKey(JStatisticsField.STATISTICS_FIELD, DSL.name("statistics_field_name_key"), new TableField[] { JStatisticsField.STATISTICS_FIELD.NAME }, true);
     public static final UniqueKey<JStatisticsFieldRecord> STATISTICS_FIELD_PK = Internal.createUniqueKey(JStatisticsField.STATISTICS_FIELD, DSL.name("statistics_field_pk"), new TableField[] { JStatisticsField.STATISTICS_FIELD.SF_ID }, true);
     public static final UniqueKey<JTestItemRecord> TEST_ITEM_PK = Internal.createUniqueKey(JTestItem.TEST_ITEM, DSL.name("test_item_pk"), new TableField[] { JTestItem.TEST_ITEM.ITEM_ID }, true);
@@ -356,12 +378,27 @@ public class Keys {
     public static final ForeignKey<JIssueTypeProjectRecord, JIssueTypeRecord> ISSUE_TYPE_PROJECT__ISSUE_TYPE_PROJECT_ISSUE_TYPE_ID_FKEY = Internal.createForeignKey(JIssueTypeProject.ISSUE_TYPE_PROJECT, DSL.name("issue_type_project_issue_type_id_fkey"), new TableField[] { JIssueTypeProject.ISSUE_TYPE_PROJECT.ISSUE_TYPE_ID }, Keys.ISSUE_TYPE_PK, new TableField[] { JIssueType.ISSUE_TYPE.ID }, true);
     public static final ForeignKey<JIssueTypeProjectRecord, JProjectRecord> ISSUE_TYPE_PROJECT__ISSUE_TYPE_PROJECT_PROJECT_ID_FKEY = Internal.createForeignKey(JIssueTypeProject.ISSUE_TYPE_PROJECT, DSL.name("issue_type_project_project_id_fkey"), new TableField[] { JIssueTypeProject.ISSUE_TYPE_PROJECT.PROJECT_ID }, Keys.PROJECT_PK, new TableField[] { JProject.PROJECT.ID }, true);
     public static final ForeignKey<JItemAttributeRecord, JTestItemRecord> ITEM_ATTRIBUTE__ITEM_ATTRIBUTE_ITEM_ID_FKEY = Internal.createForeignKey(JItemAttribute.ITEM_ATTRIBUTE, DSL.name("item_attribute_item_id_fkey"), new TableField[] { JItemAttribute.ITEM_ATTRIBUTE.ITEM_ID }, Keys.TEST_ITEM_PK, new TableField[] { JTestItem.TEST_ITEM.ITEM_ID }, true);
-    public static final ForeignKey<JItemAttributeRecord, JLaunchRecord> ITEM_ATTRIBUTE__ITEM_ATTRIBUTE_LAUNCH_ID_FKEY = Internal.createForeignKey(JItemAttribute.ITEM_ATTRIBUTE, DSL.name("item_attribute_launch_id_fkey"), new TableField[] { JItemAttribute.ITEM_ATTRIBUTE.LAUNCH_ID }, Keys.LAUNCH_PK, new TableField[] { JLaunch.LAUNCH.ID }, true);
     public static final ForeignKey<JLaunchRecord, JProjectRecord> LAUNCH__LAUNCH_PROJECT_ID_FKEY = Internal.createForeignKey(JLaunch.LAUNCH, DSL.name("launch_project_id_fkey"), new TableField[] { JLaunch.LAUNCH.PROJECT_ID }, Keys.PROJECT_PK, new TableField[] { JProject.PROJECT.ID }, true);
     public static final ForeignKey<JLaunchRecord, JUsersRecord> LAUNCH__LAUNCH_USER_ID_FKEY = Internal.createForeignKey(JLaunch.LAUNCH, DSL.name("launch_user_id_fkey"), new TableField[] { JLaunch.LAUNCH.USER_ID }, Keys.USERS_PK, new TableField[] { JUsers.USERS.ID }, true);
+  public static final ForeignKey<JLaunchAttributeRecord, JLaunchRecord> LAUNCH_ATTRIBUTE__LAUNCH_ATTRIBUTE_LAUNCH_ID_FKEY = Internal.createForeignKey(
+      JLaunchAttribute.LAUNCH_ATTRIBUTE, DSL.name("launch_attribute_launch_id_fkey"),
+      new TableField[]{JLaunchAttribute.LAUNCH_ATTRIBUTE.LAUNCH_ID}, Keys.LAUNCH_PK,
+      new TableField[]{JLaunch.LAUNCH.ID}, true);
     public static final ForeignKey<JLaunchAttributeRulesRecord, JSenderCaseRecord> LAUNCH_ATTRIBUTE_RULES__LAUNCH_ATTRIBUTE_RULES_SENDER_CASE_ID_FKEY = Internal.createForeignKey(JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES, DSL.name("launch_attribute_rules_sender_case_id_fkey"), new TableField[] { JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES.SENDER_CASE_ID }, Keys.SENDER_CASE_PK, new TableField[] { JSenderCase.SENDER_CASE.ID }, true);
     public static final ForeignKey<JLaunchNamesRecord, JSenderCaseRecord> LAUNCH_NAMES__LAUNCH_NAMES_SENDER_CASE_ID_FKEY = Internal.createForeignKey(JLaunchNames.LAUNCH_NAMES, DSL.name("launch_names_sender_case_id_fkey"), new TableField[] { JLaunchNames.LAUNCH_NAMES.SENDER_CASE_ID }, Keys.SENDER_CASE_PK, new TableField[] { JSenderCase.SENDER_CASE.ID }, true);
     public static final ForeignKey<JLaunchNumberRecord, JProjectRecord> LAUNCH_NUMBER__LAUNCH_NUMBER_PROJECT_ID_FKEY = Internal.createForeignKey(JLaunchNumber.LAUNCH_NUMBER, DSL.name("launch_number_project_id_fkey"), new TableField[] { JLaunchNumber.LAUNCH_NUMBER.PROJECT_ID }, Keys.PROJECT_PK, new TableField[] { JProject.PROJECT.ID }, true);
+  public static final ForeignKey<JLaunchStatisticsRecord, JLaunchRecord> LAUNCH_STATISTICS__LAUNCH_STATISTICS_LAUNCH_ID_FKEY = Internal.createForeignKey(
+      JLaunchStatistics.LAUNCH_STATISTICS, DSL.name("launch_statistics_launch_id_fkey"),
+      new TableField[]{JLaunchStatistics.LAUNCH_STATISTICS.LAUNCH_ID}, Keys.LAUNCH_PK,
+      new TableField[]{JLaunch.LAUNCH.ID}, true);
+  public static final ForeignKey<JLaunchStatisticsRecord, JStatisticsFieldRecord> LAUNCH_STATISTICS__LAUNCH_STATISTICS_STATISTICS_FIELD_ID_FKEY = Internal.createForeignKey(
+      JLaunchStatistics.LAUNCH_STATISTICS, DSL.name("launch_statistics_statistics_field_id_fkey"),
+      new TableField[]{JLaunchStatistics.LAUNCH_STATISTICS.STATISTICS_FIELD_ID},
+      Keys.STATISTICS_FIELD_PK, new TableField[]{JStatisticsField.STATISTICS_FIELD.SF_ID}, true);
+  public static final ForeignKey<JLaunchesModifiedRecord, JLaunchRecord> LAUNCHES_MODIFIED__LAUNCHES_MODIFIED_LAUNCH_ID_FKEY = Internal.createForeignKey(
+      JLaunchesModified.LAUNCHES_MODIFIED, DSL.name("launches_modified_launch_id_fkey"),
+      new TableField[]{JLaunchesModified.LAUNCHES_MODIFIED.LAUNCH_ID}, Keys.LAUNCH_PK,
+      new TableField[]{JLaunch.LAUNCH.ID}, true);
     public static final ForeignKey<JLogRecord, JAttachmentRecord> LOG__LOG_ATTACHMENT_ID_FKEY = Internal.createForeignKey(JLog.LOG, DSL.name("log_attachment_id_fkey"), new TableField[] { JLog.LOG.ATTACHMENT_ID }, Keys.ATTACHMENT_PK, new TableField[] { JAttachment.ATTACHMENT.ID }, true);
     public static final ForeignKey<JLogRecord, JTestItemRecord> LOG__LOG_ITEM_ID_FKEY = Internal.createForeignKey(JLog.LOG, DSL.name("log_item_id_fkey"), new TableField[] { JLog.LOG.ITEM_ID }, Keys.TEST_ITEM_PK, new TableField[] { JTestItem.TEST_ITEM.ITEM_ID }, true);
     public static final ForeignKey<JLogRecord, JLaunchRecord> LOG__LOG_LAUNCH_ID_FKEY = Internal.createForeignKey(JLog.LOG, DSL.name("log_launch_id_fkey"), new TableField[] { JLog.LOG.LAUNCH_ID }, Keys.LAUNCH_PK, new TableField[] { JLaunch.LAUNCH.ID }, true);
@@ -383,7 +420,6 @@ public class Keys {
     public static final ForeignKey<JRecipientsRecord, JSenderCaseRecord> RECIPIENTS__RECIPIENTS_SENDER_CASE_ID_FKEY = Internal.createForeignKey(JRecipients.RECIPIENTS, DSL.name("recipients_sender_case_id_fkey"), new TableField[] { JRecipients.RECIPIENTS.SENDER_CASE_ID }, Keys.SENDER_CASE_PK, new TableField[] { JSenderCase.SENDER_CASE.ID }, true);
     public static final ForeignKey<JSenderCaseRecord, JProjectRecord> SENDER_CASE__SENDER_CASE_PROJECT_ID_FKEY = Internal.createForeignKey(JSenderCase.SENDER_CASE, DSL.name("sender_case_project_id_fkey"), new TableField[] { JSenderCase.SENDER_CASE.PROJECT_ID }, Keys.PROJECT_PK, new TableField[] { JProject.PROJECT.ID }, true);
     public static final ForeignKey<JStatisticsRecord, JTestItemRecord> STATISTICS__STATISTICS_ITEM_ID_FKEY = Internal.createForeignKey(JStatistics.STATISTICS, DSL.name("statistics_item_id_fkey"), new TableField[] { JStatistics.STATISTICS.ITEM_ID }, Keys.TEST_ITEM_PK, new TableField[] { JTestItem.TEST_ITEM.ITEM_ID }, true);
-    public static final ForeignKey<JStatisticsRecord, JLaunchRecord> STATISTICS__STATISTICS_LAUNCH_ID_FKEY = Internal.createForeignKey(JStatistics.STATISTICS, DSL.name("statistics_launch_id_fkey"), new TableField[] { JStatistics.STATISTICS.LAUNCH_ID }, Keys.LAUNCH_PK, new TableField[] { JLaunch.LAUNCH.ID }, true);
     public static final ForeignKey<JStatisticsRecord, JStatisticsFieldRecord> STATISTICS__STATISTICS_STATISTICS_FIELD_ID_FKEY = Internal.createForeignKey(JStatistics.STATISTICS, DSL.name("statistics_statistics_field_id_fkey"), new TableField[] { JStatistics.STATISTICS.STATISTICS_FIELD_ID }, Keys.STATISTICS_FIELD_PK, new TableField[] { JStatisticsField.STATISTICS_FIELD.SF_ID }, true);
     public static final ForeignKey<JTestItemRecord, JLaunchRecord> TEST_ITEM__TEST_ITEM_LAUNCH_ID_FKEY = Internal.createForeignKey(JTestItem.TEST_ITEM, DSL.name("test_item_launch_id_fkey"), new TableField[] { JTestItem.TEST_ITEM.LAUNCH_ID }, Keys.LAUNCH_PK, new TableField[] { JLaunch.LAUNCH.ID }, true);
     public static final ForeignKey<JTestItemRecord, JTestItemRecord> TEST_ITEM__TEST_ITEM_PARENT_ID_FKEY = Internal.createForeignKey(JTestItem.TEST_ITEM, DSL.name("test_item_parent_id_fkey"), new TableField[] { JTestItem.TEST_ITEM.PARENT_ID }, Keys.TEST_ITEM_PK, new TableField[] { JTestItem.TEST_ITEM.ITEM_ID }, true);

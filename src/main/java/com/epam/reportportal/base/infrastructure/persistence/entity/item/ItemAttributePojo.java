@@ -17,16 +17,21 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.item;
 
 import java.io.Serializable;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * JSON-friendly copy of a key/value/system item attribute.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Setter
+@Getter
+@EqualsAndHashCode
 public class ItemAttributePojo implements Serializable {
 
-  private Long itemId;
+  private Long referenceId;
 
   private String key;
 
@@ -42,63 +47,4 @@ public class ItemAttributePojo implements Serializable {
     this.value = value;
   }
 
-  public ItemAttributePojo(Long itemId, String key, String value, boolean isSystem) {
-    this.itemId = itemId;
-    this.key = key;
-    this.value = value;
-    this.isSystem = isSystem;
-  }
-
-  public Long getItemId() {
-    return itemId;
-  }
-
-  public void setItemId(Long itemId) {
-    this.itemId = itemId;
-  }
-
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  public boolean isSystem() {
-    return isSystem;
-  }
-
-  public void setSystem(boolean system) {
-    isSystem = system;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ItemAttributePojo that = (ItemAttributePojo) o;
-    return isSystem == that.isSystem && Objects.equals(itemId, that.itemId) && Objects.equals(key,
-        that.key) && Objects.equals(
-        value,
-        that.value
-    );
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(itemId, key, value, isSystem);
-  }
 }

@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.fieldName;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.LAUNCH;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics.LAUNCH_STATISTICS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics.STATISTICS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatisticsField.STATISTICS_FIELD;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.TEST_ITEM;
@@ -62,18 +63,27 @@ import org.springframework.data.domain.Sort;
 public class QueryBuilder {
 
   /**
-   * Key word for statistics criteria. Query builder works a little bit in another way with statistics criteria. It
-   * implements kind of pivot using PostgerSQL possibilities
+   * Key word for statistics criteria. Query builder works a little bit in another way with
+   * statistics criteria. It implements kind of pivot using PostgerSQL possibilities
    */
   public final static String STATISTICS_KEY = "statistics";
-  private final static Map<FilterTarget, JoinEntity> STATISTICS_TARGET_MAPPING = ImmutableMap.<FilterTarget, JoinEntity>builder()
+  private final static Map<FilterTarget, List<JoinEntity>> STATISTICS_TARGET_MAPPING = ImmutableMap.<FilterTarget, List<JoinEntity>>builder()
       .put(
           FilterTarget.LAUNCH_TARGET,
-          JoinEntity.of(STATISTICS, JoinType.LEFT_OUTER_JOIN, LAUNCH.ID.eq(STATISTICS.LAUNCH_ID))
+          List.of(
+              JoinEntity.of(LAUNCH_STATISTICS, JoinType.LEFT_OUTER_JOIN,
+                  LAUNCH.ID.eq(LAUNCH_STATISTICS.LAUNCH_ID)),
+              JoinEntity.of(STATISTICS_FIELD, JoinType.LEFT_OUTER_JOIN,
+                  LAUNCH_STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
+          )
       )
       .put(FilterTarget.TEST_ITEM_TARGET,
-          JoinEntity.of(STATISTICS, JoinType.LEFT_OUTER_JOIN,
-              TEST_ITEM.ITEM_ID.eq(STATISTICS.ITEM_ID))
+          List.of(
+              JoinEntity.of(STATISTICS, JoinType.LEFT_OUTER_JOIN,
+                  TEST_ITEM.ITEM_ID.eq(STATISTICS.ITEM_ID)),
+              JoinEntity.of(STATISTICS_FIELD, JoinType.LEFT_OUTER_JOIN,
+                  STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
+          )
       )
       .build();
   /**
@@ -336,16 +346,13 @@ public class QueryBuilder {
   private void addJoinsToQuery(QuerySupplier query, FilterTarget filterTarget, Set<String> fields) {
     Map<TableLike, JoinEntity> joinTables = new LinkedHashMap<>();
     fields.forEach(it -> {
-      if (!joinTables.containsKey(STATISTICS) && it.startsWith(STATISTICS_KEY)) {
-        ofNullable(STATISTICS_TARGET_MAPPING.get(filterTarget)).ifPresent(joinEntity -> {
-          joinTables.put(STATISTICS, joinEntity);
-          joinTables.put(STATISTICS_FIELD,
-              JoinEntity.of(STATISTICS_FIELD,
-                  JoinType.LEFT_OUTER_JOIN,
-                  STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID)
-              )
-          );
-        });
+      if (it.startsWith(STATISTICS_KEY)) {
+        ofNullable(STATISTICS_TARGET_MAPPING.get(filterTarget)).ifPresent(
+            joinEntities -> joinEntities.forEach(joinEntity -> {
+              if (!joinTables.containsKey(joinEntity.getTable())) {
+                joinTables.put(joinEntity.getTable(), joinEntity);
+              }
+            }));
       } else {
         filterTarget.getCriteriaByFilter(it)
             .ifPresent(criteriaHolder -> criteriaHolder.getJoinChain().forEach(joinEntity -> {

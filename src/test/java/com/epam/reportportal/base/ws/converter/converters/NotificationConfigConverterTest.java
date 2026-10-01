@@ -25,7 +25,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.SendCa
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.email.LaunchAttributeRule;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.email.SenderCase;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -109,7 +109,7 @@ class NotificationConfigConverterTest {
     SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
     senderCaseDTO.setRecipients(Arrays.asList("recipient1", "recipient2"));
     senderCaseDTO.setLaunchNames(Arrays.asList("launch1", "launch2"));
-    final ItemAttributeResource launchAttribute = new ItemAttributeResource();
+    final AttributeResource launchAttribute = new AttributeResource();
     launchAttribute.setKey("key");
     launchAttribute.setValue("val");
     senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));

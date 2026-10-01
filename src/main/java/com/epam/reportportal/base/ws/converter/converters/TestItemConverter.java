@@ -25,7 +25,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.model.NestedStepResource;
 import com.epam.reportportal.base.model.activity.TestItemActivityResource;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.ItemPathName;
 import com.epam.reportportal.base.reporting.LaunchPathName;
 import com.epam.reportportal.base.reporting.PathNameResource;
@@ -58,7 +58,7 @@ public final class TestItemConverter {
     resource.setAttributes(item.getAttributes()
         .stream()
         .filter(it -> !it.isSystem())
-        .map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
+        .map(it -> new AttributeResource(it.getKey(), it.getValue()))
         .collect(toSet()));
     resource.setEndTime(item.getItemResults().getEndTime());
     resource.setItemId(item.getItemId());

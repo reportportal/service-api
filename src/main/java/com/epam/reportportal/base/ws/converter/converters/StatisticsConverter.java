@@ -20,9 +20,9 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_KEY;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsView;
 import com.epam.reportportal.base.reporting.StatisticsResource;
-import java.util.Set;
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public final class StatisticsConverter {
 
-  public static final Function<Set<Statistics>, StatisticsResource> TO_RESOURCE = statistics -> {
+  public static final Function<Collection<? extends StatisticsView>, StatisticsResource> TO_RESOURCE = statistics -> {
     StatisticsResource statisticsResource = new StatisticsResource();
     statisticsResource.setDefects(statistics.stream()
         .filter(it -> ofNullable(it.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(
@@ -43,7 +43,7 @@ public final class StatisticsConverter {
             it -> it.getCounter() > 0 && it.getStatisticsField().getName().contains(DEFECTS_KEY))
         .collect(Collectors.groupingBy(it -> it.getStatisticsField().getName().split("\\$")[2],
             Collectors.groupingBy(it -> it.getStatisticsField().getName().split("\\$")[3],
-                Collectors.summingInt(Statistics::getCounter)
+                Collectors.summingInt(StatisticsView::getCounter)
             )
         )));
     statisticsResource.setExecutions(statistics.stream()
@@ -52,7 +52,7 @@ public final class StatisticsConverter {
         .filter(
             it -> it.getCounter() > 0 && it.getStatisticsField().getName().contains(EXECUTIONS_KEY))
         .collect(Collectors.groupingBy(it -> it.getStatisticsField().getName().split("\\$")[2],
-            Collectors.summingInt(Statistics::getCounter)
+            Collectors.summingInt(StatisticsView::getCounter)
         )));
     return statisticsResource;
 

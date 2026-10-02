@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.mapper;
 
+import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionLaunchRS;
@@ -21,7 +22,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -276,7 +276,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testCaseIds", source = "patchRequest.testCaseIds",
       nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-  @Mapping(target = "priority", expression = "java(patchRequest.getPriority() != null ? patchRequest.getPriority().toUpperCase() : null)")
+  @Mapping(target = "priority", expression = "java(normalizePriorityForPatch(patchRequest.getPriority()))")
   public abstract BatchPatchTestCasesRS toBatchPatchTestCasesRS(
       Long testFolderId, BatchPatchTestCasesRQ patchRequest
   );
@@ -312,7 +312,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       testCase.setDisplayId(tmsDisplayIdService.generateTestCaseDisplayId(projectId));
     }
 
-    testCase.setPriority(remoteTestCase.getPriority() != null ? remoteTestCase.getPriority().toUpperCase() : null);
+    testCase.setPriority(normalizePriority(remoteTestCase.getPriority()));
     testCase.setName(remoteTestCase.getName());
     testCase.setDescription(remoteTestCase.getDescription());
     testCase.setSourceUpdatedAt(remoteTestCase.getUpdatedAt());
@@ -326,10 +326,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
 
   @Named("normalizePriority")
   protected String normalizePriority(String priority) {
-    if (priority == null || priority.trim().isEmpty()) {
-      return "UNSPECIFIED";
-    }
-    return priority.trim().toUpperCase(Locale.ROOT);
+    return TmsTestCasePriority.normalize(priority);
   }
 
   @Named("normalizePriorityForPatch")

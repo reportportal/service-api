@@ -8,7 +8,6 @@ import static java.util.Objects.nonNull;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.PreparedTestCase;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeImportRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportParseResult;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
@@ -486,8 +485,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       var importRQ = preparedTestCases.get(i).getTestCase();
 
       if (importRQ.getAttributes() != null) {
-        createAttributesFromImport(projectId, savedTestCase, importRQ.getAttributes(),
-            keyToAttributeId);
+        createAttributesFromImport(savedTestCase, importRQ.getAttributes(), keyToAttributeId);
       }
 
       var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
@@ -526,22 +524,20 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   }
 
   private void createAttributesFromImport(
-      long projectId, TmsTestCase testCase,
+      TmsTestCase testCase,
       List<TmsTestCaseAttributeImportRQ> importAttributes,
       Map<String, Long> keyToAttributeId) {
 
-    List<TmsTestCaseAttributeRQ> attributeRequests = importAttributes.stream()
+    // Attribute IDs were already resolved/validated in bulk for this project in importFromFile,
+    // so attach them directly instead of re-fetching each one via createTestCaseAttributes.
+    var attributeIds = importAttributes.stream()
         .map(TmsTestCaseAttributeImportRQ::getKey)
-        .filter(keyToAttributeId::containsKey)
-        .map(key -> {
-          var attrRQ = new TmsTestCaseAttributeRQ();
-          attrRQ.setId(keyToAttributeId.get(key));
-          return attrRQ;
-        })
+        .map(keyToAttributeId::get)
+        .filter(Objects::nonNull)
         .toList();
 
-    if (!attributeRequests.isEmpty()) {
-      tmsTestCaseAttributeService.createTestCaseAttributes(projectId, testCase, attributeRequests);
+    if (!attributeIds.isEmpty()) {
+      tmsTestCaseAttributeService.createTestCaseAttributesByIds(testCase, attributeIds);
     }
   }
 

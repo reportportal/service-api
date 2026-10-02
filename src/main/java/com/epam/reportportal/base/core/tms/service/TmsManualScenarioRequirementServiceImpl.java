@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +39,20 @@ public class TmsManualScenarioRequirementServiceImpl implements
       return;
     }
 
+    var requestedIds = requirements.stream()
+        .map(TmsRequirementRQ::getId)
+        .filter(Objects::nonNull)
+        .toList();
+
+    var existingById = tmsManualScenarioRequirementRepository.findAllById(requestedIds)
+        .stream()
+        .collect(Collectors.toMap(TmsManualScenarioRequirement::getId, Function.identity()));
+
     var entities = new ArrayList<TmsManualScenarioRequirement>();
     for (int i = 0; i < requirements.size(); i++) {
       var requirementRQ = requirements.get(i);
-      var existingOpt = tmsManualScenarioRequirementRepository.findById(requirementRQ.getId());
-      if (existingOpt.isPresent()) {
-        var existing = existingOpt.get();
+      var existing = existingById.get(requirementRQ.getId());
+      if (existing != null) {
         existing.setValue(requirementRQ.getValue());
         existing.setManualScenario(tmsManualScenario);
         existing.setNumber(i);

@@ -1355,8 +1355,8 @@ class TmsTestCaseServiceImplTest {
 
     assertNotNull(result);
     verify(tmsAttributeService).resolveAttributes(eq(projectId), anySet());
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(
-        eq(projectId), eq(savedTestCase), anyList());
+    verify(tmsTestCaseAttributeService).createTestCaseAttributesByIds(
+        eq(savedTestCase), eq(List.of(200L)));
   }
 
   @Test

@@ -144,8 +144,9 @@ public class GeneratedUserController extends BaseController implements UsersApi 
           String.format("attachment; filename=\"RP_USERS_%s_Report.%s\"", ReportFormat.CSV.name(),
               ReportFormat.CSV.getValue()));
 
+      Pageable exportPageable = Pageable.unpaged(pageable.getSort());
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
-        getUserHandler.exportUsers(format, outputStream, filter, pageable);
+        getUserHandler.exportUsers(format, outputStream, filter, exportPageable);
         return null;
       } catch (IOException e) {
         throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");

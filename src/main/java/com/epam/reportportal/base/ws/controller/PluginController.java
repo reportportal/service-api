@@ -40,6 +40,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Part;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -147,10 +149,10 @@ public class PluginController {
       @PathVariable String projectKey,
       @PathVariable String pluginName,
       @RequestParam("file") MultipartFile file,
-      @RequestParam(value = "launchImportRq", required = false)
+      @RequestPart(value = "launchImportRq", required = false)
       @Parameter(content = @Content(mediaType = APPLICATION_JSON_VALUE,
-          schema = @Schema(implementation = LaunchImportRQ.class))) String launchImportRqJson) {
+          schema = @Schema(implementation = LaunchImportRQ.class))) Part launchImportRqPart) {
     return importPluginCommandHandler.execute(user, projectKey, pluginName, file,
-        launchImportRqConverter.convert(launchImportRqJson));
+        launchImportRqConverter.convert(launchImportRqPart));
   }
 }

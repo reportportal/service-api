@@ -30,10 +30,10 @@ import lombok.Setter;
 public class UpdateItemAttributeRQ {
 
   @Valid
-  private ItemAttributeResource from;
+  private AttributeResource from;
 
   @Valid
-  private ItemAttributeResource to;
+  private AttributeResource to;
 
   private BulkInfoUpdateRQ.Action action;
 

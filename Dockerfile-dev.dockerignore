@@ -1,0 +1,16 @@
+.git
+.github
+.idea
+.gradle
+build
+out
+bin
+ev-plugins
+.serena
+*.iml
+src/test
+README.md
+postman
+api-registry/docs
+api-registry/src
+api-registry/api/proto

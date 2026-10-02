@@ -23,10 +23,11 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ATTACHMENT_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ATTRIBUTE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.DASHBOARD_WIDGET_MAPPER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ISSUE_RECORD_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ITEM_ATTRIBUTE_MAPPER;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.LAUNCH_ATTRIBUTE_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.LOG_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ORGANIZATION_USER_MAPPER;
-import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.ISSUE_RECORD_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.PATTERN_TEMPLATE_NAME_RECORD_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.PROJECT_USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.TICKET_MAPPER;
@@ -185,8 +186,8 @@ public class ResultFetchers {
       } else {
         launch = launches.get(id);
       }
-      ITEM_ATTRIBUTE_MAPPER.apply(row).ifPresent(it -> launch.getAttributes().addAll(it));
-      launch.getStatistics().add(RecordMappers.STATISTICS_RECORD_MAPPER.map(row));
+      LAUNCH_ATTRIBUTE_MAPPER.apply(row).ifPresent(it -> launch.getAttributes().addAll(it));
+      launch.getStatistics().add(RecordMappers.LAUNCH_STATISTICS_RECORD_MAPPER.map(row));
       launches.put(id, launch);
     });
     return new ArrayList<>(launches.values());

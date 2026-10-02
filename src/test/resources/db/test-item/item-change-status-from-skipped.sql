@@ -3,8 +3,8 @@ insert into launch(id, uuid, project_id, user_id, name, description, start_time,
                    last_modified, mode, status, has_retries)
 values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false);
 
-insert into item_attribute(id, key, value, item_id, launch_id, system)
-values (1, 'skippedIssue', 'true', null, 1, true);
+insert into launch_attribute(id, key, value, launch_id, system)
+values (1, 'skippedIssue', 'true', 1, true);
 
 -- Test level item with 2 step items
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,

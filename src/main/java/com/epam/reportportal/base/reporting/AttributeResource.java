@@ -35,7 +35,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemAttributeResource implements Serializable {
+public class AttributeResource implements Serializable {
 
   private String key;
 
@@ -59,7 +59,7 @@ public class ItemAttributeResource implements Serializable {
       return false;
     }
 
-    ItemAttributeResource that = (ItemAttributeResource) o;
+    AttributeResource that = (AttributeResource) o;
 
     if (key != null ? !key.equals(that.key) : that.key != null) {
       return false;

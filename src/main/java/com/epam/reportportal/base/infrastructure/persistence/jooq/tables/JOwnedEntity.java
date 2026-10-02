@@ -69,8 +69,8 @@ public class JOwnedEntity extends TableImpl<JOwnedEntityRecord> {
   /**
    * The column <code>public.owned_entity.owner</code>.
    */
-  public final TableField<JOwnedEntityRecord, String> OWNER = createField(DSL.name("owner"), SQLDataType.VARCHAR, this,
-      "");
+  public final TableField<JOwnedEntityRecord, String> OWNER = createField(DSL.name("owner"),
+      SQLDataType.VARCHAR, this, "");
 
   /**
    * The column <code>public.owned_entity.project_id</code>.
@@ -88,7 +88,8 @@ public class JOwnedEntity extends TableImpl<JOwnedEntityRecord> {
     this(alias, aliased, (Field<?>[]) null, null);
   }
 
-  private JOwnedEntity(Name alias, Table<JOwnedEntityRecord> aliased, Field<?>[] parameters, Condition where) {
+  private JOwnedEntity(Name alias, Table<JOwnedEntityRecord> aliased, Field<?>[] parameters,
+      Condition where) {
     super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table(), where);
   }
 
@@ -125,7 +126,8 @@ public class JOwnedEntity extends TableImpl<JOwnedEntityRecord> {
 
     private static final long serialVersionUID = 1L;
 
-    public <O extends Record> JOwnedEntityPath(Table<O> path, ForeignKey<O, JOwnedEntityRecord> childPath,
+    public <O extends Record> JOwnedEntityPath(Table<O> path,
+        ForeignKey<O, JOwnedEntityRecord> childPath,
         InverseForeignKey<O, JOwnedEntityRecord> parentPath) {
       super(path, childPath, parentPath);
     }
@@ -191,7 +193,8 @@ public class JOwnedEntity extends TableImpl<JOwnedEntityRecord> {
   private transient JDashboardPath _dashboard;
 
   /**
-   * Get the implicit to-many join path to the <code>public.dashboard</code> table
+   * Get the implicit to-many join path to the <code>public.dashboard</code>
+   * table
    */
   public JDashboardPath dashboard() {
     if (_dashboard == null) {
@@ -204,7 +207,8 @@ public class JOwnedEntity extends TableImpl<JOwnedEntityRecord> {
   private transient JFilterPath _filter;
 
   /**
-   * Get the implicit to-many join path to the <code>public.filter</code> table
+   * Get the implicit to-many join path to the <code>public.filter</code>
+   * table
    */
   public JFilterPath filter() {
     if (_filter == null) {
@@ -217,7 +221,8 @@ public class JOwnedEntity extends TableImpl<JOwnedEntityRecord> {
   private transient JWidgetPath _widget;
 
   /**
-   * Get the implicit to-many join path to the <code>public.widget</code> table
+   * Get the implicit to-many join path to the <code>public.widget</code>
+   * table
    */
   public JWidgetPath widget() {
     if (_widget == null) {

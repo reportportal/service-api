@@ -17,11 +17,9 @@
 package com.epam.reportportal.base.ws.converter.converters;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -29,10 +27,10 @@ import java.util.function.Function;
  *
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ItemAttributeConverter {
+public class AttributeConverter {
 
   public static final int MAX_ATTRIBUTE_LENGTH = 512;
-  public static final Function<ItemAttributeResource, ItemAttribute> FROM_RESOURCE = it -> {
+  public static final Function<AttributeResource, ItemAttribute> FROM_RESOURCE = it -> {
     ItemAttribute itemAttribute = new ItemAttribute();
 
     String key = it.getKey();
@@ -53,18 +51,29 @@ public class ItemAttributeConverter {
     }
     return itemAttribute;
   };
-  public static final BiFunction<ItemAttributesRQ, Launch, ItemAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
-    ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
-    itemAttribute.setLaunch(launch);
-    return itemAttribute;
-  };
-  public static final BiFunction<ItemAttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
-    ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
-    itemAttribute.setTestItem(item);
-    return itemAttribute;
+  public static final Function<AttributeResource, LaunchAttribute> FROM_LAUNCH_RESOURCE = it -> {
+    LaunchAttribute launchAttribute = new LaunchAttribute();
+
+    String key = it.getKey();
+    if (key != null && key.length() > MAX_ATTRIBUTE_LENGTH) {
+      key = key.substring(0, MAX_ATTRIBUTE_LENGTH);
+    }
+    String value = it.getValue();
+    if (value != null && value.length() > MAX_ATTRIBUTE_LENGTH) {
+      value = value.substring(0, MAX_ATTRIBUTE_LENGTH);
+    }
+    launchAttribute.setKey(key);
+    launchAttribute.setValue(value);
+
+    if (it instanceof ItemAttributesRQ itemAttributesRQ) {
+      launchAttribute.setSystem(itemAttributesRQ.isSystem());
+    } else {
+      launchAttribute.setSystem(false);
+    }
+    return launchAttribute;
   };
 
-  private ItemAttributeConverter() {
+  private AttributeConverter() {
     //static only
   }
 }

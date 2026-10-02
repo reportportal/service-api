@@ -39,8 +39,8 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
 
 
   /**
-   * Acquires a transaction-scoped PostgreSQL advisory lock on the given key. Used to serialize all statistics
-   * operations within a single launch.
+   * Acquires a transaction-scoped PostgreSQL advisory lock on the given key. Used to serialize all
+   * statistics operations within a single launch.
    *
    * @param lockId typically the launch ID
    */
@@ -48,8 +48,8 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
   void performAdvisoryLock(@Param("lockId") Long lockId);
 
   /**
-   * Subtracts item's non-zero counters from all ancestors (excluding self). Uses PostgreSQL array operations for
-   * efficient bulk updates.
+   * Subtracts item's non-zero counters from all ancestors (excluding self). Uses PostgreSQL array
+   * operations for efficient bulk updates.
    *
    * @param itemId  item ID whose statistics should be subtracted
    * @param pathIds array of item IDs (ancestors path)
@@ -82,7 +82,7 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
         SELECT statistics_field_id, s_counter
         FROM statistics WHERE item_id = :itemId AND s_counter <> 0
       )
-      UPDATE statistics s
+      UPDATE launch_statistics s
       SET s_counter = GREATEST(0, s.s_counter - ist.s_counter)
       FROM item_stats ist
       WHERE s.statistics_field_id = ist.statistics_field_id
@@ -92,8 +92,8 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
       @Param("launchId") Long launchId);
 
   /**
-   * Increments statistics fields by 1 for all items in the path (ancestors + self). Uses UPSERT (INSERT ... ON CONFLICT
-   * DO UPDATE) for efficient bulk operations.
+   * Increments statistics fields by 1 for all items in the path (ancestors + self). Uses UPSERT
+   * (INSERT ... ON CONFLICT DO UPDATE) for efficient bulk operations.
    *
    * @param pathIds  array of item IDs (ancestors path including self)
    * @param fieldIds array of statistics field IDs to increment
@@ -113,8 +113,8 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
       @Param("fieldIds") Long[] fieldIds);
 
   /**
-   * Increments statistics fields by 1 for the launch. Uses UPSERT (INSERT ... ON CONFLICT DO UPDATE) for efficient
-   * operations.
+   * Increments statistics fields by 1 for the launch. Uses UPSERT (INSERT ... ON CONFLICT DO
+   * UPDATE) for efficient operations.
    *
    * @param launchId launch ID
    * @param fieldIds array of statistics field IDs to increment
@@ -122,18 +122,18 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
   @Modifying(flushAutomatically = true)
   @Query(value = """
       WITH fields AS (SELECT unnest(CAST(:fieldIds AS bigint[])) AS fid)
-      INSERT INTO statistics (s_counter, statistics_field_id, launch_id)
+      INSERT INTO launch_statistics (s_counter, statistics_field_id, launch_id)
       SELECT 1, f.fid, :launchId
       FROM fields f
       ON CONFLICT (statistics_field_id, launch_id)
-          DO UPDATE SET s_counter = statistics.s_counter + 1
+          DO UPDATE SET s_counter = launch_statistics.s_counter + 1
       """, nativeQuery = true)
   void incrementForLaunch(@Param("launchId") Long launchId,
       @Param("fieldIds") Long[] fieldIds);
 
   /**
-   * Decrements statistics fields by the given amount for all items in the path. Uses GREATEST(0, ...) to prevent
-   * negative values.
+   * Decrements statistics fields by the given amount for all items in the path. Uses GREATEST(0,
+   * ...) to prevent negative values.
    *
    * @param pathIds  array of item IDs (ancestors path including self)
    * @param fieldIds array of statistics field IDs to decrement
@@ -151,7 +151,8 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
       @Param("amount") int amount);
 
   /**
-   * Decrements statistics fields by the given amount for the launch. Uses GREATEST(0, ...) to prevent negative values.
+   * Decrements statistics fields by the given amount for the launch. Uses GREATEST(0, ...) to
+   * prevent negative values.
    *
    * @param launchId launch ID
    * @param fieldIds array of statistics field IDs to decrement
@@ -159,7 +160,7 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
    */
   @Modifying(flushAutomatically = true)
   @Query(value = """
-      UPDATE statistics
+      UPDATE launch_statistics
       SET s_counter = GREATEST(0, s_counter - :amount)
       WHERE statistics_field_id = ANY(CAST(:fieldIds AS bigint[]))
         AND launch_id = :launchId

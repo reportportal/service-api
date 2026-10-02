@@ -18,7 +18,7 @@ package com.epam.reportportal.base.model.project.email;
 
 import com.epam.reportportal.base.infrastructure.annotations.In;
 import com.epam.reportportal.base.infrastructure.annotations.NotBlankStringCollection;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -67,7 +67,7 @@ public class SenderCaseDTO implements Serializable {
 
   @Valid
   @JsonProperty(value = "attributes")
-  private Set<ItemAttributeResource> attributes;
+  private Set<AttributeResource> attributes;
 
   @JsonProperty(value = "enabled")
   private boolean enabled;

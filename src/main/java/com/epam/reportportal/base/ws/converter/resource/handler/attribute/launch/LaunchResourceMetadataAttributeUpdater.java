@@ -18,7 +18,7 @@ package com.epam.reportportal.base.ws.converter.resource.handler.attribute.launc
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.google.common.collect.Maps;
@@ -42,7 +42,7 @@ public class LaunchResourceMetadataAttributeUpdater implements
   }
 
   @Override
-  public void handle(LaunchResource resource, Collection<ItemAttribute> attributes) {
+  public void handle(LaunchResource resource, Collection<? extends Attribute> attributes) {
     attributes.forEach(it -> {
       if (StringUtils.isNotBlank(it.getKey()) && supportedKeys.contains(it.getKey())) {
         ofNullable(resource.getMetadata()).ifPresentOrElse(metadata -> updateMetadata(it, metadata),
@@ -56,7 +56,7 @@ public class LaunchResourceMetadataAttributeUpdater implements
     });
   }
 
-  private void updateMetadata(ItemAttribute it, Map<String, Object> metadata) {
+  private void updateMetadata(Attribute it, Map<String, Object> metadata) {
     metadata.put(it.getKey(), it.getValue());
   }
 }

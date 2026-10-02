@@ -19,9 +19,13 @@ package com.epam.reportportal.base.ws.controller;
 import com.epam.reportportal.base.model.launch.LaunchImportRQ;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Part;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -39,14 +43,25 @@ public class LaunchImportRqConverter {
   private final Validator validator;
 
   /**
-   * Parses a raw JSON string into a validated {@link LaunchImportRQ} object.
+   * Reads a multipart {@link Part} and parses it into a validated {@link LaunchImportRQ}.
    *
-   * @param launchImportRqJson the raw JSON string representation of the request
-   * @return the parsed and validated {@link LaunchImportRQ}, or {@code null} if blank
-   * @throws ConstraintViolationException if bean validation fails
-   * @throws IllegalArgumentException     if JSON parsing fails
+   * @param launchImportRqPart the raw multipart part, or {@code null} if absent
+   * @return the parsed and validated {@link LaunchImportRQ}, or {@code null} if absent/blank
    */
-  public LaunchImportRQ convert(String launchImportRqJson) {
+  public LaunchImportRQ convert(Part launchImportRqPart) {
+    if (launchImportRqPart == null) {
+      return null;
+    }
+    try {
+      String launchImportRqJson = new String(launchImportRqPart.getInputStream().readAllBytes(),
+          StandardCharsets.UTF_8);
+      return convert(launchImportRqJson);
+    } catch (IOException e) {
+      throw new UncheckedIOException("Unable to read launchImportRq part", e);
+    }
+  }
+
+  private LaunchImportRQ convert(String launchImportRqJson) {
     if (StringUtils.isBlank(launchImportRqJson)) {
       return null;
     }

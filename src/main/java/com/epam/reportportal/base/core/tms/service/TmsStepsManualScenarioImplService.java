@@ -52,6 +52,17 @@ public class TmsStepsManualScenarioImplService implements TmsManualScenarioImplS
 
   @Override
   @Transactional
+  public void createTmsManualScenarioBatch(Long projectId,
+      List<TmsManualScenario> tmsManualScenarios,
+      List<TmsManualScenarioRQ> testCaseManualScenarioRqs) {
+    for (int i = 0; i < tmsManualScenarios.size(); i++) {
+      createTmsManualScenarioImpl(projectId, tmsManualScenarios.get(i),
+          testCaseManualScenarioRqs.get(i));
+    }
+  }
+
+  @Override
+  @Transactional
   public void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
       TmsManualScenarioRQ testCaseManualScenarioRq) {
     var stepsManualScenario = manualScenario.getStepsScenario();

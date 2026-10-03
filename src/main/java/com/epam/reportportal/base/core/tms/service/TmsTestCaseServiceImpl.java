@@ -487,9 +487,18 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       if (importRQ.getAttributes() != null) {
         createAttributesFromImport(savedTestCase, importRQ.getAttributes(), keyToAttributeId);
       }
+    }
 
-      var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
-          importRQ.getManualScenario());
+    var manualScenarioRQs = preparedTestCases.stream()
+        .map(prepared -> prepared.getTestCase().getManualScenario())
+        .toList();
+
+    var defaultVersions = tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(
+        projectId, savedTestCases, manualScenarioRQs);
+
+    for (int i = 0; i < savedTestCases.size(); i++) {
+      var savedTestCase = savedTestCases.get(i);
+      var defaultVersion = defaultVersions.get(i);
 
       var resource = tmsTestCaseActivityResourceMapper.buildActivityResource(savedTestCase, defaultVersion);
       var event = tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(membershipDetails, user, resource);

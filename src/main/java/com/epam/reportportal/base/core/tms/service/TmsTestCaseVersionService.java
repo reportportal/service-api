@@ -26,6 +26,19 @@ public interface TmsTestCaseVersionService {
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ);
 
   /**
+   * Creates default versions (and their manual scenarios) for multiple test cases in bulk,
+   * batching DB writes across all of them instead of one round trip per test case. Used by
+   * high-volume flows such as CSV import.
+   *
+   * @param projectId          project id
+   * @param tmsTestCases       test cases, aligned by index with tmsManualScenarioRQs
+   * @param tmsManualScenarioRQs request DTOs for each test case; an entry may be null
+   * @return created default versions aligned by index with the input lists
+   */
+  List<TmsTestCaseVersion> createDefaultTestCaseVersionsBatch(long projectId,
+      List<TmsTestCase> tmsTestCases, List<TmsManualScenarioRQ> tmsManualScenarioRQs);
+
+  /**
    * Updates default test case version.
    *
    * @param projectId

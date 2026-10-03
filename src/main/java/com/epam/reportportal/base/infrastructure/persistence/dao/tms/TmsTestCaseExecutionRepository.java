@@ -6,6 +6,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projecti
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projection.TmsTestCaseExecutionStatusCountByLaunch;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -146,6 +147,15 @@ public interface TmsTestCaseExecutionRepository extends
    */
   @Query("SELECT e FROM TmsTestCaseExecution e WHERE e.launchId = :launchId")
   List<TmsTestCaseExecution> findByLaunchId(@Param("launchId") Long launchId);
+
+  /**
+   * Finds all test case IDs that already have executions in a launch.
+   *
+   * @param launchId launch ID
+   * @return set of test case IDs
+   */
+  @Query("SELECT e.testCaseId FROM TmsTestCaseExecution e WHERE e.launchId = :launchId")
+  Set<Long> findTestCaseIdsByLaunchId(@Param("launchId") Long launchId);
 
   /**
    * Finds execution by test case execution ID and launch ID.

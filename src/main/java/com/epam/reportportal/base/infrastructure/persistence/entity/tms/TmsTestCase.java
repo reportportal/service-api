@@ -4,10 +4,14 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaI
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -63,6 +67,14 @@ public class TmsTestCase implements Serializable {
 
   @Column(name = "display_id")
   private String displayId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "origin", nullable = false)
+  private TmsTestCaseOrigin origin = TmsTestCaseOrigin.MANUAL;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private TmsTestCaseStatus status = TmsTestCaseStatus.READY;
 
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)

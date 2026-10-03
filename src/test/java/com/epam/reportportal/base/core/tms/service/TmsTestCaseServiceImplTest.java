@@ -851,6 +851,27 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
+  void patch_WithWhitespaceOnlyPriorityAndTestFolderId_ShouldNotPatchPriority() {
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testFolderId = 5L;
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
+        .priority("   ")
+        .build();
+
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, testFolderId, null))
+        .thenReturn(testFolderId);
+
+    sut.patch(projectId, patchRequest);
+
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, null);
+    verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(testFolderId, patchRequest);
+  }
+
+  @Test
   void patch_WithOnlyPriority_ShouldOnlyCallRepositoryPatch() {
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     var priority = "HIGH";

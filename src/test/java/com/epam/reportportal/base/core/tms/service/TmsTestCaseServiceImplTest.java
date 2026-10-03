@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -1083,9 +1084,11 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
-    
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
+
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
-    
+
     assertNotNull(result);
     assertEquals(1, result.size());
     verify(importerFactory).getImporter("test.csv");
@@ -1139,7 +1142,9 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
-    
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
+
     var result = sut.importFromFile(membershipDetails, user, null, null, file);
     
     assertNotNull(result);
@@ -1174,6 +1179,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
 
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
@@ -1212,6 +1219,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(createdFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
 
     var result = sut.importFromFile(membershipDetails, user, null, folderName, file);
 
@@ -1300,7 +1309,9 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.saveAll(anyList()))
         .thenReturn(List.of(savedTestCase1, savedTestCase2));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS(), new TmsTestFolderRS()));
-    
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Arrays.asList(null, null));
+
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
     
     assertNotNull(result);
@@ -1350,13 +1361,15 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
 
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
     assertNotNull(result);
     verify(tmsAttributeService).resolveAttributes(eq(projectId), anySet());
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(
-        eq(projectId), eq(savedTestCase), anyList());
+    verify(tmsTestCaseAttributeService).createTestCaseAttributesByIds(
+        eq(savedTestCase), eq(List.of(200L)));
   }
 
   @Test

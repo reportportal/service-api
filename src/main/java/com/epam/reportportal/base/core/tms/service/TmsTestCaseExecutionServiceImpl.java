@@ -37,6 +37,7 @@ import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -71,6 +72,12 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private static final String TEST_CASE_EXECUTION_IN_LAUNCH =
       "Test Case execution: %d for Launch: %d";
 
+  // Periodically flush/clear the persistence context during large batch imports so the
+  // Hibernate session (dirty-checking, entity cache) doesn't grow unbounded across thousands
+  // of created test items/executions.
+  private static final int FLUSH_BATCH_SIZE = 500;
+
+  private final EntityManager entityManager;
   private final TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
   private final TmsTestCaseExecutionFilterableRepository tmsTestCaseExecutionFilterableRepository;
   private final TmsTestCaseVersionService tmsTestCaseVersionService;
@@ -349,6 +356,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
 
     Map<Long, TestItem> suiteItemsByIds = new HashMap<>();
     Map<Long, String> testItemNamesByIds = new HashMap<>();
+    var processedSinceFlush = 0;
 
     // Partition testCaseIds into chunks of 1000 to batch load test case data and avoid N+1 queries
     var testCaseIdsPartition = ListUtils.partition(testCaseIds, 1000);
@@ -401,6 +409,16 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
           successfulIds.add(testCaseId);
 
           log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
+
+          // Periodically flush and clear the persistence context so the Hibernate session
+          // doesn't accumulate thousands of managed entities over the course of the batch.
+          // Cached lookups (suiteItemsByIds, testItemNamesByIds) remain valid: SUITE items
+          // become detached but are only ever re-saved via merge(), never lazily navigated.
+          if (++processedSinceFlush >= FLUSH_BATCH_SIZE) {
+            entityManager.flush();
+            entityManager.clear();
+            processedSinceFlush = 0;
+          }
 
         } catch (DataAccessException | PersistenceException e) {
           throw e;

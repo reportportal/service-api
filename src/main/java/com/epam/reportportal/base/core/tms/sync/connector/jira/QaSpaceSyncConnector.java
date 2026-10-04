@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -111,74 +112,20 @@ public class QaSpaceSyncConnector implements TmsSyncConnector<Integration> {
 
             try {
                 var searchNode = objectMapper.readTree(issueResponse);
+                var issuesByKey = new HashMap<String, JsonNode>();
                 if (searchNode.has("issues")) {
-                    searchNode.get("issues").forEach(issueNode -> {
-                        var testCaseId = issueNode.get("key").asText();
-                        var fields = issueNode.get("fields");
+                    searchNode.get("issues").forEach(issueNode ->
+                            issuesByKey.put(issueNode.get("key").asText(), issueNode));
+                }
 
-                        var updatedAt = Instant.now();
-                        if (fields.hasNonNull("updated")) {
-                            updatedAt = Instant.from(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(fields.get("updated").asText()));
+                for (String testCaseId : batch) {
+                    var issueNode = issuesByKey.get(testCaseId);
+                    if (issueNode != null) {
+                        var remoteTestCase = parseTestCase(issueNode, url, folder, since);
+                        if (remoteTestCase != null) {
+                            testCases.add(remoteTestCase);
                         }
-
-                        if (since != null && updatedAt.isBefore(since)) {
-                            return;
-                        }
-
-                        var attachments = new ArrayList<RemoteAttachment>();
-                        if (fields.has("attachment")) {
-                            fields.get("attachment").forEach(attNode -> {
-                                attachments.add(RemoteAttachment.builder()
-                                        .id(attNode.get("id").asText())
-                                        .filename(attNode.get("filename").asText())
-                                        .mimeType(attNode.get("mimeType").asText())
-                                        .size(attNode.get("size").asLong())
-                                        .contentUrl(attNode.get("content").asText())
-                                        .build());
-                            });
-                        }
-
-                        var labels = new ArrayList<String>();
-                        if (fields.has("labels") && fields.get("labels").isArray()) {
-                            fields.get("labels").forEach(labelNode -> labels.add(labelNode.asText()));
-                        }
-
-                        var requirements = new ArrayList<String>();
-                        if (fields.has("customfield_29300") && fields.get("customfield_29300").isArray()) {
-                            fields.get("customfield_29300").forEach(reqNode -> {
-                                var rawText = reqNode.asText();
-                                var matcher = REQUIREMENT_PATTERN.matcher(rawText);
-                                if (matcher.find()) {
-                                    var key = matcher.group(1);
-                                    var external = Boolean.parseBoolean(matcher.group(2));
-                                    if (external) {
-                                        requirements.add(key);
-                                    } else {
-                                        var baseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
-                                        requirements.add(baseUrl + "/browse/" + key);
-                                    }
-                                } else {
-                                    requirements.add(rawText);
-                                }
-                            });
-                        }
-
-                        var remoteTestCase = RemoteTestCase.builder()
-                                .id(testCaseId)
-                                .name(fields.hasNonNull("summary") ? fields.get("summary").asText() : "")
-                                .description(fields.hasNonNull("description") ? fields.get("description").asText() : "")
-                                .priority(fields.hasNonNull("priority") ? fields.get("priority").get("name").asText() : "")
-                                .labels(labels)
-                                .requirements(requirements)
-                                .steps(fields.hasNonNull("customfield_19206") ? fields.get("customfield_19206").asText() : "")
-                                .expectedResults(fields.hasNonNull("customfield_19207") ? fields.get("customfield_19207").asText() : "")
-                                .folderId(folder != null ? folder.getId() : null)
-                                .updatedAt(updatedAt)
-                                .attachments(attachments)
-                                .build();
-
-                        testCases.add(remoteTestCase);
-                    });
+                    }
                 }
             } catch (Exception e) {
                 throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Failed to parse Jira search response", e);
@@ -189,6 +136,72 @@ public class QaSpaceSyncConnector implements TmsSyncConnector<Integration> {
                 .totalCount(batch.size())
                 .testCases(testCases)
                 .hasMore(hasMore)
+                .build();
+    }
+
+    private RemoteTestCase parseTestCase(JsonNode issueNode, String url, RemoteFolder folder, Instant since) {
+        var testCaseId = issueNode.get("key").asText();
+        var fields = issueNode.get("fields");
+
+        var updatedAt = Instant.now();
+        if (fields.hasNonNull("updated")) {
+            updatedAt = Instant.from(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(fields.get("updated").asText()));
+        }
+
+        if (since != null && updatedAt.isBefore(since)) {
+            return null;
+        }
+
+        var attachments = new ArrayList<RemoteAttachment>();
+        if (fields.has("attachment")) {
+            fields.get("attachment").forEach(attNode -> {
+                attachments.add(RemoteAttachment.builder()
+                        .id(attNode.get("id").asText())
+                        .filename(attNode.get("filename").asText())
+                        .mimeType(attNode.get("mimeType").asText())
+                        .size(attNode.get("size").asLong())
+                        .contentUrl(attNode.get("content").asText())
+                        .build());
+            });
+        }
+
+        var labels = new ArrayList<String>();
+        if (fields.has("labels") && fields.get("labels").isArray()) {
+            fields.get("labels").forEach(labelNode -> labels.add(labelNode.asText()));
+        }
+
+        var requirements = new ArrayList<String>();
+        if (fields.has("customfield_29300") && fields.get("customfield_29300").isArray()) {
+            fields.get("customfield_29300").forEach(reqNode -> {
+                var rawText = reqNode.asText();
+                var matcher = REQUIREMENT_PATTERN.matcher(rawText);
+                if (matcher.find()) {
+                    var key = matcher.group(1);
+                    var external = Boolean.parseBoolean(matcher.group(2));
+                    if (external) {
+                        requirements.add(key);
+                    } else {
+                        var baseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+                        requirements.add(baseUrl + "/browse/" + key);
+                    }
+                } else {
+                    requirements.add(rawText);
+                }
+            });
+        }
+
+        return RemoteTestCase.builder()
+                .id(testCaseId)
+                .name(fields.hasNonNull("summary") ? fields.get("summary").asText() : "")
+                .description(fields.hasNonNull("description") ? fields.get("description").asText() : "")
+                .priority(fields.hasNonNull("priority") ? fields.get("priority").get("name").asText() : "")
+                .labels(labels)
+                .requirements(requirements)
+                .steps(fields.hasNonNull("customfield_19206") ? fields.get("customfield_19206").asText() : "")
+                .expectedResults(fields.hasNonNull("customfield_19207") ? fields.get("customfield_19207").asText() : "")
+                .folderId(folder != null ? folder.getId() : null)
+                .updatedAt(updatedAt)
+                .attachments(attachments)
                 .build();
     }
 

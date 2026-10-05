@@ -9,7 +9,9 @@ import com.epam.reportportal.base.core.tms.mapper.TmsAttributeMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseAttributeMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttributeId;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import jakarta.validation.Valid;
@@ -32,6 +34,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
 
   private final TmsTestCaseAttributeMapper tmsTestCaseAttributeMapper;
   private final TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
+  private final TmsTestCaseRepository tmsTestCaseRepository;
   private final TmsAttributeService tmsAttributeService;
   private final TmsAttributeRepository tmsAttributeRepository;
   private final TmsAttributeMapper tmsAttributeMapper;
@@ -50,6 +53,25 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
         })
         .collect(Collectors.toSet());
     
+    tmsTestCase.setAttributes(tmsTestCaseAttributes);
+    tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+  }
+
+  @Override
+  @Transactional
+  public void createTestCaseAttributesByIds(@NotNull TmsTestCase tmsTestCase,
+      @NotEmpty Collection<Long> attributeIds) {
+    // Use a managed reference (not a bare id-only instance) for the attribute side: persist()
+    // cascades into @MapsId associations, and a plain "new TmsAttribute(); setId(id)" object is
+    // indistinguishable from a detached entity to Hibernate, which throws
+    // "detached entity passed to persist". getReferenceById returns a proxy Hibernate recognizes
+    // as already-persistent, without issuing a SELECT.
+    var tmsTestCaseAttributes = attributeIds
+        .stream()
+        .map(attributeId -> tmsTestCaseAttributeMapper.createTestCaseAttribute(
+            tmsTestCase, tmsAttributeRepository.getReferenceById(attributeId)))
+        .collect(Collectors.toSet());
+
     tmsTestCase.setAttributes(tmsTestCaseAttributes);
     tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
   }
@@ -141,12 +163,23 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Transactional
   public void addAttributesToTestCases(@NotNull @NotEmpty List<Long> testCaseIds,
       @NotNull @NotEmpty Collection<Long> attributeIds) {
+    // "Add" must be idempotent: a (testCaseId, attributeId) pair may already exist, and
+    // persist() (unlike the merge() used before TmsTestCaseAttribute implemented Persistable)
+    // throws a unique-constraint violation on a duplicate insert instead of silently upserting.
+    var existingTmsTestCaseAttributeIds = new HashSet<>(
+        tmsTestCaseAttributeRepository.findExistingIds(testCaseIds, attributeIds));
+
+    // See createTestCaseAttributesByIds: use managed references for both sides so persist()'s
+    // @MapsId cascade doesn't mistake a bare id-only instance for a detached entity.
     var testCaseAttributes = testCaseIds
         .stream()
         .flatMap(testCaseId -> attributeIds
             .stream()
+            .filter(attributeId -> !existingTmsTestCaseAttributeIds.contains(
+                new TmsTestCaseAttributeId(testCaseId, attributeId)))
             .map(attributeId -> tmsTestCaseAttributeMapper.createTestCaseAttribute(
-                testCaseId, attributeId)
+                tmsTestCaseRepository.getReferenceById(testCaseId),
+                tmsAttributeRepository.getReferenceById(attributeId))
             ))
         .toList();
 

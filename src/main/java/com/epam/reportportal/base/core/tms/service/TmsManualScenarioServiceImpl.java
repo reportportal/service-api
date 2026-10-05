@@ -3,12 +3,16 @@ package com.epam.reportportal.base.core.tms.service;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
 import com.epam.reportportal.base.core.tms.service.factory.TmsManualScenarioImplServiceFactory;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +62,74 @@ public class TmsManualScenarioServiceImpl implements TmsManualScenarioService {
     tmsManualScenario.setTestCaseVersion(testCaseVersion);
 
     return tmsManualScenario;
+  }
+
+  @Override
+  @Transactional
+  public List<TmsManualScenario> createTmsManualScenariosBatch(long projectId,
+      List<TmsTestCaseVersion> testCaseVersions,
+      List<TmsManualScenarioRQ> testCaseManualScenarioRQs) {
+
+    // Indices of versions that actually have a manual scenario to create
+    var activeIndices = new ArrayList<Integer>();
+    var scenarioEntities = new ArrayList<TmsManualScenario>();
+
+    for (int i = 0; i < testCaseManualScenarioRQs.size(); i++) {
+      var rq = testCaseManualScenarioRQs.get(i);
+      if (rq == null) {
+        continue;
+      }
+      var scenario = tmsManualScenarioMapper.createTmsManualScenario(rq);
+      scenario.setTestCaseVersion(testCaseVersions.get(i));
+      activeIndices.add(i);
+      scenarioEntities.add(scenario);
+    }
+
+    var result = new ArrayList<TmsManualScenario>(Collections.nCopies(
+        testCaseManualScenarioRQs.size(), null));
+
+    if (scenarioEntities.isEmpty()) {
+      return result;
+    }
+
+    var savedScenarios = tmsManualScenarioRepository.saveAll(scenarioEntities);
+    var activeRQs = activeIndices.stream().map(testCaseManualScenarioRQs::get).toList();
+
+    for (int i = 0; i < savedScenarios.size(); i++) {
+      var scenario = savedScenarios.get(i);
+      testCaseVersions.get(activeIndices.get(i)).setManualScenario(scenario);
+      result.set(activeIndices.get(i), scenario);
+    }
+
+    tmsManualScenarioPreconditionsService.createPreconditionsBatch(projectId, savedScenarios,
+        activeRQs.stream().map(TmsManualScenarioRQ::getPreconditions).toList());
+
+    tmsManualScenarioRequirementService.createRequirementsBatch(savedScenarios,
+        activeRQs.stream().map(TmsManualScenarioRQ::getRequirements).toList());
+
+    for (int i = 0; i < savedScenarios.size(); i++) {
+      tmsManualScenarioAttributeService.createAttributes(projectId, savedScenarios.get(i),
+          activeRQs.get(i).getAttributes());
+    }
+
+    // All scenarios created via a single importTestCases()/CSV-import call share one manual
+    // scenario type (CSV only ever produces TEXT), so one factory lookup + one batch call suffices.
+    var scenariosByType = new LinkedHashMap<TmsManualScenarioType, List<Integer>>();
+    for (int i = 0; i < savedScenarios.size(); i++) {
+      scenariosByType
+          .computeIfAbsent(activeRQs.get(i).getManualScenarioType(), t -> new ArrayList<>())
+          .add(i);
+    }
+
+    scenariosByType.forEach((type, indices) -> {
+      var scenariosOfType = indices.stream().map(savedScenarios::get).toList();
+      var rqsOfType = indices.stream().map(activeRQs::get).toList();
+      tmsManualScenarioImplServiceFactory
+          .getTmsManualScenarioService(type)
+          .createTmsManualScenarioBatch(projectId, scenariosOfType, rqsOfType);
+    });
+
+    return result;
   }
 
   @Override

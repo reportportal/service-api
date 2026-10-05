@@ -80,6 +80,7 @@ class IntegrationTypeRepositoryTest extends BaseMvcTest {
     List<IntegrationType> integrationTypes = integrationTypeRepository.findAllByPluginType(
         PluginTypeEnum.BUILT_IN);
     assertNotNull(integrationTypes);
-    assertEquals(2, integrationTypes.size());
+    // 'github-actions' and 'gitlab-ci' (CI-trigger integration types, migration 226) are BUILT_IN too.
+    assertEquals(4, integrationTypes.size());
   }
 }

@@ -21,6 +21,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 import javax.sql.DataSource;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
@@ -56,9 +57,16 @@ public class DataSourceConfig extends HikariConfig {
   public DataSource testDataSource(@Value("${embedded.datasource.dir}") String dataDir,
       @Value("${embedded.datasource.clean}") Boolean clean,
       @Value("${embedded.datasource.port}") Integer port) throws IOException {
+    // Every distinct Spring test context configuration (e.g. a test class that adds its own
+    // @MockBean on top of BaseMvcTest's set) gets its own ApplicationContext and therefore its
+    // own instance of this bean. Spring's test context cache keeps multiple such contexts alive
+    // at once, so a shared, fixed data directory here would let one context's initdb collide
+    // with another still-running context's live Postgres process on the same files. A unique
+    // subdirectory per bean instance keeps concurrently-cached contexts isolated from each other.
+    final File instanceDataDir = new File(dataDir, UUID.randomUUID().toString());
     final EmbeddedPostgres.Builder builder = EmbeddedPostgres.builder()
         .setPort(port)
-        .setDataDirectory(new File(dataDir))
+        .setDataDirectory(instanceDataDir)
         .setCleanDataDirectory(clean);
     DataSource dataSource = builder.start().getPostgresDatabase();
     log.info("Database started on port: {}", ((PGSimpleDataSource) dataSource).getPortNumbers());

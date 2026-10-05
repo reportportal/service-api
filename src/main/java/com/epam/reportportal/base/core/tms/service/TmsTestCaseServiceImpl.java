@@ -5,6 +5,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static java.util.Objects.nonNull;
 
+import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.PreparedTestCase;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeImportRQ;
@@ -341,7 +342,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           projectId, patchRequest.getTestFolderId(), patchRequest.getTestFolder()
       );
     }
-    var priority = patchRequest.getPriority() != null ? patchRequest.getPriority().toUpperCase() : null;
+    var priority = StringUtils.isNotBlank(patchRequest.getPriority())
+        ? TmsTestCasePriority.normalize(patchRequest.getPriority())
+        : null;
     if (nonNull(testFolderId)
         || nonNull(priority)) {
       tmsTestCaseRepository.patch(projectId,

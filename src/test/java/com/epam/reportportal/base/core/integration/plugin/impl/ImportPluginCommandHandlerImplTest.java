@@ -162,6 +162,55 @@ class ImportPluginCommandHandlerImplTest {
     verifyNoInteractions(launchRepository);
   }
 
+  @Test
+  void shouldAllowOrgManagerImportToExistingLaunchWhenNotAssignedToProject() {
+    ReportPortalUser user = getRpUser("manager", UserRole.USER, OrganizationRole.MANAGER,
+        null, 1L);
+    MembershipDetails membershipDetails = membershipDetails(OrganizationRole.MANAGER, null);
+    Launch launch = launch();
+    launch.setUserId(2L);
+    Object result = new Object();
+    LaunchImportRQ rq = importRequest();
+
+    when(projectExtractor.extractMembershipDetails(user, PROJECT_KEY)).thenReturn(
+        membershipDetails);
+    when(launchRepository.findByUuid(LAUNCH_UUID)).thenReturn(Optional.of(launch));
+    when(file.getOriginalFilename()).thenReturn("launch.zip");
+    when(executeIntegrationHandler.executeExtensionCommand(eq(PLUGIN_NAME), eq("import"),
+        any())).thenReturn(result);
+
+    Object actual = handler.execute(user, PROJECT_KEY, PLUGIN_NAME, file, rq);
+
+    assertThat(actual).isSameAs(result);
+  }
+
+  @Test
+  void shouldRejectOrgManagerImportToLaunchFromAnotherProject() {
+    ReportPortalUser user = getRpUser("manager", UserRole.USER, OrganizationRole.MANAGER,
+        null, 1L);
+    MembershipDetails membershipDetails = membershipDetails(OrganizationRole.MANAGER, null);
+    Launch launch = launch();
+    launch.setProjectId(2L);
+    LaunchImportRQ rq = importRequest();
+
+    when(projectExtractor.extractMembershipDetails(user, PROJECT_KEY)).thenReturn(
+        membershipDetails);
+    when(launchRepository.findByUuid(LAUNCH_UUID)).thenReturn(Optional.of(launch));
+
+    assertThatThrownBy(() -> handler.execute(user, PROJECT_KEY, PLUGIN_NAME, file, rq))
+        .isInstanceOf(ReportPortalException.class)
+        .satisfies(ex -> {
+          ReportPortalException exception = (ReportPortalException) ex;
+          assertThat(exception.getErrorType()).isEqualTo(ACCESS_DENIED);
+          assertThat(exception.getMessage()).isEqualTo(
+              "You do not have enough permissions. Target launch is not under specified project.");
+        });
+
+    verify(executeIntegrationHandler, never()).executeExtensionCommand(
+        anyString(), anyString(), any(PluginCommandRQ.class));
+    verify(applicationEventPublisher, never()).publishEvent(any());
+  }
+
   private void shouldRejectImportToAnotherUsersLaunch() {
     ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MEMBER,
         ProjectRole.VIEWER, 1L);
@@ -189,10 +238,16 @@ class ImportPluginCommandHandlerImplTest {
   }
 
   private static MembershipDetails membershipDetails(ProjectRole projectRole) {
+    return membershipDetails(OrganizationRole.MEMBER, projectRole);
+  }
+
+  private static MembershipDetails membershipDetails(OrganizationRole orgRole,
+      ProjectRole projectRole) {
     return MembershipDetails.builder()
         .withOrgId(1L)
         .withProjectId(1L)
         .withProjectKey(PROJECT_KEY)
+        .withOrgRole(orgRole)
         .withProjectRole(projectRole)
         .build();
   }

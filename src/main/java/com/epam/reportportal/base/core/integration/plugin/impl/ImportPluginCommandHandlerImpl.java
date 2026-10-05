@@ -32,6 +32,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -105,6 +106,10 @@ public class ImportPluginCommandHandlerImpl implements ImportPluginCommandHandle
 
     expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId())).verify(ACCESS_DENIED,
         "Target launch is not under specified project.");
+
+    if (OrganizationRole.MANAGER.equals(membershipDetails.getOrgRole())) {
+      return;
+    }
 
     if (membershipDetails.getProjectRole().lowerThan(ProjectRole.EDITOR)) {
       expect(launch.getUserId(), equalTo(user.getUserId())).verify(ACCESS_DENIED,

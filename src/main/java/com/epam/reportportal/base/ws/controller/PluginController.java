@@ -36,8 +36,6 @@ import com.epam.reportportal.base.model.launch.LaunchImportRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Part;
@@ -150,8 +148,7 @@ public class PluginController {
       @PathVariable String pluginName,
       @RequestParam("file") MultipartFile file,
       @RequestPart(value = "launchImportRq", required = false)
-      @Parameter(content = @Content(mediaType = APPLICATION_JSON_VALUE,
-          schema = @Schema(implementation = LaunchImportRQ.class))) Part launchImportRqPart) {
+      @Schema(implementation = LaunchImportRQ.class) Part launchImportRqPart) {
     return importPluginCommandHandler.execute(user, projectKey, pluginName, file,
         launchImportRqConverter.convert(launchImportRqPart));
   }

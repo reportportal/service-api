@@ -199,6 +199,52 @@ class QaSpaceSyncConnectorTest {
     }
 
     @Test
+    void fetchTestCases_preservesFolderTestCaseOrderWhenJiraResponseIsUnordered() {
+        var searchResponse = """
+                {
+                  "issues": [
+                    {
+                      "key": "EPMRPP-103",
+                      "fields": {
+                        "summary": "Third Test Case",
+                        "updated": "2024-01-15T10:30:00.000+0000"
+                      }
+                    },
+                    {
+                      "key": "EPMRPP-101",
+                      "fields": {
+                        "summary": "First Test Case",
+                        "updated": "2024-01-15T10:30:00.000+0000"
+                      }
+                    },
+                    {
+                      "key": "EPMRPP-102",
+                      "fields": {
+                        "summary": "Second Test Case",
+                        "updated": "2024-01-15T10:30:00.000+0000"
+                      }
+                    }
+                  ]
+                }
+                """;
+        var folder = RemoteFolder.builder()
+                .id("27082")
+                .testCaseIds(List.of("EPMRPP-101", "EPMRPP-102", "EPMRPP-103"))
+                .build();
+
+        when(jiraHttpClient.post(eq(BASE_URL), eq("Bearer " + BEARER_PAT), eq("rest/api/2/search"), anyString()))
+                .thenReturn(searchResponse);
+
+        var result = connector.fetchTestCases(integration, folder, null, 0, 50);
+
+        assertEquals(3, result.getTotalCount());
+        assertEquals(
+                List.of("EPMRPP-101", "EPMRPP-102", "EPMRPP-103"),
+                result.getTestCases().stream().map(testCase -> testCase.getId()).toList()
+        );
+    }
+
+    @Test
     void fetchTestCases_withRequirements_parsesCorrectlyUsingBaseUrl() {
         var searchResponse = """
                 {

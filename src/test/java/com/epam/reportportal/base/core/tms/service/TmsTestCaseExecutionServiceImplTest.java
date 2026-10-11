@@ -36,6 +36,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
+import jakarta.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -97,6 +98,9 @@ class TmsTestCaseExecutionServiceImplTest {
 
   @Mock
   private TmsManualScenarioMapper tmsManualScenarioMapper;
+
+  @Mock
+  private EntityManager entityManager;
 
   @InjectMocks
   private TmsTestCaseExecutionServiceImpl sut;
@@ -644,6 +648,50 @@ class TmsTestCaseExecutionServiceImplTest {
     verify(tmsTestCaseService).getByIdsMap(projectId, testCaseIds, false);
     verify(tmsTestCaseExecutionRepository, never()).existsByTestCaseIdAndLaunchId(any(), any());
     verify(tmsTestCaseVersionService, never()).findDefaultVersionIdByTestCaseId(any());
+  }
+
+  @Test
+  void addTestCasesToLaunch_ShouldPrepareSuitesBeforeCreatingItemsAndRestoreFlushMode() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var projectId = 1L;
+    var testCaseIds = List.of(testCaseId1, testCaseId2);
+
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(testCaseIds);
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(10L)).thenReturn(Set.of());
+    when(tmsTestCaseService.getTestFolderIdsByTestCaseIds(projectId, testCaseIds))
+        .thenReturn(List.of(100L, 200L));
+
+    var testCaseRS1 = TmsTestCaseRS.builder().id(testCaseId1).name("TC 1")
+        .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build()).defaultVersionId(1L).build();
+    var testCaseRS2 = TmsTestCaseRS.builder().id(testCaseId2).name("TC 2")
+        .testFolder(TmsTestCaseTestFolderRS.builder().id(200L).build()).defaultVersionId(2L).build();
+    when(tmsTestCaseService.getByIdsMap(projectId, testCaseIds, false))
+        .thenReturn(Map.of(testCaseId1, testCaseRS1, testCaseId2, testCaseRS2));
+
+    var suite1 = new TestItem();
+    suite1.setItemId(50L);
+    var suite2 = new TestItem();
+    suite2.setItemId(60L);
+    when(testFolderItemService.findTestFolderItem(eq(projectId), eq(100L), eq(launch), any()))
+        .thenReturn(suite1);
+    when(testFolderItemService.findTestFolderItem(eq(projectId), eq(200L), eq(launch), any()))
+        .thenReturn(suite2);
+    when(testCaseItemService.createTestCaseItem(any(), any(), eq(launch), any())).thenReturn(testItem1);
+    when(tmsTestCaseExecutionMapper.createTestCaseExecution(any(), eq(launch), any(), any()))
+        .thenReturn(execution1);
+    when(tmsTestCaseExecutionRepository.save(any(TmsTestCaseExecution.class))).thenReturn(execution1);
+    when(entityManager.getFlushMode()).thenReturn(jakarta.persistence.FlushModeType.AUTO);
+
+    sut.addTestCasesToLaunch(projectId, launch, testCaseIds);
+
+    var order = org.mockito.Mockito.inOrder(testFolderItemService, testCaseItemService, entityManager);
+    order.verify(testFolderItemService).markAsHavingChildren(suite1);
+    order.verify(testFolderItemService).markAsHavingChildren(suite2);
+    order.verify(entityManager).setFlushMode(jakarta.persistence.FlushModeType.COMMIT);
+    order.verify(testCaseItemService, org.mockito.Mockito.times(2))
+        .createTestCaseItem(any(), any(), eq(launch), any());
+    order.verify(entityManager).setFlushMode(jakarta.persistence.FlushModeType.AUTO);
   }
 
   @Test

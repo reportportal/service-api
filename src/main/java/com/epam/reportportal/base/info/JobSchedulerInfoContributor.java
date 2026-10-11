@@ -66,10 +66,14 @@ public class JobSchedulerInfoContributor implements InfoContributor {
               LOGGER.warn(e.getMessage());
               return Stream.empty();
             }
-          }).collect(Collectors.toMap(
+          })
+          // one-shot triggers (e.g. tmsSyncJob_<id>) have no next fire time while the job is running
+          .filter(t -> t.getNextFireTime() != null)
+          .collect(Collectors.toMap(
               t -> t.getKey().getName(),
               t -> Collections.singletonMap("triggersIn",
-                  t.getNextFireTime().getTime() - System.currentTimeMillis())
+                  t.getNextFireTime().getTime() - System.currentTimeMillis()),
+              (first, second) -> first
           ));
       if (MapUtils.isNotEmpty(triggersInfo)) {
         builder.withDetail("jobs", triggersInfo);

@@ -867,6 +867,15 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<Long> getTestFolderIdsByTestCaseIds(Long projectId, List<Long> testCaseIds) {
+    if (testCaseIds == null || testCaseIds.isEmpty()) {
+      return List.of();
+    }
+    return tmsTestCaseRepository.findTestFolderIdsByProjectIdAndIds(projectId, testCaseIds);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Page<TmsTestCaseInTestPlanRS> getTestCasesInTestPlan(Long projectId, Long testPlanId,
       Filter filter, Pageable pageable) {
 

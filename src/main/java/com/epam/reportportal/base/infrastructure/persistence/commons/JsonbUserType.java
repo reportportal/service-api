@@ -55,6 +55,7 @@ public abstract class JsonbUserType<T> implements UserType<T> {
   }
 
   @Override
+  @JsonIgnore
   public int getSqlType() {
     return Types.JAVA_OBJECT;
   }

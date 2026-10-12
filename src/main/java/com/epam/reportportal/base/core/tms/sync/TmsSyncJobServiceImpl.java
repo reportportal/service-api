@@ -180,7 +180,7 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
       if (job != null && job.getStatus() == TmsSyncStatus.PENDING) {
         job.setStatus(TmsSyncStatus.IN_PROGRESS);
         job.setStartedAt(Instant.now());
-        job.setCounters(new SyncCounters(0, 0, 0));
+        job.setCounters(new SyncCounters(0, 0, 0, 0));
         if (job.getErrorLog() == null) {
           job.setErrorLog(new SyncErrorLog(new ArrayList<>()));
         }
@@ -250,7 +250,6 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
 
           var remoteTestCasesBatch = remoteTestCases.getTestCases();
           if (CollectionUtils.isNotEmpty(remoteTestCasesBatch)) {
-            updateJobTotalCounter(jobId, remoteTestCasesBatch.size());
             tmsTestCaseSyncService.processTestCaseBatch(
                 jobId,
                 executingJob.getProject().getId(),
@@ -295,20 +294,6 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
         return null;
       });
     }
-  }
-
-  private void updateJobTotalCounter(Long jobId, int totalCount) {
-    if (totalCount <= 0) {
-      return;
-    }
-    transactionTemplate.execute(status -> {
-      var job = tmsSyncJobRepository.findById(jobId).orElseThrow();
-      if (job.getStatus() == TmsSyncStatus.IN_PROGRESS) {
-        job.getCounters().setTotal(job.getCounters().getTotal() + totalCount);
-        return tmsSyncJobRepository.save(job);
-      }
-      return job;
-    });
   }
 
   private boolean isJobCanceled(Long jobId) {

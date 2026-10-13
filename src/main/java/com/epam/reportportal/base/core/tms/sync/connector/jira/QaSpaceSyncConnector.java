@@ -121,10 +121,6 @@ public class QaSpaceSyncConnector implements TmsSyncConnector<Integration> {
                             updatedAt = Instant.from(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(fields.get("updated").asText()));
                         }
 
-                        if (since != null && updatedAt.isBefore(since)) {
-                            return;
-                        }
-
                         var attachments = new ArrayList<RemoteAttachment>();
                         if (fields.has("attachment")) {
                             fields.get("attachment").forEach(attNode -> {

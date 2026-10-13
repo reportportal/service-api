@@ -212,16 +212,9 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
       var folderIdMap = tmsFolderSyncService.syncFolders(executingJob, remoteFolders, localRootFolderId);
 
       // 2. Sync Test Cases
-      // An initial sync deliberately has no watermark to perform a full import.
-      var since = transactionTemplate.execute(status ->
-          tmsSyncJobRepository.findFirstByProjectIdAndIntegrationIdAndStatusAndRemoteFolderIdOrderByCompletedAtDesc(
-                  executingJob.getProject().getId(),
-                  integration.getId(),
-                  TmsSyncStatus.SUCCESS,
-                  remoteRootFolderId
-              ).map(TmsSyncJob::getCompletedAt)
-              .orElse(null)
-      );
+      // Every remote test case is fetched on every run; unchanged ones are detected per test case
+      // (source_updated_at) and reported as "skipped". A last-success watermark would hide them
+      // from the job statistics and could permanently skip cases that failed in an earlier run.
 
       for (var remoteFolder : remoteFolders) {
         if (isJobCanceled(jobId)) {
@@ -240,7 +233,7 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
           }
 
           var remoteTestCases = connector.fetchTestCases(
-              integration, remoteFolder, since, offset, BATCH_SIZE
+              integration, remoteFolder, null, offset, BATCH_SIZE
           );
 
           if (isJobCanceled(jobId)) {

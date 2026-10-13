@@ -86,7 +86,8 @@ project.ext {
             (migrationsUrl + '/migrations/113_update_triggers.up.sql')                  : 'V113__update_triggers.sql',
             (migrationsUrl + '/migrations/114_remove_stats_retry_functions.up.sql')     : 'V114__remove_stats_retry_functions.sql',
             (migrationsUrl + '/migrations/116_add_tracking_launch_changes_table.up.sql'): 'V116__add_tracking_launch_changes_table.sql',
-            (migrationsUrl + '/migrations/119_launch_launch_type.up.sql')               : 'V119__launch_launch_type.sql'
+            (migrationsUrl + '/migrations/119_launch_launch_type.up.sql')               : 'V119__launch_launch_type.sql',
+            (migrationsUrl + '/migrations/121_create_grafana_session_table.up.sql')     : 'V121__create_grafana_session_table.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

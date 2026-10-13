@@ -81,17 +81,17 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
     validate(launch, user, projectDetails);
+    LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(launch);
 
     logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
     launchContentRemover.remove(launch);
     logService.deleteLogMessageByLaunch(projectDetails.getProjectId(), launch.getId());
+    launch.getAttributes().clear();
     launchRepository.delete(launch);
     attachmentRepository.moveForDeletionByLaunchId(launchId);
 
     messageBus.publishActivity(
-        new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(),
-            user.getUsername()
-        ));
+        new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
     return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
   }
 
@@ -119,18 +119,18 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     });
 
     if (CollectionUtils.isNotEmpty(launchIds)) {
+      List<LaunchActivityResource> launchActivities =
+          toDelete.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
       logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
       toDelete.forEach(launchContentRemover::remove);
       logService.deleteLogMessageByLaunchList(projectDetails.getProjectId(), launchIds);
+      toDelete.forEach(launch -> launch.getAttributes().clear());
       launchRepository.deleteAll(toDelete);
       attachmentRepository.moveForDeletionByLaunchIds(launchIds);
-    }
 
-    toDelete.forEach(launch -> {
-      LaunchActivityResource launchActivity = TO_ACTIVITY_RESOURCE.apply(launch);
-      messageBus.publishActivity(
-          new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername()));
-    });
+      launchActivities.forEach(launchActivity -> messageBus.publishActivity(
+          new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername())));
+    }
 
     return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
       ErrorRS errorResponse = new ErrorRS();

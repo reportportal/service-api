@@ -74,6 +74,7 @@ class SecurityConfiguration {
                 "/**/user**/password/reset**",
                 "/**/user**/password/restore**",
                 "/**/plugin/public/**",
+                "/v1/public/integration/grafana/**",
                 "/documentation.html",
                 "/health",
                 "/info",

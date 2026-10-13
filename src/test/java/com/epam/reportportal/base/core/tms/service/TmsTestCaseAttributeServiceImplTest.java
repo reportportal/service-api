@@ -239,6 +239,48 @@ class TmsTestCaseAttributeServiceImplTest {
   }
 
   @Test
+  void createTestCaseAttributes_ShouldCollapseDuplicateAttributes() {
+    // Given
+    var rq1 = new TmsTestCaseAttributeRQ();
+    rq1.setKey("smoke");
+    var rq2 = new TmsTestCaseAttributeRQ();
+    rq2.setKey("smoke");
+
+    when(tmsAttributeService.findOrCreateTag(PROJECT_ID, "smoke")).thenReturn(tmsAttribute);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
+        .thenReturn(testCaseAttributes.iterator().next());
+
+    // When
+    sut.createTestCaseAttributes(PROJECT_ID, testCase, List.of(rq1, rq2));
+
+    // Then
+    verify(tmsTestCaseAttributeMapper, org.mockito.Mockito.times(1))
+        .createTestCaseAttribute(testCase, tmsAttribute);
+    var captor = org.mockito.ArgumentCaptor.forClass(java.util.Collection.class);
+    verify(tmsTestCaseAttributeRepository).saveAll(captor.capture());
+    assertEquals(1, captor.getValue().size());
+  }
+
+  @Test
+  void createTestCaseAttributes_ShouldSkipAlreadyExistingPairs() {
+    // Given
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 2L)).thenReturn(tmsAttribute);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
+        .thenReturn(testCaseAttributes.iterator().next());
+    when(tmsTestCaseAttributeRepository.findExistingIds(any(), any()))
+        .thenReturn(List.of(new TmsTestCaseAttributeId(testCase.getId(), 2L)));
+
+    // When
+    sut.createTestCaseAttributes(PROJECT_ID, testCase, attributeRQs);
+
+    // Then
+    var captor = org.mockito.ArgumentCaptor.forClass(java.util.Collection.class);
+    verify(tmsTestCaseAttributeRepository).saveAll(captor.capture());
+    assertEquals(0, captor.getValue().size());
+    assertEquals(1, testCase.getAttributes().size());
+  }
+
+  @Test
   void createTestCaseAttributes_ShouldHandleMixedIdAndKey() {
     // Given
     var attributeRQ1 = new TmsTestCaseAttributeRQ();

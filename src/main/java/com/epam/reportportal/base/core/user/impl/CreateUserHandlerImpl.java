@@ -53,6 +53,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,6 +66,7 @@ import org.springframework.stereotype.Service;
  *
  * @author Andrei_Ramanchuk
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CreateUserHandlerImpl implements CreateUserHandler {
@@ -117,8 +119,11 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
     }
 
-    expect(user.get().getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR,
-        "Unable to change password for external user");
+    if (user.get().getUserType() != UserType.INTERNAL) {
+      log.info("Password recovery requested for non-internal user id={}, type={}; skipped",
+          user.get().getId(), user.get().getUserType());
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
 
     restorePasswordBidRepository.deleteByEmail(email);
     rq.setEmail(email);

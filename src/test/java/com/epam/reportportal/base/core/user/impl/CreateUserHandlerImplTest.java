@@ -19,9 +19,12 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static com.epam.reportportal.base.core.user.impl.CreateUserHandlerImpl.EMAIL_HAS_BEEN_SENT;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.NewUserRequest;
@@ -39,12 +42,17 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserTyp
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.user.ResetPasswordRQ;
+import com.epam.reportportal.base.model.user.RestorePasswordRQ;
+import com.epam.reportportal.base.util.email.EmailService;
+import com.epam.reportportal.base.util.email.MailServiceFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -67,6 +75,12 @@ class CreateUserHandlerImplTest {
 
   @Mock
   private RestorePasswordBidRepository restorePasswordBidRepository;
+
+  @Mock
+  private MailServiceFactory emailServiceFactory;
+
+  @Mock
+  private EmailService emailService;
 
   @InjectMocks
   private CreateUserHandlerImpl handler;
@@ -212,6 +226,53 @@ class CreateUserHandlerImplTest {
     verify(userMutationService).updatePassword(eq(user), eq("newPassword123!"));
     verify(userRepository).save(user);
     verify(restorePasswordBidRepository).deleteById("bid-uuid");
+  }
+
+  @Test
+  void restorePasswordForUnknownEmailShouldReturnGenericMessage() {
+    when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+
+    var rs = handler.createRestorePasswordBid(restoreRq("unknown@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verifyNoInteractions(restorePasswordBidRepository, emailServiceFactory);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = UserType.class, names = "INTERNAL", mode = EnumSource.Mode.EXCLUDE)
+  void restorePasswordForNonInternalUserShouldReturnGenericMessage(UserType type) {
+    var user = new User();
+    user.setEmail("external@example.com");
+    user.setUserType(type);
+    when(userRepository.findByEmail("external@example.com")).thenReturn(Optional.of(user));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("external@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verifyNoInteractions(restorePasswordBidRepository, emailServiceFactory);
+  }
+
+  @Test
+  void restorePasswordForInternalUserShouldCreateBidAndSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    when(emailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verify(restorePasswordBidRepository).deleteByEmail("internal@example.com");
+    verify(restorePasswordBidRepository).save(any(RestorePasswordBid.class));
+    verify(emailService).sendRestorePasswordEmail(eq("Password recovery"),
+        eq(new String[]{"internal@example.com"}), any(), any());
+  }
+
+  private static RestorePasswordRQ restoreRq(String email) {
+    var rq = new RestorePasswordRQ();
+    rq.setEmail(email);
+    return rq;
   }
 
 }

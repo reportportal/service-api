@@ -22,7 +22,6 @@ import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -47,7 +46,10 @@ import com.epam.ta.reportportal.ws.reporting.Mode;
 import com.epam.ta.reportportal.ws.reporting.StartLaunchRQ;
 import com.google.common.collect.Sets;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -58,6 +60,11 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy {
+
+  private static final Set<TestItemTypeEnum> SUITE_LEVEL_TYPES = Arrays.stream(
+          TestItemTypeEnum.values())
+      .filter(type -> type.sameLevel(TestItemTypeEnum.SUITE))
+      .collect(Collectors.toUnmodifiableSet());
 
   protected final LaunchRepository launchRepository;
 
@@ -81,11 +88,14 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     Launch newLaunch =
         createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq, launchesList);
     boolean isNameChanged = !newLaunch.getName().equals(launchesList.get(0).getName());
-    updateChildrenOfLaunches(newLaunch, rq.getLaunches(), rq.isExtendSuitesDescription(),
+    updateChildrenOfLaunches(newLaunch, launchesList, rq.isExtendSuitesDescription(),
         isNameChanged
     );
 
-    return newLaunch;
+    // Bulk updates clear the persistence context, so return a managed instance
+    return launchRepository.findById(newLaunch.getId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
+            newLaunch.getId()));
   }
 
   /**
@@ -172,42 +182,66 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   }
 
   /**
-   * Update test-items of specified launches with new LaunchID
+   * Update test-items of specified launches with new LaunchID. Items are moved with a single bulk
+   * update per launch, only items that require additional changes are loaded and saved: unique id
+   * regeneration if launch name was changed and suite description extension.
+   *
+   * <p>Bulk update clears the persistence context, so all previously loaded entities become
+   * detached.
    *
    * @param newLaunch         {@link Launch}
-   * @param launches          {@link Set} of the {@link Launch}
+   * @param launches          {@link List} of the {@link Launch} to be merged
    * @param extendDescription additional description for suite indicator
    * @param isNameChanged     launch name change indicator
    */
-  private void updateChildrenOfLaunches(Launch newLaunch, Set<Long> launches,
+  private void updateChildrenOfLaunches(Launch newLaunch, List<Launch> launches,
       boolean extendDescription, boolean isNameChanged) {
-    List<TestItem> testItems = launches.stream().peek(id -> {
-      logRepository.updateLaunchIdByLaunchId(id, newLaunch.getId());
-      attachmentRepository.updateLaunchIdByProjectIdAndLaunchId(newLaunch.getProjectId(), id,
-          newLaunch.getId()
+    launches.forEach(launch -> {
+      List<TestItem> changedItems =
+          updateItemsBeforeMove(newLaunch, launch, extendDescription, isNameChanged);
+      testItemRepository.saveAll(changedItems);
+
+      testItemRepository.updateLaunchIdByLaunchId(launch.getId(), newLaunch.getId());
+      logRepository.updateLaunchIdByLaunchId(launch.getId(), newLaunch.getId());
+      attachmentRepository.updateLaunchIdByProjectIdAndLaunchId(newLaunch.getProjectId(),
+          launch.getId(), newLaunch.getId()
       );
-    }).flatMap(id -> {
-      Launch launch = launchRepository.findById(id)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, id));
-      return testItemRepository.findTestItemsByLaunchId(launch.getId()).stream().peek(testItem -> {
-        testItem.setLaunchId(newLaunch.getId());
-        if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
-          testItem.setUniqueId(
-              identifierGenerator.generate(testItem, IdentityUtil.getParentIds(testItem),
-                  newLaunch
-              ));
-        }
-        if (testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
-          // Add launch reference description for top level items
-          Supplier<String> newDescription = Suppliers.formattedSupplier(
-              ((null != testItem.getDescription()) ? testItem.getDescription() : "") + (
-                  extendDescription ? "\r\n@launch '{} #{}'" : ""), launch.getName(),
-              launch.getNumber()
-          );
-          testItem.setDescription(newDescription.get());
-        }
-      });
-    }).collect(toList());
-    testItemRepository.saveAll(testItems);
+    });
+  }
+
+  private List<TestItem> updateItemsBeforeMove(Launch newLaunch, Launch launch,
+      boolean extendDescription, boolean isNameChanged) {
+    List<TestItem> testItems;
+    if (isNameChanged) {
+      testItems = testItemRepository.findTestItemsByLaunchId(launch.getId());
+    } else if (extendDescription) {
+      testItems = testItemRepository.findTestItemsByLaunchIdAndTypeIn(launch.getId(),
+          SUITE_LEVEL_TYPES);
+    } else {
+      return Collections.emptyList();
+    }
+
+    List<TestItem> changedItems = new ArrayList<>();
+    testItems.forEach(testItem -> {
+      boolean changed = false;
+      if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
+        testItem.setUniqueId(
+            identifierGenerator.generate(testItem, IdentityUtil.getParentIds(testItem), newLaunch));
+        changed = true;
+      }
+      if (extendDescription && testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
+        // Add launch reference description for top level items
+        Supplier<String> newDescription = Suppliers.formattedSupplier(
+            ofNullable(testItem.getDescription()).orElse("") + "\r\n@launch '{} #{}'",
+            launch.getName(), launch.getNumber()
+        );
+        testItem.setDescription(newDescription.get());
+        changed = true;
+      }
+      if (changed) {
+        changedItems.add(testItem);
+      }
+    });
+    return changedItems;
   }
 }

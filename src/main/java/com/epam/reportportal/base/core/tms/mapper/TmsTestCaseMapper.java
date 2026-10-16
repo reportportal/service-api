@@ -1,9 +1,9 @@
 package com.epam.reportportal.base.core.tms.mapper;
 
 import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionLaunchRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
@@ -97,8 +97,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
-      qualifiedByName = "normalizePriority")
+  @Mapping(target = "priority", expression = "java(normalizePriority(tmsTestCaseRQ.getPriority()))")
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 
@@ -107,8 +106,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
-      qualifiedByName = "normalizePriorityForPatch")
+  @Mapping(target = "priority", expression = "java(normalizePriorityForPatch(tmsTestCaseRQ.getPriority()))")
   public abstract TmsTestCase convertFromPatchRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 

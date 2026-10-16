@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.ws.controller;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,8 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epam.reportportal.api.model.AnalyticsSettingsRequest;
 import com.epam.reportportal.api.model.ServerSettingKey;
 import com.epam.reportportal.api.model.UpdateServerSettingsRequest;
+import com.epam.reportportal.base.core.marketplace.MarketplaceLicenceStore;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -39,10 +43,33 @@ class SettingsControllerTest extends BaseMvcTest {
   @Autowired
   private ObjectMapper objectMapper;
 
+  @Autowired
+  private MarketplaceLicenceStore licenceStore;
+
   @Test
   void getServerSettings() throws Exception {
     mockMvc.perform(get("/v1/settings").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
+  }
+
+  /**
+   * The licence rows are keyed outside the {@code server.} prefix precisely so this endpoint
+   * cannot render key material. Asserted here, on the consuming side: the store's own test cannot
+   * stop someone widening {@code selectServerSettings} later.
+   */
+  @Test
+  void serverSettingsNeverRenderTheLicenceRows() throws Exception {
+    licenceStore.save("acme-gmbh", "c29tZS1saWNlbmNlLXNlZWQtdGhpcnR5LXR3by1ieXRlcw==");
+
+    for (var path : List.of("/v1/settings", "/settings")) {
+      var body = mockMvc.perform(get(path).with(token(oAuthHelper.getSuperadminToken())))
+          .andExpect(status().isOk())
+          .andReturn().getResponse().getContentAsString();
+
+      assertFalse(body.toLowerCase(Locale.ROOT).contains("licence"), body);
+      assertFalse(body.toLowerCase(Locale.ROOT).contains("license"), body);
+      assertFalse(body.contains("acme-gmbh"), body);
+    }
   }
 
   @Test

@@ -103,7 +103,6 @@
           "items": {
             "type": "object",
             "description": "The project pages that the app provides.",
-            "minItems": 1,
             "properties": {
               "slug": {
                 "$ref": "#/$defs/slug",
